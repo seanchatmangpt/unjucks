@@ -1,0 +1,21 @@
+name: command
+description: Generate Citty CLI commands
+templates:
+  - name: citty
+    description: Citty command with subcommands
+    files:
+      - "{{ commandName | pascalCase }}.ts"
+      - "{{ commandName | pascalCase }}.test.ts"
+    prompts:
+      - name: commandName
+        message: "Command name:"
+        type: input
+        default: myCommand
+      - name: withTests
+        message: Include tests?
+        type: confirm
+        default: true
+      - name: withSubcommands
+        message: Include subcommands?
+        type: confirm
+        default: true
