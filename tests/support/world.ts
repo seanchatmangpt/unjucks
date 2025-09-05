@@ -352,25 +352,13 @@ export class UnjucksWorld {
   // =========================================================================
 
   /**
-   * Set last command result (for compatibility with template-generation.steps.ts)
+   * Enhanced command result setter that combines both approaches
    */
-  setLastCommandResult(result: CLIResult): void {
+  setEnhancedCommandResult(result: CLIResult): void {
     this.context.lastCommandResult = result;
     this.context.lastCommandOutput = result.stdout;
     this.context.lastCommandError = result.stderr;
     this.context.lastCommandCode = result.exitCode;
-  }
-
-  /**
-   * Get last command result (for compatibility with template-generation.steps.ts)
-   */
-  getLastCommandResult(): CLIResult {
-    return this.context.lastCommandResult || {
-      stdout: this.context.lastCommandOutput,
-      stderr: this.context.lastCommandError,
-      exitCode: this.context.lastCommandCode || 0,
-      duration: 0
-    };
   }
 
   /**

@@ -45,7 +45,13 @@
     "test:cucumber:parallel": "vitest run --config config/vitest.cucumber.config.ts --pool=threads --poolOptions.threads.maxThreads=4",
     "test:cucumber:debug": "DEBUG=true vitest run --config config/vitest.cucumber.config.ts --reporter=verbose",
     "test:cucumber:legacy": "echo 'Legacy cucumber removed. Use npm run test:bdd instead'",
-    "test:cucumber:watch": "echo 'Legacy cucumber removed. Use npm run test:bdd:watch instead'"
+    "test:cucumber:watch": "echo 'Legacy cucumber removed. Use npm run test:bdd:watch instead'",
+    "reports": "tsx scripts/generate-reports.ts",
+    "reports:security": "tsx scripts/generate-reports.ts --security-only",
+    "reports:performance": "tsx scripts/generate-reports.ts --performance-only",
+    "reports:coverage": "tsx scripts/generate-reports.ts --coverage-only",
+    "reports:cleanup": "tsx scripts/generate-reports.ts --cleanup",
+    "reports:ci": "tsx scripts/generate-reports.ts --format json --cleanup"
   },
   "dependencies": {
     "chalk": "^5.3.0",
