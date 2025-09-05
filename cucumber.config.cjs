@@ -12,18 +12,31 @@ module.exports = {
       timeout: 30_000,
       testDataPath: "./tests/fixtures",
     },
+    // Comprehensive reporting formats
     format: [
-      "json:reports/cucumber-report.json",
-      "html:reports/cucumber-report.html",
+      "json:reports/cucumber/cucumber-report.json",
+      "html:reports/cucumber/cucumber-report.html",
+      "junit:reports/cucumber/junit-report.xml",
+      "@cucumber/pretty-formatter:reports/cucumber/cucumber-pretty.txt",
+      "usage:reports/cucumber/usage-report.txt",
+      "rerun:reports/cucumber/rerun.txt",
       "progress-bar",
+      "summary"
     ],
     formatOptions: {
-      snippetInterface: "async-await"
+      snippetInterface: "async-away",
+      colorsEnabled: true,
+      theme: "bootstrap"
     },
     parallel: 0,
     timeout: 30_000,
-    retry: 1,
+    retry: 2, // Increased retry for flaky test detection
+    retryTagFilter: "@flaky",
     tags: "@smoke or @regression",
+    // Performance and memory monitoring
+    publishQuiet: true,
+    strict: true,
+    dryRun: false,
   },
   smoke: {
     paths: ["features/**/*.feature"],
@@ -74,16 +87,35 @@ module.exports = {
       "tests/step-definitions/**/*.ts"
     ],
     requireModule: ["tsx/esm"],
+    // Full comprehensive reporting suite
     format: [
-      "json:reports/comprehensive-report.json",
-      "html:reports/comprehensive-report.html",
-      "progress-bar"
+      "json:reports/cucumber/comprehensive-report.json",
+      "html:reports/cucumber/comprehensive-report.html",
+      "junit:reports/cucumber/comprehensive-junit.xml",
+      "@cucumber/pretty-formatter:reports/cucumber/comprehensive-pretty.txt",
+      "usage:reports/cucumber/comprehensive-usage.txt",
+      "timeline:reports/cucumber/timeline.html",
+      "attachments:reports/cucumber/attachments",
+      "progress-bar",
+      "summary"
     ],
     formatOptions: {
-      snippetInterface: "async-await"
+      snippetInterface: "async-await",
+      colorsEnabled: true,
+      theme: "bootstrap",
+      showSource: true,
+      showDuration: true
     },
     tags: "@comprehensive",
     parallel: 0,
     timeout: 60_000,
+    retry: 3,
+    retryTagFilter: "@flaky or @unstable",
+    // Advanced reporting features
+    publishQuiet: false,
+    strict: true,
+    backtrace: true,
+    dryRun: false,
+    failFast: false
   },
 };

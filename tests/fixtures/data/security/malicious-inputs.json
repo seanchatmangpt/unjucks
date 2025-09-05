@@ -1,0 +1,284 @@
+{
+  "pathTraversalAttacks": [
+    {
+      "name": "Basic path traversal",
+      "input": "../../../etc/passwd",
+      "shouldBeBlocked": true,
+      "description": "Attempt to access system files via path traversal"
+    },
+    {
+      "name": "Windows path traversal",
+      "input": "..\\..\\..\\windows\\system32\\config\\sam",
+      "shouldBeBlocked": true,
+      "description": "Windows-style path traversal attack"
+    },
+    {
+      "name": "URL encoded path traversal",
+      "input": "%2e%2e%2f%2e%2e%2f%2e%2e%2fetc%2fpasswd",
+      "shouldBeBlocked": true,
+      "description": "URL-encoded path traversal attempt"
+    },
+    {
+      "name": "Double encoded path traversal",
+      "input": "%252e%252e%252f%252e%252e%252f%252e%252e%252fetc%252fpasswd",
+      "shouldBeBlocked": true,
+      "description": "Double URL-encoded path traversal"
+    },
+    {
+      "name": "Null byte injection",
+      "input": "../../../etc/passwd\u0000.txt",
+      "shouldBeBlocked": true,
+      "description": "Null byte injection to bypass file extension checks"
+    },
+    {
+      "name": "Long path traversal",
+      "input": "../".repeat(100) + "etc/passwd",
+      "shouldBeBlocked": true,
+      "description": "Extremely long path traversal attempt"
+    }
+  ],
+  
+  "templateInjections": [
+    {
+      "name": "Server-side template injection",
+      "template": "Hello {{ __import__('os').system('rm -rf /') }}!",
+      "shouldBeBlocked": true,
+      "description": "Attempt to execute system commands via template injection"
+    },
+    {
+      "name": "Process access attempt",
+      "template": "{{ process.env.SECRET_KEY }}",
+      "shouldBeBlocked": true,
+      "description": "Attempt to access process environment variables"
+    },
+    {
+      "name": "File system access",
+      "template": "{{ require('fs').readFileSync('/etc/passwd', 'utf8') }}",
+      "shouldBeBlocked": true,
+      "description": "Attempt to read system files via template"
+    },
+    {
+      "name": "Constructor pollution",
+      "template": "{{ constructor.constructor('return process')() }}",
+      "shouldBeBlocked": true,
+      "description": "Attempt to access global objects via constructor pollution"
+    },
+    {
+      "name": "Prototype pollution",
+      "template": "{{ __proto__.polluted = true }}",
+      "shouldBeBlocked": true,
+      "description": "Prototype pollution attempt"
+    }
+  ],
+  
+  "codeInjections": [
+    {
+      "name": "JavaScript injection in frontmatter",
+      "frontmatter": {
+        "to": "{{ process.exit(1) && 'output.txt' }}"
+      },
+      "shouldBeBlocked": true,
+      "description": "Code injection via frontmatter variables"
+    },
+    {
+      "name": "Shell command injection",
+      "variables": {
+        "filename": "test; rm -rf /; echo done"
+      },
+      "shouldBeBlocked": true,
+      "description": "Shell command injection via variable values"
+    },
+    {
+      "name": "SQL injection attempt",
+      "variables": {
+        "name": "'; DROP TABLE users; --"
+      },
+      "shouldBeBlocked": false,
+      "description": "SQL injection should be handled by application layer"
+    }
+  ],
+  
+  "resourceExhaustion": [
+    {
+      "name": "Infinite loop template",
+      "template": "{% set x = 1 %}{% while x %}{{ x }}{% endwhile %}",
+      "shouldBeBlocked": true,
+      "description": "Template that creates infinite loop"
+    },
+    {
+      "name": "Large recursion",
+      "template": "{% macro recurse(n) %}{% if n > 0 %}{{ recurse(n-1) }}{% endif %}{% endmacro %}{{ recurse(10000) }}",
+      "shouldBeBlocked": true,
+      "description": "Deep recursion that can cause stack overflow"
+    },
+    {
+      "name": "Memory exhaustion via large array",
+      "variables": {
+        "items": new Array(1000000).fill("x".repeat(1000))
+      },
+      "shouldBeBlocked": true,
+      "description": "Large data structure to exhaust memory"
+    },
+    {
+      "name": "Regex DoS (ReDoS)",
+      "template": "{{ 'aaaaaaaaaaaaaaaaaaaaaaaaaaaa!' | replace(r'(a+)+b', 'x') }}",
+      "shouldBeBlocked": true,
+      "description": "Regular expression denial of service"
+    }
+  ],
+  
+  "fileSystemThreats": [
+    {
+      "name": "Overwrite system files",
+      "outputPath": "/etc/hosts",
+      "shouldBeBlocked": true,
+      "description": "Attempt to overwrite system configuration files"
+    },
+    {
+      "name": "Write to restricted directories",
+      "outputPath": "/root/.ssh/authorized_keys",
+      "shouldBeBlocked": true,
+      "description": "Attempt to write to restricted system directories"
+    },
+    {
+      "name": "Create device files",
+      "outputPath": "/dev/null",
+      "shouldBeBlocked": true,
+      "description": "Attempt to create device files"
+    },
+    {
+      "name": "Symlink attack",
+      "setup": "Create symlink to /etc/passwd",
+      "outputPath": "link-to-passwd",
+      "shouldBeBlocked": true,
+      "description": "Following symbolic links to restricted files"
+    }
+  ],
+  
+  "inputValidation": [
+    {
+      "name": "Extremely long variable name",
+      "variables": {
+        "a".repeat(10000): "value"
+      },
+      "shouldBeBlocked": true,
+      "description": "Variable name that exceeds reasonable limits"
+    },
+    {
+      "name": "Binary data in variables",
+      "variables": {
+        "data": "\x00\x01\x02\xFF\xFE\xFD"
+      },
+      "shouldBeBlocked": false,
+      "description": "Binary data should be handled gracefully"
+    },
+    {
+      "name": "Unicode normalization attack",
+      "variables": {
+        "filename": "test\u202e\u202dtxt.exe"
+      },
+      "shouldBeBlocked": true,
+      "description": "Unicode characters that can disguise file extensions"
+    },
+    {
+      "name": "Control character injection",
+      "variables": {
+        "content": "Normal text\r\n\x1b[31mRed text\x1b[0m"
+      },
+      "shouldBeBlocked": false,
+      "description": "Control characters should be escaped or stripped"
+    }
+  ],
+  
+  "configurationThreats": [
+    {
+      "name": "Malicious config override",
+      "config": {
+        "templatesDir": "/etc",
+        "outputDir": "/usr/bin"
+      },
+      "shouldBeBlocked": true,
+      "description": "Config that points to system directories"
+    },
+    {
+      "name": "Unsafe filter function",
+      "config": {
+        "filters": {
+          "evil": "function(str) { require('child_process').exec('rm -rf /'); return str; }"
+        }
+      },
+      "shouldBeBlocked": true,
+      "description": "Custom filter with malicious code"
+    },
+    {
+      "name": "Hook with system access",
+      "config": {
+        "hooks": {
+          "beforeGenerate": "function() { process.exit(1); }"
+        }
+      },
+      "shouldBeBlocked": true,
+      "description": "Hook function that can crash the process"
+    }
+  ],
+  
+  "sanitizationTests": [
+    {
+      "name": "HTML injection",
+      "input": "<script>alert('XSS')</script>",
+      "expectedOutput": "&lt;script&gt;alert('XSS')&lt;/script&gt;",
+      "description": "HTML should be properly escaped"
+    },
+    {
+      "name": "JavaScript injection",
+      "input": "javascript:alert('XSS')",
+      "expectedOutput": "javascript:alert('XSS')",
+      "description": "JavaScript protocol should be neutralized"
+    },
+    {
+      "name": "SQL injection characters",
+      "input": "'; DROP TABLE users; --",
+      "expectedOutput": "\'; DROP TABLE users; --",
+      "description": "SQL special characters should be escaped"
+    },
+    {
+      "name": "Shell metacharacters",
+      "input": "filename; rm -rf /",
+      "expectedOutput": "filename; rm -rf /",
+      "description": "Shell metacharacters should be handled safely"
+    }
+  ],
+  
+  "edgeCases": [
+    {
+      "name": "Empty input",
+      "input": "",
+      "shouldSucceed": true,
+      "description": "Empty input should be handled gracefully"
+    },
+    {
+      "name": "Null input",
+      "input": null,
+      "shouldSucceed": false,
+      "description": "Null input should be rejected"
+    },
+    {
+      "name": "Undefined input",
+      "input": undefined,
+      "shouldSucceed": false,
+      "description": "Undefined input should be rejected"
+    },
+    {
+      "name": "Circular reference object",
+      "setup": "Create object with circular reference",
+      "shouldBeBlocked": true,
+      "description": "Objects with circular references should be detected"
+    },
+    {
+      "name": "Function as input",
+      "input": "function() { return 'evil'; }",
+      "shouldBeBlocked": true,
+      "description": "Function code should not be executed"
+    }
+  ]
+}

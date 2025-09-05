@@ -1,0 +1,35 @@
+[
+  {
+    "testType": "Vitest BDD",
+    "coldStartTime": 488,
+    "totalExecutionTime": 488,
+    "memoryUsage": {
+      "heapUsed": 8,
+      "heapTotal": 11,
+      "rss": 55
+    },
+    "testResults": {
+      "total": 0,
+      "passed": 0,
+      "failed": 0
+    },
+    "scenarios": 1,
+    "timestamp": "2025-09-05T21:00:28.264Z"
+  },
+  {
+    "testType": "Vitest Unit",
+    "coldStartTime": 17370,
+    "totalExecutionTime": 17370,
+    "memoryUsage": {
+      "heapUsed": 7,
+      "heapTotal": 8,
+      "rss": 56
+    },
+    "testResults": {
+      "total": 0,
+      "passed": 0,
+      "failed": 0
+    },
+    "timestamp": "2025-09-05T21:00:45.635Z"
+  }
+]

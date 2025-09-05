@@ -1,0 +1,31 @@
+{
+  "templatesDir": "_templates",
+  "outputDir": "src",
+  "defaultVariables": {
+    "author": "JSON Config Author",
+    "license": "MIT",
+    "year": 2024,
+    "version": "1.0.0"
+  },
+  "validation": {
+    "validateVariables": true,
+    "strictMode": false,
+    "requiredVariables": ["name"]
+  },
+  "dryRun": false,
+  "force": false,
+  "verbose": false,
+  "fileExtensions": {
+    "component": ".tsx",
+    "service": ".ts",
+    "model": ".ts",
+    "route": ".js"
+  },
+  "directories": {
+    "components": "src/components",
+    "services": "src/services",
+    "models": "src/models",
+    "routes": "src/routes",
+    "tests": "src/__tests__"
+  }
+}

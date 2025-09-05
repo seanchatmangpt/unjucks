@@ -1,0 +1,198 @@
+{
+  "validGeneratorNames": [
+    "component",
+    "service",
+    "model",
+    "controller",
+    "route",
+    "middleware",
+    "validator",
+    "util",
+    "hook",
+    "provider",
+    "guard",
+    "decorator",
+    "pipe",
+    "filter",
+    "interceptor"
+  ],
+  "invalidGeneratorNames": [
+    "",
+    " ",
+    "  ",
+    "123invalid",
+    "generator-with-spaces ",
+    "generator/with/slashes",
+    "generator\\with\\backslashes",
+    "generator.with.dots",
+    "generator@with@symbols",
+    "generator#with#hash",
+    "generator%with%percent",
+    "generator&with&ampersand",
+    "generator*with*asterisk",
+    "generator(with)parens",
+    "generator[with]brackets",
+    "generator{with}braces",
+    "generator|with|pipes",
+    "generator\"with\"quotes",
+    "generator'with'apostrophe",
+    "generator:with:colon",
+    "generator;with;semicolon",
+    "generator<with>angles",
+    "generator?with?question",
+    "generator,with,comma"
+  ],
+  "edgeCaseNames": [
+    "a",
+    "ab",
+    "very-long-generator-name-that-exceeds-typical-limits-and-continues-for-a-while-to-test-boundary-conditions",
+    "UPPERCASE",
+    "lowercase",
+    "MixedCase",
+    "camelCase",
+    "PascalCase",
+    "kebab-case",
+    "snake_case",
+    "numbers123",
+    "with-numbers-456",
+    "unicode-café",
+    "emoji-😀"
+  ],
+  "complexVariableStructures": [
+    {
+      "scenario": "Nested object variables",
+      "variables": {
+        "user": {
+          "name": "John Doe",
+          "email": "john@example.com",
+          "profile": {
+            "age": 30,
+            "preferences": {
+              "theme": "dark",
+              "notifications": true
+            }
+          }
+        }
+      }
+    },
+    {
+      "scenario": "Array variables",
+      "variables": {
+        "items": ["apple", "banana", "cherry"],
+        "numbers": [1, 2, 3, 4, 5],
+        "mixed": ["string", 42, true, null],
+        "objects": [
+          {"id": 1, "name": "First"},
+          {"id": 2, "name": "Second"}
+        ]
+      }
+    },
+    {
+      "scenario": "Function variables",
+      "variables": {
+        "callback": "function() { return 'Hello'; }",
+        "arrow": "() => 'World'",
+        "async": "async () => await fetch('/api')"
+      }
+    },
+    {
+      "scenario": "Special characters in values",
+      "variables": {
+        "quotes": "Text with \"quotes\" and 'apostrophes'",
+        "newlines": "Line 1\nLine 2\nLine 3",
+        "tabs": "Column1\tColumn2\tColumn3",
+        "backslashes": "Path\\to\\file",
+        "unicode": "Unicode: café, naïve, résumé, 日本語",
+        "html": "<div class='test'>HTML content</div>",
+        "regex": "/^[a-zA-Z0-9]+$/gi"
+      }
+    },
+    {
+      "scenario": "Large data structures",
+      "variables": {
+        "largeArray": [],
+        "largeObject": {},
+        "deepNesting": {
+          "level1": {
+            "level2": {
+              "level3": {
+                "level4": {
+                  "level5": {
+                    "data": "deeply nested value"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  ],
+  "performanceCases": [
+    {
+      "scenario": "Minimal template",
+      "template": "Hello {{ name }}!",
+      "variables": {"name": "World"},
+      "expectedTime": 10
+    },
+    {
+      "scenario": "Small template with loops",
+      "template": "{% for item in items %}{{ item }}\n{% endfor %}",
+      "variables": {"items": ["a", "b", "c"]},
+      "expectedTime": 50
+    },
+    {
+      "scenario": "Medium template with conditionals",
+      "template": "{% if showHeader %}# Header\n{% endif %}{% for section in sections %}## {{ section.title }}\n{{ section.content }}\n{% endfor %}",
+      "variables": {
+        "showHeader": true,
+        "sections": [
+          {"title": "Section 1", "content": "Content 1"},
+          {"title": "Section 2", "content": "Content 2"}
+        ]
+      },
+      "expectedTime": 100
+    },
+    {
+      "scenario": "Large template with complex logic",
+      "templateLines": 500,
+      "variableCount": 50,
+      "expectedTime": 1000
+    }
+  ],
+  "errorScenarios": [
+    {
+      "scenario": "Missing required variable",
+      "template": "Hello {{ requiredVar }}!",
+      "variables": {},
+      "expectedError": "requiredVar is not defined"
+    },
+    {
+      "scenario": "Invalid template syntax",
+      "template": "Hello {{ unclosedTag",
+      "variables": {"name": "World"},
+      "expectedError": "Could not find matching close tag"
+    },
+    {
+      "scenario": "Circular reference",
+      "template": "{{ a }}",
+      "variables": {
+        "a": "{{ b }}",
+        "b": "{{ a }}"
+      },
+      "expectedError": "Circular reference"
+    },
+    {
+      "scenario": "Invalid filter",
+      "template": "{{ name | nonexistentFilter }}",
+      "variables": {"name": "World"},
+      "expectedError": "filter not found"
+    },
+    {
+      "scenario": "Type error in template logic",
+      "template": "{% if count > 'string' %}Greater{% endif %}",
+      "variables": {"count": 5},
+      "expectedError": "Cannot compare"
+    }
+  ]
+}

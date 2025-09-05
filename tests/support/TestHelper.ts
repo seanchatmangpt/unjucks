@@ -52,12 +52,16 @@ export class TestHelper {
     const fullCommand = `node "${cliPath}" ${args.join(' ')}`;
     
     try {
+      // Create clean environment without NODE_ENV=test which interferes with CLI output
+      const cleanEnv = { ...process.env };
+      delete cleanEnv.NODE_ENV;
+      
       const result = execSync(fullCommand, {
         cwd: process.cwd(), // Use project root for CLI commands
         timeout: 30_000,
         maxBuffer: 1024 * 1024,
         encoding: 'utf8',
-        env: { ...process.env, NODE_ENV: 'test' } // Ensure consistent environment
+        env: cleanEnv
       });
 
       return {
@@ -85,28 +89,52 @@ export class TestHelper {
     const workingDir = options?.cwd || process.cwd();
     const timeout = options?.timeout || 30_000;
 
+    console.log(`[TestHelper] Executing command: ${command}`);
+    console.log(`[TestHelper] Working directory: ${workingDir}`);
+
     try {
+      // Create clean environment without NODE_ENV=test which interferes with CLI output
+      const cleanEnv = { ...process.env };
+      delete cleanEnv.NODE_ENV;
+      
       const result = execSync(command, {
         cwd: workingDir,
         timeout: timeout,
         maxBuffer: 1024 * 1024,
         encoding: 'utf8',
-        env: { ...process.env, NODE_ENV: 'test' }
+        env: cleanEnv
       });
 
-      return {
+      const finalResult = {
         stdout: result.toString(),
         stderr: '',
         exitCode: 0,
         duration: Date.now() - startTime
       };
+
+      console.log(`[TestHelper] Command succeeded:`, {
+        exitCode: finalResult.exitCode,
+        stdoutLength: finalResult.stdout.length,
+        stdout: JSON.stringify(finalResult.stdout.substring(0, 100)),
+        stderr: JSON.stringify(finalResult.stderr)
+      });
+
+      return finalResult;
     } catch (error: any) {
-      return {
+      const finalResult = {
         stdout: error.stdout ? error.stdout.toString() : '',
         stderr: error.stderr ? error.stderr.toString() : error.message || '',
         exitCode: error.status || 1,
         duration: Date.now() - startTime
       };
+
+      console.log(`[TestHelper] Command failed:`, {
+        exitCode: finalResult.exitCode,
+        stdout: JSON.stringify(finalResult.stdout),
+        stderr: JSON.stringify(finalResult.stderr)
+      });
+
+      return finalResult;
     }
   }
 
@@ -328,8 +356,8 @@ export class TestHelper {
       if (this.baseDir && await fs.pathExists(this.baseDir)) {
         await fs.remove(this.baseDir);
       }
-    } catch {
-      // Ignore cleanup errors
+    } catch (error) {
+      console.warn(`Cleanup warning for ${this.baseDir}:`, error);
     }
   }
 
@@ -341,8 +369,8 @@ export class TestHelper {
       if (this.baseDir && await fs.pathExists(this.baseDir)) {
         await fs.emptyDir(this.baseDir);
       }
-    } catch {
-      // Ignore cleanup errors
+    } catch (error) {
+      console.warn(`Empty directory warning for ${this.baseDir}:`, error);
     }
   }
 

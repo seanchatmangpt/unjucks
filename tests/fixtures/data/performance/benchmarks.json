@@ -1,0 +1,352 @@
+{
+  "templateComplexity": [
+    {
+      "name": "Simple variable substitution",
+      "template": "Hello {{ name }}! Welcome to {{ app }}.",
+      "variables": { "name": "World", "app": "Unjucks" },
+      "expectedTime": 5,
+      "memoryLimit": 1024
+    },
+    {
+      "name": "Conditional logic",
+      "template": "{% if user.isActive %}Welcome back, {{ user.name }}!{% else %}Please activate your account.{% endif %}",
+      "variables": { 
+        "user": { "name": "John", "isActive": true } 
+      },
+      "expectedTime": 10,
+      "memoryLimit": 2048
+    },
+    {
+      "name": "Simple loop",
+      "template": "{% for item in items %}{{ loop.index }}: {{ item }}\n{% endfor %}",
+      "variables": { 
+        "items": ["apple", "banana", "cherry", "date", "elderberry"] 
+      },
+      "expectedTime": 15,
+      "memoryLimit": 4096
+    },
+    {
+      "name": "Nested loops",
+      "template": "{% for category in categories %}## {{ category.name }}\n{% for item in category.items %}  - {{ item }}\n{% endfor %}{% endfor %}",
+      "variables": {
+        "categories": [
+          { "name": "Fruits", "items": ["apple", "banana", "cherry"] },
+          { "name": "Vegetables", "items": ["carrot", "broccoli", "spinach"] },
+          { "name": "Grains", "items": ["rice", "wheat", "oats"] }
+        ]
+      },
+      "expectedTime": 25,
+      "memoryLimit": 8192
+    },
+    {
+      "name": "Complex object manipulation",
+      "template": "{% for user in users %}{{ user.profile.firstName }} {{ user.profile.lastName }} ({{ user.email }}){% if user.preferences.newsletter %} - Newsletter subscriber{% endif %}\n{% endfor %}",
+      "variables": {
+        "users": [
+          {
+            "email": "john@example.com",
+            "profile": { "firstName": "John", "lastName": "Doe" },
+            "preferences": { "newsletter": true }
+          },
+          {
+            "email": "jane@example.com",
+            "profile": { "firstName": "Jane", "lastName": "Smith" },
+            "preferences": { "newsletter": false }
+          }
+        ]
+      },
+      "expectedTime": 30,
+      "memoryLimit": 16384
+    },
+    {
+      "name": "Filter chains",
+      "template": "{{ content | trim | titleCase | truncate(50) | escape }}",
+      "variables": {
+        "content": "  this is a long piece of content that needs to be processed through multiple filters to test performance implications  "
+      },
+      "expectedTime": 20,
+      "memoryLimit": 4096
+    }
+  ],
+  
+  "dataScaleTests": [
+    {
+      "name": "Small dataset (10 items)",
+      "template": "{% for item in items %}{{ loop.index }}. {{ item.name }} - {{ item.description }}\n{% endfor %}",
+      "dataSize": 10,
+      "itemSize": "small",
+      "expectedTime": 10,
+      "memoryLimit": 8192
+    },
+    {
+      "name": "Medium dataset (100 items)",
+      "template": "{% for item in items %}{{ loop.index }}. {{ item.name }} - {{ item.description }}\n{% endfor %}",
+      "dataSize": 100,
+      "itemSize": "medium",
+      "expectedTime": 50,
+      "memoryLimit": 32768
+    },
+    {
+      "name": "Large dataset (1000 items)",
+      "template": "{% for item in items %}{{ loop.index }}. {{ item.name }} - {{ item.description }}\n{% endfor %}",
+      "dataSize": 1000,
+      "itemSize": "large",
+      "expectedTime": 200,
+      "memoryLimit": 131072
+    },
+    {
+      "name": "Very large dataset (10000 items)",
+      "template": "{% for item in items %}{{ loop.index }}. {{ item.name }} - {{ item.description }}\n{% endfor %}",
+      "dataSize": 10000,
+      "itemSize": "large",
+      "expectedTime": 1000,
+      "memoryLimit": 1048576
+    }
+  ],
+  
+  "templateSizes": [
+    {
+      "name": "Tiny template (< 1KB)",
+      "lines": 10,
+      "complexity": "low",
+      "expectedTime": 5,
+      "memoryLimit": 1024
+    },
+    {
+      "name": "Small template (1-5KB)",
+      "lines": 50,
+      "complexity": "medium",
+      "expectedTime": 15,
+      "memoryLimit": 4096
+    },
+    {
+      "name": "Medium template (5-20KB)",
+      "lines": 200,
+      "complexity": "high",
+      "expectedTime": 50,
+      "memoryLimit": 16384
+    },
+    {
+      "name": "Large template (20-100KB)",
+      "lines": 1000,
+      "complexity": "high",
+      "expectedTime": 200,
+      "memoryLimit": 65536
+    },
+    {
+      "name": "Very large template (100KB+)",
+      "lines": 5000,
+      "complexity": "extreme",
+      "expectedTime": 1000,
+      "memoryLimit": 262144
+    }
+  ],
+  
+  "concurrencyTests": [
+    {
+      "name": "Low concurrency (5 simultaneous)",
+      "simultaneousOperations": 5,
+      "templateComplexity": "medium",
+      "expectedTimeMultiplier": 1.2,
+      "maxMemoryIncrease": 2.0
+    },
+    {
+      "name": "Medium concurrency (20 simultaneous)",
+      "simultaneousOperations": 20,
+      "templateComplexity": "medium",
+      "expectedTimeMultiplier": 1.5,
+      "maxMemoryIncrease": 3.0
+    },
+    {
+      "name": "High concurrency (50 simultaneous)",
+      "simultaneousOperations": 50,
+      "templateComplexity": "low",
+      "expectedTimeMultiplier": 2.0,
+      "maxMemoryIncrease": 4.0
+    },
+    {
+      "name": "Extreme concurrency (100 simultaneous)",
+      "simultaneousOperations": 100,
+      "templateComplexity": "low",
+      "expectedTimeMultiplier": 3.0,
+      "maxMemoryIncrease": 5.0
+    }
+  ],
+  
+  "cliPerformance": [
+    {
+      "name": "Simple CLI help command",
+      "command": "--help",
+      "expectedTime": 100,
+      "memoryLimit": 16384
+    },
+    {
+      "name": "List generators",
+      "command": "list",
+      "setupFiles": 5,
+      "expectedTime": 200,
+      "memoryLimit": 32768
+    },
+    {
+      "name": "Generate simple template",
+      "command": "generate simple --name=test",
+      "templateComplexity": "low",
+      "expectedTime": 500,
+      "memoryLimit": 65536
+    },
+    {
+      "name": "Generate complex template",
+      "command": "generate complex --name=test --items=100",
+      "templateComplexity": "high",
+      "expectedTime": 2000,
+      "memoryLimit": 131072
+    },
+    {
+      "name": "Dry run large template",
+      "command": "generate large --dry-run --items=1000",
+      "templateComplexity": "high",
+      "expectedTime": 1500,
+      "memoryLimit": 262144
+    }
+  ],
+  
+  "memoryTests": [
+    {
+      "name": "Memory growth with template size",
+      "templateSizes": [100, 500, 1000, 5000, 10000],
+      "expectedGrowthRate": "linear",
+      "maxMemoryPerLine": 50
+    },
+    {
+      "name": "Memory growth with variable count",
+      "variableCounts": [10, 50, 100, 500, 1000],
+      "expectedGrowthRate": "linear",
+      "maxMemoryPerVariable": 100
+    },
+    {
+      "name": "Memory growth with loop iterations",
+      "iterationCounts": [10, 100, 1000, 5000, 10000],
+      "expectedGrowthRate": "linear",
+      "maxMemoryPerIteration": 20
+    },
+    {
+      "name": "Memory cleanup after generation",
+      "iterations": 10,
+      "templateSize": 1000,
+      "maxMemoryRetention": 0.1
+    }
+  ],
+  
+  "fileSystemPerformance": [
+    {
+      "name": "Single file generation",
+      "fileCount": 1,
+      "avgFileSize": 1024,
+      "expectedTime": 10,
+      "diskIOLimit": 5
+    },
+    {
+      "name": "Multiple small files",
+      "fileCount": 10,
+      "avgFileSize": 512,
+      "expectedTime": 50,
+      "diskIOLimit": 20
+    },
+    {
+      "name": "Few large files",
+      "fileCount": 3,
+      "avgFileSize": 10240,
+      "expectedTime": 100,
+      "diskIOLimit": 50
+    },
+    {
+      "name": "Many small files",
+      "fileCount": 100,
+      "avgFileSize": 256,
+      "expectedTime": 200,
+      "diskIOLimit": 100
+    },
+    {
+      "name": "Deep directory structure",
+      "directoryDepth": 10,
+      "filesPerDirectory": 5,
+      "expectedTime": 150,
+      "diskIOLimit": 75
+    }
+  ],
+  
+  "cachingTests": [
+    {
+      "name": "Template compilation caching",
+      "sameTemplate": true,
+      "iterations": 10,
+      "firstRunTime": 100,
+      "cachedRunTime": 10,
+      "cacheEfficiency": 0.9
+    },
+    {
+      "name": "Variable processing caching",
+      "sameVariables": true,
+      "iterations": 5,
+      "cacheHitRate": 0.8
+    },
+    {
+      "name": "Filter result caching",
+      "sameFilters": true,
+      "iterations": 20,
+      "cacheHitRate": 0.95
+    }
+  ],
+  
+  "regressionThresholds": {
+    "templateRendering": {
+      "maxTimeIncrease": 0.1,
+      "maxMemoryIncrease": 0.15
+    },
+    "cliCommands": {
+      "maxTimeIncrease": 0.05,
+      "maxMemoryIncrease": 0.1
+    },
+    "fileOperations": {
+      "maxTimeIncrease": 0.2,
+      "maxIOIncrease": 0.15
+    },
+    "overallSystem": {
+      "maxCPUUsage": 0.8,
+      "maxMemoryUsage": 0.7,
+      "maxDiskUsage": 0.6
+    }
+  },
+  
+  "stressTests": [
+    {
+      "name": "Extreme template size",
+      "templateLines": 50000,
+      "variables": 1000,
+      "timeout": 30000,
+      "expectedFailure": false
+    },
+    {
+      "name": "Deep nesting stress",
+      "nestingDepth": 100,
+      "itemsPerLevel": 5,
+      "timeout": 10000,
+      "expectedFailure": false
+    },
+    {
+      "name": "Memory exhaustion test",
+      "largeArraySize": 1000000,
+      "stringLength": 1000,
+      "timeout": 60000,
+      "expectedFailure": true,
+      "expectedError": "OutOfMemoryError"
+    },
+    {
+      "name": "CPU exhaustion test",
+      "complexCalculations": 10000,
+      "timeout": 30000,
+      "expectedFailure": true,
+      "expectedError": "TimeoutError"
+    }
+  ]
+}

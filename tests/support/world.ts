@@ -1,4 +1,4 @@
-import { World, type IWorldOptions } from '@cucumber/cucumber';
+// Removed Cucumber-specific import for vitest-cucumber compatibility
 import { execSync } from 'node:child_process';
 import * as fs from 'fs-extra';
 import * as path from 'node:path';
@@ -30,7 +30,7 @@ export interface TestContext {
   lastCommandResult?: CLIResult;
 }
 
-export class UnjucksWorld extends World<UnjucksWorldParameters> {
+export class UnjucksWorld {
   public helper: TestHelper;
 
   // Re-export for backward compatibility with existing step definitions
@@ -44,8 +44,17 @@ export class UnjucksWorld extends World<UnjucksWorldParameters> {
   public variables: Record<string, any> = {};
   public tempDir?: string;
 
-  constructor(options: IWorldOptions<UnjucksWorldParameters>) {
-    super(options);
+  public parameters: UnjucksWorldParameters;
+
+  constructor(parameters?: Partial<UnjucksWorldParameters>) {
+    
+    // Set default parameters
+    this.parameters = {
+      baseUrl: 'http://localhost:3000',
+      timeout: 30000,
+      testDataPath: './tests/fixtures',
+      ...parameters
+    };
     
     this.context = {
       workingDirectory: process.cwd(),
@@ -126,12 +135,15 @@ export class UnjucksWorld extends World<UnjucksWorldParameters> {
     console.log(`Executing unjucks command: ${command}`);
     
     try {
+      // Create clean environment without NODE_ENV=test which interferes with CLI output
+      const cleanEnv = { ...process.env };
+      delete cleanEnv.NODE_ENV;
+      
       const result = execSync(command, { 
         cwd: workingDir, 
         encoding: 'utf8',
         timeout: this.parameters.timeout || 30000,
-        env: { ...process.env, NODE_ENV: 'test' },
-        stdio: ['inherit', 'pipe', 'pipe'] // Capture stdout and stderr
+        env: cleanEnv
       });
       
       this.context.lastCommandOutput = result.toString();
