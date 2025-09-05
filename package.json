@@ -25,7 +25,11 @@
     "prepack": "pnpm build",
     "release": "pnpm test && changelogen --release && npm publish && git push --follow-tags",
     "test": "pnpm lint && pnpm test:types && vitest run --coverage",
-    "test:types": "tsc --noEmit --skipLibCheck"
+    "test:types": "tsc --noEmit --skipLibCheck",
+    "test:cucumber": "cucumber-js --config cucumber.config.js",
+    "test:smoke": "cucumber-js --profile smoke",
+    "test:regression": "cucumber-js --profile regression",
+    "test:integration": "cucumber-js --profile integration"
   },
   "dependencies": {
     "chalk": "^5.3.0",
@@ -38,6 +42,7 @@
     "yaml": "^2.4.1"
   },
   "devDependencies": {
+    "@cucumber/cucumber": "^10.0.0",
     "@types/fs-extra": "^11.0.4",
     "@types/inquirer": "^9.0.7",
     "@types/node": "^24.3.0",
