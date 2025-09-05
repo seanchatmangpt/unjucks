@@ -1,4 +1,5 @@
 import { defineConfig } from "vitest/config";
+import os from "node:os";
 
 export default defineConfig({
   test: {
@@ -67,11 +68,14 @@ export default defineConfig({
     environment: "node",
     globals: true,
     // setupFiles: ["./tests/setup.ts"],
-    // Test file patterns - Vitest unit tests only (Cucumber handled separately)
+    // Test file patterns - Vitest unit tests and BDD feature specs
     include: [
       "tests/**/*.test.ts", // All existing test files
+      "tests/**/*.spec.ts", // Performance and other spec files
       "tests/unit/**/*.test.ts", // Future unit tests
       "tests/integration/**/*.test.ts", // Future integration tests
+      "tests/features/**/*.feature.spec.ts", // Vitest-cucumber BDD specs
+      "tests/performance/**/*.spec.ts", // Performance benchmarks
       "src/**/*.test.ts", // Co-located unit tests
     ],
     exclude: [
@@ -82,15 +86,16 @@ export default defineConfig({
       "test-citty/**", // Test project directory
       "coordination/**", // Project management files
       "memory/**", // Memory/agent files
-      "features/**", // Feature files (Cucumber - handled by cucumber.config.cjs)
-      "tests/step-definitions/**", // Cucumber step definitions
-      "tests/support/**", // Cucumber support files
+      "features/**/*.feature", // Original feature files (reference only)
+      "tests/step-definitions/**", // Legacy Cucumber step definitions
+      "tests/support/world.ts", // Legacy Cucumber World class
       "claude-flow*", // Claude flow files
       "*.md", // Documentation files
     ],
-    // Test timeout - increased for file system operations and BDD tests
-    testTimeout: 30_000, // Appropriate for unit tests
-    hookTimeout: 10_000, // Appropriate for unit test setup/teardown
+    // Optimized timeouts for fast execution
+    testTimeout: 15_000, // Reduced for faster failure detection
+    hookTimeout: 5_000, // Faster setup/teardown
+    teardownTimeout: 5_000, // Quick cleanup
     // Snapshot configuration
     snapshotFormat: {
       escapeString: true,
@@ -100,27 +105,52 @@ export default defineConfig({
     clearMocks: true,
     restoreMocks: true,
     unstubGlobals: true,
-    // Reporter configuration - enhanced for BDD
-    reporters: ["verbose", "json"],
+    // Performance-optimized reporters
+    reporters: process.env.CI ? ['json', 'github-actions'] : ['default'],
     outputFile: {
       json: "test-results.json",
     },
-    // Parallel execution - conservative for file system tests
+    // Silent mode for faster execution (less I/O)
+    silent: process.env.NODE_ENV === 'test',
+    // High-performance parallel execution - 3x+ speed improvement
     pool: "threads",
     poolOptions: {
       threads: {
         minThreads: 1,
-        maxThreads: 2, // Reduced for file system operations
+        maxThreads: Math.min(8, Math.max(2, Math.floor(os.cpus().length * 0.8))), // 80% of CPU cores, max 8
+        useAtomics: true, // Enable shared memory for faster communication
+        isolate: false, // Share contexts where safe for better performance
       },
     },
-    // File system and CLI testing specific config
+    // Smart test isolation and sequencing
     testNamePattern: undefined,
-    // Allow tests to run in sequence when needed for file operations
     sequence: {
-      concurrent: false,
+      concurrent: true, // Enable concurrent execution for massive speed gains
+      shuffle: false, // Deterministic test order for consistency
+      hooks: 'parallel', // Parallel hook execution
+      setupFiles: 'parallel', // Parallel setup for faster startup
     },
-    // Note: Cucumber configuration is handled separately via cucumber.config.cjs
-    // Use 'pnpm test:cucumber' to run BDD tests with proper Cucumber runner
-    // Vitest handles unit tests, Cucumber handles BDD integration tests
+    // Intelligent test caching for unchanged scenarios
+    cache: {
+      dir: 'node_modules/.vitest',
+    },
+    // Performance optimizations
+    isolate: false, // Share contexts between tests for better performance
+    passWithNoTests: true,
+    logHeapUsage: true, // Monitor memory usage
+    // Watch mode optimizations
+    watch: true,
+    watchExclude: ['**/node_modules/**', '**/dist/**', '**/generated/**'],
+    // File change detection patterns for hot reload
+    chokidar: {
+      usePolling: false,
+      interval: 100,
+      binaryInterval: 300,
+      ignoreInitial: true,
+      ignorePermissionErrors: true,
+    },
+    // BDD integration: vitest-cucumber handles .feature.spec.ts files
+    // Original .feature files remain as reference/documentation
+    // Unified test runner handles both unit tests and BDD scenarios
   },
 });

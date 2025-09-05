@@ -1,6 +1,6 @@
 import * as fs from 'fs-extra';
 import * as path from 'node:path';
-import { exec } from 'node:child_process';
+import { exec, spawn, execSync } from 'node:child_process';
 import { promisify } from 'node:util';
 
 const execAsync = promisify(exec);
@@ -52,56 +52,59 @@ export class TestHelper {
     const fullCommand = `node "${cliPath}" ${args.join(' ')}`;
     
     try {
-      const result = await execAsync(fullCommand, {
-        cwd: this.baseDir,
+      const result = execSync(fullCommand, {
+        cwd: process.cwd(), // Use project root for CLI commands
         timeout: 30_000,
         maxBuffer: 1024 * 1024,
-        encoding: 'utf8'
+        encoding: 'utf8',
+        env: { ...process.env, NODE_ENV: 'test' } // Ensure consistent environment
       });
 
       return {
-        stdout: result.stdout,
-        stderr: result.stderr,
+        stdout: result.toString(),
+        stderr: '',
         exitCode: 0,
         duration: Date.now() - startTime
       };
     } catch (error: any) {
       return {
-        stdout: error.stdout || '',
-        stderr: error.stderr || error.message || '',
-        exitCode: error.code || 1,
+        stdout: error.stdout ? error.stdout.toString() : '',
+        stderr: error.stderr ? error.stderr.toString() : error.message || '',
+        exitCode: error.status || 1,
         duration: Date.now() - startTime
       };
     }
   }
 
   /**
-   * Execute any shell command
+   * Execute any shell command with proper output capture
    */
   async executeCommand(command: string, options?: { cwd?: string; timeout?: number }): Promise<CLIResult> {
     const startTime = Date.now();
-    const workingDir = options?.cwd || this.baseDir;
+    // Use project root for CLI commands, temp dir only for file operations
+    const workingDir = options?.cwd || process.cwd();
     const timeout = options?.timeout || 30_000;
 
     try {
-      const result = await execAsync(command, {
+      const result = execSync(command, {
         cwd: workingDir,
-        timeout,
+        timeout: timeout,
         maxBuffer: 1024 * 1024,
-        encoding: 'utf8'
+        encoding: 'utf8',
+        env: { ...process.env, NODE_ENV: 'test' }
       });
 
       return {
-        stdout: result.stdout,
-        stderr: result.stderr,
+        stdout: result.toString(),
+        stderr: '',
         exitCode: 0,
         duration: Date.now() - startTime
       };
     } catch (error: any) {
       return {
-        stdout: error.stdout || '',
-        stderr: error.stderr || error.message || '',
-        exitCode: error.code || 1,
+        stdout: error.stdout ? error.stdout.toString() : '',
+        stderr: error.stderr ? error.stderr.toString() : error.message || '',
+        exitCode: error.status || 1,
         duration: Date.now() - startTime
       };
     }

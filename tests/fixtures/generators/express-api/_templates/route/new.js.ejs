@@ -1,0 +1,54 @@
+---
+to: src/routes/{{ resource | kebabCase }}.js
+variables:
+  resource:
+    type: string
+    required: true
+    description: Resource name (e.g., user, product)
+  methods:
+    type: array
+    default: ['GET', 'POST', 'PUT', 'DELETE']
+    description: HTTP methods to implement
+  withAuth:
+    type: boolean
+    default: true
+    description: Include authentication middleware
+  withValidation:
+    type: boolean
+    default: true
+    description: Include request validation
+inject: false
+---
+const express = require('express');
+const router = express.Router();
+{% if withAuth %}
+const { authenticate } = require('../middleware/auth');
+{% endif %}
+{% if withValidation %}
+const { validate{{ resource | pascalCase }} } = require('../validators/{{ resource | kebabCase }}');
+{% endif %}
+const {{ resource | camelCase }}Controller = require('../controllers/{{ resource | kebabCase }}');
+
+{% for method in methods %}
+{% if method === 'GET' %}
+// Get all {{ resource | pluralize | toLowerCase }}
+router.get('/'{% if withAuth %}, authenticate{% endif %}, {{ resource | camelCase }}Controller.getAll);
+
+// Get {{ resource | toLowerCase }} by ID
+router.get('/:id'{% if withAuth %}, authenticate{% endif %}, {{ resource | camelCase }}Controller.getById);
+{% elif method === 'POST' %}
+
+// Create new {{ resource | toLowerCase }}
+router.post('/'{% if withAuth %}, authenticate{% endif %}{% if withValidation %}, validate{{ resource | pascalCase }}{% endif %}, {{ resource | camelCase }}Controller.create);
+{% elif method === 'PUT' %}
+
+// Update {{ resource | toLowerCase }}
+router.put('/:id'{% if withAuth %}, authenticate{% endif %}{% if withValidation %}, validate{{ resource | pascalCase }}{% endif %}, {{ resource | camelCase }}Controller.update);
+{% elif method === 'DELETE' %}
+
+// Delete {{ resource | toLowerCase }}
+router.delete('/:id'{% if withAuth %}, authenticate{% endif %}, {{ resource | camelCase }}Controller.delete);
+{% endif %}
+{% endfor %}
+
+module.exports = router;

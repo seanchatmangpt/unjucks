@@ -5,7 +5,8 @@ module.exports = {
       "tests/support/**/*.ts",
       "tests/step-definitions/**/*.ts"
     ],
-    requireModule: ["tsx/esm"],
+    require: ["tsx/cjs"],
+    worldClass: "./tests/support/world.ts:UnjucksWorld",
     worldParameters: {
       baseUrl: process.env.BASE_URL || "http://localhost:3000",
       timeout: 30_000,

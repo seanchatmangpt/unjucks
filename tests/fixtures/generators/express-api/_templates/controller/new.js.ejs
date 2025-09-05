@@ -1,0 +1,245 @@
+---
+to: src/controllers/{{ resource | kebabCase }}.js
+variables:
+  resource:
+    type: string
+    required: true
+    description: Resource name
+  withDatabase:
+    type: boolean
+    default: true
+    description: Include database operations
+  databaseType:
+    type: string
+    default: mongoose
+    choices: [mongoose, sequelize, prisma, raw]
+    description: Database ORM/library to use
+inject: false
+---
+{% if databaseType === 'mongoose' %}
+const {{ resource | pascalCase }} = require('../models/{{ resource | pascalCase }}');
+{% elif databaseType === 'sequelize' %}
+const { {{ resource | pascalCase }} } = require('../models');
+{% elif databaseType === 'prisma' %}
+const { PrismaClient } = require('@prisma/client');
+const prisma = new PrismaClient();
+{% endif %}
+
+class {{ resource | pascalCase }}Controller {
+  /**
+   * Get all {{ resource | pluralize | toLowerCase }}
+   */
+  async getAll(req, res) {
+    try {
+{% if withDatabase %}
+{% if databaseType === 'mongoose' %}
+      const {{ resource | pluralize | camelCase }} = await {{ resource | pascalCase }}.find({});
+{% elif databaseType === 'sequelize' %}
+      const {{ resource | pluralize | camelCase }} = await {{ resource | pascalCase }}.findAll();
+{% elif databaseType === 'prisma' %}
+      const {{ resource | pluralize | camelCase }} = await prisma.{{ resource | camelCase }}.findMany();
+{% else %}
+      // TODO: Implement database query
+      const {{ resource | pluralize | camelCase }} = [];
+{% endif %}
+{% else %}
+      const {{ resource | pluralize | camelCase }} = [
+        { id: 1, name: 'Sample {{ resource | titleCase }}' }
+      ];
+{% endif %}
+      
+      res.json({
+        success: true,
+        data: {{ resource | pluralize | camelCase }},
+        count: {{ resource | pluralize | camelCase }}.length
+      });
+    } catch (error) {
+      console.error('Error fetching {{ resource | pluralize | toLowerCase }}:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Internal server error'
+      });
+    }
+  }
+
+  /**
+   * Get {{ resource | toLowerCase }} by ID
+   */
+  async getById(req, res) {
+    try {
+      const { id } = req.params;
+{% if withDatabase %}
+{% if databaseType === 'mongoose' %}
+      const {{ resource | camelCase }} = await {{ resource | pascalCase }}.findById(id);
+{% elif databaseType === 'sequelize' %}
+      const {{ resource | camelCase }} = await {{ resource | pascalCase }}.findByPk(id);
+{% elif databaseType === 'prisma' %}
+      const {{ resource | camelCase }} = await prisma.{{ resource | camelCase }}.findUnique({
+        where: { id: parseInt(id) }
+      });
+{% else %}
+      // TODO: Implement database query
+      const {{ resource | camelCase }} = null;
+{% endif %}
+{% else %}
+      const {{ resource | camelCase }} = { id, name: 'Sample {{ resource | titleCase }}' };
+{% endif %}
+      
+      if (!{{ resource | camelCase }}) {
+        return res.status(404).json({
+          success: false,
+          error: '{{ resource | pascalCase }} not found'
+        });
+      }
+
+      res.json({
+        success: true,
+        data: {{ resource | camelCase }}
+      });
+    } catch (error) {
+      console.error('Error fetching {{ resource | toLowerCase }}:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Internal server error'
+      });
+    }
+  }
+
+  /**
+   * Create new {{ resource | toLowerCase }}
+   */
+  async create(req, res) {
+    try {
+      const {{ resource | camelCase }}Data = req.body;
+{% if withDatabase %}
+{% if databaseType === 'mongoose' %}
+      const {{ resource | camelCase }} = new {{ resource | pascalCase }}({{ resource | camelCase }}Data);
+      await {{ resource | camelCase }}.save();
+{% elif databaseType === 'sequelize' %}
+      const {{ resource | camelCase }} = await {{ resource | pascalCase }}.create({{ resource | camelCase }}Data);
+{% elif databaseType === 'prisma' %}
+      const {{ resource | camelCase }} = await prisma.{{ resource | camelCase }}.create({
+        data: {{ resource | camelCase }}Data
+      });
+{% else %}
+      // TODO: Implement database creation
+      const {{ resource | camelCase }} = { id: Date.now(), ...{{ resource | camelCase }}Data };
+{% endif %}
+{% else %}
+      const {{ resource | camelCase }} = { id: Date.now(), ...{{ resource | camelCase }}Data };
+{% endif %}
+
+      res.status(201).json({
+        success: true,
+        data: {{ resource | camelCase }},
+        message: '{{ resource | pascalCase }} created successfully'
+      });
+    } catch (error) {
+      console.error('Error creating {{ resource | toLowerCase }}:', error);
+      res.status(400).json({
+        success: false,
+        error: error.message || 'Failed to create {{ resource | toLowerCase }}'
+      });
+    }
+  }
+
+  /**
+   * Update {{ resource | toLowerCase }}
+   */
+  async update(req, res) {
+    try {
+      const { id } = req.params;
+      const updateData = req.body;
+{% if withDatabase %}
+{% if databaseType === 'mongoose' %}
+      const {{ resource | camelCase }} = await {{ resource | pascalCase }}.findByIdAndUpdate(
+        id,
+        updateData,
+        { new: true, runValidators: true }
+      );
+{% elif databaseType === 'sequelize' %}
+      const [updatedRows] = await {{ resource | pascalCase }}.update(updateData, {
+        where: { id },
+        returning: true
+      });
+      const {{ resource | camelCase }} = updatedRows > 0 ? await {{ resource | pascalCase }}.findByPk(id) : null;
+{% elif databaseType === 'prisma' %}
+      const {{ resource | camelCase }} = await prisma.{{ resource | camelCase }}.update({
+        where: { id: parseInt(id) },
+        data: updateData
+      });
+{% else %}
+      // TODO: Implement database update
+      const {{ resource | camelCase }} = { id, ...updateData };
+{% endif %}
+{% else %}
+      const {{ resource | camelCase }} = { id, ...updateData };
+{% endif %}
+      
+      if (!{{ resource | camelCase }}) {
+        return res.status(404).json({
+          success: false,
+          error: '{{ resource | pascalCase }} not found'
+        });
+      }
+
+      res.json({
+        success: true,
+        data: {{ resource | camelCase }},
+        message: '{{ resource | pascalCase }} updated successfully'
+      });
+    } catch (error) {
+      console.error('Error updating {{ resource | toLowerCase }}:', error);
+      res.status(400).json({
+        success: false,
+        error: error.message || 'Failed to update {{ resource | toLowerCase }}'
+      });
+    }
+  }
+
+  /**
+   * Delete {{ resource | toLowerCase }}
+   */
+  async delete(req, res) {
+    try {
+      const { id } = req.params;
+{% if withDatabase %}
+{% if databaseType === 'mongoose' %}
+      const {{ resource | camelCase }} = await {{ resource | pascalCase }}.findByIdAndDelete(id);
+{% elif databaseType === 'sequelize' %}
+      const deletedRows = await {{ resource | pascalCase }}.destroy({ where: { id } });
+      const {{ resource | camelCase }} = deletedRows > 0 ? { id } : null;
+{% elif databaseType === 'prisma' %}
+      const {{ resource | camelCase }} = await prisma.{{ resource | camelCase }}.delete({
+        where: { id: parseInt(id) }
+      });
+{% else %}
+      // TODO: Implement database deletion
+      const {{ resource | camelCase }} = { id };
+{% endif %}
+{% else %}
+      const {{ resource | camelCase }} = { id };
+{% endif %}
+      
+      if (!{{ resource | camelCase }}) {
+        return res.status(404).json({
+          success: false,
+          error: '{{ resource | pascalCase }} not found'
+        });
+      }
+
+      res.json({
+        success: true,
+        message: '{{ resource | pascalCase }} deleted successfully'
+      });
+    } catch (error) {
+      console.error('Error deleting {{ resource | toLowerCase }}:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Failed to delete {{ resource | toLowerCase }}'
+      });
+    }
+  }
+}
+
+module.exports = new {{ resource | pascalCase }}Controller();

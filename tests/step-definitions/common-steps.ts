@@ -35,6 +35,21 @@ Given('I set variable {string} to {string}', async function (
 });
 
 When('I run {string}', async function (this: UnjucksWorld, command: string) {
+  console.log(`Running command: ${command}`);
+  
+  // Handle full node commands like "node dist/cli.mjs --version"
+  if (command.includes('node dist/cli.mjs')) {
+    const result = await this.helper.executeCommand(command);
+    console.log(`Command result: { exitCode: ${result.exitCode}, stdout: '${result.stdout}', stderr: '${result.stderr}' }`);
+    
+    // Set the command result in world context
+    this.context.lastCommandOutput = result.stdout;
+    this.context.lastCommandError = result.stderr;
+    this.context.lastCommandCode = result.exitCode;
+    return;
+  }
+  
+  // Handle unjucks commands
   const args = command.split(' ').filter(arg => arg.trim().length > 0);
   await this.executeUnjucksCommand(args);
 });

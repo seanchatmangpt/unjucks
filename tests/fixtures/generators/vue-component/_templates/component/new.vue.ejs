@@ -1,0 +1,324 @@
+---
+to: src/components/{{ componentName | pascalCase }}.vue
+variables:
+  componentName:
+    type: string
+    required: true
+    description: Vue component name
+  withProps:
+    type: boolean
+    default: true
+    description: Include props definition
+  withComposition:
+    type: boolean
+    default: true
+    description: Use Composition API instead of Options API
+  withTypeScript:
+    type: boolean
+    default: true
+    description: Use TypeScript syntax
+  withStyles:
+    type: boolean
+    default: true
+    description: Include scoped styles
+inject: false
+---
+<template>
+  <div class="{{ componentName | kebabCase }}">
+    <h2 class="{{ componentName | kebabCase }}__title">
+      {{ componentName | titleCase }}
+    </h2>
+    
+{% if withProps %}
+    <p class="{{ componentName | kebabCase }}__description">
+      {{ message || 'Default message' }}
+    </p>
+    
+    <div class="{{ componentName | kebabCase }}__props" v-if="showProps">
+      <h3>Props:</h3>
+      <ul>
+        <li>Message: {{ message }}</li>
+        <li>Count: {{ count }}</li>
+        <li>Is Active: {{ isActive }}</li>
+      </ul>
+    </div>
+{% endif %}
+    
+    <div class="{{ componentName | kebabCase }}__actions">
+      <button 
+        @click="handleClick"
+        :class="{ active: isActive }"
+        class="btn btn--primary"
+      >
+        Click me ({{ clickCount }})
+      </button>
+      
+{% if withProps %}
+      <button 
+        @click="toggleProps"
+        class="btn btn--secondary"
+      >
+        {{ showProps ? 'Hide' : 'Show' }} Props
+      </button>
+{% endif %}
+    </div>
+    
+    <slot name="content">
+      <p>Default slot content</p>
+    </slot>
+  </div>
+</template>
+
+{% if withComposition %}
+<script{% if withTypeScript %} lang="ts"{% endif %}>
+{% if withTypeScript %}
+import { ref, computed, defineComponent } from 'vue';
+
+interface Props {
+  message?: string;
+  count?: number;
+  isActive?: boolean;
+}
+
+export default defineComponent({
+  name: '{{ componentName | pascalCase }}',
+{% if withProps %}
+  props: {
+    message: {
+      type: String,
+      default: 'Hello from {{ componentName | titleCase }}!'
+    },
+    count: {
+      type: Number,
+      default: 0
+    },
+    isActive: {
+      type: Boolean,
+      default: false
+    }
+  },
+{% endif %}
+  emits: ['click', 'update:count'],
+  setup(props{% if withProps %}: Props{% endif %}, { emit }) {
+    const clickCount = ref(props{% if withProps %}.count{% else %}{{ count || 0 }}{% endif %} || 0);
+{% if withProps %}
+    const showProps = ref(false);
+{% endif %}
+    
+    const handleClick = () => {
+      clickCount.value++;
+      emit('click', {
+        count: clickCount.value,
+        timestamp: new Date().toISOString()
+      });
+      emit('update:count', clickCount.value);
+    };
+    
+{% if withProps %}
+    const toggleProps = () => {
+      showProps.value = !showProps.value;
+    };
+{% endif %}
+    
+    const computedMessage = computed(() => {
+      return `${props{% if withProps %}.message{% else %}'Default message'{% endif %}} (clicked ${clickCount.value} times)`;
+    });
+    
+    return {
+      clickCount,
+{% if withProps %}
+      showProps,
+      toggleProps,
+{% endif %}
+      handleClick,
+      computedMessage
+    };
+  }
+});
+{% else %}
+import { ref, computed } from 'vue';
+
+export default {
+  name: '{{ componentName | pascalCase }}',
+{% if withProps %}
+  props: {
+    message: {
+      type: String,
+      default: 'Hello from {{ componentName | titleCase }}!'
+    },
+    count: {
+      type: Number,
+      default: 0
+    },
+    isActive: {
+      type: Boolean,
+      default: false
+    }
+  },
+{% endif %}
+  emits: ['click', 'update:count'],
+  setup(props, { emit }) {
+    const clickCount = ref(props.count || 0);
+{% if withProps %}
+    const showProps = ref(false);
+{% endif %}
+    
+    const handleClick = () => {
+      clickCount.value++;
+      emit('click', {
+        count: clickCount.value,
+        timestamp: new Date().toISOString()
+      });
+      emit('update:count', clickCount.value);
+    };
+    
+{% if withProps %}
+    const toggleProps = () => {
+      showProps.value = !showProps.value;
+    };
+{% endif %}
+    
+    return {
+      clickCount,
+{% if withProps %}
+      showProps,
+      toggleProps,
+{% endif %}
+      handleClick
+    };
+  }
+};
+{% endif %}
+</script>
+{% else %}
+<script{% if withTypeScript %} lang="ts"{% endif %}>
+export default {
+  name: '{{ componentName | pascalCase }}',
+{% if withProps %}
+  props: {
+    message: {
+      type: String,
+      default: 'Hello from {{ componentName | titleCase }}!'
+    },
+    count: {
+      type: Number,
+      default: 0
+    },
+    isActive: {
+      type: Boolean,
+      default: false
+    }
+  },
+{% endif %}
+  emits: ['click', 'update:count'],
+  data() {
+    return {
+      clickCount: this{% if withProps %}.count{% endif %} || 0,
+{% if withProps %}
+      showProps: false
+{% endif %}
+    };
+  },
+  computed: {
+    computedMessage() {
+      return `${this{% if withProps %}.message{% else %}'Default message'{% endif %}} (clicked ${this.clickCount} times)`;
+    }
+  },
+  methods: {
+    handleClick() {
+      this.clickCount++;
+      this.$emit('click', {
+        count: this.clickCount,
+        timestamp: new Date().toISOString()
+      });
+      this.$emit('update:count', this.clickCount);
+    },
+{% if withProps %}
+    toggleProps() {
+      this.showProps = !this.showProps;
+    }
+{% endif %}
+  }
+};
+</script>
+{% endif %}
+
+{% if withStyles %}
+<style scoped>
+.{{ componentName | kebabCase }} {
+  padding: 1rem;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  margin: 1rem 0;
+  background: #f9f9f9;
+}
+
+.{{ componentName | kebabCase }}__title {
+  color: #333;
+  margin-bottom: 0.5rem;
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+.{{ componentName | kebabCase }}__description {
+  color: #666;
+  margin-bottom: 1rem;
+  line-height: 1.5;
+}
+
+.{{ componentName | kebabCase }}__props {
+  background: #fff;
+  padding: 0.75rem;
+  border-radius: 4px;
+  margin: 1rem 0;
+  border-left: 4px solid #007acc;
+}
+
+.{{ componentName | kebabCase }}__props h3 {
+  margin: 0 0 0.5rem 0;
+  color: #007acc;
+}
+
+.{{ componentName | kebabCase }}__props ul {
+  margin: 0;
+  padding-left: 1rem;
+}
+
+.{{ componentName | kebabCase }}__actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.btn {
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.btn--primary {
+  background: #007acc;
+  color: white;
+}
+
+.btn--primary:hover {
+  background: #005a9e;
+}
+
+.btn--primary.active {
+  background: #00d4aa;
+}
+
+.btn--secondary {
+  background: #6c757d;
+  color: white;
+}
+
+.btn--secondary:hover {
+  background: #545b62;
+}
+</style>
+{% endif %}

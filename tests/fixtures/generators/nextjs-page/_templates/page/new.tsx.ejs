@@ -1,0 +1,142 @@
+---
+to: src/pages/{{ pageName | kebabCase }}.tsx
+variables:
+  pageName:
+    type: string
+    required: true
+    description: Page name (e.g., about-us, contact)
+  title:
+    type: string
+    required: false
+    description: Page title for SEO
+  withLayout:
+    type: boolean
+    default: true
+    description: Include default layout wrapper
+  withSEO:
+    type: boolean
+    default: true
+    description: Include SEO meta tags
+  isSSG:
+    type: boolean
+    default: false
+    description: Enable Static Site Generation
+  isSSR:
+    type: boolean
+    default: false
+    description: Enable Server-Side Rendering
+inject: false
+---
+import React from 'react';
+{% if withSEO %}
+import Head from 'next/head';
+{% endif %}
+{% if withLayout %}
+import Layout from '../components/Layout';
+{% endif %}
+{% if isSSG or isSSR %}
+import { GetStaticProps{% if isSSR %}, GetServerSideProps{% endif %} } from 'next';
+{% endif %}
+
+interface {{ pageName | pascalCase }}Props {
+  data?: any;
+}
+
+const {{ pageName | pascalCase }}Page: React.FC<{{ pageName | pascalCase }}Props> = ({ data }) => {
+  return (
+    <>
+{% if withSEO %}
+      <Head>
+        <title>{{ title or (pageName | titleCase) }} | Your App</title>
+        <meta name="description" content="{{ title or (pageName | titleCase) }} page description" />
+        <meta name="keywords" content="{{ pageName | kebabCase }}, nextjs, react" />
+        <meta property="og:title" content="{{ title or (pageName | titleCase) }} | Your App" />
+        <meta property="og:description" content="{{ title or (pageName | titleCase) }} page description" />
+        <meta property="og:type" content="website" />
+      </Head>
+{% endif %}
+      
+{% if withLayout %}
+      <Layout>
+{% endif %}
+        <div className="{{ pageName | kebabCase }}-page">
+          <h1 className="text-3xl font-bold mb-6">
+            {{ title or (pageName | titleCase) }}
+          </h1>
+          
+          <div className="content">
+            <p className="text-gray-600 mb-4">
+              Welcome to the {{ pageName | titleCase }} page. This is a generated Next.js page.
+            </p>
+            
+            {data && (
+              <div className="data-section bg-gray-50 p-4 rounded">
+                <h2 className="text-xl font-semibold mb-2">Data</h2>
+                <pre className="bg-gray-800 text-green-400 p-3 rounded text-sm overflow-x-auto">
+                  {JSON.stringify(data, null, 2)}
+                </pre>
+              </div>
+            )}
+            
+            <div className="actions mt-6 flex gap-4">
+              <button 
+                className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded transition-colors"
+                onClick={() => alert('Button clicked!')}
+              >
+                Action Button
+              </button>
+              
+              <button 
+                className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded transition-colors"
+                onClick={() => window.history.back()}
+              >
+                Go Back
+              </button>
+            </div>
+          </div>
+        </div>
+{% if withLayout %}
+      </Layout>
+{% endif %}
+    </>
+  );
+};
+
+{% if isSSG %}
+// Static Site Generation
+export const getStaticProps: GetStaticProps = async (context) => {
+  // Fetch data at build time
+  const data = {
+    page: '{{ pageName | kebabCase }}',
+    generated: new Date().toISOString(),
+    params: context.params
+  };
+
+  return {
+    props: {
+      data
+    },
+    // Regenerate page at most once per hour
+    revalidate: 3600
+  };
+};
+{% elif isSSR %}
+// Server-Side Rendering
+export const getServerSideProps: GetServerSideProps = async (context) => {
+  // Fetch data on each request
+  const data = {
+    page: '{{ pageName | kebabCase }}',
+    rendered: new Date().toISOString(),
+    userAgent: context.req.headers['user-agent'],
+    query: context.query
+  };
+
+  return {
+    props: {
+      data
+    }
+  };
+};
+{% endif %}
+
+export default {{ pageName | pascalCase }}Page;

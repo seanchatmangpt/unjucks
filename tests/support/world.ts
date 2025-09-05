@@ -120,22 +120,31 @@ export class UnjucksWorld extends World<UnjucksWorldParameters> {
    */
   async executeUnjucksCommand(args: string[], cwd?: string): Promise<void> {
     const workingDir = cwd || this.context.tempDirectory || this.context.workingDirectory;
-    const command = `node ${path.join(this.context.workingDirectory, 'dist/cli.mjs')} ${args.join(' ')}`;
+    const cliPath = path.resolve(process.cwd(), 'dist/cli.mjs');
+    const command = `node "${cliPath}" ${args.join(' ')}`;
+    
+    console.log(`Executing unjucks command: ${command}`);
     
     try {
       const result = execSync(command, { 
         cwd: workingDir, 
         encoding: 'utf8',
-        timeout: this.parameters.timeout 
+        timeout: this.parameters.timeout || 30000,
+        env: { ...process.env, NODE_ENV: 'test' },
+        stdio: ['inherit', 'pipe', 'pipe'] // Capture stdout and stderr
       });
       
       this.context.lastCommandOutput = result.toString();
       this.context.lastCommandError = '';
       this.context.lastCommandCode = 0;
+      
+      console.log(`Unjucks command result: { exitCode: 0, stdout: '${this.context.lastCommandOutput}', stderr: '' }`);
     } catch (error: any) {
-      this.context.lastCommandOutput = error.stdout || '';
-      this.context.lastCommandError = error.stderr || error.message || '';
+      this.context.lastCommandOutput = error.stdout ? error.stdout.toString() : '';
+      this.context.lastCommandError = error.stderr ? error.stderr.toString() : error.message || '';
       this.context.lastCommandCode = error.status || 1;
+      
+      console.log(`Unjucks command error: { exitCode: ${this.context.lastCommandCode}, stdout: '${this.context.lastCommandOutput}', stderr: '${this.context.lastCommandError}' }`);
     }
   }
 
@@ -275,6 +284,30 @@ export class UnjucksWorld extends World<UnjucksWorldParameters> {
       stderr: this.context.lastCommandError,
       duration: this.context.fixtures.commandDuration as number
     };
+  }
+
+  /**
+   * Get last command result in CLIResult format
+   */
+  getLastCommandResult(): CLIResult {
+    return {
+      exitCode: this.context.lastCommandCode || 0,
+      stdout: this.context.lastCommandOutput,
+      stderr: this.context.lastCommandError,
+      duration: this.context.fixtures.commandDuration as number || 0
+    };
+  }
+
+  /**
+   * Set last command result from CLIResult
+   */
+  setLastCommandResult(result: CLIResult): void {
+    this.context.lastCommandOutput = result.stdout;
+    this.context.lastCommandError = result.stderr;
+    this.context.lastCommandCode = result.exitCode;
+    if (result.duration) {
+      this.context.fixtures.commandDuration = result.duration;
+    }
   }
 
   /**
