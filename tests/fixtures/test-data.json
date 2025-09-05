@@ -1,0 +1,197 @@
+{
+  "componentNames": [
+    "UserProfile",
+    "LoginForm",
+    "Dashboard",
+    "NavigationBar",
+    "SearchWidget",
+    "SettingsPanel",
+    "DataTable",
+    "ChartDisplay"
+  ],
+  "serviceNames": [
+    "UserService",
+    "AuthService",
+    "EmailService",
+    "PaymentService",
+    "FileService",
+    "CacheService",
+    "LoggerService",
+    "ConfigService"
+  ],
+  "modelFields": [
+    {
+      "name": "id",
+      "type": "string",
+      "required": true,
+      "description": "Unique identifier"
+    },
+    {
+      "name": "name",
+      "type": "string",
+      "required": true,
+      "description": "Display name"
+    },
+    {
+      "name": "email",
+      "type": "string",
+      "required": true,
+      "description": "Email address"
+    },
+    {
+      "name": "createdAt",
+      "type": "Date",
+      "required": false,
+      "description": "Creation timestamp"
+    },
+    {
+      "name": "updatedAt",
+      "type": "Date",
+      "required": false,
+      "description": "Last update timestamp"
+    }
+  ],
+  "formFields": [
+    {
+      "name": "firstName",
+      "type": "string",
+      "label": "First Name",
+      "inputType": "text",
+      "required": true
+    },
+    {
+      "name": "lastName",
+      "type": "string",
+      "label": "Last Name",
+      "inputType": "text",
+      "required": true
+    },
+    {
+      "name": "email",
+      "type": "string",
+      "label": "Email Address",
+      "inputType": "email",
+      "required": true
+    },
+    {
+      "name": "age",
+      "type": "number",
+      "label": "Age",
+      "inputType": "number",
+      "required": false
+    },
+    {
+      "name": "subscribe",
+      "type": "boolean",
+      "label": "Subscribe to newsletter",
+      "inputType": "checkbox",
+      "required": false
+    }
+  ],
+  "apiEndpoints": [
+    {
+      "path": "users",
+      "method": "GET",
+      "description": "Get all users",
+      "controller": "User",
+      "action": "getAll"
+    },
+    {
+      "path": "users/:id",
+      "method": "GET",
+      "description": "Get user by ID",
+      "controller": "User",
+      "action": "getById"
+    },
+    {
+      "path": "users",
+      "method": "POST",
+      "description": "Create new user",
+      "controller": "User",
+      "action": "create"
+    },
+    {
+      "path": "users/:id",
+      "method": "PUT",
+      "description": "Update user",
+      "controller": "User",
+      "action": "update"
+    },
+    {
+      "path": "users/:id",
+      "method": "DELETE",
+      "description": "Delete user",
+      "controller": "User",
+      "action": "delete"
+    }
+  ],
+  "variableTestCases": [
+    {
+      "scenario": "Simple string replacement",
+      "template": "Hello <%= name %>!",
+      "variables": { "name": "World" },
+      "expected": "Hello World!"
+    },
+    {
+      "scenario": "Multiple variables",
+      "template": "<%= greeting %> <%= name %>! You have <%= count %> messages.",
+      "variables": { "greeting": "Hello", "name": "Alice", "count": 5 },
+      "expected": "Hello Alice! You have 5 messages."
+    },
+    {
+      "scenario": "Conditional rendering",
+      "template": "<% if (showWelcome) { %>Welcome <%= name %>!<% } %>",
+      "variables": { "showWelcome": true, "name": "Bob" },
+      "expected": "Welcome Bob!"
+    },
+    {
+      "scenario": "Loop rendering",
+      "template": "<% items.forEach(item => { %>- <%= item %>\n<% }) %>",
+      "variables": { "items": ["Apple", "Banana", "Cherry"] },
+      "expected": "- Apple\n- Banana\n- Cherry\n"
+    },
+    {
+      "scenario": "Filter application",
+      "template": "<%= name | pascalCase %> <%= description | kebabCase %>",
+      "variables": { "name": "user profile", "description": "User Profile Component" },
+      "expected": "UserProfile user-profile-component"
+    }
+  ],
+  "errorScenarios": [
+    {
+      "scenario": "Missing required variable",
+      "template": "Hello <%= name %>!",
+      "variables": {},
+      "expectedError": "name is not defined"
+    },
+    {
+      "scenario": "Invalid template syntax",
+      "template": "Hello <%= unclosedTag",
+      "variables": { "name": "World" },
+      "expectedError": "Could not find matching close tag"
+    },
+    {
+      "scenario": "Type mismatch",
+      "template": "<% if (count > 5) { %>Many<% } %>",
+      "variables": { "count": "not-a-number" },
+      "expectedError": "Cannot compare string to number"
+    }
+  ],
+  "performanceTestData": {
+    "smallTemplate": {
+      "lines": 10,
+      "variables": 3,
+      "expectedTime": 100
+    },
+    "mediumTemplate": {
+      "lines": 100,
+      "variables": 15,
+      "expectedTime": 500
+    },
+    "largeTemplate": {
+      "lines": 1000,
+      "variables": 50,
+      "expectedTime": 2000
+    }
+  }
+}

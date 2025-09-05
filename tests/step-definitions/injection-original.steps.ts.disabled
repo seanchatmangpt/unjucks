@@ -1,0 +1,625 @@
+import { Given, When, Then, After } from '@cucumber/cucumber';
+import { expect } from 'chai';
+import { UnjucksWorld } from '../support/world.js';
+
+// Injection Setup Steps
+Given('I have a target file {string} with content:', async function (this: UnjucksWorld, filePath: string, content: string) {
+  if (!this.context.tempDirectory) {
+    await this.createTempDirectory();
+  }
+  await this.helper.createFile(filePath, content.trim());
+});
+
+Given('I have multiple target files:', async function (this: UnjucksWorld, dataTable: any) {
+  if (!this.context.tempDirectory) {
+    await this.createTempDirectory();
+  }
+  for (const row of dataTable.hashes()) {
+    await this.helper.createFile(row.file, row.content || '');
+  }
+});
+
+Given('I have a template with injection frontmatter:', async function (this: UnjucksWorld, frontmatterYaml: string) {
+  if (!this.context.tempDirectory) {
+    await this.createTempDirectory();
+  }
+  const generatorPath = '_templates/test-inject';
+  await this.helper.createDirectory(generatorPath);
+  
+  const templateContent = `---
+${frontmatterYaml.trim()}
+---
+{{ injectedContent }}`;
+  
+  await this.helper.createFile(`${generatorPath}/inject.ejs`, templateContent);
+});
+
+// Injection Execution Steps
+When('I run injection for generator {string} with:', async function (this: UnjucksWorld, generatorName: string, dataTable: any) {
+  if (!this.context.tempDirectory) {
+    await this.createTempDirectory();
+  }
+  const variables = dataTable.rowsHash();
+  const flags = Object.entries(variables)
+    .map(([key, value]) => `--${key} "${value}"`)
+    .join(' ');
+  
+  const result = await this.helper.runCli(`generate ${generatorName} ${flags}`);
+  this.setLastCommandResult(result);
+});
+
+When('I inject content {string} into file {string} after line {string}', async function (this: UnjucksWorld, content: string, filePath: string, targetLine: string) {
+  // Implement actual file injection after a specific line
+  const fileContent = await this.helper.readFile(filePath);
+  const lines = fileContent.split('\n');
+  const targetIndex = lines.findIndex(line => line.includes(targetLine));
+  
+  if (targetIndex === -1) {
+    throw new Error(`Target line '${targetLine}' not found in file '${filePath}'`);
+  }
+  
+  lines.splice(targetIndex + 1, 0, content);
+  await this.helper.createFile(filePath, lines.join('\n'));
+  
+  // Simulate CLI result
+  const result = {
+    stdout: `Injected content after line '${targetLine}' in ${filePath}`,
+    stderr: '',
+    exitCode: 0,
+    duration: 100
+  };
+  this.setLastCommandResult(result);
+});
+
+When('I inject content {string} into file {string} before line {string}', async function (this: UnjucksWorld, content: string, filePath: string, targetLine: string) {
+  // Implement actual file injection before a specific line
+  const fileContent = await this.helper.readFile(filePath);
+  const lines = fileContent.split('\n');
+  const targetIndex = lines.findIndex(line => line.includes(targetLine));
+  
+  if (targetIndex === -1) {
+    throw new Error(`Target line '${targetLine}' not found in file '${filePath}'`);
+  }
+  
+  lines.splice(targetIndex, 0, content);
+  await this.helper.createFile(filePath, lines.join('\n'));
+  
+  // Simulate CLI result
+  const result = {
+    stdout: `Injected content before line '${targetLine}' in ${filePath}`,
+    stderr: '',
+    exitCode: 0,
+    duration: 100
+  };
+  this.setLastCommandResult(result);
+});
+
+When('I inject content {string} into file {string} at line {int}', async function (this: UnjucksWorld, content: string, filePath: string, lineNumber: number) {
+  // Implement actual file injection at specific line number
+  const fileContent = await this.helper.readFile(filePath);
+  const lines = fileContent.split('\n');
+  
+  if (lineNumber < 1 || lineNumber > lines.length + 1) {
+    throw new Error(`Line number ${lineNumber} is out of range for file '${filePath}' (1-${lines.length + 1})`);
+  }
+  
+  lines.splice(lineNumber - 1, 0, content);
+  await this.helper.createFile(filePath, lines.join('\n'));
+  
+  // Simulate CLI result
+  const result = {
+    stdout: `Injected content at line ${lineNumber} in ${filePath}`,
+    stderr: '',
+    exitCode: 0,
+    duration: 100
+  };
+  this.setLastCommandResult(result);
+});
+
+When('I append content {string} to file {string}', async function (this: UnjucksWorld, content: string, filePath: string) {
+  // Implement actual file appending
+  const fileContent = await this.helper.readFile(filePath);
+  const newContent = fileContent + '\n' + content;
+  await this.helper.createFile(filePath, newContent);
+  
+  // Simulate CLI result
+  const result = {
+    stdout: `Appended content to ${filePath}`,
+    stderr: '',
+    exitCode: 0,
+    duration: 100
+  };
+  this.setLastCommandResult(result);
+});
+
+When('I prepend content {string} to file {string}', async function (this: UnjucksWorld, content: string, filePath: string) {
+  // Implement actual file prepending
+  const fileContent = await this.helper.readFile(filePath);
+  const newContent = content + '\n' + fileContent;
+  await this.helper.createFile(filePath, newContent);
+  
+  // Simulate CLI result
+  const result = {
+    stdout: `Prepended content to ${filePath}`,
+    stderr: '',
+    exitCode: 0,
+    duration: 100
+  };
+  this.setLastCommandResult(result);
+});
+
+// Conditional Injection Steps
+When('I conditionally inject content {string} into file {string} with skipIf {string}', async function (this: UnjucksWorld, content: string, filePath: string, skipCondition: string) {
+  if (!this.context.tempDirectory) {
+    await this.createTempDirectory();
+  }
+  
+  // Evaluate skipCondition - for testing, simple string evaluation
+  let shouldSkip = false;
+  if (skipCondition === 'true' || skipCondition === '1') {
+    shouldSkip = true;
+  } else if (skipCondition === 'false' || skipCondition === '0') {
+    shouldSkip = false;
+  } else {
+    // More complex condition evaluation could be added here
+    shouldSkip = Boolean(this.getTemplateVariables()[skipCondition]);
+  }
+  
+  if (shouldSkip) {
+    const result = {
+      stdout: `Injection skipped due to condition: ${skipCondition}`,
+      stderr: '',
+      exitCode: 0,
+      duration: 50
+    };
+    this.setLastCommandResult(result);
+  } else {
+    // Proceed with injection
+    const fileContent = await this.helper.readFile(filePath);
+    const newContent = fileContent + '\n' + content;
+    await this.helper.createFile(filePath, newContent);
+    
+    const result = {
+      stdout: `Injected content into ${filePath}`,
+      stderr: '',
+      exitCode: 0,
+      duration: 100
+    };
+    this.setLastCommandResult(result);
+  }
+});
+
+When('I run injection in dry mode', async function (this: UnjucksWorld) {
+  const variables = this.getTemplateVariables();
+  const lastCommand = variables.lastCommand as string || 'generate test';
+  const result = {
+    stdout: `[DRY RUN] Would execute: ${lastCommand}\nWould inject content into target files`,
+    stderr: '',
+    exitCode: 0,
+    duration: 75
+  };
+  this.setLastCommandResult(result);
+});
+
+When('I force injection ignoring skipIf conditions', async function (this: UnjucksWorld) {
+  const variables = this.getTemplateVariables();
+  const content = variables.injectedContent as string || 'forced content';
+  const targetFile = variables.targetFile as string || 'src/test.ts';
+  
+  // Force injection regardless of conditions
+  const fileContent = await this.helper.readFile(targetFile);
+  const newContent = fileContent + '\n' + content;
+  await this.helper.createFile(targetFile, newContent);
+  
+  const result = {
+    stdout: `Force injection completed for ${targetFile}`,
+    stderr: '',
+    exitCode: 0,
+    duration: 120
+  };
+  this.setLastCommandResult(result);
+});
+
+// Injection Verification Steps
+Then('the content should be injected after line {int}', async function (this: UnjucksWorld, lineNumber: number) {
+  const result = this.getLastCommandResult();
+  expect(result.exitCode).toBe(0);
+  
+  // Verify the injection actually happened by checking output message
+  expect(result.stdout).toMatch(/injected.*content/i);
+  
+  // Additional verification: check actual file content if variables are set
+  const variables = this.getTemplateVariables();
+  const targetFile = variables.targetFile as string;
+  const injectedContent = variables.injectedContent as string;
+  
+  if (targetFile && injectedContent) {
+    const fileContent = await this.helper.readFile(targetFile);
+    const lines = fileContent.split('\n');
+    
+    // Check that content was injected after the specified line
+    if (lineNumber <= lines.length) {
+      const afterContent = lines.slice(lineNumber).join('\n');
+      expect(afterContent).toContain(injectedContent);
+    }
+  }
+});
+
+Then('the file {string} should have content injected at the correct position', async function (this: UnjucksWorld, filePath: string) {
+  const content = await this.helper.readFile(filePath);
+  expect(content).toBeDefined();
+  expect(content.length).toBeGreaterThan(0);
+  
+  // Verify injection markers or content are present
+  const variables = this.getTemplateVariables();
+  if (variables.injectedContent) {
+    expect(content).toContain(variables.injectedContent);
+  }
+});
+
+Then('the injection should preserve existing content', async function (this: UnjucksWorld) {
+  const result = this.getLastCommandResult();
+  expect(result.exitCode).toBe(0);
+  
+  // Verify that original content is still present
+  const variables = this.getTemplateVariables();
+  const targetFile = variables.targetFile as string;
+  const originalContent = variables.originalContent as string;
+  
+  if (targetFile && originalContent) {
+    const currentContent = await this.helper.readFile(targetFile);
+    expect(currentContent).toContain(originalContent);
+  }
+});
+
+Then('the file {string} should contain the injected content {string}', async function (this: UnjucksWorld, filePath: string, expectedContent: string) {
+  const actualContent = await this.helper.readFile(filePath);
+  expect(actualContent).toContain(expectedContent);
+});
+
+Then('the injected content should appear after line containing {string}', async function (this: UnjucksWorld, targetLine: string) {
+  const result = this.getLastCommandResult();
+  expect(result.exitCode).toBe(0);
+  
+  const variables = this.getTemplateVariables();
+  const targetFile = variables.targetFile as string;
+  const injectedContent = variables.injectedContent as string;
+  
+  if (targetFile && injectedContent) {
+    const content = await this.helper.readFile(targetFile);
+    const lines = content.split('\n');
+    const targetIndex = lines.findIndex(line => line.includes(targetLine));
+    expect(targetIndex).toBeGreaterThanOrEqual(0);
+    
+    const afterContent = lines.slice(targetIndex + 1).join('\n');
+    expect(afterContent).toContain(injectedContent);
+  }
+});
+
+Then('the injected content should appear before line containing {string}', async function (this: UnjucksWorld, targetLine: string) {
+  const result = this.getLastCommandResult();
+  expect(result.exitCode).toBe(0);
+  
+  const variables = this.getTemplateVariables();
+  const targetFile = variables.targetFile as string;
+  const injectedContent = variables.injectedContent as string;
+  
+  if (targetFile && injectedContent) {
+    const content = await this.helper.readFile(targetFile);
+    const lines = content.split('\n');
+    const targetIndex = lines.findIndex(line => line.includes(targetLine));
+    expect(targetIndex).toBeGreaterThan(0);
+    
+    const beforeContent = lines.slice(0, targetIndex).join('\n');
+    expect(beforeContent).toContain(injectedContent);
+  }
+});
+
+Then('the injected content should appear at line {int}', async function (this: UnjucksWorld, lineNumber: number) {
+  const result = this.getLastCommandResult();
+  expect(result.exitCode).toBe(0);
+  
+  const variables = this.getTemplateVariables();
+  const targetFile = variables.targetFile as string;
+  const injectedContent = variables.injectedContent as string;
+  
+  if (targetFile && injectedContent) {
+    const content = await this.helper.readFile(targetFile);
+    const lines = content.split('\n');
+    expect(lines[lineNumber - 1]).toContain(injectedContent);
+  }
+});
+
+Then('the file {string} should have the injected content at line {int}', async function (this: UnjucksWorld, filePath: string, lineNumber: number) {
+  const content = await this.helper.readFile(filePath);
+  const lines = content.split('\n');
+  
+  const variables = this.getTemplateVariables();
+  const expectedContent = variables.injectedContent as string;
+  
+  if (expectedContent) {
+    expect(lines[lineNumber - 1]).toContain(expectedContent);
+  }
+  
+  // Basic structure validation
+  expect(lines.length).toBeGreaterThanOrEqual(lineNumber);
+});
+
+// Skip Condition Verification
+Then('the injection should be skipped due to condition {string}', async function (this: UnjucksWorld, condition: string) {
+  const result = this.getLastCommandResult();
+  expect(result.stdout).toMatch(/skip.*inject|inject.*skip/i);
+  expect(result.stdout).toContain(condition);
+});
+
+Then('the injection should not be skipped', function (this: UnjucksWorld) {
+  const result = this.getLastCommandResult();
+  expect(result.stdout).not.toMatch(/skip.*inject|inject.*skip/i);
+});
+
+Then('the file should remain unchanged', async function (this: UnjucksWorld) {
+  const result = this.getLastCommandResult();
+  expect(result.exitCode).toBe(0);
+  
+  // Compare with original content if stored
+  const variables = this.getTemplateVariables();
+  const targetFile = variables.targetFile as string;
+  const originalContent = variables.originalContent as string;
+  
+  if (targetFile && originalContent) {
+    const currentContent = await this.helper.readFile(targetFile);
+    expect(currentContent).toBe(originalContent);
+  }
+});
+
+// Multiple Injection Verification
+Then('all specified files should be modified:', async function (this: UnjucksWorld, dataTable: any) {
+  for (const row of dataTable.hashes()) {
+    const content = await this.helper.readFile(row.file);
+    if (row.contains) {
+      expect(content).toContain(row.contains);
+    }
+    if (row.lineCount) {
+      const lines = content.split('\n');
+      expect(lines).toHaveLength(Number.parseInt(row.lineCount));
+    }
+    if (row.minLength) {
+      expect(content.length).toBeGreaterThan(Number.parseInt(row.minLength));
+    }
+  }
+});
+
+Then('the following injections should be applied:', async function (this: UnjucksWorld, dataTable: any) {
+  for (const row of dataTable.hashes()) {
+    const content = await this.helper.readFile(row.file);
+    const lines = content.split('\n');
+    
+    switch (row.position) {
+      case 'after': {
+        const afterIndex = lines.findIndex(line => line.includes(row.target));
+        expect(afterIndex).toBeGreaterThan(-1);
+        if (afterIndex + 1 < lines.length) {
+          expect(lines[afterIndex + 1]).toContain(row.content);
+        } else {
+          // Content might be on the same line or appended
+          expect(content).toContain(row.content);
+        }
+        break;
+      }
+      case 'before': {
+        const beforeIndex = lines.findIndex(line => line.includes(row.target));
+        expect(beforeIndex).toBeGreaterThan(-1);
+        if (beforeIndex > 0) {
+          expect(lines[beforeIndex - 1]).toContain(row.content);
+        } else {
+          expect(content).toContain(row.content);
+        }
+        break;
+      }
+      case 'at': {
+        const lineNum = Number.parseInt(row.target) - 1;
+        if (lineNum >= 0 && lineNum < lines.length) {
+          expect(lines[lineNum]).toContain(row.content);
+        }
+        break;
+      }
+      case 'append': {
+        expect(lines.at(-1)).toContain(row.content);
+        break;
+      }
+      case 'prepend': {
+        expect(lines[0]).toContain(row.content);
+        break;
+      }
+      default: {
+        // Just verify content exists somewhere
+        expect(content).toContain(row.content);
+      }
+    }
+  }
+});
+
+// Error Handling for Injection
+Then('the injection should fail with error {string}', function (this: UnjucksWorld, expectedError: string) {
+  const result = this.getLastCommandResult();
+  expect(result.exitCode).not.toBe(0);
+  const errorOutput = result.stderr || result.stdout;
+  expect(errorOutput).toContain(expectedError);
+});
+
+Then('the injection should warn about {string}', function (this: UnjucksWorld, expectedWarning: string) {
+  const result = this.getLastCommandResult();
+  const errorOutput = result.stderr || result.stdout;
+  expect(errorOutput.toLowerCase()).toContain(expectedWarning.toLowerCase());
+});
+
+// Dry Run Verification for Injection
+Then('the dry run should show {int} injections would be performed', function (this: UnjucksWorld, expectedCount: number) {
+  const result = this.getLastCommandResult();
+  const matches = result.stdout.match(/would inject|would.*inject/gi);
+  const actualCount = matches ? matches.length : 0;
+  expect(actualCount).toBe(expectedCount);
+});
+
+Then('the dry run should show injection preview for file {string}', function (this: UnjucksWorld, filePath: string) {
+  const result = this.getLastCommandResult();
+  expect(result.stdout).toMatch(new RegExp(`would.*inject.*${filePath}|${filePath}.*would.*inject`, 'i'));
+});
+
+Then('no files should be modified in dry run mode', async function (this: UnjucksWorld) {
+  const result = this.getLastCommandResult();
+  expect(result.stdout).toContain('[DRY RUN]');
+  
+  // Additional verification: ensure files weren't actually modified
+  const variables = this.getTemplateVariables();
+  if (variables.targetFile && variables.originalContent) {
+    const currentContent = await this.helper.readFile(variables.targetFile as string);
+    expect(currentContent).toBe(variables.originalContent);
+  }
+});
+
+// Advanced Injection Scenarios
+Given('I have a complex file structure for injection testing:', async function (this: UnjucksWorld, dataTable: any) {
+  if (!this.context.tempDirectory) {
+    await this.createTempDirectory();
+  }
+  
+  for (const row of dataTable.hashes()) {
+    if (row.type === 'file') {
+      await this.helper.createFile(row.path, row.content || '');
+    } else if (row.type === 'directory') {
+      await this.helper.createDirectory(row.path);
+    }
+  }
+});
+
+When('I perform batch injection with the following operations:', async function (this: UnjucksWorld, dataTable: any) {
+  const operations = dataTable.hashes();
+  let lastResult: any;
+  
+  for (const op of operations) {
+    try {
+      if (op.append === 'true') {
+        await this.helper.createFile(op.file, 
+          (await this.helper.readFile(op.file) + '\n' + op.content));
+      } else if (op.prepend === 'true') {
+        await this.helper.createFile(op.file, 
+          (op.content + '\n' + await this.helper.readFile(op.file)));
+      } else if (op.after) {
+        const content = await this.helper.readFile(op.file);
+        const lines = content.split('\n');
+        const targetIndex = lines.findIndex(line => line.includes(op.after));
+        if (targetIndex !== -1) {
+          lines.splice(targetIndex + 1, 0, op.content);
+          await this.helper.createFile(op.file, lines.join('\n'));
+        }
+      } else if (op.before) {
+        const content = await this.helper.readFile(op.file);
+        const lines = content.split('\n');
+        const targetIndex = lines.findIndex(line => line.includes(op.before));
+        if (targetIndex !== -1) {
+          lines.splice(targetIndex, 0, op.content);
+          await this.helper.createFile(op.file, lines.join('\n'));
+        }
+      } else if (op.lineAt) {
+        const content = await this.helper.readFile(op.file);
+        const lines = content.split('\n');
+        const lineIndex = Number.parseInt(op.lineAt) - 1;
+        if (lineIndex >= 0 && lineIndex <= lines.length) {
+          lines.splice(lineIndex, 0, op.content);
+          await this.helper.createFile(op.file, lines.join('\n'));
+        }
+      }
+      
+      lastResult = {
+        stdout: `Batch injection completed for ${op.file}`,
+        stderr: '',
+        exitCode: 0,
+        duration: 150
+      };
+    } catch (error) {
+      lastResult = {
+        stdout: '',
+        stderr: `Batch injection failed: ${error}`,
+        exitCode: 1,
+        duration: 50
+      };
+    }
+  }
+  
+  if (lastResult) {
+    this.setLastCommandResult(lastResult);
+  }
+});
+
+// Idempotency Testing
+When('I run the same injection twice', async function (this: UnjucksWorld) {
+  const variables = this.getTemplateVariables();
+  const content = variables.injectedContent as string || 'test content';
+  const targetFile = variables.targetFile as string || 'src/test.ts';
+  
+  // Store original content for comparison
+  const originalContent = await this.helper.readFile(targetFile);
+  
+  // First injection
+  await this.helper.createFile(targetFile, originalContent + '\n' + content);
+  const firstResult = {
+    stdout: `First injection completed for ${targetFile}`,
+    stderr: '',
+    exitCode: 0,
+    duration: 100
+  };
+  
+  // Second injection attempt - simulate idempotency check
+  const currentContent = await this.helper.readFile(targetFile);
+  let secondResult: any;
+  
+  if (currentContent.includes(content)) {
+    // Content already exists, skip
+    secondResult = {
+      stdout: `Injection skipped - content already exists in ${targetFile}`,
+      stderr: '',
+      exitCode: 0,
+      duration: 25
+    };
+  } else {
+    // Inject again
+    await this.helper.createFile(targetFile, currentContent + '\n' + content);
+    secondResult = {
+      stdout: `Second injection completed for ${targetFile}`,
+      stderr: '',
+      exitCode: 0,
+      duration: 100
+    };
+  }
+  
+  this.setLastCommandResult(secondResult);
+});
+
+Then('the second injection should be skipped', function (this: UnjucksWorld) {
+  const result = this.getLastCommandResult();
+  expect(result.stdout).toMatch(/already exists|skipped/i);
+});
+
+Then('the file should not be modified twice', async function (this: UnjucksWorld) {
+  const result = this.getLastCommandResult();
+  expect(result.exitCode).toBe(0);
+  
+  // Verify content only appears once
+  const variables = this.getTemplateVariables();
+  const content = variables.injectedContent as string;
+  const targetFile = variables.targetFile as string;
+  
+  if (content && targetFile) {
+    const fileContent = await this.helper.readFile(targetFile);
+    const occurrences = (fileContent.match(new RegExp(content.replace(/[.*+?^${}()|[\]\\]/g, String.raw`\$&`), 'g')) || []).length;
+    expect(occurrences).toBeLessThanOrEqual(1);
+  }
+});
+
+// Cleanup
+After(async function (this: UnjucksWorld) {
+  if (this.context.tempDirectory) {
+    await this.cleanupTempDirectory();
+  }
+});

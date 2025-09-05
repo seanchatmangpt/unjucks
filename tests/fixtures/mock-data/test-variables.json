@@ -1,0 +1,42 @@
+{
+  "basicComponent": {
+    "name": "Button",
+    "withProps": true,
+    "withStyles": true,
+    "author": "Test Suite"
+  },
+  "apiController": {
+    "name": "User",
+    "withAuth": true,
+    "methods": ["get", "post"],
+    "database": "postgresql"
+  },
+  "formInput": {
+    "formName": "loginForm",
+    "fieldTypes": ["text", "email", "password"],
+    "withValidation": true,
+    "theme": "dark"
+  },
+  "testSuite": {
+    "testName": "userService",
+    "withMocks": true,
+    "testFramework": "vitest"
+  },
+  "injectionTest": {
+    "targetFile": "example",
+    "content": "// Injected via test",
+    "skipCondition": "false"
+  },
+  "errorTest": {
+    "fileName": "broken",
+    "invalidVar": "test"
+  },
+  "complexScenario": {
+    "componentName": "DataGrid",
+    "features": ["sorting", "filtering", "pagination"],
+    "withTypeScript": true,
+    "styling": "tailwind",
+    "dataSource": "api",
+    "permissions": ["read", "write", "delete"]
+  }
+}

@@ -324,3 +324,11 @@ NEVER create files unless they're absolutely necessary for achieving your goal.
 ALWAYS prefer editing an existing file to creating a new one.
 NEVER proactively create documentation files (*.md) or README files. Only create documentation files if explicitly requested by the User.
 Never save working files, text/mds and tests to the root folder.
+
+THERE IS NOT "analyst" AGENT use "researcher" instead
+
+NEVER create placeholder code
+NEVER create TODO
+NEVER mock outside of tests
+NEVER hardcode files or values
+NO LIES, ONLY TELL ME THE TEST RESULTS AND OTHER FACTS THAT ARE EXTERNALLY VERIFIABLE

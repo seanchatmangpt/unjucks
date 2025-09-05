@@ -1,37 +1,13 @@
-// Export the main CLI functionality
-export { Generator } from "./lib/generator.js";
-export type {
-  TemplateFile,
-  GeneratorConfig,
-  TemplateConfig,
-  PromptConfig,
-  GenerateOptions,
-  GenerateResult,
-  InitOptions,
-} from "./lib/generator.js";
+// Main entry point - Unjucks generator library
+export * from './lib/generator';
+export * from './lib/template-scanner';
+export * from './lib/file-injector';
+export * from './lib/frontmatter-parser';
+export * from './lib/prompts';
+export * from './lib/dynamic-commands';
 
-// Export template scanner
-export { TemplateScanner } from "./lib/template-scanner.js";
-export type {
-  TemplateVariable,
-  TemplateScanResult,
-} from "./lib/template-scanner.js";
-
-// Export CLI commands
-export { generateCommand } from "./commands/generate.js";
-export { listCommand } from "./commands/list.js";
-export { initCommand } from "./commands/init.js";
-export { versionCommand } from "./commands/version.js";
-
-// Export dynamic commands
-export {
-  createDynamicGenerateCommand,
-  createTemplateHelpCommand,
-} from "./lib/dynamic-commands.js";
-
-// Export utility functions
-export {
-  promptForGenerator,
-  promptForTemplate,
-  promptForProjectType,
-} from "./lib/prompts.js";
+// CLI commands
+export * from './commands/generate';
+export * from './commands/list';
+export * from './commands/init';
+export * from './commands/version';

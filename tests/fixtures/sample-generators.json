@@ -1,0 +1,89 @@
+{
+  "simpleComponent": {
+    "name": "component",
+    "description": "Simple React component generator",
+    "template": "export const <%= name %> = () => {\n  return <div><%= name %></div>;\n};",
+    "frontmatter": {
+      "to": "src/components/<%= name %>.tsx",
+      "variables": {
+        "name": {
+          "type": "string",
+          "required": true,
+          "description": "Component name"
+        }
+      }
+    }
+  },
+  "serviceClass": {
+    "name": "service",
+    "description": "Service class with methods",
+    "template": "export class <%= name %>Service {\n<% methods.forEach(method => { %>  async <%= method %>(): Promise<void> {\n    // TODO: Implement <%= method %>\n  }\n<% }) %>}",
+    "frontmatter": {
+      "to": "src/services/<%= name %>Service.ts",
+      "variables": {
+        "name": {
+          "type": "string",
+          "required": true,
+          "description": "Service name"
+        },
+        "methods": {
+          "type": "array",
+          "default": ["create", "read", "update", "delete"],
+          "description": "Service methods"
+        }
+      }
+    }
+  },
+  "complexForm": {
+    "name": "form",
+    "description": "Complex form with validation",
+    "template": "import React from 'react';\nimport { useForm } from 'react-hook-form';\n\ninterface <%= name %>FormData {\n<% fields.forEach(field => { %>  <%= field.name %>: <%= field.type %>;\n<% }) %>}\n\nexport const <%= name %>Form = () => {\n  const { register, handleSubmit, formState: { errors } } = useForm<<%= name %>FormData>();\n\n  const onSubmit = (data: <%= name %>FormData) => {\n    console.log('<%= name %> form data:', data);\n  };\n\n  return (\n    <form onSubmit={handleSubmit(onSubmit)}>\n<% fields.forEach(field => { %>      <div>\n        <label><%= field.label || field.name %></label>\n        <input\n          type=\"<%= field.inputType || 'text' %>\"\n          {...register('<%= field.name %>', { required: <%= field.required || false %> })}\n        />\n        {errors.<%= field.name %> && <span>This field is required</span>}\n      </div>\n<% }) %>      <button type=\"submit\">Submit</button>\n    </form>\n  );\n};",
+    "frontmatter": {
+      "to": "src/forms/<%= name %>Form.tsx",
+      "variables": {
+        "name": {
+          "type": "string",
+          "required": true,
+          "description": "Form name"
+        },
+        "fields": {
+          "type": "array",
+          "required": true,
+          "description": "Form fields configuration"
+        }
+      }
+    }
+  },
+  "injectionExample": {
+    "name": "route-inject",
+    "description": "Route injection example",
+    "template": "router.<%= method.toLowerCase() %>('/<%= path %>', <%= controllerName %>Controller.<%= actionName %>);",
+    "frontmatter": {
+      "inject": true,
+      "after": "// ROUTES_INJECTION_POINT",
+      "skipIf": "<%= path %>",
+      "variables": {
+        "path": {
+          "type": "string",
+          "required": true,
+          "description": "Route path"
+        },
+        "method": {
+          "type": "string",
+          "default": "GET",
+          "description": "HTTP method"
+        },
+        "controllerName": {
+          "type": "string",
+          "required": true,
+          "description": "Controller name"
+        },
+        "actionName": {
+          "type": "string",
+          "required": true,
+          "description": "Action method name"
+        }
+      }
+    }
+  }
+}

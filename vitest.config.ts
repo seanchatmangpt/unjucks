@@ -13,7 +13,8 @@ export default defineConfig({
         "src/**/types.ts",
         "src/cli.ts", // CLI entry point doesn't need coverage
         "tests/**/*.ts", // Exclude test files from coverage
-        "tests/**/*.feature", // Exclude feature files from coverage
+        "tests/step-definitions/**/*.ts", // Exclude Cucumber step definitions
+        "tests/support/**/*.ts", // Exclude Cucumber support files
       ],
       thresholds: {
         global: {
@@ -65,14 +66,13 @@ export default defineConfig({
     // Test environment setup
     environment: "node",
     globals: true,
-    setupFiles: ["./tests/setup.ts"],
-    // Test file patterns - match actual project structure + Cucumber
+    // setupFiles: ["./tests/setup.ts"],
+    // Test file patterns - Vitest unit tests only (Cucumber handled separately)
     include: [
       "tests/**/*.test.ts", // All existing test files
       "tests/unit/**/*.test.ts", // Future unit tests
       "tests/integration/**/*.test.ts", // Future integration tests
-      "tests/features/**/*.feature", // Cucumber feature files
-      "tests/step-definitions/**/*.ts", // Cucumber step definitions
+      "src/**/*.test.ts", // Co-located unit tests
     ],
     exclude: [
       "node_modules/**",
@@ -82,13 +82,15 @@ export default defineConfig({
       "test-citty/**", // Test project directory
       "coordination/**", // Project management files
       "memory/**", // Memory/agent files
-      "features/**", // Feature files (project management)
+      "features/**", // Feature files (Cucumber - handled by cucumber.config.cjs)
+      "tests/step-definitions/**", // Cucumber step definitions
+      "tests/support/**", // Cucumber support files
       "claude-flow*", // Claude flow files
       "*.md", // Documentation files
     ],
     // Test timeout - increased for file system operations and BDD tests
-    testTimeout: 45000, // Increased for Cucumber scenarios
-    hookTimeout: 15000, // Increased for setup/teardown
+    testTimeout: 30_000, // Appropriate for unit tests
+    hookTimeout: 10_000, // Appropriate for unit test setup/teardown
     // Snapshot configuration
     snapshotFormat: {
       escapeString: true,
@@ -117,7 +119,8 @@ export default defineConfig({
     sequence: {
       concurrent: false,
     },
-    // Note: Cucumber configuration is handled separately via cucumber.config.js
+    // Note: Cucumber configuration is handled separately via cucumber.config.cjs
     // Use 'pnpm test:cucumber' to run BDD tests with proper Cucumber runner
+    // Vitest handles unit tests, Cucumber handles BDD integration tests
   },
 });

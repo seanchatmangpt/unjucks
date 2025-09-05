@@ -1,0 +1,35 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "lib": ["ES2022"],
+    "moduleResolution": "node",
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "strict": false,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "allowJs": true,
+    "checkJs": false,
+    "declaration": false,
+    "outDir": "../dist",
+    "rootDir": ".",
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["../src/*"],
+      "@support/*": ["./support/*"],
+      "@helpers/*": ["./helpers/*"]
+    },
+    "types": ["node", "vitest", "@cucumber/cucumber"]
+  },
+  "include": [
+    "**/*.ts",
+    "**/*.js",
+    "../features/**/*.feature"
+  ],
+  "exclude": [
+    "node_modules",
+    "../dist"
+  ]
+}

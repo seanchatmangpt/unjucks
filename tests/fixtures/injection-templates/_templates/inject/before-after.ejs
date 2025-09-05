@@ -1,0 +1,9 @@
+---
+to: src/{{ targetFile }}.ts
+inject: true
+before: {{ beforeMarker | default('// BEFORE_MARKER') }}
+after: {{ afterMarker | default('// AFTER_MARKER') }}
+skipIf: {{ skipCondition | default('false') }}
+---
+  // Injected before/after: {{ content }}
+  const {{ name | camelCase }}InjectedValue = '{{ content }}';

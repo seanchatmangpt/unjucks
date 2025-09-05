@@ -1,0 +1,48 @@
+---
+to: src/components/{{name}}.tsx
+inject: false
+---
+import React{% if withProps %}, { type FC }{% endif %} from 'react';
+{% if withStyles %}
+import './{{name}}.styles.css';
+{% endif %}
+{% if withTypes %}
+import type { {{name}}Props } from './{{name}}.types';
+{% endif %}
+
+{% if withProps and not withTypes %}
+interface {{name}}Props {
+  // TODO: Define component props
+  className?: string;
+  children?: React.ReactNode;
+}
+{% endif %}
+
+/**
+ * {{name}} component
+ * 
+ * @description {{description | default('A reusable React component')}}
+ * @author {{author | default('Development Team')}}
+ */
+export const {{name}}{% if withProps %}: FC<{{name}}Props>{% endif %} = ({% if withProps %}props{% endif %}) => {
+  {% if withProps %}
+  const { className = '', children, ...restProps } = props;
+  {% endif %}
+
+  return (
+    <div 
+      className={`{{name | kebabCase}}{% if withProps %} ${className}{% endif %}`}
+      {% if withProps %}
+      {...restProps}
+      {% endif %}
+    >
+      <h1>{{name}} Component</h1>
+      {% if withProps %}
+      {children}
+      {% endif %}
+      {/* TODO: Implement component logic */}
+    </div>
+  );
+};
+
+export default {{name}};

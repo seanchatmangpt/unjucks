@@ -1,0 +1,8 @@
+---
+to: src/{{ targetFile }}.ts
+inject: true
+append: true
+skipIf: {{ skipCondition | default('false') }}
+---
+// Appended content: {{ content }}
+export const {{ name | pascalCase }}Appended = true;

@@ -16,5 +16,13 @@
     "allowImportingTsExtensions": true,
     "noImplicitOverride": true,
     "noEmit": true
-  }
+  },
+  "exclude": [
+    "node_modules", 
+    "dist",
+    "test-*/**",
+    "**/{{ * }}*",
+    "tests/fixtures/**/*.js",
+    "_templates/**"
+  ]
 }

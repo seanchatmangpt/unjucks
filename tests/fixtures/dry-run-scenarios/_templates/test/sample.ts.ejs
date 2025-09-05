@@ -1,0 +1,52 @@
+---
+to: src/test/{{ testName | kebabCase }}.test.ts
+variables:
+  testName:
+    type: string
+    required: true
+    description: Name of the test suite
+  withMocks:
+    type: boolean
+    default: false
+    description: Include mock setup
+  testFramework:
+    type: select
+    options: ['jest', 'vitest', 'mocha']
+    default: 'jest'
+    description: Testing framework to use
+---
+import { describe, it, expect{% if withMocks %}, vi{% endif %} } from '{{ testFramework }}';
+{% if testFramework == 'jest' -%}
+import { {{ testName | pascalCase }} } from '../{{ testName | kebabCase }}';
+{% elif testFramework == 'vitest' -%}
+import { {{ testName | pascalCase }} } from '../{{ testName | kebabCase }}';
+{% else -%}
+import { {{ testName | pascalCase }} } from '../{{ testName | kebabCase }}';
+{% endif %}
+
+describe('{{ testName | pascalCase }}', () => {
+  {% if withMocks -%}
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  {% endif -%}
+  it('should exist', () => {
+    expect({{ testName | pascalCase }}).toBeDefined();
+  });
+
+  it('should handle basic operations', () => {
+    // Test implementation here
+    expect(true).toBe(true);
+  });
+
+  {% if withMocks -%}
+  it('should work with mocks', () => {
+    const mockFn = vi.fn();
+    mockFn.mockReturnValue('mocked result');
+    
+    expect(mockFn()).toBe('mocked result');
+    expect(mockFn).toHaveBeenCalled();
+  });
+  {% endif -%}
+});

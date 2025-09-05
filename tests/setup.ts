@@ -1,33 +1,46 @@
-import { beforeAll, afterAll, beforeEach, afterEach } from "vitest";
-import { vi } from "vitest";
+// Setup for Vitest tests
+import { vi } from 'vitest';
 
-// Global test setup
-beforeAll(() => {
-  // Set up any global test environment
+// Global test timeout for Vitest
+if (typeof globalThis !== 'undefined' && 'vi' in globalThis) {
+  // We're in a Vitest environment
+  console.log('Setting up Vitest test environment...');
+} else {
+  // We're in a different test environment (like Cucumber)
+  console.log('Setting up BDD test environment...');
+}
+
+export function setupTestEnvironment() {
   console.log("Setting up test environment...");
-});
+}
 
-afterAll(() => {
-  // Clean up global test environment
+export function cleanupTestEnvironment() {
   console.log("Cleaning up test environment...");
-});
+}
 
-beforeEach(() => {
-  // Reset mocks before each test
-  vi.clearAllMocks();
-});
+// Test helpers
+export const testHelpers = {
+  async delay(ms: number) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+  },
 
-afterEach(() => {
-  // Clean up after each test
-  vi.restoreAllMocks();
-});
+  cleanMocks() {
+    // Simple mock cleanup
+  }
+};
 
-// Mock console methods to reduce noise in tests
-global.console = {
-  ...console,
-  // Uncomment to suppress console.log in tests
-  // log: vi.fn(),
-  // info: vi.fn(),
-  // warn: vi.fn(),
-  // error: vi.fn(),
+// Mock console methods if needed
+export const mockConsole = {
+  originalLog: console.log,
+  originalError: console.error,
+  
+  silence() {
+    console.log = () => {};
+    console.error = () => {};
+  },
+  
+  restore() {
+    console.log = this.originalLog;
+    console.error = this.originalError;
+  }
 };

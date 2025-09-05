@@ -1,0 +1,8 @@
+---
+to: src/{{ targetFile }}.ts
+inject: true
+prepend: true
+skipIf: {{ skipCondition | default('false') }}
+---
+// Prepended content: {{ content }}
+import { {{ name | pascalCase }}Config } from './config';

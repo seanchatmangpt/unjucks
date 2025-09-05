@@ -4,10 +4,14 @@ import nunjucks from "nunjucks";
 import yaml from "yaml";
 import chalk from "chalk";
 import { TemplateScanner, TemplateVariable } from "./template-scanner.js";
+import { FrontmatterParser, ParsedTemplate, FrontmatterConfig } from "./frontmatter-parser.js";
+import { FileInjector, InjectionResult, InjectionOptions } from "./file-injector.js";
 
 export interface TemplateFile {
   path: string;
   content: string;
+  frontmatter?: FrontmatterConfig;
+  injectionResult?: InjectionResult;
 }
 
 export interface GeneratorConfig {
@@ -52,11 +56,15 @@ export class Generator {
   private templatesDir: string;
   private nunjucksEnv: nunjucks.Environment;
   private templateScanner: TemplateScanner;
+  private frontmatterParser: FrontmatterParser;
+  private fileInjector: FileInjector;
 
   constructor(templatesDir?: string) {
     this.templatesDir = templatesDir || this.findTemplatesDirectory();
     this.nunjucksEnv = this.createNunjucksEnvironment();
     this.templateScanner = new TemplateScanner();
+    this.frontmatterParser = new FrontmatterParser();
+    this.fileInjector = new FileInjector();
   }
 
   private findTemplatesDirectory(): string {
@@ -375,10 +383,8 @@ export class Generator {
       options.dest,
     );
 
-    // Write files if not dry run
-    if (!options.dry) {
-      await this.writeFiles(files, options.force);
-    }
+    // Write/inject files based on frontmatter configuration
+    await this.writeFiles(files, { force: options.force, dry: options.dry });
 
     return { files };
   }
@@ -500,11 +506,28 @@ export class Generator {
         if (stat.isDirectory()) {
           await processDir(entryPath, path.join(prefix, entry));
         } else {
-          const content = await fs.readFile(entryPath, "utf8");
+          const rawContent = await fs.readFile(entryPath, "utf8");
+
+          // Parse frontmatter
+          const parsed = this.frontmatterParser.parse(rawContent);
+
+          // Check skipIf condition
+          if (this.frontmatterParser.shouldSkip(parsed.frontmatter, variables)) {
+            console.log(chalk.gray(`Skipping ${entry} due to skipIf condition`));
+            continue;
+          }
+
+          // Validate frontmatter
+          const validation = this.frontmatterParser.validate(parsed.frontmatter);
+          if (!validation.valid) {
+            console.warn(chalk.yellow(`Warning in ${entry}:`));
+            for (const error of validation.errors) console.warn(chalk.yellow(`  - ${error}`));
+            continue;
+          }
 
           // Process content with Nunjucks
           const processedContent = this.nunjucksEnv.renderString(
-            content,
+            parsed.content,
             variables,
           );
 
@@ -514,11 +537,26 @@ export class Generator {
             variables,
           );
 
-          const filePath = path.join(destDir, prefix, processedFileName);
+          // Determine destination path
+          let filePath: string;
+          if (parsed.frontmatter.to) {
+            // Custom destination from frontmatter
+            const customPath = this.nunjucksEnv.renderString(
+              parsed.frontmatter.to,
+              variables,
+            );
+            filePath = path.isAbsolute(customPath) 
+              ? customPath 
+              : path.join(destDir, customPath);
+          } else {
+            // Default destination
+            filePath = path.join(destDir, prefix, processedFileName);
+          }
 
           files.push({
             path: filePath,
             content: processedContent,
+            frontmatter: parsed.frontmatter,
           });
         }
       }
@@ -530,32 +568,65 @@ export class Generator {
 
   private async writeFiles(
     files: TemplateFile[],
-    force: boolean,
+    options: { force: boolean; dry: boolean },
   ): Promise<void> {
+    const injectionOptions: InjectionOptions = {
+      force: options.force,
+      dry: options.dry,
+      backup: true, // Always create backups for safety
+    };
+
     for (const file of files) {
-      const dir = path.dirname(file.path);
+      try {
+        // Process the file using FileInjector
+        const result = await this.fileInjector.processFile(
+          file.path,
+          file.content,
+          file.frontmatter || {},
+          injectionOptions
+        );
 
-      // Create directory if it doesn't exist
-      await fs.ensureDir(dir);
+        // Store injection result for reporting
+        file.injectionResult = result;
 
-      // Check if file exists
-      if ((await fs.pathExists(file.path)) && !force) {
-        const inquirer = await import("inquirer");
-        const { overwrite } = await inquirer.default.prompt([
-          {
-            name: "overwrite",
-            type: "confirm",
-            message: `File ${file.path} already exists. Overwrite?`,
-            default: false,
-          },
-        ]);
-
-        if (!overwrite) {
-          continue;
+        // Handle chmod permissions
+        if (file.frontmatter?.chmod && result.success && !options.dry) {
+          await this.fileInjector.setPermissions(file.path, file.frontmatter.chmod);
         }
-      }
 
-      await fs.writeFile(file.path, file.content, "utf-8");
+        // Handle shell commands
+        if (file.frontmatter?.sh && result.success && !options.dry) {
+          const commands = Array.isArray(file.frontmatter.sh) 
+            ? file.frontmatter.sh 
+            : [file.frontmatter.sh];
+          
+          const shellResult = await this.fileInjector.executeCommands(
+            commands,
+            path.dirname(file.path)
+          );
+
+          if (!shellResult.success) {
+            console.warn(chalk.yellow(`Shell commands failed for ${file.path}:`));
+            for (const error of shellResult.errors) console.warn(chalk.yellow(`  - ${error}`))
+            ;
+          } else if (shellResult.outputs.length > 0) {
+            console.log(chalk.gray(`Shell output for ${file.path}:`));
+            for (const output of shellResult.outputs) console.log(chalk.gray(`  ${output}`))
+            ;
+          }
+        }
+
+        // Log result
+        if (result.skipped) {
+          console.log(chalk.gray(`⚠ ${result.message}`));
+        } else if (result.success) {
+          console.log(chalk.green(`✓ ${result.message}`));
+        } else {
+          console.error(chalk.red(`✗ ${result.message}`));
+        }
+      } catch (error) {
+        console.error(chalk.red(`Error processing ${file.path}: ${error}`));
+      }
     }
   }
 

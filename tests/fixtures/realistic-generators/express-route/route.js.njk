@@ -1,0 +1,156 @@
+---
+to: src/routes/{{name | kebabCase}}.js
+inject: false
+---
+const express = require('express');
+const router = express.Router();
+{% if withValidation %}
+const { body, validationResult } = require('express-validator');
+{% endif %}
+{% if withAuth %}
+const { authenticate } = require('../middleware/auth');
+{% endif %}
+
+/**
+ * {{name}} Route Handler
+ * 
+ * @description {{description | default('Express route for ' + name)}}
+ * @path {{path | default('/' + (name | kebabCase))}}
+ */
+
+{% if withAuth %}
+// Apply authentication middleware
+router.use(authenticate);
+
+{% endif %}
+{% if method === 'GET' or method === 'get' %}
+/**
+ * GET {{path | default('/' + (name | kebabCase))}}
+ * Get {{name | lower}} data
+ */
+router.get('{{path | default('/' + (name | kebabCase))}}', async (req, res) => {
+  try {
+    // TODO: Implement GET logic for {{name}}
+    const data = {
+      message: 'GET {{name}} endpoint',
+      timestamp: new Date().toISOString(),
+      params: req.params,
+      query: req.query
+    };
+
+    res.status(200).json({
+      success: true,
+      data
+    });
+  } catch (error) {
+    console.error('Error in GET {{name}}:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Internal server error'
+    });
+  }
+});
+{% endif %}
+
+{% if method === 'POST' or method === 'post' %}
+/**
+ * POST {{path | default('/' + (name | kebabCase))}}
+ * Create new {{name | lower}}
+ */
+router.post('{{path | default('/' + (name | kebabCase))}}', 
+  {% if withValidation %}
+  [
+    body('name').notEmpty().withMessage('Name is required'),
+    // TODO: Add more validation rules
+  ],
+  {% endif %}
+  async (req, res) => {
+    try {
+      {% if withValidation %}
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({
+          success: false,
+          errors: errors.array()
+        });
+      }
+      {% endif %}
+
+      // TODO: Implement POST logic for {{name}}
+      const newItem = {
+        id: Date.now().toString(),
+        ...req.body,
+        createdAt: new Date().toISOString()
+      };
+
+      res.status(201).json({
+        success: true,
+        data: newItem
+      });
+    } catch (error) {
+      console.error('Error in POST {{name}}:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Internal server error'
+      });
+    }
+  }
+);
+{% endif %}
+
+{% if method === 'PUT' or method === 'put' %}
+/**
+ * PUT {{path | default('/' + (name | kebabCase))}}/:id
+ * Update {{name | lower}} by ID
+ */
+router.put('{{path | default('/' + (name | kebabCase))}}/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    // TODO: Implement PUT logic for {{name}}
+    const updatedItem = {
+      id,
+      ...req.body,
+      updatedAt: new Date().toISOString()
+    };
+
+    res.status(200).json({
+      success: true,
+      data: updatedItem
+    });
+  } catch (error) {
+    console.error('Error in PUT {{name}}:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Internal server error'
+    });
+  }
+});
+{% endif %}
+
+{% if method === 'DELETE' or method === 'delete' %}
+/**
+ * DELETE {{path | default('/' + (name | kebabCase))}}/:id
+ * Delete {{name | lower}} by ID
+ */
+router.delete('{{path | default('/' + (name | kebabCase))}}/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    // TODO: Implement DELETE logic for {{name}}
+    
+    res.status(200).json({
+      success: true,
+      message: `{{name}} with ID ${id} deleted successfully`
+    });
+  } catch (error) {
+    console.error('Error in DELETE {{name}}:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Internal server error'
+    });
+  }
+});
+{% endif %}
+
+module.exports = router;

@@ -1,0 +1,72 @@
+---
+to: src/controllers/{{ name | pascalCase }}Controller.ts
+variables:
+  name:
+    type: string
+    required: true
+    description: Controller name
+  withAuth:
+    type: boolean
+    default: false
+    description: Include authentication middleware
+  methods:
+    type: array
+    default: ['get', 'post']
+    description: HTTP methods to include
+---
+import { Request, Response, Router } from 'express';
+{% if withAuth %}
+import { authenticate } from '../middleware/auth';
+{% endif %}
+
+export class {{ name | pascalCase }}Controller {
+  public router = Router();
+
+  constructor() {
+    this.initializeRoutes();
+  }
+
+  private initializeRoutes(): void {
+    {% for method in methods %}
+    {% if method == 'get' %}
+    this.router.get('/', {% if withAuth %}authenticate, {% endif %}this.get{{ name | pascalCase }});
+    {% endif %}
+    {% if method == 'post' %}
+    this.router.post('/', {% if withAuth %}authenticate, {% endif %}this.create{{ name | pascalCase }});
+    {% endif %}
+    {% if method == 'put' %}
+    this.router.put('/:id', {% if withAuth %}authenticate, {% endif %}this.update{{ name | pascalCase }});
+    {% endif %}
+    {% if method == 'delete' %}
+    this.router.delete('/:id', {% if withAuth %}authenticate, {% endif %}this.delete{{ name | pascalCase }});
+    {% endif %}
+    {% endfor %}
+  }
+
+  {% for method in methods %}
+  {% if method == 'get' %}
+  private get{{ name | pascalCase }} = async (req: Request, res: Response): Promise<void> => {
+    try {
+      // Implement get {{ name | titleCase }} logic
+      res.status(200).json({ message: 'Get {{ name | titleCase }} endpoint' });
+    } catch (error) {
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  };
+
+  {% endif %}
+  {% if method == 'post' %}
+  private create{{ name | pascalCase }} = async (req: Request, res: Response): Promise<void> => {
+    try {
+      // Implement create {{ name | titleCase }} logic
+      res.status(201).json({ message: 'Create {{ name | titleCase }} endpoint' });
+    } catch (error) {
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  };
+
+  {% endif %}
+  {% endfor %}
+}
+
+export default new {{ name | pascalCase }}Controller();

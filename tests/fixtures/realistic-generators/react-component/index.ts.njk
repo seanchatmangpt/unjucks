@@ -1,0 +1,10 @@
+---
+to: src/components/{{name}}/index.ts
+inject: false
+skipIf: "export.*{{name}}"
+---
+export { {{name}} } from './{{name}}';
+export { default } from './{{name}}';
+{% if withTypes %}
+export type { {{name}}Props } from './{{name}}.types';
+{% endif %}

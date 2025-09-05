@@ -1,0 +1,22 @@
+---
+to: src/{{ name | kebabCase }}.ts
+variables:
+  name:
+    type: string
+    required: true
+    description: Simple component name
+  exported:
+    type: boolean
+    default: true
+    description: Export the component
+---
+{% if exported -%}
+export {% endif -%}
+const {{ name | camelCase }} = {
+  name: '{{ name }}',
+  created: new Date(),
+};
+
+{% if exported -%}
+export default {{ name | camelCase }};
+{% endif %}

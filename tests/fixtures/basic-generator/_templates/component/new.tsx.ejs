@@ -1,0 +1,39 @@
+---
+to: src/components/{{ name | pascalCase }}.tsx
+variables:
+  name:
+    type: string
+    required: true
+    description: Component name in PascalCase
+  withProps:
+    type: boolean
+    default: true
+    description: Include props interface
+  withStyles:
+    type: boolean
+    default: false
+    description: Include CSS module imports
+inject: false
+---
+import React from 'react';
+{% if withStyles %}
+import styles from './{{ name | pascalCase }}.module.css';
+{% endif %}
+
+{% if withProps %}
+interface {{ name | pascalCase }}Props {
+  children?: React.ReactNode;
+  className?: string;
+}
+{% endif %}
+
+export const {{ name | pascalCase }}: React.FC{% if withProps %}<{{ name | pascalCase }}Props>{% endif %} = ({% if withProps %}{ children, className }{% endif %}) => {
+  return (
+    <div {% if withStyles %}className={`${styles.{{ name | camelCase }}} ${className || ''}`}{% else %}className={`{{ name | kebabCase }} ${className || ''}`}{% endif %}>
+      <h1>{{ name | titleCase }} Component</h1>
+      {% if withProps %}{children}{% endif %}
+    </div>
+  );
+};
+
+export default {{ name | pascalCase }};

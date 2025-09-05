@@ -1,0 +1,63 @@
+---
+to: src/forms/{{ formName | pascalCase }}Form.ts
+variables:
+  formName:
+    type: string
+    required: true
+    description: Name of the form component
+    prompt: What is the form name?
+  fieldTypes:
+    type: array
+    default: ['text', 'email']
+    description: Array of input field types
+    prompt: What field types do you need? (comma-separated)
+  withValidation:
+    type: boolean
+    default: true
+    description: Include form validation
+    prompt: Include validation? (y/n)
+  theme:
+    type: select
+    options: ['light', 'dark', 'auto']
+    default: 'light'
+    description: UI theme for the form
+    prompt: Select theme (light/dark/auto)
+---
+import { FormField, ValidationRule } from '../types/form';
+
+export interface {{ formName | pascalCase }}FormData {
+{% for fieldType in fieldTypes -%}
+  {{ fieldType }}Field: string;
+{% endfor %}
+}
+
+{% if withValidation -%}
+export const {{ formName | camelCase }}ValidationRules: ValidationRule[] = [
+{% for fieldType in fieldTypes -%}
+  {
+    field: '{{ fieldType }}Field',
+    required: true,
+    {% if fieldType == 'email' -%}
+    pattern: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+    {% endif -%}
+  },
+{% endfor %}
+];
+{% endif %}
+
+export const {{ formName | pascalCase }}Form = {
+  theme: '{{ theme }}',
+  fields: [
+{% for fieldType in fieldTypes -%}
+    {
+      name: '{{ fieldType }}Field',
+      type: '{{ fieldType }}',
+      label: '{{ fieldType | title }} Field',
+      required: true,
+    },
+{% endfor %}
+  ],
+  {% if withValidation -%}
+  validation: {{ formName | camelCase }}ValidationRules,
+  {% endif -%}
+};

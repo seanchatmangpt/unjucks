@@ -1,0 +1,39 @@
+---
+to: src/components/{{name}}/{{name}}.test.tsx
+inject: false
+skipIf: "withTests.*false"
+---
+import { render, screen } from '@testing-library/react';
+import { {{name}} } from './{{name}}';
+
+describe('{{name}} Component', () => {
+  it('renders successfully', () => {
+    render(<{{name}} />);
+    
+    const heading = screen.getByRole('heading', { name: /{{name}} Component/i });
+    expect(heading).toBeInTheDocument();
+  });
+
+  {% if withProps %}
+  it('applies custom className', () => {
+    const customClass = 'custom-class';
+    render(<{{name}} className={customClass} />);
+    
+    const component = screen.getByText('{{name}} Component').parentElement;
+    expect(component).toHaveClass('{{name | kebabCase}}');
+    expect(component).toHaveClass(customClass);
+  });
+
+  it('renders children when provided', () => {
+    const childText = 'Test child content';
+    render(<{{name}}>{childText}</{{name}}>);
+    
+    expect(screen.getByText(childText)).toBeInTheDocument();
+  });
+  {% endif %}
+
+  it('matches snapshot', () => {
+    const { container } = render(<{{name}}{% if withProps %} className="test-class"{% endif %} />);
+    expect(container.firstChild).toMatchSnapshot();
+  });
+});

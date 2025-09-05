@@ -1,0 +1,272 @@
+---
+to: src/{{name | kebabCase}}/{{name | kebabCase}}.controller.ts
+inject: false
+---
+import {
+  Controller,
+  Get,
+  Post,
+  Put,
+  Delete,
+  Body,
+  Param,
+  Query,
+  HttpStatus,
+  HttpException,
+{% if withAuth %}
+  UseGuards,
+{% endif %}
+{% if withValidation %}
+  ValidationPipe,
+  UsePipes,
+{% endif %}
+} from '@nestjs/common';
+{% if withSwagger %}
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiParam,
+  ApiBody,
+} from '@nestjs/swagger';
+{% endif %}
+{% if withAuth %}
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+{% endif %}
+import { {{name}}Service } from './{{name | kebabCase}}.service';
+{% if withDto %}
+import { Create{{name}}Dto, Update{{name}}Dto } from './dto';
+{% endif %}
+
+{% if withSwagger %}
+@ApiTags('{{name | kebabCase}}')
+{% endif %}
+@Controller('{{name | kebabCase}}')
+{% if withAuth %}
+@UseGuards(JwtAuthGuard)
+{% endif %}
+export class {{name}}Controller {
+  constructor(private readonly {{name | camelCase}}Service: {{name}}Service) {}
+
+  {% if withSwagger %}
+  @ApiOperation({ summary: 'Get all {{name | lower}} items' })
+  @ApiResponse({
+    status: 200,
+    description: 'Successfully retrieved {{name | lower}} items',
+  })
+  {% endif %}
+  @Get()
+  async findAll(@Query() query: any) {
+    try {
+      const items = await this.{{name | camelCase}}Service.findAll(query);
+      return {
+        success: true,
+        data: items,
+        message: '{{name}} items retrieved successfully',
+      };
+    } catch (error) {
+      throw new HttpException(
+        {
+          success: false,
+          message: 'Failed to retrieve {{name | lower}} items',
+          error: error.message,
+        },
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  {% if withSwagger %}
+  @ApiOperation({ summary: 'Get {{name | lower}} by ID' })
+  @ApiParam({ name: 'id', description: '{{name}} ID' })
+  @ApiResponse({
+    status: 200,
+    description: '{{name}} found successfully',
+  })
+  @ApiResponse({
+    status: 404,
+    description: '{{name}} not found',
+  })
+  {% endif %}
+  @Get(':id')
+  async findOne(@Param('id') id: string) {
+    try {
+      const item = await this.{{name | camelCase}}Service.findOne(id);
+      
+      if (!item) {
+        throw new HttpException(
+          {
+            success: false,
+            message: '{{name}} not found',
+          },
+          HttpStatus.NOT_FOUND,
+        );
+      }
+
+      return {
+        success: true,
+        data: item,
+        message: '{{name}} retrieved successfully',
+      };
+    } catch (error) {
+      if (error instanceof HttpException) {
+        throw error;
+      }
+      
+      throw new HttpException(
+        {
+          success: false,
+          message: 'Failed to retrieve {{name | lower}}',
+          error: error.message,
+        },
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  {% if withSwagger %}
+  @ApiOperation({ summary: 'Create new {{name | lower}}' })
+  @ApiBody({ type: {% if withDto %}Create{{name}}Dto{% else %}Object{% endif %} })
+  @ApiResponse({
+    status: 201,
+    description: '{{name}} created successfully',
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Invalid input data',
+  })
+  {% endif %}
+  @Post()
+  {% if withValidation and withDto %}
+  @UsePipes(new ValidationPipe({ transform: true }))
+  async create(@Body() create{{name}}Dto: Create{{name}}Dto) {
+  {% else %}
+  async create(@Body() createDto: any) {
+  {% endif %}
+    try {
+      const newItem = await this.{{name | camelCase}}Service.create({% if withDto %}create{{name}}Dto{% else %}createDto{% endif %});
+      
+      return {
+        success: true,
+        data: newItem,
+        message: '{{name}} created successfully',
+      };
+    } catch (error) {
+      throw new HttpException(
+        {
+          success: false,
+          message: 'Failed to create {{name | lower}}',
+          error: error.message,
+        },
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+  }
+
+  {% if withSwagger %}
+  @ApiOperation({ summary: 'Update {{name | lower}} by ID' })
+  @ApiParam({ name: 'id', description: '{{name}} ID' })
+  @ApiBody({ type: {% if withDto %}Update{{name}}Dto{% else %}Object{% endif %} })
+  @ApiResponse({
+    status: 200,
+    description: '{{name}} updated successfully',
+  })
+  @ApiResponse({
+    status: 404,
+    description: '{{name}} not found',
+  })
+  {% endif %}
+  @Put(':id')
+  {% if withValidation and withDto %}
+  @UsePipes(new ValidationPipe({ transform: true }))
+  async update(
+    @Param('id') id: string,
+    @Body() update{{name}}Dto: Update{{name}}Dto,
+  ) {
+  {% else %}
+  async update(@Param('id') id: string, @Body() updateDto: any) {
+  {% endif %}
+    try {
+      const updatedItem = await this.{{name | camelCase}}Service.update(
+        id,
+        {% if withDto %}update{{name}}Dto{% else %}updateDto{% endif %},
+      );
+
+      if (!updatedItem) {
+        throw new HttpException(
+          {
+            success: false,
+            message: '{{name}} not found',
+          },
+          HttpStatus.NOT_FOUND,
+        );
+      }
+
+      return {
+        success: true,
+        data: updatedItem,
+        message: '{{name}} updated successfully',
+      };
+    } catch (error) {
+      if (error instanceof HttpException) {
+        throw error;
+      }
+
+      throw new HttpException(
+        {
+          success: false,
+          message: 'Failed to update {{name | lower}}',
+          error: error.message,
+        },
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  {% if withSwagger %}
+  @ApiOperation({ summary: 'Delete {{name | lower}} by ID' })
+  @ApiParam({ name: 'id', description: '{{name}} ID' })
+  @ApiResponse({
+    status: 200,
+    description: '{{name}} deleted successfully',
+  })
+  @ApiResponse({
+    status: 404,
+    description: '{{name}} not found',
+  })
+  {% endif %}
+  @Delete(':id')
+  async remove(@Param('id') id: string) {
+    try {
+      const deleted = await this.{{name | camelCase}}Service.remove(id);
+
+      if (!deleted) {
+        throw new HttpException(
+          {
+            success: false,
+            message: '{{name}} not found',
+          },
+          HttpStatus.NOT_FOUND,
+        );
+      }
+
+      return {
+        success: true,
+        message: '{{name}} deleted successfully',
+      };
+    } catch (error) {
+      if (error instanceof HttpException) {
+        throw error;
+      }
+
+      throw new HttpException(
+        {
+          success: false,
+          message: 'Failed to delete {{name | lower}}',
+          error: error.message,
+        },
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+}

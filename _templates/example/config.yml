@@ -1,0 +1,15 @@
+name: example
+description: Example generator demonstrating Unjucks features
+templates:
+  - name: inject-test
+    description: Test template showing injection capabilities
+    files: []
+    prompts:
+      - name: componentName
+        message: "Component name:"
+        type: input
+        default: "MyComponent"
+      - name: withTests
+        message: "Include tests?"
+        type: confirm
+        default: true
