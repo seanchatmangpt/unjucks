@@ -1,0 +1,388 @@
+---
+to: types/{{ serviceName | kebabCase }}.ts
+append: true
+skipIf: "{{ skipIf }}"
+---
+/**
+ * {{ serviceName }} API Types
+ * Generated from OpenAPI specification
+ * 
+ * @generated {{ timestamp }}
+ * @version {{ apiVersion }}
+ */
+
+{% for schema in schemas %}
+{% if schema.type === 'interface' %}
+/**
+ * {{ schema.description }}
+ * @interface {{ schema.name }}
+ */
+export interface {{ schema.name }} {
+  {% for property in schema.properties %}
+  {% if property.description %}
+  /** {{ property.description }} */
+  {% endif %}
+  {% if property.deprecated %}
+  /** @deprecated {{ property.deprecationReason }} */
+  {% endif %}
+  {{ property.name }}{% if not property.required %}?{% endif %}: {{ property.type }}{% if property.nullable %} | null{% endif %}
+  {% endfor %}
+}
+{% endif %}
+
+{% if schema.type === 'enum' %}
+/**
+ * {{ schema.description }}
+ * @enum {{ schema.name }}
+ */
+export enum {{ schema.name }} {
+  {% for value in schema.values %}
+  {{ value.name }} = '{{ value.value }}',
+  {% endfor %}
+}
+
+export type {{ schema.name }}Type = `${{{ schema.name }}}`
+{% endif %}
+
+{% if schema.type === 'union' %}
+/**
+ * {{ schema.description }}
+ * @type {{ schema.name }}
+ */
+export type {{ schema.name }} = {{ schema.types | join(' | ') }}
+{% endif %}
+
+{% endfor %}
+
+// Operation-specific types
+{% for operation in operations %}
+{% if operation.requestType %}
+/**
+ * Request type for {{ operation.operationId }}
+ * {{ operation.summary }}
+ */
+export interface {{ operation.requestType }} {
+  {% for field in operation.requestFields %}
+  {% if field.description %}
+  /** {{ field.description }} */
+  {% endif %}
+  {{ field.name }}{% if not field.required %}?{% endif %}: {{ field.type }}
+  {% endfor %}
+}
+{% endif %}
+
+{% if operation.responseType %}
+/**
+ * Response type for {{ operation.operationId }}
+ * {{ operation.summary }}
+ */
+export interface {{ operation.responseType }} {
+  {% for field in operation.responseFields %}
+  {% if field.description %}
+  /** {{ field.description }} */
+  {% endif %}
+  {{ field.name }}{% if not field.required %}?{% endif %}: {{ field.type }}
+  {% endfor %}
+}
+{% endif %}
+
+{% if operation.errorType %}
+/**
+ * Error type for {{ operation.operationId }}
+ */
+export interface {{ operation.errorType }} {
+  error: string
+  code?: string
+  status?: number
+  details?: Record<string, any>
+}
+{% endif %}
+
+{% if operation.isStreamingEndpoint %}
+/**
+ * Streaming response type for {{ operation.operationId }}
+ */
+export interface {{ operation.streamingResponseType }} {
+  {% for field in operation.streamingResponseFields %}
+  {% if field.description %}
+  /** {{ field.description }} */
+  {% endif %}
+  {{ field.name }}{% if not field.required %}?{% endif %}: {{ field.type }}
+  {% endfor %}
+}
+{% endif %}
+
+{% endfor %}
+
+// Utility types
+export interface ApiError {
+  error: string
+  code?: string
+  status?: number
+  details?: Record<string, any>
+  timestamp?: string
+}
+
+export interface ApiResponse<T = any> {
+  data?: T
+  error?: ApiError
+  meta?: {
+    requestId?: string
+    timestamp?: string
+    version?: string
+  }
+}
+
+export interface PaginatedResponse<T = any> {
+  data: T[]
+  pagination: {
+    page: number
+    limit: number
+    total: number
+    totalPages: number
+    hasNext: boolean
+    hasPrev: boolean
+  }
+}
+
+export interface StreamingEvent<T = any> {
+  type: 'data' | 'error' | 'done'
+  data?: T
+  error?: ApiError
+  timestamp?: string
+}
+
+// Authentication types
+{% if hasAuth %}
+export interface AuthTokens {
+  {% if hasBearerAuth %}
+  token?: string
+  refreshToken?: string
+  tokenType?: 'Bearer'
+  expiresAt?: string
+  {% endif %}
+  {% if hasApiKeyAuth %}
+  apiKey?: string
+  {% endif %}
+}
+
+export interface AuthUser {
+  id: string
+  email?: string
+  name?: string
+  role?: string
+  permissions?: string[]
+  metadata?: Record<string, any>
+}
+
+export interface AuthState {
+  user: AuthUser | null
+  tokens: AuthTokens | null
+  isAuthenticated: boolean
+  isLoading: boolean
+  error: ApiError | null
+}
+{% endif %}
+
+// Configuration types
+export interface {{ serviceName | pascalCase }}Config {
+  baseUrl: string
+  timeout?: number
+  retries?: number
+  {% if hasAuth %}
+  auth?: {
+    {% if hasBearerAuth %}
+    bearerToken?: string
+    {% endif %}
+    {% if hasApiKeyAuth %}
+    apiKey?: string
+    {% endif %}
+  }
+  {% endif %}
+  headers?: Record<string, string>
+  interceptors?: {
+    request?: (config: any) => any
+    response?: (response: any) => any
+    error?: (error: any) => any
+  }
+}
+
+// Validation schemas (Zod)
+{% for schema in zodSchemas %}
+export const {{ schema.name }}Schema = z.object({
+  {% for field in schema.fields %}
+  {{ field.name }}: {{ field.zodType }}{% if field.description %}.describe('{{ field.description }}'){% endif %}{% if not field.required %}.optional(){% endif %},
+  {% endfor %}
+})
+
+export type {{ schema.name }}Validated = z.infer<typeof {{ schema.name }}Schema>
+{% endfor %}
+
+// API client types
+export interface ApiClientOptions {
+  config?: Partial<{{ serviceName | pascalCase }}Config>
+  plugins?: ApiPlugin[]
+}
+
+export interface ApiPlugin {
+  name: string
+  setup: (client: any) => void
+}
+
+// Request/Response interceptor types
+export interface RequestInterceptor {
+  (config: RequestConfig): RequestConfig | Promise<RequestConfig>
+}
+
+export interface ResponseInterceptor {
+  (response: any): any | Promise<any>
+}
+
+export interface ErrorInterceptor {
+  (error: ApiError): ApiError | Promise<ApiError>
+}
+
+export interface RequestConfig {
+  url: string
+  method: string
+  headers: Record<string, string>
+  body?: any
+  query?: Record<string, any>
+  timeout?: number
+  retries?: number
+}
+
+// Composable return types
+{% for operation in operations %}
+export interface Use{{ operation.operationId | pascalCase }}Return {
+  // State
+  data: Readonly<Ref<{{ operation.responseType }} | null>>
+  pending: Readonly<Ref<boolean>>
+  error: Readonly<Ref<{{ operation.errorType }} | null>>
+  
+  {% if operation.isStreamingEndpoint %}
+  // Streaming state
+  isStreaming: Readonly<Ref<boolean>>
+  streamData: Readonly<Ref<string>>
+  {% endif %}
+  
+  // Methods
+  execute: (
+    {% if operation.hasRequestBody %}request: {{ operation.requestType }}{% endif %}
+    {% if operation.hasPathParams %}{% for param in operation.pathParams %}, {{ param.name }}: {{ param.type }}{% endfor %}{% endif %}
+    {% if operation.hasQueryParams %}, options?: { {% for param in operation.queryParams %}{{ param.name }}?: {{ param.type }}{% unless loop.last %}, {% endunless %}{% endfor %} }{% endif %}
+  ) => Promise<{{ operation.responseType }}>
+  
+  {% if operation.isStreamingEndpoint %}
+  executeStream: (
+    {% if operation.hasRequestBody %}request: {{ operation.requestType }}{% endif %}
+    {% if operation.hasPathParams %}{% for param in operation.pathParams %}, {{ param.name }}: {{ param.type }}{% endfor %}{% endif %}
+    {% if operation.hasQueryParams %}, options?: { {% for param in operation.queryParams %}{{ param.name }}?: {{ param.type }}{% unless loop.last %}, {% endunless %}{% endfor %} }{% endif %}
+  ) => Promise<ReadableStream<{{ operation.responseType }}>>
+  cancelStream: () => void
+  {% endif %}
+  
+  reset: () => void
+  
+  // Computed
+  isError: ComputedRef<boolean>
+  isSuccess: ComputedRef<boolean>
+  {% if operation.isStreamingEndpoint %}
+  canStream: ComputedRef<boolean>
+  {% endif %}
+}
+{% endfor %}
+
+// Plugin types for Nuxt
+declare module '#app' {
+  interface NuxtApp {
+    ${{ serviceName | camelCase }}: {{ serviceName | pascalCase }}Client
+  }
+}
+
+declare module 'vue' {
+  interface ComponentCustomProperties {
+    ${{ serviceName | camelCase }}: {{ serviceName | pascalCase }}Client
+  }
+}
+
+// Client interface
+export interface {{ serviceName | pascalCase }}Client {
+  config: {{ serviceName | pascalCase }}Config
+  
+  {% for operation in operations %}
+  {{ operation.operationId }}: (
+    {% if operation.hasRequestBody %}request: {{ operation.requestType }}{% endif %}
+    {% if operation.hasPathParams %}{% for param in operation.pathParams %}, {{ param.name }}: {{ param.type }}{% endfor %}{% endif %}
+    {% if operation.hasQueryParams %}, options?: { {% for param in operation.queryParams %}{{ param.name }}?: {{ param.type }}{% unless loop.last %}, {% endunless %}{% endfor %} }{% endif %}
+  ) => Promise<{{ operation.responseType }}>
+  {% endfor %}
+  
+  // Utility methods
+  setAuthToken(token: string): void
+  setApiKey(apiKey: string): void
+  clearAuth(): void
+  updateConfig(config: Partial<{{ serviceName | pascalCase }}Config>): void
+}
+
+// Type guards
+{% for schema in schemas %}
+export function is{{ schema.name }}(value: any): value is {{ schema.name }} {
+  return (
+    typeof value === 'object' &&
+    value !== null &&
+    {% for property in schema.requiredProperties %}
+    '{{ property.name }}' in value &&
+    {% endfor %}
+    true
+  )
+}
+{% endfor %}
+
+// Constants
+export const {{ serviceName | upperCase }}_ENDPOINTS = {
+  {% for operation in operations %}
+  {{ operation.operationId | upperCase }}: '{{ operation.path }}',
+  {% endfor %}
+} as const
+
+export const {{ serviceName | upperCase }}_METHODS = {
+  {% for operation in operations %}
+  {{ operation.operationId | upperCase }}: '{{ operation.method | upper }}',
+  {% endfor %}
+} as const
+
+{% if hasAuth %}
+export const AUTH_TOKEN_KEY = '{{ serviceName | kebabCase }}-auth-token'
+export const API_KEY_HEADER = 'X-API-Key'
+export const BEARER_TOKEN_HEADER = 'Authorization'
+{% endif %}
+
+// Default configuration
+export const DEFAULT_{{ serviceName | upperCase }}_CONFIG: {{ serviceName | pascalCase }}Config = {
+  baseUrl: '{{ defaultBaseUrl }}',
+  timeout: 30000,
+  retries: 2,
+  headers: {
+    'Content-Type': 'application/json',
+    'Accept': 'application/json',
+  },
+}
+
+// Export all types for convenience
+export type {
+  {% for schema in schemas %}
+  {{ schema.name }},
+  {% endfor %}
+  {% for operation in operations %}
+  {% if operation.requestType %}
+  {{ operation.requestType }},
+  {% endif %}
+  {% if operation.responseType %}
+  {{ operation.responseType }},
+  {% endif %}
+  {% if operation.errorType %}
+  {{ operation.errorType }},
+  {% endif %}
+  {% endfor %}
+}

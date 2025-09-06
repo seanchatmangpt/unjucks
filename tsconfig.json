@@ -25,10 +25,13 @@
     "**/<%= * %>*",
     "tests/fixtures/**/*.js",
     "_templates/**",
-    "src/components/**/*.tsx",
+    "src/components/**/*.tsx", 
     "src/components/**/*.ts",
     "src/large/**",
     "**/argument-parser.ts",
-    "**/*real-validation-simple*"
+    "**/*real-validation-simple*",
+    "tests/integration/fortune5-scenarios/**/*",
+    "tests/security/attack-simulation.test.ts",
+    "tests/step-definitions/**/*"
   ]
 }

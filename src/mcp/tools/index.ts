@@ -12,6 +12,7 @@ export { unjucksInject } from './unjucks-inject.js';
 export { unjucksEnterpriseAuth } from './unjucks-enterprise-auth.js';
 export { unjucksTemplateMarketplace } from './unjucks-template-marketplace.js';
 export { unjucksRealtimeCollab } from './unjucks-realtime-collab.js';
+export { unjucksE2ESwarm } from '../swarm/e2e-orchestrator.js';
 
 // Tool registry mapping tool names to implementations
 export const TOOL_IMPLEMENTATIONS = {
@@ -23,7 +24,8 @@ export const TOOL_IMPLEMENTATIONS = {
   // Enterprise tools
   unjucks_enterprise_auth: unjucksEnterpriseAuth,
   unjucks_template_marketplace: unjucksTemplateMarketplace,
-  unjucks_realtime_collab: unjucksRealtimeCollab
+  unjucks_realtime_collab: unjucksRealtimeCollab,
+  unjucks_e2e_swarm: unjucksE2ESwarm
 } as const;
 
 export type ToolName = keyof typeof TOOL_IMPLEMENTATIONS;

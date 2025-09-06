@@ -1,4 +1,8 @@
-# 🤖 MCP Integration Guide: Unleashing AI-Powered Code Generation
+# MCP-to-MCP Integration Guide: Swarm + Unjucks Hive Mind Architecture
+
+## Overview
+
+This guide documents the comprehensive integration between the Claude Flow Swarm MCP and the Unjucks Template MCP, creating a powerful hive mind architecture for enterprise-grade code generation and orchestration.
 
 The **Model Context Protocol (MCP)** integration transforms unjucks from a standalone CLI tool into a powerful AI-accessible code generation platform. This guide explores the revolutionary capabilities this brings to modern development workflows.
 

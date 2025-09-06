@@ -1441,7 +1441,7 @@ class MigrationRunner {
       console.log(\`✓ Migration \${migration.filename} completed\`);
     } catch (error) {
       await this.pool.query('ROLLBACK');
-      console.error(\`✗ Migration \${migration.filename} failed:`, error);
+      console.error(\`✗ Migration \${migration.filename} failed:\`, error);
       throw error;
     }
   }

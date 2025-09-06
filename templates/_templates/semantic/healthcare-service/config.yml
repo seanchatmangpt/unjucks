@@ -1,0 +1,161 @@
+---
+name: "FHIR Healthcare Service"
+description: "Generate FHIR R4-compliant healthcare microservices with semantic reasoning and HIPAA compliance"
+category: "healthcare"
+jtbd: "Create interoperable healthcare services that automatically comply with FHIR standards and HIPAA regulations"
+tags: 
+  - healthcare
+  - fhir
+  - hipaa
+  - semantic
+  - interoperability
+  - clinical-data
+
+# RDF/Semantic Configuration
+rdf:
+  type: "inline"
+  source: |
+    @prefix fhir: <http://hl7.org/fhir/> .
+    @prefix hl7: <http://hl7.org/fhir/> .
+    @prefix hipaa: <http://hipaa.org/safeguards/> .
+    @prefix unjucks: <http://unjucks.dev/ontology/> .
+    @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+    
+    # FHIR Resource Templates
+    fhir:Patient a unjucks:HealthcareResource ;
+        unjucks:fhirVersion "R4" ;
+        unjucks:generatesAPI "/fhir/Patient" ;
+        unjucks:requiresCompliance hipaa:PhysicalSafeguards, hipaa:TechnicalSafeguards ;
+        unjucks:hasProperty fhir:identifier, fhir:name, fhir:gender, fhir:birthDate ;
+        unjucks:auditLevel "FULL" ;
+        unjucks:encryptionRequired true ;
+        unjucks:dataClassification "PHI" .
+    
+    fhir:Practitioner a unjucks:HealthcareResource ;
+        unjucks:fhirVersion "R4" ;
+        unjucks:generatesAPI "/fhir/Practitioner" ;
+        unjucks:hasProperty fhir:identifier, fhir:name, fhir:qualification ;
+        unjucks:requiresLicenseValidation true ;
+        unjucks:auditLevel "STANDARD" .
+        
+    fhir:Observation a unjucks:HealthcareResource ;
+        unjucks:fhirVersion "R4" ;
+        unjucks:generatesAPI "/fhir/Observation" ;
+        unjucks:hasProperty fhir:status, fhir:code, fhir:subject, fhir:value ;
+        unjucks:requiresValidation fhir:LoincCode ;
+        unjucks:dataClassification "PHI" ;
+        unjucks:retentionPeriod "7years" .
+    
+    # HIPAA Compliance Rules
+    hipaa:PHIProtection a unjucks:ComplianceRule ;
+        unjucks:requiresEncryption "AES-256" ;
+        unjucks:requiresAccessLog true ;
+        unjucks:requiresUserAuthentication true ;
+        unjucks:allowsDataExport false ;
+        unjucks:requiresConsentTracking true .
+
+variables:
+  - name: "serviceName"
+    type: "string"
+    description: "Name of the healthcare service"
+    required: true
+    validation: "^[a-z][a-z0-9-]*$"
+    examples: ["patient-registry", "clinical-notes", "lab-results"]
+    
+  - name: "fhirResources"
+    type: "array"
+    description: "FHIR resources to implement"
+    required: true
+    options: ["Patient", "Practitioner", "Observation", "DiagnosticReport", "MedicationRequest", "Encounter"]
+    defaultValue: ["Patient", "Observation"]
+    
+  - name: "complianceLevel"
+    type: "string"  
+    description: "HIPAA compliance level"
+    required: true
+    options: ["basic", "standard", "high", "maximum"]
+    defaultValue: "standard"
+    
+  - name: "auditRetention"
+    type: "string"
+    description: "Audit log retention period"
+    required: true
+    options: ["1year", "3years", "7years", "permanent"]
+    defaultValue: "7years"
+    
+  - name: "encryptionStandard"
+    type: "string"
+    description: "Encryption standard for PHI data"
+    required: true
+    options: ["AES-128", "AES-256", "ChaCha20-Poly1305"]
+    defaultValue: "AES-256"
+    
+  - name: "cloudProvider"
+    type: "string"
+    description: "Target cloud platform (affects compliance controls)"
+    required: true
+    options: ["aws", "azure", "gcp", "on-premises"]
+    defaultValue: "aws"
+    
+  - name: "database"
+    type: "string"
+    description: "Database for FHIR resource storage"
+    required: true
+    options: ["postgresql", "mongodb", "cosmos-db", "dynamodb"]
+    defaultValue: "postgresql"
+    
+  - name: "authProvider"
+    type: "string"
+    description: "Authentication/authorization provider"
+    required: true
+    options: ["auth0", "cognito", "azure-ad", "okta", "custom-oauth"]
+    defaultValue: "auth0"
+    
+  - name: "enableTelemetry"
+    type: "boolean"
+    description: "Enable healthcare-specific telemetry and monitoring"
+    required: false
+    defaultValue: true
+
+# Semantic-driven file generation
+files:
+  - template: "fhir-service.ts.njk"
+    to: "src/services/{{ serviceName | kebabCase }}.service.ts"
+    
+  - template: "fhir-controller.ts.njk"
+    to: "src/controllers/{{ serviceName | kebabCase }}.controller.ts"
+    
+  - template: "hipaa-middleware.ts.njk"
+    to: "src/middleware/hipaa-compliance.middleware.ts"
+    
+  - template: "audit-logger.ts.njk" 
+    to: "src/utils/audit-logger.ts"
+    
+  - template: "fhir-validator.ts.njk"
+    to: "src/validators/fhir-validator.ts"
+    
+  - template: "deployment.yaml.njk"
+    to: "k8s/{{ serviceName | kebabCase }}-deployment.yaml"
+    
+  - template: "configmap.yaml.njk"
+    to: "k8s/{{ serviceName | kebabCase }}-configmap.yaml"
+    
+  - template: "hipaa-policies.md.njk"
+    to: "docs/compliance/hipaa-policies.md"
+
+# Injection points for existing FHIR systems  
+inject:
+  - name: "fhir-routes"
+    description: "Add FHIR routes to existing Express server"
+    pattern: "// FHIR ROUTES INJECTION"
+    type: "after"
+    
+  - name: "hipaa-middleware"
+    description: "Inject HIPAA compliance middleware"
+    pattern: "// HIPAA MIDDLEWARE INJECTION"
+    type: "before"
+    
+  - name: "audit-logging"
+    description: "Add audit logging to existing endpoints"
+    pattern: "// AUDIT LOGGING INJECTION"
+    type: "after"

@@ -1,0 +1,37 @@
+{
+  "typescript-interface": {
+    "template": "{% for classBinding in $rdf | rdfQuery('?class a <http://www.w3.org/2002/07/owl#Class>') %}\nexport interface {{ classBinding.class.value | rdfLocalName }} {\n  {% for propBinding in $rdf | rdfQuery('?prop <http://www.w3.org/2000/01/rdf-schema#domain> <' + classBinding.class.value + '>') %}\n  /** {{ propBinding.prop.value | rdfLabel($rdf, 'Property') }} */\n  {{ propBinding.prop.value | rdfLocalName | lower }}: string;\n  {% endfor %}\n}\n{% endfor %}",
+    "expectedOutput": "export interface User",
+    "description": "Generate TypeScript interfaces from OWL classes"
+  },
+  
+  "api-client": {
+    "template": "class ApiClient {\n  {% for apiBinding in $rdf | rdfQuery('?api a <http://www.w3.org/ns/hydra/core#Resource>') %}\n  {% set method = apiBinding.api.value | rdfObject($rdf, 'http://www.w3.org/ns/hydra/core#method') %}\n  {% set description = apiBinding.api.value | rdfObject($rdf, 'http://schema.org/description') %}\n  \n  /**\n   * {{ description }}\n   */\n  async {{ apiBinding.api.value | rdfLocalName }}(): Promise<any> {\n    return this.request('{{ method }}', '{{ apiBinding.api.value }}');\n  }\n  {% endfor %}\n}",
+    "expectedOutput": "async users()",
+    "description": "Generate API client methods from Hydra descriptions"
+  },
+
+  "config-generator": {
+    "template": "export const config = {\n  {% for configBinding in $rdf | rdfQuery('?config a ?configType . FILTER(STRSTARTS(STR(?configType), \"http://example.org/\"))') %}\n  {% set configName = configBinding.config.value | rdfLocalName %}\n  {{ configName }}: {\n    {% for propBinding in $rdf | rdfQuery('?prop ?value', { subject: configBinding.config.value }) %}\n    {{ propBinding.prop.value | rdfLocalName }}: {% if propBinding.value.datatype %}{{ propBinding.value.value | tojson }}{% else %}'{{ propBinding.value.value }}'{% endif %},\n    {% endfor %}\n  },\n  {% endfor %}\n};",
+    "expectedOutput": "database: {",
+    "description": "Generate configuration objects from RDF data"
+  },
+
+  "person-profile": {
+    "template": "{% for person in $rdf | rdfQuery('?person a <http://schema.org/Person>') %}\n<div class=\"person-card\">\n  <h2>{{ person.person.value | rdfLabel($rdf) }}</h2>\n  \n  {% set email = person.person.value | rdfObject($rdf, 'http://schema.org/email') %}\n  {% if email %}\n  <p>Email: <a href=\"mailto:{{ email }}\">{{ email }}</a></p>\n  {% endif %}\n  \n  {% set jobTitle = person.person.value | rdfObject($rdf, 'http://schema.org/jobTitle') %}\n  {% if jobTitle %}\n  <p>Job Title: {{ jobTitle }}</p>\n  {% endif %}\n  \n  {% set company = person.person.value | rdfObject($rdf, 'http://schema.org/worksFor') %}\n  {% if company %}\n  <p>Works for: {{ company | rdfLabel($rdf) }}</p>\n  {% endif %}\n</div>\n{% endfor %}",
+    "expectedOutput": "<h2>John Doe</h2>",
+    "description": "Generate HTML profiles from Person data"
+  },
+
+  "error-handling": {
+    "template": "{% if $rdf and $rdf.length > 0 %}\n  RDF Data Summary:\n  - Total triples: {{ $rdf.length }}\n  \n  {% set persons = $rdf | rdfQuery('?person a <http://schema.org/Person>') %}\n  - Persons found: {{ persons.length if persons else 0 }}\n  \n  {% for person in persons %}\n  Person: {{ person.person.value | rdfLabel($rdf, 'Unknown') }}\n  {% endfor %}\n{% else %}\n  No RDF data available for processing.\n{% endif %}",
+    "expectedOutput": "Total triples:",
+    "description": "Template with proper error handling and fallbacks"
+  },
+
+  "nested-queries": {
+    "template": "{% for org in $rdf | rdfQuery('?org a <http://schema.org/Organization>') %}\n## {{ org.org.value | rdfLabel($rdf) }}\n\n{% set employees = $rdf | rdfQuery('?person <http://schema.org/worksFor> <' + org.org.value + '>') %}\n{% if employees.length > 0 %}\n### Employees ({{ employees.length }}):\n{% for emp in employees %}\n- **{{ emp.person.value | rdfLabel($rdf) }}** ({{ emp.person.value | rdfObject($rdf, 'http://schema.org/jobTitle') }})\n{% endfor %}\n{% else %}\nNo employees found.\n{% endif %}\n\n{% endfor %}",
+    "expectedOutput": "## Acme Corp",
+    "description": "Complex template with nested RDF queries"
+  }
+}

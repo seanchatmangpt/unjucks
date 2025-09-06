@@ -1,0 +1,1059 @@
+openapi: 3.0.3
+info:
+  title: Ollama AI Provider API
+  description: |
+    Comprehensive OpenAPI specification for the Ollama AI Provider V2, a Vercel AI SDK compatible provider 
+    for running local Large Language Models (LLMs). Supports text generation, streaming, tool calling, 
+    embeddings, and dynamic model selection with TypeScript compatibility.
+    
+    Features:
+    - Node.js, browser, and edge environment support
+    - Zero-configuration setup with local Ollama installation
+    - Full TypeScript type safety
+    - Advanced capabilities including reasoning mode and batch operations
+  version: 2.0.0
+  contact:
+    name: Ollama AI Provider V2
+    url: https://github.com/nordwestt/ollama-ai-provider-v2
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: http://localhost:11434/api
+    description: Default local Ollama server
+  - url: https://custom-server.com/api
+    description: Custom Ollama server (configurable)
+
+security:
+  - bearerAuth: []
+  - apiKeyAuth: []
+  - customHeaders: []
+
+paths:
+  /generate:
+    post:
+      summary: Generate text completion
+      description: |
+        Generate a text completion for the given prompt using the specified model.
+        Supports both streaming and non-streaming modes with configurable parameters.
+      operationId: generateText
+      tags:
+        - Text Generation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GenerateRequest'
+            examples:
+              simpleGenerate:
+                summary: Simple text generation
+                value:
+                  model: "llama3.2"
+                  prompt: "Write a haiku about coding"
+                  stream: false
+                  temperature: 0.8
+              streamingGenerate:
+                summary: Streaming text generation
+                value:
+                  model: "mistral"
+                  prompt: "Explain quantum computing"
+                  stream: true
+                  system: "You are a helpful physics professor"
+                  options:
+                    temperature: 0.7
+                    top_k: 40
+                    top_p: 0.9
+              visionGenerate:
+                summary: Vision model with images
+                value:
+                  model: "llava"
+                  prompt: "Describe what you see in this image"
+                  images: ["iVBORw0KGgoAAAANSUhEUgAA..."]
+                  stream: false
+      responses:
+        '200':
+          description: Successful text generation
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: '#/components/schemas/GenerateResponse'
+                  - $ref: '#/components/schemas/GenerateStreamResponse'
+            text/event-stream:
+              schema:
+                $ref: '#/components/schemas/GenerateStreamResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/ModelNotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /chat:
+    post:
+      summary: Generate chat completion
+      description: |
+        Generate the next message in a chat conversation with message history support.
+        Supports tool calling, reasoning mode, and structured outputs.
+      operationId: chatCompletion
+      tags:
+        - Chat
+        - Tool Calling
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChatRequest'
+            examples:
+              simplChat:
+                summary: Simple chat completion
+                value:
+                  model: "llama3.2"
+                  messages:
+                    - role: "user"
+                      content: "Hello, how are you?"
+                  stream: false
+              toolCalling:
+                summary: Chat with tool calling
+                value:
+                  model: "llama3.2"
+                  messages:
+                    - role: "user"
+                      content: "What's the weather like in New York?"
+                  tools:
+                    - type: "function"
+                      function:
+                        name: "get_weather"
+                        description: "Get current weather for a location"
+                        parameters:
+                          type: "object"
+                          properties:
+                            location:
+                              type: "string"
+                              description: "City name"
+                          required: ["location"]
+                  stream: false
+              reasoningMode:
+                summary: Reasoning/thinking mode
+                value:
+                  model: "phi4-mini"
+                  messages:
+                    - role: "user"
+                      content: "Solve this math problem step by step: 2x + 5 = 15"
+                  options:
+                    reasoning: true
+                  stream: false
+      responses:
+        '200':
+          description: Successful chat completion
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: '#/components/schemas/ChatResponse'
+                  - $ref: '#/components/schemas/ChatStreamResponse'
+            text/event-stream:
+              schema:
+                $ref: '#/components/schemas/ChatStreamResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/ModelNotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /embeddings:
+    post:
+      summary: Generate text embeddings
+      description: |
+        Generate vector embeddings for the given text input(s). Supports both single
+        text input and batch processing with configurable embedding models.
+      operationId: generateEmbeddings
+      tags:
+        - Embeddings
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EmbeddingsRequest'
+            examples:
+              singleEmbedding:
+                summary: Single text embedding
+                value:
+                  model: "nomic-embed-text"
+                  input: "Hello world"
+              batchEmbeddings:
+                summary: Batch text embeddings
+                value:
+                  model: "all-minilm"
+                  input:
+                    - "First document to embed"
+                    - "Second document to embed"
+                    - "Third document to embed"
+      responses:
+        '200':
+          description: Successful embedding generation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmbeddingsResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/ModelNotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /tags:
+    get:
+      summary: List available models
+      description: |
+        List all locally available models that can be used for generation, chat, or embeddings.
+        Includes model metadata, sizes, and capabilities.
+      operationId: listModels
+      tags:
+        - Models
+      responses:
+        '200':
+          description: List of available models
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ModelsResponse'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /show:
+    post:
+      summary: Show model information
+      description: |
+        Get detailed information about a specific model including parameters,
+        template, license, and system configuration.
+      operationId: showModel
+      tags:
+        - Models
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ShowModelRequest'
+      responses:
+        '200':
+          description: Model information
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ShowModelResponse'
+        '404':
+          $ref: '#/components/responses/ModelNotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /pull:
+    post:
+      summary: Pull/download a model
+      description: |
+        Download a model from the Ollama library to the local machine.
+        Supports streaming progress updates during download.
+      operationId: pullModel
+      tags:
+        - Models
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PullModelRequest'
+      responses:
+        '200':
+          description: Model pull completed or progress update
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PullModelResponse'
+            text/event-stream:
+              schema:
+                $ref: '#/components/schemas/PullModelStreamResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /delete:
+    delete:
+      summary: Delete a model
+      description: |
+        Delete a locally stored model to free up disk space.
+        Use with caution as this operation cannot be undone.
+      operationId: deleteModel
+      tags:
+        - Models
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DeleteModelRequest'
+      responses:
+        '200':
+          description: Model deleted successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeleteModelResponse'
+        '404':
+          $ref: '#/components/responses/ModelNotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Bearer token authentication for secure Ollama instances
+    
+    apiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+      description: API key authentication for custom Ollama deployments
+    
+    customHeaders:
+      type: apiKey
+      in: header
+      name: Authorization
+      description: Custom authentication headers for enterprise deployments
+
+  schemas:
+    # Base model selection schema
+    ModelName:
+      type: string
+      description: |
+        Dynamic model selection supporting various model types:
+        - Chat models: llama3.2, mistral, phi4-mini
+        - Vision models: llava, llama3.2-vision  
+        - Code models: codellama, deepseek-coder-v2
+        - Embedding models: nomic-embed-text, all-minilm
+      examples:
+        - "llama3.2"
+        - "mistral" 
+        - "phi4-mini"
+        - "llava"
+        - "codellama"
+        - "nomic-embed-text"
+
+    # Generation request/response schemas
+    GenerateRequest:
+      type: object
+      required:
+        - model
+        - prompt
+      properties:
+        model:
+          $ref: '#/components/schemas/ModelName'
+        prompt:
+          type: string
+          description: The prompt to generate a response for
+          example: "Write a haiku about coding"
+        system:
+          type: string
+          description: System message to set the behavior of the assistant
+          example: "You are a helpful coding assistant"
+        template:
+          type: string
+          description: Override the model's default prompt template
+        context:
+          type: array
+          items:
+            type: integer
+          description: Context from previous conversation for continuing generation
+        stream:
+          type: boolean
+          default: true
+          description: Enable streaming response (default: true)
+        raw:
+          type: boolean
+          default: false
+          description: Return raw response without formatting
+        images:
+          type: array
+          items:
+            type: string
+            format: byte
+          description: Base64-encoded images for multimodal models
+        format:
+          type: string
+          enum: [json]
+          description: Response format (json for structured output)
+        options:
+          $ref: '#/components/schemas/GenerationOptions'
+        keep_alive:
+          type: string
+          default: "5m"
+          description: How long to keep model loaded in memory
+          example: "10m"
+
+    GenerationOptions:
+      type: object
+      description: Advanced generation parameters
+      properties:
+        temperature:
+          type: number
+          minimum: 0.0
+          maximum: 2.0
+          default: 0.8
+          description: Controls randomness in generation (0.0 = deterministic, 2.0 = very random)
+        top_k:
+          type: integer
+          minimum: 1
+          default: 40
+          description: Limit next token selection to top K tokens
+        top_p:
+          type: number
+          minimum: 0.0
+          maximum: 1.0
+          default: 0.9
+          description: Nucleus sampling threshold
+        repeat_last_n:
+          type: integer
+          default: 64
+          description: Number of tokens to consider for repetition penalty
+        repeat_penalty:
+          type: number
+          default: 1.1
+          description: Penalty for repeating tokens
+        seed:
+          type: integer
+          description: Random seed for reproducible generation
+        num_predict:
+          type: integer
+          description: Maximum number of tokens to generate
+        stop:
+          type: array
+          items:
+            type: string
+          description: Stop generation when these sequences are encountered
+        reasoning:
+          type: boolean
+          default: false
+          description: Enable reasoning/thinking mode for step-by-step processing
+
+    GenerateResponse:
+      type: object
+      required:
+        - model
+        - response
+        - done
+      properties:
+        model:
+          type: string
+          description: Name of the model used
+        created_at:
+          type: string
+          format: date-time
+          description: Timestamp of response creation
+        response:
+          type: string
+          description: Generated text response
+        done:
+          type: boolean
+          description: Whether generation is complete
+        context:
+          type: array
+          items:
+            type: integer
+          description: Context tokens for continuing conversation
+        total_duration:
+          type: integer
+          format: int64
+          description: Total time in nanoseconds
+        load_duration:
+          type: integer
+          format: int64
+          description: Model loading time in nanoseconds
+        prompt_eval_count:
+          type: integer
+          description: Number of tokens in prompt
+        prompt_eval_duration:
+          type: integer
+          format: int64
+          description: Time to evaluate prompt in nanoseconds
+        eval_count:
+          type: integer
+          description: Number of tokens generated
+        eval_duration:
+          type: integer
+          format: int64
+          description: Time to generate response in nanoseconds
+
+    GenerateStreamResponse:
+      type: object
+      required:
+        - model
+        - response
+        - done
+      properties:
+        model:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        response:
+          type: string
+          description: Partial response chunk
+        done:
+          type: boolean
+        context:
+          type: array
+          items:
+            type: integer
+        total_duration:
+          type: integer
+          format: int64
+        load_duration:
+          type: integer
+          format: int64
+        prompt_eval_count:
+          type: integer
+        prompt_eval_duration:
+          type: integer
+          format: int64
+        eval_count:
+          type: integer
+        eval_duration:
+          type: integer
+          format: int64
+
+    # Chat request/response schemas
+    ChatRequest:
+      type: object
+      required:
+        - model
+        - messages
+      properties:
+        model:
+          $ref: '#/components/schemas/ModelName'
+        messages:
+          type: array
+          items:
+            $ref: '#/components/schemas/ChatMessage'
+          description: Conversation history
+        tools:
+          type: array
+          items:
+            $ref: '#/components/schemas/Tool'
+          description: Available tools for function calling
+        format:
+          type: string
+          enum: [json]
+          description: Response format constraint
+        options:
+          $ref: '#/components/schemas/GenerationOptions'
+        stream:
+          type: boolean
+          default: true
+          description: Enable streaming response
+        keep_alive:
+          type: string
+          default: "5m"
+          description: Model memory retention duration
+
+    ChatMessage:
+      type: object
+      required:
+        - role
+        - content
+      properties:
+        role:
+          type: string
+          enum: [system, user, assistant, tool]
+          description: Role of the message sender
+        content:
+          type: string
+          description: Message content
+        images:
+          type: array
+          items:
+            type: string
+            format: byte
+          description: Base64-encoded images for multimodal input
+        tool_calls:
+          type: array
+          items:
+            $ref: '#/components/schemas/ToolCall'
+          description: Tool calls made by the assistant
+
+    Tool:
+      type: object
+      required:
+        - type
+        - function
+      properties:
+        type:
+          type: string
+          enum: [function]
+          description: Tool type (currently only 'function' supported)
+        function:
+          $ref: '#/components/schemas/ToolFunction'
+
+    ToolFunction:
+      type: object
+      required:
+        - name
+        - description
+      properties:
+        name:
+          type: string
+          description: Function name
+          example: "get_weather"
+        description:
+          type: string
+          description: Function description
+          example: "Get current weather for a location"
+        parameters:
+          type: object
+          description: JSON Schema describing function parameters
+          example:
+            type: "object"
+            properties:
+              location:
+                type: "string"
+                description: "City name"
+            required: ["location"]
+
+    ToolCall:
+      type: object
+      required:
+        - id
+        - type
+        - function
+      properties:
+        id:
+          type: string
+          description: Unique identifier for the tool call
+        type:
+          type: string
+          enum: [function]
+          description: Type of tool call
+        function:
+          $ref: '#/components/schemas/ToolCallFunction'
+
+    ToolCallFunction:
+      type: object
+      required:
+        - name
+        - arguments
+      properties:
+        name:
+          type: string
+          description: Name of function to call
+        arguments:
+          type: string
+          description: JSON-encoded function arguments
+
+    ChatResponse:
+      type: object
+      required:
+        - model
+        - message
+        - done
+      properties:
+        model:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        message:
+          $ref: '#/components/schemas/ChatMessage'
+        done:
+          type: boolean
+        total_duration:
+          type: integer
+          format: int64
+        load_duration:
+          type: integer
+          format: int64
+        prompt_eval_count:
+          type: integer
+        prompt_eval_duration:
+          type: integer
+          format: int64
+        eval_count:
+          type: integer
+        eval_duration:
+          type: integer
+          format: int64
+
+    ChatStreamResponse:
+      type: object
+      required:
+        - model
+        - message
+        - done
+      properties:
+        model:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        message:
+          type: object
+          properties:
+            role:
+              type: string
+            content:
+              type: string
+        done:
+          type: boolean
+        total_duration:
+          type: integer
+          format: int64
+        load_duration:
+          type: integer
+          format: int64
+        prompt_eval_count:
+          type: integer
+        prompt_eval_duration:
+          type: integer
+          format: int64
+        eval_count:
+          type: integer
+        eval_duration:
+          type: integer
+          format: int64
+
+    # Embeddings request/response schemas
+    EmbeddingsRequest:
+      type: object
+      required:
+        - model
+        - input
+      properties:
+        model:
+          $ref: '#/components/schemas/ModelName'
+        input:
+          oneOf:
+            - type: string
+              description: Single text input
+              example: "Hello world"
+            - type: array
+              items:
+                type: string
+              description: Batch text inputs
+              example: ["First text", "Second text", "Third text"]
+        options:
+          type: object
+          description: Additional embedding parameters
+
+    EmbeddingsResponse:
+      type: object
+      required:
+        - model
+        - embeddings
+      properties:
+        model:
+          type: string
+          description: Name of embedding model used
+        embeddings:
+          type: array
+          items:
+            type: array
+            items:
+              type: number
+            description: Vector embedding
+          description: Array of embedding vectors
+        total_duration:
+          type: integer
+          format: int64
+          description: Total processing time
+        load_duration:
+          type: integer
+          format: int64
+          description: Model loading time
+        prompt_eval_count:
+          type: integer
+          description: Number of input tokens processed
+
+    # Model management schemas
+    ModelsResponse:
+      type: object
+      required:
+        - models
+      properties:
+        models:
+          type: array
+          items:
+            $ref: '#/components/schemas/ModelInfo'
+
+    ModelInfo:
+      type: object
+      required:
+        - name
+        - size
+        - digest
+        - modified_at
+      properties:
+        name:
+          type: string
+          description: Model name
+          example: "llama3.2:latest"
+        size:
+          type: integer
+          format: int64
+          description: Model size in bytes
+        digest:
+          type: string
+          description: Model content hash
+        modified_at:
+          type: string
+          format: date-time
+          description: Last modification timestamp
+        details:
+          type: object
+          properties:
+            format:
+              type: string
+              description: Model format
+            family:
+              type: string
+              description: Model family
+            families:
+              type: array
+              items:
+                type: string
+            parameter_size:
+              type: string
+              description: Parameter count
+            quantization_level:
+              type: string
+              description: Quantization level
+
+    ShowModelRequest:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          description: Model name to inspect
+          example: "llama3.2"
+        verbose:
+          type: boolean
+          default: false
+          description: Include detailed information
+
+    ShowModelResponse:
+      type: object
+      required:
+        - modelfile
+        - parameters
+        - template
+      properties:
+        license:
+          type: string
+          description: Model license information
+        modelfile:
+          type: string
+          description: Complete Modelfile content
+        parameters:
+          type: string
+          description: Model parameter configuration
+        template:
+          type: string
+          description: Prompt template
+        details:
+          $ref: '#/components/schemas/ModelDetails'
+        model_info:
+          type: object
+          description: Additional model metadata
+
+    ModelDetails:
+      type: object
+      properties:
+        format:
+          type: string
+        family:
+          type: string
+        families:
+          type: array
+          items:
+            type: string
+        parameter_size:
+          type: string
+        quantization_level:
+          type: string
+
+    PullModelRequest:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          description: Model name to pull from Ollama library
+          example: "llama3.2"
+        stream:
+          type: boolean
+          default: true
+          description: Stream download progress
+        insecure:
+          type: boolean
+          default: false
+          description: Allow insecure connections
+
+    PullModelResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          description: Download status
+          example: "success"
+        digest:
+          type: string
+          description: Model content digest
+        total:
+          type: integer
+          format: int64
+          description: Total bytes to download
+        completed:
+          type: integer
+          format: int64
+          description: Bytes downloaded
+
+    PullModelStreamResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          description: Current download status
+          enum: [pulling, downloading, verifying, success]
+        digest:
+          type: string
+        total:
+          type: integer
+          format: int64
+        completed:
+          type: integer
+          format: int64
+
+    DeleteModelRequest:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          description: Model name to delete
+          example: "llama3.2"
+
+    DeleteModelResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          description: Deletion success status
+        message:
+          type: string
+          description: Status message
+
+    # Error response schemas
+    ErrorResponse:
+      type: object
+      required:
+        - error
+      properties:
+        error:
+          type: string
+          description: Error message
+        details:
+          type: string
+          description: Additional error details
+        code:
+          type: integer
+          description: Error code
+
+  responses:
+    BadRequest:
+      description: Bad request - invalid parameters or malformed request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          examples:
+            invalidModel:
+              summary: Invalid model name
+              value:
+                error: "model not found"
+                details: "The specified model is not available locally"
+                code: 400
+            missingPrompt:
+              summary: Missing required prompt
+              value:
+                error: "prompt is required"
+                details: "The 'prompt' field is required for text generation"
+                code: 400
+
+    ModelNotFound:
+      description: Specified model not found or not available
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          examples:
+            modelNotFound:
+              summary: Model not available
+              value:
+                error: "model not found"
+                details: "The model 'unknown-model' is not available. Use /api/tags to list available models."
+                code: 404
+
+    InternalServerError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          examples:
+            serverError:
+              summary: Server error
+              value:
+                error: "internal server error"
+                details: "An unexpected error occurred while processing the request"
+                code: 500
+
+tags:
+  - name: Text Generation
+    description: |
+      Text completion and generation endpoints supporting various model types including 
+      chat, code, and vision models with streaming capabilities.
+  
+  - name: Chat
+    description: |
+      Conversational AI endpoints with message history support, tool calling capabilities,
+      and advanced features like reasoning mode.
+    
+  - name: Tool Calling
+    description: |
+      Function calling capabilities allowing models to interact with external tools and APIs
+      using structured JSON schemas with Zod validation support.
+    
+  - name: Embeddings
+    description: |
+      Vector embedding generation for text inputs supporting both single and batch processing
+      with specialized embedding models.
+    
+  - name: Models
+    description: |
+      Model management operations including listing, inspection, downloading, and deletion
+      of locally available and remote models.
+
+externalDocs:
+  description: Ollama AI Provider V2 Documentation
+  url: https://github.com/nordwestt/ollama-ai-provider-v2

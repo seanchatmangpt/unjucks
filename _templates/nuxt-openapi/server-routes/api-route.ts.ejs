@@ -1,0 +1,412 @@
+---
+to: server/api/{{ path | replace('/', '/') }}.{{ method }}.ts
+skipIf: "{{ skipIf }}"
+---
+import { z } from 'zod'
+import type { 
+  {{ requestType }}, 
+  {{ responseType }}, 
+  {{ errorType }} 
+} from '~/types/{{ serviceName | kebabCase }}'
+
+/**
+ * {{ summary }}
+ * {{ description }}
+ * 
+ * @generated from OpenAPI operation: {{ operationId }}
+ * @path {{ path }}
+ * @method {{ method | upper }}
+ */
+
+{% if hasRequestBody %}
+// Request validation schema
+const requestSchema = z.object({
+  {% for field in requestFields %}
+  {{ field.name }}: {% if field.required %}{{ field.zodType }}{% else %}{{ field.zodType }}.optional(){% endif %},
+  {% endfor %}
+})
+{% endif %}
+
+{% if hasPathParams %}
+// Path parameters validation
+const paramsSchema = z.object({
+  {% for param in pathParams %}
+  {{ param.name }}: {{ param.zodType }},
+  {% endfor %}
+})
+{% endif %}
+
+{% if hasQueryParams %}
+// Query parameters validation
+const querySchema = z.object({
+  {% for param in queryParams %}
+  {{ param.name }}: {% if param.required %}{{ param.zodType }}{% else %}{{ param.zodType }}.optional(){% endif %},
+  {% endfor %}
+})
+{% endif %}
+
+export default defineEventHandler(async (event) => {
+  // Rate limiting
+  await applyRateLimit(event, {
+    max: {{ rateLimit.max || 100 }},
+    windowMs: {{ rateLimit.windowMs || 60000 }}, // 1 minute
+    keyGenerator: (event) => getClientIP(event) || 'anonymous'
+  })
+  
+  {% if requiresAuth %}
+  // Authentication
+  const user = await authenticateRequest(event)
+  if (!user) {
+    throw createError({
+      statusCode: 401,
+      statusMessage: 'Unauthorized - invalid or missing authentication'
+    })
+  }
+  {% endif %}
+  
+  try {
+    {% if hasPathParams %}
+    // Validate path parameters
+    const params = await getValidatedRouterParams(event, paramsSchema)
+    {% endif %}
+    
+    {% if hasQueryParams %}
+    // Validate query parameters
+    const query = await getValidatedQuery(event, querySchema)
+    {% endif %}
+    
+    {% if hasRequestBody %}
+    // Validate request body
+    const body = await readValidatedBody(event, requestSchema)
+    {% endif %}
+    
+    // Prepare external API request
+    const config = useRuntimeConfig()
+    const baseURL = config.{{ serviceName | camelCase }}?.baseUrl || '{{ defaultBaseUrl }}'
+    
+    // Build URL with path parameters
+    let apiPath = '{{ path }}'
+    {% if hasPathParams %}
+    {% for param in pathParams %}
+    apiPath = apiPath.replace('{{"{"}}{{ param.name }}{{"}"}}', encodeURIComponent(String(params.{{ param.name }})))
+    {% endfor %}
+    {% endif %}
+    
+    // Prepare headers for external API
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+      'User-Agent': 'Nuxt-Server/1.0.0'
+    }
+    
+    {% if requiresAuth %}
+    // Forward authentication to external API
+    {% if hasApiKeyAuth %}
+    if (config.{{ serviceName | camelCase }}?.apiKey) {
+      headers['X-API-Key'] = config.{{ serviceName | camelCase }}.apiKey
+    }
+    {% endif %}
+    {% if hasBearerAuth %}
+    if (config.{{ serviceName | camelCase }}?.bearerToken) {
+      headers['Authorization'] = `Bearer ${config.{{ serviceName | camelCase }}.bearerToken}`
+    }
+    {% endif %}
+    {% endif %}
+    
+    // Handle caching for GET requests
+    {% if method === 'get' %}
+    const cacheKey = `{{ operationId }}:${JSON.stringify({ params, query })}`
+    const cached = await getCachedResponse<{{ responseType }}>(cacheKey)
+    if (cached) {
+      return cached
+    }
+    {% endif %}
+    
+    {% if isStreamingEndpoint %}
+    // Handle streaming responses
+    if (query?.stream === 'true' || body?.stream === true) {
+      return handleStreamingResponse(event, {
+        url: `${baseURL}${apiPath}`,
+        method: '{{ method | upper }}',
+        headers,
+        {% if hasRequestBody %}
+        body,
+        {% endif %}
+        {% if hasQueryParams %}
+        query,
+        {% endif %}
+      })
+    }
+    {% endif %}
+    
+    // Make request to external API
+    const response = await $fetch<{{ responseType }}>(apiPath, {
+      baseURL,
+      method: '{{ method | upper }}',
+      headers,
+      {% if hasRequestBody %}
+      body,
+      {% endif %}
+      {% if hasQueryParams %}
+      query: {
+        ...query,
+        {% for param in defaultQueryParams %}
+        {{ param.name }}: {{ param.value }},
+        {% endfor %}
+      },
+      {% endif %}
+      timeout: {{ timeout || 30000 }}, // 30 seconds default
+      retry: {{ retries || 2 }},
+      onResponseError({ response }) {
+        throw createError({
+          statusCode: response.status,
+          statusMessage: response.statusText,
+          data: response._data
+        })
+      }
+    })
+    
+    {% if method === 'get' %}
+    // Cache successful GET responses
+    await setCachedResponse(cacheKey, response, {{ cacheTimeout || 300 }}) // 5 minutes default
+    {% endif %}
+    
+    // Log successful API call for monitoring
+    await logApiCall({
+      operation: '{{ operationId }}',
+      method: '{{ method | upper }}',
+      path: '{{ path }}',
+      {% if requiresAuth %}
+      userId: user.id,
+      {% endif %}
+      status: 'success',
+      responseTime: Date.now() - event.context.startTime
+    })
+    
+    return response
+    
+  } catch (error: any) {
+    // Enhanced error logging
+    await logApiCall({
+      operation: '{{ operationId }}',
+      method: '{{ method | upper }}',
+      path: '{{ path }}',
+      {% if requiresAuth %}
+      userId: user?.id,
+      {% endif %}
+      status: 'error',
+      error: error.message,
+      statusCode: error.statusCode || 500,
+      responseTime: Date.now() - event.context.startTime
+    })
+    
+    // Transform external API errors
+    if (error.statusCode) {
+      throw createError({
+        statusCode: error.statusCode,
+        statusMessage: error.statusMessage || 'External API Error',
+        data: {
+          error: error.data?.error || error.message,
+          code: error.data?.code || `API_ERROR_${error.statusCode}`,
+          operation: '{{ operationId }}'
+        }
+      })
+    }
+    
+    // Handle validation errors
+    if (error.name === 'ZodError') {
+      throw createError({
+        statusCode: 400,
+        statusMessage: 'Validation Error',
+        data: {
+          error: 'Invalid request data',
+          code: 'VALIDATION_ERROR',
+          details: error.errors
+        }
+      })
+    }
+    
+    // Generic server error
+    throw createError({
+      statusCode: 500,
+      statusMessage: 'Internal Server Error',
+      data: {
+        error: 'An unexpected error occurred',
+        code: 'INTERNAL_ERROR',
+        operation: '{{ operationId }}'
+      }
+    })
+  }
+})
+
+{% if isStreamingEndpoint %}
+async function handleStreamingResponse(event: any, options: {
+  url: string;
+  method: string;
+  headers: Record<string, string>;
+  body?: any;
+  query?: any;
+}) {
+  // Set SSE headers
+  setHeader(event, 'Content-Type', 'text/event-stream')
+  setHeader(event, 'Cache-Control', 'no-cache')
+  setHeader(event, 'Connection', 'keep-alive')
+  setHeader(event, 'Access-Control-Allow-Origin', '*')
+  
+  // Create streaming response
+  return sendStream(event, async (stream) => {
+    try {
+      const response = await fetch(options.url, {
+        method: options.method,
+        headers: {
+          ...options.headers,
+          'Accept': 'text/event-stream'
+        },
+        {% if hasRequestBody %}
+        body: options.body ? JSON.stringify(options.body) : undefined,
+        {% endif %}
+        signal: event.node.req.destroyed ? new AbortController().signal : undefined
+      })
+      
+      if (!response.ok) {
+        stream.push(`data: ${JSON.stringify({ 
+          error: 'Stream failed', 
+          status: response.status 
+        })}\n\n`)
+        return
+      }
+      
+      if (!response.body) {
+        stream.push(`data: ${JSON.stringify({ error: 'No response body' })}\n\n`)
+        return
+      }
+      
+      const reader = response.body.getReader()
+      const decoder = new TextDecoder()
+      
+      while (true) {
+        const { done, value } = await reader.read()
+        
+        if (done) {
+          stream.push('data: [DONE]\n\n')
+          break
+        }
+        
+        const chunk = decoder.decode(value, { stream: true })
+        // Forward chunks to client
+        stream.push(chunk)
+      }
+      
+    } catch (error: any) {
+      stream.push(`data: ${JSON.stringify({ 
+        error: error.message, 
+        code: 'STREAM_ERROR' 
+      })}\n\n`)
+    }
+  })
+}
+{% endif %}
+
+// Middleware functions
+async function authenticateRequest(event: any) {
+  {% if requiresAuth %}
+  const authHeader = getHeader(event, 'authorization')
+  const apiKeyHeader = getHeader(event, 'x-api-key')
+  
+  {% if hasBearerAuth %}
+  // JWT Bearer token authentication
+  if (authHeader?.startsWith('Bearer ')) {
+    const token = authHeader.slice(7)
+    return await verifyJWTToken(token)
+  }
+  {% endif %}
+  
+  {% if hasApiKeyAuth %}
+  // API Key authentication
+  if (apiKeyHeader) {
+    return await verifyApiKey(apiKeyHeader)
+  }
+  {% endif %}
+  
+  return null
+  {% else %}
+  // No authentication required
+  return { id: 'anonymous', role: 'public' }
+  {% endif %}
+}
+
+async function applyRateLimit(event: any, options: {
+  max: number;
+  windowMs: number;
+  keyGenerator: (event: any) => string;
+}) {
+  const key = `rate_limit:{{ operationId }}:${options.keyGenerator(event)}`
+  const current = await incrementRateLimit(key, options.windowMs)
+  
+  if (current > options.max) {
+    throw createError({
+      statusCode: 429,
+      statusMessage: 'Too Many Requests',
+      data: {
+        error: 'Rate limit exceeded',
+        code: 'RATE_LIMIT_EXCEEDED',
+        retryAfter: Math.ceil(options.windowMs / 1000)
+      }
+    })
+  }
+  
+  // Set rate limit headers
+  setHeader(event, 'X-RateLimit-Limit', options.max.toString())
+  setHeader(event, 'X-RateLimit-Remaining', Math.max(0, options.max - current).toString())
+  setHeader(event, 'X-RateLimit-Reset', Date.now() + options.windowMs)
+}
+
+async function logApiCall(data: {
+  operation: string;
+  method: string;
+  path: string;
+  userId?: string;
+  status: 'success' | 'error';
+  error?: string;
+  statusCode?: number;
+  responseTime: number;
+}) {
+  // Implement your logging strategy here
+  // Could be database, external logging service, etc.
+  console.log(`[${data.status.toUpperCase()}] ${data.method} ${data.path} - ${data.responseTime}ms`, {
+    operation: data.operation,
+    userId: data.userId,
+    error: data.error,
+    statusCode: data.statusCode
+  })
+}
+
+// Cache helpers (implement based on your caching strategy)
+async function getCachedResponse<T>(key: string): Promise<T | null> {
+  // Implement caching logic (Redis, memory, etc.)
+  return null
+}
+
+async function setCachedResponse<T>(key: string, data: T, ttl: number): Promise<void> {
+  // Implement cache storage logic
+}
+
+// Rate limiting helpers (implement based on your store)
+async function incrementRateLimit(key: string, windowMs: number): Promise<number> {
+  // Implement rate limiting counter logic
+  return 1
+}
+
+// Auth helpers
+{% if hasBearerAuth %}
+async function verifyJWTToken(token: string) {
+  // Implement JWT verification logic
+  return { id: 'user', role: 'authenticated' }
+}
+{% endif %}
+
+{% if hasApiKeyAuth %}
+async function verifyApiKey(apiKey: string) {
+  // Implement API key verification logic
+  return { id: 'api_user', role: 'api_client' }
+}
+{% endif %}

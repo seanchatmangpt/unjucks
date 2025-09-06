@@ -1,0 +1,314 @@
+---
+to: composables/{{ operationId | camelCase }}.ts
+skipIf: "{{ skipIf }}"
+---
+import type { 
+  {{ requestType }}, 
+  {{ responseType }}, 
+  {{ errorType }} 
+} from '~/types/{{ serviceName | kebabCase }}'
+
+/**
+ * {{ summary }}
+ * {{ description }}
+ * 
+ * @generated from OpenAPI operation: {{ operationId }}
+ * @path {{ path }}
+ * @method {{ method | upper }}
+ */
+export const {{ operationId | camelCase }} = () => {
+  const { $api } = useNuxtApp()
+  const { auth } = useAuth()
+  
+  // Reactive state
+  const data = ref<{{ responseType }} | null>(null)
+  const pending = ref(false)
+  const error = ref<{{ errorType }} | null>(null)
+  
+  {% if isStreamingEndpoint %}
+  // Streaming state
+  const isStreaming = ref(false)
+  const streamData = ref<string>('')
+  const streamController = ref<AbortController | null>(null)
+  {% endif %}
+
+  /**
+   * Execute the {{ operationId }} operation
+   */
+  const execute = async (
+    {% if hasRequestBody %}request: {{ requestType }}{% endif %}
+    {% if hasPathParams %}{% for param in pathParams %}, {{ param.name }}: {{ param.type }}{% endfor %}{% endif %}
+    {% if hasQueryParams %}, options?: { {% for param in queryParams %}{{ param.name }}?: {{ param.type }}{% unless loop.last %}, {% endunless %}{% endfor %} }{% endif %}
+  ): Promise<{{ responseType }}> => {
+    pending.value = true
+    error.value = null
+    
+    try {
+      // Build request URL
+      let url = '{{ path }}'
+      {% if hasPathParams %}
+      {% for param in pathParams %}
+      url = url.replace('{{"{"}}{{ param.name }}{{"}"}}', encodeURIComponent(String({{ param.name }})))
+      {% endfor %}
+      {% endif %}
+      
+      // Build query parameters
+      {% if hasQueryParams %}
+      const searchParams = new URLSearchParams()
+      if (options) {
+        {% for param in queryParams %}
+        if (options.{{ param.name }} !== undefined) {
+          searchParams.append('{{ param.name }}', String(options.{{ param.name }}))
+        }
+        {% endfor %}
+      }
+      if (searchParams.toString()) {
+        url += `?${searchParams.toString()}`
+      }
+      {% endif %}
+      
+      // Prepare headers
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+        ...getAuthHeaders()
+      }
+      
+      {% if requiresAuth %}
+      // Add authentication
+      if (auth.value?.token) {
+        headers.Authorization = `Bearer ${auth.value.token}`
+      }
+      {% if hasApiKeyAuth %}
+      if (auth.value?.apiKey) {
+        headers['X-API-Key'] = auth.value.apiKey
+      }
+      {% endif %}
+      {% endif %}
+      
+      // Make the request
+      const response = await $fetch<{{ responseType }}>(url, {
+        method: '{{ method | upper }}',
+        headers,
+        {% if hasRequestBody %}
+        body: request,
+        {% endif %}
+        onResponseError({ response }) {
+          throw createApiError(response._data, response.status)
+        }
+      })
+      
+      data.value = response
+      return response
+      
+    } catch (err: any) {
+      error.value = err
+      throw err
+    } finally {
+      pending.value = false
+    }
+  }
+  
+  {% if isStreamingEndpoint %}
+  /**
+   * Execute the {{ operationId }} operation with streaming
+   */
+  const executeStream = async (
+    {% if hasRequestBody %}request: {{ requestType }}{% endif %}
+    {% if hasPathParams %}{% for param in pathParams %}, {{ param.name }}: {{ param.type }}{% endfor %}{% endif %}
+    {% if hasQueryParams %}, options?: { {% for param in queryParams %}{{ param.name }}?: {{ param.type }}{% unless loop.last %}, {% endunless %}{% endfor %} }{% endif %}
+  ): Promise<ReadableStream<{{ responseType }}>> => {
+    isStreaming.value = true
+    streamData.value = ''
+    error.value = null
+    streamController.value = new AbortController()
+    
+    try {
+      // Build request URL (same as above)
+      let url = '{{ path }}'
+      {% if hasPathParams %}
+      {% for param in pathParams %}
+      url = url.replace('{{"{"}}{{ param.name }}{{"}"}}', encodeURIComponent(String({{ param.name }})))
+      {% endfor %}
+      {% endif %}
+      
+      // Add stream parameter
+      {% if hasQueryParams %}
+      const searchParams = new URLSearchParams()
+      searchParams.append('stream', 'true')
+      if (options) {
+        {% for param in queryParams %}
+        if (options.{{ param.name }} !== undefined) {
+          searchParams.append('{{ param.name }}', String(options.{{ param.name }}))
+        }
+        {% endfor %}
+      }
+      url += `?${searchParams.toString()}`
+      {% else %}
+      url += '?stream=true'
+      {% endif %}
+      
+      // Prepare headers
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+        'Accept': 'text/event-stream',
+        ...getAuthHeaders()
+      }
+      
+      {% if requiresAuth %}
+      // Add authentication
+      if (auth.value?.token) {
+        headers.Authorization = `Bearer ${auth.value.token}`
+      }
+      {% if hasApiKeyAuth %}
+      if (auth.value?.apiKey) {
+        headers['X-API-Key'] = auth.value.apiKey
+      }
+      {% endif %}
+      {% endif %}
+      
+      // Create fetch request with streaming
+      const response = await fetch(url, {
+        method: '{{ method | upper }}',
+        headers,
+        {% if hasRequestBody %}
+        body: JSON.stringify(request),
+        {% endif %}
+        signal: streamController.value.signal
+      })
+      
+      if (!response.ok) {
+        throw createApiError(await response.json(), response.status)
+      }
+      
+      if (!response.body) {
+        throw new Error('Response body is null')
+      }
+      
+      return response.body
+        .pipeThrough(new TextDecoderStream())
+        .pipeThrough(createSSETransformer())
+        .pipeThrough(createJSONTransformer<{{ responseType }}>())
+      
+    } catch (err: any) {
+      error.value = err
+      isStreaming.value = false
+      throw err
+    }
+  }
+  
+  /**
+   * Cancel streaming request
+   */
+  const cancelStream = () => {
+    if (streamController.value) {
+      streamController.value.abort()
+      streamController.value = null
+      isStreaming.value = false
+    }
+  }
+  {% endif %}
+  
+  /**
+   * Reset the composable state
+   */
+  const reset = () => {
+    data.value = null
+    error.value = null
+    pending.value = false
+    {% if isStreamingEndpoint %}
+    streamData.value = ''
+    isStreaming.value = false
+    if (streamController.value) {
+      streamController.value.abort()
+      streamController.value = null
+    }
+    {% endif %}
+  }
+  
+  // Auto cleanup on unmount
+  onBeforeUnmount(() => {
+    {% if isStreamingEndpoint %}
+    cancelStream()
+    {% endif %}
+  })
+  
+  return {
+    // State
+    data: readonly(data),
+    pending: readonly(pending),
+    error: readonly(error),
+    
+    {% if isStreamingEndpoint %}
+    // Streaming state
+    isStreaming: readonly(isStreaming),
+    streamData: readonly(streamData),
+    {% endif %}
+    
+    // Methods
+    execute,
+    {% if isStreamingEndpoint %}
+    executeStream,
+    cancelStream,
+    {% endif %}
+    reset,
+    
+    // Computed helpers
+    isError: computed(() => !!error.value),
+    isSuccess: computed(() => !!data.value && !error.value),
+    {% if isStreamingEndpoint %}
+    canStream: computed(() => !isStreaming.value && !pending.value),
+    {% endif %}
+  }
+}
+
+// Helper functions
+function getAuthHeaders(): Record<string, string> {
+  const headers: Record<string, string> = {}
+  
+  // Add any default headers here
+  headers['User-Agent'] = 'Nuxt-OpenAPI-Client/1.0.0'
+  
+  return headers
+}
+
+function createApiError(errorData: any, status: number): {{ errorType }} {
+  return {
+    error: errorData?.error || 'Unknown error',
+    code: errorData?.code || `HTTP_${status}`,
+    status,
+    details: errorData?.details
+  }
+}
+
+{% if isStreamingEndpoint %}
+function createSSETransformer(): TransformStream<string, string> {
+  return new TransformStream({
+    transform(chunk, controller) {
+      const lines = chunk.split('\n')
+      for (const line of lines) {
+        if (line.startsWith('data: ')) {
+          const data = line.slice(6)
+          if (data.trim() === '[DONE]') {
+            controller.terminate()
+            return
+          }
+          controller.enqueue(data)
+        }
+      }
+    }
+  })
+}
+
+function createJSONTransformer<T>(): TransformStream<string, T> {
+  return new TransformStream({
+    transform(chunk, controller) {
+      try {
+        const parsed = JSON.parse(chunk)
+        controller.enqueue(parsed as T)
+      } catch {
+        // Skip invalid JSON chunks
+      }
+    }
+  })
+}
+{% endif %}

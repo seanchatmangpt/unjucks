@@ -11,11 +11,11 @@ import { tmpdir } from 'os';
 import { execSync } from 'child_process';
 
 // Import all step definitions
-import './mcp-claude-flow-steps.js';
-import './mcp-claude-flow-cicd-steps.js';
-import './mcp-claude-flow-docs-integration-steps.js';
+import '../step-definitions/mcp-claude-flow-steps.ts';
+import '../step-definitions/mcp-claude-flow-cicd-steps.ts';
+import '../step-definitions/mcp-claude-flow-docs-integration-steps.ts';
 
-const feature = await loadFeature('./features/mcp-claude-flow-integration.feature');
+const feature = await loadFeature('./tests/features/mcp-claude-flow-integration.feature');
 
 describeFeature(feature, ({ Background, Scenario }) => {
   let globalTestState = {

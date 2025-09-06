@@ -1,0 +1,241 @@
+{% set resources = ($rdf.query('?s rdf:type unjucks:HealthcareResource') | rdfObject('unjucks:generatesAPI')) %}
+import { Injectable, Logger } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { AuditLogger } from '../utils/audit-logger';
+import { HIPAACompliance } from '../middleware/hipaa-compliance.middleware';
+{% for resource in fhirResources %}
+import { {{ resource }}Entity } from '../entities/{{ resource | kebabCase }}.entity';
+import { Create{{ resource }}Dto, Update{{ resource }}Dto } from '../dto/{{ resource | kebabCase }}.dto';
+{% endfor %}
+
+/**
+ * {{ serviceName | titleCase }} Service
+ * 
+ * FHIR R4-compliant healthcare service with semantic reasoning
+ * 
+ * Compliance: HIPAA, 21 CFR Part 11
+ * Encryption: {{ encryptionStandard }}
+ * Audit Level: {{ auditRetention }}
+ * 
+ * Generated from FHIR ontology with semantic validation rules
+ */
+@Injectable()
+export class {{ serviceName | pascalCase }}Service {
+  private readonly logger = new Logger({{ serviceName | pascalCase }}Service.name);
+  
+  constructor(
+    {% for resource in fhirResources %}
+    @InjectRepository({{ resource }}Entity)
+    private {{ resource | camelCase }}Repository: Repository<{{ resource }}Entity>,
+    {% endfor %}
+    private auditLogger: AuditLogger,
+    private hipaaCompliance: HIPAACompliance
+  ) {}
+
+  {% for resource in fhirResources %}
+  {% set resourceUri = 'fhir:' + resource %}
+  {% set apiPath = ($rdf.rdfObject(resourceUri, 'unjucks:generatesAPI'))[0].value %}
+  {% set dataClassification = ($rdf.rdfObject(resourceUri, 'unjucks:dataClassification'))[0].value %}
+  {% set auditLevel = ($rdf.rdfObject(resourceUri, 'unjucks:auditLevel'))[0].value %}
+  
+  /**
+   * Create {{ resource }} - FHIR R4 Compliant
+   * 
+   * Semantic Rules:
+   * - API Path: {{ apiPath }}
+   * - Data Classification: {{ dataClassification }}
+   * - Audit Level: {{ auditLevel }}
+   * - Encryption Required: {{ ($rdf.rdfObject(resourceUri, 'unjucks:encryptionRequired'))[0].value }}
+   */
+  async create{{ resource }}(create{{ resource }}Dto: Create{{ resource }}Dto, userId: string): Promise<{{ resource }}Entity> {
+    // HIPAA Compliance Check
+    await this.hipaaCompliance.validateAccess(userId, '{{ resource }}', 'CREATE');
+    
+    // FHIR Validation - semantic rules from ontology
+    this.validateFHIRResource(create{{ resource }}Dto, '{{ resource }}');
+    
+    // Encrypt PHI data before storage
+    {% if dataClassification == 'PHI' %}
+    const encryptedData = await this.hipaaCompliance.encryptPHI(create{{ resource }}Dto);
+    {% else %}
+    const encryptedData = create{{ resource }}Dto;
+    {% endif %}
+    
+    const {{ resource | camelCase }} = this.{{ resource | camelCase }}Repository.create(encryptedData);
+    const saved{{ resource }} = await this.{{ resource | camelCase }}Repository.save({{ resource | camelCase }});
+    
+    // Audit logging - {{ auditLevel }} level
+    await this.auditLogger.logAccess({
+      userId,
+      action: 'CREATE_{{ resource | constantCase }}',
+      resourceId: saved{{ resource }}.id,
+      timestamp: new Date(),
+      {% if auditLevel == 'FULL' %}
+      dataSnapshot: this.createDataSnapshot(saved{{ resource }}),
+      {% endif %}
+      complianceLevel: '{{ complianceLevel | upper }}',
+      encryption: '{{ encryptionStandard }}'
+    });
+    
+    this.logger.log(`{{ resource }} created: ${saved{{ resource }}.id} by user: ${userId}`);
+    return saved{{ resource }};
+  }
+  
+  /**
+   * Find {{ resource }} by ID with HIPAA controls
+   */
+  async find{{ resource }}ById(id: string, userId: string): Promise<{{ resource }}Entity> {
+    // HIPAA Access Control
+    await this.hipaaCompliance.validateAccess(userId, '{{ resource }}', 'READ');
+    
+    const {{ resource | camelCase }} = await this.{{ resource | camelCase }}Repository.findOne({ where: { id } });
+    
+    if (!{{ resource | camelCase }}) {
+      await this.auditLogger.logUnauthorizedAccess({
+        userId,
+        attemptedResource: '{{ resource }}',
+        resourceId: id,
+        timestamp: new Date()
+      });
+      throw new NotFoundException('{{ resource }} not found');
+    }
+    
+    // Decrypt PHI data for authorized access
+    {% if dataClassification == 'PHI' %}
+    const decryptedData = await this.hipaaCompliance.decryptPHI({{ resource | camelCase }});
+    {% else %}
+    const decryptedData = {{ resource | camelCase }};
+    {% endif %}
+    
+    // Audit successful access
+    await this.auditLogger.logAccess({
+      userId,
+      action: 'READ_{{ resource | constantCase }}',
+      resourceId: id,
+      timestamp: new Date()
+    });
+    
+    return decryptedData;
+  }
+  
+  /**
+   * Update {{ resource }} with FHIR validation
+   */
+  async update{{ resource }}(id: string, update{{ resource }}Dto: Update{{ resource }}Dto, userId: string): Promise<{{ resource }}Entity> {
+    await this.hipaaCompliance.validateAccess(userId, '{{ resource }}', 'UPDATE');
+    
+    const existing{{ resource }} = await this.find{{ resource }}ById(id, userId);
+    
+    // FHIR semantic validation
+    this.validateFHIRResource(update{{ resource }}Dto, '{{ resource }}');
+    
+    {% if dataClassification == 'PHI' %}
+    const encryptedUpdates = await this.hipaaCompliance.encryptPHI(update{{ resource }}Dto);
+    {% else %}
+    const encryptedUpdates = update{{ resource }}Dto;
+    {% endif %}
+    
+    Object.assign(existing{{ resource }}, encryptedUpdates);
+    const updated{{ resource }} = await this.{{ resource | camelCase }}Repository.save(existing{{ resource }});
+    
+    // Full audit trail for updates
+    await this.auditLogger.logAccess({
+      userId,
+      action: 'UPDATE_{{ resource | constantCase }}',
+      resourceId: id,
+      {% if auditLevel == 'FULL' %}
+      previousSnapshot: this.createDataSnapshot(existing{{ resource }}),
+      newSnapshot: this.createDataSnapshot(updated{{ resource }}),
+      {% endif %}
+      timestamp: new Date()
+    });
+    
+    return updated{{ resource }};
+  }
+  
+  /**
+   * Delete {{ resource }} with HIPAA right-to-be-forgotten compliance
+   */
+  async delete{{ resource }}(id: string, userId: string): Promise<void> {
+    await this.hipaaCompliance.validateAccess(userId, '{{ resource }}', 'DELETE');
+    
+    const {{ resource | camelCase }} = await this.find{{ resource }}ById(id, userId);
+    
+    // HIPAA-compliant deletion (secure overwrite)
+    await this.hipaaCompliance.secureDelete({{ resource | camelCase }});
+    await this.{{ resource | camelCase }}Repository.remove({{ resource | camelCase }});
+    
+    // Permanent audit record of deletion
+    await this.auditLogger.logDeletion({
+      userId,
+      action: 'DELETE_{{ resource | constantCase }}',
+      resourceId: id,
+      timestamp: new Date(),
+      retentionPeriod: '{{ auditRetention }}'
+    });
+    
+    this.logger.log(`{{ resource }} deleted: ${id} by user: ${userId}`);
+  }
+  {% endfor %}
+  
+  /**
+   * FHIR Resource Validation using semantic ontology rules
+   */
+  private validateFHIRResource(data: any, resourceType: string): void {
+    const validationRules = this.getFHIRValidationRules(resourceType);
+    
+    for (const rule of validationRules) {
+      if (!this.validateRule(data, rule)) {
+        throw new BadRequestException(`FHIR validation failed: ${rule.message}`);
+      }
+    }
+  }
+  
+  /**
+   * Get FHIR validation rules from RDF ontology
+   */
+  private getFHIRValidationRules(resourceType: string): Array<{property: string, required: boolean, message: string}> {
+    // These rules are generated from the RDF ontology at build time
+    const rules = {
+      {% for resource in fhirResources %}
+      {% set resourceUri = 'fhir:' + resource %}
+      {% set properties = $rdf.rdfObject(resourceUri, 'unjucks:hasProperty') %}
+      '{{ resource }}': [
+        {% for prop in properties %}
+        {
+          property: '{{ prop.value | rdfCompact }}',
+          required: true,
+          message: '{{ resource }} requires {{ prop.value | rdfCompact }} property'
+        }{% if not loop.last %},{% endif %}
+        {% endfor %}
+      ]{% if not loop.last %},{% endif %}
+      {% endfor %}
+    };
+    
+    return rules[resourceType] || [];
+  }
+  
+  /**
+   * Validate individual FHIR rule
+   */
+  private validateRule(data: any, rule: any): boolean {
+    if (rule.required) {
+      return data[rule.property] !== undefined && data[rule.property] !== null;
+    }
+    return true;
+  }
+  
+  {% if complianceLevel == 'high' or complianceLevel == 'maximum' %}
+  /**
+   * Create data snapshot for full audit trail
+   */
+  private createDataSnapshot(entity: any): any {
+    return {
+      ...entity,
+      snapshotTime: new Date(),
+      hash: this.hipaaCompliance.generateDataHash(entity)
+    };
+  }
+  {% endif %}
+}

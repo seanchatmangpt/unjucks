@@ -27,7 +27,7 @@ export default defineConfig({
     
     // Setup files
     setupFiles: [
-      'tests/setup.ts'
+      resolve(__dirname, '../tests/setup.ts')
     ],
     
     // Coverage configuration

