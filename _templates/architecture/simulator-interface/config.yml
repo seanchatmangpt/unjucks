@@ -1,0 +1,20 @@
+---
+name: simulator-interface
+description: 3-Panel Interview Simulation Interface Generator
+category: architecture
+prompts:
+  - name: component
+    type: select
+    choices: ["full-simulator", "chat-window", "code-editor", "preview-panel"]
+  - name: framework
+    type: select
+    choices: ["react", "vue", "svelte", "vanilla"]
+  - name: styling
+    type: select
+    choices: ["tailwind", "css-modules", "styled-components", "scss"]
+  - name: realtime
+    type: confirm
+    message: Include real-time collaboration features?
+  - name: aiProvider
+    type: select
+    choices: ["anthropic", "openai", "custom"]

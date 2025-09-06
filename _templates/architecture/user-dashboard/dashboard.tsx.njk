@@ -1,0 +1,358 @@
+---
+to: src/components/dashboard/PerformanceDashboard.tsx
+inject: false
+skipIf: exists
+---
+import React, { useState, useEffect, useMemo } from 'react';
+{% if chartingLibrary === 'recharts' %}
+import {
+  LineChart, Line, AreaChart, Area, BarChart, Bar,
+  XAxis, YAxis, CartesianGrid, Tooltip, Legend,
+  RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar,
+  ResponsiveContainer
+} from 'recharts';
+{% endif %}
+import { format, subDays, startOfDay } from 'date-fns';
+import { usePerformanceData } from '@/hooks/usePerformanceData';
+import { useExportData } from '@/hooks/useExportData';
+{% if realTimeUpdates %}
+import { useRealtimeUpdates } from '@/hooks/useRealtimeUpdates';
+{% endif %}
+
+interface PerformanceDashboardProps {
+  userId: string;
+  timeRange?: 'week' | 'month' | 'quarter' | 'year';
+  {% if compareFeatures %}
+  showComparisons?: boolean;
+  {% endif %}
+}
+
+/**
+ * User Performance Dashboard - Analytics & Progress Tracking
+ * 
+ * ARCHITECTURE PATTERN: Layered Dashboard with Real-time Updates
+ * 
+ * Layers:
+ * 1. Data Layer (API + Real-time subscriptions)
+ * 2. Processing Layer (Aggregations + Calculations) 
+ * 3. Visualization Layer (Charts + Metrics)
+ * 4. Interaction Layer (Filters + Export)
+ */
+export const PerformanceDashboard: React.FC<PerformanceDashboardProps> = ({
+  userId,
+  timeRange = 'month',
+  {% if compareFeatures %}
+  showComparisons = false
+  {% endif %}
+}) => {
+  const [selectedMetrics, setSelectedMetrics] = useState<string[]>([
+    'coding-score', 'communication-score', 'completion-rate'
+  ]);
+  const [exportFormat, setExportFormat] = useState<'{% for format in exportFormats %}{{ format }}{% if not loop.last %}' | '{% endif %}{% endfor %}'>('pdf');
+
+  const {
+    performanceData,
+    sessionHistory,
+    skillProgression,
+    isLoading,
+    refetch
+  } = usePerformanceData(userId, timeRange);
+
+  const { exportData } = useExportData();
+
+  {% if realTimeUpdates %}
+  const { subscribe, unsubscribe } = useRealtimeUpdates();
+  
+  useEffect(() => {
+    const unsubscribeFn = subscribe(`user:${userId}:performance`, (update) => {
+      refetch(); // Refresh dashboard data on real-time updates
+    });
+    
+    return unsubscribeFn;
+  }, [userId, subscribe, refetch]);
+  {% endif %}
+
+  // Process data for visualizations
+  const processedData = useMemo(() => {
+    if (!performanceData) return null;
+
+    const timeSeriesData = performanceData.sessions.map(session => ({
+      date: format(new Date(session.completedAt), 'MM/dd'),
+      codingScore: session.feedback.codeAnalysis.overall,
+      communicationScore: session.feedback.communicationScore.overall,
+      completionRate: session.completionRate,
+      timeSpent: session.duration / 60, // minutes
+    }));
+
+    const skillRadarData = Object.entries(performanceData.skillAverages).map(([skill, score]) => ({
+      skill: skill.replace('-', ' ').replace(/\\b\\w/g, l => l.toUpperCase()),
+      score,
+      fullMark: 10
+    }));
+
+    const difficultyBreakdown = Object.entries(performanceData.difficultyStats).map(([level, stats]) => ({
+      difficulty: level,
+      attempts: stats.attempts,
+      successRate: stats.successRate * 100,
+      avgScore: stats.averageScore
+    }));
+
+    return {
+      timeSeries: timeSeriesData,
+      skillRadar: skillRadarData,
+      difficultyBreakdown
+    };
+  }, [performanceData]);
+
+  const handleExport = async () => {
+    if (!performanceData) return;
+    
+    await exportData({
+      data: performanceData,
+      format: exportFormat,
+      fileName: `performance-report-${userId}-${timeRange}-${format(new Date(), 'yyyy-MM-dd')}`
+    });
+  };
+
+  if (isLoading) {
+    return (
+      <div className="dashboard-loading flex items-center justify-center h-96">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading performance data...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!processedData) {
+    return (
+      <div className="dashboard-empty text-center py-12">
+        <h3 className="text-lg font-semibold text-gray-900">No Data Available</h3>
+        <p className="text-gray-600 mt-2">Complete some interview sessions to see your performance data.</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="performance-dashboard space-y-6">
+      {/* Header with Controls */}
+      <div className="dashboard-header flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Performance Dashboard</h1>
+          <p className="text-gray-600">Track your interview progress and improvement over time</p>
+        </div>
+        
+        <div className="controls flex flex-wrap gap-2">
+          <select 
+            value={exportFormat} 
+            onChange={(e) => setExportFormat(e.target.value as any)}
+            className="px-3 py-2 border border-gray-300 rounded-md"
+          >
+            {% for format in exportFormats %}
+            <option value="{{ format }}">{{ format | upper }}</option>
+            {% endfor %}
+          </select>
+          <button 
+            onClick={handleExport}
+            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+          >
+            Export Report
+          </button>
+        </div>
+      </div>
+
+      {/* Key Metrics Grid */}
+      <div className="metrics-grid grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="metric-card bg-white p-6 rounded-lg shadow border">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600">Overall Score</p>
+              <p className="text-3xl font-bold text-blue-600">
+                {performanceData.overallScore.toFixed(1)}
+              </p>
+            </div>
+            <div className="text-green-500">
+              ↗ +{performanceData.improvement.toFixed(1)}%
+            </div>
+          </div>
+        </div>
+
+        <div className="metric-card bg-white p-6 rounded-lg shadow border">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600">Sessions Completed</p>
+              <p className="text-3xl font-bold text-green-600">
+                {performanceData.totalSessions}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div className="metric-card bg-white p-6 rounded-lg shadow border">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600">Success Rate</p>
+              <p className="text-3xl font-bold text-purple-600">
+                {(performanceData.successRate * 100).toFixed(0)}%
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div className="metric-card bg-white p-6 rounded-lg shadow border">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600">Avg Time</p>
+              <p className="text-3xl font-bold text-orange-600">
+                {Math.round(performanceData.averageTimeMinutes)}m
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Charts Grid */}
+      <div className="charts-grid grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Performance Trend */}
+        {% if dataVisualization contains 'time-series' %}
+        <div className="chart-container bg-white p-6 rounded-lg shadow border">
+          <h3 className="text-lg font-semibold mb-4">Performance Trend</h3>
+          <ResponsiveContainer width="100%" height={300}>
+            <LineChart data={processedData.timeSeries}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="date" />
+              <YAxis />
+              <Tooltip />
+              <Legend />
+              <Line 
+                type="monotone" 
+                dataKey="codingScore" 
+                stroke="#3B82F6" 
+                strokeWidth={2}
+                name="Coding Score"
+              />
+              <Line 
+                type="monotone" 
+                dataKey="communicationScore" 
+                stroke="#10B981" 
+                strokeWidth={2}
+                name="Communication Score"
+              />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+        {% endif %}
+
+        {/* Skills Radar */}
+        {% if dataVisualization contains 'radar-charts' %}
+        <div className="chart-container bg-white p-6 rounded-lg shadow border">
+          <h3 className="text-lg font-semibold mb-4">Skills Overview</h3>
+          <ResponsiveContainer width="100%" height={300}>
+            <RadarChart data={processedData.skillRadar}>
+              <PolarGrid />
+              <PolarAngleAxis dataKey="skill" />
+              <PolarRadiusAxis angle={0} domain={[0, 10]} />
+              <Radar
+                name="Score"
+                dataKey="score"
+                stroke="#8884d8"
+                fill="#8884d8"
+                fillOpacity={0.3}
+              />
+              <Tooltip />
+            </RadarChart>
+          </ResponsiveContainer>
+        </div>
+        {% endif %}
+      </div>
+
+      {/* Difficulty Breakdown */}
+      <div className="difficulty-section bg-white p-6 rounded-lg shadow border">
+        <h3 className="text-lg font-semibold mb-4">Performance by Difficulty</h3>
+        <ResponsiveContainer width="100%" height={250}>
+          <BarChart data={processedData.difficultyBreakdown}>
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis dataKey="difficulty" />
+            <YAxis />
+            <Tooltip />
+            <Legend />
+            <Bar dataKey="successRate" fill="#10B981" name="Success Rate %" />
+            <Bar dataKey="avgScore" fill="#3B82F6" name="Avg Score" />
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
+
+      {/* Recent Sessions */}
+      <div className="sessions-section bg-white p-6 rounded-lg shadow border">
+        <h3 className="text-lg font-semibold mb-4">Recent Sessions</h3>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm text-left">
+            <thead className="text-xs text-gray-700 uppercase bg-gray-50">
+              <tr>
+                <th className="px-4 py-3">Date</th>
+                <th className="px-4 py-3">Type</th>
+                <th className="px-4 py-3">Difficulty</th>
+                <th className="px-4 py-3">Score</th>
+                <th className="px-4 py-3">Duration</th>
+                <th className="px-4 py-3">Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {sessionHistory.slice(0, 10).map((session) => (
+                <tr key={session.id} className="bg-white border-b hover:bg-gray-50">
+                  <td className="px-4 py-4">
+                    {format(new Date(session.completedAt), 'MM/dd/yyyy')}
+                  </td>
+                  <td className="px-4 py-4 capitalize">{session.interviewType}</td>
+                  <td className="px-4 py-4 capitalize">{session.difficulty}</td>
+                  <td className="px-4 py-4">
+                    <span className={`font-semibold ${
+                      session.overallScore >= 8 ? 'text-green-600' :
+                      session.overallScore >= 6 ? 'text-yellow-600' : 'text-red-600'
+                    }`}>
+                      {session.overallScore.toFixed(1)}
+                    </span>
+                  </td>
+                  <td className="px-4 py-4">{Math.round(session.duration / 60)}m</td>
+                  <td className="px-4 py-4">
+                    <span className={`px-2 py-1 text-xs rounded-full ${
+                      session.status === 'completed' ? 'bg-green-100 text-green-800' :
+                      session.status === 'partial' ? 'bg-yellow-100 text-yellow-800' :
+                      'bg-red-100 text-red-800'
+                    }`}>
+                      {session.status}
+                    </span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {% if compareFeatures and showComparisons %}
+      {/* Peer Comparison */}
+      <div className="comparison-section bg-white p-6 rounded-lg shadow border">
+        <h3 className="text-lg font-semibold mb-4">Peer Comparison</h3>
+        <div className="comparison-grid grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="comparison-metric text-center">
+            <p className="text-2xl font-bold text-blue-600">75th</p>
+            <p className="text-sm text-gray-600">Percentile Rank</p>
+          </div>
+          <div className="comparison-metric text-center">
+            <p className="text-2xl font-bold text-green-600">+12%</p>
+            <p className="text-sm text-gray-600">Above Average</p>
+          </div>
+          <div className="comparison-metric text-center">
+            <p className="text-2xl font-bold text-purple-600">Top 25%</p>
+            <p className="text-sm text-gray-600">In Communication</p>
+          </div>
+        </div>
+      </div>
+      {% endif %}
+    </div>
+  );
+};
+
+export default PerformanceDashboard;

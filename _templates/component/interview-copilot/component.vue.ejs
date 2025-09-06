@@ -1,0 +1,279 @@
+<template>
+  <div 
+    class="<%= componentName.toLowerCase() %>-container"
+    :class="[
+      'bg-white dark:bg-gray-900',
+      'border border-gray-200 dark:border-gray-700',
+      'rounded-lg shadow-sm',
+      'p-4 md:p-6',
+      containerClasses
+    ]"
+    role="<%= componentName.includes('Button') ? 'button' : 'region' %>"
+    :aria-label="ariaLabel"
+  >
+    <!-- Header Section -->
+    <div 
+      v-if="showHeader"
+      class="flex items-center justify-between mb-4"
+    >
+      <h2 
+        class="text-lg font-semibold text-gray-900 dark:text-gray-100"
+        :id="headerId"
+      >
+        {{ title }}
+      </h2>
+      
+      <!-- Action Buttons -->
+      <div class="flex items-center gap-2">
+        <UButton
+          v-if="showRefresh"
+          icon="i-heroicons-arrow-path"
+          variant="ghost"
+          size="sm"
+          :loading="isLoading"
+          @click="handleRefresh"
+          :aria-label="`Refresh ${title}`"
+        />
+        
+        <UButton
+          v-if="showSettings"
+          icon="i-heroicons-cog-6-tooth"
+          variant="ghost"
+          size="sm"
+          @click="handleSettings"
+          :aria-label="`${title} settings`"
+        />
+      </div>
+    </div>
+
+    <!-- Loading State -->
+    <div 
+      v-if="isLoading && showLoadingSpinner"
+      class="flex items-center justify-center py-12"
+      role="status"
+      aria-live="polite"
+      aria-label="Loading content"
+    >
+      <UIcon 
+        name="i-heroicons-arrow-path" 
+        class="animate-spin h-8 w-8 text-primary-500"
+      />
+      <span class="ml-2 text-gray-600 dark:text-gray-400">
+        {{ loadingText }}
+      </span>
+    </div>
+
+    <!-- Error State -->
+    <UAlert
+      v-if="error && !isLoading"
+      color="red"
+      variant="subtle"
+      :title="errorTitle"
+      :description="error"
+      class="mb-4"
+      :actions="errorActions"
+    />
+
+    <!-- Empty State -->
+    <div
+      v-if="isEmpty && !isLoading && !error"
+      class="flex flex-col items-center justify-center py-12 text-center"
+    >
+      <UIcon 
+        :name="emptyStateIcon" 
+        class="h-16 w-16 text-gray-400 mb-4"
+      />
+      <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">
+        {{ emptyStateTitle }}
+      </h3>
+      <p class="text-gray-500 dark:text-gray-400 mb-4 max-w-sm">
+        {{ emptyStateDescription }}
+      </p>
+      <UButton
+        v-if="emptyStateAction"
+        :label="emptyStateAction.label"
+        :icon="emptyStateAction.icon"
+        @click="emptyStateAction.handler"
+        variant="outline"
+      />
+    </div>
+
+    <!-- Main Content -->
+    <div 
+      v-if="!isLoading && !error && !isEmpty"
+      class="<%= componentName.toLowerCase() %>-content"
+      :aria-describedby="headerId"
+    >
+      <slot :data="data" :loading="isLoading">
+        <!-- Default content slot -->
+      </slot>
+    </div>
+
+    <!-- Footer Section -->
+    <div 
+      v-if="showFooter && !isLoading"
+      class="flex items-center justify-between mt-6 pt-4 border-t border-gray-200 dark:border-gray-700"
+    >
+      <slot name="footer-left" />
+      
+      <div class="flex items-center gap-2">
+        <slot name="footer-actions" />
+      </div>
+    </div>
+  </div>
+</template>
+
+<script setup lang="ts">
+import type { <%= componentName %>Props, <%= componentName %>Data } from '~/types/<%= componentName %>'
+
+// Props with comprehensive defaults
+const props = withDefaults(defineProps<<%= componentName %>Props>(), {
+  title: '<%= componentName %>',
+  showHeader: true,
+  showFooter: false,
+  showRefresh: false,
+  showSettings: false,
+  showLoadingSpinner: true,
+  containerClasses: '',
+  loadingText: 'Loading...',
+  errorTitle: 'Error',
+  emptyStateIcon: 'i-heroicons-inbox',
+  emptyStateTitle: 'No data available',
+  emptyStateDescription: 'There is nothing to display at the moment.'
+})
+
+// Emits for parent communication
+const emit = defineEmits<{
+  refresh: []
+  settings: []
+  error: [error: Error]
+  dataChange: [data: <%= componentName %>Data | null]
+}>()
+
+// Reactive state
+const isLoading = ref(props.loading ?? false)
+const error = ref<string | null>(props.error ?? null)
+const data = ref<<%= componentName %>Data | null>(props.initialData ?? null)
+
+// Computed properties
+const isEmpty = computed(() => {
+  if (!data.value) return true
+  if (Array.isArray(data.value)) return data.value.length === 0
+  if (typeof data.value === 'object') return Object.keys(data.value).length === 0
+  return false
+})
+
+const ariaLabel = computed(() => 
+  props.ariaLabel || `${props.title} component`
+)
+
+const headerId = computed(() => 
+  `${props.title.toLowerCase().replace(/\s+/g, '-')}-header`
+)
+
+const errorActions = computed(() => [
+  {
+    label: 'Retry',
+    color: 'red',
+    variant: 'outline',
+    click: () => handleRefresh()
+  }
+])
+
+// Methods
+const handleRefresh = async () => {
+  try {
+    isLoading.value = true
+    error.value = null
+    emit('refresh')
+    
+    // Simulate data refresh - replace with actual API call
+    await new Promise(resolve => setTimeout(resolve, 1000))
+    
+  } catch (err) {
+    error.value = err instanceof Error ? err.message : 'An error occurred'
+    emit('error', err instanceof Error ? err : new Error('Unknown error'))
+  } finally {
+    isLoading.value = false
+  }
+}
+
+const handleSettings = () => {
+  emit('settings')
+}
+
+// Watchers
+watch(() => props.loading, (newLoading) => {
+  if (newLoading !== undefined) {
+    isLoading.value = newLoading
+  }
+})
+
+watch(() => props.error, (newError) => {
+  error.value = newError
+})
+
+watch(() => props.initialData, (newData) => {
+  data.value = newData
+  emit('dataChange', newData)
+}, { deep: true })
+
+// Lifecycle
+onMounted(() => {
+  if (props.autoLoad && !props.initialData) {
+    handleRefresh()
+  }
+})
+
+// Expose for template ref access
+defineExpose({
+  refresh: handleRefresh,
+  setError: (newError: string) => {
+    error.value = newError
+  },
+  setLoading: (loading: boolean) => {
+    isLoading.value = loading
+  },
+  setData: (newData: <%= componentName %>Data) => {
+    data.value = newData
+    emit('dataChange', newData)
+  }
+})
+</script>
+
+<style scoped>
+.<%= componentName.toLowerCase() %>-container {
+  /* Component-specific styles */
+  min-height: 200px;
+  position: relative;
+}
+
+.<%= componentName.toLowerCase() %>-content {
+  /* Content area styles */
+  position: relative;
+}
+
+/* Responsive breakpoints */
+@media (max-width: 768px) {
+  .<%= componentName.toLowerCase() %>-container {
+    padding: 1rem;
+  }
+}
+
+/* Focus states for accessibility */
+.<%= componentName.toLowerCase() %>-container:focus-within {
+  outline: 2px solid rgb(59 130 246 / 0.5);
+  outline-offset: 2px;
+}
+
+/* Animation for smooth transitions */
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.3s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+</style>

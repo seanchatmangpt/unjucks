@@ -1,0 +1,636 @@
+<template>
+  <div class="interview-simulator h-screen bg-gray-50 dark:bg-gray-950 flex flex-col">
+    <!-- Header Bar -->
+    <header class="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 px-6 py-4">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-4">
+          <h1 class="text-xl font-semibold text-gray-900 dark:text-gray-100">
+            Interview Copilot
+          </h1>
+          <UBadge 
+            :color="sessionStatusColor" 
+            variant="subtle"
+            :label="sessionStatus"
+          />
+        </div>
+        
+        <div class="flex items-center gap-3">
+          <!-- Timer -->
+          <div class="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+            <UIcon name="i-heroicons-clock" class="h-4 w-4" />
+            <span>{{ formattedTime }}</span>
+          </div>
+          
+          <!-- Session Controls -->
+          <UButton
+            v-if="sessionStatus === 'paused'"
+            icon="i-heroicons-play"
+            label="Resume"
+            color="green"
+            @click="resumeSession"
+          />
+          
+          <UButton
+            v-if="sessionStatus === 'active'"
+            icon="i-heroicons-pause"
+            label="Pause"
+            variant="outline"
+            @click="pauseSession"
+          />
+          
+          <UButton
+            icon="i-heroicons-stop"
+            label="End Session"
+            color="red"
+            variant="outline"
+            @click="endSession"
+          />
+          
+          <UDropdown :items="settingsItems">
+            <UButton
+              icon="i-heroicons-cog-6-tooth"
+              variant="ghost"
+              square
+            />
+          </UDropdown>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <div class="flex-1 flex overflow-hidden">
+      <!-- Left Panel - AI Chat -->
+      <div class="w-1/3 bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-700 flex flex-col">
+        <div class="border-b border-gray-200 dark:border-gray-700 px-4 py-3">
+          <h2 class="font-medium text-gray-900 dark:text-gray-100">AI Interviewer</h2>
+          <p class="text-sm text-gray-500 dark:text-gray-400">{{ currentInterviewer }}</p>
+        </div>
+        
+        <AiChatWindow
+          :session-id="sessionId"
+          :messages="chatMessages"
+          :is-typing="aiIsTyping"
+          :interviewer-config="interviewerConfig"
+          class="flex-1"
+          @message-sent="handleUserMessage"
+          @request-hint="handleHintRequest"
+        />
+      </div>
+
+      <!-- Center Panel - Code Editor -->
+      <div class="flex-1 flex flex-col bg-gray-900">
+        <div class="bg-gray-800 border-b border-gray-700 px-4 py-2 flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <h2 class="font-medium text-gray-100">Code Editor</h2>
+            <USelectMenu
+              v-model="selectedLanguage"
+              :options="supportedLanguages"
+              value-attribute="value"
+              option-attribute="label"
+            />
+          </div>
+          
+          <div class="flex items-center gap-2">
+            <UButton
+              icon="i-heroicons-play"
+              label="Run Code"
+              color="green"
+              size="sm"
+              :loading="codeExecuting"
+              @click="executeCode"
+            />
+            
+            <UButton
+              icon="i-heroicons-arrow-path"
+              variant="ghost"
+              size="sm"
+              @click="resetCode"
+            />
+            
+            <UButton
+              icon="i-heroicons-document-arrow-down"
+              variant="ghost"
+              size="sm"
+              @click="saveCode"
+            />
+          </div>
+        </div>
+        
+        <CodeEditor
+          v-model:code="userCode"
+          :language="selectedLanguage"
+          :theme="editorTheme"
+          :options="editorOptions"
+          :errors="codeErrors"
+          class="flex-1"
+          @code-change="handleCodeChange"
+          @execute-request="executeCode"
+        />
+      </div>
+
+      <!-- Right Panel - Output/Results -->
+      <div class="w-1/3 bg-white dark:bg-gray-900 border-l border-gray-200 dark:border-gray-700 flex flex-col">
+        <UTabs v-model="activeOutputTab" :items="outputTabs" class="flex-1">
+          <!-- Console Output -->
+          <template #output="{ item }">
+            <OutputPanel
+              :execution-result="executionResult"
+              :is-executing="codeExecuting"
+              :show-clear="true"
+              class="flex-1"
+              @clear-output="clearOutput"
+              @re-run="executeCode"
+            />
+          </template>
+          
+          <!-- Test Results -->
+          <template #tests="{ item }">
+            <div class="p-4">
+              <div v-if="testResults.length === 0" class="text-center py-8">
+                <UIcon name="i-heroicons-beaker" class="h-12 w-12 text-gray-400 mx-auto mb-3" />
+                <p class="text-gray-500 dark:text-gray-400">No tests run yet</p>
+              </div>
+              
+              <div v-else class="space-y-3">
+                <div
+                  v-for="test in testResults"
+                  :key="test.id"
+                  class="p-3 rounded border"
+                  :class="{
+                    'border-green-200 bg-green-50 dark:bg-green-950/20': test.passed,
+                    'border-red-200 bg-red-50 dark:bg-red-950/20': !test.passed
+                  }"
+                >
+                  <div class="flex items-center justify-between">
+                    <span class="font-mono text-sm">{{ test.name }}</span>
+                    <UBadge
+                      :color="test.passed ? 'green' : 'red'"
+                      :label="test.passed ? 'PASS' : 'FAIL'"
+                    />
+                  </div>
+                  
+                  <p v-if="test.description" class="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                    {{ test.description }}
+                  </p>
+                  
+                  <pre v-if="!test.passed && test.error" class="text-xs text-red-600 dark:text-red-400 mt-2">
+                    {{ test.error }}
+                  </pre>
+                </div>
+              </div>
+            </div>
+          </template>
+          
+          <!-- AI Feedback -->
+          <template #feedback="{ item }">
+            <FeedbackReport
+              :session-id="sessionId"
+              :code="userCode"
+              :execution-result="executionResult"
+              :real-time-feedback="enableRealTimeFeedback"
+              class="flex-1"
+              @feedback-received="handleAiFeedback"
+            />
+          </template>
+        </UTabs>
+      </div>
+    </div>
+
+    <!-- Bottom Status Bar -->
+    <footer class="bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700 px-6 py-2">
+      <div class="flex items-center justify-between text-sm">
+        <div class="flex items-center gap-6">
+          <span class="text-gray-600 dark:text-gray-400">
+            Lines: {{ codeLineCount }} | Characters: {{ codeCharCount }}
+          </span>
+          
+          <div class="flex items-center gap-2">
+            <div 
+              class="w-2 h-2 rounded-full"
+              :class="{
+                'bg-green-500': connectionStatus === 'connected',
+                'bg-yellow-500': connectionStatus === 'reconnecting',
+                'bg-red-500': connectionStatus === 'disconnected'
+              }"
+            />
+            <span class="text-gray-600 dark:text-gray-400 capitalize">
+              {{ connectionStatus }}
+            </span>
+          </div>
+        </div>
+        
+        <div class="flex items-center gap-4">
+          <span class="text-gray-600 dark:text-gray-400">
+            Question {{ currentQuestionNumber }} of {{ totalQuestions }}
+          </span>
+          
+          <UProgress 
+            :value="sessionProgress" 
+            :max="100" 
+            size="sm"
+            class="w-32"
+          />
+        </div>
+      </div>
+    </footer>
+
+    <!-- Modals -->
+    <UModal v-model="showEndSessionModal">
+      <UCard>
+        <template #header>
+          <h3 class="text-lg font-semibold">End Interview Session?</h3>
+        </template>
+        
+        <div class="space-y-4">
+          <p class="text-gray-600 dark:text-gray-400">
+            Are you sure you want to end this interview session? Your progress will be saved.
+          </p>
+          
+          <div class="bg-gray-50 dark:bg-gray-800 p-3 rounded">
+            <div class="grid grid-cols-2 gap-4 text-sm">
+              <div>
+                <span class="text-gray-500 dark:text-gray-400">Time Elapsed:</span>
+                <div class="font-medium">{{ formattedTime }}</div>
+              </div>
+              <div>
+                <span class="text-gray-500 dark:text-gray-400">Questions Completed:</span>
+                <div class="font-medium">{{ currentQuestionNumber }} / {{ totalQuestions }}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <template #footer>
+          <div class="flex justify-end gap-3">
+            <UButton
+              label="Continue"
+              variant="outline"
+              @click="showEndSessionModal = false"
+            />
+            <UButton
+              label="End Session"
+              color="red"
+              @click="confirmEndSession"
+            />
+          </div>
+        </template>
+      </UCard>
+    </UModal>
+  </div>
+</template>
+
+<script setup lang="ts">
+import type { InterviewSession, ChatMessage, ExecutionResult, TestResult, AiFeedback } from '~/types/interview'
+
+// Props
+const props = withDefaults(defineProps<{
+  sessionId: string
+  interviewType?: 'technical' | 'behavioral' | 'system-design'
+  difficulty?: 'easy' | 'medium' | 'hard'
+  enableRealTimeFeedback?: boolean
+}>(), {
+  interviewType: 'technical',
+  difficulty: 'medium',
+  enableRealTimeFeedback: true
+})
+
+// Emits
+const emit = defineEmits<{
+  sessionEnded: [sessionId: string, results: any]
+  codeSubmitted: [code: string, language: string]
+  progressUpdate: [progress: number]
+}>()
+
+// Reactive state
+const sessionStatus = ref<'pending' | 'active' | 'paused' | 'completed'>('active')
+const currentInterviewer = ref('AI Technical Interviewer')
+const sessionStartTime = ref(new Date())
+const elapsedTime = ref(0)
+const chatMessages = ref<ChatMessage[]>([])
+const aiIsTyping = ref(false)
+
+// Code editor state
+const selectedLanguage = ref('javascript')
+const userCode = ref('')
+const codeExecuting = ref(false)
+const codeErrors = ref([])
+const executionResult = ref<ExecutionResult | null>(null)
+
+// Output panel state
+const activeOutputTab = ref(0)
+const testResults = ref<TestResult[]>([])
+
+// UI state
+const showEndSessionModal = ref(false)
+const connectionStatus = ref<'connected' | 'reconnecting' | 'disconnected'>('connected')
+
+// Configuration
+const supportedLanguages = [
+  { label: 'JavaScript', value: 'javascript' },
+  { label: 'TypeScript', value: 'typescript' },
+  { label: 'Python', value: 'python' },
+  { label: 'Java', value: 'java' },
+  { label: 'C++', value: 'cpp' },
+  { label: 'Go', value: 'go' }
+]
+
+const editorTheme = ref('dark')
+const editorOptions = {
+  fontSize: 14,
+  wordWrap: true,
+  minimap: { enabled: false },
+  scrollBeyondLastLine: false
+}
+
+const interviewerConfig = {
+  personality: 'professional',
+  difficulty: props.difficulty,
+  focusAreas: ['problem-solving', 'code-quality', 'communication']
+}
+
+const outputTabs = [
+  { key: 'output', label: 'Console Output', icon: 'i-heroicons-terminal' },
+  { key: 'tests', label: 'Test Results', icon: 'i-heroicons-beaker' },
+  { key: 'feedback', label: 'AI Feedback', icon: 'i-heroicons-light-bulb' }
+]
+
+const settingsItems = [
+  [
+    { label: 'Theme Settings', icon: 'i-heroicons-swatch' },
+    { label: 'Audio Settings', icon: 'i-heroicons-speaker-wave' },
+    { label: 'Keyboard Shortcuts', icon: 'i-heroicons-command-line' }
+  ],
+  [
+    { label: 'Export Session', icon: 'i-heroicons-document-arrow-down' },
+    { label: 'Share Session', icon: 'i-heroicons-share' }
+  ]
+]
+
+// Computed properties
+const sessionStatusColor = computed(() => {
+  switch (sessionStatus.value) {
+    case 'active': return 'green'
+    case 'paused': return 'yellow'
+    case 'completed': return 'blue'
+    default: return 'gray'
+  }
+})
+
+const formattedTime = computed(() => {
+  const minutes = Math.floor(elapsedTime.value / 60)
+  const seconds = elapsedTime.value % 60
+  return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`
+})
+
+const codeLineCount = computed(() => userCode.value.split('\n').length)
+const codeCharCount = computed(() => userCode.value.length)
+
+const currentQuestionNumber = ref(1)
+const totalQuestions = ref(5)
+const sessionProgress = computed(() => 
+  Math.round((currentQuestionNumber.value / totalQuestions.value) * 100)
+)
+
+// Timer functionality
+let timer: NodeJS.Timeout | null = null
+
+const startTimer = () => {
+  if (timer) clearInterval(timer)
+  
+  timer = setInterval(() => {
+    if (sessionStatus.value === 'active') {
+      elapsedTime.value++
+    }
+  }, 1000)
+}
+
+const stopTimer = () => {
+  if (timer) {
+    clearInterval(timer)
+    timer = null
+  }
+}
+
+// Session control methods
+const pauseSession = () => {
+  sessionStatus.value = 'paused'
+  // Add AI message about pausing
+  chatMessages.value.push({
+    id: `pause-${Date.now()}`,
+    content: 'Session paused. Take your time to review your work.',
+    author: 'ai',
+    timestamp: new Date(),
+    type: 'text'
+  })
+}
+
+const resumeSession = () => {
+  sessionStatus.value = 'active'
+  chatMessages.value.push({
+    id: `resume-${Date.now()}`,
+    content: 'Session resumed. Let\'s continue where we left off.',
+    author: 'ai',
+    timestamp: new Date(),
+    type: 'text'
+  })
+}
+
+const endSession = () => {
+  showEndSessionModal.value = true
+}
+
+const confirmEndSession = () => {
+  sessionStatus.value = 'completed'
+  stopTimer()
+  showEndSessionModal.value = false
+  
+  // Emit session ended with results
+  const results = {
+    duration: elapsedTime.value,
+    questionsCompleted: currentQuestionNumber.value,
+    finalCode: userCode.value,
+    language: selectedLanguage.value,
+    testResults: testResults.value
+  }
+  
+  emit('sessionEnded', props.sessionId, results)
+}
+
+// Code editor methods
+const handleCodeChange = (newCode: string) => {
+  userCode.value = newCode
+  
+  if (props.enableRealTimeFeedback) {
+    // Debounced real-time analysis could go here
+  }
+}
+
+const executeCode = async () => {
+  codeExecuting.value = true
+  codeErrors.value = []
+  
+  try {
+    // Simulate code execution
+    await new Promise(resolve => setTimeout(resolve, 2000))
+    
+    executionResult.value = {
+      status: 'completed',
+      output: 'Code executed successfully!',
+      executionTime: 1.5,
+      memoryUsage: 15.6
+    }
+    
+    // Switch to output tab
+    activeOutputTab.value = 0
+    
+  } catch (error) {
+    executionResult.value = {
+      status: 'failed',
+      output: '',
+      errors: [{ 
+        line: 1, 
+        column: 1, 
+        message: error instanceof Error ? error.message : 'Execution failed',
+        severity: 'error'
+      }],
+      executionTime: 0
+    }
+  } finally {
+    codeExecuting.value = false
+  }
+}
+
+const resetCode = () => {
+  userCode.value = ''
+  executionResult.value = null
+  codeErrors.value = []
+  testResults.value = []
+}
+
+const saveCode = () => {
+  // Implement code saving logic
+  const blob = new Blob([userCode.value], { type: 'text/plain' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = `interview-code-${Date.now()}.${selectedLanguage.value}`
+  a.click()
+  URL.revokeObjectURL(url)
+}
+
+// Chat methods
+const handleUserMessage = (message: string) => {
+  chatMessages.value.push({
+    id: `user-${Date.now()}`,
+    content: message,
+    author: 'user',
+    timestamp: new Date(),
+    type: 'text'
+  })
+  
+  // Simulate AI response
+  aiIsTyping.value = true
+  setTimeout(() => {
+    aiIsTyping.value = false
+    chatMessages.value.push({
+      id: `ai-${Date.now()}`,
+      content: 'I see you\'re working on that problem. Would you like me to provide a hint?',
+      author: 'ai',
+      timestamp: new Date(),
+      type: 'text'
+    })
+  }, 2000)
+}
+
+const handleHintRequest = () => {
+  chatMessages.value.push({
+    id: `hint-${Date.now()}`,
+    content: '💡 Consider using a hash map to optimize the lookup time complexity.',
+    author: 'ai',
+    timestamp: new Date(),
+    type: 'text',
+    metadata: { isHint: true }
+  })
+}
+
+const handleAiFeedback = (feedback: AiFeedback) => {
+  // Switch to feedback tab when new feedback arrives
+  activeOutputTab.value = 2
+}
+
+const clearOutput = () => {
+  executionResult.value = null
+}
+
+// Lifecycle
+onMounted(() => {
+  startTimer()
+  
+  // Initialize with welcome message
+  chatMessages.value.push({
+    id: 'welcome',
+    content: `Hello! I'm your AI interviewer. We'll be conducting a ${props.interviewType} interview at ${props.difficulty} level. Are you ready to begin?`,
+    author: 'ai',
+    timestamp: new Date(),
+    type: 'text'
+  })
+})
+
+onUnmounted(() => {
+  stopTimer()
+})
+
+// Watch for progress updates
+watch(currentQuestionNumber, (newNumber) => {
+  emit('progressUpdate', sessionProgress.value)
+})
+</script>
+
+<style scoped>
+.interview-simulator {
+  font-family: 'Inter', system-ui, sans-serif;
+}
+
+/* Custom scrollbar for code areas */
+:deep(.code-editor) ::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+:deep(.code-editor) ::-webkit-scrollbar-track {
+  background: #1f2937;
+}
+
+:deep(.code-editor) ::-webkit-scrollbar-thumb {
+  background: #4b5563;
+  border-radius: 4px;
+}
+
+:deep(.code-editor) ::-webkit-scrollbar-thumb:hover {
+  background: #6b7280;
+}
+
+/* Panel resize handles */
+.panel-resizer {
+  width: 4px;
+  background: transparent;
+  cursor: col-resize;
+  position: relative;
+}
+
+.panel-resizer:hover {
+  background: rgb(59 130 246 / 0.3);
+}
+
+/* Responsive adjustments */
+@media (max-width: 1024px) {
+  .interview-simulator .flex {
+    flex-direction: column;
+  }
+  
+  .interview-simulator .w-1\/3 {
+    width: 100%;
+    max-height: 300px;
+  }
+}
+</style>

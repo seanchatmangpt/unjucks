@@ -1,0 +1,775 @@
+<template>
+  <div class="drill-selector p-6 bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700">
+    <!-- Header -->
+    <div class="flex items-center justify-between mb-6">
+      <div>
+        <h2 class="text-xl font-semibold text-gray-900 dark:text-gray-100">
+          Practice Exercises
+        </h2>
+        <p class="text-gray-600 dark:text-gray-400 mt-1">
+          Choose exercises to practice specific skills and concepts
+        </p>
+      </div>
+      
+      <div class="flex items-center gap-3">
+        <!-- View Toggle -->
+        <UButtonGroup>
+          <UButton
+            icon="i-heroicons-squares-2x2"
+            :variant="viewMode === 'grid' ? 'solid' : 'outline'"
+            size="sm"
+            @click="viewMode = 'grid'"
+          />
+          <UButton
+            icon="i-heroicons-bars-3"
+            :variant="viewMode === 'list' ? 'solid' : 'outline'"
+            size="sm"
+            @click="viewMode = 'list'"
+          />
+        </UButtonGroup>
+        
+        <!-- Filter Toggle -->
+        <UButton
+          icon="i-heroicons-funnel"
+          :variant="showFilters ? 'solid' : 'outline'"
+          size="sm"
+          @click="showFilters = !showFilters"
+          :label="showFilters ? 'Hide Filters' : 'Show Filters'"
+        />
+      </div>
+    </div>
+
+    <!-- Filters Panel -->
+    <div
+      v-if="showFilters"
+      class="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 mb-6 space-y-4"
+    >
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <!-- Category Filter -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            Category
+          </label>
+          <USelectMenu
+            v-model="filters.category"
+            :options="categoryOptions"
+            placeholder="All Categories"
+            clear-on-close
+          />
+        </div>
+        
+        <!-- Difficulty Filter -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            Difficulty
+          </label>
+          <USelectMenu
+            v-model="filters.difficulty"
+            :options="difficultyOptions"
+            placeholder="All Levels"
+            clear-on-close
+          />
+        </div>
+        
+        <!-- Duration Filter -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            Duration
+          </label>
+          <USelectMenu
+            v-model="filters.duration"
+            :options="durationOptions"
+            placeholder="Any Duration"
+            clear-on-close
+          />
+        </div>
+        
+        <!-- Status Filter -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            Status
+          </label>
+          <USelectMenu
+            v-model="filters.status"
+            :options="statusOptions"
+            placeholder="All Status"
+            clear-on-close
+          />
+        </div>
+      </div>
+      
+      <!-- Search and Sort -->
+      <div class="flex items-center gap-4">
+        <div class="flex-1">
+          <UInput
+            v-model="searchQuery"
+            placeholder="Search exercises..."
+            icon="i-heroicons-magnifying-glass"
+            :loading="searching"
+          />
+        </div>
+        
+        <USelectMenu
+          v-model="sortBy"
+          :options="sortOptions"
+          class="min-w-[150px]"
+        >
+          <template #label>
+            <UIcon name="i-heroicons-bars-arrow-down" class="h-4 w-4" />
+            <span class="ml-2">{{ getSortLabel(sortBy) }}</span>
+          </template>
+        </USelectMenu>
+      </div>
+      
+      <!-- Active Filters -->
+      <div v-if="activeFilters.length > 0" class="flex items-center gap-2">
+        <span class="text-sm text-gray-600 dark:text-gray-400">Active filters:</span>
+        <div class="flex flex-wrap gap-1">
+          <UBadge
+            v-for="filter in activeFilters"
+            :key="`${filter.type}-${filter.value}`"
+            :label="`${filter.label}: ${filter.value}`"
+            size="sm"
+            variant="subtle"
+            class="cursor-pointer"
+            @click="removeFilter(filter.type)"
+          />
+        </div>
+        <UButton
+          label="Clear All"
+          variant="ghost"
+          size="xs"
+          @click="clearAllFilters"
+        />
+      </div>
+    </div>
+
+    <!-- Exercise Grid/List -->
+    <div class="mb-6">
+      <!-- Loading State -->
+      <div
+        v-if="loading"
+        :class="viewMode === 'grid' ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4' : 'space-y-4'"
+      >
+        <div
+          v-for="i in 6"
+          :key="i"
+          class="animate-pulse"
+        >
+          <div class="bg-gray-200 dark:bg-gray-700 h-48 rounded-lg" />
+        </div>
+      </div>
+
+      <!-- Exercise Items -->
+      <div
+        v-else-if="filteredExercises.length > 0"
+        :class="{
+          'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4': viewMode === 'grid',
+          'space-y-4': viewMode === 'list'
+        }"
+      >
+        <div
+          v-for="exercise in paginatedExercises"
+          :key="exercise.id"
+          class="exercise-card group cursor-pointer"
+          :class="{
+            'bg-gray-50 dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-600 transition-colors': viewMode === 'grid',
+            'bg-gray-50 dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-600 transition-colors flex items-center gap-4': viewMode === 'list'
+          }"
+          @click="selectExercise(exercise)"
+        >
+          <!-- Exercise Icon/Thumbnail -->
+          <div
+            class="flex items-center justify-center rounded-lg mb-4"
+            :class="{
+              'w-full h-32 bg-gradient-to-br': viewMode === 'grid',
+              'w-16 h-16 flex-shrink-0': viewMode === 'list',
+              ...getExerciseGradient(exercise.category)
+            }"
+          >
+            <UIcon
+              :name="getCategoryIcon(exercise.category)"
+              :class="viewMode === 'grid' ? 'h-8 w-8' : 'h-6 w-6'"
+              class="text-white"
+            />
+          </div>
+          
+          <!-- Exercise Content -->
+          <div :class="viewMode === 'list' ? 'flex-1 min-w-0' : ''">
+            <!-- Title and Difficulty -->
+            <div class="flex items-start justify-between mb-2">
+              <h3 
+                class="font-semibold text-gray-900 dark:text-gray-100 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors"
+                :class="viewMode === 'list' ? 'text-base' : 'text-lg'"
+              >
+                {{ exercise.title }}
+              </h3>
+              <UBadge
+                :color="getDifficultyColor(exercise.difficulty)"
+                :label="exercise.difficulty"
+                size="xs"
+                class="flex-shrink-0"
+              />
+            </div>
+            
+            <!-- Description -->
+            <p 
+              class="text-gray-600 dark:text-gray-400 mb-3 line-clamp-2"
+              :class="viewMode === 'list' ? 'text-sm' : 'text-sm'"
+            >
+              {{ exercise.description }}
+            </p>
+            
+            <!-- Exercise Metadata -->
+            <div 
+              class="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400 mb-3"
+              :class="viewMode === 'list' ? 'mb-0' : 'mb-3'"
+            >
+              <div class="flex items-center gap-3">
+                <!-- Duration -->
+                <div class="flex items-center gap-1">
+                  <UIcon name="i-heroicons-clock" class="h-3 w-3" />
+                  <span>{{ exercise.estimatedTime }}min</span>
+                </div>
+                
+                <!-- Category -->
+                <div class="flex items-center gap-1">
+                  <UIcon name="i-heroicons-tag" class="h-3 w-3" />
+                  <span>{{ exercise.category }}</span>
+                </div>
+                
+                <!-- Attempts (if any) -->
+                <div v-if="exercise.attempts > 0" class="flex items-center gap-1">
+                  <UIcon name="i-heroicons-arrow-path" class="h-3 w-3" />
+                  <span>{{ exercise.attempts }} attempts</span>
+                </div>
+              </div>
+              
+              <!-- Status -->
+              <div v-if="exercise.status" class="flex items-center gap-1">
+                <UIcon
+                  :name="getStatusIcon(exercise.status)"
+                  :class="getStatusColor(exercise.status)"
+                  class="h-3 w-3"
+                />
+                <span class="capitalize">{{ exercise.status }}</span>
+              </div>
+            </div>
+            
+            <!-- Progress Bar (if started) -->
+            <div v-if="exercise.progress > 0" class="mb-3">
+              <div class="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400 mb-1">
+                <span>Progress</span>
+                <span>{{ exercise.progress }}%</span>
+              </div>
+              <UProgress
+                :value="exercise.progress"
+                :max="100"
+                :color="exercise.status === 'completed' ? 'green' : 'blue'"
+                size="xs"
+              />
+            </div>
+            
+            <!-- Tags -->
+            <div v-if="exercise.tags && exercise.tags.length > 0" class="flex flex-wrap gap-1 mb-3">
+              <UBadge
+                v-for="tag in exercise.tags.slice(0, 3)"
+                :key="tag"
+                :label="tag"
+                variant="subtle"
+                size="xs"
+              />
+              <UBadge
+                v-if="exercise.tags.length > 3"
+                :label="`+${exercise.tags.length - 3}`"
+                variant="subtle"
+                size="xs"
+              />
+            </div>
+            
+            <!-- Action Buttons -->
+            <div 
+              class="flex items-center gap-2"
+              :class="viewMode === 'list' ? 'ml-auto' : 'justify-between'"
+            >
+              <div v-if="viewMode === 'grid'" class="flex items-center gap-1">
+                <!-- Rating -->
+                <div v-if="exercise.rating" class="flex items-center gap-1">
+                  <div class="flex">
+                    <UIcon
+                      v-for="i in 5"
+                      :key="i"
+                      name="i-heroicons-star"
+                      :class="i <= exercise.rating ? 'text-yellow-400' : 'text-gray-300 dark:text-gray-600'"
+                      class="h-3 w-3"
+                    />
+                  </div>
+                  <span class="text-xs text-gray-500">{{ exercise.rating }}/5</span>
+                </div>
+              </div>
+              
+              <div class="flex items-center gap-2">
+                <UButton
+                  v-if="exercise.status === 'completed'"
+                  label="Review"
+                  variant="outline"
+                  size="xs"
+                  @click.stop="reviewExercise(exercise)"
+                />
+                
+                <UButton
+                  v-else-if="exercise.status === 'in-progress'"
+                  label="Continue"
+                  size="xs"
+                  @click.stop="continueExercise(exercise)"
+                />
+                
+                <UButton
+                  v-else
+                  label="Start"
+                  size="xs"
+                  @click.stop="startExercise(exercise)"
+                />
+                
+                <!-- Favorite Button -->
+                <UButton
+                  :icon="exercise.isFavorite ? 'i-heroicons-heart-solid' : 'i-heroicons-heart'"
+                  :color="exercise.isFavorite ? 'red' : 'gray'"
+                  variant="ghost"
+                  size="xs"
+                  @click.stop="toggleFavorite(exercise)"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Empty State -->
+      <div
+        v-else
+        class="text-center py-12"
+      >
+        <UIcon name="i-heroicons-academic-cap" class="h-16 w-16 text-gray-400 mx-auto mb-4" />
+        <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">
+          {{ searchQuery || activeFilters.length > 0 ? 'No exercises found' : 'No exercises available' }}
+        </h3>
+        <p class="text-gray-600 dark:text-gray-400 mb-4">
+          {{ 
+            searchQuery || activeFilters.length > 0 
+              ? 'Try adjusting your search criteria or filters'
+              : 'Check back later for new practice exercises'
+          }}
+        </p>
+        
+        <div v-if="searchQuery || activeFilters.length > 0" class="flex justify-center gap-2">
+          <UButton
+            v-if="searchQuery"
+            label="Clear Search"
+            variant="outline"
+            @click="searchQuery = ''"
+          />
+          <UButton
+            v-if="activeFilters.length > 0"
+            label="Clear Filters"
+            variant="outline"
+            @click="clearAllFilters"
+          />
+        </div>
+      </div>
+    </div>
+
+    <!-- Pagination -->
+    <div
+      v-if="totalPages > 1"
+      class="flex items-center justify-between"
+    >
+      <div class="text-sm text-gray-600 dark:text-gray-400">
+        Showing {{ (currentPage - 1) * itemsPerPage + 1 }} to 
+        {{ Math.min(currentPage * itemsPerPage, filteredExercises.length) }} 
+        of {{ filteredExercises.length }} exercises
+      </div>
+      
+      <UPagination
+        v-model="currentPage"
+        :page-count="itemsPerPage"
+        :total="filteredExercises.length"
+        :max-page-buttons="5"
+      />
+    </div>
+  </div>
+</template>
+
+<script setup lang="ts">
+import type { Exercise, ExerciseFilters } from '~/types/exercises'
+
+// Props
+const props = withDefaults(defineProps<{
+  exercises?: Exercise[]
+  loading?: boolean
+  defaultView?: 'grid' | 'list'
+  defaultFilters?: Partial<ExerciseFilters>
+}>(), {
+  exercises: () => [],
+  loading: false,
+  defaultView: 'grid',
+  defaultFilters: () => ({})
+})
+
+// Emits
+const emit = defineEmits<{
+  'exercise-selected': [exercise: Exercise]
+  'exercise-started': [exerciseId: string]
+  'exercise-continued': [exerciseId: string]
+  'exercise-reviewed': [exerciseId: string]
+  'favorite-toggled': [exerciseId: string, isFavorite: boolean]
+  'filters-changed': [filters: ExerciseFilters]
+}>()
+
+// Reactive state
+const viewMode = ref<'grid' | 'list'>(props.defaultView)
+const showFilters = ref(false)
+const searchQuery = ref('')
+const searching = ref(false)
+const currentPage = ref(1)
+const itemsPerPage = ref(12)
+
+// Filters
+const filters = ref<ExerciseFilters>({
+  category: null,
+  difficulty: null,
+  duration: null,
+  status: null,
+  ...props.defaultFilters
+})
+
+const sortBy = ref('title')
+
+// Filter options
+const categoryOptions = [
+  { label: 'Algorithms', value: 'algorithms' },
+  { label: 'Data Structures', value: 'data-structures' },
+  { label: 'System Design', value: 'system-design' },
+  { label: 'Frontend', value: 'frontend' },
+  { label: 'Backend', value: 'backend' },
+  { label: 'Database', value: 'database' },
+  { label: 'Behavioral', value: 'behavioral' }
+]
+
+const difficultyOptions = [
+  { label: 'Easy', value: 'easy' },
+  { label: 'Medium', value: 'medium' },
+  { label: 'Hard', value: 'hard' }
+]
+
+const durationOptions = [
+  { label: '< 15 minutes', value: 'short' },
+  { label: '15-30 minutes', value: 'medium' },
+  { label: '30-60 minutes', value: 'long' },
+  { label: '> 60 minutes', value: 'extended' }
+]
+
+const statusOptions = [
+  { label: 'Not Started', value: 'not-started' },
+  { label: 'In Progress', value: 'in-progress' },
+  { label: 'Completed', value: 'completed' }
+]
+
+const sortOptions = [
+  { label: 'Title', value: 'title' },
+  { label: 'Difficulty', value: 'difficulty' },
+  { label: 'Duration', value: 'duration' },
+  { label: 'Category', value: 'category' },
+  { label: 'Rating', value: 'rating' },
+  { label: 'Recently Added', value: 'created' }
+]
+
+// Computed properties
+const activeFilters = computed(() => {
+  const active = []
+  if (filters.value.category) {
+    active.push({
+      type: 'category',
+      label: 'Category',
+      value: categoryOptions.find(o => o.value === filters.value.category)?.label || filters.value.category
+    })
+  }
+  if (filters.value.difficulty) {
+    active.push({
+      type: 'difficulty',
+      label: 'Difficulty',
+      value: difficultyOptions.find(o => o.value === filters.value.difficulty)?.label || filters.value.difficulty
+    })
+  }
+  if (filters.value.duration) {
+    active.push({
+      type: 'duration',
+      label: 'Duration',
+      value: durationOptions.find(o => o.value === filters.value.duration)?.label || filters.value.duration
+    })
+  }
+  if (filters.value.status) {
+    active.push({
+      type: 'status',
+      label: 'Status',
+      value: statusOptions.find(o => o.value === filters.value.status)?.label || filters.value.status
+    })
+  }
+  return active
+})
+
+const filteredExercises = computed(() => {
+  let filtered = [...props.exercises]
+  
+  // Apply text search
+  if (searchQuery.value) {
+    const query = searchQuery.value.toLowerCase()
+    filtered = filtered.filter(exercise =>
+      exercise.title.toLowerCase().includes(query) ||
+      exercise.description.toLowerCase().includes(query) ||
+      exercise.tags?.some(tag => tag.toLowerCase().includes(query))
+    )
+  }
+  
+  // Apply filters
+  if (filters.value.category) {
+    filtered = filtered.filter(e => e.category === filters.value.category)
+  }
+  
+  if (filters.value.difficulty) {
+    filtered = filtered.filter(e => e.difficulty === filters.value.difficulty)
+  }
+  
+  if (filters.value.duration) {
+    filtered = filtered.filter(e => {
+      switch (filters.value.duration) {
+        case 'short': return e.estimatedTime < 15
+        case 'medium': return e.estimatedTime >= 15 && e.estimatedTime <= 30
+        case 'long': return e.estimatedTime > 30 && e.estimatedTime <= 60
+        case 'extended': return e.estimatedTime > 60
+        default: return true
+      }
+    })
+  }
+  
+  if (filters.value.status) {
+    filtered = filtered.filter(e => e.status === filters.value.status)
+  }
+  
+  // Apply sorting
+  filtered.sort((a, b) => {
+    switch (sortBy.value) {
+      case 'title':
+        return a.title.localeCompare(b.title)
+      case 'difficulty':
+        const difficultyOrder = { easy: 1, medium: 2, hard: 3 }
+        return difficultyOrder[a.difficulty] - difficultyOrder[b.difficulty]
+      case 'duration':
+        return a.estimatedTime - b.estimatedTime
+      case 'category':
+        return a.category.localeCompare(b.category)
+      case 'rating':
+        return (b.rating || 0) - (a.rating || 0)
+      case 'created':
+        return new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime()
+      default:
+        return 0
+    }
+  })
+  
+  return filtered
+})
+
+const totalPages = computed(() => 
+  Math.ceil(filteredExercises.value.length / itemsPerPage.value)
+)
+
+const paginatedExercises = computed(() => {
+  const start = (currentPage.value - 1) * itemsPerPage.value
+  const end = start + itemsPerPage.value
+  return filteredExercises.value.slice(start, end)
+})
+
+// Methods
+const selectExercise = (exercise: Exercise) => {
+  emit('exercise-selected', exercise)
+}
+
+const startExercise = (exercise: Exercise) => {
+  emit('exercise-started', exercise.id)
+}
+
+const continueExercise = (exercise: Exercise) => {
+  emit('exercise-continued', exercise.id)
+}
+
+const reviewExercise = (exercise: Exercise) => {
+  emit('exercise-reviewed', exercise.id)
+}
+
+const toggleFavorite = (exercise: Exercise) => {
+  exercise.isFavorite = !exercise.isFavorite
+  emit('favorite-toggled', exercise.id, exercise.isFavorite)
+}
+
+const removeFilter = (filterType: string) => {
+  filters.value[filterType as keyof ExerciseFilters] = null
+  currentPage.value = 1
+}
+
+const clearAllFilters = () => {
+  filters.value = {
+    category: null,
+    difficulty: null,
+    duration: null,
+    status: null
+  }
+  searchQuery.value = ''
+  currentPage.value = 1
+}
+
+const getSortLabel = (value: string) => {
+  return sortOptions.find(option => option.value === value)?.label || value
+}
+
+// Helper methods for styling
+const getCategoryIcon = (category: string) => {
+  const icons = {
+    'algorithms': 'i-heroicons-cpu-chip',
+    'data-structures': 'i-heroicons-cube',
+    'system-design': 'i-heroicons-building-office',
+    'frontend': 'i-heroicons-device-phone-mobile',
+    'backend': 'i-heroicons-server',
+    'database': 'i-heroicons-circle-stack',
+    'behavioral': 'i-heroicons-users'
+  }
+  return icons[category as keyof typeof icons] || 'i-heroicons-academic-cap'
+}
+
+const getExerciseGradient = (category: string) => {
+  const gradients = {
+    'algorithms': 'from-blue-500 to-blue-600',
+    'data-structures': 'from-purple-500 to-purple-600',
+    'system-design': 'from-green-500 to-green-600',
+    'frontend': 'from-pink-500 to-pink-600',
+    'backend': 'from-orange-500 to-orange-600',
+    'database': 'from-indigo-500 to-indigo-600',
+    'behavioral': 'from-teal-500 to-teal-600'
+  }
+  return gradients[category as keyof typeof gradients] || 'from-gray-500 to-gray-600'
+}
+
+const getDifficultyColor = (difficulty: string) => {
+  switch (difficulty) {
+    case 'easy': return 'green'
+    case 'medium': return 'yellow'
+    case 'hard': return 'red'
+    default: return 'gray'
+  }
+}
+
+const getStatusIcon = (status: string) => {
+  switch (status) {
+    case 'completed': return 'i-heroicons-check-circle'
+    case 'in-progress': return 'i-heroicons-clock'
+    case 'not-started': return 'i-heroicons-play-circle'
+    default: return 'i-heroicons-question-mark-circle'
+  }
+}
+
+const getStatusColor = (status: string) => {
+  switch (status) {
+    case 'completed': return 'text-green-500'
+    case 'in-progress': return 'text-yellow-500'
+    case 'not-started': return 'text-gray-500'
+    default: return 'text-gray-500'
+  }
+}
+
+// Watchers
+watch([filters, searchQuery], () => {
+  currentPage.value = 1
+  emit('filters-changed', { ...filters.value, search: searchQuery.value })
+}, { deep: true })
+
+// Debounce search
+let searchTimeout: NodeJS.Timeout
+watch(searchQuery, (newQuery) => {
+  searching.value = true
+  clearTimeout(searchTimeout)
+  
+  searchTimeout = setTimeout(() => {
+    searching.value = false
+  }, 300)
+})
+
+// Reset pagination when filters change
+watch(filteredExercises, () => {
+  if (currentPage.value > totalPages.value) {
+    currentPage.value = 1
+  }
+})
+</script>
+
+<style scoped>
+.drill-selector {
+  /* Component-specific styles */
+}
+
+.exercise-card {
+  transition: all 0.2s ease;
+}
+
+.exercise-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.dark .exercise-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+/* Line clamp utility */
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Grid to list transition */
+.exercise-card {
+  transition: all 0.3s ease;
+}
+
+/* Progress bar animation */
+.progress-bar {
+  transition: width 0.5s ease-in-out;
+}
+
+/* Filter badge hover */
+.filter-badge:hover {
+  opacity: 0.8;
+}
+
+/* Search input focus */
+.search-input:focus {
+  ring-2 ring-blue-500;
+}
+
+/* Pagination hover effects */
+.pagination-button:hover {
+  background-color: rgb(59 130 246 / 0.1);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .grid-cols-1.md\\:grid-cols-2.lg\\:grid-cols-3 {
+    grid-template-columns: 1fr;
+  }
+  
+  .items-per-page {
+    display: none;
+  }
+}
+</style>

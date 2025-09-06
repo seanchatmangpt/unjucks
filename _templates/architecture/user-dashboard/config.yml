@@ -1,0 +1,23 @@
+---
+name: user-dashboard
+description: User Performance Dashboard and Progress Tracking System
+category: architecture
+prompts:
+  - name: dashboardType
+    type: select
+    choices: ["overview", "detailed-analytics", "progress-tracking", "performance-reports"]
+  - name: chartingLibrary
+    type: select
+    choices: ["recharts", "chart-js", "d3", "victory"]
+  - name: dataVisualization
+    type: multiselect
+    choices: ["time-series", "heatmaps", "radar-charts", "progress-bars", "trend-lines"]
+  - name: exportFormats
+    type: multiselect
+    choices: ["pdf", "csv", "json", "png"]
+  - name: realTimeUpdates
+    type: confirm
+    message: Include real-time dashboard updates?
+  - name: compareFeatures
+    type: confirm
+    message: Add peer comparison features?

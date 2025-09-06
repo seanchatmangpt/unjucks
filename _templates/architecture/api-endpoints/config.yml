@@ -1,0 +1,23 @@
+---
+name: api-endpoints
+description: REST API Endpoint Specifications and Implementation
+category: architecture
+prompts:
+  - name: framework
+    type: select
+    choices: ["express", "fastify", "koa", "hapi", "nextjs-api"]
+  - name: authStrategy
+    type: select
+    choices: ["jwt", "session", "oauth", "custom"]
+  - name: validationLibrary
+    type: select
+    choices: ["zod", "joi", "yup", "express-validator"]
+  - name: includeRateLimit
+    type: confirm
+    message: Include rate limiting?
+  - name: includeLogging
+    type: confirm
+    message: Include request logging?
+  - name: includeSwagger
+    type: confirm
+    message: Generate Swagger/OpenAPI docs?

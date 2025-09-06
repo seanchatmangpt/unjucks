@@ -1,0 +1,2 @@
+to: database/schema/{{tableName}}.sql
+---

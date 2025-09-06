@@ -1,0 +1,422 @@
+-- <%= tableName %> table schema
+-- Generated: <%= new Date().toISOString() %>
+
+<% if (dialect === 'postgresql') { -%>
+-- PostgreSQL Schema
+CREATE TABLE IF NOT EXISTS <%= tableName %> (
+<% } else { -%>
+-- SQLite Schema  
+CREATE TABLE IF NOT EXISTS <%= tableName %> (
+<% } -%>
+  id <%= dialect === 'postgresql' ? 'SERIAL PRIMARY KEY' : 'INTEGER PRIMARY KEY AUTOINCREMENT' %>,
+  
+<% if (tableName === 'users') { -%>
+  -- User identification
+  username VARCHAR(50) UNIQUE NOT NULL,
+  email VARCHAR(255) UNIQUE NOT NULL,
+  password_hash VARCHAR(255) NOT NULL,
+  
+  -- Profile information
+  full_name VARCHAR(255),
+  avatar_url TEXT,
+  github_username VARCHAR(100),
+  linkedin_url TEXT,
+  
+  -- Account status
+  is_verified BOOLEAN DEFAULT FALSE,
+  is_active BOOLEAN DEFAULT TRUE,
+  role VARCHAR(20) DEFAULT 'candidate' CHECK (role IN ('candidate', 'interviewer', 'admin')),
+  
+  -- Preferences
+  preferred_language VARCHAR(20) DEFAULT 'javascript',
+  timezone VARCHAR(50) DEFAULT 'UTC',
+  notification_preferences JSON,
+  
+<% } else if (tableName === 'interview_sessions') { -%>
+  -- Session identification
+  session_token VARCHAR(255) UNIQUE NOT NULL,
+  user_id INTEGER NOT NULL,
+  interviewer_id INTEGER,
+  
+  -- Session configuration
+  session_type VARCHAR(50) DEFAULT 'coding_interview' CHECK (session_type IN ('coding_interview', 'system_design', 'behavioral', 'technical_discussion')),
+  difficulty_level VARCHAR(20) DEFAULT 'medium' CHECK (difficulty_level IN ('easy', 'medium', 'hard', 'expert')),
+  estimated_duration INTEGER DEFAULT 3600, -- seconds
+  
+  -- Session state
+  status VARCHAR(20) DEFAULT 'pending' CHECK (status IN ('pending', 'active', 'paused', 'completed', 'cancelled')),
+  current_exercise_id INTEGER,
+  progress_percentage DECIMAL(5,2) DEFAULT 0.00,
+  
+  -- Timing
+  scheduled_at <%= dialect === 'postgresql' ? 'TIMESTAMP WITH TIME ZONE' : 'DATETIME' %>,
+  started_at <%= dialect === 'postgresql' ? 'TIMESTAMP WITH TIME ZONE' : 'DATETIME' %>,
+  completed_at <%= dialect === 'postgresql' ? 'TIMESTAMP WITH TIME ZONE' : 'DATETIME' %>,
+  
+  -- Session data
+  session_recording_url TEXT,
+  final_score DECIMAL(5,2),
+  feedback_summary TEXT,
+  interviewer_notes TEXT,
+  
+<% } else if (tableName === 'code_submissions') { -%>
+  -- Submission identification
+  submission_uuid VARCHAR(36) UNIQUE NOT NULL,
+  session_id INTEGER NOT NULL,
+  user_id INTEGER NOT NULL,
+  exercise_id INTEGER NOT NULL,
+  
+  -- Code details
+  language VARCHAR(50) NOT NULL,
+  code_content TEXT NOT NULL,
+  test_results JSON,
+  execution_output TEXT,
+  
+  -- Analysis results
+  complexity_analysis JSON,
+  performance_metrics JSON,
+  style_violations JSON,
+  security_issues JSON,
+  
+  -- Evaluation
+  ai_score DECIMAL(5,2),
+  human_score DECIMAL(5,2),
+  correctness_score DECIMAL(5,2),
+  efficiency_score DECIMAL(5,2),
+  readability_score DECIMAL(5,2),
+  
+  -- Metadata
+  submission_time <%= dialect === 'postgresql' ? 'TIMESTAMP WITH TIME ZONE' : 'DATETIME' %> DEFAULT CURRENT_TIMESTAMP,
+  execution_time_ms INTEGER,
+  memory_usage_bytes BIGINT,
+  
+<% } else if (tableName === 'feedback_reports') { -%>
+  -- Report identification
+  report_uuid VARCHAR(36) UNIQUE NOT NULL,
+  submission_id INTEGER NOT NULL,
+  session_id INTEGER NOT NULL,
+  user_id INTEGER NOT NULL,
+  
+  -- Feedback content
+  overall_feedback TEXT,
+  strengths JSON, -- Array of identified strengths
+  improvements JSON, -- Array of improvement areas
+  code_suggestions TEXT,
+  
+  -- Scoring breakdown
+  technical_skills DECIMAL(5,2),
+  problem_solving DECIMAL(5,2),
+  communication DECIMAL(5,2),
+  code_quality DECIMAL(5,2),
+  testing_approach DECIMAL(5,2),
+  
+  -- AI analysis
+  ai_generated_feedback TEXT,
+  confidence_score DECIMAL(5,2),
+  feedback_categories JSON, -- Tags/categories
+  
+  -- Review status
+  is_reviewed_by_human BOOLEAN DEFAULT FALSE,
+  reviewer_id INTEGER,
+  review_notes TEXT,
+  
+<% } else if (tableName === 'drill_exercises') { -%>
+  -- Exercise identification
+  exercise_uuid VARCHAR(36) UNIQUE NOT NULL,
+  title VARCHAR(255) NOT NULL,
+  slug VARCHAR(100) UNIQUE NOT NULL,
+  
+  -- Exercise content
+  description TEXT NOT NULL,
+  problem_statement TEXT NOT NULL,
+  sample_input TEXT,
+  expected_output TEXT,
+  constraints TEXT,
+  
+  -- Configuration
+  difficulty_level VARCHAR(20) DEFAULT 'medium' CHECK (difficulty_level IN ('easy', 'medium', 'hard', 'expert')),
+  category VARCHAR(50) NOT NULL, -- 'algorithms', 'data-structures', 'system-design', etc.
+  tags JSON, -- Array of tags
+  estimated_time_minutes INTEGER DEFAULT 30,
+  
+  -- Solution details
+  solution_template TEXT,
+  starter_code JSON, -- Code templates for different languages
+  test_cases JSON, -- Input/output test cases
+  hidden_test_cases JSON,
+  
+  -- Metadata
+  is_active BOOLEAN DEFAULT TRUE,
+  company_source VARCHAR(100), -- Which company this problem is from
+  frequency_score INTEGER DEFAULT 0, -- How often this appears in interviews
+  success_rate DECIMAL(5,2) DEFAULT 0.00,
+  
+<% } else if (tableName === 'rubric_scores') { -%>
+  -- Scoring identification
+  score_uuid VARCHAR(36) UNIQUE NOT NULL,
+  submission_id INTEGER NOT NULL,
+  session_id INTEGER NOT NULL,
+  user_id INTEGER NOT NULL,
+  
+  -- Rubric categories
+  algorithmic_thinking DECIMAL(5,2),
+  code_implementation DECIMAL(5,2),
+  testing_debugging DECIMAL(5,2),
+  communication DECIMAL(5,2),
+  optimization DECIMAL(5,2),
+  
+  -- Detailed breakdowns
+  time_complexity_understanding DECIMAL(5,2),
+  space_complexity_understanding DECIMAL(5,2),
+  edge_case_handling DECIMAL(5,2),
+  code_organization DECIMAL(5,2),
+  variable_naming DECIMAL(5,2),
+  
+  -- Overall metrics
+  composite_score DECIMAL(5,2),
+  percentile_rank DECIMAL(5,2),
+  grade VARCHAR(2) CHECK (grade IN ('A+', 'A', 'A-', 'B+', 'B', 'B-', 'C+', 'C', 'C-', 'D', 'F')),
+  
+  -- Evaluation metadata
+  scoring_method VARCHAR(50) DEFAULT 'ai_assisted', -- 'ai_only', 'human_only', 'ai_assisted'
+  evaluator_id INTEGER,
+  evaluation_notes TEXT,
+  
+<% } else if (tableName === 'user_analytics') { -%>
+  -- Analytics identification
+  analytics_uuid VARCHAR(36) UNIQUE NOT NULL,
+  user_id INTEGER NOT NULL,
+  date_recorded DATE NOT NULL,
+  
+  -- Performance metrics
+  sessions_completed INTEGER DEFAULT 0,
+  total_problems_solved INTEGER DEFAULT 0,
+  average_score DECIMAL(5,2) DEFAULT 0.00,
+  improvement_trend DECIMAL(5,2) DEFAULT 0.00, -- Week over week improvement
+  
+  -- Skill breakdowns
+  algorithms_score DECIMAL(5,2) DEFAULT 0.00,
+  data_structures_score DECIMAL(5,2) DEFAULT 0.00,
+  system_design_score DECIMAL(5,2) DEFAULT 0.00,
+  database_score DECIMAL(5,2) DEFAULT 0.00,
+  
+  -- Behavioral metrics
+  time_to_solution_avg INTEGER, -- Average seconds
+  hints_used_avg DECIMAL(5,2),
+  test_cases_passed_rate DECIMAL(5,2),
+  code_quality_trend DECIMAL(5,2),
+  
+  -- Engagement metrics
+  active_days_this_week INTEGER DEFAULT 0,
+  total_coding_time_minutes INTEGER DEFAULT 0,
+  streak_days INTEGER DEFAULT 0,
+  
+<% } else if (tableName === 'session_metrics') { -%>
+  -- Metrics identification
+  metrics_uuid VARCHAR(36) UNIQUE NOT NULL,
+  session_id INTEGER NOT NULL,
+  user_id INTEGER NOT NULL,
+  
+  -- Timing metrics
+  total_duration_seconds INTEGER,
+  coding_time_seconds INTEGER,
+  thinking_time_seconds INTEGER,
+  discussion_time_seconds INTEGER,
+  
+  -- Interaction metrics
+  keystrokes_count INTEGER DEFAULT 0,
+  compilation_attempts INTEGER DEFAULT 0,
+  test_runs INTEGER DEFAULT 0,
+  hints_requested INTEGER DEFAULT 0,
+  
+  -- Performance metrics
+  first_successful_run_time INTEGER, -- Time to first working solution
+  final_solution_efficiency DECIMAL(5,2),
+  code_quality_score DECIMAL(5,2),
+  communication_clarity DECIMAL(5,2),
+  
+  -- Technical metrics
+  memory_peak_usage_mb DECIMAL(10,2),
+  cpu_usage_percentage DECIMAL(5,2),
+  network_latency_ms DECIMAL(10,2),
+  
+<% } else if (tableName === 'progress_tracking') { -%>
+  -- Progress identification
+  progress_uuid VARCHAR(36) UNIQUE NOT NULL,
+  user_id INTEGER NOT NULL,
+  
+  -- Skill progression
+  current_level INTEGER DEFAULT 1,
+  total_xp INTEGER DEFAULT 0,
+  level_progress_percentage DECIMAL(5,2) DEFAULT 0.00,
+  
+  -- Category progression
+  algorithms_level INTEGER DEFAULT 1,
+  data_structures_level INTEGER DEFAULT 1,
+  system_design_level INTEGER DEFAULT 1,
+  databases_level INTEGER DEFAULT 1,
+  
+  -- Milestone tracking
+  milestones_achieved JSON, -- Array of achieved milestones
+  current_goals JSON, -- Array of current learning goals
+  recommended_exercises JSON, -- AI-recommended next exercises
+  
+  -- Weak areas identification
+  identified_weaknesses JSON,
+  improvement_plan TEXT,
+  next_review_date DATE,
+  
+<% } else if (tableName === 'usage_statistics') { -%>
+  -- Statistics identification
+  stat_uuid VARCHAR(36) UNIQUE NOT NULL,
+  date_recorded DATE NOT NULL,
+  
+  -- Platform metrics
+  daily_active_users INTEGER DEFAULT 0,
+  new_registrations INTEGER DEFAULT 0,
+  sessions_started INTEGER DEFAULT 0,
+  sessions_completed INTEGER DEFAULT 0,
+  
+  -- Feature usage
+  exercises_attempted INTEGER DEFAULT 0,
+  exercises_completed INTEGER DEFAULT 0,
+  average_session_duration DECIMAL(10,2),
+  feedback_requests INTEGER DEFAULT 0,
+  
+  -- Performance metrics
+  system_uptime_percentage DECIMAL(5,2) DEFAULT 100.00,
+  average_response_time_ms DECIMAL(10,2),
+  error_rate_percentage DECIMAL(5,2) DEFAULT 0.00,
+  
+<% } else { -%>
+  -- Generic fields for custom table
+  name VARCHAR(255),
+  description TEXT,
+  metadata JSON,
+  
+<% } -%>
+  -- Audit trail (common to all tables)
+  created_at <%= dialect === 'postgresql' ? 'TIMESTAMP WITH TIME ZONE' : 'DATETIME' %> DEFAULT CURRENT_TIMESTAMP,
+  updated_at <%= dialect === 'postgresql' ? 'TIMESTAMP WITH TIME ZONE' : 'DATETIME' %> DEFAULT CURRENT_TIMESTAMP,
+  created_by INTEGER,
+  updated_by INTEGER
+  
+<% if (dialect === 'postgresql') { -%>
+  -- PostgreSQL constraints and foreign keys
+<% if (tableName === 'interview_sessions') { -%>
+  ,CONSTRAINT fk_interview_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+  ,CONSTRAINT fk_interview_interviewer FOREIGN KEY (interviewer_id) REFERENCES users(id) ON DELETE SET NULL
+<% } else if (tableName === 'code_submissions') { -%>
+  ,CONSTRAINT fk_submission_session FOREIGN KEY (session_id) REFERENCES interview_sessions(id) ON DELETE CASCADE
+  ,CONSTRAINT fk_submission_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+  ,CONSTRAINT fk_submission_exercise FOREIGN KEY (exercise_id) REFERENCES drill_exercises(id) ON DELETE CASCADE
+<% } else if (tableName === 'feedback_reports') { -%>
+  ,CONSTRAINT fk_feedback_submission FOREIGN KEY (submission_id) REFERENCES code_submissions(id) ON DELETE CASCADE
+  ,CONSTRAINT fk_feedback_session FOREIGN KEY (session_id) REFERENCES interview_sessions(id) ON DELETE CASCADE
+  ,CONSTRAINT fk_feedback_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+  ,CONSTRAINT fk_feedback_reviewer FOREIGN KEY (reviewer_id) REFERENCES users(id) ON DELETE SET NULL
+<% } else if (tableName === 'rubric_scores') { -%>
+  ,CONSTRAINT fk_score_submission FOREIGN KEY (submission_id) REFERENCES code_submissions(id) ON DELETE CASCADE
+  ,CONSTRAINT fk_score_session FOREIGN KEY (session_id) REFERENCES interview_sessions(id) ON DELETE CASCADE
+  ,CONSTRAINT fk_score_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+  ,CONSTRAINT fk_score_evaluator FOREIGN KEY (evaluator_id) REFERENCES users(id) ON DELETE SET NULL
+<% } else if (['user_analytics', 'progress_tracking'].includes(tableName)) { -%>
+  ,CONSTRAINT fk_<%= tableName %>_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+<% } else if (tableName === 'session_metrics') { -%>
+  ,CONSTRAINT fk_metrics_session FOREIGN KEY (session_id) REFERENCES interview_sessions(id) ON DELETE CASCADE
+  ,CONSTRAINT fk_metrics_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+<% } -%>
+<% } -%>
+);
+
+<% if (dialect === 'postgresql') { -%>
+-- PostgreSQL specific features
+<% if (tableName === 'users') { -%>
+-- Create user role enum type
+DO $$ BEGIN
+  CREATE TYPE user_role AS ENUM ('candidate', 'interviewer', 'admin');
+EXCEPTION
+  WHEN duplicate_object THEN null;
+END $$;
+
+-- Update trigger for updated_at
+CREATE OR REPLACE FUNCTION update_updated_at_column()
+RETURNS TRIGGER AS $$
+BEGIN
+  NEW.updated_at = CURRENT_TIMESTAMP;
+  RETURN NEW;
+END;
+$$ language 'plpgsql';
+
+CREATE TRIGGER update_<%= tableName %>_updated_at 
+  BEFORE UPDATE ON <%= tableName %> 
+  FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+<% } -%>
+
+-- Performance indexes
+<% if (tableName === 'users') { -%>
+CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_<%= tableName %>_email ON <%= tableName %>(email);
+CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_<%= tableName %>_username ON <%= tableName %>(username);
+CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_<%= tableName %>_is_active ON <%= tableName %>(is_active);
+<% } else if (tableName === 'interview_sessions') { -%>
+CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_<%= tableName %>_user ON <%= tableName %>(user_id);
+CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_<%= tableName %>_status ON <%= tableName %>(status);
+CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_<%= tableName %>_scheduled ON <%= tableName %>(scheduled_at);
+CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_<%= tableName %>_token ON <%= tableName %>(session_token);
+<% } else if (tableName === 'code_submissions') { -%>
+CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_<%= tableName %>_session ON <%= tableName %>(session_id);
+CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_<%= tableName %>_user ON <%= tableName %>(user_id);
+CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_<%= tableName %>_uuid ON <%= tableName %>(submission_uuid);
+CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_<%= tableName %>_time ON <%= tableName %>(submission_time);
+<% } else if (tableName === 'drill_exercises') { -%>
+CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_<%= tableName %>_slug ON <%= tableName %>(slug);
+CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_<%= tableName %>_difficulty ON <%= tableName %>(difficulty_level);
+CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_<%= tableName %>_category ON <%= tableName %>(category);
+CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_<%= tableName %>_active ON <%= tableName %>(is_active);
+<% } else { -%>
+CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_<%= tableName %>_created ON <%= tableName %>(created_at);
+<% if (['user_analytics', 'session_metrics', 'progress_tracking'].includes(tableName)) { -%>
+CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_<%= tableName %>_user ON <%= tableName %>(user_id);
+<% } -%>
+<% } -%>
+<% } else { -%>
+-- SQLite specific indexes
+<% if (tableName === 'users') { -%>
+CREATE INDEX IF NOT EXISTS idx_<%= tableName %>_email ON <%= tableName %>(email);
+CREATE INDEX IF NOT EXISTS idx_<%= tableName %>_username ON <%= tableName %>(username);
+CREATE INDEX IF NOT EXISTS idx_<%= tableName %>_is_active ON <%= tableName %>(is_active);
+<% } else if (tableName === 'interview_sessions') { -%>
+CREATE INDEX IF NOT EXISTS idx_<%= tableName %>_user ON <%= tableName %>(user_id);
+CREATE INDEX IF NOT EXISTS idx_<%= tableName %>_status ON <%= tableName %>(status);
+CREATE INDEX IF NOT EXISTS idx_<%= tableName %>_scheduled ON <%= tableName %>(scheduled_at);
+CREATE INDEX IF NOT EXISTS idx_<%= tableName %>_token ON <%= tableName %>(session_token);
+<% } else if (tableName === 'code_submissions') { -%>
+CREATE INDEX IF NOT EXISTS idx_<%= tableName %>_session ON <%= tableName %>(session_id);
+CREATE INDEX IF NOT EXISTS idx_<%= tableName %>_user ON <%= tableName %>(user_id);
+CREATE INDEX IF NOT EXISTS idx_<%= tableName %>_uuid ON <%= tableName %>(submission_uuid);
+CREATE INDEX IF NOT EXISTS idx_<%= tableName %>_time ON <%= tableName %>(submission_time);
+<% } else if (tableName === 'drill_exercises') { -%>
+CREATE INDEX IF NOT EXISTS idx_<%= tableName %>_slug ON <%= tableName %>(slug);
+CREATE INDEX IF NOT EXISTS idx_<%= tableName %>_difficulty ON <%= tableName %>(difficulty_level);
+CREATE INDEX IF NOT EXISTS idx_<%= tableName %>_category ON <%= tableName %>(category);
+CREATE INDEX IF NOT EXISTS idx_<%= tableName %>_active ON <%= tableName %>(is_active);
+<% } else { -%>
+CREATE INDEX IF NOT EXISTS idx_<%= tableName %>_created ON <%= tableName %>(created_at);
+<% if (['user_analytics', 'session_metrics', 'progress_tracking'].includes(tableName)) { -%>
+CREATE INDEX IF NOT EXISTS idx_<%= tableName %>_user ON <%= tableName %>(user_id);
+<% } -%>
+<% } -%>
+<% } -%>
+
+-- Comments for documentation
+COMMENT ON TABLE <%= tableName %> IS '<%= tableName === 'users' ? 'User accounts and authentication data' :
+  tableName === 'interview_sessions' ? 'Interview session management and state tracking' :
+  tableName === 'code_submissions' ? 'Code submissions and automated analysis results' :
+  tableName === 'feedback_reports' ? 'AI-generated and human feedback reports' :
+  tableName === 'drill_exercises' ? 'Coding exercise problems and test cases' :
+  tableName === 'rubric_scores' ? 'Detailed rubric-based scoring and evaluation' :
+  tableName === 'user_analytics' ? 'User performance analytics and trends over time' :
+  tableName === 'session_metrics' ? 'Detailed session metrics and interaction data' :
+  tableName === 'progress_tracking' ? 'User skill progression and learning path tracking' :
+  tableName === 'usage_statistics' ? 'Platform usage statistics and system metrics' :
+  'Custom database table for application data' %>';

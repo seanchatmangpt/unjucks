@@ -1,0 +1,320 @@
+// Types for <%= componentName %> component
+export interface <%= componentName %>Props {
+  // Display properties
+  title?: string
+  showHeader?: boolean
+  showFooter?: boolean
+  showRefresh?: boolean
+  showSettings?: boolean
+  showLoadingSpinner?: boolean
+  containerClasses?: string
+  
+  // State properties
+  loading?: boolean
+  error?: string | null
+  initialData?: <%= componentName %>Data | null
+  autoLoad?: boolean
+  
+  // Content properties
+  loadingText?: string
+  errorTitle?: string
+  emptyStateIcon?: string
+  emptyStateTitle?: string
+  emptyStateDescription?: string
+  emptyStateAction?: {
+    label: string
+    icon?: string
+    handler: () => void
+  }
+  
+  // Accessibility
+  ariaLabel?: string
+}
+
+export interface <%= componentName %>Data {
+  // Base data structure - customize per component
+  id?: string | number
+  timestamp?: Date
+  metadata?: Record<string, any>
+  
+  <% if (componentName.includes('Interview')) { %>
+  // Interview-specific data
+  sessionId?: string
+  questions?: InterviewQuestion[]
+  responses?: InterviewResponse[]
+  score?: InterviewScore
+  duration?: number
+  status?: 'pending' | 'active' | 'completed' | 'failed'
+  <% } %>
+  
+  <% if (componentName.includes('Code')) { %>
+  // Code-specific data
+  language?: string
+  code?: string
+  output?: string
+  errors?: CodeError[]
+  executionTime?: number
+  <% } %>
+  
+  <% if (componentName.includes('Chat')) { %>
+  // Chat-specific data
+  messages?: ChatMessage[]
+  participants?: ChatParticipant[]
+  isTyping?: boolean
+  lastActivity?: Date
+  <% } %>
+  
+  <% if (componentName.includes('Progress') || componentName.includes('Chart')) { %>
+  // Chart/Progress-specific data
+  datasets?: ChartDataset[]
+  labels?: string[]
+  options?: ChartOptions
+  currentValue?: number
+  maxValue?: number
+  <% } %>
+  
+  <% if (componentName.includes('Dashboard')) { %>
+  // Dashboard-specific data
+  widgets?: DashboardWidget[]
+  layout?: DashboardLayout
+  filters?: DashboardFilters
+  refreshInterval?: number
+  <% } %>
+}
+
+<% if (componentName.includes('Interview')) { %>
+export interface InterviewQuestion {
+  id: string
+  type: 'technical' | 'behavioral' | 'system-design' | 'coding'
+  difficulty: 'easy' | 'medium' | 'hard'
+  title: string
+  description: string
+  hints?: string[]
+  expectedAnswer?: string
+  timeLimit?: number
+  tags?: string[]
+}
+
+export interface InterviewResponse {
+  questionId: string
+  answer: string
+  code?: string
+  timeSpent: number
+  timestamp: Date
+  confidence?: number
+}
+
+export interface InterviewScore {
+  overall: number
+  technical: number
+  communication: number
+  problemSolving: number
+  codeQuality?: number
+  feedback: string[]
+  strengths: string[]
+  improvements: string[]
+}
+<% } %>
+
+<% if (componentName.includes('Code')) { %>
+export interface CodeError {
+  line: number
+  column: number
+  message: string
+  severity: 'error' | 'warning' | 'info'
+  source?: string
+}
+
+export interface CodeExecution {
+  status: 'running' | 'completed' | 'failed'
+  output: string
+  errors: CodeError[]
+  executionTime: number
+  memoryUsage?: number
+}
+<% } %>
+
+<% if (componentName.includes('Chat')) { %>
+export interface ChatMessage {
+  id: string
+  content: string
+  author: 'user' | 'ai' | 'system'
+  timestamp: Date
+  type?: 'text' | 'code' | 'image' | 'file'
+  metadata?: {
+    language?: string
+    isQuestion?: boolean
+    isHint?: boolean
+    confidence?: number
+  }
+}
+
+export interface ChatParticipant {
+  id: string
+  name: string
+  role: 'interviewer' | 'candidate'
+  avatar?: string
+  isOnline: boolean
+}
+<% } %>
+
+<% if (componentName.includes('Progress') || componentName.includes('Chart')) { %>
+export interface ChartDataset {
+  label: string
+  data: number[]
+  backgroundColor?: string | string[]
+  borderColor?: string
+  borderWidth?: number
+}
+
+export interface ChartOptions {
+  responsive?: boolean
+  maintainAspectRatio?: boolean
+  plugins?: {
+    legend?: {
+      display: boolean
+      position?: 'top' | 'bottom' | 'left' | 'right'
+    }
+    title?: {
+      display: boolean
+      text: string
+    }
+  }
+  scales?: {
+    x?: ChartScale
+    y?: ChartScale
+  }
+}
+
+export interface ChartScale {
+  display?: boolean
+  beginAtZero?: boolean
+  max?: number
+  min?: number
+  title?: {
+    display: boolean
+    text: string
+  }
+}
+<% } %>
+
+<% if (componentName.includes('Dashboard')) { %>
+export interface DashboardWidget {
+  id: string
+  type: 'chart' | 'metric' | 'table' | 'progress'
+  title: string
+  size: 'small' | 'medium' | 'large' | 'full'
+  position: { x: number; y: number; w: number; h: number }
+  config: Record<string, any>
+  data?: any
+}
+
+export interface DashboardLayout {
+  breakpoint: 'mobile' | 'tablet' | 'desktop'
+  columns: number
+  rowHeight: number
+  margin: [number, number]
+  containerPadding: [number, number]
+}
+
+export interface DashboardFilters {
+  dateRange?: {
+    start: Date
+    end: Date
+  }
+  categories?: string[]
+  difficulty?: string[]
+  status?: string[]
+}
+<% } %>
+
+// Common utility types
+export interface ApiResponse<T = any> {
+  success: boolean
+  data?: T
+  error?: string
+  message?: string
+  timestamp: Date
+}
+
+export interface PaginationData {
+  page: number
+  pageSize: number
+  total: number
+  totalPages: number
+  hasNext: boolean
+  hasPrev: boolean
+}
+
+export interface SortingData {
+  field: string
+  direction: 'asc' | 'desc'
+}
+
+export interface FilterData {
+  field: string
+  operator: 'equals' | 'contains' | 'startsWith' | 'endsWith' | 'gt' | 'lt'
+  value: any
+}
+
+// Component events
+export interface <%= componentName %>Events {
+  refresh: () => void
+  settings: () => void
+  error: (error: Error) => void
+  dataChange: (data: <%= componentName %>Data | null) => void
+  
+  <% if (componentName.includes('Code')) { %>
+  codeChange: (code: string) => void
+  execute: (code: string) => void
+  formatCode: () => void
+  <% } %>
+  
+  <% if (componentName.includes('Chat')) { %>
+  sendMessage: (message: string) => void
+  messageReceived: (message: ChatMessage) => void
+  typingStart: () => void
+  typingEnd: () => void
+  <% } %>
+  
+  <% if (componentName.includes('Progress') || componentName.includes('Chart')) { %>
+  dataPointClick: (point: any) => void
+  chartResize: (size: { width: number; height: number }) => void
+  <% } %>
+}
+
+// Form validation
+export interface ValidationRule {
+  required?: boolean
+  minLength?: number
+  maxLength?: number
+  pattern?: RegExp
+  custom?: (value: any) => boolean | string
+}
+
+export interface ValidationResult {
+  isValid: boolean
+  errors: string[]
+  warnings?: string[]
+}
+
+// Theme and styling
+export interface ThemeConfig {
+  primaryColor: string
+  secondaryColor: string
+  backgroundColor: string
+  textColor: string
+  borderColor: string
+  borderRadius: string
+  fontSize: string
+}
+
+export interface ComponentStyles {
+  container?: string
+  header?: string
+  content?: string
+  footer?: string
+  loading?: string
+  error?: string
+  empty?: string
+}

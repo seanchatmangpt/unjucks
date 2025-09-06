@@ -1,0 +1,497 @@
+---
+to: src/store/index.ts
+inject: false
+skipIf: exists
+---
+{% if stateLibrary === 'zustand' %}
+import { create } from 'zustand';
+import { subscribeWithSelector, devtools, persist } from 'zustand/middleware';
+{% elsif stateLibrary === 'redux-toolkit' %}
+import { configureStore, createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import { persistStore, persistReducer } from 'redux-persist';
+import storage from 'redux-persist/lib/storage';
+{% endif %}
+import { InterviewSession, FeedbackReport, User } from '@/types';
+{% if realTimeSync %}
+import { subscribeToRealtimeUpdates } from '@/services/realtime';
+{% endif %}
+
+/**
+ * Interview Copilot State Management
+ * 
+ * ARCHITECTURE PATTERN: Centralized State with Selective Persistence
+ * 
+ * State Structure:
+ * ├── auth (user authentication)
+ * ├── session (current interview session)
+ * ├── feedback (AI analysis results)
+ * ├── dashboard (performance data)
+ * ├── ui (interface state)
+ * └── settings (user preferences)
+ */
+
+// Type Definitions
+export interface AppState {
+  // Authentication State
+  auth: {
+    user: User | null;
+    token: string | null;
+    isAuthenticated: boolean;
+    isLoading: boolean;
+  };
+  
+  // Interview Session State  
+  session: {
+    current: InterviewSession | null;
+    isActive: boolean;
+    code: string;
+    language: string;
+    chatMessages: Array<{
+      role: 'user' | 'assistant';
+      content: string;
+      timestamp: Date;
+    }>;
+    isAnalyzing: boolean;
+    lastSaved: Date | null;
+  };
+  
+  // AI Feedback State
+  feedback: {
+    current: FeedbackReport | null;
+    history: FeedbackReport[];
+    realTimeAnalysis: {
+      isEnabled: boolean;
+      lastUpdate: Date | null;
+      codeScore: number | null;
+      suggestions: string[];
+    };
+  };
+  
+  // Dashboard State
+  dashboard: {
+    performanceData: any | null;
+    timeRange: 'week' | 'month' | 'quarter' | 'year';
+    selectedMetrics: string[];
+    isLoading: boolean;
+    lastFetched: Date | null;
+  };
+  
+  // UI State
+  ui: {
+    sidebarOpen: boolean;
+    activePanel: 'chat' | 'code' | 'preview';
+    splitRatios: {
+      horizontal: number;
+      vertical: number;
+    };
+    theme: 'light' | 'dark';
+    notifications: Array<{
+      id: string;
+      type: 'info' | 'success' | 'warning' | 'error';
+      message: string;
+      timestamp: Date;
+    }>;
+  };
+  
+  // Settings State
+  settings: {
+    autoSave: boolean;
+    realTimeAnalysis: boolean;
+    notificationsEnabled: boolean;
+    defaultLanguage: string;
+    editorPreferences: {
+      fontSize: number;
+      tabSize: number;
+      wordWrap: boolean;
+      minimap: boolean;
+    };
+  };
+}
+
+{% if stateLibrary === 'zustand' %}
+// Zustand Store Implementation
+export const useAppStore = create<AppState & {
+  // Actions
+  setUser: (user: User | null) => void;
+  setToken: (token: string | null) => void;
+  startSession: (session: InterviewSession) => void;
+  updateCode: (code: string, language?: string) => void;
+  addChatMessage: (message: { role: 'user' | 'assistant'; content: string }) => void;
+  setFeedback: (feedback: FeedbackReport) => void;
+  updateRealTimeAnalysis: (analysis: Partial<AppState['feedback']['realTimeAnalysis']>) => void;
+  setDashboardData: (data: any) => void;
+  updateUI: (updates: Partial<AppState['ui']>) => void;
+  updateSettings: (settings: Partial<AppState['settings']>) => void;
+  addNotification: (notification: Omit<AppState['ui']['notifications'][0], 'id' | 'timestamp'>) => void;
+  removeNotification: (id: string) => void;
+  reset: () => void;
+}>()(
+  subscribeWithSelector(
+    {% if devTools %}
+    devtools(
+    {% endif %}
+    {% if persistenceLayer !== 'none' %}
+    persist(
+    {% endif %}
+      (set, get) => ({
+        // Initial State
+        auth: {
+          user: null,
+          token: null,
+          isAuthenticated: false,
+          isLoading: false,
+        },
+        session: {
+          current: null,
+          isActive: false,
+          code: '',
+          language: 'javascript',
+          chatMessages: [],
+          isAnalyzing: false,
+          lastSaved: null,
+        },
+        feedback: {
+          current: null,
+          history: [],
+          realTimeAnalysis: {
+            isEnabled: true,
+            lastUpdate: null,
+            codeScore: null,
+            suggestions: [],
+          },
+        },
+        dashboard: {
+          performanceData: null,
+          timeRange: 'month',
+          selectedMetrics: ['coding-score', 'communication-score'],
+          isLoading: false,
+          lastFetched: null,
+        },
+        ui: {
+          sidebarOpen: true,
+          activePanel: 'chat',
+          splitRatios: { horizontal: 50, vertical: 60 },
+          theme: 'light',
+          notifications: [],
+        },
+        settings: {
+          autoSave: true,
+          realTimeAnalysis: true,
+          notificationsEnabled: true,
+          defaultLanguage: 'javascript',
+          editorPreferences: {
+            fontSize: 14,
+            tabSize: 2,
+            wordWrap: true,
+            minimap: true,
+          },
+        },
+
+        // Actions
+        setUser: (user) => set((state) => ({
+          auth: { ...state.auth, user, isAuthenticated: !!user }
+        })),
+        
+        setToken: (token) => set((state) => ({
+          auth: { ...state.auth, token, isAuthenticated: !!token }
+        })),
+        
+        startSession: (session) => set((state) => ({
+          session: {
+            ...state.session,
+            current: session,
+            isActive: true,
+            code: session.code || '',
+            language: session.language || 'javascript',
+            chatMessages: session.chatHistory || [],
+          }
+        })),
+        
+        updateCode: (code, language) => set((state) => ({
+          session: {
+            ...state.session,
+            code,
+            ...(language && { language }),
+            lastSaved: new Date(),
+          }
+        })),
+        
+        addChatMessage: (message) => set((state) => ({
+          session: {
+            ...state.session,
+            chatMessages: [
+              ...state.session.chatMessages,
+              { ...message, timestamp: new Date() }
+            ],
+          }
+        })),
+        
+        setFeedback: (feedback) => set((state) => ({
+          feedback: {
+            ...state.feedback,
+            current: feedback,
+            history: [feedback, ...state.feedback.history.slice(0, 9)], // Keep last 10
+          }
+        })),
+        
+        updateRealTimeAnalysis: (analysis) => set((state) => ({
+          feedback: {
+            ...state.feedback,
+            realTimeAnalysis: {
+              ...state.feedback.realTimeAnalysis,
+              ...analysis,
+              lastUpdate: new Date(),
+            },
+          }
+        })),
+        
+        setDashboardData: (data) => set((state) => ({
+          dashboard: {
+            ...state.dashboard,
+            performanceData: data,
+            lastFetched: new Date(),
+            isLoading: false,
+          }
+        })),
+        
+        updateUI: (updates) => set((state) => ({
+          ui: { ...state.ui, ...updates }
+        })),
+        
+        updateSettings: (settings) => set((state) => ({
+          settings: { ...state.settings, ...settings }
+        })),
+        
+        addNotification: (notification) => set((state) => ({
+          ui: {
+            ...state.ui,
+            notifications: [
+              {
+                ...notification,
+                id: Date.now().toString(),
+                timestamp: new Date(),
+              },
+              ...state.ui.notifications,
+            ],
+          }
+        })),
+        
+        removeNotification: (id) => set((state) => ({
+          ui: {
+            ...state.ui,
+            notifications: state.ui.notifications.filter(n => n.id !== id),
+          }
+        })),
+        
+        reset: () => set({
+          auth: { user: null, token: null, isAuthenticated: false, isLoading: false },
+          session: {
+            current: null, isActive: false, code: '', language: 'javascript',
+            chatMessages: [], isAnalyzing: false, lastSaved: null,
+          },
+          feedback: {
+            current: null, history: [],
+            realTimeAnalysis: { isEnabled: true, lastUpdate: null, codeScore: null, suggestions: [] },
+          },
+          dashboard: {
+            performanceData: null, timeRange: 'month',
+            selectedMetrics: ['coding-score', 'communication-score'],
+            isLoading: false, lastFetched: null,
+          },
+          ui: {
+            sidebarOpen: true, activePanel: 'chat',
+            splitRatios: { horizontal: 50, vertical: 60 },
+            theme: 'light', notifications: [],
+          },
+        }),
+      }),
+    {% if persistenceLayer !== 'none' %}
+      {
+        name: 'interview-copilot-store',
+        {% if persistenceLayer === 'localStorage' %}
+        storage: {
+          getItem: (name) => localStorage.getItem(name),
+          setItem: (name, value) => localStorage.setItem(name, value),
+          removeItem: (name) => localStorage.removeItem(name),
+        },
+        {% elsif persistenceLayer === 'sessionStorage' %}
+        storage: {
+          getItem: (name) => sessionStorage.getItem(name),
+          setItem: (name, value) => sessionStorage.setItem(name, value),
+          removeItem: (name) => sessionStorage.removeItem(name),
+        },
+        {% endif %}
+        // Only persist certain parts of state
+        partialize: (state) => ({
+          auth: { user: state.auth.user, token: state.auth.token },
+          ui: { theme: state.ui.theme, splitRatios: state.ui.splitRatios },
+          settings: state.settings,
+        }),
+      }
+    )
+    {% endif %}
+    {% if devTools %}
+    , { name: 'Interview Copilot Store' })
+    {% endif %}
+  )
+);
+
+{% elsif stateLibrary === 'redux-toolkit' %}
+// Redux Toolkit Implementation
+const authSlice = createSlice({
+  name: 'auth',
+  initialState: {
+    user: null,
+    token: null,
+    isAuthenticated: false,
+    isLoading: false,
+  } as AppState['auth'],
+  reducers: {
+    setUser: (state, action) => {
+      state.user = action.payload;
+      state.isAuthenticated = !!action.payload;
+    },
+    setToken: (state, action) => {
+      state.token = action.payload;
+      state.isAuthenticated = !!action.payload;
+    },
+    setLoading: (state, action) => {
+      state.isLoading = action.payload;
+    },
+    logout: (state) => {
+      state.user = null;
+      state.token = null;
+      state.isAuthenticated = false;
+    },
+  },
+});
+
+const sessionSlice = createSlice({
+  name: 'session',
+  initialState: {
+    current: null,
+    isActive: false,
+    code: '',
+    language: 'javascript',
+    chatMessages: [],
+    isAnalyzing: false,
+    lastSaved: null,
+  } as AppState['session'],
+  reducers: {
+    startSession: (state, action) => {
+      state.current = action.payload;
+      state.isActive = true;
+      state.code = action.payload.code || '';
+      state.language = action.payload.language || 'javascript';
+      state.chatMessages = action.payload.chatHistory || [];
+    },
+    updateCode: (state, action) => {
+      state.code = action.payload.code;
+      if (action.payload.language) {
+        state.language = action.payload.language;
+      }
+      state.lastSaved = new Date().toISOString();
+    },
+    addChatMessage: (state, action) => {
+      state.chatMessages.push({
+        ...action.payload,
+        timestamp: new Date(),
+      });
+    },
+    endSession: (state) => {
+      state.isActive = false;
+      state.current = null;
+      state.code = '';
+      state.chatMessages = [];
+    },
+  },
+});
+
+// Configure Store
+const persistConfig = {
+  key: 'interview-copilot',
+  storage,
+  whitelist: ['auth', 'ui', 'settings'], // Only persist these reducers
+};
+
+export const store = configureStore({
+  reducer: {
+    auth: persistReducer(persistConfig, authSlice.reducer),
+    session: sessionSlice.reducer,
+    // Add other slices...
+  },
+  middleware: (getDefaultMiddleware) =>
+    getDefaultMiddleware({
+      serializableCheck: {
+        ignoredActions: ['persist/PERSIST'],
+      },
+    }),
+  {% if devTools %}
+  devTools: process.env.NODE_ENV !== 'production',
+  {% endif %}
+});
+
+export const persistor = persistStore(store);
+export type RootState = ReturnType<typeof store.getState>;
+export type AppDispatch = typeof store.dispatch;
+
+// Action Exports
+export const { setUser, setToken, setLoading, logout } = authSlice.actions;
+export const { startSession, updateCode, addChatMessage, endSession } = sessionSlice.actions;
+
+{% endif %}
+
+// Selectors
+export const selectAuth = (state: {% if stateLibrary === 'zustand' %}AppState{% else %}RootState{% endif %}) => state.auth;
+export const selectCurrentSession = (state: {% if stateLibrary === 'zustand' %}AppState{% else %}RootState{% endif %}) => state.session.current;
+export const selectChatMessages = (state: {% if stateLibrary === 'zustand' %}AppState{% else %}RootState{% endif %}) => state.session.chatMessages;
+export const selectCurrentFeedback = (state: {% if stateLibrary === 'zustand' %}AppState{% else %}RootState{% endif %}) => state.feedback?.current;
+export const selectUIState = (state: {% if stateLibrary === 'zustand' %}AppState{% else %}RootState{% endif %}) => state.ui;
+
+{% if realTimeSync %}
+// Real-time Synchronization Hook
+export const useRealtimeSync = () => {
+  {% if stateLibrary === 'zustand' %}
+  const store = useAppStore();
+  {% endif %}
+  
+  const subscribe = (userId: string) => {
+    return subscribeToRealtimeUpdates(`user:${userId}`, (update) => {
+      switch (update.type) {
+        case 'session_update':
+          {% if stateLibrary === 'zustand' %}
+          store.startSession(update.data);
+          {% else %}
+          store.dispatch(startSession(update.data));
+          {% endif %}
+          break;
+        case 'feedback_update':
+          {% if stateLibrary === 'zustand' %}
+          store.setFeedback(update.data);
+          {% endif %}
+          break;
+        default:
+          console.log('Unknown update type:', update.type);
+      }
+    });
+  };
+  
+  return { subscribe };
+};
+{% endif %}
+
+// Store Initialization Hook
+export const useStoreInitialization = () => {
+  {% if stateLibrary === 'zustand' %}
+  const { auth, settings } = useAppStore();
+  {% endif %}
+  
+  const initialize = async () => {
+    // Load persisted state
+    // Set up subscriptions
+    // Initialize services
+    console.log('Store initialized');
+  };
+  
+  return { initialize };
+};

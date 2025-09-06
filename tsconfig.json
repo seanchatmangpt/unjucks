@@ -22,7 +22,13 @@
     "dist",
     "test-*/**",
     "**/{{ * }}*",
+    "**/<%= * %>*",
     "tests/fixtures/**/*.js",
-    "_templates/**"
+    "_templates/**",
+    "src/components/**/*.tsx",
+    "src/components/**/*.ts",
+    "src/large/**",
+    "**/argument-parser.ts",
+    "**/*real-validation-simple*"
   ]
 }

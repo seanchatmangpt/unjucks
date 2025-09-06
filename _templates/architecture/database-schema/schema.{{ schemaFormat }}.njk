@@ -1,0 +1,453 @@
+---
+to: {% if schemaFormat === 'prisma' %}prisma/schema.prisma{% elsif schemaFormat === 'drizzle' %}src/db/schema.ts{% elsif schemaFormat === 'raw-sql' %}database/schema.sql{% else %}src/db/entities/index.ts{% endif %}
+inject: false
+skipIf: exists
+---
+{% if schemaFormat === 'prisma' %}
+// Interview Copilot Database Schema - Prisma
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "{{ dbType }}"
+  url      = env("DATABASE_URL")
+}
+
+// User Management
+model User {
+  id               String    @id @default(cuid())
+  email            String    @unique
+  name             String?
+  avatarUrl        String?
+  tier             UserTier  @default(FREE)
+  credits          Int       @default(0)
+  preferences      Json?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  
+  // Relationships
+  sessions         InterviewSession[]
+  feedback         FeedbackReport[]
+  achievements     UserAchievement[]
+  
+  {% if includeIndexes %}
+  @@index([email])
+  @@index([tier])
+  @@index([createdAt])
+  {% endif %}
+}
+
+enum UserTier {
+  FREE
+  PREMIUM
+  ENTERPRISE
+}
+
+// Interview Sessions
+model InterviewSession {
+  id               String            @id @default(cuid())
+  userId           String
+  interviewType    InterviewType
+  difficulty       DifficultyLevel
+  status           SessionStatus     @default(IN_PROGRESS)
+  startedAt        DateTime          @default(now())
+  completedAt      DateTime?
+  duration         Int?              // seconds
+  
+  // Session Data
+  code             String?           @db.Text
+  language         String            @default("javascript")
+  chatHistory      Json[]
+  completionRate   Float             @default(0)
+  
+  // Scoring
+  overallScore     Float?
+  codingScore      Float?
+  communicationScore Float?
+  
+  // Relationships
+  user             User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  feedback         FeedbackReport[]
+  codeSnapshots    CodeSnapshot[]
+  
+  {% if includeIndexes %}
+  @@index([userId])
+  @@index([interviewType])
+  @@index([difficulty])
+  @@index([status])
+  @@index([startedAt])
+  {% endif %}
+}
+
+enum InterviewType {
+  TECHNICAL
+  BEHAVIORAL  
+  SYSTEM_DESIGN
+  CODING_CHALLENGE
+}
+
+enum DifficultyLevel {
+  JUNIOR
+  MID
+  SENIOR
+  STAFF
+}
+
+enum SessionStatus {
+  IN_PROGRESS
+  COMPLETED
+  ABANDONED
+  PAUSED
+}
+
+// AI Feedback System
+model FeedbackReport {
+  id               String          @id @default(cuid())
+  sessionId        String
+  userId           String
+  generatedAt      DateTime        @default(now())
+  
+  // Code Analysis
+  codeComplexity   Float?
+  codeReadability  Float?
+  codePerformance  Float?
+  bestPractices    Float?
+  
+  // Communication Analysis  
+  clarity          Float?
+  technicalAccuracy Float?
+  problemSolving   Float?
+  questionHandling Float?
+  
+  // Pattern Recognition
+  patternsUsed     String[]
+  issuesFound      Json[]
+  suggestions      Json[]
+  
+  // Raw AI Response
+  aiAnalysis       Json?
+  
+  // Relationships
+  session          InterviewSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  user             User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  {% if includeIndexes %}
+  @@index([sessionId])
+  @@index([userId])
+  @@index([generatedAt])
+  {% endif %}
+}
+
+// Code Snapshots for Real-time Analysis
+model CodeSnapshot {
+  id               String          @id @default(cuid())
+  sessionId        String
+  timestamp        DateTime        @default(now())
+  code             String          @db.Text
+  language         String
+  lineCount        Int
+  charCount        Int
+  
+  // Relationships
+  session          InterviewSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  
+  {% if includeIndexes %}
+  @@index([sessionId])
+  @@index([timestamp])
+  {% endif %}
+}
+
+// Scoring Rubrics
+model ScoringRubric {
+  id               String          @id @default(cuid())
+  name             String
+  description      String?
+  interviewType    InterviewType
+  difficulty       DifficultyLevel
+  criteria         Json            // Flexible rubric structure
+  isActive         Boolean         @default(true)
+  createdAt        DateTime        @default(now())
+  
+  // Relationships  
+  evaluations      RubricEvaluation[]
+  
+  {% if includeIndexes %}
+  @@index([interviewType])
+  @@index([difficulty])
+  @@index([isActive])
+  {% endif %}
+}
+
+model RubricEvaluation {
+  id               String          @id @default(cuid())
+  rubricId         String
+  sessionId        String
+  userId           String
+  overallScore     Float
+  criteriaScores   Json
+  feedback         String?         @db.Text
+  evaluatedAt      DateTime        @default(now())
+  
+  // Relationships
+  rubric           ScoringRubric   @relation(fields: [rubricId], references: [id])
+  
+  {% if includeIndexes %}
+  @@index([rubricId])
+  @@index([sessionId])
+  @@index([userId])
+  {% endif %}
+}
+
+// Performance Tracking
+model PerformanceMetric {
+  id               String          @id @default(cuid())
+  userId           String
+  metricType       String          // coding-score, communication-score, etc
+  value            Float
+  recordedAt       DateTime        @default(now())
+  timeFrame        String?         // daily, weekly, monthly
+  context          Json?           // Additional context data
+  
+  {% if includeIndexes %}
+  @@index([userId])
+  @@index([metricType])
+  @@index([recordedAt])
+  {% endif %}
+}
+
+// Achievement System
+model Achievement {
+  id               String          @id @default(cuid())
+  name             String          @unique
+  description      String
+  icon             String?
+  category         String
+  criteria         Json            // Achievement unlock criteria
+  points           Int             @default(0)
+  isActive         Boolean         @default(true)
+  
+  // Relationships
+  userAchievements UserAchievement[]
+}
+
+model UserAchievement {
+  id               String          @id @default(cuid())
+  userId           String
+  achievementId    String
+  unlockedAt       DateTime        @default(now())
+  progress         Float           @default(100) // Percentage progress
+  
+  // Relationships  
+  user             User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  achievement      Achievement     @relation(fields: [achievementId], references: [id])
+  
+  @@unique([userId, achievementId])
+  {% if includeIndexes %}
+  @@index([userId])
+  @@index([achievementId])
+  {% endif %}
+}
+
+// System Configuration
+model SystemConfig {
+  id               String          @id @default(cuid())
+  key              String          @unique
+  value            Json
+  description      String?
+  updatedAt        DateTime        @updatedAt
+}
+
+{% elsif schemaFormat === 'drizzle' %}
+// Interview Copilot Database Schema - Drizzle ORM
+import { pgTable, serial, varchar, text, timestamp, integer, real, boolean, jsonb, pgEnum } from 'drizzle-orm/pg-core';
+import { relations } from 'drizzle-orm';
+
+// Enums
+export const userTierEnum = pgEnum('user_tier', ['FREE', 'PREMIUM', 'ENTERPRISE']);
+export const interviewTypeEnum = pgEnum('interview_type', ['TECHNICAL', 'BEHAVIORAL', 'SYSTEM_DESIGN', 'CODING_CHALLENGE']);
+export const difficultyLevelEnum = pgEnum('difficulty_level', ['JUNIOR', 'MID', 'SENIOR', 'STAFF']);
+export const sessionStatusEnum = pgEnum('session_status', ['IN_PROGRESS', 'COMPLETED', 'ABANDONED', 'PAUSED']);
+
+// Users Table
+export const users = pgTable('users', {
+  id: varchar('id').primaryKey(),
+  email: varchar('email').notNull().unique(),
+  name: varchar('name'),
+  avatarUrl: varchar('avatar_url'),
+  tier: userTierEnum('tier').default('FREE'),
+  credits: integer('credits').default(0),
+  preferences: jsonb('preferences'),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+});
+
+// Interview Sessions Table
+export const interviewSessions = pgTable('interview_sessions', {
+  id: varchar('id').primaryKey(),
+  userId: varchar('user_id').notNull(),
+  interviewType: interviewTypeEnum('interview_type').notNull(),
+  difficulty: difficultyLevelEnum('difficulty').notNull(),
+  status: sessionStatusEnum('status').default('IN_PROGRESS'),
+  startedAt: timestamp('started_at').defaultNow(),
+  completedAt: timestamp('completed_at'),
+  duration: integer('duration'),
+  code: text('code'),
+  language: varchar('language').default('javascript'),
+  chatHistory: jsonb('chat_history'),
+  completionRate: real('completion_rate').default(0),
+  overallScore: real('overall_score'),
+  codingScore: real('coding_score'),
+  communicationScore: real('communication_score'),
+});
+
+// Feedback Reports Table
+export const feedbackReports = pgTable('feedback_reports', {
+  id: varchar('id').primaryKey(),
+  sessionId: varchar('session_id').notNull(),
+  userId: varchar('user_id').notNull(),
+  generatedAt: timestamp('generated_at').defaultNow(),
+  codeComplexity: real('code_complexity'),
+  codeReadability: real('code_readability'),
+  codePerformance: real('code_performance'),
+  bestPractices: real('best_practices'),
+  clarity: real('clarity'),
+  technicalAccuracy: real('technical_accuracy'),
+  problemSolving: real('problem_solving'),
+  questionHandling: real('question_handling'),
+  patternsUsed: jsonb('patterns_used'),
+  issuesFound: jsonb('issues_found'),
+  suggestions: jsonb('suggestions'),
+  aiAnalysis: jsonb('ai_analysis'),
+});
+
+// Relations
+export const usersRelations = relations(users, ({ many }) => ({
+  sessions: many(interviewSessions),
+  feedback: many(feedbackReports),
+}));
+
+export const sessionRelations = relations(interviewSessions, ({ one, many }) => ({
+  user: one(users, {
+    fields: [interviewSessions.userId],
+    references: [users.id],
+  }),
+  feedback: many(feedbackReports),
+}));
+
+{% elsif schemaFormat === 'raw-sql' %}
+-- Interview Copilot Database Schema - Raw SQL ({{ dbType | upper }})
+
+-- Enable required extensions
+{% if dbType === 'postgresql' %}
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+CREATE EXTENSION IF NOT EXISTS "pgcrypto";
+{% endif %}
+
+-- User Management
+CREATE TYPE user_tier AS ENUM ('FREE', 'PREMIUM', 'ENTERPRISE');
+CREATE TYPE interview_type AS ENUM ('TECHNICAL', 'BEHAVIORAL', 'SYSTEM_DESIGN', 'CODING_CHALLENGE');
+CREATE TYPE difficulty_level AS ENUM ('JUNIOR', 'MID', 'SENIOR', 'STAFF');  
+CREATE TYPE session_status AS ENUM ('IN_PROGRESS', 'COMPLETED', 'ABANDONED', 'PAUSED');
+
+CREATE TABLE users (
+  id {{ 'UUID' if dbType === 'postgresql' else 'VARCHAR(36)' }} PRIMARY KEY {% if dbType === 'postgresql' %}DEFAULT uuid_generate_v4(){% else %}DEFAULT (UUID()){% endif %},
+  email VARCHAR(255) NOT NULL UNIQUE,
+  name VARCHAR(255),
+  avatar_url VARCHAR(512),
+  tier user_tier DEFAULT 'FREE',
+  credits INTEGER DEFAULT 0,
+  preferences {% if dbType === 'postgresql' %}JSONB{% else %}JSON{% endif %},
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+-- Interview Sessions
+CREATE TABLE interview_sessions (
+  id {{ 'UUID' if dbType === 'postgresql' else 'VARCHAR(36)' }} PRIMARY KEY {% if dbType === 'postgresql' %}DEFAULT uuid_generate_v4(){% else %}DEFAULT (UUID()){% endif %},
+  user_id {{ 'UUID' if dbType === 'postgresql' else 'VARCHAR(36)' }} NOT NULL,
+  interview_type interview_type NOT NULL,
+  difficulty difficulty_level NOT NULL,
+  status session_status DEFAULT 'IN_PROGRESS',
+  started_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  completed_at TIMESTAMP NULL,
+  duration INTEGER, -- seconds
+  code TEXT,
+  language VARCHAR(50) DEFAULT 'javascript',
+  chat_history {% if dbType === 'postgresql' %}JSONB[]{% else %}JSON{% endif %},
+  completion_rate DECIMAL(3,2) DEFAULT 0.00,
+  overall_score DECIMAL(3,2),
+  coding_score DECIMAL(3,2),
+  communication_score DECIMAL(3,2),
+  {% if includeConstraints %}
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+  {% endif %}
+);
+
+-- AI Feedback System
+CREATE TABLE feedback_reports (
+  id {{ 'UUID' if dbType === 'postgresql' else 'VARCHAR(36)' }} PRIMARY KEY {% if dbType === 'postgresql' %}DEFAULT uuid_generate_v4(){% else %}DEFAULT (UUID()){% endif %},
+  session_id {{ 'UUID' if dbType === 'postgresql' else 'VARCHAR(36)' }} NOT NULL,
+  user_id {{ 'UUID' if dbType === 'postgresql' else 'VARCHAR(36)' }} NOT NULL,
+  generated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  
+  -- Code Analysis Scores  
+  code_complexity DECIMAL(3,2),
+  code_readability DECIMAL(3,2),
+  code_performance DECIMAL(3,2),
+  best_practices DECIMAL(3,2),
+  
+  -- Communication Analysis
+  clarity DECIMAL(3,2),
+  technical_accuracy DECIMAL(3,2), 
+  problem_solving DECIMAL(3,2),
+  question_handling DECIMAL(3,2),
+  
+  -- Pattern Recognition
+  patterns_used {% if dbType === 'postgresql' %}TEXT[]{% else %}JSON{% endif %},
+  issues_found {% if dbType === 'postgresql' %}JSONB{% else %}JSON{% endif %},
+  suggestions {% if dbType === 'postgresql' %}JSONB{% else %}JSON{% endif %},
+  ai_analysis {% if dbType === 'postgresql' %}JSONB{% else %}JSON{% endif %},
+  
+  {% if includeConstraints %}
+  FOREIGN KEY (session_id) REFERENCES interview_sessions(id) ON DELETE CASCADE,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+  {% endif %}
+);
+
+-- Performance Indexes
+{% if includeIndexes %}
+CREATE INDEX idx_users_email ON users(email);
+CREATE INDEX idx_users_tier ON users(tier);
+CREATE INDEX idx_users_created_at ON users(created_at);
+
+CREATE INDEX idx_sessions_user_id ON interview_sessions(user_id);
+CREATE INDEX idx_sessions_type ON interview_sessions(interview_type);
+CREATE INDEX idx_sessions_difficulty ON interview_sessions(difficulty);
+CREATE INDEX idx_sessions_status ON interview_sessions(status);
+CREATE INDEX idx_sessions_started_at ON interview_sessions(started_at);
+
+CREATE INDEX idx_feedback_session_id ON feedback_reports(session_id);
+CREATE INDEX idx_feedback_user_id ON feedback_reports(user_id);
+CREATE INDEX idx_feedback_generated_at ON feedback_reports(generated_at);
+{% endif %}
+
+-- Sample Data
+{% if includeSeeds %}
+INSERT INTO users (email, name, tier, credits) VALUES 
+('demo@example.com', 'Demo User', 'PREMIUM', 100),
+('test@example.com', 'Test User', 'FREE', 10);
+
+INSERT INTO interview_sessions (user_id, interview_type, difficulty, status, duration, completion_rate, overall_score)
+SELECT 
+  u.id,
+  'TECHNICAL'::interview_type,
+  'MID'::difficulty_level,
+  'COMPLETED'::session_status,
+  1800, -- 30 minutes
+  0.85,
+  7.5
+FROM users u WHERE u.email = 'demo@example.com';
+{% endif %}
+
+{% endif %}

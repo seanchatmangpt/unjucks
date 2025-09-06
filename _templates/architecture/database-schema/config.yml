@@ -1,0 +1,23 @@
+---
+name: database-schema
+description: Complete Database Schema for Interview Copilot
+category: architecture
+prompts:
+  - name: dbType
+    type: select
+    choices: ["postgresql", "mysql", "sqlite", "mongodb"]
+  - name: schemaFormat
+    type: select
+    choices: ["prisma", "drizzle", "raw-sql", "typeorm"]
+  - name: includeIndexes
+    type: confirm
+    message: Include performance indexes?
+  - name: includeConstraints
+    type: confirm
+    message: Include foreign key constraints?
+  - name: includeSeeds
+    type: confirm
+    message: Generate seed data?
+  - name: migrationSystem
+    type: select
+    choices: ["prisma-migrate", "drizzle-migrate", "flyway", "custom"]

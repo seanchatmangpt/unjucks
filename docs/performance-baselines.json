@@ -1,0 +1,26 @@
+{
+  "cli_cold_start_-_version": {
+    "averageTime": 462.11797089999993,
+    "medianTime": 463.95779199999924,
+    "memoryUsage": 2.43515625,
+    "timestamp": "2025-09-06T02:50:28.619Z"
+  },
+  "cli_help_display": {
+    "averageTime": 381.0771555333329,
+    "medianTime": 387.0231669999994,
+    "memoryUsage": 1.2583333333333333,
+    "timestamp": "2025-09-06T02:50:28.651Z"
+  },
+  "template_listing": {
+    "averageTime": 333.08820839999896,
+    "medianTime": 308.42570799999885,
+    "memoryUsage": 0.4171875,
+    "timestamp": "2025-09-06T02:50:28.651Z"
+  },
+  "help_command_generation": {
+    "averageTime": 442.41020824999987,
+    "medianTime": 426.494999999999,
+    "memoryUsage": 0.623046875,
+    "timestamp": "2025-09-06T02:50:28.651Z"
+  }
+}

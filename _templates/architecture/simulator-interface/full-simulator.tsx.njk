@@ -1,0 +1,200 @@
+---
+to: src/components/simulator/InterviewSimulator.tsx
+inject: false
+skipIf: exists
+---
+import React, { useState, useEffect, useCallback } from 'react';
+import { ChatWindow } from './ChatWindow';
+import { CodeEditor } from './CodeEditor';
+import { PreviewPanel } from './PreviewPanel';
+import { useInterviewSession } from '@/hooks/useInterviewSession';
+import { useAIFeedback } from '@/hooks/useAIFeedback';
+{% if realtime %}
+import { useCollaboration } from '@/hooks/useCollaboration';
+{% endif %}
+
+interface InterviewSimulatorProps {
+  sessionId: string;
+  interviewType: 'technical' | 'behavioral' | 'system-design';
+  difficulty: 'junior' | 'mid' | 'senior' | 'staff';
+}
+
+/**
+ * Main Interview Simulator Component - 3-Panel Architecture
+ * 
+ * ARCHITECTURE PATTERN: Container-Presenter with Real-time State Sync
+ * 
+ * Panel Layout:
+ * ┌─────────────────┬─────────────────┐
+ * │   Chat Window   │   Code Editor   │
+ * │  (AI Interview) │ (Live Coding)   │
+ * ├─────────────────┴─────────────────┤
+ * │          Preview Panel            │
+ * │    (Output + Terminal)            │
+ * └───────────────────────────────────┘
+ */
+export const InterviewSimulator: React.FC<InterviewSimulatorProps> = ({
+  sessionId,
+  interviewType,
+  difficulty
+}) => {
+  const [activePanel, setActivePanel] = useState<'chat' | 'code' | 'preview'>('chat');
+  const [splitRatio, setSplitRatio] = useState({ horizontal: 50, vertical: 60 });
+  
+  const {
+    session,
+    messages,
+    sendMessage,
+    updateCode,
+    isLoading
+  } = useInterviewSession(sessionId);
+
+  const {
+    feedback,
+    codeAnalysis,
+    communicationScore,
+    generateFeedback
+  } = useAIFeedback();
+
+  {% if realtime %}
+  const { 
+    collaborators,
+    broadcastState,
+    subscribeToUpdates 
+  } = useCollaboration(sessionId);
+  {% endif %}
+
+  // Handle panel resizing
+  const handleResize = useCallback((direction: 'horizontal' | 'vertical', ratio: number) => {
+    setSplitRatio(prev => ({
+      ...prev,
+      [direction]: Math.max(20, Math.min(80, ratio))
+    }));
+  }, []);
+
+  // Auto-generate feedback on code changes
+  useEffect(() => {
+    if (session?.code) {
+      const debounceTimer = setTimeout(() => {
+        generateFeedback(session.code, messages);
+      }, 2000);
+      return () => clearTimeout(debounceTimer);
+    }
+  }, [session?.code, messages, generateFeedback]);
+
+  return (
+    <div className="interview-simulator h-screen flex flex-col">
+      {/* Header with Session Info */}
+      <div className="simulator-header bg-gray-900 text-white p-4 flex justify-between items-center">
+        <div className="session-info">
+          <h1 className="text-xl font-bold">Interview Session</h1>
+          <span className="text-sm text-gray-400">
+            {interviewType} | {difficulty} level
+          </span>
+        </div>
+        <div className="controls flex gap-2">
+          <button 
+            onClick={() => setActivePanel('chat')}
+            className={`px-3 py-1 rounded ${activePanel === 'chat' ? 'bg-blue-600' : 'bg-gray-700'}`}
+          >
+            Chat
+          </button>
+          <button 
+            onClick={() => setActivePanel('code')}
+            className={`px-3 py-1 rounded ${activePanel === 'code' ? 'bg-blue-600' : 'bg-gray-700'}`}
+          >
+            Code
+          </button>
+          <button 
+            onClick={() => setActivePanel('preview')}
+            className={`px-3 py-1 rounded ${activePanel === 'preview' ? 'bg-blue-600' : 'bg-gray-700'}`}
+          >
+            Preview
+          </button>
+        </div>
+      </div>
+
+      {/* Main 3-Panel Layout */}
+      <div className="simulator-body flex-1 flex">
+        {/* Top Row: Chat + Code */}
+        <div 
+          className="top-panels flex"
+          style={{ height: `${splitRatio.vertical}%` }}
+        >
+          {/* Chat Panel */}
+          <div 
+            className="chat-panel border-r border-gray-300"
+            style={{ width: `${splitRatio.horizontal}%` }}
+          >
+            <ChatWindow
+              messages={messages}
+              onSendMessage={sendMessage}
+              isLoading={isLoading}
+              aiProvider="{{ aiProvider }}"
+              {% if realtime %}
+              collaborators={collaborators}
+              {% endif %}
+            />
+          </div>
+
+          {/* Code Editor Panel */}
+          <div 
+            className="code-panel"
+            style={{ width: `${100 - splitRatio.horizontal}%` }}
+          >
+            <CodeEditor
+              value={session?.code || ''}
+              language={session?.language || 'javascript'}
+              onChange={updateCode}
+              analysis={codeAnalysis}
+              onResize={(ratio) => handleResize('horizontal', ratio)}
+            />
+          </div>
+        </div>
+
+        {/* Bottom Panel: Preview/Output */}
+        <div 
+          className="preview-panel border-t border-gray-300"
+          style={{ height: `${100 - splitRatio.vertical}%` }}
+        >
+          <PreviewPanel
+            code={session?.code || ''}
+            language={session?.language || 'javascript'}
+            feedback={feedback}
+            onResize={(ratio) => handleResize('vertical', ratio)}
+          />
+        </div>
+      </div>
+
+      {/* Resize Handles */}
+      <div 
+        className="resize-handle-horizontal absolute cursor-col-resize bg-gray-400 hover:bg-blue-500"
+        style={{ 
+          left: `${splitRatio.horizontal}%`, 
+          top: '60px',
+          width: '4px',
+          height: `${splitRatio.vertical}%`,
+          transform: 'translateX(-2px)'
+        }}
+        onMouseDown={(e) => {
+          // Handle horizontal resize logic
+        }}
+      />
+      <div 
+        className="resize-handle-vertical absolute cursor-row-resize bg-gray-400 hover:bg-blue-500"
+        style={{ 
+          top: `${splitRatio.vertical + 8}%`,
+          left: '0',
+          right: '0', 
+          height: '4px',
+          transform: 'translateY(-2px)'
+        }}
+        onMouseDown={(e) => {
+          // Handle vertical resize logic
+        }}
+      />
+    </div>
+  );
+};
+
+export default InterviewSimulator;

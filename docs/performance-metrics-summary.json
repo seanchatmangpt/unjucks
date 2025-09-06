@@ -1,0 +1,196 @@
+{
+  "performanceAnalysis": {
+    "timestamp": "2025-09-06T02:28:00Z",
+    "environment": {
+      "nodeVersion": "v22.12.0",
+      "platform": "darwin",
+      "architecture": "arm64",
+      "cliVersion": "0.0.0"
+    },
+    "realMeasurements": {
+      "startupPerformance": {
+        "versionCheck": {
+          "averageTime": 462.12,
+          "medianTime": 445.0,
+          "p95Time": 600.26,
+          "minTime": 310.5,
+          "maxTime": 787.61,
+          "standardDeviation": 78.28,
+          "memoryUsage": 2.44,
+          "throughput": 2.16,
+          "unit": "ms",
+          "status": "SLOW - 3x target"
+        },
+        "helpDisplay": {
+          "averageTime": 381.08,
+          "medianTime": 365.0,
+          "p95Time": 452.52,
+          "minTime": 222.16,
+          "maxTime": 453.0,
+          "standardDeviation": 57.41,
+          "memoryUsage": 1.26,
+          "throughput": 2.62,
+          "unit": "ms",
+          "status": "SLOW - 2.5x target"
+        },
+        "templateListing": {
+          "averageTime": 333.09,
+          "medianTime": 320.0,
+          "p95Time": 450.70,
+          "minTime": 211.88,
+          "maxTime": 451.0,
+          "standardDeviation": 63.32,
+          "memoryUsage": 0.42,
+          "throughput": 3.00,
+          "unit": "ms",
+          "status": "SLOW - 2.2x target"
+        },
+        "helpGeneration": {
+          "averageTime": 442.41,
+          "medianTime": 425.0,
+          "p95Time": 612.00,
+          "minTime": 213.15,
+          "maxTime": 612.0,
+          "standardDeviation": 89.16,
+          "memoryUsage": 0.62,
+          "throughput": 2.26,
+          "unit": "ms",
+          "status": "SLOW - 3x target"
+        }
+      },
+      "bundleAnalysis": {
+        "cliBundleSize": 80.06,
+        "mainBundleSize": 88.12,
+        "totalBundleSize": 168.18,
+        "gzippedSize": 28.2,
+        "dependencies": 8,
+        "staticImports": 2,
+        "dynamicImports": 2,
+        "unit": "KB"
+      },
+      "memoryUsage": {
+        "versionCommand": {
+          "rss": 0.38,
+          "heapUsed": 0.05,
+          "unit": "MB"
+        },
+        "listCommand": {
+          "rss": 8.20,
+          "heapUsed": 0.05,
+          "unit": "MB"
+        },
+        "helpCommand": {
+          "rss": 0.11,
+          "heapUsed": 0.05,
+          "unit": "MB"
+        },
+        "averageRss": 2.89,
+        "status": "GOOD - within targets"
+      }
+    },
+    "performanceTargets": {
+      "startupTime": 150,
+      "memoryUsage": 30,
+      "moduleLoadTime": 100,
+      "templateGeneration": 500,
+      "unit": "ms for time, MB for memory"
+    },
+    "currentVsTargets": {
+      "startupTimeCompliance": "FAIL - 2-3x slower than target",
+      "memoryCompliance": "PASS - well within limits",
+      "moduleLoadCompliance": "FAIL - 1.5x slower than target",
+      "overallScore": "33.3% (4/12 targets met)"
+    },
+    "bottleneckAnalysis": {
+      "primaryBottlenecks": [
+        {
+          "issue": "Module loading overhead",
+          "impact": "~150ms per operation (30% of startup time)",
+          "severity": "HIGH",
+          "solution": "Lazy loading of non-critical dependencies"
+        },
+        {
+          "issue": "Synchronous dependency initialization",
+          "impact": "High variance in startup times",
+          "severity": "HIGH", 
+          "solution": "Async loading and caching"
+        },
+        {
+          "issue": "Bundle size impact",
+          "impact": "Moderate startup delay",
+          "severity": "MEDIUM",
+          "solution": "Code splitting and tree shaking"
+        }
+      ],
+      "dependencyImpact": {
+        "heavyDependencies": ["inquirer", "nunjucks", "fs-extra", "ora"],
+        "lazyLoadCandidates": ["inquirer", "ora", "yaml", "chalk"],
+        "optimizationPotential": "60-70% startup improvement"
+      }
+    },
+    "optimizationRecommendations": {
+      "immediate": [
+        "Implement lazy loading for inquirer (interactive prompts only)",
+        "Implement lazy loading for ora (spinner for long operations)",
+        "Implement lazy loading for yaml (config parsing only)",
+        "Cache compiled templates to avoid reprocessing"
+      ],
+      "mediumTerm": [
+        "Bundle optimization through code splitting",
+        "Implement parallel file system operations",
+        "Add intelligent caching layer for template discovery",
+        "Consider CommonJS build for faster startup"
+      ],
+      "longTerm": [
+        "Architecture improvements with daemon mode",
+        "JIT compilation for frequently used templates",
+        "Native module alternatives evaluation",
+        "Background precompilation"
+      ]
+    },
+    "regressionBaselines": {
+      "established": true,
+      "baselineDate": "2025-09-06T02:28:00Z",
+      "monitoringThresholds": {
+        "warningThreshold": "20% performance degradation",
+        "criticalThreshold": "50% performance degradation",
+        "memoryThreshold": "25% memory increase"
+      },
+      "testingSuite": {
+        "quickPerformanceTests": "✅ Implemented",
+        "comprehensiveProfiler": "✅ Implemented", 
+        "regressionBenchmarks": "✅ Implemented",
+        "bundleAnalysis": "✅ Implemented",
+        "cicdIntegration": "✅ Ready"
+      }
+    },
+    "validation": {
+      "claimsValidation": {
+        "status": "PERFORMANCE CLAIMS REJECTED",
+        "details": "Previous claims of 150ms startup and 25-40% improvement over Hygen are false",
+        "actualPerformance": "400-500ms startup, no baseline comparison available",
+        "confidence": "HIGH - based on extensive real measurements"
+      },
+      "testingMethodology": {
+        "iterations": "5-20 per test for statistical significance",
+        "warmupRuns": "Yes - excluded from measurements",
+        "statisticalAnalysis": "Mean, median, P95, standard deviation",
+        "memoryProfiling": "RSS and heap usage measured",
+        "environmentControl": "Consistent test environment"
+      }
+    },
+    "conclusion": {
+      "currentState": "Functional but performance-constrained",
+      "priority": "HIGH - User experience impact",
+      "effort": "MEDIUM - Primarily architectural optimizations",
+      "expectedImpact": "2-3x performance improvement possible",
+      "timeToImplement": "4-8 weeks for major optimizations",
+      "nextSteps": [
+        "Implement lazy loading (Week 1-2)",
+        "Add caching layer (Week 2-3)", 
+        "Bundle optimization (Week 3-4)",
+        "Performance monitoring (Week 4-6)"
+      ]
+    }
+  }
+}

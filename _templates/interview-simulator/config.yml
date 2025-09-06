@@ -1,0 +1,131 @@
+name: interview-simulator
+description: Generate Interview Copilot AI-powered mock interview simulator components
+templates:
+  - name: vue-component
+    description: Vue 3 component with TypeScript and composition API
+    files:
+      - "{{ componentName | pascalCase }}.vue"
+      - "{{ componentName | pascalCase }}.test.ts"
+    prompts:
+      - name: componentName
+        message: "Component name:"
+        type: input
+        default: InterviewSimulator
+      - name: componentDescription
+        message: "Component description:"
+        type: input
+        default: "Interview simulation component"
+      - name: withTests
+        message: "Include Vitest tests?"
+        type: confirm
+        default: true
+      - name: withProps
+        message: "Include typed props interface?"
+        type: confirm
+        default: true
+      - name: withEmits
+        message: "Include typed emits?"
+        type: confirm
+        default: true
+      - name: apiIntegration
+        message: "Include API integration?"
+        type: confirm
+        default: false
+      
+  - name: api-route
+    description: Nuxt 3 API route with TypeScript
+    files:
+      - "{{ routeName | kebabCase }}.{{ method | lower }}.ts"
+      - "{{ routeName | kebabCase }}.test.ts"
+    prompts:
+      - name: routeName
+        message: "Route name:"
+        type: input
+        default: interviews
+      - name: method
+        message: "HTTP method:"
+        type: list
+        choices: [GET, POST, PUT, PATCH, DELETE]
+        default: GET
+      - name: withValidation
+        message: "Include request validation?"
+        type: confirm
+        default: true
+      - name: withAuth
+        message: "Include authentication?"
+        type: confirm
+        default: true
+      - name: withDatabase
+        message: "Include database integration?"
+        type: confirm
+        default: true
+        
+  - name: database-schema
+    description: Database schema definition for Interview Copilot
+    files:
+      - "{{ tableName | snakeCase }}.sql"
+      - "migrations/{{ timestamp }}_create_{{ tableName | snakeCase }}.sql"
+    prompts:
+      - name: tableName
+        message: "Table name:"
+        type: input
+        default: interviews
+      - name: withIndexes
+        message: "Include database indexes?"
+        type: confirm
+        default: true
+      - name: withConstraints
+        message: "Include foreign key constraints?"
+        type: confirm
+        default: true
+      - name: withTimestamps
+        message: "Include created_at/updated_at timestamps?"
+        type: confirm
+        default: true
+        
+  - name: test-suite
+    description: Comprehensive test suite with Vitest and testing-library
+    files:
+      - "{{ testName | kebabCase }}.test.ts"
+      - "{{ testName | kebabCase }}.integration.test.ts"
+    prompts:
+      - name: testName
+        message: "Test suite name:"
+        type: input
+        default: interview-simulator
+      - name: testType
+        message: "Test type:"
+        type: list
+        choices: [unit, integration, e2e]
+        default: unit
+      - name: withMocks
+        message: "Include mock setup?"
+        type: confirm
+        default: true
+      - name: withApiMocking
+        message: "Include API mocking?"
+        type: confirm
+        default: false
+        
+  - name: nuxt-config
+    description: Nuxt configuration for Interview Copilot features
+    files:
+      - "nuxt.config.ts"
+      - "app.config.ts"
+    prompts:
+      - name: projectName
+        message: "Project name:"
+        type: input
+        default: interview-copilot
+      - name: withUI
+        message: "Include Nuxt UI?"
+        type: confirm
+        default: true
+      - name: withContent
+        message: "Include Nuxt Content?"
+        type: confirm
+        default: true
+      - name: withAI
+        message: "Include AI/LLM modules?"
+        type: confirm
+        default: true

@@ -1,0 +1,157 @@
+-- Migration: <%= migrationName %>
+-- Generated: <%= new Date().toISOString() %>
+-- Timestamp: <%= timestamp %>
+
+<% if (migrationType === 'create_table') { -%>
+-- Create table migration
+<% if (dialect === 'postgresql') { -%>
+-- PostgreSQL version
+BEGIN;
+
+CREATE TABLE IF NOT EXISTS <%= tableName %> (
+  id SERIAL PRIMARY KEY,
+  
+<% if (columns && columns.length > 0) { -%>
+<% columns.forEach(function(col, index) { -%>
+  <%= col.name %> <%= col.type %><%= col.nullable === false ? ' NOT NULL' : '' %><%= col.default ? ' DEFAULT ' + col.default : '' %><%= col.unique ? ' UNIQUE' : '' %><%= index < columns.length - 1 ? ',' : '' %>
+<% }); -%>
+  
+<% } -%>
+  -- Standard audit fields
+  ,created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+  ,updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+  ,created_by INTEGER
+  ,updated_by INTEGER
+);
+
+<% if (indexes && indexes.length > 0) { -%>
+-- Create indexes
+<% indexes.forEach(function(idx) { -%>
+CREATE INDEX CONCURRENTLY IF NOT EXISTS <%= idx.name %> ON <%= tableName %>(<%= idx.columns.join(', ') %>);
+<% }); -%>
+<% } -%>
+
+-- Create update trigger
+CREATE OR REPLACE FUNCTION update_<%= tableName %>_updated_at()
+RETURNS TRIGGER AS $$
+BEGIN
+  NEW.updated_at = CURRENT_TIMESTAMP;
+  RETURN NEW;
+END;
+$$ language 'plpgsql';
+
+CREATE TRIGGER trigger_<%= tableName %>_updated_at
+  BEFORE UPDATE ON <%= tableName %>
+  FOR EACH ROW EXECUTE FUNCTION update_<%= tableName %>_updated_at();
+
+COMMIT;
+
+<% } else { -%>
+-- SQLite version
+CREATE TABLE IF NOT EXISTS <%= tableName %> (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  
+<% if (columns && columns.length > 0) { -%>
+<% columns.forEach(function(col, index) { -%>
+  <%= col.name %> <%= col.type %><%= col.nullable === false ? ' NOT NULL' : '' %><%= col.default ? ' DEFAULT ' + col.default : '' %><%= col.unique ? ' UNIQUE' : '' %><%= index < columns.length - 1 ? ',' : '' %>
+<% }); -%>
+  
+<% } -%>
+  -- Standard audit fields
+  ,created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  ,updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  ,created_by INTEGER
+  ,updated_by INTEGER
+);
+
+<% if (indexes && indexes.length > 0) { -%>
+-- Create indexes
+<% indexes.forEach(function(idx) { -%>
+CREATE INDEX IF NOT EXISTS <%= idx.name %> ON <%= tableName %>(<%= idx.columns.join(', ') %>);
+<% }); -%>
+<% } -%>
+<% } -%>
+
+<% } else if (migrationType === 'add_column') { -%>
+-- Add column migration
+<% if (dialect === 'postgresql') { -%>
+BEGIN;
+ALTER TABLE <%= tableName %> ADD COLUMN <%= columnName %> <%= columnType %><%= nullable === false ? ' NOT NULL' : '' %><%= defaultValue ? ' DEFAULT ' + defaultValue : '' %>;
+<% if (createIndex) { -%>
+CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_<%= tableName %>_<%= columnName %> ON <%= tableName %>(<%= columnName %>);
+<% } -%>
+COMMIT;
+<% } else { -%>
+ALTER TABLE <%= tableName %> ADD COLUMN <%= columnName %> <%= columnType %><%= nullable === false ? ' NOT NULL' : '' %><%= defaultValue ? ' DEFAULT ' + defaultValue : '' %>;
+<% if (createIndex) { -%>
+CREATE INDEX IF NOT EXISTS idx_<%= tableName %>_<%= columnName %> ON <%= tableName %>(<%= columnName %>);
+<% } -%>
+<% } -%>
+
+<% } else if (migrationType === 'drop_column') { -%>
+-- Drop column migration
+<% if (dialect === 'postgresql') { -%>
+BEGIN;
+ALTER TABLE <%= tableName %> DROP COLUMN IF EXISTS <%= columnName %>;
+COMMIT;
+<% } else { -%>
+-- SQLite doesn't support DROP COLUMN directly, recreate table
+-- This is a destructive operation, backup your data first!
+PRAGMA foreign_keys=off;
+
+BEGIN TRANSACTION;
+
+-- Rename existing table
+ALTER TABLE <%= tableName %> RENAME TO <%= tableName %>_backup;
+
+-- Create new table without the column (you need to specify the full schema)
+-- This template requires manual completion of the new table schema
+-- CREATE TABLE <%= tableName %> ( ... );
+
+-- Copy data from backup (excluding the dropped column)
+-- INSERT INTO <%= tableName %> SELECT ... FROM <%= tableName %>_backup;
+
+-- Drop backup table
+-- DROP TABLE <%= tableName %>_backup;
+
+COMMIT;
+
+PRAGMA foreign_keys=on;
+<% } -%>
+
+<% } else if (migrationType === 'add_index') { -%>
+-- Add index migration
+<% if (dialect === 'postgresql') { -%>
+CREATE INDEX CONCURRENTLY IF NOT EXISTS <%= indexName %> ON <%= tableName %>(<%= columns.join(', ') %>);
+<% } else { -%>
+CREATE INDEX IF NOT EXISTS <%= indexName %> ON <%= tableName %>(<%= columns.join(', ') %>);
+<% } -%>
+
+<% } else if (migrationType === 'drop_index') { -%>
+-- Drop index migration
+DROP INDEX IF EXISTS <%= indexName %>;
+
+<% } else if (migrationType === 'add_foreign_key') { -%>
+-- Add foreign key migration
+<% if (dialect === 'postgresql') { -%>
+ALTER TABLE <%= tableName %> ADD CONSTRAINT <%= constraintName %> 
+  FOREIGN KEY (<%= columnName %>) REFERENCES <%= referencedTable %>(id)<%= onDelete ? ' ON DELETE ' + onDelete : '' %><%= onUpdate ? ' ON UPDATE ' + onUpdate : '' %>;
+<% } else { -%>
+-- SQLite foreign keys are defined at table creation time
+-- This requires recreating the table with the foreign key constraint
+-- Please implement this manually or use a different approach
+<% } -%>
+
+<% } else { -%>
+-- Custom migration
+-- Add your custom SQL statements here
+<% if (customSql) { -%>
+<%= customSql %>
+<% } else { -%>
+-- TODO: Implement custom migration logic
+<% } -%>
+<% } -%>
+
+-- Migration completed: <%= migrationName %>
+-- Run this to rollback if needed (implement rollback logic):
+-- TODO: Add rollback statements

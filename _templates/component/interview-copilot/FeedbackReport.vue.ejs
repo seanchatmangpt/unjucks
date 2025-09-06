@@ -1,0 +1,875 @@
+<template>
+  <div class="feedback-report h-full flex flex-col bg-white dark:bg-gray-900">
+    <!-- Report Header -->
+    <div class="border-b border-gray-200 dark:border-gray-700 p-4">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <UIcon name="i-heroicons-light-bulb" class="h-5 w-5 text-blue-500" />
+          <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">
+            AI Feedback
+          </h2>
+          
+          <UBadge
+            v-if="feedbackData?.confidence"
+            :color="getConfidenceColor(feedbackData.confidence)"
+            :label="`${Math.round(feedbackData.confidence * 100)}% confidence`"
+            size="xs"
+          />
+        </div>
+        
+        <div class="flex items-center gap-2">
+          <UButton
+            v-if="realTimeFeedback"
+            :icon="autoRefresh ? 'i-heroicons-pause' : 'i-heroicons-play'"
+            :label="autoRefresh ? 'Pause' : 'Auto-refresh'"
+            variant="outline"
+            size="xs"
+            @click="toggleAutoRefresh"
+          />
+          
+          <UButton
+            icon="i-heroicons-arrow-path"
+            variant="ghost"
+            size="xs"
+            :loading="isLoading"
+            @click="refreshFeedback"
+          />
+          
+          <UDropdown :items="exportMenuItems">
+            <UButton
+              icon="i-heroicons-share"
+              variant="ghost"
+              size="xs"
+            />
+          </UDropdown>
+        </div>
+      </div>
+    </div>
+
+    <!-- Content Area -->
+    <div class="flex-1 overflow-hidden">
+      <!-- Loading State -->
+      <div
+        v-if="isLoading && !feedbackData"
+        class="flex items-center justify-center h-full"
+      >
+        <div class="text-center">
+          <UIcon name="i-heroicons-cpu-chip" class="h-12 w-12 text-blue-500 mx-auto mb-4 animate-pulse" />
+          <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">
+            Analyzing Your Code
+          </h3>
+          <p class="text-gray-600 dark:text-gray-400">
+            {{ loadingMessage }}
+          </p>
+          
+          <!-- Analysis Progress -->
+          <div v-if="analysisProgress" class="mt-4 max-w-sm mx-auto">
+            <div class="flex justify-between text-sm text-gray-500 dark:text-gray-400 mb-1">
+              <span>{{ analysisProgress.stage }}</span>
+              <span>{{ analysisProgress.percentage }}%</span>
+            </div>
+            <UProgress
+              :value="analysisProgress.percentage"
+              :max="100"
+              color="blue"
+              size="sm"
+            />
+          </div>
+        </div>
+      </div>
+
+      <!-- Feedback Content -->
+      <div v-else-if="feedbackData" class="h-full overflow-y-auto">
+        <!-- Overall Score -->
+        <div class="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/20 dark:to-indigo-950/20 p-6 border-b border-gray-200 dark:border-gray-700">
+          <div class="flex items-center justify-between">
+            <div>
+              <h3 class="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">
+                Overall Score
+              </h3>
+              <div class="flex items-center gap-4">
+                <div class="text-3xl font-bold" :class="getScoreColor(feedbackData.overallScore)">
+                  {{ feedbackData.overallScore }}/100
+                </div>
+                <div class="text-sm text-gray-600 dark:text-gray-400">
+                  {{ getScoreLabel(feedbackData.overallScore) }}
+                </div>
+              </div>
+            </div>
+            
+            <!-- Circular Progress -->
+            <div class="relative w-20 h-20">
+              <svg class="w-20 h-20 transform -rotate-90" viewBox="0 0 100 100">
+                <circle
+                  cx="50"
+                  cy="50"
+                  r="40"
+                  stroke="currentColor"
+                  stroke-width="8"
+                  fill="transparent"
+                  class="text-gray-200 dark:text-gray-700"
+                />
+                <circle
+                  cx="50"
+                  cy="50"
+                  r="40"
+                  stroke="currentColor"
+                  stroke-width="8"
+                  fill="transparent"
+                  stroke-linecap="round"
+                  :stroke-dasharray="`${feedbackData.overallScore * 2.51} 251`"
+                  :class="getScoreColor(feedbackData.overallScore)"
+                />
+              </svg>
+              <div class="absolute inset-0 flex items-center justify-center">
+                <span class="text-sm font-semibold" :class="getScoreColor(feedbackData.overallScore)">
+                  {{ feedbackData.overallScore }}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Category Scores -->
+        <div class="p-6 border-b border-gray-200 dark:border-gray-700">
+          <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
+            Detailed Analysis
+          </h3>
+          
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div
+              v-for="category in feedbackData.categoryScores"
+              :key="category.name"
+              class="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg"
+            >
+              <div class="flex items-center justify-between mb-3">
+                <div class="flex items-center gap-2">
+                  <UIcon :name="getCategoryIcon(category.name)" class="h-4 w-4" />
+                  <span class="font-medium text-gray-900 dark:text-gray-100">
+                    {{ category.label }}
+                  </span>
+                </div>
+                <span class="font-semibold" :class="getScoreColor(category.score)">
+                  {{ category.score }}/100
+                </span>
+              </div>
+              
+              <UProgress
+                :value="category.score"
+                :max="100"
+                :color="getProgressColor(category.score)"
+                size="sm"
+                class="mb-2"
+              />
+              
+              <p class="text-xs text-gray-600 dark:text-gray-400">
+                {{ category.description }}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Strengths and Improvements -->
+        <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+          <!-- Strengths -->
+          <div>
+            <div class="flex items-center gap-2 mb-4">
+              <UIcon name="i-heroicons-check-circle" class="h-5 w-5 text-green-500" />
+              <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                Strengths
+              </h3>
+            </div>
+            
+            <div class="space-y-3">
+              <div
+                v-for="(strength, index) in feedbackData.strengths"
+                :key="index"
+                class="flex items-start gap-3 p-3 bg-green-50 dark:bg-green-950/20 rounded-lg border border-green-200 dark:border-green-800"
+              >
+                <UIcon name="i-heroicons-plus-circle" class="h-4 w-4 text-green-600 dark:text-green-400 mt-0.5 flex-shrink-0" />
+                <div class="flex-1 min-w-0">
+                  <h4 class="font-medium text-green-900 dark:text-green-100 mb-1">
+                    {{ strength.title }}
+                  </h4>
+                  <p class="text-sm text-green-700 dark:text-green-200">
+                    {{ strength.description }}
+                  </p>
+                  <div v-if="strength.codeExample" class="mt-2">
+                    <pre class="text-xs bg-green-100 dark:bg-green-900/30 p-2 rounded font-mono overflow-x-auto"><code>{{ strength.codeExample }}</code></pre>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Improvements -->
+          <div>
+            <div class="flex items-center gap-2 mb-4">
+              <UIcon name="i-heroicons-arrow-up-circle" class="h-5 w-5 text-blue-500" />
+              <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                Areas for Improvement
+              </h3>
+            </div>
+            
+            <div class="space-y-3">
+              <div
+                v-for="(improvement, index) in feedbackData.improvements"
+                :key="index"
+                class="p-3 bg-blue-50 dark:bg-blue-950/20 rounded-lg border border-blue-200 dark:border-blue-800"
+              >
+                <div class="flex items-start gap-3">
+                  <UIcon
+                    :name="getSeverityIcon(improvement.severity)"
+                    :class="getSeverityColor(improvement.severity)"
+                    class="h-4 w-4 mt-0.5 flex-shrink-0"
+                  />
+                  
+                  <div class="flex-1 min-w-0">
+                    <div class="flex items-center gap-2 mb-1">
+                      <h4 class="font-medium text-blue-900 dark:text-blue-100">
+                        {{ improvement.title }}
+                      </h4>
+                      <UBadge
+                        :color="getSeverityBadgeColor(improvement.severity)"
+                        :label="improvement.severity"
+                        size="xs"
+                      />
+                    </div>
+                    
+                    <p class="text-sm text-blue-700 dark:text-blue-200 mb-2">
+                      {{ improvement.description }}
+                    </p>
+                    
+                    <!-- Before/After Code Examples -->
+                    <div v-if="improvement.beforeExample || improvement.afterExample" class="space-y-2">
+                      <div v-if="improvement.beforeExample">
+                        <div class="text-xs font-medium text-red-600 dark:text-red-400 mb-1">Before:</div>
+                        <pre class="text-xs bg-red-50 dark:bg-red-950/20 p-2 rounded font-mono overflow-x-auto border border-red-200 dark:border-red-800"><code>{{ improvement.beforeExample }}</code></pre>
+                      </div>
+                      
+                      <div v-if="improvement.afterExample">
+                        <div class="text-xs font-medium text-green-600 dark:text-green-400 mb-1">Suggested:</div>
+                        <pre class="text-xs bg-green-50 dark:bg-green-950/20 p-2 rounded font-mono overflow-x-auto border border-green-200 dark:border-green-800"><code>{{ improvement.afterExample }}</code></pre>
+                      </div>
+                    </div>
+                    
+                    <!-- Helpful Resources -->
+                    <div v-if="improvement.resources" class="mt-3">
+                      <div class="text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
+                        Learn more:
+                      </div>
+                      <div class="flex flex-wrap gap-1">
+                        <UButton
+                          v-for="resource in improvement.resources"
+                          :key="resource.url"
+                          :label="resource.title"
+                          variant="outline"
+                          size="xs"
+                          @click="openResource(resource.url)"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Detailed Comments -->
+        <div
+          v-if="feedbackData.detailedComments?.length > 0"
+          class="border-t border-gray-200 dark:border-gray-700 p-6"
+        >
+          <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
+            Line-by-Line Feedback
+          </h3>
+          
+          <div class="space-y-4">
+            <div
+              v-for="comment in feedbackData.detailedComments"
+              :key="comment.id"
+              class="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg"
+            >
+              <div class="flex items-start gap-3">
+                <UIcon
+                  :name="getCommentTypeIcon(comment.type)"
+                  :class="getCommentTypeColor(comment.type)"
+                  class="h-4 w-4 mt-1 flex-shrink-0"
+                />
+                
+                <div class="flex-1 min-w-0">
+                  <div class="flex items-center gap-2 mb-2">
+                    <span class="font-mono text-sm text-gray-600 dark:text-gray-400">
+                      Line {{ comment.lineNumber }}
+                    </span>
+                    <UBadge
+                      :color="getCommentTypeBadgeColor(comment.type)"
+                      :label="comment.type"
+                      size="xs"
+                    />
+                  </div>
+                  
+                  <p class="text-gray-900 dark:text-gray-100 mb-3">
+                    {{ comment.message }}
+                  </p>
+                  
+                  <div
+                    v-if="comment.codeSnippet"
+                    class="bg-gray-900 text-gray-100 p-3 rounded font-mono text-sm overflow-x-auto"
+                  >
+                    <pre><code>{{ comment.codeSnippet }}</code></pre>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Summary Recommendations -->
+        <div
+          v-if="feedbackData.recommendations?.length > 0"
+          class="border-t border-gray-200 dark:border-gray-700 p-6 bg-gray-50 dark:bg-gray-800/50"
+        >
+          <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
+            Next Steps
+          </h3>
+          
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div
+              v-for="(recommendation, index) in feedbackData.recommendations"
+              :key="index"
+              class="p-4 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700"
+            >
+              <div class="flex items-start gap-3">
+                <div
+                  class="w-6 h-6 bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-400 rounded-full flex items-center justify-center text-sm font-semibold flex-shrink-0"
+                >
+                  {{ index + 1 }}
+                </div>
+                
+                <div class="flex-1 min-w-0">
+                  <h4 class="font-medium text-gray-900 dark:text-gray-100 mb-1">
+                    {{ recommendation.title }}
+                  </h4>
+                  <p class="text-sm text-gray-600 dark:text-gray-400">
+                    {{ recommendation.description }}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Empty State -->
+      <div
+        v-else
+        class="flex items-center justify-center h-full p-8"
+      >
+        <div class="text-center max-w-sm">
+          <UIcon name="i-heroicons-document-magnifying-glass" class="h-16 w-16 text-gray-400 mx-auto mb-4" />
+          <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">
+            No Feedback Yet
+          </h3>
+          <p class="text-gray-600 dark:text-gray-400 mb-4">
+            Write some code and run it to get AI-powered feedback and suggestions.
+          </p>
+          <UButton
+            label="Request Analysis"
+            icon="i-heroicons-cpu-chip"
+            @click="refreshFeedback"
+            :loading="isLoading"
+          />
+        </div>
+      </div>
+    </div>
+
+    <!-- Export Modal -->
+    <UModal v-model="showExportModal">
+      <UCard>
+        <template #header>
+          <h3 class="text-lg font-semibold">Export Feedback Report</h3>
+        </template>
+        
+        <div class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Export Format
+            </label>
+            <USelectMenu
+              v-model="exportFormat"
+              :options="exportFormatOptions"
+            />
+          </div>
+          
+          <div>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Include Sections
+            </label>
+            <div class="space-y-2">
+              <UCheckbox
+                v-for="section in exportSections"
+                :key="section.key"
+                v-model="section.included"
+                :label="section.label"
+              />
+            </div>
+          </div>
+        </div>
+        
+        <template #footer>
+          <div class="flex justify-end gap-3">
+            <UButton
+              label="Cancel"
+              variant="outline"
+              @click="showExportModal = false"
+            />
+            <UButton
+              label="Export"
+              @click="exportReport"
+            />
+          </div>
+        </template>
+      </UCard>
+    </UModal>
+  </div>
+</template>
+
+<script setup lang="ts">
+import type { FeedbackData, AnalysisProgress } from '~/types/feedback'
+
+// Props
+const props = withDefaults(defineProps<{
+  sessionId: string
+  code?: string
+  executionResult?: any
+  realTimeFeedback?: boolean
+  autoRefreshInterval?: number
+}>(), {
+  code: '',
+  realTimeFeedback: true,
+  autoRefreshInterval: 10000
+})
+
+// Emits
+const emit = defineEmits<{
+  'feedback-received': [feedback: FeedbackData]
+  'refresh-requested': []
+}>()
+
+// Reactive state
+const feedbackData = ref<FeedbackData | null>(null)
+const isLoading = ref(false)
+const autoRefresh = ref(props.realTimeFeedback)
+const loadingMessage = ref('Analyzing code structure...')
+const analysisProgress = ref<AnalysisProgress>()
+const showExportModal = ref(false)
+const exportFormat = ref('pdf')
+
+// Export configuration
+const exportFormatOptions = [
+  { label: 'PDF Document', value: 'pdf' },
+  { label: 'HTML Report', value: 'html' },
+  { label: 'Markdown', value: 'markdown' },
+  { label: 'JSON Data', value: 'json' }
+]
+
+const exportSections = ref([
+  { key: 'overview', label: 'Overview & Scores', included: true },
+  { key: 'strengths', label: 'Strengths', included: true },
+  { key: 'improvements', label: 'Improvements', included: true },
+  { key: 'lineComments', label: 'Line-by-Line Feedback', included: false },
+  { key: 'recommendations', label: 'Recommendations', included: true }
+])
+
+const exportMenuItems = [
+  [
+    {
+      label: 'Export Report',
+      icon: 'i-heroicons-document-arrow-down',
+      click: () => showExportModal.value = true
+    },
+    {
+      label: 'Share Link',
+      icon: 'i-heroicons-share',
+      click: () => shareReport()
+    }
+  ],
+  [
+    {
+      label: 'Print Report',
+      icon: 'i-heroicons-printer',
+      click: () => printReport()
+    }
+  ]
+]
+
+// Auto-refresh timer
+let refreshTimer: NodeJS.Timeout | null = null
+
+// Methods
+const refreshFeedback = async () => {
+  if (isLoading.value || !props.code) return
+  
+  isLoading.value = true
+  analysisProgress.value = { stage: 'Parsing code...', percentage: 10 }
+  
+  try {
+    // Simulate analysis stages
+    const stages = [
+      { stage: 'Parsing code structure...', percentage: 20 },
+      { stage: 'Analyzing complexity...', percentage: 40 },
+      { stage: 'Checking best practices...', percentage: 60 },
+      { stage: 'Generating suggestions...', percentage: 80 },
+      { stage: 'Finalizing report...', percentage: 95 }
+    ]
+    
+    for (const stage of stages) {
+      analysisProgress.value = stage
+      await new Promise(resolve => setTimeout(resolve, 800))
+    }
+    
+    // Simulate API call for feedback
+    await new Promise(resolve => setTimeout(resolve, 1000))
+    
+    // Mock feedback data - replace with actual API call
+    feedbackData.value = {
+      overallScore: 78,
+      confidence: 0.85,
+      categoryScores: [
+        {
+          name: 'correctness',
+          label: 'Correctness',
+          score: 85,
+          description: 'Code produces expected results'
+        },
+        {
+          name: 'efficiency',
+          label: 'Efficiency',
+          score: 72,
+          description: 'Algorithm and time complexity'
+        },
+        {
+          name: 'readability',
+          label: 'Readability',
+          score: 80,
+          description: 'Code clarity and maintainability'
+        },
+        {
+          name: 'style',
+          label: 'Code Style',
+          score: 75,
+          description: 'Follows coding conventions'
+        }
+      ],
+      strengths: [
+        {
+          title: 'Clear Variable Naming',
+          description: 'Your variable names are descriptive and follow naming conventions.',
+          codeExample: 'const userAccountBalance = 1000;'
+        },
+        {
+          title: 'Proper Error Handling',
+          description: 'Good use of try-catch blocks to handle potential errors.',
+          codeExample: 'try { ... } catch (error) { ... }'
+        }
+      ],
+      improvements: [
+        {
+          title: 'Optimize Loop Efficiency',
+          description: 'Consider using more efficient iteration methods.',
+          severity: 'medium',
+          beforeExample: 'for (let i = 0; i < arr.length; i++) { ... }',
+          afterExample: 'arr.forEach(item => { ... });',
+          resources: [
+            { title: 'Array Methods Guide', url: 'https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array' }
+          ]
+        }
+      ],
+      detailedComments: [
+        {
+          id: '1',
+          lineNumber: 15,
+          type: 'suggestion',
+          message: 'Consider using const instead of let for variables that don\'t change.',
+          codeSnippet: 'let result = processData(input);'
+        }
+      ],
+      recommendations: [
+        {
+          title: 'Practice Array Methods',
+          description: 'Focus on mastering modern JavaScript array methods like map, filter, and reduce.'
+        },
+        {
+          title: 'Learn Time Complexity',
+          description: 'Understanding Big O notation will help you write more efficient algorithms.'
+        }
+      ]
+    }
+    
+    emit('feedback-received', feedbackData.value)
+    
+  } catch (error) {
+    console.error('Failed to get feedback:', error)
+  } finally {
+    isLoading.value = false
+    analysisProgress.value = undefined
+  }
+}
+
+const toggleAutoRefresh = () => {
+  autoRefresh.value = !autoRefresh.value
+  setupAutoRefresh()
+}
+
+const setupAutoRefresh = () => {
+  if (refreshTimer) {
+    clearInterval(refreshTimer)
+    refreshTimer = null
+  }
+  
+  if (autoRefresh.value) {
+    refreshTimer = setInterval(() => {
+      if (props.code && !isLoading.value) {
+        refreshFeedback()
+      }
+    }, props.autoRefreshInterval)
+  }
+}
+
+const exportReport = async () => {
+  if (!feedbackData.value) return
+  
+  try {
+    // Implementation would depend on the export format
+    const reportData = {
+      ...feedbackData.value,
+      metadata: {
+        sessionId: props.sessionId,
+        exportedAt: new Date().toISOString(),
+        format: exportFormat.value,
+        sections: exportSections.value.filter(s => s.included).map(s => s.key)
+      }
+    }
+    
+    if (exportFormat.value === 'json') {
+      downloadJSON(reportData, `feedback-report-${props.sessionId}.json`)
+    } else {
+      // Other formats would need specific implementations
+      console.log('Export format not implemented:', exportFormat.value)
+    }
+    
+    showExportModal.value = false
+    
+  } catch (error) {
+    console.error('Failed to export report:', error)
+  }
+}
+
+const downloadJSON = (data: any, filename: string) => {
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = filename
+  a.click()
+  URL.revokeObjectURL(url)
+}
+
+const shareReport = async () => {
+  if (!feedbackData.value) return
+  
+  try {
+    const shareData = {
+      title: 'Interview Copilot Feedback Report',
+      text: `Code analysis completed with ${feedbackData.value.overallScore}/100 score`,
+      url: window.location.href
+    }
+    
+    if (navigator.share) {
+      await navigator.share(shareData)
+    } else {
+      await navigator.clipboard.writeText(shareData.url)
+      // Show toast notification
+    }
+  } catch (error) {
+    console.error('Failed to share report:', error)
+  }
+}
+
+const printReport = () => {
+  window.print()
+}
+
+const openResource = (url: string) => {
+  window.open(url, '_blank')
+}
+
+// Helper methods for styling
+const getConfidenceColor = (confidence: number) => {
+  if (confidence >= 0.8) return 'green'
+  if (confidence >= 0.6) return 'yellow'
+  return 'red'
+}
+
+const getScoreColor = (score: number) => {
+  if (score >= 80) return 'text-green-500'
+  if (score >= 60) return 'text-yellow-500'
+  return 'text-red-500'
+}
+
+const getScoreLabel = (score: number) => {
+  if (score >= 90) return 'Excellent'
+  if (score >= 80) return 'Good'
+  if (score >= 70) return 'Fair'
+  if (score >= 60) return 'Needs Work'
+  return 'Poor'
+}
+
+const getProgressColor = (score: number) => {
+  if (score >= 80) return 'green'
+  if (score >= 60) return 'yellow'
+  return 'red'
+}
+
+const getCategoryIcon = (category: string) => {
+  const icons = {
+    correctness: 'i-heroicons-check-circle',
+    efficiency: 'i-heroicons-bolt',
+    readability: 'i-heroicons-eye',
+    style: 'i-heroicons-sparkles'
+  }
+  return icons[category as keyof typeof icons] || 'i-heroicons-code-bracket'
+}
+
+const getSeverityIcon = (severity: string) => {
+  switch (severity) {
+    case 'high': return 'i-heroicons-exclamation-triangle'
+    case 'medium': return 'i-heroicons-information-circle'
+    case 'low': return 'i-heroicons-light-bulb'
+    default: return 'i-heroicons-information-circle'
+  }
+}
+
+const getSeverityColor = (severity: string) => {
+  switch (severity) {
+    case 'high': return 'text-red-500'
+    case 'medium': return 'text-yellow-500'
+    case 'low': return 'text-blue-500'
+    default: return 'text-gray-500'
+  }
+}
+
+const getSeverityBadgeColor = (severity: string) => {
+  switch (severity) {
+    case 'high': return 'red'
+    case 'medium': return 'yellow'
+    case 'low': return 'blue'
+    default: return 'gray'
+  }
+}
+
+const getCommentTypeIcon = (type: string) => {
+  switch (type) {
+    case 'error': return 'i-heroicons-x-circle'
+    case 'warning': return 'i-heroicons-exclamation-triangle'
+    case 'suggestion': return 'i-heroicons-light-bulb'
+    default: return 'i-heroicons-information-circle'
+  }
+}
+
+const getCommentTypeColor = (type: string) => {
+  switch (type) {
+    case 'error': return 'text-red-500'
+    case 'warning': return 'text-yellow-500'
+    case 'suggestion': return 'text-blue-500'
+    default: return 'text-gray-500'
+  }
+}
+
+const getCommentTypeBadgeColor = (type: string) => {
+  switch (type) {
+    case 'error': return 'red'
+    case 'warning': return 'yellow'
+    case 'suggestion': return 'blue'
+    default: return 'gray'
+  }
+}
+
+// Watchers
+watch(() => props.code, () => {
+  if (autoRefresh.value && props.code) {
+    // Debounce automatic refresh
+    if (refreshTimer) clearTimeout(refreshTimer)
+    refreshTimer = setTimeout(() => {
+      refreshFeedback()
+    }, 2000)
+  }
+})
+
+// Lifecycle
+onMounted(() => {
+  if (props.code) {
+    refreshFeedback()
+  }
+  setupAutoRefresh()
+})
+
+onUnmounted(() => {
+  if (refreshTimer) {
+    clearInterval(refreshTimer)
+  }
+})
+</script>
+
+<style scoped>
+.feedback-report {
+  /* Custom styles for the feedback report */
+}
+
+/* Print styles */
+@media print {
+  .feedback-report {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  
+  /* Hide interactive elements when printing */
+  button, .no-print {
+    display: none !important;
+  }
+  
+  /* Ensure good page breaks */
+  .page-break {
+    page-break-before: always;
+  }
+}
+
+/* Progress circle animation */
+.progress-circle circle {
+  transition: stroke-dasharray 0.5s ease-in-out;
+}
+
+/* Score animations */
+.score-enter-active {
+  transition: all 0.3s ease-out;
+}
+
+.score-enter-from {
+  opacity: 0;
+  transform: scale(0.8);
+}
+
+/* Code syntax highlighting */
+pre code {
+  font-family: 'Monaco', 'Menlo', 'JetBrains Mono', monospace;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .grid-cols-1.md\\:grid-cols-2 {
+    grid-template-columns: 1fr;
+  }
+}
+</style>

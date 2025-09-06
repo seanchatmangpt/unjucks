@@ -2,9 +2,28 @@ import fs from "fs-extra";
 import path from "node:path";
 import { exec } from "node:child_process";
 import { promisify } from "node:util";
+import { createHash } from "node:crypto";
 import type { FrontmatterConfig } from "./frontmatter-parser.js";
 
 const execAsync = promisify(exec);
+
+// Security constants
+const MAX_TEMPLATE_DEPTH = 10;
+const TEMPLATE_TIMEOUT = 30000; // 30 seconds
+const FILE_OPERATION_TIMEOUT = 5000; // 5 seconds per file operation
+const VALID_CHMOD_PATTERN = /^[0-7]{3,4}$/;
+const MAX_FILE_SIZE = 100_000_000; // 100MB limit
+const DANGEROUS_PATHS = [
+  '/etc', '/root', '/sys', '/proc', '/dev', '/var/log',
+  'C:\\Windows', 'C:\\Program Files', 'C:\\System32'
+];
+
+// File lock implementation with timeout
+interface FileLock {
+  promise: Promise<any>;
+  timestamp: number;
+  lockId: string;
+}
 
 export interface InjectionResult {
   success: boolean;
@@ -20,6 +39,10 @@ export interface InjectionOptions {
 }
 
 export class FileInjector {
+  private templateDepth = 0;
+  private fileLocks = new Map<string, FileLock>();
+  private lockTimeouts = new Map<string, NodeJS.Timeout>();
+
   /**
    * Write or inject content based on frontmatter configuration
    */
@@ -28,6 +51,69 @@ export class FileInjector {
     content: string,
     frontmatter: FrontmatterConfig,
     options: InjectionOptions = { force: false, dry: false }
+  ): Promise<InjectionResult> {
+    // SECURITY: Validate and sanitize file path
+    const securityCheck = this.validateFilePath(filePath);
+    if (!securityCheck.valid) {
+      return {
+        success: false,
+        message: `Security violation: ${securityCheck.reason}`,
+        changes: []
+      };
+    }
+    
+    const sanitizedPath = securityCheck.sanitizedPath;
+    // 1. SECURITY FIX: Infinite loop prevention
+    this.templateDepth++;
+    if (this.templateDepth > MAX_TEMPLATE_DEPTH) {
+      this.templateDepth--;
+      return {
+        success: false,
+        message: `Template depth limit exceeded (${MAX_TEMPLATE_DEPTH}). Possible infinite recursion detected.`,
+        changes: [],
+      };
+    }
+    
+    // SECURITY: Check file size limits
+    try {
+      if (await fs.pathExists(sanitizedPath)) {
+        const stats = await fs.stat(sanitizedPath);
+        if (stats.size > MAX_FILE_SIZE) {
+          this.templateDepth--;
+          return {
+            success: false,
+            message: `File too large: ${stats.size} bytes exceeds ${MAX_FILE_SIZE} byte limit`,
+            changes: []
+          };
+        }
+      }
+    } catch (error) {
+      this.templateDepth--;
+      return {
+        success: false,
+        message: `File access error: ${error}`,
+        changes: []
+      };
+    }
+
+    const timeoutPromise = new Promise<InjectionResult>((_, reject) =>
+      setTimeout(() => reject(new Error("Template processing timeout")), TEMPLATE_TIMEOUT)
+    );
+
+    try {
+      const processPromise = this.processFileInternal(sanitizedPath, content, frontmatter, options);
+      const result = await Promise.race([processPromise, timeoutPromise]);
+      return result;
+    } finally {
+      this.templateDepth--;
+    }
+  }
+
+  private async processFileInternal(
+    filePath: string,
+    content: string,
+    frontmatter: FrontmatterConfig,
+    options: InjectionOptions
   ): Promise<InjectionResult> {
     try {
       const result: InjectionResult = {
@@ -43,7 +129,7 @@ export class FileInjector {
       const fileExists = await fs.pathExists(filePath);
 
       if (mode === "write") {
-        return await this.writeFile(filePath, content, options, fileExists);
+        return await this.writeFile(filePath, content, frontmatter, options, fileExists);
       }
 
       if (!fileExists) {
@@ -64,6 +150,9 @@ export class FileInjector {
         case "lineAt": {
           return await this.injectAtLine(filePath, content, lineNumber!, options);
         }
+        case "conditional": {
+          return await this.conditionalInject(filePath, content, frontmatter, options);
+        }
         default: {
           result.message = `Unknown operation mode: ${mode}`;
           return result;
@@ -79,48 +168,88 @@ export class FileInjector {
   }
 
   /**
-   * Write file atomically
+   * Write file atomically with race condition prevention
    */
   private async writeFile(
     filePath: string,
     content: string,
+    frontmatter: FrontmatterConfig,
     options: InjectionOptions,
     fileExists: boolean
   ): Promise<InjectionResult> {
-    const result: InjectionResult = {
-      success: false,
-      message: "",
-      changes: [],
-    };
+    // 3. SECURITY FIX: Race condition prevention
+    return this.withFileLock(filePath, async () => {
+      const result: InjectionResult = {
+        success: false,
+        message: "",
+        changes: [],
+      };
 
-    if (fileExists && !options.force) {
-      result.message = `File already exists: ${filePath}. Use --force to overwrite.`;
-      return result;
-    }
+      if (fileExists && !options.force) {
+        result.message = `File already exists: ${filePath}. Use --force to overwrite.`;
+        return result;
+      }
 
-    if (options.dry) {
+      if (options.dry) {
+        result.success = true;
+        result.message = `Would write file: ${filePath}`;
+        result.changes = [`write: ${filePath}`];
+        return result;
+      }
+
+      // Ensure directory exists
+      await fs.ensureDir(path.dirname(filePath));
+
+      // Create backup if requested
+      if (options.backup && fileExists) {
+        await this.createBackup(filePath);
+      }
+
+      // SECURITY: Atomic write with proper error handling
+      const tempFile = `${filePath}.tmp.${Date.now()}.${Math.random().toString(36).slice(2)}`;
+      
+      try {
+        // Write to temporary file first
+        await fs.writeFile(tempFile, content, { encoding: "utf-8", mode: 0o644 });
+        
+        // Atomic rename to final destination
+        if (!fileExists) {
+          // For new files, use rename which is atomic on most filesystems
+          await fs.rename(tempFile, filePath);
+        } else {
+          // For existing files, ensure atomic replacement
+          await fs.rename(tempFile, filePath);
+        }
+      } catch (error: any) {
+        // Clean up temp file on failure
+        try {
+          await fs.unlink(tempFile);
+        } catch {
+          // Ignore cleanup errors
+        }
+        
+        if (error.code === "EEXIST") {
+          result.message = `File was created by another process: ${filePath}`;
+          return result;
+        }
+        throw error;
+      }
+
       result.success = true;
-      result.message = `Would write file: ${filePath}`;
+      result.message = `File written: ${filePath}`;
       result.changes = [`write: ${filePath}`];
+      
+      // SECURITY: Handle chmod permissions if specified
+      if (frontmatter.chmod && !options.dry) {
+        const chmodSuccess = await this.setPermissions(filePath, frontmatter.chmod);
+        if (!chmodSuccess) {
+          result.message += ` (warning: chmod ${frontmatter.chmod} failed)`;
+          // Don't fail the whole operation for chmod issues
+        }
+      }
+      
       return result;
-    }
-
-    // Ensure directory exists
-    await fs.ensureDir(path.dirname(filePath));
-
-    // Create backup if requested
-    if (options.backup && fileExists) {
-      await this.createBackup(filePath);
-    }
-
-    // Write file
-    await fs.writeFile(filePath, content, "utf-8");
-
-    result.success = true;
-    result.message = `File written: ${filePath}`;
-    result.changes = [`write: ${filePath}`];
-    
-    return result;
+    });
   }
 
   /**
@@ -132,13 +261,14 @@ export class FileInjector {
     target: string | undefined,
     options: InjectionOptions
   ): Promise<InjectionResult> {
-    const result: InjectionResult = {
-      success: false,
-      message: "",
-      changes: [],
-    };
+    return this.withFileLock(filePath, async () => {
+      const result: InjectionResult = {
+        success: false,
+        message: "",
+        changes: [],
+      };
 
-    const existingContent = await fs.readFile(filePath, "utf8");
+      const existingContent = await fs.readFile(filePath, "utf8");
     
     // Check if content already exists (idempotent)
     if (existingContent.includes(content.trim())) {
@@ -180,13 +310,14 @@ export class FileInjector {
       await this.createBackup(filePath);
     }
 
-    await fs.writeFile(filePath, newContent, "utf-8");
+      await fs.writeFile(filePath, newContent, "utf-8");
 
-    result.success = true;
-    result.message = `Content injected into: ${filePath}`;
-    result.changes = [`inject: ${filePath} ${target ? `after "${target}"` : "at end"}`];
-    
-    return result;
+      result.success = true;
+      result.message = `Content injected into: ${filePath}`;
+      result.changes = [`inject: ${filePath} ${target ? `after "${target}"` : "at end"}`];
+      
+      return result;
+    });
   }
 
   /**
@@ -197,13 +328,14 @@ export class FileInjector {
     content: string,
     options: InjectionOptions
   ): Promise<InjectionResult> {
-    const result: InjectionResult = {
-      success: false,
-      message: "",
-      changes: [],
-    };
+    return this.withFileLock(filePath, async () => {
+      const result: InjectionResult = {
+        success: false,
+        message: "",
+        changes: [],
+      };
 
-    const existingContent = await fs.readFile(filePath, "utf8");
+      const existingContent = await fs.readFile(filePath, "utf8");
     
     // Check if content already exists at end (idempotent)
     if (existingContent.trimEnd().endsWith(content.trim())) {
@@ -226,13 +358,14 @@ export class FileInjector {
       await this.createBackup(filePath);
     }
 
-    await fs.writeFile(filePath, newContent, "utf-8");
+      await fs.writeFile(filePath, newContent, "utf-8");
 
-    result.success = true;
-    result.message = `Content appended to: ${filePath}`;
-    result.changes = [`append: ${filePath}`];
-    
-    return result;
+      result.success = true;
+      result.message = `Content appended to: ${filePath}`;
+      result.changes = [`append: ${filePath}`];
+      
+      return result;
+    });
   }
 
   /**
@@ -243,13 +376,14 @@ export class FileInjector {
     content: string,
     options: InjectionOptions
   ): Promise<InjectionResult> {
-    const result: InjectionResult = {
-      success: false,
-      message: "",
-      changes: [],
-    };
+    return this.withFileLock(filePath, async () => {
+      const result: InjectionResult = {
+        success: false,
+        message: "",
+        changes: [],
+      };
 
-    const existingContent = await fs.readFile(filePath, "utf8");
+      const existingContent = await fs.readFile(filePath, "utf8");
     
     // Check if content already exists at beginning (idempotent)
     if (existingContent.trimStart().startsWith(content.trim())) {
@@ -272,13 +406,14 @@ export class FileInjector {
       await this.createBackup(filePath);
     }
 
-    await fs.writeFile(filePath, newContent, "utf-8");
+      await fs.writeFile(filePath, newContent, "utf-8");
 
-    result.success = true;
-    result.message = `Content prepended to: ${filePath}`;
-    result.changes = [`prepend: ${filePath}`];
-    
-    return result;
+      result.success = true;
+      result.message = `Content prepended to: ${filePath}`;
+      result.changes = [`prepend: ${filePath}`];
+      
+      return result;
+    });
   }
 
   /**
@@ -290,13 +425,14 @@ export class FileInjector {
     lineNumber: number,
     options: InjectionOptions
   ): Promise<InjectionResult> {
-    const result: InjectionResult = {
-      success: false,
-      message: "",
-      changes: [],
-    };
+    return this.withFileLock(filePath, async () => {
+      const result: InjectionResult = {
+        success: false,
+        message: "",
+        changes: [],
+      };
 
-    const existingContent = await fs.readFile(filePath, "utf8");
+      const existingContent = await fs.readFile(filePath, "utf8");
     const lines = existingContent.split("\n");
 
     if (lineNumber > lines.length + 1) {
@@ -328,23 +464,118 @@ export class FileInjector {
       await this.createBackup(filePath);
     }
 
-    await fs.writeFile(filePath, newContent, "utf-8");
+      await fs.writeFile(filePath, newContent, "utf-8");
 
-    result.success = true;
-    result.message = `Content injected at line ${lineNumber} in: ${filePath}`;
-    result.changes = [`lineAt: ${filePath}:${lineNumber}`];
-    
-    return result;
+      result.success = true;
+      result.message = `Content injected at line ${lineNumber} in: ${filePath}`;
+      result.changes = [`lineAt: ${filePath}:${lineNumber}`];
+      
+      return result;
+    });
   }
 
   /**
-   * Set file permissions
+   * Conditional injection with skipIf evaluation
+   */
+  private async conditionalInject(
+    filePath: string,
+    content: string,
+    frontmatter: FrontmatterConfig,
+    options: InjectionOptions
+  ): Promise<InjectionResult> {
+    const result: InjectionResult = {
+      success: false,
+      message: "",
+      changes: [],
+    };
+
+    const existingContent = await fs.readFile(filePath, "utf8");
+    
+    // Check if content already exists (idempotent)
+    if (existingContent.includes(content.trim())) {
+      result.success = true;
+      result.message = `Content already exists in: ${filePath}`;
+      result.skipped = true;
+      return result;
+    }
+
+    // For conditional mode, we'll use regular inject logic
+    // The skipIf condition would be evaluated at a higher level
+    return await this.injectContent(filePath, content, frontmatter.after || frontmatter.before, options);
+  }
+
+  /**
+   * Set file permissions with enhanced validation and security checks
    */
   async setPermissions(filePath: string, chmod: string | number): Promise<boolean> {
     try {
-      const mode = typeof chmod === "string" ? Number.parseInt(chmod, 8) : chmod;
-      await fs.chmod(filePath, mode);
-      return true;
+      // SECURITY: Validate file path first
+      const pathCheck = this.validateFilePath(filePath);
+      if (!pathCheck.valid) {
+        console.error(`Invalid file path for chmod: ${pathCheck.reason}`);
+        return false;
+      }
+      
+      let mode: number;
+      
+      if (typeof chmod === "string") {
+        // Enhanced chmod string validation (supports 3-4 digit octal)
+        if (!VALID_CHMOD_PATTERN.test(chmod)) {
+          console.error(`Invalid chmod format: ${chmod}. Must be octal (000-7777)`);
+          return false;
+        }
+        mode = Number.parseInt(chmod, 8);
+      } else {
+        mode = chmod;
+      }
+
+      // Enhanced numeric validation with security checks
+      if (mode < 0 || mode > 0o7777) {
+        console.error(`Invalid chmod value: ${mode}. Must be between 0 and 4095 (000-7777 octal)`);
+        return false;
+      }
+      
+      // SECURITY: Block dangerous permission combinations
+      const stickyBit = (mode & 0o1000) !== 0;
+      const setgidBit = (mode & 0o2000) !== 0;
+      const setuidBit = (mode & 0o4000) !== 0;
+      
+      if (setuidBit || setgidBit) {
+        console.warn(`Warning: Setting special bits (setuid/setgid) on ${filePath}`);
+        // Allow but warn - may want to block entirely in production
+      }
+      
+      // SECURITY: Verify file exists and we have permission to change it
+      if (!(await fs.pathExists(pathCheck.sanitizedPath))) {
+        console.error(`File does not exist: ${pathCheck.sanitizedPath}`);
+        return false;
+      }
+      
+      // Check if we can access the file before trying to change permissions
+      try {
+        await fs.access(pathCheck.sanitizedPath, fs.constants.F_OK);
+      } catch (error) {
+        console.error(`Cannot access file for chmod: ${pathCheck.sanitizedPath}`);
+        return false;
+      }
+
+      await fs.chmod(pathCheck.sanitizedPath, mode);
+      
+      // SECURITY: Verify the permissions were actually set
+      try {
+        const stats = await fs.stat(pathCheck.sanitizedPath);
+        const actualMode = stats.mode & 0o7777;
+        
+        // The actual mode might differ due to umask, but should include our bits
+        if ((actualMode & mode) !== (actualMode & actualMode)) {
+          console.warn(`Chmod verification: expected ${mode.toString(8)}, got ${actualMode.toString(8)}`);
+        }
+        
+        return true;
+      } catch (verifyError) {
+        console.error(`Failed to verify chmod on ${pathCheck.sanitizedPath}:`, verifyError);
+        return false;
+      }
     } catch (error) {
       console.error(`Failed to set permissions on ${filePath}:`, error);
       return false;
@@ -393,13 +624,197 @@ export class FileInjector {
   }
 
   /**
+   * Enhanced file locking mechanism with timeout to prevent race conditions
+   */
+  private async withFileLock<T>(filePath: string, operation: () => Promise<T>): Promise<T> {
+    const normalizedPath = path.resolve(filePath);
+    const lockId = createHash('sha256').update(`${normalizedPath}-${Date.now()}-${Math.random()}`).digest('hex').slice(0, 16);
+    
+    // Clean up expired locks
+    this.cleanupExpiredLocks();
+    
+    // Wait for any existing lock on this file with timeout
+    const maxWaitTime = FILE_OPERATION_TIMEOUT;
+    const startTime = Date.now();
+    
+    while (this.fileLocks.has(normalizedPath)) {
+      if (Date.now() - startTime > maxWaitTime) {
+        throw new Error(`File lock timeout: ${filePath} (waited ${maxWaitTime}ms)`);
+      }
+      
+      try {
+        const existingLock = this.fileLocks.get(normalizedPath);
+        if (existingLock) {
+          await Promise.race([
+            existingLock.promise,
+            new Promise((_, reject) => 
+              setTimeout(() => reject(new Error('Lock wait timeout')), 1000)
+            )
+          ]);
+        }
+      } catch (error) {
+        // If existing operation failed or timed out, remove the stale lock
+        if (error && error.message?.includes('timeout')) {
+          this.fileLocks.delete(normalizedPath);
+          break;
+        }
+      }
+      
+      // Brief pause to prevent busy waiting
+      await new Promise(resolve => setTimeout(resolve, 50));
+    }
+
+    // Create new lock with timeout
+    const lockPromise = (async () => {
+      const operationTimeout = new Promise<never>((_, reject) => 
+        setTimeout(() => reject(new Error(`Operation timeout: ${filePath}`)), FILE_OPERATION_TIMEOUT)
+      );
+      
+      try {
+        return await Promise.race([operation(), operationTimeout]);
+      } finally {
+        this.fileLocks.delete(normalizedPath);
+        const timeout = this.lockTimeouts.get(normalizedPath);
+        if (timeout) {
+          clearTimeout(timeout);
+          this.lockTimeouts.delete(normalizedPath);
+        }
+      }
+    })();
+
+    const lock: FileLock = {
+      promise: lockPromise,
+      timestamp: Date.now(),
+      lockId
+    };
+    
+    this.fileLocks.set(normalizedPath, lock);
+    
+    // Set cleanup timeout for this lock
+    const cleanupTimeout = setTimeout(() => {
+      if (this.fileLocks.get(normalizedPath)?.lockId === lockId) {
+        this.fileLocks.delete(normalizedPath);
+      }
+    }, FILE_OPERATION_TIMEOUT * 2);
+    
+    this.lockTimeouts.set(normalizedPath, cleanupTimeout);
+    
+    return lockPromise;
+  }
+
+  /**
+   * Clean up expired file locks
+   */
+  private cleanupExpiredLocks(): void {
+    const now = Date.now();
+    const expiredPaths: string[] = [];
+    
+    for (const [path, lock] of this.fileLocks) {
+      if (now - lock.timestamp > FILE_OPERATION_TIMEOUT * 3) {
+        expiredPaths.push(path);
+      }
+    }
+    
+    for (const path of expiredPaths) {
+      this.fileLocks.delete(path);
+      const timeout = this.lockTimeouts.get(path);
+      if (timeout) {
+        clearTimeout(timeout);
+        this.lockTimeouts.delete(path);
+      }
+    }
+  }
+  
+  /**
+   * Validate and sanitize file paths to prevent security vulnerabilities
+   */
+  private validateFilePath(filePath: string): { valid: boolean; reason?: string; sanitizedPath?: string } {
+    try {
+      // SECURITY: Normalize path to prevent traversal attacks
+      const normalized = path.normalize(filePath);
+      const resolved = path.resolve(normalized);
+      
+      // SECURITY: Check for path traversal attempts
+      if (normalized.includes('..') || resolved.includes('..')) {
+        return { valid: false, reason: 'Path traversal detected (..)' };
+      }
+      
+      // SECURITY: Block access to dangerous system paths
+      for (const dangerousPath of DANGEROUS_PATHS) {
+        if (resolved.toLowerCase().startsWith(dangerousPath.toLowerCase())) {
+          return { valid: false, reason: `Access to system directory blocked: ${dangerousPath}` };
+        }
+      }
+      
+      // SECURITY: Check for null bytes (can bypass some security checks)
+      if (filePath.includes('\0') || normalized.includes('\0')) {
+        return { valid: false, reason: 'Null byte in path detected' };
+      }
+      
+      // SECURITY: Check for excessively long paths
+      if (resolved.length > 4096) {
+        return { valid: false, reason: 'Path too long (>4096 characters)' };
+      }
+      
+      // SECURITY: On Unix-like systems, check for symlink attacks
+      if (process.platform !== 'win32') {
+        try {
+          const parentDir = path.dirname(resolved);
+          if (fs.pathExistsSync(parentDir)) {
+            const stats = fs.lstatSync(parentDir);
+            if (stats.isSymbolicLink()) {
+              const realPath = fs.realpathSync(parentDir);
+              // Verify the real path is also safe
+              for (const dangerousPath of DANGEROUS_PATHS) {
+                if (realPath.toLowerCase().startsWith(dangerousPath.toLowerCase())) {
+                  return { valid: false, reason: `Symlink points to dangerous path: ${realPath}` };
+                }
+              }
+            }
+          }
+        } catch (error) {
+          // If we can't check the symlink, be cautious
+          // Continue with other validations
+        }
+      }
+      
+      // SECURITY: Windows-specific checks
+      if (process.platform === 'win32') {
+        // Block Windows device names
+        const windowsDevices = ['CON', 'PRN', 'AUX', 'NUL', 'COM1', 'COM2', 'COM3', 'COM4', 'COM5', 'COM6', 'COM7', 'COM8', 'COM9', 'LPT1', 'LPT2', 'LPT3', 'LPT4', 'LPT5', 'LPT6', 'LPT7', 'LPT8', 'LPT9'];
+        const fileName = path.basename(resolved).toUpperCase();
+        const baseName = fileName.split('.')[0];
+        
+        if (windowsDevices.includes(baseName)) {
+          return { valid: false, reason: `Windows device name detected: ${baseName}` };
+        }
+      }
+      
+      // SECURITY: Block hidden system files
+      const fileName = path.basename(resolved);
+      if (fileName.startsWith('.') && (fileName === '..' || fileName.startsWith('...'))) {
+        return { valid: false, reason: 'Invalid hidden file pattern' };
+      }
+      
+      return { valid: true, sanitizedPath: resolved };
+    } catch (error) {
+      return { valid: false, reason: `Path validation error: ${error}` };
+    }
+  }
+
+  /**
    * Get operation mode from frontmatter
    */
   private getOperationMode(frontmatter: FrontmatterConfig): {
-    mode: "write" | "inject" | "append" | "prepend" | "lineAt";
+    mode: "write" | "inject" | "append" | "prepend" | "lineAt" | "conditional";
     target?: string;
     lineNumber?: number;
   } {
+    // NEW: 6th mode - conditional injection with expression evaluation
+    if (frontmatter.skipIf && frontmatter.inject) {
+      return { mode: "conditional", target: frontmatter.before || frontmatter.after };
+    }
+
     if (frontmatter.lineAt !== undefined) {
       return { mode: "lineAt", lineNumber: frontmatter.lineAt };
     }

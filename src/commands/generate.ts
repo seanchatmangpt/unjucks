@@ -2,7 +2,56 @@ import { defineCommand } from "citty";
 import chalk from "chalk";
 import { Generator } from "../lib/generator.js";
 import { promptForGenerator, promptForTemplate } from "../lib/prompts.js";
+import { HygenPositionalParser } from "../lib/HygenPositionalParser.js";
 import ora from "ora";
+
+// Helper functions for positional parameter processing
+function fallbackPositionalParsing(args: string[]): Record<string, any> {
+  const variables: Record<string, any> = {};
+  
+  if (args.length > 2) {
+    const [, , ...additionalArgs] = args;
+    
+    // First additional arg is typically the 'name'
+    if (additionalArgs.length > 0 && !additionalArgs[0].startsWith('-')) {
+      variables.name = additionalArgs[0];
+    }
+    
+    // Handle remaining positional args
+    additionalArgs.slice(1).forEach((arg: string, index: number) => {
+      if (!arg.startsWith('-')) {
+        const key = `arg${index + 2}`;
+        variables[key] = inferArgumentType(arg);
+      }
+    });
+  }
+  
+  return variables;
+}
+
+function inferArgumentType(arg: string): any {
+  // Smart type inference for positional args
+  if (arg === 'true' || arg === 'false') {
+    return arg === 'true';
+  } else if (!isNaN(Number(arg))) {
+    return Number(arg);
+  } else {
+    return arg;
+  }
+}
+
+function extractFlagVariables(args: any): Record<string, any> {
+  const flagVars: Record<string, any> = {};
+  const excludedKeys = ['generator', 'template', 'name', 'dest', 'force', 'dry'];
+  
+  for (const [key, value] of Object.entries(args)) {
+    if (!excludedKeys.includes(key)) {
+      flagVars[key] = value;
+    }
+  }
+  
+  return flagVars;
+}
 
 export const generateCommand = defineCommand({
   meta: {
@@ -18,6 +67,12 @@ export const generateCommand = defineCommand({
     template: {
       type: "positional",
       description: "Name of the template to generate",
+      required: false,
+    },
+    // Enhanced positional parameter support with comprehensive handling
+    name: {
+      type: "positional", 
+      description: "Name of the component/entity being generated",
       required: false,
     },
     dest: {
@@ -42,6 +97,55 @@ export const generateCommand = defineCommand({
 
       let generatorName = args.generator;
       let templateName = args.template;
+      
+      // Initialize enhanced positional parser
+      const hygenParser = new HygenPositionalParser({
+        enableTypeInference: true,
+        enableSpecialPatterns: true,
+        maxPositionalArgs: 10,
+        strictMode: false
+      });
+
+      let templateVariables: Record<string, any> = {};
+      
+      // Check for stored original positional args from CLI preprocessing
+      const originalPositionalArgs = process.env.UNJUCKS_POSITIONAL_ARGS 
+        ? JSON.parse(process.env.UNJUCKS_POSITIONAL_ARGS)
+        : [];
+      
+      // Use enhanced Hygen parser if we have positional args
+      if (originalPositionalArgs.length >= 2) {
+        try {
+          // Get template variables for intelligent mapping
+          const { variables: templateVars } = await generator.scanTemplateForVariables(
+            generatorName || originalPositionalArgs[0],
+            templateName || originalPositionalArgs[1]
+          );
+          
+          // Parse with enhanced Hygen parser
+          const parseResult = hygenParser.parse(originalPositionalArgs, templateVars);
+          templateVariables = parseResult.variables;
+          
+          // Validate the result
+          const validation = hygenParser.validate(parseResult, templateVars);
+          if (!validation.valid) {
+            console.warn(chalk.yellow("Positional parameter warnings:"));
+            validation.errors.forEach(error => {
+              console.warn(chalk.yellow(`  ⚠ ${error}`));
+            });
+          }
+          
+        } catch (error) {
+          // Fallback to basic parsing if enhanced parser fails
+          console.warn(chalk.yellow("Using fallback positional parsing"));
+          templateVariables = fallbackPositionalParsing(originalPositionalArgs);
+        }
+      }
+      
+      // Also check direct arguments from Citty for backward compatibility
+      if (args.name && !templateVariables.name) {
+        templateVariables.name = args.name;
+      }
 
       // Interactive mode if no generator/template specified
       if (!generatorName) {
@@ -74,6 +178,10 @@ export const generateCommand = defineCommand({
         dest: args.dest,
         force: args.force,
         dry: args.dry,
+        variables: {
+          ...extractFlagVariables(args), // Flag-based variables first
+          ...templateVariables, // Positional args override flags (higher precedence)
+        },
       });
 
       spinner.stop();
@@ -89,6 +197,11 @@ export const generateCommand = defineCommand({
         result.files.forEach((file: any) => {
           console.log(chalk.green(`  + ${file.path}`));
         });
+      }
+      
+      // Clean up environment variable after processing
+      if (process.env.UNJUCKS_POSITIONAL_ARGS) {
+        delete process.env.UNJUCKS_POSITIONAL_ARGS;
       }
     } catch (error) {
       console.error(chalk.red("Error generating files:"), error);

@@ -1,0 +1,20 @@
+---
+name: state-management
+description: State Management Patterns and Store Architecture
+category: architecture
+prompts:
+  - name: stateLibrary
+    type: select
+    choices: ["zustand", "redux-toolkit", "valtio", "jotai", "context-reducer"]
+  - name: persistenceLayer
+    type: select
+    choices: ["localStorage", "sessionStorage", "indexedDB", "none"]
+  - name: realTimeSync
+    type: confirm
+    message: Include real-time state synchronization?
+  - name: devTools
+    type: confirm
+    message: Include Redux DevTools integration?
+  - name: middleware
+    type: multiselect
+    choices: ["logging", "persistence", "error-handling", "analytics"]

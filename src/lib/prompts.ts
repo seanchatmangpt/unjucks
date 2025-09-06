@@ -1,6 +1,6 @@
 import inquirer from "inquirer";
 import chalk from "chalk";
-import { GeneratorConfig, TemplateConfig } from "./generator.js";
+import type { GeneratorConfig, TemplateConfig } from "./generator.js";
 
 export async function promptForGenerator(
   generators: GeneratorConfig[],

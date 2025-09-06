@@ -1,0 +1,32 @@
+to: tests/performance/{{ loadTest | kebabCase }}.bench.ts
+inject: false
+prompt:
+  - name: loadTest
+    type: input
+    message: Load test name (e.g. api-endpoints, user-simulation, memory-usage)
+  - name: testType
+    type: list
+    message: Performance test type
+    choices:
+      - load-testing
+      - stress-testing
+      - memory-profiling
+      - benchmark
+      - concurrent-users
+    default: load-testing
+  - name: targetEndpoint
+    type: input
+    message: Target API endpoint (e.g. /api/users, /api/interviews)
+    default: /api/health
+  - name: maxUsers
+    type: number
+    message: Maximum concurrent users to simulate
+    default: 100
+  - name: duration
+    type: number
+    message: Test duration in seconds
+    default: 30
+  - name: acceptableResponseTime
+    type: number
+    message: Acceptable response time in ms
+    default: 500

@@ -1,0 +1,769 @@
+<template>
+  <div class="code-editor-container h-full flex flex-col bg-gray-900">
+    <!-- Editor Header -->
+    <div class="flex items-center justify-between bg-gray-800 border-b border-gray-700 px-4 py-2">
+      <div class="flex items-center gap-3">
+        <div class="flex items-center gap-2">
+          <div class="w-3 h-3 bg-red-500 rounded-full"></div>
+          <div class="w-3 h-3 bg-yellow-500 rounded-full"></div>
+          <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+        </div>
+        
+        <span class="text-sm text-gray-400">{{ filename || 'solution.' + language }}</span>
+      </div>
+      
+      <div class="flex items-center gap-2">
+        <!-- Language Selector -->
+        <USelectMenu
+          v-model="selectedLanguage"
+          :options="languageOptions"
+          value-attribute="value"
+          option-attribute="label"
+          class="min-w-32"
+        >
+          <template #label>
+            <UIcon :name="getLanguageIcon(selectedLanguage)" class="h-4 w-4" />
+            <span class="ml-2">{{ getLanguageLabel(selectedLanguage) }}</span>
+          </template>
+        </USelectMenu>
+        
+        <!-- Font Size Controls -->
+        <div class="flex items-center gap-1">
+          <UButton
+            icon="i-heroicons-minus"
+            variant="ghost"
+            size="xs"
+            @click="decreaseFontSize"
+            :disabled="fontSize <= minFontSize"
+          />
+          <span class="text-xs text-gray-400 px-2">{{ fontSize }}px</span>
+          <UButton
+            icon="i-heroicons-plus"
+            variant="ghost"
+            size="xs"
+            @click="increaseFontSize"
+            :disabled="fontSize >= maxFontSize"
+          />
+        </div>
+        
+        <!-- Theme Toggle -->
+        <UButton
+          :icon="theme === 'dark' ? 'i-heroicons-sun' : 'i-heroicons-moon'"
+          variant="ghost"
+          size="xs"
+          @click="toggleTheme"
+        />
+        
+        <!-- Settings -->
+        <UDropdown :items="settingsMenuItems" :popper="{ placement: 'bottom-end' }">
+          <UButton
+            icon="i-heroicons-cog-6-tooth"
+            variant="ghost"
+            size="xs"
+          />
+        </UDropdown>
+      </div>
+    </div>
+
+    <!-- Editor Area -->
+    <div class="flex-1 relative">
+      <!-- Monaco Editor -->
+      <div
+        ref="editorContainer"
+        class="h-full w-full"
+        :style="{ fontSize: fontSize + 'px' }"
+      />
+      
+      <!-- Loading Overlay -->
+      <div
+        v-if="loading"
+        class="absolute inset-0 bg-gray-900/50 flex items-center justify-center"
+      >
+        <div class="flex items-center gap-2 text-white">
+          <UIcon name="i-heroicons-arrow-path" class="h-5 w-5 animate-spin" />
+          <span>Loading editor...</span>
+        </div>
+      </div>
+      
+      <!-- Error Indicators -->
+      <div
+        v-if="errors.length > 0"
+        class="absolute top-2 right-2 z-10"
+      >
+        <UButton
+          :icon="showErrorPanel ? 'i-heroicons-x-mark' : 'i-heroicons-exclamation-triangle'"
+          :color="showErrorPanel ? 'gray' : 'red'"
+          variant="solid"
+          size="xs"
+          @click="showErrorPanel = !showErrorPanel"
+          :label="`${errors.length} error${errors.length > 1 ? 's' : ''}`"
+        />
+      </div>
+    </div>
+    
+    <!-- Error Panel -->
+    <div
+      v-if="showErrorPanel && errors.length > 0"
+      class="bg-red-950/20 border-t border-red-800 p-4 max-h-40 overflow-y-auto"
+    >
+      <div class="space-y-2">
+        <div
+          v-for="error in errors"
+          :key="`${error.line}-${error.column}-${error.message}`"
+          class="flex items-start gap-3 text-sm"
+        >
+          <UIcon
+            :name="getErrorIcon(error.severity)"
+            :class="getErrorIconClass(error.severity)"
+            class="h-4 w-4 mt-0.5 flex-shrink-0"
+          />
+          
+          <div class="flex-1">
+            <div class="flex items-center gap-2">
+              <span class="font-mono text-red-400">
+                Line {{ error.line }}, Col {{ error.column }}
+              </span>
+              <UBadge
+                :color="getErrorBadgeColor(error.severity)"
+                :label="error.severity.toUpperCase()"
+                size="xs"
+              />
+            </div>
+            
+            <p class="text-red-200 mt-1">{{ error.message }}</p>
+            
+            <div v-if="error.source" class="text-xs text-red-300 mt-1 font-mono">
+              {{ error.source }}
+            </div>
+          </div>
+          
+          <UButton
+            icon="i-heroicons-arrow-right"
+            variant="ghost"
+            size="xs"
+            @click="goToError(error)"
+          />
+        </div>
+      </div>
+    </div>
+
+    <!-- Status Bar -->
+    <div class="bg-gray-800 border-t border-gray-700 px-4 py-1 flex items-center justify-between text-xs text-gray-400">
+      <div class="flex items-center gap-4">
+        <span>{{ selectedLanguage.toUpperCase() }}</span>
+        <span>Ln {{ currentLine }}, Col {{ currentColumn }}</span>
+        <span v-if="selectedText">{{ selectedText }} selected</span>
+        <span>{{ codeStats.lines }} lines, {{ codeStats.characters }} chars</span>
+      </div>
+      
+      <div class="flex items-center gap-4">
+        <span v-if="lastSaved">Saved {{ formatLastSaved(lastSaved) }}</span>
+        
+        <div class="flex items-center gap-1">
+          <div
+            class="w-2 h-2 rounded-full"
+            :class="{
+              'bg-green-500': saveStatus === 'saved',
+              'bg-yellow-500': saveStatus === 'saving',
+              'bg-red-500': saveStatus === 'error',
+              'bg-gray-500': saveStatus === 'unsaved'
+            }"
+          />
+          <span>{{ saveStatusLabel }}</span>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Command Palette -->
+    <UModal v-model="showCommandPalette">
+      <UCard class="max-w-2xl">
+        <template #header>
+          <div class="flex items-center gap-2">
+            <UIcon name="i-heroicons-command-line" class="h-5 w-5" />
+            <span>Command Palette</span>
+          </div>
+        </template>
+        
+        <div class="space-y-4">
+          <UInput
+            v-model="commandSearch"
+            placeholder="Type a command..."
+            icon="i-heroicons-magnifying-glass"
+            autofocus
+            @keydown.down="navigateCommands(1)"
+            @keydown.up="navigateCommands(-1)"
+            @keydown.enter="executeCommand"
+          />
+          
+          <div class="max-h-60 overflow-y-auto">
+            <div
+              v-for="(command, index) in filteredCommands"
+              :key="command.id"
+              :class="{
+                'bg-blue-50 dark:bg-blue-950/20': selectedCommandIndex === index
+              }"
+              class="p-3 hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer rounded"
+              @click="executeCommand(command)"
+            >
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                  <UIcon :name="command.icon" class="h-4 w-4" />
+                  <span class="font-medium">{{ command.label }}</span>
+                </div>
+                <kbd
+                  v-if="command.shortcut"
+                  class="px-2 py-1 text-xs bg-gray-100 dark:bg-gray-700 rounded"
+                >
+                  {{ command.shortcut }}
+                </kbd>
+              </div>
+              <p v-if="command.description" class="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                {{ command.description }}
+              </p>
+            </div>
+          </div>
+        </div>
+      </UCard>
+    </UModal>
+  </div>
+</template>
+
+<script setup lang="ts">
+import * as monaco from 'monaco-editor'
+import type { CodeError, ExecutionResult, EditorCommand } from '~/types/code-editor'
+
+// Props
+const props = withDefaults(defineProps<{
+  modelValue?: string
+  language?: string
+  theme?: 'light' | 'dark'
+  options?: monaco.editor.IStandaloneEditorConstructionOptions
+  errors?: CodeError[]
+  loading?: boolean
+  readonly?: boolean
+  filename?: string
+}>(), {
+  modelValue: '',
+  language: 'javascript',
+  theme: 'dark',
+  errors: () => [],
+  loading: false,
+  readonly: false
+})
+
+// Emits
+const emit = defineEmits<{
+  'update:modelValue': [code: string]
+  'code-change': [code: string]
+  'execute-request': []
+  'save-request': [code: string]
+  'language-change': [language: string]
+  'cursor-position': [line: number, column: number]
+  'selection-change': [selection: string]
+}>()
+
+// Reactive state
+const editorContainer = ref<HTMLElement>()
+const editor = ref<monaco.editor.IStandaloneCodeEditor>()
+const selectedLanguage = ref(props.language)
+const fontSize = ref(14)
+const minFontSize = 10
+const maxFontSize = 24
+const currentLine = ref(1)
+const currentColumn = ref(1)
+const selectedText = ref('')
+const lastSaved = ref<Date>()
+const saveStatus = ref<'saved' | 'saving' | 'error' | 'unsaved'>('saved')
+const showErrorPanel = ref(false)
+const showCommandPalette = ref(false)
+const commandSearch = ref('')
+const selectedCommandIndex = ref(0)
+
+// Language configuration
+const languageOptions = [
+  { value: 'javascript', label: 'JavaScript', icon: 'i-logos-javascript' },
+  { value: 'typescript', label: 'TypeScript', icon: 'i-logos-typescript-icon' },
+  { value: 'python', label: 'Python', icon: 'i-logos-python' },
+  { value: 'java', label: 'Java', icon: 'i-logos-java' },
+  { value: 'cpp', label: 'C++', icon: 'i-logos-c-plusplus' },
+  { value: 'go', label: 'Go', icon: 'i-logos-go' },
+  { value: 'rust', label: 'Rust', icon: 'i-logos-rust' },
+  { value: 'php', label: 'PHP', icon: 'i-logos-php' },
+  { value: 'ruby', label: 'Ruby', icon: 'i-logos-ruby' },
+  { value: 'csharp', label: 'C#', icon: 'i-logos-c-sharp' }
+]
+
+// Editor commands
+const editorCommands: EditorCommand[] = [
+  {
+    id: 'execute',
+    label: 'Run Code',
+    description: 'Execute the current code',
+    icon: 'i-heroicons-play',
+    shortcut: 'Ctrl+Enter',
+    action: () => emit('execute-request')
+  },
+  {
+    id: 'save',
+    label: 'Save File',
+    description: 'Save the current file',
+    icon: 'i-heroicons-document-arrow-down',
+    shortcut: 'Ctrl+S',
+    action: () => saveCode()
+  },
+  {
+    id: 'format',
+    label: 'Format Document',
+    description: 'Auto-format the entire document',
+    icon: 'i-heroicons-sparkles',
+    shortcut: 'Shift+Alt+F',
+    action: () => formatDocument()
+  },
+  {
+    id: 'comment',
+    label: 'Toggle Comment',
+    description: 'Toggle line/block comment',
+    icon: 'i-heroicons-chat-bubble-left',
+    shortcut: 'Ctrl+/',
+    action: () => toggleComment()
+  },
+  {
+    id: 'find',
+    label: 'Find',
+    description: 'Find text in document',
+    icon: 'i-heroicons-magnifying-glass',
+    shortcut: 'Ctrl+F',
+    action: () => editor.value?.getAction('actions.find')?.run()
+  },
+  {
+    id: 'replace',
+    label: 'Find and Replace',
+    description: 'Find and replace text',
+    icon: 'i-heroicons-arrow-path',
+    shortcut: 'Ctrl+H',
+    action: () => editor.value?.getAction('editor.action.startFindReplaceAction')?.run()
+  }
+]
+
+const settingsMenuItems = [
+  [
+    {
+      label: 'Word Wrap',
+      icon: 'i-heroicons-arrow-uturn-down',
+      click: () => toggleWordWrap()
+    },
+    {
+      label: 'Minimap',
+      icon: 'i-heroicons-map',
+      click: () => toggleMinimap()
+    },
+    {
+      label: 'Line Numbers',
+      icon: 'i-heroicons-numbered-list',
+      click: () => toggleLineNumbers()
+    }
+  ],
+  [
+    {
+      label: 'Command Palette',
+      icon: 'i-heroicons-command-line',
+      click: () => showCommandPalette.value = true,
+      shortcuts: ['Ctrl', 'Shift', 'P']
+    }
+  ]
+]
+
+// Computed properties
+const codeStats = computed(() => {
+  const code = props.modelValue
+  return {
+    lines: code.split('\n').length,
+    characters: code.length,
+    words: code.split(/\s+/).filter(word => word.length > 0).length
+  }
+})
+
+const saveStatusLabel = computed(() => {
+  switch (saveStatus.value) {
+    case 'saved': return 'Saved'
+    case 'saving': return 'Saving...'
+    case 'error': return 'Error'
+    case 'unsaved': return 'Unsaved'
+    default: return ''
+  }
+})
+
+const filteredCommands = computed(() => {
+  if (!commandSearch.value) return editorCommands
+  
+  return editorCommands.filter(command =>
+    command.label.toLowerCase().includes(commandSearch.value.toLowerCase()) ||
+    command.description.toLowerCase().includes(commandSearch.value.toLowerCase())
+  )
+})
+
+// Methods
+const initEditor = async () => {
+  if (!editorContainer.value) return
+
+  const editorOptions: monaco.editor.IStandaloneEditorConstructionOptions = {
+    value: props.modelValue,
+    language: selectedLanguage.value,
+    theme: props.theme === 'dark' ? 'vs-dark' : 'vs',
+    fontSize: fontSize.value,
+    fontFamily: '"Fira Code", "JetBrains Mono", "Monaco", "Menlo", monospace',
+    fontLigatures: true,
+    wordWrap: 'on',
+    lineNumbers: 'on',
+    minimap: { enabled: false },
+    scrollBeyondLastLine: false,
+    automaticLayout: true,
+    tabSize: 2,
+    insertSpaces: true,
+    formatOnPaste: true,
+    formatOnType: true,
+    readOnly: props.readonly,
+    ...props.options
+  }
+
+  editor.value = monaco.editor.create(editorContainer.value, editorOptions)
+
+  // Set up event listeners
+  editor.value.onDidChangeModelContent(() => {
+    const newValue = editor.value?.getValue() || ''
+    emit('update:modelValue', newValue)
+    emit('code-change', newValue)
+    saveStatus.value = 'unsaved'
+  })
+
+  editor.value.onDidChangeCursorPosition((e) => {
+    currentLine.value = e.position.lineNumber
+    currentColumn.value = e.position.column
+    emit('cursor-position', currentLine.value, currentColumn.value)
+  })
+
+  editor.value.onDidChangeCursorSelection((e) => {
+    const selection = editor.value?.getModel()?.getValueInRange(e.selection) || ''
+    selectedText.value = selection
+    emit('selection-change', selection)
+  })
+
+  // Set up keyboard shortcuts
+  setupKeyboardShortcuts()
+
+  // Apply error decorations
+  updateErrorDecorations()
+}
+
+const setupKeyboardShortcuts = () => {
+  if (!editor.value) return
+
+  // Execute code
+  editor.value.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter, () => {
+    emit('execute-request')
+  })
+
+  // Save code
+  editor.value.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS, () => {
+    saveCode()
+  })
+
+  // Command palette
+  editor.value.addCommand(
+    monaco.KeyMod.CtrlCmd | monaco.KeyMod.Shift | monaco.KeyCode.KeyP,
+    () => {
+      showCommandPalette.value = true
+    }
+  )
+
+  // Format document
+  editor.value.addCommand(
+    monaco.KeyMod.Shift | monaco.KeyMod.Alt | monaco.KeyCode.KeyF,
+    () => {
+      formatDocument()
+    }
+  )
+}
+
+const updateErrorDecorations = () => {
+  if (!editor.value || !props.errors.length) return
+
+  const decorations = props.errors.map(error => ({
+    range: new monaco.Range(error.line, error.column, error.line, error.column + 1),
+    options: {
+      isWholeLine: false,
+      className: getErrorDecorationClass(error.severity),
+      glyphMarginClassName: getErrorGlyphClass(error.severity),
+      hoverMessage: { value: error.message },
+      minimap: {
+        color: getErrorMinimapColor(error.severity),
+        position: monaco.editor.MinimapPosition.Inline
+      }
+    }
+  }))
+
+  editor.value.deltaDecorations([], decorations)
+}
+
+const getLanguageIcon = (lang: string) => {
+  return languageOptions.find(opt => opt.value === lang)?.icon || 'i-heroicons-code-bracket'
+}
+
+const getLanguageLabel = (lang: string) => {
+  return languageOptions.find(opt => opt.value === lang)?.label || lang
+}
+
+const getErrorIcon = (severity: string) => {
+  switch (severity) {
+    case 'error': return 'i-heroicons-x-circle'
+    case 'warning': return 'i-heroicons-exclamation-triangle'
+    case 'info': return 'i-heroicons-information-circle'
+    default: return 'i-heroicons-exclamation-circle'
+  }
+}
+
+const getErrorIconClass = (severity: string) => {
+  switch (severity) {
+    case 'error': return 'text-red-400'
+    case 'warning': return 'text-yellow-400'
+    case 'info': return 'text-blue-400'
+    default: return 'text-gray-400'
+  }
+}
+
+const getErrorBadgeColor = (severity: string) => {
+  switch (severity) {
+    case 'error': return 'red'
+    case 'warning': return 'yellow'
+    case 'info': return 'blue'
+    default: return 'gray'
+  }
+}
+
+const getErrorDecorationClass = (severity: string) => {
+  switch (severity) {
+    case 'error': return 'error-decoration'
+    case 'warning': return 'warning-decoration'
+    case 'info': return 'info-decoration'
+    default: return ''
+  }
+}
+
+const getErrorGlyphClass = (severity: string) => {
+  switch (severity) {
+    case 'error': return 'error-glyph'
+    case 'warning': return 'warning-glyph'
+    case 'info': return 'info-glyph'
+    default: return ''
+  }
+}
+
+const getErrorMinimapColor = (severity: string) => {
+  switch (severity) {
+    case 'error': return '#ff0000'
+    case 'warning': return '#ffaa00'
+    case 'info': return '#0066ff'
+    default: return '#666666'
+  }
+}
+
+const goToError = (error: CodeError) => {
+  if (!editor.value) return
+  
+  editor.value.setPosition({ lineNumber: error.line, column: error.column })
+  editor.value.focus()
+}
+
+const increaseFontSize = () => {
+  fontSize.value = Math.min(fontSize.value + 1, maxFontSize)
+  updateFontSize()
+}
+
+const decreaseFontSize = () => {
+  fontSize.value = Math.max(fontSize.value - 1, minFontSize)
+  updateFontSize()
+}
+
+const updateFontSize = () => {
+  if (editor.value) {
+    editor.value.updateOptions({ fontSize: fontSize.value })
+  }
+}
+
+const toggleTheme = () => {
+  const newTheme = props.theme === 'dark' ? 'light' : 'dark'
+  if (editor.value) {
+    monaco.editor.setTheme(newTheme === 'dark' ? 'vs-dark' : 'vs')
+  }
+}
+
+const saveCode = async () => {
+  if (!editor.value) return
+  
+  saveStatus.value = 'saving'
+  
+  try {
+    const code = editor.value.getValue()
+    emit('save-request', code)
+    
+    lastSaved.value = new Date()
+    saveStatus.value = 'saved'
+    
+  } catch (error) {
+    saveStatus.value = 'error'
+    console.error('Failed to save code:', error)
+  }
+}
+
+const formatDocument = async () => {
+  if (!editor.value) return
+  
+  await editor.value.getAction('editor.action.formatDocument')?.run()
+}
+
+const toggleComment = () => {
+  if (!editor.value) return
+  
+  editor.value.getAction('editor.action.commentLine')?.run()
+}
+
+const toggleWordWrap = () => {
+  if (!editor.value) return
+  
+  const currentWrap = editor.value.getOption(monaco.editor.EditorOption.wordWrap)
+  editor.value.updateOptions({ 
+    wordWrap: currentWrap === 'on' ? 'off' : 'on' 
+  })
+}
+
+const toggleMinimap = () => {
+  if (!editor.value) return
+  
+  const currentMinimap = editor.value.getOption(monaco.editor.EditorOption.minimap)
+  editor.value.updateOptions({
+    minimap: { enabled: !currentMinimap.enabled }
+  })
+}
+
+const toggleLineNumbers = () => {
+  if (!editor.value) return
+  
+  const currentLineNumbers = editor.value.getOption(monaco.editor.EditorOption.lineNumbers)
+  editor.value.updateOptions({
+    lineNumbers: currentLineNumbers.renderType === 1 ? 'off' : 'on'
+  })
+}
+
+const formatLastSaved = (date: Date): string => {
+  const now = new Date()
+  const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000)
+  
+  if (diffInSeconds < 60) return 'just now'
+  if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)}m ago`
+  return `${Math.floor(diffInSeconds / 3600)}h ago`
+}
+
+// Command palette methods
+const navigateCommands = (direction: number) => {
+  const maxIndex = filteredCommands.value.length - 1
+  selectedCommandIndex.value = Math.max(0, 
+    Math.min(maxIndex, selectedCommandIndex.value + direction)
+  )
+}
+
+const executeCommand = (command?: EditorCommand) => {
+  const cmd = command || filteredCommands.value[selectedCommandIndex.value]
+  if (cmd) {
+    cmd.action()
+    showCommandPalette.value = false
+    commandSearch.value = ''
+    selectedCommandIndex.value = 0
+  }
+}
+
+// Watchers
+watch(() => props.modelValue, (newValue) => {
+  if (editor.value && editor.value.getValue() !== newValue) {
+    editor.value.setValue(newValue)
+  }
+})
+
+watch(() => props.errors, () => {
+  updateErrorDecorations()
+}, { deep: true })
+
+watch(selectedLanguage, (newLanguage) => {
+  if (editor.value) {
+    monaco.editor.setModelLanguage(editor.value.getModel()!, newLanguage)
+  }
+  emit('language-change', newLanguage)
+})
+
+// Lifecycle
+onMounted(async () => {
+  await nextTick()
+  await initEditor()
+})
+
+onUnmounted(() => {
+  if (editor.value) {
+    editor.value.dispose()
+  }
+})
+</script>
+
+<style scoped>
+.code-editor-container {
+  font-family: 'Fira Code', 'JetBrains Mono', 'Monaco', 'Menlo', monospace;
+}
+
+/* Custom error decorations */
+:deep(.error-decoration) {
+  border-bottom: 2px wavy #ff0000;
+}
+
+:deep(.warning-decoration) {
+  border-bottom: 2px wavy #ffaa00;
+}
+
+:deep(.info-decoration) {
+  border-bottom: 2px wavy #0066ff;
+}
+
+/* Glyph margin indicators */
+:deep(.error-glyph::before) {
+  content: '●';
+  color: #ff0000;
+  font-weight: bold;
+}
+
+:deep(.warning-glyph::before) {
+  content: '●';
+  color: #ffaa00;
+  font-weight: bold;
+}
+
+:deep(.info-glyph::before) {
+  content: '●';
+  color: #0066ff;
+  font-weight: bold;
+}
+
+/* Monaco editor custom styles */
+:deep(.monaco-editor) {
+  --vscode-editor-background: theme('colors.gray.900');
+  --vscode-editor-foreground: theme('colors.gray.100');
+}
+
+/* Command palette animations */
+.command-enter-active,
+.command-leave-active {
+  transition: all 0.2s ease;
+}
+
+.command-enter-from,
+.command-leave-to {
+  opacity: 0;
+  transform: translateY(-10px);
+}
+</style>

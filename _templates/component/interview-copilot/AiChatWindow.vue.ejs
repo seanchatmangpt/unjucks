@@ -1,0 +1,724 @@
+<template>
+  <div class="ai-chat-window flex flex-col h-full bg-white dark:bg-gray-900">
+    <!-- Chat Messages Area -->
+    <div 
+      ref="messagesContainer"
+      class="flex-1 overflow-y-auto p-4 space-y-4"
+      role="log"
+      aria-live="polite"
+      aria-label="Interview conversation"
+    >
+      <div
+        v-for="message in messages"
+        :key="message.id"
+        class="flex"
+        :class="message.author === 'user' ? 'justify-end' : 'justify-start'"
+      >
+        <div class="flex items-start max-w-[80%] gap-3">
+          <!-- Avatar -->
+          <div
+            v-if="message.author === 'ai'"
+            class="flex-shrink-0 w-8 h-8 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center"
+          >
+            <UIcon 
+              name="i-heroicons-cpu-chip" 
+              class="h-4 w-4 text-blue-600 dark:text-blue-400"
+            />
+          </div>
+          
+          <!-- Message Bubble -->
+          <div
+            class="relative px-4 py-3 rounded-lg shadow-sm"
+            :class="{
+              'bg-blue-500 text-white': message.author === 'user',
+              'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100': message.author === 'ai',
+              'bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800': message.metadata?.isHint,
+              'bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800': message.metadata?.isQuestion
+            }"
+          >
+            <!-- Message Content -->
+            <div 
+              v-if="message.type === 'text'"
+              class="prose prose-sm max-w-none"
+              :class="{
+                'prose-invert': message.author === 'user',
+                'prose-yellow dark:prose-invert': message.metadata?.isHint
+              }"
+            >
+              <div v-html="formatMessageContent(message.content)" />
+            </div>
+            
+            <!-- Code Message -->
+            <div v-else-if="message.type === 'code'" class="space-y-2">
+              <div v-if="message.metadata?.language" class="text-xs font-mono opacity-75">
+                {{ message.metadata.language }}
+              </div>
+              <pre class="bg-gray-900 text-gray-100 p-3 rounded text-sm overflow-x-auto"><code>{{ message.content }}</code></pre>
+            </div>
+            
+            <!-- Image Message -->
+            <div v-else-if="message.type === 'image'" class="space-y-2">
+              <img
+                :src="message.content"
+                :alt="message.metadata?.alt || 'Shared image'"
+                class="max-w-full rounded border"
+                loading="lazy"
+              />
+            </div>
+            
+            <!-- File Message -->
+            <div v-else-if="message.type === 'file'" class="flex items-center gap-2 p-2 bg-gray-50 dark:bg-gray-700 rounded">
+              <UIcon name="i-heroicons-document" class="h-5 w-5 text-gray-500" />
+              <span class="text-sm">{{ message.metadata?.filename || 'Shared file' }}</span>
+              <UButton
+                size="xs"
+                variant="ghost"
+                icon="i-heroicons-arrow-down-tray"
+                @click="downloadFile(message)"
+              />
+            </div>
+            
+            <!-- Message Actions -->
+            <div
+              v-if="message.author === 'ai' && showMessageActions"
+              class="flex items-center gap-2 mt-2 pt-2 border-t border-gray-200 dark:border-gray-600"
+            >
+              <UButton
+                size="xs"
+                variant="ghost"
+                icon="i-heroicons-hand-thumb-up"
+                :color="message.metadata?.liked ? 'green' : 'gray'"
+                @click="toggleMessageLike(message.id)"
+              />
+              
+              <UButton
+                size="xs"
+                variant="ghost"
+                icon="i-heroicons-clipboard"
+                @click="copyMessage(message.content)"
+              />
+              
+              <UButton
+                v-if="message.metadata?.isQuestion"
+                size="xs"
+                variant="ghost"
+                icon="i-heroicons-light-bulb"
+                label="Hint"
+                @click="$emit('request-hint', message.id)"
+              />
+            </div>
+            
+            <!-- Timestamp -->
+            <div class="text-xs opacity-60 mt-2">
+              {{ formatTimestamp(message.timestamp) }}
+            </div>
+            
+            <!-- Confidence Indicator -->
+            <div
+              v-if="message.metadata?.confidence && message.author === 'ai'"
+              class="flex items-center gap-1 mt-1"
+            >
+              <span class="text-xs opacity-60">Confidence:</span>
+              <div class="flex gap-0.5">
+                <div
+                  v-for="i in 5"
+                  :key="i"
+                  class="w-1.5 h-1.5 rounded-full"
+                  :class="{
+                    'bg-green-500': i <= Math.ceil(message.metadata.confidence * 5),
+                    'bg-gray-300 dark:bg-gray-600': i > Math.ceil(message.metadata.confidence * 5)
+                  }"
+                />
+              </div>
+            </div>
+          </div>
+          
+          <!-- User Avatar -->
+          <div
+            v-if="message.author === 'user'"
+            class="flex-shrink-0 w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center"
+          >
+            <UIcon 
+              name="i-heroicons-user" 
+              class="h-4 w-4 text-white"
+            />
+          </div>
+        </div>
+      </div>
+      
+      <!-- AI Typing Indicator -->
+      <div
+        v-if="isTyping"
+        class="flex justify-start"
+        role="status"
+        aria-label="AI is typing"
+      >
+        <div class="flex items-start gap-3 max-w-[80%]">
+          <div class="flex-shrink-0 w-8 h-8 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center">
+            <UIcon 
+              name="i-heroicons-cpu-chip" 
+              class="h-4 w-4 text-blue-600 dark:text-blue-400"
+            />
+          </div>
+          
+          <div class="bg-gray-100 dark:bg-gray-800 px-4 py-3 rounded-lg">
+            <div class="flex gap-1">
+              <div class="w-2 h-2 bg-gray-400 rounded-full animate-pulse" style="animation-delay: 0ms" />
+              <div class="w-2 h-2 bg-gray-400 rounded-full animate-pulse" style="animation-delay: 150ms" />
+              <div class="w-2 h-2 bg-gray-400 rounded-full animate-pulse" style="animation-delay: 300ms" />
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Auto-scroll anchor -->
+      <div ref="scrollAnchor" />
+    </div>
+    
+    <!-- Input Area -->
+    <div class="border-t border-gray-200 dark:border-gray-700 p-4">
+      <!-- Quick Actions -->
+      <div
+        v-if="showQuickActions && quickActions.length > 0"
+        class="flex flex-wrap gap-2 mb-3"
+      >
+        <UButton
+          v-for="action in quickActions"
+          :key="action.id"
+          :label="action.label"
+          :icon="action.icon"
+          size="xs"
+          variant="outline"
+          @click="handleQuickAction(action)"
+        />
+      </div>
+      
+      <!-- Message Input -->
+      <div class="flex gap-3 items-end">
+        <div class="flex-1">
+          <UTextarea
+            v-model="messageInput"
+            :placeholder="inputPlaceholder"
+            :rows="inputRows"
+            :disabled="inputDisabled"
+            autoresize
+            @keydown.ctrl.enter="sendMessage"
+            @keydown.meta.enter="sendMessage"
+            @input="handleInputChange"
+          />
+          
+          <!-- Input Actions -->
+          <div class="flex items-center justify-between mt-2">
+            <div class="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
+              <span v-if="characterCount > 0">{{ characterCount }}/{{ maxCharacters }}</span>
+              <span>Press {{ isMac ? 'Cmd' : 'Ctrl' }}+Enter to send</span>
+            </div>
+            
+            <div class="flex items-center gap-2">
+              <!-- Attachment Button -->
+              <UButton
+                v-if="allowAttachments"
+                icon="i-heroicons-paper-clip"
+                variant="ghost"
+                size="xs"
+                @click="handleAttachment"
+              />
+              
+              <!-- Voice Input Button -->
+              <UButton
+                v-if="allowVoiceInput"
+                :icon="isRecording ? 'i-heroicons-stop' : 'i-heroicons-microphone'"
+                :color="isRecording ? 'red' : 'gray'"
+                variant="ghost"
+                size="xs"
+                @click="toggleVoiceInput"
+              />
+              
+              <!-- Emoji Button -->
+              <UButton
+                v-if="allowEmoji"
+                icon="i-heroicons-face-smile"
+                variant="ghost"
+                size="xs"
+                @click="showEmojiPicker = !showEmojiPicker"
+              />
+            </div>
+          </div>
+        </div>
+        
+        <!-- Send Button -->
+        <UButton
+          icon="i-heroicons-paper-airplane"
+          :disabled="!canSendMessage"
+          :loading="isSending"
+          @click="sendMessage"
+        />
+      </div>
+      
+      <!-- Voice Recording Indicator -->
+      <div
+        v-if="isRecording"
+        class="flex items-center gap-2 mt-2 text-sm text-red-600 dark:text-red-400"
+      >
+        <div class="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
+        Recording... Click stop when done
+      </div>
+    </div>
+    
+    <!-- File Upload Modal -->
+    <UModal v-model="showFileUpload">
+      <UCard>
+        <template #header>
+          <h3 class="text-lg font-semibold">Share File</h3>
+        </template>
+        
+        <div class="space-y-4">
+          <div
+            class="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-6 text-center"
+            @drop.prevent="handleFileDrop"
+            @dragover.prevent
+            @dragenter.prevent
+          >
+            <UIcon name="i-heroicons-cloud-arrow-up" class="h-12 w-12 text-gray-400 mx-auto mb-3" />
+            <p class="text-gray-600 dark:text-gray-400">
+              Drop files here or 
+              <label class="text-blue-600 dark:text-blue-400 cursor-pointer">
+                browse
+                <input
+                  type="file"
+                  class="hidden"
+                  multiple
+                  @change="handleFileSelect"
+                />
+              </label>
+            </p>
+            <p class="text-xs text-gray-500 mt-2">
+              Supported: Images, PDFs, Text files (max {{ maxFileSize }}MB each)
+            </p>
+          </div>
+          
+          <!-- Selected Files -->
+          <div v-if="selectedFiles.length > 0" class="space-y-2">
+            <h4 class="font-medium">Selected Files:</h4>
+            <div
+              v-for="(file, index) in selectedFiles"
+              :key="index"
+              class="flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-800 rounded"
+            >
+              <div class="flex items-center gap-2">
+                <UIcon name="i-heroicons-document" class="h-4 w-4 text-gray-500" />
+                <span class="text-sm">{{ file.name }}</span>
+                <span class="text-xs text-gray-500">({{ formatFileSize(file.size) }})</span>
+              </div>
+              <UButton
+                icon="i-heroicons-x-mark"
+                variant="ghost"
+                size="xs"
+                @click="removeSelectedFile(index)"
+              />
+            </div>
+          </div>
+        </div>
+        
+        <template #footer>
+          <div class="flex justify-end gap-3">
+            <UButton
+              label="Cancel"
+              variant="outline"
+              @click="showFileUpload = false"
+            />
+            <UButton
+              label="Share Files"
+              :disabled="selectedFiles.length === 0"
+              @click="uploadFiles"
+            />
+          </div>
+        </template>
+      </UCard>
+    </UModal>
+  </div>
+</template>
+
+<script setup lang="ts">
+import type { ChatMessage, InterviewerConfig, QuickAction } from '~/types/chat'
+
+// Props
+const props = withDefaults(defineProps<{
+  sessionId: string
+  messages: ChatMessage[]
+  isTyping?: boolean
+  interviewerConfig?: InterviewerConfig
+  showMessageActions?: boolean
+  showQuickActions?: boolean
+  allowAttachments?: boolean
+  allowVoiceInput?: boolean
+  allowEmoji?: boolean
+  inputPlaceholder?: string
+  maxCharacters?: number
+}>(), {
+  isTyping: false,
+  showMessageActions: true,
+  showQuickActions: true,
+  allowAttachments: true,
+  allowVoiceInput: true,
+  allowEmoji: true,
+  inputPlaceholder: 'Type your message...',
+  maxCharacters: 2000
+})
+
+// Emits
+const emit = defineEmits<{
+  'message-sent': [message: string]
+  'request-hint': [questionId?: string]
+  'file-shared': [files: File[]]
+  'message-liked': [messageId: string, liked: boolean]
+  'voice-input': [audioBlob: Blob]
+}>()
+
+// Reactive state
+const messagesContainer = ref<HTMLElement>()
+const scrollAnchor = ref<HTMLElement>()
+const messageInput = ref('')
+const isSending = ref(false)
+const isRecording = ref(false)
+const showEmojiPicker = ref(false)
+const showFileUpload = ref(false)
+const selectedFiles = ref<File[]>([])
+const inputRows = ref(1)
+const maxFileSize = 10 // MB
+
+// Voice input state
+let mediaRecorder: MediaRecorder | null = null
+let audioChunks: Blob[] = []
+
+// Computed properties
+const isMac = computed(() => 
+  typeof navigator !== 'undefined' && 
+  navigator.platform.toUpperCase().indexOf('MAC') >= 0
+)
+
+const characterCount = computed(() => messageInput.value.length)
+
+const inputDisabled = computed(() => 
+  isSending.value || isRecording.value
+)
+
+const canSendMessage = computed(() => 
+  messageInput.value.trim().length > 0 && 
+  messageInput.value.length <= props.maxCharacters &&
+  !isSending.value
+)
+
+const quickActions = computed((): QuickAction[] => {
+  const baseActions: QuickAction[] = [
+    {
+      id: 'hint',
+      label: 'Request Hint',
+      icon: 'i-heroicons-light-bulb',
+      action: () => emit('request-hint')
+    },
+    {
+      id: 'clarify',
+      label: 'Need Clarification',
+      icon: 'i-heroicons-question-mark-circle',
+      action: () => sendPredefinedMessage("Could you please clarify the requirements?")
+    },
+    {
+      id: 'approach',
+      label: 'Explain Approach',
+      icon: 'i-heroicons-chat-bubble-left-ellipsis',
+      action: () => sendPredefinedMessage("Let me explain my approach to this problem...")
+    },
+    {
+      id: 'ready',
+      label: 'Ready for Next',
+      icon: 'i-heroicons-arrow-right',
+      action: () => sendPredefinedMessage("I'm ready for the next question.")
+    }
+  ]
+  
+  return baseActions
+})
+
+// Methods
+const formatMessageContent = (content: string): string => {
+  // Convert markdown-like syntax to HTML
+  return content
+    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*(.*?)\*/g, '<em>$1</em>')
+    .replace(/`(.*?)`/g, '<code class="bg-gray-200 dark:bg-gray-700 px-1 py-0.5 rounded text-sm">$1</code>')
+    .replace(/\n/g, '<br>')
+}
+
+const formatTimestamp = (timestamp: Date): string => {
+  return new Intl.DateTimeFormat('en-US', {
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: true
+  }).format(timestamp)
+}
+
+const sendMessage = async () => {
+  const message = messageInput.value.trim()
+  if (!message || isSending.value) return
+  
+  isSending.value = true
+  
+  try {
+    emit('message-sent', message)
+    messageInput.value = ''
+    inputRows.value = 1
+    
+    // Auto-scroll to bottom
+    await nextTick()
+    scrollToBottom()
+    
+  } finally {
+    isSending.value = false
+  }
+}
+
+const sendPredefinedMessage = (message: string) => {
+  messageInput.value = message
+  sendMessage()
+}
+
+const handleInputChange = () => {
+  // Auto-resize textarea
+  const lines = messageInput.value.split('\n').length
+  inputRows.value = Math.min(Math.max(lines, 1), 4)
+}
+
+const handleQuickAction = (action: QuickAction) => {
+  action.action()
+}
+
+const scrollToBottom = () => {
+  if (scrollAnchor.value) {
+    scrollAnchor.value.scrollIntoView({ behavior: 'smooth' })
+  }
+}
+
+const copyMessage = async (content: string) => {
+  try {
+    await navigator.clipboard.writeText(content)
+    // Show success toast
+  } catch (error) {
+    console.error('Failed to copy message:', error)
+  }
+}
+
+const toggleMessageLike = (messageId: string) => {
+  // Find message and toggle like status
+  const message = props.messages.find(m => m.id === messageId)
+  if (message) {
+    const newLikedState = !message.metadata?.liked
+    emit('message-liked', messageId, newLikedState)
+  }
+}
+
+const downloadFile = (message: ChatMessage) => {
+  // Implementation for file download
+  if (message.metadata?.fileUrl) {
+    const a = document.createElement('a')
+    a.href = message.metadata.fileUrl
+    a.download = message.metadata.filename || 'download'
+    a.click()
+  }
+}
+
+// Voice input methods
+const toggleVoiceInput = async () => {
+  if (isRecording.value) {
+    stopRecording()
+  } else {
+    await startRecording()
+  }
+}
+
+const startRecording = async () => {
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
+    mediaRecorder = new MediaRecorder(stream)
+    audioChunks = []
+    
+    mediaRecorder.ondataavailable = (event) => {
+      if (event.data.size > 0) {
+        audioChunks.push(event.data)
+      }
+    }
+    
+    mediaRecorder.onstop = () => {
+      const audioBlob = new Blob(audioChunks, { type: 'audio/wav' })
+      emit('voice-input', audioBlob)
+      
+      // Stop all tracks to release microphone
+      stream.getTracks().forEach(track => track.stop())
+    }
+    
+    mediaRecorder.start()
+    isRecording.value = true
+    
+  } catch (error) {
+    console.error('Failed to start recording:', error)
+  }
+}
+
+const stopRecording = () => {
+  if (mediaRecorder && mediaRecorder.state === 'recording') {
+    mediaRecorder.stop()
+    isRecording.value = false
+  }
+}
+
+// File handling methods
+const handleAttachment = () => {
+  showFileUpload.value = true
+  selectedFiles.value = []
+}
+
+const handleFileSelect = (event: Event) => {
+  const input = event.target as HTMLInputElement
+  if (input.files) {
+    selectedFiles.value = Array.from(input.files)
+  }
+}
+
+const handleFileDrop = (event: DragEvent) => {
+  if (event.dataTransfer?.files) {
+    selectedFiles.value = Array.from(event.dataTransfer.files)
+  }
+}
+
+const removeSelectedFile = (index: number) => {
+  selectedFiles.value.splice(index, 1)
+}
+
+const formatFileSize = (bytes: number): string => {
+  if (bytes === 0) return '0 Bytes'
+  const k = 1024
+  const sizes = ['Bytes', 'KB', 'MB', 'GB']
+  const i = Math.floor(Math.log(bytes) / Math.log(k))
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i]
+}
+
+const uploadFiles = async () => {
+  if (selectedFiles.value.length === 0) return
+  
+  // Validate file sizes
+  const oversizedFiles = selectedFiles.value.filter(
+    file => file.size > maxFileSize * 1024 * 1024
+  )
+  
+  if (oversizedFiles.length > 0) {
+    // Show error for oversized files
+    return
+  }
+  
+  emit('file-shared', selectedFiles.value)
+  showFileUpload.value = false
+  selectedFiles.value = []
+}
+
+// Watchers
+watch(() => props.messages, () => {
+  nextTick(() => {
+    scrollToBottom()
+  })
+}, { deep: true })
+
+// Lifecycle
+onMounted(() => {
+  // Initial scroll to bottom
+  nextTick(() => {
+    scrollToBottom()
+  })
+})
+
+onUnmounted(() => {
+  // Clean up any ongoing recordings
+  if (isRecording.value) {
+    stopRecording()
+  }
+})
+</script>
+
+<style scoped>
+.ai-chat-window {
+  /* Custom styles for the chat window */
+}
+
+/* Message bubble animations */
+.message-enter-active,
+.message-leave-active {
+  transition: all 0.3s ease;
+}
+
+.message-enter-from {
+  opacity: 0;
+  transform: translateY(10px);
+}
+
+.message-leave-to {
+  opacity: 0;
+  transform: translateX(-10px);
+}
+
+/* Typing indicator animation */
+@keyframes typing-dot {
+  0%, 60%, 100% {
+    transform: translateY(0);
+    opacity: 0.4;
+  }
+  30% {
+    transform: translateY(-10px);
+    opacity: 1;
+  }
+}
+
+.animate-typing {
+  animation: typing-dot 1.4s infinite;
+}
+
+/* Voice recording pulse effect */
+@keyframes pulse-recording {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.recording-pulse {
+  animation: pulse-recording 1s infinite;
+}
+
+/* Custom scrollbar */
+.ai-chat-window ::-webkit-scrollbar {
+  width: 6px;
+}
+
+.ai-chat-window ::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.ai-chat-window ::-webkit-scrollbar-thumb {
+  background: rgb(156 163 175 / 0.5);
+  border-radius: 3px;
+}
+
+.ai-chat-window ::-webkit-scrollbar-thumb:hover {
+  background: rgb(156 163 175 / 0.8);
+}
+
+/* File drop zone */
+.file-drop-zone {
+  transition: all 0.2s ease;
+}
+
+.file-drop-zone:hover {
+  border-color: rgb(59 130 246);
+  background-color: rgb(59 130 246 / 0.05);
+}
+</style>

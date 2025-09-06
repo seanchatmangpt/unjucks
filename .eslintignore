@@ -1,0 +1,12 @@
+dist/
+node_modules/
+*.d.ts
+_templates/
+reports/
+my-citty-cli/
+citty-project/
+test-output/
+.unjucks-cache/
+docs/
+debug-cli.js
+CLAUDE.md

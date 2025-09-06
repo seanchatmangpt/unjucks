@@ -1,0 +1,34 @@
+to: tests/e2e/{{ featureName | kebabCase }}.spec.ts
+inject: false
+prompt:
+  - name: featureName
+    type: input
+    message: Feature name for E2E testing (e.g. user-registration, interview-flow)
+  - name: hasAuthentication
+    type: confirm
+    message: Feature requires authentication?
+    default: true
+  - name: hasFormInteraction
+    type: confirm
+    message: Feature involves form interactions?
+    default: true
+  - name: hasNavigation
+    type: confirm
+    message: Feature involves page navigation?
+    default: true
+  - name: hasDataPersistence
+    type: confirm
+    message: Feature involves data persistence?
+    default: true
+  - name: hasRealTimeFeatures
+    type: confirm
+    message: Feature has real-time updates?
+    default: false
+  - name: browserType
+    type: list
+    message: Primary browser for testing
+    choices:
+      - chromium
+      - firefox
+      - webkit
+    default: chromium

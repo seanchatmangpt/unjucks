@@ -1,0 +1,144 @@
+{
+  "benchmarkDate": "2025-09-06T00:40:00Z",
+  "environment": {
+    "platform": "darwin",
+    "nodeVersion": "v22.12.0",
+    "os": "Darwin 24.5.0",
+    "cpuCores": "multi-core",
+    "testingMethod": "Node.js time command (wall-clock)"
+  },
+  "methodology": {
+    "iterationsPerTest": 10,
+    "measurementTool": "time command",
+    "statisticalAnalysis": "mean, min, max, standard deviation",
+    "confidenceLevel": "95%"
+  },
+  "claimsFromHygenDelta": {
+    "coldStart": {
+      "claimed": "~150ms",
+      "baseline": "~200ms (Hygen)",
+      "improvement": "25% faster"
+    },
+    "templateProcessing": {
+      "claimed": "~30ms", 
+      "baseline": "~50ms (Hygen)",
+      "improvement": "40% faster"
+    },
+    "fileOperations": {
+      "claimed": "~15ms",
+      "baseline": "~20ms (Hygen)", 
+      "improvement": "25% faster"
+    },
+    "memoryUsage": {
+      "claimed": "~20MB",
+      "baseline": "~25MB (Hygen)",
+      "improvement": "20% less"
+    }
+  },
+  "actualMeasurements": {
+    "coldStart": {
+      "command": "node dist/cli.mjs --version",
+      "iterations": 10,
+      "results": [236, 183, 184, 183, 185, 183, 179, 180, 180, 182],
+      "average": 189,
+      "min": 179,
+      "max": 236,
+      "standardDeviation": 16,
+      "unit": "ms"
+    },
+    "templateProcessing": {
+      "command": "node dist/cli.mjs list", 
+      "iterations": 10,
+      "results": [215, 205, 202, 205, 204, 202, 208, 203, 209, 199],
+      "average": 205,
+      "min": 199,
+      "max": 215,
+      "standardDeviation": 5,
+      "unit": "ms"
+    },
+    "fileOperations": {
+      "command": "node dist/cli.mjs --help",
+      "iterations": 10, 
+      "results": [177, 184, 181, 179, 179, 176, 178, 181, 177, 178],
+      "average": 179,
+      "min": 176,
+      "max": 184,
+      "standardDeviation": 3,
+      "unit": "ms"
+    },
+    "memoryUsage": {
+      "method": "Multiple measurement approaches",
+      "vitestBDD": {
+        "rss": 79,
+        "heap": 8,
+        "unit": "MB"
+      },
+      "vitestUnit": {
+        "rss": 55,
+        "heap": 7,
+        "unit": "MB"
+      },
+      "nodeProcess": {
+        "rss": 38.2,
+        "unit": "MB"
+      }
+    }
+  },
+  "validationResults": {
+    "coldStart": {
+      "claimVsActual": "150ms vs 189ms",
+      "variance": "+26%",
+      "status": "FALSE - 26% slower than claimed",
+      "confidence": "HIGH"
+    },
+    "templateProcessing": {
+      "claimVsActual": "30ms vs 205ms", 
+      "variance": "+583%",
+      "status": "SEVERELY FALSE - 583% slower than claimed",
+      "confidence": "VERY HIGH"
+    },
+    "fileOperations": {
+      "claimVsActual": "15ms vs 179ms",
+      "variance": "+1093%", 
+      "status": "SEVERELY FALSE - 1093% slower than claimed",
+      "confidence": "VERY HIGH"
+    },
+    "memoryUsage": {
+      "claimVsActual": "20MB vs 38-79MB",
+      "variance": "+90-295%",
+      "status": "UNCERTAIN - method dependent",
+      "confidence": "MEDIUM"
+    },
+    "overallImprovement": {
+      "claimed": "25-40% faster than Hygen",
+      "status": "FALSE - no Hygen baseline measured, claims significantly inaccurate",
+      "confidence": "HIGH"
+    }
+  },
+  "recommendations": {
+    "immediate": [
+      "Update HYGEN-DELTA.md with actual measured performance values",
+      "Remove false performance improvement claims",
+      "Establish realistic performance expectations"
+    ],
+    "optimization": [
+      "Reduce bundle size through tree-shaking",
+      "Implement lazy loading for template scanning", 
+      "Add template caching for subsequent runs",
+      "Consider CommonJS build for CLI performance",
+      "Minimize startup imports and dependencies"
+    ],
+    "testing": [
+      "Measure actual Hygen performance for baseline comparison",
+      "Implement continuous performance monitoring",
+      "Add performance regression tests to CI",
+      "Standardize memory measurement methodology"
+    ]
+  },
+  "conclusion": {
+    "overallStatus": "PERFORMANCE CLAIMS VALIDATION FAILED",
+    "severity": "HIGH - claims are significantly inaccurate",
+    "actionRequired": true,
+    "correctionNeeded": "HYGEN-DELTA.md requires major revision of performance claims"
+  }
+}

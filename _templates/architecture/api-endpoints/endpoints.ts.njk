@@ -1,0 +1,571 @@
+---
+to: src/api/routes/index.ts
+inject: false
+skipIf: exists
+---
+{% if framework === 'express' %}
+import express from 'express';
+{% if includeRateLimit %}
+import rateLimit from 'express-rate-limit';
+{% endif %}
+{% if includeLogging %}
+import morgan from 'morgan';
+{% endif %}
+{% if validationLibrary === 'zod' %}
+import { z } from 'zod';
+{% endif %}
+{% endif %}
+import { authMiddleware } from '../middleware/auth';
+import { validateRequest } from '../middleware/validation';
+import { errorHandler } from '../middleware/error';
+import { InterviewService } from '../services/InterviewService';
+import { FeedbackService } from '../services/FeedbackService';
+import { UserService } from '../services/UserService';
+import { DashboardService } from '../services/DashboardService';
+
+/**
+ * Interview Copilot API Routes
+ * 
+ * ARCHITECTURE PATTERN: RESTful API with Layered Architecture
+ * 
+ * Layers:
+ * 1. Route Layer (HTTP handling)
+ * 2. Service Layer (Business logic)
+ * 3. Repository Layer (Data access)
+ * 4. Database Layer (Persistence)
+ * 
+ * Authentication: {{ authStrategy | upper }}
+ * Validation: {{ validationLibrary | title }}
+ */
+
+{% if framework === 'express' %}
+const router = express.Router();
+{% endif %}
+
+{% if includeRateLimit %}
+// Rate Limiting Configuration
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // limit each IP to 100 requests per windowMs
+  message: 'Too many requests from this IP, please try again later.',
+});
+
+router.use(limiter);
+{% endif %}
+
+{% if includeLogging %}
+// Request Logging
+router.use(morgan('combined'));
+{% endif %}
+
+// Validation Schemas
+{% if validationLibrary === 'zod' %}
+const createSessionSchema = z.object({
+  interviewType: z.enum(['TECHNICAL', 'BEHAVIORAL', 'SYSTEM_DESIGN', 'CODING_CHALLENGE']),
+  difficulty: z.enum(['JUNIOR', 'MID', 'SENIOR', 'STAFF']),
+  language: z.string().optional().default('javascript'),
+});
+
+const updateCodeSchema = z.object({
+  code: z.string(),
+  language: z.string().optional(),
+});
+
+const submitFeedbackSchema = z.object({
+  sessionId: z.string().uuid(),
+  code: z.string(),
+  messages: z.array(z.object({
+    role: z.string(),
+    content: z.string(),
+    timestamp: z.string().transform(str => new Date(str)),
+  })),
+});
+{% endif %}
+
+// ============================================================================
+// AUTHENTICATION ROUTES
+// ============================================================================
+
+/**
+ * POST /api/auth/login
+ * User authentication
+ */
+router.post('/auth/login', 
+  validateRequest(z.object({
+    email: z.string().email(),
+    password: z.string().min(6),
+  })),
+  async (req, res, next) => {
+    try {
+      const { email, password } = req.body;
+      const result = await UserService.authenticate(email, password);
+      
+      if (result.success) {
+        res.json({
+          user: result.user,
+          token: result.token,
+          expiresIn: result.expiresIn,
+        });
+      } else {
+        res.status(401).json({ error: 'Invalid credentials' });
+      }
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+/**
+ * POST /api/auth/register
+ * User registration
+ */
+router.post('/auth/register',
+  validateRequest(z.object({
+    email: z.string().email(),
+    name: z.string().min(2),
+    password: z.string().min(6),
+  })),
+  async (req, res, next) => {
+    try {
+      const { email, name, password } = req.body;
+      const user = await UserService.createUser({ email, name, password });
+      
+      res.status(201).json({
+        message: 'User created successfully',
+        user: { id: user.id, email: user.email, name: user.name },
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+// ============================================================================
+// INTERVIEW SESSION ROUTES
+// ============================================================================
+
+/**
+ * POST /api/sessions
+ * Create new interview session
+ */
+router.post('/sessions',
+  authMiddleware,
+  validateRequest(createSessionSchema),
+  async (req, res, next) => {
+    try {
+      const { interviewType, difficulty, language } = req.body;
+      const userId = req.user.id;
+      
+      const session = await InterviewService.createSession({
+        userId,
+        interviewType,
+        difficulty,
+        language,
+      });
+      
+      res.status(201).json({
+        session,
+        message: 'Interview session started',
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+/**
+ * GET /api/sessions/:sessionId
+ * Get session details
+ */
+router.get('/sessions/:sessionId',
+  authMiddleware,
+  async (req, res, next) => {
+    try {
+      const { sessionId } = req.params;
+      const userId = req.user.id;
+      
+      const session = await InterviewService.getSession(sessionId, userId);
+      
+      if (!session) {
+        return res.status(404).json({ error: 'Session not found' });
+      }
+      
+      res.json({ session });
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+/**
+ * PUT /api/sessions/:sessionId/code
+ * Update session code
+ */
+router.put('/sessions/:sessionId/code',
+  authMiddleware,
+  validateRequest(updateCodeSchema),
+  async (req, res, next) => {
+    try {
+      const { sessionId } = req.params;
+      const { code, language } = req.body;
+      const userId = req.user.id;
+      
+      const session = await InterviewService.updateCode(sessionId, userId, { code, language });
+      
+      res.json({ 
+        session,
+        message: 'Code updated successfully',
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+/**
+ * POST /api/sessions/:sessionId/messages
+ * Add message to chat history
+ */
+router.post('/sessions/:sessionId/messages',
+  authMiddleware,
+  validateRequest(z.object({
+    role: z.enum(['user', 'assistant']),
+    content: z.string().min(1),
+  })),
+  async (req, res, next) => {
+    try {
+      const { sessionId } = req.params;
+      const { role, content } = req.body;
+      const userId = req.user.id;
+      
+      const message = await InterviewService.addMessage(sessionId, userId, {
+        role,
+        content,
+        timestamp: new Date(),
+      });
+      
+      res.json({ message });
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+/**
+ * POST /api/sessions/:sessionId/complete
+ * Complete interview session
+ */
+router.post('/sessions/:sessionId/complete',
+  authMiddleware,
+  async (req, res, next) => {
+    try {
+      const { sessionId } = req.params;
+      const userId = req.user.id;
+      
+      const session = await InterviewService.completeSession(sessionId, userId);
+      
+      res.json({
+        session,
+        message: 'Session completed successfully',
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+// ============================================================================
+// AI FEEDBACK ROUTES
+// ============================================================================
+
+/**
+ * POST /api/feedback/analyze
+ * Generate AI feedback for code and communication
+ */
+router.post('/feedback/analyze',
+  authMiddleware,
+  validateRequest(submitFeedbackSchema),
+  async (req, res, next) => {
+    try {
+      const { sessionId, code, messages } = req.body;
+      const userId = req.user.id;
+      
+      const feedback = await FeedbackService.generateFeedback({
+        sessionId,
+        userId,
+        code,
+        messages,
+      });
+      
+      res.json({ feedback });
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+/**
+ * GET /api/feedback/session/:sessionId
+ * Get all feedback for a session
+ */
+router.get('/feedback/session/:sessionId',
+  authMiddleware,
+  async (req, res, next) => {
+    try {
+      const { sessionId } = req.params;
+      const userId = req.user.id;
+      
+      const feedback = await FeedbackService.getSessionFeedback(sessionId, userId);
+      
+      res.json({ feedback });
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+/**
+ * GET /api/feedback/patterns/:pattern
+ * Get feedback for specific coding pattern
+ */
+router.get('/feedback/patterns/:pattern',
+  authMiddleware,
+  async (req, res, next) => {
+    try {
+      const { pattern } = req.params;
+      const userId = req.user.id;
+      
+      const guidance = await FeedbackService.getPatternGuidance(pattern, userId);
+      
+      res.json({ guidance });
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+// ============================================================================
+// USER DASHBOARD ROUTES
+// ============================================================================
+
+/**
+ * GET /api/dashboard
+ * Get user dashboard data
+ */
+router.get('/dashboard',
+  authMiddleware,
+  async (req, res, next) => {
+    try {
+      const userId = req.user.id;
+      const { timeRange = 'month' } = req.query;
+      
+      const dashboardData = await DashboardService.getDashboardData(userId, timeRange as string);
+      
+      res.json(dashboardData);
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+/**
+ * GET /api/dashboard/performance
+ * Get detailed performance metrics
+ */
+router.get('/dashboard/performance',
+  authMiddleware,
+  async (req, res, next) => {
+    try {
+      const userId = req.user.id;
+      const { timeRange = 'month', metrics } = req.query;
+      
+      const performance = await DashboardService.getPerformanceMetrics(
+        userId, 
+        timeRange as string,
+        metrics ? (metrics as string).split(',') : undefined
+      );
+      
+      res.json({ performance });
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+/**
+ * GET /api/dashboard/sessions
+ * Get session history
+ */
+router.get('/dashboard/sessions',
+  authMiddleware,
+  async (req, res, next) => {
+    try {
+      const userId = req.user.id;
+      const { limit = 20, offset = 0, type, difficulty } = req.query;
+      
+      const sessions = await DashboardService.getSessionHistory(userId, {
+        limit: parseInt(limit as string),
+        offset: parseInt(offset as string),
+        type: type as string,
+        difficulty: difficulty as string,
+      });
+      
+      res.json({ sessions });
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+/**
+ * POST /api/dashboard/export
+ * Export performance data
+ */
+router.post('/dashboard/export',
+  authMiddleware,
+  validateRequest(z.object({
+    format: z.enum(['pdf', 'csv', 'json']),
+    timeRange: z.string().optional(),
+    includeDetails: z.boolean().optional(),
+  })),
+  async (req, res, next) => {
+    try {
+      const userId = req.user.id;
+      const { format, timeRange, includeDetails } = req.body;
+      
+      const exportData = await DashboardService.exportPerformanceData(userId, {
+        format,
+        timeRange,
+        includeDetails,
+      });
+      
+      res.setHeader('Content-Type', exportData.mimeType);
+      res.setHeader('Content-Disposition', `attachment; filename="${exportData.filename}"`);
+      res.send(exportData.data);
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+// ============================================================================
+// SYSTEM ROUTES
+// ============================================================================
+
+/**
+ * GET /api/health
+ * System health check
+ */
+router.get('/health', (req, res) => {
+  res.json({
+    status: 'healthy',
+    timestamp: new Date().toISOString(),
+    version: process.env.API_VERSION || '1.0.0',
+  });
+});
+
+/**
+ * GET /api/config
+ * Get system configuration for client
+ */
+router.get('/config', (req, res) => {
+  res.json({
+    features: {
+      realTimeAnalysis: process.env.ENABLE_REALTIME === 'true',
+      aiProvider: process.env.AI_PROVIDER || 'anthropic',
+      maxSessionDuration: parseInt(process.env.MAX_SESSION_DURATION || '7200'), // 2 hours
+    },
+    limits: {
+      maxCodeLength: 10000,
+      maxChatMessages: 100,
+      rateLimitPerHour: 1000,
+    },
+  });
+});
+
+// Error handling middleware
+router.use(errorHandler);
+
+{% if includeSwagger %}
+/**
+ * Swagger/OpenAPI Documentation Configuration
+ */
+export const swaggerDefinition = {
+  openapi: '3.0.0',
+  info: {
+    title: 'Interview Copilot API',
+    version: '1.0.0',
+    description: 'AI-powered interview simulation and feedback system',
+  },
+  servers: [
+    {
+      url: process.env.API_BASE_URL || 'http://localhost:3000/api',
+      description: 'Development server',
+    },
+  ],
+  components: {
+    securitySchemes: {
+      bearerAuth: {
+        type: 'http',
+        scheme: 'bearer',
+        bearerFormat: 'JWT',
+      },
+    },
+    schemas: {
+      User: {
+        type: 'object',
+        properties: {
+          id: { type: 'string' },
+          email: { type: 'string' },
+          name: { type: 'string' },
+          tier: { type: 'string', enum: ['FREE', 'PREMIUM', 'ENTERPRISE'] },
+        },
+      },
+      InterviewSession: {
+        type: 'object',
+        properties: {
+          id: { type: 'string' },
+          userId: { type: 'string' },
+          interviewType: { type: 'string', enum: ['TECHNICAL', 'BEHAVIORAL', 'SYSTEM_DESIGN', 'CODING_CHALLENGE'] },
+          difficulty: { type: 'string', enum: ['JUNIOR', 'MID', 'SENIOR', 'STAFF'] },
+          status: { type: 'string', enum: ['IN_PROGRESS', 'COMPLETED', 'ABANDONED', 'PAUSED'] },
+          startedAt: { type: 'string', format: 'date-time' },
+          completedAt: { type: 'string', format: 'date-time' },
+          overallScore: { type: 'number', minimum: 0, maximum: 10 },
+        },
+      },
+      FeedbackReport: {
+        type: 'object',
+        properties: {
+          id: { type: 'string' },
+          sessionId: { type: 'string' },
+          codeAnalysis: {
+            type: 'object',
+            properties: {
+              complexity: { type: 'number', minimum: 0, maximum: 10 },
+              readability: { type: 'number', minimum: 0, maximum: 10 },
+              performance: { type: 'number', minimum: 0, maximum: 10 },
+              bestPractices: { type: 'number', minimum: 0, maximum: 10 },
+            },
+          },
+          communicationScore: {
+            type: 'object', 
+            properties: {
+              clarity: { type: 'number', minimum: 0, maximum: 10 },
+              technicalAccuracy: { type: 'number', minimum: 0, maximum: 10 },
+              problemSolving: { type: 'number', minimum: 0, maximum: 10 },
+            },
+          },
+        },
+      },
+    },
+  },
+  security: [
+    {
+      bearerAuth: [],
+    },
+  ],
+};
+{% endif %}
+
+export default router;

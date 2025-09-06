@@ -1,0 +1,2 @@
+to: database/migrations/{{timestamp}}_{{migrationName}}.sql
+---

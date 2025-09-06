@@ -1,0 +1,20 @@
+---
+name: ai-feedback-engine
+description: AI-Powered Code Analysis and Communication Scoring System
+category: architecture
+prompts:
+  - name: analysisType
+    type: multiselect
+    choices: ["code-quality", "communication-scoring", "rubric-evaluation", "cookbook-patterns"]
+  - name: aiProvider
+    type: select
+    choices: ["anthropic", "openai", "custom", "multi-provider"]
+  - name: realTimeAnalysis
+    type: confirm
+    message: Enable real-time analysis as user types?
+  - name: feedbackLevel
+    type: select
+    choices: ["basic", "detailed", "comprehensive"]
+  - name: includeRubrics
+    type: confirm
+    message: Include configurable scoring rubrics?

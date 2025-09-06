@@ -1,0 +1,32 @@
+to: tests/integration/api/{{ routeName | kebabCase }}.test.ts
+inject: false
+prompt:
+  - name: routeName
+    type: input
+    message: API route name (e.g. users, posts, auth)
+  - name: httpMethod
+    type: list
+    message: Primary HTTP method
+    choices:
+      - GET
+      - POST
+      - PUT
+      - DELETE
+      - PATCH
+    default: GET
+  - name: requiresAuth
+    type: confirm
+    message: Requires authentication?
+    default: true
+  - name: hasDatabase
+    type: confirm
+    message: Interacts with database?
+    default: true
+  - name: hasValidation
+    type: confirm
+    message: Has input validation?
+    default: true
+  - name: hasErrorHandling
+    type: confirm
+    message: Has custom error handling?
+    default: true

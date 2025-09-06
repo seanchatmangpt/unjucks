@@ -1,0 +1,650 @@
+<template>
+  <div class="rubric-score bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700">
+    <!-- Header -->
+    <div class="p-6 border-b border-gray-200 dark:border-gray-700">
+      <div class="flex items-center justify-between">
+        <div>
+          <h2 class="text-xl font-semibold text-gray-900 dark:text-gray-100">
+            Scoring Rubric
+          </h2>
+          <p class="text-gray-600 dark:text-gray-400 mt-1">
+            {{ rubricData?.description || 'Detailed breakdown of your interview performance' }}
+          </p>
+        </div>
+        
+        <div class="flex items-center gap-3">
+          <!-- Overall Score -->
+          <div class="text-right">
+            <div class="text-3xl font-bold" :class="getScoreColor(overallScore)">
+              {{ overallScore }}
+            </div>
+            <div class="text-sm text-gray-500 dark:text-gray-400">
+              / {{ maxScore }}
+            </div>
+          </div>
+          
+          <!-- Grade -->
+          <div
+            class="px-4 py-2 rounded-lg font-semibold text-white"
+            :class="getGradeBgColor(overallGrade)"
+          >
+            {{ overallGrade }}
+          </div>
+          
+          <!-- Actions Menu -->
+          <UDropdown :items="actionsMenuItems" :popper="{ placement: 'bottom-end' }">
+            <UButton
+              icon="i-heroicons-ellipsis-vertical"
+              variant="ghost"
+              size="sm"
+            />
+          </UDropdown>
+        </div>
+      </div>
+    </div>
+
+    <!-- Rubric Categories -->
+    <div class="p-6">
+      <div class="space-y-6">
+        <div
+          v-for="category in rubricData?.categories || []"
+          :key="category.id"
+          class="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden"
+        >
+          <!-- Category Header -->
+          <div 
+            class="bg-gray-50 dark:bg-gray-800 px-6 py-4 border-b border-gray-200 dark:border-gray-700 cursor-pointer"
+            @click="toggleCategory(category.id)"
+          >
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-3">
+                <UIcon
+                  :name="getCategoryIcon(category.name)"
+                  class="h-5 w-5 text-gray-600 dark:text-gray-400"
+                />
+                <div>
+                  <h3 class="font-semibold text-gray-900 dark:text-gray-100">
+                    {{ category.label }}
+                  </h3>
+                  <p class="text-sm text-gray-600 dark:text-gray-400">
+                    Weight: {{ category.weight }}% | Max Score: {{ category.maxScore }}
+                  </p>
+                </div>
+              </div>
+              
+              <div class="flex items-center gap-4">
+                <!-- Category Score -->
+                <div class="text-right">
+                  <div class="text-xl font-bold" :class="getScoreColor(category.score || 0)">
+                    {{ category.score || 0 }}
+                  </div>
+                  <div class="text-xs text-gray-500">
+                    / {{ category.maxScore }}
+                  </div>
+                </div>
+                
+                <!-- Performance Level -->
+                <UBadge
+                  :color="getPerformanceLevelColor(category.performanceLevel)"
+                  :label="category.performanceLevel || 'Not Scored'"
+                  size="sm"
+                />
+                
+                <!-- Expand/Collapse Icon -->
+                <UIcon
+                  :name="expandedCategories.has(category.id) ? 'i-heroicons-chevron-up' : 'i-heroicons-chevron-down'"
+                  class="h-4 w-4 text-gray-400"
+                />
+              </div>
+            </div>
+          </div>
+          
+          <!-- Category Details (Expandable) -->
+          <div
+            v-if="expandedCategories.has(category.id)"
+            class="p-6 space-y-4"
+          >
+            <!-- Criteria List -->
+            <div v-if="category.criteria?.length > 0" class="space-y-3">
+              <h4 class="font-medium text-gray-900 dark:text-gray-100">
+                Evaluation Criteria
+              </h4>
+              
+              <div class="space-y-2">
+                <div
+                  v-for="criterion in category.criteria"
+                  :key="criterion.id"
+                  class="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded"
+                >
+                  <div class="flex-1">
+                    <div class="flex items-center gap-2 mb-1">
+                      <span class="font-medium text-gray-900 dark:text-gray-100">
+                        {{ criterion.label }}
+                      </span>
+                      <UTooltip :text="criterion.description">
+                        <UIcon name="i-heroicons-information-circle" class="h-4 w-4 text-gray-400" />
+                      </UTooltip>
+                    </div>
+                    <div class="text-sm text-gray-600 dark:text-gray-400">
+                      {{ criterion.description }}
+                    </div>
+                  </div>
+                  
+                  <div class="flex items-center gap-3 ml-4">
+                    <!-- Criterion Score -->
+                    <div class="text-right">
+                      <div class="font-semibold" :class="getScoreColor(criterion.score || 0)">
+                        {{ criterion.score || 0 }}
+                      </div>
+                      <div class="text-xs text-gray-500">
+                        / {{ criterion.maxScore }}
+                      </div>
+                    </div>
+                    
+                    <!-- Visual Rating -->
+                    <div class="flex">
+                      <div
+                        v-for="i in criterion.maxScore"
+                        :key="i"
+                        class="w-3 h-3 mx-0.5 rounded-full"
+                        :class="{
+                          'bg-green-500': i <= (criterion.score || 0) && (criterion.score || 0) >= criterion.maxScore * 0.8,
+                          'bg-yellow-500': i <= (criterion.score || 0) && (criterion.score || 0) >= criterion.maxScore * 0.6 && (criterion.score || 0) < criterion.maxScore * 0.8,
+                          'bg-red-500': i <= (criterion.score || 0) && (criterion.score || 0) < criterion.maxScore * 0.6,
+                          'bg-gray-300 dark:bg-gray-600': i > (criterion.score || 0)
+                        }"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Feedback for Category -->
+            <div v-if="category.feedback" class="space-y-3">
+              <h4 class="font-medium text-gray-900 dark:text-gray-100">
+                Feedback
+              </h4>
+              
+              <!-- Strengths -->
+              <div v-if="category.feedback.strengths?.length > 0">
+                <h5 class="text-sm font-medium text-green-700 dark:text-green-300 mb-2">
+                  Strengths
+                </h5>
+                <ul class="space-y-1">
+                  <li
+                    v-for="strength in category.feedback.strengths"
+                    :key="strength"
+                    class="flex items-start gap-2 text-sm text-gray-600 dark:text-gray-400"
+                  >
+                    <UIcon name="i-heroicons-plus-circle" class="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
+                    <span>{{ strength }}</span>
+                  </li>
+                </ul>
+              </div>
+              
+              <!-- Areas for Improvement -->
+              <div v-if="category.feedback.improvements?.length > 0">
+                <h5 class="text-sm font-medium text-blue-700 dark:text-blue-300 mb-2">
+                  Areas for Improvement
+                </h5>
+                <ul class="space-y-1">
+                  <li
+                    v-for="improvement in category.feedback.improvements"
+                    :key="improvement"
+                    class="flex items-start gap-2 text-sm text-gray-600 dark:text-gray-400"
+                  >
+                    <UIcon name="i-heroicons-arrow-up-circle" class="h-4 w-4 text-blue-500 mt-0.5 flex-shrink-0" />
+                    <span>{{ improvement }}</span>
+                  </li>
+                </ul>
+              </div>
+              
+              <!-- Specific Comments -->
+              <div v-if="category.feedback.comments" class="p-3 bg-blue-50 dark:bg-blue-950/20 rounded border-l-4 border-blue-500">
+                <div class="flex items-start gap-2">
+                  <UIcon name="i-heroicons-chat-bubble-left-ellipsis" class="h-4 w-4 text-blue-500 mt-0.5 flex-shrink-0" />
+                  <p class="text-sm text-blue-800 dark:text-blue-200">
+                    {{ category.feedback.comments }}
+                  </p>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Evidence/Examples -->
+            <div v-if="category.evidence?.length > 0" class="space-y-3">
+              <h4 class="font-medium text-gray-900 dark:text-gray-100">
+                Evidence & Examples
+              </h4>
+              
+              <div class="space-y-2">
+                <div
+                  v-for="item in category.evidence"
+                  :key="item.id"
+                  class="p-3 border border-gray-200 dark:border-gray-700 rounded"
+                >
+                  <div class="flex items-start justify-between mb-2">
+                    <div class="flex items-center gap-2">
+                      <UBadge
+                        :color="getEvidenceTypeColor(item.type)"
+                        :label="item.type"
+                        size="xs"
+                      />
+                      <span class="text-sm font-medium text-gray-900 dark:text-gray-100">
+                        {{ item.title }}
+                      </span>
+                    </div>
+                    
+                    <div v-if="item.timestamp" class="text-xs text-gray-500">
+                      {{ formatTimestamp(item.timestamp) }}
+                    </div>
+                  </div>
+                  
+                  <p class="text-sm text-gray-600 dark:text-gray-400 mb-2">
+                    {{ item.description }}
+                  </p>
+                  
+                  <!-- Code Example -->
+                  <div v-if="item.codeExample" class="bg-gray-900 text-gray-100 p-3 rounded text-xs font-mono overflow-x-auto">
+                    <pre><code>{{ item.codeExample }}</code></pre>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Performance Summary -->
+    <div v-if="showSummary" class="border-t border-gray-200 dark:border-gray-700 p-6 bg-gray-50 dark:bg-gray-800">
+      <h3 class="font-semibold text-gray-900 dark:text-gray-100 mb-4">
+        Performance Summary
+      </h3>
+      
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <!-- Overall Performance -->
+        <div class="text-center">
+          <div class="relative w-24 h-24 mx-auto mb-3">
+            <!-- Circular Progress -->
+            <svg class="w-24 h-24 transform -rotate-90" viewBox="0 0 100 100">
+              <circle
+                cx="50"
+                cy="50"
+                r="40"
+                stroke="currentColor"
+                stroke-width="8"
+                fill="transparent"
+                class="text-gray-200 dark:text-gray-700"
+              />
+              <circle
+                cx="50"
+                cy="50"
+                r="40"
+                stroke="currentColor"
+                stroke-width="8"
+                fill="transparent"
+                stroke-linecap="round"
+                :stroke-dasharray="`${overallPercentage * 2.51} 251`"
+                :class="getScoreColor(overallScore)"
+              />
+            </svg>
+            <div class="absolute inset-0 flex items-center justify-center">
+              <span class="text-lg font-bold" :class="getScoreColor(overallScore)">
+                {{ Math.round(overallPercentage) }}%
+              </span>
+            </div>
+          </div>
+          <div class="text-sm text-gray-600 dark:text-gray-400">
+            Overall Performance
+          </div>
+        </div>
+        
+        <!-- Top Performing Category -->
+        <div v-if="topCategory" class="text-center">
+          <div class="w-16 h-16 mx-auto mb-3 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center">
+            <UIcon :name="getCategoryIcon(topCategory.name)" class="h-8 w-8 text-green-600 dark:text-green-400" />
+          </div>
+          <div class="font-semibold text-gray-900 dark:text-gray-100">
+            {{ topCategory.label }}
+          </div>
+          <div class="text-sm text-green-600 dark:text-green-400">
+            Best Performance ({{ topCategory.score }}/{{ topCategory.maxScore }})
+          </div>
+        </div>
+        
+        <!-- Area for Improvement -->
+        <div v-if="improvementCategory" class="text-center">
+          <div class="w-16 h-16 mx-auto mb-3 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center">
+            <UIcon :name="getCategoryIcon(improvementCategory.name)" class="h-8 w-8 text-blue-600 dark:text-blue-400" />
+          </div>
+          <div class="font-semibold text-gray-900 dark:text-gray-100">
+            {{ improvementCategory.label }}
+          </div>
+          <div class="text-sm text-blue-600 dark:text-blue-400">
+            Focus Area ({{ improvementCategory.score }}/{{ improvementCategory.maxScore }})
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Actions Footer -->
+    <div v-if="showActions" class="border-t border-gray-200 dark:border-gray-700 p-6">
+      <div class="flex items-center justify-between">
+        <div class="text-sm text-gray-600 dark:text-gray-400">
+          Rubric completed on {{ formatDate(rubricData?.completedAt || new Date()) }}
+        </div>
+        
+        <div class="flex items-center gap-3">
+          <UButton
+            label="Export Report"
+            icon="i-heroicons-document-arrow-down"
+            variant="outline"
+            size="sm"
+            @click="exportRubric"
+          />
+          
+          <UButton
+            label="Discuss Results"
+            icon="i-heroicons-chat-bubble-left-ellipsis"
+            size="sm"
+            @click="discussResults"
+          />
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script setup lang="ts">
+import type { RubricData, RubricCategory, RubricCriterion } from '~/types/rubric'
+
+// Props
+const props = withDefaults(defineProps<{
+  rubricData?: RubricData | null
+  showSummary?: boolean
+  showActions?: boolean
+  expandedByDefault?: boolean
+}>(), {
+  rubricData: null,
+  showSummary: true,
+  showActions: true,
+  expandedByDefault: false
+})
+
+// Emits
+const emit = defineEmits<{
+  'category-expanded': [categoryId: string]
+  'export-requested': [format: string]
+  'discuss-results': []
+}>()
+
+// Reactive state
+const expandedCategories = ref(new Set<string>())
+
+// Initialize expanded state
+if (props.expandedByDefault && props.rubricData?.categories) {
+  props.rubricData.categories.forEach(cat => {
+    expandedCategories.value.add(cat.id)
+  })
+}
+
+// Computed properties
+const overallScore = computed(() => {
+  if (!props.rubricData?.categories) return 0
+  
+  let totalWeightedScore = 0
+  let totalWeight = 0
+  
+  props.rubricData.categories.forEach(category => {
+    const percentage = (category.score || 0) / category.maxScore
+    totalWeightedScore += percentage * category.weight
+    totalWeight += category.weight
+  })
+  
+  return Math.round((totalWeightedScore / totalWeight) * 100)
+})
+
+const maxScore = computed(() => 100) // Percentage-based scoring
+
+const overallPercentage = computed(() => overallScore.value)
+
+const overallGrade = computed(() => {
+  const score = overallScore.value
+  if (score >= 90) return 'A'
+  if (score >= 80) return 'B'
+  if (score >= 70) return 'C'
+  if (score >= 60) return 'D'
+  return 'F'
+})
+
+const topCategory = computed(() => {
+  if (!props.rubricData?.categories) return null
+  
+  return props.rubricData.categories.reduce((best, current) => {
+    const currentPercentage = (current.score || 0) / current.maxScore
+    const bestPercentage = (best?.score || 0) / (best?.maxScore || 1)
+    return currentPercentage > bestPercentage ? current : best
+  }, null as RubricCategory | null)
+})
+
+const improvementCategory = computed(() => {
+  if (!props.rubricData?.categories) return null
+  
+  return props.rubricData.categories.reduce((worst, current) => {
+    const currentPercentage = (current.score || 0) / current.maxScore
+    const worstPercentage = worst ? (worst.score || 0) / worst.maxScore : 1
+    return currentPercentage < worstPercentage ? current : worst
+  }, null as RubricCategory | null)
+})
+
+// Menu items
+const actionsMenuItems = [
+  [
+    {
+      label: 'Export PDF',
+      icon: 'i-heroicons-document',
+      click: () => exportRubric('pdf')
+    },
+    {
+      label: 'Export JSON',
+      icon: 'i-heroicons-code-bracket',
+      click: () => exportRubric('json')
+    }
+  ],
+  [
+    {
+      label: 'Share Results',
+      icon: 'i-heroicons-share',
+      click: () => shareResults()
+    },
+    {
+      label: 'Schedule Review',
+      icon: 'i-heroicons-calendar',
+      click: () => scheduleReview()
+    }
+  ]
+]
+
+// Methods
+const toggleCategory = (categoryId: string) => {
+  if (expandedCategories.value.has(categoryId)) {
+    expandedCategories.value.delete(categoryId)
+  } else {
+    expandedCategories.value.add(categoryId)
+    emit('category-expanded', categoryId)
+  }
+}
+
+const exportRubric = (format: string = 'pdf') => {
+  emit('export-requested', format)
+}
+
+const discussResults = () => {
+  emit('discuss-results')
+}
+
+const shareResults = () => {
+  // Implementation for sharing results
+  console.log('Share results')
+}
+
+const scheduleReview = () => {
+  // Implementation for scheduling review
+  console.log('Schedule review')
+}
+
+// Helper methods
+const getCategoryIcon = (categoryName: string) => {
+  const icons = {
+    'technical': 'i-heroicons-code-bracket',
+    'problem-solving': 'i-heroicons-puzzle-piece',
+    'communication': 'i-heroicons-chat-bubble-left-ellipsis',
+    'system-design': 'i-heroicons-building-office',
+    'coding': 'i-heroicons-computer-desktop',
+    'algorithms': 'i-heroicons-cpu-chip',
+    'behavioral': 'i-heroicons-users'
+  }
+  return icons[categoryName as keyof typeof icons] || 'i-heroicons-academic-cap'
+}
+
+const getScoreColor = (score: number) => {
+  if (score >= 80) return 'text-green-500'
+  if (score >= 60) return 'text-yellow-500'
+  return 'text-red-500'
+}
+
+const getGradeBgColor = (grade: string) => {
+  switch (grade) {
+    case 'A': return 'bg-green-500'
+    case 'B': return 'bg-blue-500'
+    case 'C': return 'bg-yellow-500'
+    case 'D': return 'bg-orange-500'
+    case 'F': return 'bg-red-500'
+    default: return 'bg-gray-500'
+  }
+}
+
+const getPerformanceLevelColor = (level: string) => {
+  switch (level?.toLowerCase()) {
+    case 'excellent': return 'green'
+    case 'good': return 'blue'
+    case 'satisfactory': return 'yellow'
+    case 'needs improvement': return 'orange'
+    case 'unsatisfactory': return 'red'
+    default: return 'gray'
+  }
+}
+
+const getEvidenceTypeColor = (type: string) => {
+  switch (type?.toLowerCase()) {
+    case 'code': return 'blue'
+    case 'explanation': return 'green'
+    case 'question': return 'purple'
+    case 'response': return 'orange'
+    default: return 'gray'
+  }
+}
+
+const formatDate = (date: Date): string => {
+  return new Intl.DateTimeFormat('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  }).format(new Date(date))
+}
+
+const formatTimestamp = (timestamp: Date): string => {
+  return new Intl.DateTimeFormat('en-US', {
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit'
+  }).format(new Date(timestamp))
+}
+</script>
+
+<style scoped>
+.rubric-score {
+  /* Component-specific styles */
+}
+
+/* Category expansion animation */
+.category-expand-enter-active,
+.category-expand-leave-active {
+  transition: all 0.3s ease;
+  max-height: 1000px;
+  overflow: hidden;
+}
+
+.category-expand-enter-from,
+.category-expand-leave-to {
+  max-height: 0;
+  opacity: 0;
+}
+
+/* Score visualization */
+.score-circle {
+  transition: stroke-dasharray 0.5s ease-in-out;
+}
+
+/* Criterion rating dots */
+.rating-dot {
+  transition: background-color 0.2s ease;
+}
+
+/* Hover effects */
+.category-header:hover {
+  background-color: rgb(243 244 246 / 0.8);
+}
+
+.dark .category-header:hover {
+  background-color: rgb(31 41 55 / 0.8);
+}
+
+/* Evidence code blocks */
+.evidence-code {
+  font-family: 'Monaco', 'Menlo', 'JetBrains Mono', monospace;
+  line-height: 1.4;
+}
+
+/* Performance summary animations */
+.performance-icon {
+  transition: transform 0.2s ease;
+}
+
+.performance-icon:hover {
+  transform: scale(1.05);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .grid-cols-1.md\\:grid-cols-3 {
+    grid-template-columns: 1fr;
+  }
+  
+  .criterion-mobile {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+}
+
+/* Print styles */
+@media print {
+  .rubric-score {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  
+  button,
+  .no-print {
+    display: none !important;
+  }
+  
+  .category-header {
+    background-color: #f9fafb !important;
+  }
+}
+</style>

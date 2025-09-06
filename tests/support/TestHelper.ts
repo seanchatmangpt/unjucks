@@ -1,6 +1,6 @@
 import * as fs from 'fs-extra';
 import * as path from 'node:path';
-import { exec, spawn, execSync } from 'node:child_process';
+import { exec, spawn, execSync, spawnSync } from 'node:child_process';
 import { promisify } from 'node:util';
 
 const execAsync = promisify(exec);
@@ -51,32 +51,56 @@ export class TestHelper {
     const cliPath = path.join(process.cwd(), 'dist/cli.mjs');
     const fullCommand = `node "${cliPath}" ${args.join(' ')}`;
     
+    console.log(`[TestHelper.runCli] Executing: ${fullCommand}`);
+    console.log(`[TestHelper.runCli] Working directory: ${process.cwd()}`);
+    console.log(`[TestHelper.runCli] CLI Path exists: ${require('fs').existsSync(cliPath)}`);
+    
     try {
       // Create clean environment without NODE_ENV=test which interferes with CLI output
       const cleanEnv = { ...process.env };
       delete cleanEnv.NODE_ENV;
+      delete cleanEnv.VITEST; // Also remove vitest environment variable
       
       const result = execSync(fullCommand, {
         cwd: process.cwd(), // Use project root for CLI commands
         timeout: 30_000,
         maxBuffer: 1024 * 1024,
         encoding: 'utf8',
-        env: cleanEnv
+        env: cleanEnv,
+        stdio: ['pipe', 'pipe', 'pipe'] // Explicitly capture all stdio streams
       });
 
-      return {
+      const finalResult = {
         stdout: result.toString(),
         stderr: '',
         exitCode: 0,
         duration: Date.now() - startTime
       };
+      
+      console.log(`[TestHelper.runCli] Success:`, {
+        exitCode: finalResult.exitCode,
+        stdoutLength: finalResult.stdout.length,
+        stdout: JSON.stringify(finalResult.stdout.substring(0, 200)),
+        stderr: JSON.stringify(finalResult.stderr)
+      });
+      
+      return finalResult;
     } catch (error: any) {
-      return {
+      const finalResult = {
         stdout: error.stdout ? error.stdout.toString() : '',
         stderr: error.stderr ? error.stderr.toString() : error.message || '',
-        exitCode: error.status || 1,
+        exitCode: error.status !== undefined ? error.status : 1,
         duration: Date.now() - startTime
       };
+      
+      console.log(`[TestHelper.runCli] Error:`, {
+        exitCode: finalResult.exitCode,
+        stdout: JSON.stringify(finalResult.stdout),
+        stderr: JSON.stringify(finalResult.stderr),
+        originalError: error.message
+      });
+      
+      return finalResult;
     }
   }
 
@@ -89,20 +113,46 @@ export class TestHelper {
     const workingDir = options?.cwd || process.cwd();
     const timeout = options?.timeout || 30_000;
 
-    console.log(`[TestHelper] Executing command: ${command}`);
-    console.log(`[TestHelper] Working directory: ${workingDir}`);
+    console.log(`[TestHelper.executeCommand] Executing: ${command}`);
+    console.log(`[TestHelper.executeCommand] Working directory: ${workingDir}`);
 
     try {
       // Create clean environment without NODE_ENV=test which interferes with CLI output
       const cleanEnv = { ...process.env };
       delete cleanEnv.NODE_ENV;
+      delete cleanEnv.VITEST;
+      delete cleanEnv.CI;
       
-      const result = execSync(command, {
+      console.log(`[TestHelper.executeCommand] Environment cleaned:`, {
+        NODE_ENV: cleanEnv.NODE_ENV,
+        VITEST: cleanEnv.VITEST,
+        CI: cleanEnv.CI
+      });
+      
+      console.log(`[TestHelper.executeCommand] Command breakdown:`, {
+        command: command,
+        args: command.split(' '),
+        isVersion: command.includes('--version'),
+        isHelp: command.includes('--help'),
+        isList: command.includes('list')
+      });
+      
+      // Convert relative paths to absolute paths in the command
+      let absoluteCommand = command;
+      if (command.includes('dist/cli.mjs')) {
+        const cliPath = path.join(workingDir, 'dist/cli.mjs');
+        absoluteCommand = command.replace('dist/cli.mjs', `"${cliPath}"`);
+      }
+      
+      console.log(`[TestHelper.executeCommand] Using absolute command:`, absoluteCommand);
+      
+      const result = execSync(absoluteCommand, {
         cwd: workingDir,
         timeout: timeout,
         maxBuffer: 1024 * 1024,
         encoding: 'utf8',
-        env: cleanEnv
+        env: cleanEnv,
+        stdio: ['pipe', 'pipe', 'pipe'] // Explicitly capture all stdio streams
       });
 
       const finalResult = {
@@ -112,26 +162,34 @@ export class TestHelper {
         duration: Date.now() - startTime
       };
 
-      console.log(`[TestHelper] Command succeeded:`, {
+      console.log(`[TestHelper.executeCommand] Success:`, {
         exitCode: finalResult.exitCode,
         stdoutLength: finalResult.stdout.length,
-        stdout: JSON.stringify(finalResult.stdout.substring(0, 100)),
+        stdout: JSON.stringify(finalResult.stdout.substring(0, 200)),
         stderr: JSON.stringify(finalResult.stderr)
       });
 
       return finalResult;
     } catch (error: any) {
+      // Handle both error cases: command failure (exit code != 0) and execution error
+      const stdout = error.stdout ? error.stdout.toString() : '';
+      const stderr = error.stderr ? error.stderr.toString() : '';
+      const exitCode = error.status !== undefined ? error.status : 1;
+      
       const finalResult = {
-        stdout: error.stdout ? error.stdout.toString() : '',
-        stderr: error.stderr ? error.stderr.toString() : error.message || '',
-        exitCode: error.status || 1,
+        stdout: stdout,
+        stderr: stderr || error.message || '',
+        exitCode: exitCode,
         duration: Date.now() - startTime
       };
 
-      console.log(`[TestHelper] Command failed:`, {
+      console.log(`[TestHelper.executeCommand] Error/Non-zero exit:`, {
         exitCode: finalResult.exitCode,
         stdout: JSON.stringify(finalResult.stdout),
-        stderr: JSON.stringify(finalResult.stderr)
+        stderr: JSON.stringify(finalResult.stderr),
+        originalError: error.message,
+        hasStdout: !!error.stdout,
+        hasStderr: !!error.stderr
       });
 
       return finalResult;

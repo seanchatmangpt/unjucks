@@ -1,0 +1,8 @@
+to: src/components/<%= componentName %>.vue
+inject: false
+sh: |
+  echo "✅ Created <%= componentName %> component"
+  echo "📁 Generated files:"
+  echo "   - src/components/<%= componentName %>.vue" 
+  echo "   - src/types/<%= componentName %>.ts"
+  echo "   - src/__tests__/<%= componentName %>.test.ts"

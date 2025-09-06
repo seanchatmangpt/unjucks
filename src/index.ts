@@ -11,3 +11,6 @@ export * from './commands/generate';
 export * from './commands/list';
 export * from './commands/init';
 export * from './commands/version';
+
+// MCP server exports (optional - only when needed)
+export * from './mcp';

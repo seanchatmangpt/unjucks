@@ -1,0 +1,16 @@
+to: tests/helpers/{{ helperName | kebabCase }}.ts
+inject: false
+prompt:
+  - name: helperName
+    type: input
+    message: Helper utility name (e.g. auth-helpers, db-helpers, test-data)
+  - name: helperType
+    type: list
+    message: Type of helper utility
+    choices:
+      - authentication
+      - database
+      - test-data
+      - mocking
+      - api-client
+    default: test-data

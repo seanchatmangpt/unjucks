@@ -1,0 +1,145 @@
+-- Seed data: <%= seedName %>
+-- Generated: <%= new Date().toISOString() %>
+
+<% if (seedType === 'users') { -%>
+-- Sample user accounts for development/testing
+INSERT INTO users (username, email, password_hash, full_name, role, is_verified, preferred_language, timezone) VALUES
+<% if (environment === 'development') { -%>
+  ('admin', 'admin@codeinterview.ai', '$2b$12$LQv3c1yqBwEHxE03gsaLc.VJNGn/v1b.c8nW3W6LkIz3KzJ1q5C2y', 'System Administrator', 'admin', true, 'javascript', 'UTC'),
+  ('interviewer1', 'interviewer@company.com', '$2b$12$LQv3c1yqBwEHxE03gsaLc.VJNGn/v1b.c8nW3W6LkIz3KzJ1q5C2y', 'Senior Engineer', 'interviewer', true, 'python', 'America/New_York'),
+  ('candidate1', 'candidate@gmail.com', '$2b$12$LQv3c1yqBwEHxE03gsaLc.VJNGn/v1b.c8nW3W6LkIz3KzJ1q5C2y', 'John Developer', 'candidate', true, 'javascript', 'America/Los_Angeles'),
+  ('candidate2', 'jane@outlook.com', '$2b$12$LQv3c1yqBwEHxE03gsaLc.VJNGn/v1b.c8nW3W6LkIz3KzJ1q5C2y', 'Jane Coder', 'candidate', true, 'python', 'Europe/London'),
+  ('testuser', 'test@example.com', '$2b$12$LQv3c1yqBwEHxE03gsaLc.VJNGn/v1b.c8nW3W6LkIz3KzJ1q5C2y', 'Test User', 'candidate', false, 'java', 'UTC');
+<% } else { -%>
+  ('admin', 'admin@codeinterview.ai', '$2b$12$LQv3c1yqBwEHxE03gsaLc.VJNGn/v1b.c8nW3W6LkIz3KzJ1q5C2y', 'System Administrator', 'admin', true, 'javascript', 'UTC');
+<% } -%>
+
+<% } else if (seedType === 'drill_exercises') { -%>
+-- Sample coding exercises for interviews
+INSERT INTO drill_exercises (
+  exercise_uuid, title, slug, description, problem_statement, 
+  difficulty_level, category, estimated_time_minutes, is_active,
+  starter_code, test_cases
+) VALUES
+  (
+    '<%= require('uuid').v4() %>', 
+    'Two Sum',
+    'two-sum',
+    'Find two numbers in an array that add up to a specific target',
+    'Given an array of integers nums and an integer target, return indices of the two numbers such that they add up to target. You may assume that each input would have exactly one solution, and you may not use the same element twice.',
+    'easy',
+    'algorithms',
+    15,
+    true,
+    '{"javascript": "function twoSum(nums, target) {\n    // Your solution here\n}", "python": "def two_sum(nums, target):\n    # Your solution here\n    pass", "java": "public int[] twoSum(int[] nums, int target) {\n    // Your solution here\n    return new int[2];\n}"}',
+    '[{"input": {"nums": [2,7,11,15], "target": 9}, "output": [0,1]}, {"input": {"nums": [3,2,4], "target": 6}, "output": [1,2]}]'
+  ),
+  (
+    '<%= require('uuid').v4() %>', 
+    'Valid Parentheses',
+    'valid-parentheses',
+    'Determine if parentheses are properly balanced',
+    'Given a string s containing just the characters ''('', '')'', ''{'', ''}'', ''['' and '']'', determine if the input string is valid. An input string is valid if: Open brackets must be closed by the same type of brackets. Open brackets must be closed in the correct order.',
+    'easy',
+    'data-structures',
+    20,
+    true,
+    '{"javascript": "function isValid(s) {\n    // Your solution here\n}", "python": "def is_valid(s):\n    # Your solution here\n    pass", "java": "public boolean isValid(String s) {\n    // Your solution here\n    return false;\n}"}',
+    '[{"input": {"s": "()"}, "output": true}, {"input": {"s": "()[]{}"}, "output": true}, {"input": {"s": "(]"}, "output": false}]'
+  ),
+  (
+    '<%= require('uuid').v4() %>', 
+    'Reverse Linked List',
+    'reverse-linked-list',
+    'Reverse a singly linked list iteratively or recursively',
+    'Given the head of a singly linked list, reverse the list, and return the reversed list.',
+    'medium',
+    'linked-lists',
+    25,
+    true,
+    '{"javascript": "function reverseList(head) {\n    // Your solution here\n}", "python": "def reverse_list(head):\n    # Your solution here\n    pass", "java": "public ListNode reverseList(ListNode head) {\n    // Your solution here\n    return null;\n}"}',
+    '[{"input": {"head": [1,2,3,4,5]}, "output": [5,4,3,2,1]}, {"input": {"head": [1,2]}, "output": [2,1]}]'
+  ),
+  (
+    '<%= require('uuid').v4() %>', 
+    'Binary Tree Maximum Path Sum',
+    'binary-tree-max-path-sum',
+    'Find the maximum sum path in a binary tree',
+    'A path in a binary tree is a sequence of nodes where each pair of adjacent nodes in the sequence has an edge connecting them. A node can only appear in the sequence at most once. The path does not need to pass through the root. Return the maximum sum of any non-empty path.',
+    'hard',
+    'trees',
+    45,
+    true,
+    '{"javascript": "function maxPathSum(root) {\n    // Your solution here\n}", "python": "def max_path_sum(root):\n    # Your solution here\n    pass", "java": "public int maxPathSum(TreeNode root) {\n    // Your solution here\n    return 0;\n}"}',
+    '[{"input": {"root": [1,2,3]}, "output": 6}, {"input": {"root": [-10,9,20,null,null,15,7]}, "output": 42}]'
+  );
+
+<% } else if (seedType === 'interview_sessions') { -%>
+-- Sample interview sessions for development
+<% if (environment === 'development') { -%>
+INSERT INTO interview_sessions (
+  session_token, user_id, interviewer_id, session_type, difficulty_level,
+  status, scheduled_at, estimated_duration
+) VALUES
+  ('sess_' || substr(replace(random()::text, '0.', ''), 1, 16), 3, 2, 'coding_interview', 'medium', 'scheduled', 
+   CURRENT_TIMESTAMP + interval '1 day', 3600),
+  ('sess_' || substr(replace(random()::text, '0.', ''), 1, 16), 4, 2, 'coding_interview', 'easy', 'completed',
+   CURRENT_TIMESTAMP - interval '1 day', 2400),
+  ('sess_' || substr(replace(random()::text, '0.', ''), 1, 16), 3, 2, 'system_design', 'hard', 'active',
+   CURRENT_TIMESTAMP - interval '30 minutes', 5400);
+<% } -%>
+
+<% } else if (seedType === 'categories') { -%>
+-- Seed exercise categories and metadata
+INSERT INTO drill_exercises (
+  exercise_uuid, title, slug, description, difficulty_level, category, 
+  estimated_time_minutes, is_active, tags
+) VALUES
+  -- Array & String problems
+  ('<%= require('uuid').v4() %>', 'Remove Duplicates from Sorted Array', 'remove-duplicates-sorted-array', 
+   'Remove duplicates in-place from sorted array', 'easy', 'arrays', 15, true, 
+   '["arrays", "two-pointers", "in-place"]'),
+  
+  -- Dynamic Programming
+  ('<%= require('uuid').v4() %>', 'Climbing Stairs', 'climbing-stairs',
+   'Calculate number of ways to climb n stairs', 'easy', 'dynamic-programming', 20, true,
+   '["dp", "fibonacci", "memoization"]'),
+   
+  -- Graph problems
+  ('<%= require('uuid').v4() %>', 'Number of Islands', 'number-of-islands',
+   'Count connected components in 2D grid', 'medium', 'graphs', 30, true,
+   '["dfs", "bfs", "grid", "connected-components"]'),
+   
+  -- System Design (conceptual)
+  ('<%= require('uuid').v4() %>', 'Design URL Shortener', 'design-url-shortener',
+   'Design a URL shortening service like bit.ly', 'medium', 'system-design', 60, true,
+   '["system-design", "scalability", "databases", "caching"]');
+
+<% } else { -%>
+-- Custom seed data for <%= seedName %>
+<% if (customData && customData.length > 0) { -%>
+<% customData.forEach(function(item, index) { -%>
+-- Custom data item <%= index + 1 %>
+<%= item.sql %>
+<% }); -%>
+<% } else { -%>
+-- TODO: Add custom seed data
+-- Example: INSERT INTO your_table (column1, column2) VALUES ('value1', 'value2');
+<% } -%>
+<% } -%>
+
+<% if (environment === 'development') { -%>
+-- Development environment specific data
+-- Add any additional development data here
+
+<% } else if (environment === 'production') { -%>
+-- Production environment - minimal essential data only
+-- Add only critical production seed data here
+
+<% } -%>
+
+-- Seed completed: <%= seedName %>
+-- Records inserted: <%= seedType === 'users' ? (environment === 'development' ? '5' : '1') :
+                        seedType === 'drill_exercises' ? '4' :
+                        seedType === 'interview_sessions' ? (environment === 'development' ? '3' : '0') :
+                        seedType === 'categories' ? '4' : 'Custom count' %>

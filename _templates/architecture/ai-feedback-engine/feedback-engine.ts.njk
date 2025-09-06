@@ -1,0 +1,408 @@
+---
+to: src/services/feedback/AIFeedbackEngine.ts
+inject: false
+skipIf: exists
+---
+import { z } from 'zod';
+import { EventEmitter } from 'events';
+{% if aiProvider === 'anthropic' %}
+import { Anthropic } from '@anthropic-ai/sdk';
+{% elsif aiProvider === 'openai' %}
+import { OpenAI } from 'openai';
+{% endif %}
+
+/**
+ * AI Feedback Engine - Core Analysis System
+ * 
+ * ARCHITECTURE PATTERN: Strategy + Observer + Pipeline
+ * 
+ * Flow:
+ * Code Input → Pattern Analysis → Rubric Scoring → Feedback Generation
+ *     ↓              ↓               ↓                    ↓
+ * Parser → Cookbook Matcher → Score Calculator → Report Builder
+ */
+
+// Schemas for type safety
+const CodeAnalysisSchema = z.object({
+  complexity: z.number().min(0).max(10),
+  readability: z.number().min(0).max(10),
+  performance: z.number().min(0).max(10),
+  bestPractices: z.number().min(0).max(10),
+  patterns: z.array(z.string()),
+  issues: z.array(z.object({
+    type: z.enum(['error', 'warning', 'suggestion']),
+    message: z.string(),
+    line: z.number().optional(),
+    severity: z.number().min(1).max(5)
+  }))
+});
+
+const CommunicationScoreSchema = z.object({
+  clarity: z.number().min(0).max(10),
+  technicalAccuracy: z.number().min(0).max(10),
+  problemSolving: z.number().min(0).max(10),
+  questionHandling: z.number().min(0).max(10),
+  overall: z.number().min(0).max(10)
+});
+
+{% if includeRubrics %}
+const RubricSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  criteria: z.array(z.object({
+    name: z.string(),
+    weight: z.number().min(0).max(1),
+    levels: z.array(z.object({
+      score: z.number(),
+      description: z.string(),
+      indicators: z.array(z.string())
+    }))
+  }))
+});
+{% endif %}
+
+export type CodeAnalysis = z.infer<typeof CodeAnalysisSchema>;
+export type CommunicationScore = z.infer<typeof CommunicationScoreSchema>;
+{% if includeRubrics %}
+export type ScoringRubric = z.infer<typeof RubricSchema>;
+{% endif %}
+
+interface FeedbackEngineConfig {
+  provider: '{{ aiProvider }}';
+  apiKey: string;
+  model?: string;
+  realTimeThrottleMs?: number;
+  maxAnalysisLength?: number;
+}
+
+export class AIFeedbackEngine extends EventEmitter {
+  private config: FeedbackEngineConfig;
+  {% if aiProvider === 'anthropic' %}
+  private anthropic: Anthropic;
+  {% elsif aiProvider === 'openai' %}
+  private openai: OpenAI;
+  {% endif %}
+  private analysisCache = new Map<string, CodeAnalysis>();
+  {% if includeRubrics %}
+  private rubrics = new Map<string, ScoringRubric>();
+  {% endif %}
+  private throttleTimers = new Map<string, NodeJS.Timeout>();
+
+  constructor(config: FeedbackEngineConfig) {
+    super();
+    this.config = config;
+    
+    {% if aiProvider === 'anthropic' %}
+    this.anthropic = new Anthropic({
+      apiKey: config.apiKey,
+    });
+    {% elsif aiProvider === 'openai' %}
+    this.openai = new OpenAI({
+      apiKey: config.apiKey,
+    });
+    {% endif %}
+  }
+
+  /**
+   * CORE METHOD: Analyze code against cookbook patterns
+   */
+  async analyzeCode(
+    code: string, 
+    language: string = 'javascript',
+    context?: { difficulty: string; interviewType: string }
+  ): Promise<CodeAnalysis> {
+    const cacheKey = this.getCacheKey(code, language, context);
+    
+    if (this.analysisCache.has(cacheKey)) {
+      return this.analysisCache.get(cacheKey)!;
+    }
+
+    this.emit('analysis:start', { code, language });
+
+    try {
+      const analysis = await this.performCodeAnalysis(code, language, context);
+      const validated = CodeAnalysisSchema.parse(analysis);
+      
+      this.analysisCache.set(cacheKey, validated);
+      this.emit('analysis:complete', validated);
+      
+      return validated;
+    } catch (error) {
+      this.emit('analysis:error', error);
+      throw error;
+    }
+  }
+
+  /**
+   * CORE METHOD: Score communication from chat transcript
+   */
+  async scoreCommunication(
+    messages: Array<{ role: string; content: string; timestamp: Date }>,
+    context?: { difficulty: string; interviewType: string }
+  ): Promise<CommunicationScore> {
+    this.emit('communication:start', { messages });
+
+    try {
+      const score = await this.performCommunicationScoring(messages, context);
+      const validated = CommunicationScoreSchema.parse(score);
+      
+      this.emit('communication:complete', validated);
+      return validated;
+    } catch (error) {
+      this.emit('communication:error', error);
+      throw error;
+    }
+  }
+
+  {% if includeRubrics %}
+  /**
+   * RUBRIC SYSTEM: Evaluate against configurable rubrics
+   */
+  async evaluateWithRubric(
+    rubricId: string,
+    code: string,
+    messages: Array<{ role: string; content: string; timestamp: Date }>
+  ): Promise<{
+    overall: number;
+    criteriaScores: Record<string, number>;
+    feedback: string;
+  }> {
+    const rubric = this.rubrics.get(rubricId);
+    if (!rubric) {
+      throw new Error(`Rubric not found: ${rubricId}`);
+    }
+
+    const [codeAnalysis, commScore] = await Promise.all([
+      this.analyzeCode(code),
+      this.scoreCommunication(messages)
+    ]);
+
+    return this.evaluateAgainstRubric(rubric, codeAnalysis, commScore);
+  }
+
+  loadRubric(rubric: ScoringRubric): void {
+    const validated = RubricSchema.parse(rubric);
+    this.rubrics.set(validated.id, validated);
+    this.emit('rubric:loaded', validated.id);
+  }
+  {% endif %}
+
+  {% if realTimeAnalysis %}
+  /**
+   * REAL-TIME: Throttled analysis for live coding
+   */
+  analyzeRealTime(
+    code: string,
+    sessionId: string,
+    language?: string
+  ): Promise<CodeAnalysis> {
+    const throttleMs = this.config.realTimeThrottleMs || 2000;
+    
+    // Clear existing timer
+    if (this.throttleTimers.has(sessionId)) {
+      clearTimeout(this.throttleTimers.get(sessionId)!);
+    }
+
+    return new Promise((resolve, reject) => {
+      const timer = setTimeout(async () => {
+        try {
+          const analysis = await this.analyzeCode(code, language);
+          resolve(analysis);
+        } catch (error) {
+          reject(error);
+        } finally {
+          this.throttleTimers.delete(sessionId);
+        }
+      }, throttleMs);
+
+      this.throttleTimers.set(sessionId, timer);
+    });
+  }
+  {% endif %}
+
+  /**
+   * PRIVATE: Actual AI analysis implementation
+   */
+  private async performCodeAnalysis(
+    code: string, 
+    language: string,
+    context?: { difficulty: string; interviewType: string }
+  ): Promise<CodeAnalysis> {
+    {% if analysisType contains 'cookbook-patterns' %}
+    const cookbookPrompt = this.buildCookbookAnalysisPrompt(code, language, context);
+    {% endif %}
+    
+    const prompt = `
+Analyze this ${language} code for an interview assessment:
+
+\`\`\`${language}
+${code}
+\`\`\`
+
+Context: ${context?.difficulty} level ${context?.interviewType} interview
+
+Evaluate on:
+{% for type in analysisType %}
+- {{ type | replace('-', ' ') | capitalize }}
+{% endfor %}
+
+Return JSON with structure matching CodeAnalysisSchema.
+    `;
+
+    {% if aiProvider === 'anthropic' %}
+    const response = await this.anthropic.messages.create({
+      model: this.config.model || 'claude-3-sonnet-20240229',
+      max_tokens: 2000,
+      messages: [{ role: 'user', content: prompt }]
+    });
+    
+    const content = response.content[0];
+    if (content.type === 'text') {
+      return JSON.parse(content.text);
+    }
+    {% elsif aiProvider === 'openai' %}
+    const response = await this.openai.chat.completions.create({
+      model: this.config.model || 'gpt-4-turbo',
+      messages: [{ role: 'user', content: prompt }],
+      response_format: { type: 'json_object' }
+    });
+    
+    return JSON.parse(response.choices[0].message.content || '{}');
+    {% endif %}
+
+    throw new Error('Unable to analyze code');
+  }
+
+  private async performCommunicationScoring(
+    messages: Array<{ role: string; content: string; timestamp: Date }>,
+    context?: { difficulty: string; interviewType: string }
+  ): Promise<CommunicationScore> {
+    const transcript = messages
+      .map(m => `${m.role}: ${m.content}`)
+      .join('\\n');
+
+    const prompt = `
+Analyze this interview transcript for communication skills:
+
+${transcript}
+
+Context: ${context?.difficulty} level ${context?.interviewType} interview
+
+Score 0-10 on:
+- Clarity of explanations
+- Technical accuracy
+- Problem-solving approach  
+- Question handling
+- Overall communication
+
+Return JSON matching CommunicationScoreSchema.
+    `;
+
+    {% if aiProvider === 'anthropic' %}
+    const response = await this.anthropic.messages.create({
+      model: this.config.model || 'claude-3-sonnet-20240229',
+      max_tokens: 1000,
+      messages: [{ role: 'user', content: prompt }]
+    });
+    
+    const content = response.content[0];
+    if (content.type === 'text') {
+      return JSON.parse(content.text);
+    }
+    {% elsif aiProvider === 'openai' %}
+    const response = await this.openai.chat.completions.create({
+      model: this.config.model || 'gpt-4-turbo',
+      messages: [{ role: 'user', content: prompt }],
+      response_format: { type: 'json_object' }
+    });
+    
+    return JSON.parse(response.choices[0].message.content || '{}');
+    {% endif %}
+
+    throw new Error('Unable to score communication');
+  }
+
+  {% if includeRubrics %}
+  private async evaluateAgainstRubric(
+    rubric: ScoringRubric,
+    codeAnalysis: CodeAnalysis,
+    commScore: CommunicationScore
+  ): Promise<{ overall: number; criteriaScores: Record<string, number>; feedback: string }> {
+    const criteriaScores: Record<string, number> = {};
+    let weightedSum = 0;
+    let totalWeight = 0;
+
+    for (const criterion of rubric.criteria) {
+      // Map analysis data to rubric criterion
+      const score = this.mapAnalysisToRubric(criterion, codeAnalysis, commScore);
+      criteriaScores[criterion.name] = score;
+      weightedSum += score * criterion.weight;
+      totalWeight += criterion.weight;
+    }
+
+    const overall = totalWeight > 0 ? weightedSum / totalWeight : 0;
+    const feedback = await this.generateRubricFeedback(rubric, criteriaScores, overall);
+
+    return { overall, criteriaScores, feedback };
+  }
+
+  private mapAnalysisToRubric(
+    criterion: ScoringRubric['criteria'][0],
+    codeAnalysis: CodeAnalysis,
+    commScore: CommunicationScore
+  ): number {
+    // Map criterion name to appropriate analysis scores
+    const mappings: Record<string, number> = {
+      'code-quality': (codeAnalysis.readability + codeAnalysis.bestPractices) / 2,
+      'problem-solving': commScore.problemSolving,
+      'communication': commScore.clarity,
+      'technical-accuracy': commScore.technicalAccuracy
+    };
+
+    return mappings[criterion.name] || 0;
+  }
+  {% endif %}
+
+  private getCacheKey(code: string, language: string, context?: any): string {
+    return `${language}:${Buffer.from(code).toString('base64').slice(0, 32)}:${JSON.stringify(context || {})}`;
+  }
+
+  {% if analysisType contains 'cookbook-patterns' %}
+  private buildCookbookAnalysisPrompt(
+    code: string, 
+    language: string,
+    context?: { difficulty: string; interviewType: string }
+  ): string {
+    return `
+Analyze against common interview coding patterns:
+
+PATTERNS TO CHECK:
+- Two Pointers
+- Sliding Window  
+- Binary Search
+- DFS/BFS
+- Dynamic Programming
+- Hash Maps
+- Linked List manipulation
+- Tree traversals
+
+Code: ${code}
+Language: ${language}
+Level: ${context?.difficulty}
+Type: ${context?.interviewType}
+
+Return pattern matches and implementation quality.
+    `;
+  }
+  {% endif %}
+
+  /**
+   * Cleanup resources
+   */
+  destroy(): void {
+    this.throttleTimers.forEach(timer => clearTimeout(timer));
+    this.throttleTimers.clear();
+    this.analysisCache.clear();
+    this.removeAllListeners();
+  }
+}

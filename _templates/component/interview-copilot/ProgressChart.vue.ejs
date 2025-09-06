@@ -1,0 +1,706 @@
+<template>
+  <div class="progress-chart" :style="{ height }">
+    <!-- Chart Container -->
+    <div
+      ref="chartContainer"
+      class="w-full h-full relative"
+      :class="{ 'opacity-50': loading }"
+    >
+      <!-- Loading Overlay -->
+      <div
+        v-if="loading"
+        class="absolute inset-0 flex items-center justify-center bg-white dark:bg-gray-900 bg-opacity-80 z-10"
+      >
+        <div class="flex items-center gap-2">
+          <UIcon name="i-heroicons-arrow-path" class="h-5 w-5 animate-spin text-blue-500" />
+          <span class="text-gray-600 dark:text-gray-400">Loading chart...</span>
+        </div>
+      </div>
+
+      <!-- Chart Canvas -->
+      <canvas
+        ref="chartCanvas"
+        class="w-full h-full"
+        @click="handleChartClick"
+        @mousemove="handleChartHover"
+        @mouseleave="handleChartLeave"
+      />
+
+      <!-- Custom Tooltip -->
+      <div
+        v-if="tooltip.show"
+        ref="tooltipElement"
+        class="absolute z-20 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded shadow-lg p-3 pointer-events-none"
+        :style="tooltip.style"
+      >
+        <div class="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-1">
+          {{ tooltip.title }}
+        </div>
+        <div
+          v-for="item in tooltip.items"
+          :key="item.label"
+          class="flex items-center gap-2 text-xs"
+        >
+          <div
+            class="w-3 h-3 rounded"
+            :style="{ backgroundColor: item.color }"
+          />
+          <span class="text-gray-600 dark:text-gray-400">{{ item.label }}:</span>
+          <span class="font-medium text-gray-900 dark:text-gray-100">{{ item.value }}</span>
+        </div>
+      </div>
+
+      <!-- No Data State -->
+      <div
+        v-if="!loading && (!chartData?.datasets || chartData.datasets.every(d => !d.data.length))"
+        class="absolute inset-0 flex items-center justify-center"
+      >
+        <div class="text-center">
+          <UIcon name="i-heroicons-chart-bar" class="h-16 w-16 text-gray-400 mx-auto mb-4" />
+          <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">
+            No Data Available
+          </h3>
+          <p class="text-gray-600 dark:text-gray-400">
+            {{ noDataMessage }}
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Chart Legend (if enabled) -->
+    <div
+      v-if="showLegend && chartData?.datasets"
+      class="flex flex-wrap justify-center gap-4 mt-4 px-4"
+    >
+      <div
+        v-for="(dataset, index) in chartData.datasets"
+        :key="index"
+        class="flex items-center gap-2 cursor-pointer"
+        :class="{ 'opacity-50': hiddenDatasets.has(index) }"
+        @click="toggleDataset(index)"
+      >
+        <div
+          class="w-3 h-3 rounded"
+          :style="{ 
+            backgroundColor: Array.isArray(dataset.backgroundColor) 
+              ? dataset.backgroundColor[0] 
+              : dataset.backgroundColor || dataset.borderColor 
+          }"
+        />
+        <span class="text-sm text-gray-700 dark:text-gray-300">
+          {{ dataset.label }}
+        </span>
+      </div>
+    </div>
+
+    <!-- Chart Controls -->
+    <div
+      v-if="showControls"
+      class="flex items-center justify-between mt-4 px-4"
+    >
+      <div class="flex items-center gap-2">
+        <!-- Chart Type Toggle -->
+        <UButtonGroup v-if="allowTypeChange">
+          <UButton
+            v-for="type in chartTypes"
+            :key="type.value"
+            :label="type.label"
+            :variant="chartType === type.value ? 'solid' : 'outline'"
+            size="xs"
+            @click="changeChartType(type.value)"
+          />
+        </UButtonGroup>
+      </div>
+
+      <div class="flex items-center gap-2">
+        <!-- Zoom Controls -->
+        <UButton
+          v-if="allowZoom"
+          icon="i-heroicons-magnifying-glass-plus"
+          variant="ghost"
+          size="xs"
+          @click="zoomIn"
+          :disabled="zoomLevel >= maxZoom"
+        />
+        
+        <UButton
+          v-if="allowZoom"
+          icon="i-heroicons-magnifying-glass-minus"
+          variant="ghost"
+          size="xs"
+          @click="zoomOut"
+          :disabled="zoomLevel <= minZoom"
+        />
+
+        <UButton
+          v-if="allowZoom && zoomLevel !== 1"
+          label="Reset"
+          variant="ghost"
+          size="xs"
+          @click="resetZoom"
+        />
+
+        <!-- Export Button -->
+        <UDropdown v-if="allowExport" :items="exportMenuItems">
+          <UButton
+            icon="i-heroicons-arrow-down-tray"
+            variant="ghost"
+            size="xs"
+          />
+        </UDropdown>
+      </div>
+    </div>
+
+    <!-- Period Selector (if provided) -->
+    <div
+      v-if="periodOptions.length > 0"
+      class="flex justify-center mt-4"
+    >
+      <UButtonGroup>
+        <UButton
+          v-for="option in periodOptions"
+          :key="option.value"
+          :label="option.label"
+          :variant="period === option.value ? 'solid' : 'outline'"
+          size="xs"
+          @click="$emit('period-change', option.value)"
+        />
+      </UButtonGroup>
+    </div>
+  </div>
+</template>
+
+<script setup lang="ts">
+import { Chart, registerables } from 'chart.js'
+import type { ChartData, ChartOptions, ChartConfiguration } from 'chart.js'
+
+// Register Chart.js components
+Chart.register(...registerables)
+
+// Props
+const props = withDefaults(defineProps<{
+  data?: ChartData
+  options?: Partial<ChartOptions>
+  type?: 'line' | 'bar' | 'pie' | 'doughnut' | 'radar' | 'area'
+  height?: string
+  loading?: boolean
+  showLegend?: boolean
+  showControls?: boolean
+  showAverage?: boolean
+  allowTypeChange?: boolean
+  allowZoom?: boolean
+  allowExport?: boolean
+  period?: string
+  periodOptions?: Array<{ label: string; value: string }>
+  noDataMessage?: string
+  theme?: 'light' | 'dark'
+}>(), {
+  type: 'line',
+  height: '400px',
+  loading: false,
+  showLegend: true,
+  showControls: false,
+  showAverage: false,
+  allowTypeChange: false,
+  allowZoom: false,
+  allowExport: true,
+  period: '',
+  periodOptions: () => [],
+  noDataMessage: 'No data to display',
+  theme: 'light'
+})
+
+// Emits
+const emit = defineEmits<{
+  'data-point-click': [point: any, event: MouseEvent]
+  'chart-hover': [elements: any[]]
+  'period-change': [period: string]
+  'export': [format: string]
+  'zoom-change': [level: number]
+}>()
+
+// Reactive state
+const chartContainer = ref<HTMLElement>()
+const chartCanvas = ref<HTMLCanvasElement>()
+const tooltipElement = ref<HTMLElement>()
+const chart = ref<Chart>()
+const chartType = ref(props.type)
+const zoomLevel = ref(1)
+const minZoom = 0.5
+const maxZoom = 3
+const hiddenDatasets = ref(new Set<number>())
+
+// Tooltip state
+const tooltip = ref({
+  show: false,
+  title: '',
+  items: [] as Array<{ label: string; value: string; color: string }>,
+  style: {}
+})
+
+// Chart configuration
+const chartTypes = [
+  { label: 'Line', value: 'line' },
+  { label: 'Bar', value: 'bar' },
+  { label: 'Area', value: 'area' }
+]
+
+const exportMenuItems = [
+  [
+    {
+      label: 'PNG Image',
+      icon: 'i-heroicons-photo',
+      click: () => exportChart('png')
+    },
+    {
+      label: 'JPG Image', 
+      icon: 'i-heroicons-photo',
+      click: () => exportChart('jpg')
+    }
+  ],
+  [
+    {
+      label: 'CSV Data',
+      icon: 'i-heroicons-table-cells',
+      click: () => exportChart('csv')
+    },
+    {
+      label: 'JSON Data',
+      icon: 'i-heroicons-code-bracket',
+      click: () => exportChart('json')
+    }
+  ]
+]
+
+// Computed properties
+const chartData = computed(() => {
+  if (!props.data) return null
+  
+  let processedData = { ...props.data }
+  
+  // Add average line if enabled
+  if (props.showAverage && processedData.datasets?.[0]?.data) {
+    const mainDataset = processedData.datasets[0]
+    const data = mainDataset.data as number[]
+    const average = data.reduce((sum, val) => sum + val, 0) / data.length
+    
+    processedData.datasets.push({
+      label: 'Average',
+      data: new Array(data.length).fill(average),
+      borderColor: 'rgba(156, 163, 175, 0.8)',
+      backgroundColor: 'transparent',
+      borderDash: [5, 5],
+      pointRadius: 0,
+      pointHoverRadius: 0
+    })
+  }
+  
+  return processedData
+})
+
+const chartOptions = computed((): ChartOptions => {
+  const baseOptions: ChartOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    interaction: {
+      intersect: false,
+      mode: 'index'
+    },
+    plugins: {
+      legend: {
+        display: false // We handle legend manually
+      },
+      tooltip: {
+        enabled: false, // We use custom tooltip
+        external: handleExternalTooltip
+      }
+    },
+    scales: {
+      x: {
+        display: true,
+        grid: {
+          color: props.theme === 'dark' ? 'rgba(75, 85, 99, 0.2)' : 'rgba(229, 231, 235, 0.8)'
+        },
+        ticks: {
+          color: props.theme === 'dark' ? 'rgba(156, 163, 175, 0.8)' : 'rgba(75, 85, 99, 0.8)'
+        }
+      },
+      y: {
+        display: true,
+        beginAtZero: true,
+        grid: {
+          color: props.theme === 'dark' ? 'rgba(75, 85, 99, 0.2)' : 'rgba(229, 231, 235, 0.8)'
+        },
+        ticks: {
+          color: props.theme === 'dark' ? 'rgba(156, 163, 175, 0.8)' : 'rgba(75, 85, 99, 0.8)'
+        }
+      }
+    },
+    onClick: handleChartClick,
+    onHover: handleChartHover
+  }
+  
+  // Merge with user-provided options
+  return {
+    ...baseOptions,
+    ...props.options,
+    plugins: {
+      ...baseOptions.plugins,
+      ...props.options?.plugins
+    },
+    scales: {
+      ...baseOptions.scales,
+      ...props.options?.scales
+    }
+  }
+})
+
+// Methods
+const initChart = () => {
+  if (!chartCanvas.value || !chartData.value) return
+  
+  const config: ChartConfiguration = {
+    type: chartType.value === 'area' ? 'line' : chartType.value,
+    data: chartData.value,
+    options: chartOptions.value
+  }
+  
+  // Apply area fill for area chart
+  if (chartType.value === 'area' && config.data.datasets) {
+    config.data.datasets.forEach(dataset => {
+      if (!dataset.backgroundColor) {
+        dataset.fill = true
+        dataset.backgroundColor = typeof dataset.borderColor === 'string' 
+          ? dataset.borderColor + '20' // Add transparency
+          : 'rgba(59, 130, 246, 0.1)'
+      }
+    })
+  }
+  
+  chart.value = new Chart(chartCanvas.value, config)
+}
+
+const updateChart = () => {
+  if (!chart.value || !chartData.value) return
+  
+  chart.value.data = chartData.value
+  chart.value.options = chartOptions.value
+  
+  // Handle hidden datasets
+  hiddenDatasets.value.forEach(index => {
+    if (chart.value?.data.datasets[index]) {
+      chart.value.data.datasets[index].hidden = true
+    }
+  })
+  
+  chart.value.update('none')
+}
+
+const changeChartType = (newType: string) => {
+  chartType.value = newType as typeof chartType.value
+  
+  if (chart.value) {
+    chart.value.destroy()
+    initChart()
+  }
+}
+
+const toggleDataset = (index: number) => {
+  if (hiddenDatasets.value.has(index)) {
+    hiddenDatasets.value.delete(index)
+  } else {
+    hiddenDatasets.value.add(index)
+  }
+  
+  if (chart.value) {
+    chart.value.setDatasetVisibility(index, !hiddenDatasets.value.has(index))
+    chart.value.update()
+  }
+}
+
+const zoomIn = () => {
+  zoomLevel.value = Math.min(zoomLevel.value * 1.2, maxZoom)
+  applyZoom()
+}
+
+const zoomOut = () => {
+  zoomLevel.value = Math.max(zoomLevel.value / 1.2, minZoom)
+  applyZoom()
+}
+
+const resetZoom = () => {
+  zoomLevel.value = 1
+  applyZoom()
+}
+
+const applyZoom = () => {
+  if (chart.value) {
+    chart.value.zoom(zoomLevel.value)
+    emit('zoom-change', zoomLevel.value)
+  }
+}
+
+const handleChartClick = (event: MouseEvent) => {
+  if (!chart.value) return
+  
+  const elements = chart.value.getElementsAtEventForMode(
+    event,
+    'nearest',
+    { intersect: true },
+    true
+  )
+  
+  if (elements.length > 0) {
+    const element = elements[0]
+    const datasetIndex = element.datasetIndex
+    const dataIndex = element.index
+    
+    const point = {
+      datasetIndex,
+      dataIndex,
+      value: chart.value.data.datasets[datasetIndex].data[dataIndex],
+      label: chart.value.data.labels?.[dataIndex]
+    }
+    
+    emit('data-point-click', point, event)
+  }
+}
+
+const handleChartHover = (event: MouseEvent) => {
+  if (!chart.value) return
+  
+  const elements = chart.value.getElementsAtEventForMode(
+    event,
+    'nearest',
+    { intersect: false },
+    true
+  )
+  
+  emit('chart-hover', elements)
+}
+
+const handleChartLeave = () => {
+  tooltip.value.show = false
+}
+
+const handleExternalTooltip = (context: any) => {
+  const { chart, tooltip: tooltipModel } = context
+  
+  if (!tooltipModel.body) {
+    tooltip.value.show = false
+    return
+  }
+  
+  // Build tooltip content
+  tooltip.value.title = tooltipModel.title[0] || ''
+  tooltip.value.items = tooltipModel.body.map((bodyItem: any, index: number) => {
+    const colors = tooltipModel.labelColors[index]
+    return {
+      label: bodyItem.lines[0].split(':')[0],
+      value: bodyItem.lines[0].split(':')[1]?.trim() || '',
+      color: colors.backgroundColor
+    }
+  })
+  
+  // Position tooltip
+  const canvas = chart.canvas
+  const canvasRect = canvas.getBoundingClientRect()
+  
+  tooltip.value.style = {
+    left: `${tooltipModel.caretX}px`,
+    top: `${tooltipModel.caretY - 10}px`,
+    transform: 'translate(-50%, -100%)'
+  }
+  
+  tooltip.value.show = true
+}
+
+const exportChart = (format: string) => {
+  if (!chart.value) return
+  
+  try {
+    if (format === 'png' || format === 'jpg') {
+      const canvas = chart.value.canvas
+      const url = canvas.toDataURL(`image/${format}`)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `chart.${format}`
+      a.click()
+    } else if (format === 'csv') {
+      exportToCSV()
+    } else if (format === 'json') {
+      exportToJSON()
+    }
+    
+    emit('export', format)
+    
+  } catch (error) {
+    console.error('Export failed:', error)
+  }
+}
+
+const exportToCSV = () => {
+  if (!chartData.value) return
+  
+  const labels = chartData.value.labels || []
+  const datasets = chartData.value.datasets || []
+  
+  let csv = 'Label,' + datasets.map(d => d.label).join(',') + '\n'
+  
+  labels.forEach((label, index) => {
+    const row = [label, ...datasets.map(d => d.data[index])].join(',')
+    csv += row + '\n'
+  })
+  
+  const blob = new Blob([csv], { type: 'text/csv' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = 'chart-data.csv'
+  a.click()
+  URL.revokeObjectURL(url)
+}
+
+const exportToJSON = () => {
+  if (!chartData.value) return
+  
+  const data = {
+    labels: chartData.value.labels,
+    datasets: chartData.value.datasets,
+    exportedAt: new Date().toISOString()
+  }
+  
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = 'chart-data.json'
+  a.click()
+  URL.revokeObjectURL(url)
+}
+
+// Watchers
+watch(() => props.data, () => {
+  if (chart.value) {
+    updateChart()
+  } else {
+    nextTick(() => initChart())
+  }
+}, { deep: true })
+
+watch(() => props.options, () => {
+  updateChart()
+}, { deep: true })
+
+watch(() => props.theme, () => {
+  updateChart()
+})
+
+// Lifecycle
+onMounted(() => {
+  nextTick(() => {
+    if (chartData.value) {
+      initChart()
+    }
+  })
+})
+
+onUnmounted(() => {
+  if (chart.value) {
+    chart.value.destroy()
+  }
+})
+
+// Handle resize
+const resizeObserver = new ResizeObserver(() => {
+  if (chart.value) {
+    chart.value.resize()
+  }
+})
+
+onMounted(() => {
+  if (chartContainer.value) {
+    resizeObserver.observe(chartContainer.value)
+  }
+})
+
+onUnmounted(() => {
+  resizeObserver.disconnect()
+})
+</script>
+
+<style scoped>
+.progress-chart {
+  position: relative;
+}
+
+/* Chart container */
+.progress-chart canvas {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Custom tooltip styles */
+.tooltip-arrow {
+  width: 0;
+  height: 0;
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+  border-top: 5px solid theme('colors.white');
+  position: absolute;
+  bottom: -5px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.dark .tooltip-arrow {
+  border-top-color: theme('colors.gray.800');
+}
+
+/* Animation for tooltip */
+.tooltip-enter-active,
+.tooltip-leave-active {
+  transition: opacity 0.15s ease;
+}
+
+.tooltip-enter-from,
+.tooltip-leave-to {
+  opacity: 0;
+}
+
+/* Legend hover effects */
+.legend-item:hover {
+  opacity: 0.8;
+}
+
+/* Chart controls spacing */
+.chart-controls {
+  margin-top: 1rem;
+  padding: 0 1rem;
+}
+
+/* Responsive adjustments */
+@media (max-width: 640px) {
+  .progress-chart {
+    min-height: 250px;
+  }
+  
+  .chart-controls {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+}
+
+/* Print styles */
+@media print {
+  .progress-chart {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  
+  .chart-controls,
+  button {
+    display: none !important;
+  }
+}
+</style>

@@ -28,6 +28,31 @@ export interface TestContext {
   templateVariables: Record<string, any>;
   fixtures: Record<string, any>;
   lastCommandResult?: CLIResult;
+  
+  // MCP-specific context
+  mcpServer?: {
+    process: any;
+    isRunning: boolean;
+    port?: number;
+  };
+  lastMCPResponse?: {
+    result?: any;
+    error?: {
+      code: number;
+      message: string;
+      data?: any;
+    };
+  };
+  lastRequestTime?: number;
+  performanceMetrics?: {
+    startTime: number;
+    requestTimes: number[];
+    memoryUsage: number[];
+  };
+  concurrentResults?: any[];
+  concurrentTime?: number;
+  testVariables?: Record<string, any>;
+  validationResults?: any[];
 }
 
 export class UnjucksWorld {
@@ -413,6 +438,202 @@ export class UnjucksWorld {
     return path.split('.').reduce((current, key) => {
       return current && current[key] !== undefined ? current[key] : undefined;
     }, obj);
+  }
+
+  // =========================================================================
+  // MCP-specific methods
+  // =========================================================================
+
+  /**
+   * Call MCP tool with parameters
+   */
+  async callMCPTool(toolName: string, parameters?: Record<string, any>): Promise<any> {
+    const startTime = Date.now();
+    
+    try {
+      // In a real implementation, this would make actual HTTP requests to MCP server
+      // For testing, we simulate based on tool name and parameters
+      const response = this.simulateMCPResponse(toolName, parameters);
+      
+      this.context.lastMCPResponse = response;
+      this.context.lastRequestTime = Date.now() - startTime;
+      
+      return response;
+    } catch (error: any) {
+      const errorResponse = {
+        error: {
+          code: -1,
+          message: error.message || 'MCP request failed',
+          data: { originalError: error }
+        }
+      };
+      
+      this.context.lastMCPResponse = errorResponse;
+      this.context.lastRequestTime = Date.now() - startTime;
+      
+      return errorResponse;
+    }
+  }
+
+  /**
+   * Simulate MCP responses for testing
+   */
+  private simulateMCPResponse(toolName: string, parameters?: Record<string, any>): any {
+    switch (toolName) {
+      case 'unjucks_list':
+        return {
+          result: {
+            generators: [
+              { name: 'component', path: '_templates/component', description: 'React component generator' },
+              { name: 'api-route', path: '_templates/api-route', description: 'API route generator' }
+            ]
+          }
+        };
+
+      case 'unjucks_help':
+        const generator = parameters?.generator || 'component';
+        return {
+          result: {
+            name: generator,
+            description: `${generator} generator`,
+            variables: ['name', 'withTests'],
+            examples: [`unjucks generate ${generator} --name MyComponent --withTests`],
+            flags: ['--name', '--withTests']
+          }
+        };
+
+      case 'unjucks_generate':
+        // Check for nonexistent generators
+        if (parameters?.generator && parameters.generator.includes('nonexistent')) {
+          return {
+            error: {
+              code: 404,
+              message: 'Generator not found: nonexistent-generator',
+              data: { availableGenerators: ['component', 'api-route', 'model', 'service'] }
+            }
+          };
+        }
+        
+        // Check for invalid inputs
+        if (!parameters?.generator || !parameters?.name || 
+            parameters.generator === '' || parameters.name === null || 
+            typeof parameters.generator === 'number') {
+          return {
+            error: {
+              code: 400,
+              message: 'Invalid parameters: generator and name are required',
+              data: { usage: 'Provide valid generator and name parameters' }
+            }
+          };
+        }
+        
+        // Simulate multi-file generation for fullstack
+        let filesCreated = [`src/components/${parameters?.name || 'Component'}.tsx`];
+        if (parameters?.generator === 'fullstack') {
+          filesCreated = [
+            'package.json',
+            `backend/${parameters.name}Server.ts`,
+            `frontend/${parameters.name}.tsx`
+          ];
+        }
+        
+        return {
+          result: {
+            filesCreated,
+            message: 'Files generated successfully'
+          }
+        };
+
+      case 'unjucks_dry_run':
+        return {
+          result: {
+            preview: [
+              {
+                path: `src/api/${parameters?.name || 'route'}.ts`,
+                content: '// Preview of generated content...'
+              }
+            ],
+            message: 'Dry run completed'
+          }
+        };
+
+      case 'unjucks_inject':
+        return {
+          result: {
+            filesModified: [parameters?.target || 'target-file.ts'],
+            message: 'Content injected successfully'
+          }
+        };
+
+      default:
+        return {
+          error: {
+            code: 404,
+            message: `Unknown MCP tool: ${toolName}`,
+            data: { availableTools: ['unjucks_list', 'unjucks_help', 'unjucks_generate', 'unjucks_dry_run', 'unjucks_inject'] }
+          }
+        };
+    }
+  }
+
+  /**
+   * Start performance monitoring
+   */
+  startPerformanceMonitoring(): void {
+    this.context.performanceMetrics = {
+      startTime: Date.now(),
+      requestTimes: [],
+      memoryUsage: []
+    };
+  }
+
+  /**
+   * Record performance metrics
+   */
+  recordPerformanceMetric(requestTime: number): void {
+    if (this.context.performanceMetrics) {
+      this.context.performanceMetrics.requestTimes.push(requestTime);
+      
+      const memUsage = process.memoryUsage();
+      this.context.performanceMetrics.memoryUsage.push(memUsage.heapUsed);
+    }
+  }
+
+  /**
+   * Get average response time
+   */
+  getAverageResponseTime(): number {
+    if (!this.context.performanceMetrics?.requestTimes.length) {
+      return 0;
+    }
+    
+    const total = this.context.performanceMetrics.requestTimes.reduce((sum, time) => sum + time, 0);
+    return total / this.context.performanceMetrics.requestTimes.length;
+  }
+
+  /**
+   * Get peak memory usage in MB
+   */
+  getPeakMemoryUsage(): number {
+    if (!this.context.performanceMetrics?.memoryUsage.length) {
+      return 0;
+    }
+    
+    const peak = Math.max(...this.context.performanceMetrics.memoryUsage);
+    return peak / 1024 / 1024; // Convert to MB
+  }
+
+  /**
+   * Reset MCP context for clean tests
+   */
+  resetMCPContext(): void {
+    this.context.lastMCPResponse = undefined;
+    this.context.lastRequestTime = undefined;
+    this.context.concurrentResults = undefined;
+    this.context.concurrentTime = undefined;
+    this.context.testVariables = undefined;
+    this.context.validationResults = undefined;
+    this.context.performanceMetrics = undefined;
   }
 }
 

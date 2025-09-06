@@ -1,0 +1,26 @@
+to: tests/unit/components/{{ componentName | pascalCase }}.test.ts
+inject: false
+prompt:
+  - name: componentName
+    type: input
+    message: Component name to test
+  - name: hasProps
+    type: confirm
+    message: Does component have props?
+    default: true
+  - name: hasEvents
+    type: confirm
+    message: Does component emit events?
+    default: true
+  - name: hasSlots
+    type: confirm
+    message: Does component use slots?
+    default: false
+  - name: useCompositionAPI
+    type: confirm
+    message: Uses Composition API?
+    default: true
+  - name: hasMocks
+    type: confirm
+    message: Needs service mocks?
+    default: false

@@ -3,9 +3,14 @@ import path from "node:path";
 import nunjucks from "nunjucks";
 import yaml from "yaml";
 import chalk from "chalk";
-import { TemplateScanner, TemplateVariable } from "./template-scanner.js";
-import { FrontmatterParser, ParsedTemplate, FrontmatterConfig } from "./frontmatter-parser.js";
-import { FileInjector, InjectionResult, InjectionOptions } from "./file-injector.js";
+import { fileBatchProcessor, readFilesBatch, writeFilesBatch } from "./file-batch-processor.js";
+import { TemplateScanner } from "./template-scanner.js";
+import type { TemplateVariable } from "./template-scanner.js";
+import { FrontmatterParser } from "./frontmatter-parser.js";
+import type { ParsedTemplate, FrontmatterConfig } from "./frontmatter-parser.js";
+import { FileInjector } from "./file-injector.js";
+import type { InjectionResult, InjectionOptions } from "./file-injector.js";
+import { templateScanCache, generatorListCache, nunjucksTemplateCache } from "./template-cache.js";
 
 export interface TemplateFile {
   path: string;
@@ -41,6 +46,7 @@ export interface GenerateOptions {
   dest: string;
   force: boolean;
   dry: boolean;
+  variables?: Record<string, any>;
 }
 
 export interface GenerateResult {
@@ -58,6 +64,7 @@ export class Generator {
   private templateScanner: TemplateScanner;
   private frontmatterParser: FrontmatterParser;
   private fileInjector: FileInjector;
+  private static nunjucksEnvCache: nunjucks.Environment | null = null;
 
   constructor(templatesDir?: string) {
     this.templatesDir = templatesDir || this.findTemplatesDirectory();
@@ -111,25 +118,79 @@ export class Generator {
     variables: TemplateVariable[];
     cliArgs: Record<string, any>;
   }> {
-    const templatePath = path.join(
-      this.templatesDir,
-      generatorName,
-      templateName,
-    );
+    // Check cache first
+    const templatePath = path.join(this.templatesDir, generatorName, templateName);
+    const cacheKey = [this.templatesDir, generatorName, templateName, 'scan'];
+    let cached = await templateScanCache.get(cacheKey, templatePath);
+    
+    if (cached) {
+      return cached;
+    }
 
+    // First, check if the generator exists
+    const generatorPath = path.join(this.templatesDir, generatorName);
+    if (!(await fs.pathExists(generatorPath))) {
+      throw new Error(`Generator '${generatorName}' not found`);
+    }
+
+    // Then, check if the template exists within the generator
     if (!(await fs.pathExists(templatePath))) {
+      // Get available templates for better error message
+      const availableTemplates = await this.getAvailableTemplates(generatorName);
+      if (availableTemplates.length === 0) {
+        throw new Error(
+          `Generator '${generatorName}' has no templates available. ` +
+          `Please add template directories under ${generatorPath}/`
+        );
+      }
+      
       throw new Error(
-        `Template '${templateName}' not found in generator '${generatorName}'`,
+        `Template '${templateName}' not found in generator '${generatorName}'. ` +
+        `Available templates: ${availableTemplates.join(', ')}`
       );
     }
 
+    // Scan template and cache result
     const scanResult = await this.templateScanner.scanTemplate(templatePath);
     const cliArgs = this.templateScanner.generateCliArgs(scanResult.variables);
 
-    return {
+    const result = {
       variables: scanResult.variables,
       cliArgs,
     };
+
+    await templateScanCache.set(cacheKey, result, templatePath);
+    return result;
+  }
+
+  /**
+   * Get available template names for a generator
+   */
+  private async getAvailableTemplates(generatorName: string): Promise<string[]> {
+    const generatorPath = path.join(this.templatesDir, generatorName);
+    
+    if (!(await fs.pathExists(generatorPath))) {
+      return [];
+    }
+
+    const entries = await fs.readdir(generatorPath);
+    const templates: string[] = [];
+
+    for (const entry of entries) {
+      const entryPath = path.join(generatorPath, entry);
+      const stat = await fs.stat(entryPath);
+
+      // Only include directories as templates (following Hygen convention)
+      if (stat.isDirectory()) {
+        // Check if the directory contains template files
+        const templateFiles = await this.getTemplateFiles(entryPath);
+        if (templateFiles.length > 0) {
+          templates.push(entry);
+        }
+      }
+    }
+
+    return templates;
   }
 
   /**
@@ -147,6 +208,11 @@ export class Generator {
   }
 
   private createNunjucksEnvironment(): nunjucks.Environment {
+    // Use cached environment for better performance
+    if (Generator.nunjucksEnvCache) {
+      return Generator.nunjucksEnvCache;
+    }
+
     const env = new nunjucks.Environment(null, {
       autoescape: false,
       throwOnUndefined: false,
@@ -157,7 +223,129 @@ export class Generator {
     // Add custom filters
     this.addCustomFilters(env);
 
+    Generator.nunjucksEnvCache = env;
     return env;
+  }
+
+  /**
+   * Process template content - supports both Nunjucks and EJS syntax
+   */
+  private processTemplateContent(
+    content: string,
+    variables: Record<string, any>,
+    isEjsFile = false
+  ): string {
+    if (isEjsFile || this.containsEjsSyntax(content)) {
+      // Convert EJS to Nunjucks syntax for processing
+      return this.processEjsContent(content, variables);
+    } else {
+      // Standard Nunjucks processing
+      return this.nunjucksEnv.renderString(content, variables);
+    }
+  }
+
+  /**
+   * Check if content contains EJS syntax
+   */
+  private containsEjsSyntax(content: string): boolean {
+    return /<%[^>]*%>/.test(content);
+  }
+
+  /**
+   * Process EJS-style template content
+   */
+  private processEjsContent(content: string, variables: Record<string, any>): string {
+    let processed = content;
+    
+    // Convert EJS variable syntax to values
+    processed = processed.replace(/<%=\s*(.+?)\s*%>/g, (match, expression) => {
+      try {
+        // Handle common EJS patterns
+        const trimmedExpr = expression.trim();
+        
+        // Simple variable reference: <%= name %>
+        if (variables[trimmedExpr]) {
+          return String(variables[trimmedExpr]);
+        }
+        
+        // Helper function calls: <%= h.changeCase.kebab(name) %>
+        if (trimmedExpr.includes('h.changeCase')) {
+          return this.processChangeCase(trimmedExpr, variables);
+        }
+        
+        // Default: return the variable if it exists
+        const varName = trimmedExpr.split('.')[0];
+        return variables[varName] ? String(variables[varName]) : match;
+      } catch (error) {
+        console.warn(`Warning: Could not process EJS expression: ${expression}`);
+        return match;
+      }
+    });
+    
+    // Process EJS blocks (if any) - for now, just remove them
+    processed = processed.replace(/<%[^=][\s\S]*?%>/g, '');
+    
+    return processed;
+  }
+
+  /**
+   * Process changeCase helper functions from EJS
+   */
+  private processChangeCase(expression: string, variables: Record<string, any>): string {
+    // Extract the variable name
+    const varMatch = expression.match(/h\.changeCase\.(\w+)\((\w+)\)/);
+    if (!varMatch) return expression;
+    
+    const [, method, varName] = varMatch;
+    const value = variables[varName];
+    
+    if (!value) return expression;
+    
+    switch (method) {
+      case 'kebab':
+        return this.toKebabCase(value);
+      case 'camel':
+        return this.toCamelCase(value);
+      case 'pascal':
+        return this.toPascalCase(value);
+      case 'snake':
+        return this.toSnakeCase(value);
+      default:
+        return String(value);
+    }
+  }
+
+  /**
+   * Case conversion helpers (matching Nunjucks filters)
+   */
+  private toKebabCase(str: string): string {
+    return str
+      .replace(/([a-z])([A-Z])/g, "$1-$2")
+      .replace(/[\s_]+/g, "-")
+      .toLowerCase();
+  }
+
+  private toCamelCase(str: string): string {
+    return str
+      .replace(/(?:^\w|[A-Z]|\b\w)/g, (word, index) => {
+        return index === 0 ? word.toLowerCase() : word.toUpperCase();
+      })
+      .replace(/\s+/g, "");
+  }
+
+  private toPascalCase(str: string): string {
+    return str
+      .replace(/(?:^\w|[A-Z]|\b\w)/g, (word) => {
+        return word.toUpperCase();
+      })
+      .replace(/\s+/g, "");
+  }
+
+  private toSnakeCase(str: string): string {
+    return str
+      .replace(/([a-z])([A-Z])/g, "$1_$2")
+      .replace(/[\s-]+/g, "_")
+      .toLowerCase();
   }
 
   private addCustomFilters(env: nunjucks.Environment): void {
@@ -171,11 +359,13 @@ export class Generator {
 
     // camelCase filter
     env.addFilter("camelCase", (str: string) => {
-      return str
-        .replace(/(?:^\w|[A-Z]|\b\w)/g, (word, index) => {
-          return index === 0 ? word.toLowerCase() : word.toUpperCase();
-        })
-        .replace(/\s+/g, "");
+      if (!str) return str;
+      // Split on underscores, hyphens, spaces, and camelCase boundaries
+      const words = str.replace(/([a-z])([A-Z])/g, '$1 $2').split(/[\s_-]+/).filter(Boolean);
+      return words.map((word, index) => {
+        const cleaned = word.toLowerCase();
+        return index === 0 ? cleaned : cleaned.charAt(0).toUpperCase() + cleaned.slice(1);
+      }).join('');
     });
 
     // pascalCase filter
@@ -230,11 +420,14 @@ export class Generator {
       return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
     });
 
-    // titleCase filter
+    // titleCase filter - properly handles camelCase/PascalCase input
     env.addFilter("titleCase", (str: string) => {
-      return str.replace(/\w\S*/g, (txt) => {
-        return txt.charAt(0).toUpperCase() + txt.slice(1).toLowerCase();
-      });
+      if (!str) return str;
+      // First, split camelCase/PascalCase into words
+      const words = str.replace(/([a-z])([A-Z])/g, '$1 $2').split(/[\s_-]+/);
+      return words.map(word => 
+        word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+      ).join(' ');
     });
   }
 
@@ -326,36 +519,56 @@ export class Generator {
   }
 
   private async getTemplateFiles(templatePath: string): Promise<string[]> {
-    const files: string[] = [];
+    // Use optimized directory scanning with batch processing
+    try {
+      const allFiles = await fileBatchProcessor.scanDirectory(templatePath);
+      
+      // Return relative paths from the template directory
+      return allFiles.map(filePath => {
+        const relativePath = path.relative(templatePath, filePath);
+        return relativePath.replace(/\\/g, '/'); // Normalize path separators
+      });
+    } catch (error) {
+      // Fallback to original implementation
+      const files: string[] = [];
 
-    const scanDir = async (dir: string, prefix = ""): Promise<void> => {
-      const entries = await fs.readdir(dir);
+      const scanDir = async (dir: string, prefix = ""): Promise<void> => {
+        const entries = await fs.readdir(dir);
 
-      for (const entry of entries) {
-        const entryPath = path.join(dir, entry);
-        const stat = await fs.stat(entryPath);
+        for (const entry of entries) {
+          const entryPath = path.join(dir, entry);
+          const stat = await fs.stat(entryPath);
 
-        if (stat.isDirectory()) {
-          await scanDir(entryPath, path.join(prefix, entry));
-        } else {
-          files.push(path.join(prefix, entry));
+          if (stat.isDirectory()) {
+            await scanDir(entryPath, path.join(prefix, entry));
+          } else {
+            files.push(path.join(prefix, entry));
+          }
         }
-      }
-    };
+      };
 
-    await scanDir(templatePath);
-    return files;
+      await scanDir(templatePath);
+      return files;
+    }
   }
 
   async generate(options: GenerateOptions): Promise<GenerateResult> {
-    const generatorPath = path.join(this.templatesDir, options.generator);
-    const templatePath = path.join(generatorPath, options.template);
+    const startTime = performance.now();
+    
+    try {
+      const generatorPath = path.join(this.templatesDir, options.generator);
+      const templatePath = path.join(generatorPath, options.template);
 
-    if (!(await fs.pathExists(templatePath))) {
-      throw new Error(
-        `Template '${options.template}' not found in generator '${options.generator}'`,
-      );
-    }
+      // Use batch processor for existence check
+      if (!(await fileBatchProcessor.pathExists(templatePath))) {
+        const availableGenerators = await this.listGenerators();
+        const generatorNames = availableGenerators.map(g => g.name).join(', ');
+        
+        throw new Error(
+          `Template '${options.template}' not found in generator '${options.generator}'. ` +
+          `Available generators: ${generatorNames || 'none'}`
+        );
+      }
 
     // Load template configuration
     const config = await this.loadTemplateConfig(
@@ -383,10 +596,25 @@ export class Generator {
       options.dest,
     );
 
-    // Write/inject files based on frontmatter configuration
-    await this.writeFiles(files, { force: options.force, dry: options.dry });
+      // Write/inject files based on frontmatter configuration
+      await this.writeFiles(files, { force: options.force, dry: options.dry });
+      
+      // Flush any pending file operations
+      await fileBatchProcessor.flush();
 
-    return { files };
+      const duration = performance.now() - startTime;
+      if (process.env.DEBUG_UNJUCKS) {
+        console.log(chalk.gray(`[PERF] Generation completed in ${duration.toFixed(2)}ms`));
+        const stats = fileBatchProcessor.getStats();
+        console.log(chalk.gray(`[PERF] File operations: ${stats.totalOperations}, Cache hits: ${stats.cacheHits}`));
+      }
+
+      return { files };
+    } catch (error) {
+      // Enhanced error handling with context
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      throw new Error(`Generation failed for ${options.generator}/${options.template}: ${errorMessage}`);
+    }
   }
 
   private async loadTemplateConfig(
@@ -423,19 +651,25 @@ export class Generator {
   ): Promise<Record<string, any>> {
     const variables: Record<string, any> = {};
 
-    // First, collect variables from CLI arguments (if provided)
+    // First, apply any pre-provided variables (from positional arguments)
+    // These should take highest precedence
+    const providedVariables = options.variables || {};
+    
+    // Then, collect variables from CLI arguments (if provided)
     const cliArgs = this.templateScanner.convertArgsToVariables(
       options as any,
       scannedVariables,
     );
-    Object.assign(variables, cliArgs);
+    
+    // Merge: CLI args first, then provided variables take precedence
+    Object.assign(variables, cliArgs, providedVariables);
 
-    // Then, collect variables from config prompts (for missing variables that are actually used in templates)
+    // Then, collect variables from config prompts (ONLY for missing variables)
     if (config.prompts) {
       const inquirer = await import("inquirer");
 
       for (const promptConfig of config.prompts) {
-        // Skip if variable already provided via CLI
+        // Skip if variable already provided via CLI or options.variables
         if (variables[promptConfig.name] !== undefined) {
           continue;
         }
@@ -458,7 +692,12 @@ export class Generator {
           },
         ]);
 
-        Object.assign(variables, answers);
+        // Don't overwrite already provided variables
+        for (const [key, value] of Object.entries(answers)) {
+          if (variables[key] === undefined) {
+            variables[key] = value;
+          }
+        }
       }
     }
 
@@ -481,7 +720,12 @@ export class Generator {
             },
           ]);
 
-          Object.assign(variables, answers);
+          // Don't overwrite already provided variables
+          for (const [key, value] of Object.entries(answers)) {
+            if (variables[key] === undefined) {
+              variables[key] = value;
+            }
+          }
         }
       }
     }
@@ -525,32 +769,36 @@ export class Generator {
             continue;
           }
 
-          // Process content with Nunjucks
-          const processedContent = this.nunjucksEnv.renderString(
+          // Process content (supports both Nunjucks and EJS)
+          const isEjsFile = entry.endsWith('.ejs.t') || entry.endsWith('.ejs');
+          const processedContent = this.processTemplateContent(
             parsed.content,
             variables,
+            isEjsFile
           );
 
-          // Process filename with Nunjucks
-          const processedFileName = this.nunjucksEnv.renderString(
-            entry,
-            variables,
-          );
+          // Process filename (supports both Nunjucks and EJS)
+          const processedFileName = isEjsFile 
+            ? this.processEjsContent(entry.replace(/\.ejs\.t$/, ''), variables)
+            : this.nunjucksEnv.renderString(entry, variables);
 
           // Determine destination path
           let filePath: string;
           if (parsed.frontmatter.to) {
-            // Custom destination from frontmatter
-            const customPath = this.nunjucksEnv.renderString(
-              parsed.frontmatter.to,
-              variables,
-            );
-            filePath = path.isAbsolute(customPath) 
-              ? customPath 
-              : path.join(destDir, customPath);
+            // Custom destination from frontmatter (supports both Nunjucks and EJS)
+            const customPath = isEjsFile
+              ? this.processEjsContent(parsed.frontmatter.to, variables)
+              : this.nunjucksEnv.renderString(parsed.frontmatter.to, variables);
+            // Ensure cross-platform path handling
+            const normalizedCustomPath = customPath.replace(/[\\/]/g, path.sep);
+            filePath = path.isAbsolute(normalizedCustomPath) 
+              ? normalizedCustomPath 
+              : path.resolve(destDir, normalizedCustomPath);
           } else {
-            // Default destination
-            filePath = path.join(destDir, prefix, processedFileName);
+            // Default destination with cross-platform path normalization
+            const normalizedPrefix = prefix.replace(/[\\/]/g, path.sep);
+            const normalizedFileName = processedFileName.replace(/[\\/]/g, path.sep);
+            filePath = path.resolve(destDir, normalizedPrefix, normalizedFileName);
           }
 
           files.push({

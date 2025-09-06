@@ -1,0 +1,975 @@
+<template>
+  <div class="user-dashboard p-6 bg-gray-50 dark:bg-gray-950 min-h-screen">
+    <!-- Dashboard Header -->
+    <div class="mb-8">
+      <div class="flex items-center justify-between">
+        <div>
+          <h1 class="text-3xl font-bold text-gray-900 dark:text-gray-100">
+            Dashboard
+          </h1>
+          <p class="text-gray-600 dark:text-gray-400 mt-1">
+            Track your interview preparation progress
+          </p>
+        </div>
+        
+        <div class="flex items-center gap-3">
+          <UButton
+            icon="i-heroicons-calendar"
+            label="Schedule Session"
+            color="blue"
+            @click="scheduleSession"
+          />
+          
+          <UDropdown :items="dashboardMenuItems">
+            <UButton
+              icon="i-heroicons-ellipsis-vertical"
+              variant="outline"
+              square
+            />
+          </UDropdown>
+        </div>
+      </div>
+      
+      <!-- Quick Stats -->
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mt-6">
+        <div
+          v-for="stat in quickStats"
+          :key="stat.label"
+          class="bg-white dark:bg-gray-900 p-6 rounded-lg border border-gray-200 dark:border-gray-700"
+        >
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-sm font-medium text-gray-600 dark:text-gray-400">
+                {{ stat.label }}
+              </p>
+              <p class="text-2xl font-bold text-gray-900 dark:text-gray-100 mt-1">
+                {{ stat.value }}
+              </p>
+            </div>
+            <div
+              class="w-12 h-12 rounded-lg flex items-center justify-center"
+              :class="stat.bgColor"
+            >
+              <UIcon :name="stat.icon" :class="stat.iconColor" class="h-6 w-6" />
+            </div>
+          </div>
+          
+          <div class="flex items-center mt-4">
+            <UIcon
+              :name="stat.trend > 0 ? 'i-heroicons-arrow-trending-up' : 'i-heroicons-arrow-trending-down'"
+              :class="stat.trend > 0 ? 'text-green-500' : 'text-red-500'"
+              class="h-4 w-4"
+            />
+            <span
+              :class="stat.trend > 0 ? 'text-green-600' : 'text-red-600'"
+              class="text-sm font-medium ml-1"
+            >
+              {{ Math.abs(stat.trend) }}%
+            </span>
+            <span class="text-gray-500 dark:text-gray-400 text-sm ml-1">
+              from last week
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main Content Grid -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <!-- Left Column -->
+      <div class="lg:col-span-2 space-y-6">
+        <!-- Performance Chart -->
+        <div class="bg-white dark:bg-gray-900 p-6 rounded-lg border border-gray-200 dark:border-gray-700">
+          <div class="flex items-center justify-between mb-6">
+            <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">
+              Performance Trends
+            </h2>
+            
+            <USelectMenu
+              v-model="chartPeriod"
+              :options="chartPeriodOptions"
+              class="w-32"
+            />
+          </div>
+          
+          <ProgressChart
+            :data="chartData"
+            :period="chartPeriod"
+            :show-average="true"
+            height="300px"
+            @data-point-click="handleChartClick"
+          />
+        </div>
+
+        <!-- Recent Sessions -->
+        <div class="bg-white dark:bg-gray-900 p-6 rounded-lg border border-gray-200 dark:border-gray-700">
+          <div class="flex items-center justify-between mb-6">
+            <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">
+              Recent Interview Sessions
+            </h2>
+            
+            <UButton
+              label="View All"
+              variant="ghost"
+              size="sm"
+              @click="viewAllSessions"
+            />
+          </div>
+          
+          <SessionHistory
+            :sessions="recentSessions"
+            :show-pagination="false"
+            :limit="5"
+            @session-selected="viewSessionDetails"
+          />
+        </div>
+
+        <!-- Skills Analysis -->
+        <div class="bg-white dark:bg-gray-900 p-6 rounded-lg border border-gray-200 dark:border-gray-700">
+          <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-6">
+            Skills Breakdown
+          </h2>
+          
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div
+              v-for="skill in skillsData"
+              :key="skill.name"
+              class="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg"
+            >
+              <div class="flex items-center justify-between mb-3">
+                <div class="flex items-center gap-2">
+                  <UIcon :name="skill.icon" class="h-4 w-4 text-gray-600 dark:text-gray-400" />
+                  <span class="font-medium text-gray-900 dark:text-gray-100">
+                    {{ skill.label }}
+                  </span>
+                </div>
+                <span class="text-sm font-semibold" :class="getScoreColor(skill.score)">
+                  {{ skill.score }}/100
+                </span>
+              </div>
+              
+              <UProgress
+                :value="skill.score"
+                :max="100"
+                :color="getProgressColor(skill.score)"
+                size="sm"
+                class="mb-2"
+              />
+              
+              <p class="text-xs text-gray-600 dark:text-gray-400">
+                {{ skill.description }}
+              </p>
+              
+              <!-- Improvement Suggestions -->
+              <div v-if="skill.suggestions?.length > 0" class="mt-3">
+                <UButton
+                  :label="`${skill.suggestions.length} suggestion${skill.suggestions.length > 1 ? 's' : ''}`"
+                  variant="outline"
+                  size="xs"
+                  @click="showSkillSuggestions(skill)"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Column -->
+      <div class="space-y-6">
+        <!-- Upcoming Sessions -->
+        <div class="bg-white dark:bg-gray-900 p-6 rounded-lg border border-gray-200 dark:border-gray-700">
+          <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
+            Upcoming Sessions
+          </h2>
+          
+          <div v-if="upcomingSessions.length === 0" class="text-center py-6">
+            <UIcon name="i-heroicons-calendar" class="h-12 w-12 text-gray-400 mx-auto mb-3" />
+            <p class="text-gray-500 dark:text-gray-400 mb-4">
+              No upcoming sessions scheduled
+            </p>
+            <UButton
+              label="Schedule Now"
+              icon="i-heroicons-plus"
+              @click="scheduleSession"
+            />
+          </div>
+          
+          <div v-else class="space-y-4">
+            <div
+              v-for="session in upcomingSessions"
+              :key="session.id"
+              class="p-4 border border-gray-200 dark:border-gray-700 rounded-lg"
+            >
+              <div class="flex items-center justify-between mb-2">
+                <h3 class="font-medium text-gray-900 dark:text-gray-100">
+                  {{ session.title }}
+                </h3>
+                <UBadge
+                  :color="getSessionTypeColor(session.type)"
+                  :label="session.type"
+                  size="xs"
+                />
+              </div>
+              
+              <div class="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 mb-3">
+                <UIcon name="i-heroicons-calendar" class="h-4 w-4" />
+                <span>{{ formatDate(session.scheduledAt) }}</span>
+                <UIcon name="i-heroicons-clock" class="h-4 w-4 ml-2" />
+                <span>{{ session.duration }}min</span>
+              </div>
+              
+              <div class="flex items-center gap-2">
+                <UButton
+                  label="Start"
+                  size="xs"
+                  :disabled="!canStartSession(session)"
+                  @click="startSession(session.id)"
+                />
+                
+                <UButton
+                  label="Reschedule"
+                  variant="outline"
+                  size="xs"
+                  @click="rescheduleSession(session.id)"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Goals & Targets -->
+        <div class="bg-white dark:bg-gray-900 p-6 rounded-lg border border-gray-200 dark:border-gray-700">
+          <div class="flex items-center justify-between mb-4">
+            <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">
+              Goals & Targets
+            </h2>
+            <UButton
+              icon="i-heroicons-plus"
+              variant="ghost"
+              size="xs"
+              @click="addGoal"
+            />
+          </div>
+          
+          <div class="space-y-4">
+            <div
+              v-for="goal in userGoals"
+              :key="goal.id"
+              class="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg"
+            >
+              <div class="flex items-center justify-between mb-2">
+                <h3 class="font-medium text-gray-900 dark:text-gray-100">
+                  {{ goal.title }}
+                </h3>
+                <UIcon
+                  :name="goal.completed ? 'i-heroicons-check-circle' : 'i-heroicons-clock'"
+                  :class="goal.completed ? 'text-green-500' : 'text-yellow-500'"
+                  class="h-4 w-4"
+                />
+              </div>
+              
+              <p class="text-sm text-gray-600 dark:text-gray-400 mb-3">
+                {{ goal.description }}
+              </p>
+              
+              <div class="flex items-center justify-between text-xs">
+                <span class="text-gray-500 dark:text-gray-400">
+                  Progress: {{ goal.progress }}%
+                </span>
+                <span class="text-gray-500 dark:text-gray-400">
+                  Due: {{ formatDate(goal.dueDate) }}
+                </span>
+              </div>
+              
+              <UProgress
+                :value="goal.progress"
+                :max="100"
+                :color="goal.completed ? 'green' : 'blue'"
+                size="xs"
+                class="mt-2"
+              />
+            </div>
+          </div>
+        </div>
+
+        <!-- Achievements -->
+        <div class="bg-white dark:bg-gray-900 p-6 rounded-lg border border-gray-200 dark:border-gray-700">
+          <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
+            Recent Achievements
+          </h2>
+          
+          <div class="space-y-3">
+            <div
+              v-for="achievement in recentAchievements"
+              :key="achievement.id"
+              class="flex items-center gap-3 p-3 bg-yellow-50 dark:bg-yellow-950/20 border border-yellow-200 dark:border-yellow-800 rounded-lg"
+            >
+              <div class="w-8 h-8 bg-yellow-100 dark:bg-yellow-900 rounded-full flex items-center justify-center">
+                <UIcon name="i-heroicons-trophy" class="h-4 w-4 text-yellow-600 dark:text-yellow-400" />
+              </div>
+              
+              <div class="flex-1 min-w-0">
+                <h3 class="font-medium text-yellow-900 dark:text-yellow-100">
+                  {{ achievement.title }}
+                </h3>
+                <p class="text-sm text-yellow-700 dark:text-yellow-200">
+                  {{ achievement.description }}
+                </p>
+              </div>
+              
+              <div class="text-xs text-yellow-600 dark:text-yellow-400">
+                {{ formatRelativeTime(achievement.achievedAt) }}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="bg-white dark:bg-gray-900 p-6 rounded-lg border border-gray-200 dark:border-gray-700">
+          <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
+            Quick Actions
+          </h2>
+          
+          <div class="space-y-2">
+            <UButton
+              v-for="action in quickActions"
+              :key="action.id"
+              :label="action.label"
+              :icon="action.icon"
+              :color="action.color || 'gray'"
+              variant="outline"
+              block
+              @click="action.handler"
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modals -->
+    <!-- Schedule Session Modal -->
+    <UModal v-model="showScheduleModal">
+      <UCard>
+        <template #header>
+          <h3 class="text-lg font-semibold">Schedule Interview Session</h3>
+        </template>
+        
+        <div class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Session Type
+            </label>
+            <USelectMenu
+              v-model="newSession.type"
+              :options="sessionTypeOptions"
+            />
+          </div>
+          
+          <div>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Difficulty Level
+            </label>
+            <USelectMenu
+              v-model="newSession.difficulty"
+              :options="difficultyOptions"
+            />
+          </div>
+          
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Date
+              </label>
+              <UInput
+                v-model="newSession.date"
+                type="date"
+                :min="new Date().toISOString().split('T')[0]"
+              />
+            </div>
+            
+            <div>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Time
+              </label>
+              <UInput
+                v-model="newSession.time"
+                type="time"
+              />
+            </div>
+          </div>
+          
+          <div>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Duration (minutes)
+            </label>
+            <USelectMenu
+              v-model="newSession.duration"
+              :options="durationOptions"
+            />
+          </div>
+        </div>
+        
+        <template #footer>
+          <div class="flex justify-end gap-3">
+            <UButton
+              label="Cancel"
+              variant="outline"
+              @click="showScheduleModal = false"
+            />
+            <UButton
+              label="Schedule"
+              @click="confirmScheduleSession"
+              :disabled="!isValidSession"
+            />
+          </div>
+        </template>
+      </UCard>
+    </UModal>
+
+    <!-- Skill Suggestions Modal -->
+    <UModal v-model="showSuggestionsModal">
+      <UCard v-if="selectedSkill">
+        <template #header>
+          <h3 class="text-lg font-semibold">
+            Improve {{ selectedSkill.label }}
+          </h3>
+        </template>
+        
+        <div class="space-y-4">
+          <div
+            v-for="(suggestion, index) in selectedSkill.suggestions"
+            :key="index"
+            class="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg"
+          >
+            <h4 class="font-medium text-gray-900 dark:text-gray-100 mb-2">
+              {{ suggestion.title }}
+            </h4>
+            <p class="text-sm text-gray-600 dark:text-gray-400 mb-3">
+              {{ suggestion.description }}
+            </p>
+            
+            <div v-if="suggestion.resources" class="flex flex-wrap gap-2">
+              <UButton
+                v-for="resource in suggestion.resources"
+                :key="resource.url"
+                :label="resource.title"
+                variant="outline"
+                size="xs"
+                @click="openResource(resource.url)"
+              />
+            </div>
+          </div>
+        </div>
+        
+        <template #footer>
+          <div class="flex justify-end">
+            <UButton
+              label="Close"
+              @click="showSuggestionsModal = false"
+            />
+          </div>
+        </template>
+      </UCard>
+    </UModal>
+  </div>
+</template>
+
+<script setup lang="ts">
+import type { 
+  UserSession, 
+  UserGoal, 
+  Achievement, 
+  SkillData, 
+  QuickStat,
+  ChartData 
+} from '~/types/dashboard'
+
+// Props
+const props = withDefaults(defineProps<{
+  userId: string
+  refreshInterval?: number
+}>(), {
+  refreshInterval: 30000
+})
+
+// Reactive state
+const chartPeriod = ref('30d')
+const showScheduleModal = ref(false)
+const showSuggestionsModal = ref(false)
+const selectedSkill = ref<SkillData>()
+
+// New session form
+const newSession = ref({
+  type: 'technical',
+  difficulty: 'medium',
+  date: '',
+  time: '',
+  duration: 60
+})
+
+// Mock data - replace with API calls
+const quickStats = ref<QuickStat[]>([
+  {
+    label: 'Sessions Completed',
+    value: '24',
+    icon: 'i-heroicons-academic-cap',
+    bgColor: 'bg-blue-100 dark:bg-blue-900',
+    iconColor: 'text-blue-600 dark:text-blue-400',
+    trend: 12
+  },
+  {
+    label: 'Average Score',
+    value: '78',
+    icon: 'i-heroicons-chart-bar',
+    bgColor: 'bg-green-100 dark:bg-green-900',
+    iconColor: 'text-green-600 dark:text-green-400',
+    trend: 8
+  },
+  {
+    label: 'Skills Improved',
+    value: '6',
+    icon: 'i-heroicons-arrow-trending-up',
+    bgColor: 'bg-purple-100 dark:bg-purple-900',
+    iconColor: 'text-purple-600 dark:text-purple-400',
+    trend: 15
+  },
+  {
+    label: 'Study Streak',
+    value: '12',
+    icon: 'i-heroicons-fire',
+    bgColor: 'bg-orange-100 dark:bg-orange-900',
+    iconColor: 'text-orange-600 dark:text-orange-400',
+    trend: -2
+  }
+])
+
+const recentSessions = ref<UserSession[]>([
+  {
+    id: '1',
+    title: 'JavaScript Algorithms',
+    type: 'technical',
+    difficulty: 'medium',
+    score: 78,
+    completedAt: new Date('2024-01-15'),
+    duration: 45,
+    status: 'completed'
+  },
+  // ... more sessions
+])
+
+const upcomingSessions = ref<UserSession[]>([
+  {
+    id: '2',
+    title: 'System Design Practice',
+    type: 'system-design',
+    difficulty: 'hard',
+    scheduledAt: new Date('2024-01-20T10:00:00'),
+    duration: 90,
+    status: 'scheduled'
+  }
+])
+
+const userGoals = ref<UserGoal[]>([
+  {
+    id: '1',
+    title: 'Master Dynamic Programming',
+    description: 'Complete 20 DP problems with 80% accuracy',
+    progress: 65,
+    completed: false,
+    dueDate: new Date('2024-02-01'),
+    createdAt: new Date('2024-01-01')
+  }
+])
+
+const recentAchievements = ref<Achievement[]>([
+  {
+    id: '1',
+    title: 'Problem Solver',
+    description: 'Solved 50 coding problems',
+    achievedAt: new Date('2024-01-14'),
+    points: 100
+  }
+])
+
+const skillsData = ref<SkillData[]>([
+  {
+    name: 'algorithms',
+    label: 'Algorithms',
+    score: 75,
+    icon: 'i-heroicons-cpu-chip',
+    description: 'Problem-solving and algorithmic thinking',
+    suggestions: [
+      {
+        title: 'Practice Tree Traversals',
+        description: 'Focus on BFS and DFS implementations',
+        resources: [
+          { title: 'LeetCode Trees', url: 'https://leetcode.com/tag/tree/' }
+        ]
+      }
+    ]
+  },
+  // ... more skills
+])
+
+const chartData = ref<ChartData>({
+  labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
+  datasets: [
+    {
+      label: 'Average Score',
+      data: [65, 72, 78, 82],
+      borderColor: 'rgb(59, 130, 246)',
+      backgroundColor: 'rgba(59, 130, 246, 0.1)'
+    }
+  ]
+})
+
+// Configuration options
+const chartPeriodOptions = [
+  { label: 'Last 7 days', value: '7d' },
+  { label: 'Last 30 days', value: '30d' },
+  { label: 'Last 90 days', value: '90d' },
+  { label: 'All time', value: 'all' }
+]
+
+const sessionTypeOptions = [
+  { label: 'Technical Coding', value: 'technical' },
+  { label: 'System Design', value: 'system-design' },
+  { label: 'Behavioral', value: 'behavioral' },
+  { label: 'Mock Interview', value: 'mock' }
+]
+
+const difficultyOptions = [
+  { label: 'Easy', value: 'easy' },
+  { label: 'Medium', value: 'medium' },
+  { label: 'Hard', value: 'hard' }
+]
+
+const durationOptions = [
+  { label: '30 minutes', value: 30 },
+  { label: '45 minutes', value: 45 },
+  { label: '60 minutes', value: 60 },
+  { label: '90 minutes', value: 90 },
+  { label: '120 minutes', value: 120 }
+]
+
+const quickActions = [
+  {
+    id: 'start-practice',
+    label: 'Start Practice Session',
+    icon: 'i-heroicons-play',
+    color: 'blue',
+    handler: () => startPracticeSession()
+  },
+  {
+    id: 'view-progress',
+    label: 'View Detailed Progress',
+    icon: 'i-heroicons-chart-bar',
+    handler: () => viewDetailedProgress()
+  },
+  {
+    id: 'export-data',
+    label: 'Export Performance Data',
+    icon: 'i-heroicons-document-arrow-down',
+    handler: () => exportData()
+  }
+]
+
+const dashboardMenuItems = [
+  [
+    {
+      label: 'Settings',
+      icon: 'i-heroicons-cog-6-tooth',
+      click: () => navigateTo('/settings')
+    },
+    {
+      label: 'Export Data',
+      icon: 'i-heroicons-document-arrow-down',
+      click: () => exportData()
+    }
+  ],
+  [
+    {
+      label: 'Help & Support',
+      icon: 'i-heroicons-question-mark-circle',
+      click: () => openHelp()
+    }
+  ]
+]
+
+// Computed properties
+const isValidSession = computed(() => {
+  return newSession.value.type && 
+         newSession.value.date && 
+         newSession.value.time && 
+         newSession.value.duration
+})
+
+// Methods
+const scheduleSession = () => {
+  showScheduleModal.value = true
+  // Set default date to tomorrow
+  const tomorrow = new Date()
+  tomorrow.setDate(tomorrow.getDate() + 1)
+  newSession.value.date = tomorrow.toISOString().split('T')[0]
+}
+
+const confirmScheduleSession = async () => {
+  try {
+    // API call to schedule session
+    const sessionData = {
+      ...newSession.value,
+      scheduledAt: new Date(`${newSession.value.date}T${newSession.value.time}:00`)
+    }
+    
+    // Mock API call
+    await new Promise(resolve => setTimeout(resolve, 1000))
+    
+    // Add to upcoming sessions
+    upcomingSessions.value.push({
+      id: Date.now().toString(),
+      title: `${sessionData.type} Session`,
+      type: sessionData.type,
+      difficulty: sessionData.difficulty,
+      scheduledAt: sessionData.scheduledAt,
+      duration: sessionData.duration,
+      status: 'scheduled'
+    })
+    
+    showScheduleModal.value = false
+    
+    // Reset form
+    newSession.value = {
+      type: 'technical',
+      difficulty: 'medium',
+      date: '',
+      time: '',
+      duration: 60
+    }
+    
+  } catch (error) {
+    console.error('Failed to schedule session:', error)
+  }
+}
+
+const canStartSession = (session: UserSession): boolean => {
+  if (!session.scheduledAt) return false
+  const now = new Date()
+  const sessionTime = new Date(session.scheduledAt)
+  const timeDiff = sessionTime.getTime() - now.getTime()
+  return Math.abs(timeDiff) < 15 * 60 * 1000 // 15 minutes window
+}
+
+const startSession = async (sessionId: string) => {
+  // Navigate to interview session
+  await navigateTo(`/interview/${sessionId}`)
+}
+
+const rescheduleSession = (sessionId: string) => {
+  // Implementation for rescheduling
+  console.log('Reschedule session:', sessionId)
+}
+
+const viewAllSessions = () => {
+  navigateTo('/sessions')
+}
+
+const viewSessionDetails = (sessionId: string) => {
+  navigateTo(`/sessions/${sessionId}`)
+}
+
+const handleChartClick = (dataPoint: any) => {
+  console.log('Chart clicked:', dataPoint)
+}
+
+const showSkillSuggestions = (skill: SkillData) => {
+  selectedSkill.value = skill
+  showSuggestionsModal.value = true
+}
+
+const addGoal = () => {
+  // Implementation for adding a new goal
+  console.log('Add goal')
+}
+
+const startPracticeSession = () => {
+  navigateTo('/practice')
+}
+
+const viewDetailedProgress = () => {
+  navigateTo('/progress')
+}
+
+const exportData = async () => {
+  try {
+    const data = {
+      stats: quickStats.value,
+      sessions: recentSessions.value,
+      goals: userGoals.value,
+      skills: skillsData.value,
+      exportedAt: new Date().toISOString()
+    }
+    
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `dashboard-data-${props.userId}-${new Date().toISOString().split('T')[0]}.json`
+    a.click()
+    URL.revokeObjectURL(url)
+    
+  } catch (error) {
+    console.error('Failed to export data:', error)
+  }
+}
+
+const openHelp = () => {
+  window.open('/help', '_blank')
+}
+
+const openResource = (url: string) => {
+  window.open(url, '_blank')
+}
+
+// Helper methods
+const getScoreColor = (score: number) => {
+  if (score >= 80) return 'text-green-500'
+  if (score >= 60) return 'text-yellow-500'
+  return 'text-red-500'
+}
+
+const getProgressColor = (score: number) => {
+  if (score >= 80) return 'green'
+  if (score >= 60) return 'yellow'
+  return 'red'
+}
+
+const getSessionTypeColor = (type: string) => {
+  switch (type) {
+    case 'technical': return 'blue'
+    case 'system-design': return 'purple'
+    case 'behavioral': return 'green'
+    case 'mock': return 'orange'
+    default: return 'gray'
+  }
+}
+
+const formatDate = (date: Date): string => {
+  return new Intl.DateTimeFormat('en-US', {
+    month: 'short',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  }).format(date)
+}
+
+const formatRelativeTime = (date: Date): string => {
+  const rtf = new Intl.RelativeTimeFormat('en', { numeric: 'auto' })
+  const diffTime = date.getTime() - new Date().getTime()
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+  
+  if (Math.abs(diffDays) < 1) {
+    const diffHours = Math.ceil(diffTime / (1000 * 60 * 60))
+    return rtf.format(diffHours, 'hour')
+  }
+  
+  return rtf.format(diffDays, 'day')
+}
+
+// Auto-refresh functionality
+let refreshTimer: NodeJS.Timeout | null = null
+
+const refreshData = async () => {
+  try {
+    // Refresh dashboard data
+    // This would typically make API calls to update all data
+    console.log('Refreshing dashboard data...')
+  } catch (error) {
+    console.error('Failed to refresh data:', error)
+  }
+}
+
+const startAutoRefresh = () => {
+  if (refreshTimer) clearInterval(refreshTimer)
+  
+  refreshTimer = setInterval(refreshData, props.refreshInterval)
+}
+
+const stopAutoRefresh = () => {
+  if (refreshTimer) {
+    clearInterval(refreshTimer)
+    refreshTimer = null
+  }
+}
+
+// Lifecycle
+onMounted(() => {
+  refreshData()
+  startAutoRefresh()
+})
+
+onUnmounted(() => {
+  stopAutoRefresh()
+})
+
+// Watch for chart period changes
+watch(chartPeriod, (newPeriod) => {
+  // Fetch data for the new period
+  console.log('Chart period changed to:', newPeriod)
+})
+</script>
+
+<style scoped>
+.user-dashboard {
+  /* Custom dashboard styles */
+}
+
+/* Responsive grid adjustments */
+@media (max-width: 768px) {
+  .grid-cols-1.md\\:grid-cols-4 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .lg\\:col-span-2 {
+    grid-column: span 1;
+  }
+}
+
+/* Card hover effects */
+.bg-white:hover,
+.dark .dark\\:bg-gray-900:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s ease;
+}
+
+/* Achievement badge animation */
+.achievement-badge {
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.8;
+  }
+}
+
+/* Progress bar animations */
+.progress-bar {
+  transition: width 0.5s ease-in-out;
+}
+
+/* Modal animations */
+.modal-enter-active,
+.modal-leave-active {
+  transition: all 0.3s ease;
+}
+
+.modal-enter-from,
+.modal-leave-to {
+  opacity: 0;
+  transform: scale(0.9);
+}
+</style>

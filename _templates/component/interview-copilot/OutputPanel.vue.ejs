@@ -1,0 +1,570 @@
+<template>
+  <div class="output-panel h-full flex flex-col bg-gray-900">
+    <!-- Panel Header -->
+    <div class="flex items-center justify-between bg-gray-800 border-b border-gray-700 px-4 py-2">
+      <div class="flex items-center gap-2">
+        <UIcon name="i-heroicons-terminal" class="h-4 w-4 text-gray-400" />
+        <span class="text-sm font-medium text-gray-200">Output</span>
+        
+        <UBadge
+          v-if="executionResult?.status"
+          :color="getStatusColor(executionResult.status)"
+          :label="executionResult.status.toUpperCase()"
+          size="xs"
+        />
+      </div>
+      
+      <div class="flex items-center gap-2">
+        <!-- Execution Time -->
+        <span
+          v-if="executionResult?.executionTime"
+          class="text-xs text-gray-400"
+        >
+          {{ formatExecutionTime(executionResult.executionTime) }}
+        </span>
+        
+        <!-- Clear Button -->
+        <UButton
+          v-if="showClear && !isExecuting"
+          icon="i-heroicons-trash"
+          variant="ghost"
+          size="xs"
+          @click="handleClear"
+        />
+        
+        <!-- Re-run Button -->
+        <UButton
+          v-if="showRerun && !isExecuting"
+          icon="i-heroicons-arrow-path"
+          variant="ghost"
+          size="xs"
+          @click="$emit('re-run')"
+        />
+        
+        <!-- Stop Execution Button -->
+        <UButton
+          v-if="isExecuting"
+          icon="i-heroicons-stop"
+          color="red"
+          variant="ghost"
+          size="xs"
+          @click="$emit('stop-execution')"
+        />
+      </div>
+    </div>
+
+    <!-- Output Content -->
+    <div class="flex-1 overflow-hidden flex flex-col">
+      <!-- Executing State -->
+      <div
+        v-if="isExecuting"
+        class="flex items-center gap-3 p-4 text-yellow-400"
+      >
+        <UIcon name="i-heroicons-arrow-path" class="h-4 w-4 animate-spin" />
+        <span class="text-sm">{{ executingMessage }}</span>
+        
+        <!-- Progress Bar (if available) -->
+        <div v-if="executionProgress !== undefined" class="flex-1 ml-4">
+          <UProgress
+            :value="executionProgress"
+            :max="100"
+            size="sm"
+            color="yellow"
+          />
+          <span class="text-xs text-gray-400 ml-2">{{ executionProgress }}%</span>
+        </div>
+      </div>
+
+      <!-- Success Output -->
+      <div
+        v-else-if="executionResult?.status === 'completed' && executionResult.output"
+        class="flex-1 overflow-auto"
+      >
+        <div class="p-4">
+          <!-- Execution Stats -->
+          <div
+            v-if="showStats"
+            class="flex items-center gap-6 text-xs text-gray-400 mb-3 pb-3 border-b border-gray-700"
+          >
+            <div class="flex items-center gap-1">
+              <UIcon name="i-heroicons-clock" class="h-3 w-3" />
+              <span>{{ formatExecutionTime(executionResult.executionTime) }}</span>
+            </div>
+            
+            <div
+              v-if="executionResult.memoryUsage"
+              class="flex items-center gap-1"
+            >
+              <UIcon name="i-heroicons-cpu-chip" class="h-3 w-3" />
+              <span>{{ formatMemoryUsage(executionResult.memoryUsage) }}</span>
+            </div>
+            
+            <div class="flex items-center gap-1">
+              <UIcon name="i-heroicons-check-circle" class="h-3 w-3 text-green-400" />
+              <span class="text-green-400">Success</span>
+            </div>
+          </div>
+          
+          <!-- Output Text -->
+          <pre
+            ref="outputContainer"
+            class="text-sm text-gray-100 font-mono whitespace-pre-wrap break-words"
+            :class="{ 'selecting': isSelecting }"
+            @mouseup="handleTextSelection"
+          >{{ executionResult.output }}</pre>
+        </div>
+      </div>
+
+      <!-- Error Output -->
+      <div
+        v-else-if="executionResult?.status === 'failed'"
+        class="flex-1 overflow-auto p-4"
+      >
+        <!-- Error Stats -->
+        <div class="flex items-center gap-4 text-xs text-gray-400 mb-3 pb-3 border-b border-red-800">
+          <div class="flex items-center gap-1">
+            <UIcon name="i-heroicons-x-circle" class="h-3 w-3 text-red-400" />
+            <span class="text-red-400">Failed</span>
+          </div>
+          
+          <div v-if="executionResult.executionTime" class="flex items-center gap-1">
+            <UIcon name="i-heroicons-clock" class="h-3 w-3" />
+            <span>{{ formatExecutionTime(executionResult.executionTime) }}</span>
+          </div>
+        </div>
+        
+        <!-- Error Messages -->
+        <div class="space-y-3">
+          <div
+            v-for="(error, index) in executionResult.errors || []"
+            :key="index"
+            class="bg-red-950/20 border border-red-800 rounded p-3"
+          >
+            <div class="flex items-start gap-2">
+              <UIcon
+                name="i-heroicons-exclamation-triangle"
+                class="h-4 w-4 text-red-400 mt-0.5 flex-shrink-0"
+              />
+              
+              <div class="flex-1 min-w-0">
+                <div
+                  v-if="error.line && error.column"
+                  class="text-xs text-red-300 mb-1"
+                >
+                  Line {{ error.line }}, Column {{ error.column }}
+                </div>
+                
+                <pre class="text-sm text-red-200 whitespace-pre-wrap break-words font-mono">{{ error.message }}</pre>
+                
+                <div
+                  v-if="error.source"
+                  class="mt-2 p-2 bg-gray-900 rounded text-xs font-mono text-gray-300"
+                >
+                  {{ error.source }}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- General Error Output -->
+        <pre
+          v-if="executionResult.output"
+          class="mt-4 text-sm text-red-200 font-mono whitespace-pre-wrap break-words"
+        >{{ executionResult.output }}</pre>
+      </div>
+
+      <!-- Empty State -->
+      <div
+        v-else-if="!executionResult"
+        class="flex-1 flex items-center justify-center text-center p-8"
+      >
+        <div class="max-w-sm">
+          <UIcon name="i-heroicons-play" class="h-16 w-16 text-gray-500 mx-auto mb-4" />
+          <h3 class="text-lg font-medium text-gray-400 mb-2">Ready to Execute</h3>
+          <p class="text-gray-500 text-sm">
+            Run your code to see the output here. Press 
+            <kbd class="px-1.5 py-0.5 bg-gray-700 rounded text-xs">{{ isMac ? 'Cmd' : 'Ctrl' }}+Enter</kbd>
+            to execute.
+          </p>
+        </div>
+      </div>
+
+      <!-- No Output State -->
+      <div
+        v-else-if="executionResult?.status === 'completed' && !executionResult.output"
+        class="flex-1 flex items-center justify-center text-center p-8"
+      >
+        <div class="max-w-sm">
+          <UIcon name="i-heroicons-check-circle" class="h-12 w-12 text-green-400 mx-auto mb-4" />
+          <h3 class="text-lg font-medium text-gray-400 mb-2">Execution Complete</h3>
+          <p class="text-gray-500 text-sm">
+            Your code executed successfully but produced no output.
+          </p>
+          
+          <!-- Execution Stats -->
+          <div class="mt-4 text-xs text-gray-400 space-y-1">
+            <div>Time: {{ formatExecutionTime(executionResult.executionTime) }}</div>
+            <div v-if="executionResult.memoryUsage">
+              Memory: {{ formatMemoryUsage(executionResult.memoryUsage) }}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Context Menu -->
+    <div
+      v-if="showContextMenu"
+      ref="contextMenu"
+      class="fixed bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded shadow-lg py-1 z-50"
+      :style="contextMenuStyle"
+    >
+      <button
+        v-if="selectedText"
+        class="w-full px-3 py-1.5 text-left text-sm hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2"
+        @click="copySelectedText"
+      >
+        <UIcon name="i-heroicons-clipboard" class="h-3 w-3" />
+        Copy Selection
+      </button>
+      
+      <button
+        class="w-full px-3 py-1.5 text-left text-sm hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2"
+        @click="copyAllOutput"
+      >
+        <UIcon name="i-heroicons-document-duplicate" class="h-3 w-3" />
+        Copy All Output
+      </button>
+      
+      <div class="border-t border-gray-200 dark:border-gray-700 my-1" />
+      
+      <button
+        class="w-full px-3 py-1.5 text-left text-sm hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2"
+        @click="saveOutput"
+      >
+        <UIcon name="i-heroicons-document-arrow-down" class="h-3 w-3" />
+        Save Output
+      </button>
+      
+      <button
+        v-if="executionResult?.status === 'failed'"
+        class="w-full px-3 py-1.5 text-left text-sm hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2"
+        @click="searchError"
+      >
+        <UIcon name="i-heroicons-magnifying-glass" class="h-3 w-3" />
+        Search Error Online
+      </button>
+    </div>
+
+    <!-- Output Actions Footer -->
+    <div
+      v-if="executionResult && showActions"
+      class="border-t border-gray-700 p-3"
+    >
+      <div class="flex items-center justify-between text-xs">
+        <div class="flex items-center gap-4 text-gray-400">
+          <span>Output ready</span>
+          <span v-if="outputLineCount > 0">{{ outputLineCount }} lines</span>
+          <span v-if="outputSize">{{ formatBytes(outputSize) }}</span>
+        </div>
+        
+        <div class="flex items-center gap-2">
+          <UButton
+            icon="i-heroicons-clipboard"
+            label="Copy"
+            variant="outline"
+            size="xs"
+            @click="copyAllOutput"
+          />
+          
+          <UButton
+            icon="i-heroicons-document-arrow-down"
+            label="Save"
+            variant="outline"
+            size="xs"
+            @click="saveOutput"
+          />
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script setup lang="ts">
+import type { ExecutionResult } from '~/types/code-execution'
+
+// Props
+const props = withDefaults(defineProps<{
+  executionResult?: ExecutionResult | null
+  isExecuting?: boolean
+  executingMessage?: string
+  executionProgress?: number
+  showClear?: boolean
+  showRerun?: boolean
+  showStats?: boolean
+  showActions?: boolean
+  autoScroll?: boolean
+}>(), {
+  executionResult: null,
+  isExecuting: false,
+  executingMessage: 'Executing code...',
+  showClear: true,
+  showRerun: true,
+  showStats: true,
+  showActions: true,
+  autoScroll: true
+})
+
+// Emits
+const emit = defineEmits<{
+  'clear-output': []
+  're-run': []
+  'stop-execution': []
+  'text-selected': [text: string]
+  'error-clicked': [error: any]
+}>()
+
+// Reactive state
+const outputContainer = ref<HTMLElement>()
+const contextMenu = ref<HTMLElement>()
+const showContextMenu = ref(false)
+const contextMenuStyle = ref({})
+const selectedText = ref('')
+const isSelecting = ref(false)
+
+// Computed properties
+const isMac = computed(() => 
+  typeof navigator !== 'undefined' && 
+  navigator.platform.toUpperCase().indexOf('MAC') >= 0
+)
+
+const outputLineCount = computed(() => {
+  if (!props.executionResult?.output) return 0
+  return props.executionResult.output.split('\n').length
+})
+
+const outputSize = computed(() => {
+  if (!props.executionResult?.output) return 0
+  return new Blob([props.executionResult.output]).size
+})
+
+// Methods
+const getStatusColor = (status: string) => {
+  switch (status) {
+    case 'completed': return 'green'
+    case 'running': return 'yellow'
+    case 'failed': return 'red'
+    default: return 'gray'
+  }
+}
+
+const formatExecutionTime = (time: number): string => {
+  if (time < 1) return `${Math.round(time * 1000)}ms`
+  return `${time.toFixed(2)}s`
+}
+
+const formatMemoryUsage = (memory: number): string => {
+  return `${memory.toFixed(1)}MB`
+}
+
+const formatBytes = (bytes: number): string => {
+  if (bytes === 0) return '0 B'
+  const k = 1024
+  const sizes = ['B', 'KB', 'MB', 'GB']
+  const i = Math.floor(Math.log(bytes) / Math.log(k))
+  return `${parseFloat((bytes / Math.pow(k, i)).toFixed(1))} ${sizes[i]}`
+}
+
+const handleClear = () => {
+  emit('clear-output')
+}
+
+const handleTextSelection = (event: MouseEvent) => {
+  const selection = window.getSelection()?.toString() || ''
+  if (selection) {
+    selectedText.value = selection
+    emit('text-selected', selection)
+    
+    // Show context menu
+    showContextMenu.value = true
+    contextMenuStyle.value = {
+      left: `${event.pageX}px`,
+      top: `${event.pageY}px`
+    }
+  } else {
+    hideContextMenu()
+  }
+}
+
+const hideContextMenu = () => {
+  showContextMenu.value = false
+  selectedText.value = ''
+}
+
+const copySelectedText = async () => {
+  if (selectedText.value) {
+    try {
+      await navigator.clipboard.writeText(selectedText.value)
+      // Show success toast
+    } catch (error) {
+      console.error('Failed to copy selected text:', error)
+    }
+  }
+  hideContextMenu()
+}
+
+const copyAllOutput = async () => {
+  if (props.executionResult?.output) {
+    try {
+      await navigator.clipboard.writeText(props.executionResult.output)
+      // Show success toast
+    } catch (error) {
+      console.error('Failed to copy output:', error)
+    }
+  }
+  hideContextMenu()
+}
+
+const saveOutput = () => {
+  if (!props.executionResult?.output) return
+  
+  const blob = new Blob([props.executionResult.output], { type: 'text/plain' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = `output-${new Date().toISOString().slice(0, 19)}.txt`
+  a.click()
+  URL.revokeObjectURL(url)
+  
+  hideContextMenu()
+}
+
+const searchError = () => {
+  if (props.executionResult?.errors?.[0]) {
+    const error = props.executionResult.errors[0]
+    const query = encodeURIComponent(error.message)
+    const url = `https://stackoverflow.com/search?q=${query}`
+    window.open(url, '_blank')
+  }
+  hideContextMenu()
+}
+
+const scrollToBottom = () => {
+  if (outputContainer.value) {
+    outputContainer.value.scrollTop = outputContainer.value.scrollHeight
+  }
+}
+
+// Event listeners
+const handleClickOutside = (event: MouseEvent) => {
+  if (contextMenu.value && !contextMenu.value.contains(event.target as Node)) {
+    hideContextMenu()
+  }
+}
+
+// Watchers
+watch(() => props.executionResult, () => {
+  if (props.autoScroll) {
+    nextTick(() => {
+      scrollToBottom()
+    })
+  }
+}, { deep: true })
+
+// Lifecycle
+onMounted(() => {
+  document.addEventListener('click', handleClickOutside)
+  document.addEventListener('contextmenu', (e) => {
+    if (outputContainer.value?.contains(e.target as Node)) {
+      e.preventDefault()
+    }
+  })
+})
+
+onUnmounted(() => {
+  document.removeEventListener('click', handleClickOutside)
+})
+</script>
+
+<style scoped>
+.output-panel {
+  font-family: 'Monaco', 'Menlo', 'JetBrains Mono', monospace;
+}
+
+.selecting {
+  user-select: text;
+  -webkit-user-select: text;
+  -moz-user-select: text;
+  -ms-user-select: text;
+}
+
+/* Custom scrollbar for output area */
+.output-panel ::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.output-panel ::-webkit-scrollbar-track {
+  background: #1f2937;
+}
+
+.output-panel ::-webkit-scrollbar-thumb {
+  background: #4b5563;
+  border-radius: 4px;
+}
+
+.output-panel ::-webkit-scrollbar-thumb:hover {
+  background: #6b7280;
+}
+
+/* Terminal-like styling */
+pre {
+  margin: 0;
+  padding: 0;
+  font-family: inherit;
+  line-height: 1.5;
+}
+
+/* Context menu animation */
+.context-menu-enter-active,
+.context-menu-leave-active {
+  transition: all 0.15s ease;
+}
+
+.context-menu-enter-from,
+.context-menu-leave-to {
+  opacity: 0;
+  transform: scale(0.95) translateY(-5px);
+}
+
+/* Execution progress animation */
+@keyframes progress-pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+.executing-progress {
+  animation: progress-pulse 1.5s ease-in-out infinite;
+}
+
+/* Error highlighting */
+.error-line {
+  background-color: rgba(239, 68, 68, 0.1);
+  border-left: 3px solid rgb(239, 68, 68);
+  padding-left: 0.5rem;
+}
+
+/* Selection highlighting */
+::selection {
+  background-color: rgba(59, 130, 246, 0.3);
+}
+
+::-moz-selection {
+  background-color: rgba(59, 130, 246, 0.3);
+}
+</style>

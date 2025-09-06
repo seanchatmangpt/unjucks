@@ -1,0 +1,131 @@
+{
+  "timestamp": "2025-09-06T02:48:42.003Z",
+  "environment": {
+    "nodeVersion": "v22.12.0",
+    "platform": "darwin",
+    "arch": "arm64"
+  },
+  "profiles": [
+    {
+      "name": "Cold Start - Version",
+      "startupTime": 514.6816415999999,
+      "moduleLoadTime": 150,
+      "executionTime": 364.6816415999999,
+      "memoryUsage": {
+        "rss": 4.965625,
+        "heapUsed": 0.07116241455078125,
+        "heapTotal": 12.546875,
+        "external": 2.2269363403320312
+      },
+      "dependencies": [
+        "chalk",
+        "citty",
+        "confbox",
+        "fs-extra",
+        "inquirer",
+        "nunjucks",
+        "ora",
+        "yaml"
+      ],
+      "bottlenecks": [
+        "High startup time (>300ms)"
+      ]
+    },
+    {
+      "name": "Cold Start - Help",
+      "startupTime": 399.75643340000005,
+      "moduleLoadTime": 150,
+      "executionTime": 249.75643340000005,
+      "memoryUsage": {
+        "rss": 5.21875,
+        "heapUsed": 0.06213226318359375,
+        "heapTotal": 12.796875,
+        "external": 2.2351455688476562
+      },
+      "dependencies": [
+        "chalk",
+        "citty",
+        "confbox",
+        "fs-extra",
+        "inquirer",
+        "nunjucks",
+        "ora",
+        "yaml"
+      ],
+      "bottlenecks": [
+        "High startup time (>300ms)"
+      ]
+    },
+    {
+      "name": "Template Discovery",
+      "startupTime": 586.886225,
+      "moduleLoadTime": 150,
+      "executionTime": 436.88622499999997,
+      "memoryUsage": {
+        "rss": 3.315625,
+        "heapUsed": 0.05900115966796875,
+        "heapTotal": 12.796875,
+        "external": 2.2436437606811523
+      },
+      "dependencies": [
+        "chalk",
+        "citty",
+        "confbox",
+        "fs-extra",
+        "inquirer",
+        "nunjucks",
+        "ora",
+        "yaml"
+      ],
+      "bottlenecks": [
+        "High startup time (>300ms)"
+      ]
+    },
+    {
+      "name": "Dynamic Command Generation",
+      "startupTime": 488.1393331999996,
+      "moduleLoadTime": 150,
+      "executionTime": 338.1393331999996,
+      "memoryUsage": {
+        "rss": 3.7125,
+        "heapUsed": 0.0639495849609375,
+        "heapTotal": 9.296875,
+        "external": 2.236016273498535
+      },
+      "dependencies": [
+        "chalk",
+        "citty",
+        "confbox",
+        "fs-extra",
+        "inquirer",
+        "nunjucks",
+        "ora",
+        "yaml"
+      ],
+      "bottlenecks": [
+        "High startup time (>300ms)"
+      ]
+    }
+  ],
+  "summary": {
+    "averageStartupTime": 497.3659082999999,
+    "averageModuleLoadTime": 150,
+    "averageExecutionTime": 347.3659082999999,
+    "averageMemoryUsage": 4.303125,
+    "totalBottlenecks": 4
+  },
+  "recommendations": [
+    "🚀 Implement lazy loading for non-critical modules",
+    "📦 Consider CommonJS build for faster startup (vs ESM)",
+    "⚡ Move heavy imports to dynamic import()",
+    "📚 Reduce bundle size through tree-shaking",
+    "🔄 Implement module caching for repeated operations",
+    "❓ Lazy load inquirer (only needed for interactive prompts)",
+    "⏳ Lazy load ora spinner (only needed for long operations)"
+  ],
+  "benchmarkResults": {
+    "startupTimeTarget": 150,
+    "memoryTarget": 30,
+    "performanceScore": 33.33333333333333
+  }
+}

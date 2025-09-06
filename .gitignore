@@ -8,12 +8,18 @@ dist
 *.env*
 .lh/
 
-# Claude Flow generated files
+# Claude Flow generated files - EMERGENCY MEMORY PROTECTION
 .claude/settings.local.json
 .mcp.json
 claude-flow.config.json
 .swarm/
 .hive-mind/
+.claude-flow/
+.claude-flow/**
+**/metrics/**
+**/system-metrics.json
+**/performance.json
+**/task-metrics.json
 memory/claude-flow-data.json
 memory/sessions/*
 !memory/sessions/README.md
@@ -36,3 +42,21 @@ hive-mind-prompt-*.txt
 # Cucumber reports
 reports/
 *.log
+
+# Unjucks cache and temporary files
+.unjucks-cache/
+test-*/
+debug-cli.js
+**/temp/
+**/tmp/
+**/*-temp*/
+**/*-results.json
+**/*-output.log
+**/integration-results.json
+**/bdd-test-results.json
+
+# Test workspace pollution
+test-workspace/
+*-workspace/
+temp-*/
+tmp-*/

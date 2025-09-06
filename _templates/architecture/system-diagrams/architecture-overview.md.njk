@@ -1,0 +1,256 @@
+---
+to: docs/architecture/system-overview.md
+inject: false
+skipIf: exists
+---
+# Interview Copilot - System Architecture Overview
+
+## Architecture Decision Records
+
+### ADR-001: 3-Panel Interface Architecture
+
+**Status**: Accepted  
+**Date**: {{ 'now' | date('YYYY-MM-DD') }}
+
+**Context**: Need responsive interview simulation interface supporting real-time AI feedback and code editing.
+
+**Decision**: Implement 3-panel responsive layout with:
+- Left Panel: AI Chat Interface
+- Right Panel: Code Editor with syntax highlighting
+- Bottom Panel: Live preview/terminal output
+
+**Consequences**:
+- ✅ Optimal screen real estate usage
+- ✅ Natural workflow for coding interviews  
+- ✅ Resizable panels for user preference
+- ❌ Complex responsive design requirements
+
+### ADR-002: AI Feedback Engine Architecture
+
+**Status**: Accepted  
+**Date**: {{ 'now' | date('YYYY-MM-DD') }}
+
+**Context**: Need sophisticated AI analysis of code quality and communication patterns.
+
+**Decision**: Event-driven feedback engine with:
+- Strategy pattern for different AI providers
+- Observer pattern for real-time analysis
+- Pipeline architecture for multi-stage analysis
+
+**Consequences**:
+- ✅ Pluggable AI providers (Anthropic, OpenAI, custom)
+- ✅ Real-time feedback during coding
+- ✅ Extensible analysis pipeline
+- ❌ Higher complexity and resource usage
+
+### ADR-003: Database Schema Design
+
+**Status**: Accepted  
+**Date**: {{ 'now' | date('YYYY-MM-DD') }}
+
+**Context**: Need flexible data model supporting interviews, feedback, and analytics.
+
+**Decision**: Relational schema with:
+- Users ↔ Sessions ↔ Feedback (1:N:N relationships)
+- JSON columns for flexible rubrics and analysis data
+- Time-series optimized for performance metrics
+
+**Consequences**:
+- ✅ ACID compliance for critical data
+- ✅ Flexible rubric system via JSON
+- ✅ Efficient querying with proper indexing
+- ❌ Potential JSON query performance issues
+
+## System Components
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    Frontend (React/Next.js)                 │
+├─────────────┬─────────────────┬─────────────────────────────┤
+│ Chat Window │   Code Editor   │        Preview Panel        │
+│(AI Interface)│(Monaco/CodeMirror)│    (Output + Terminal)    │
+└─────────────┴─────────────────┴─────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────┐
+│                     API Gateway                             │
+│              (Express/Fastify + Validation)                 │
+└─────────────────────────────────────────────────────────────┘
+                              │
+              ┌───────────────┴───────────────┐
+              ▼                               ▼
+┌─────────────────────────┐         ┌─────────────────────────┐
+│    AI Feedback Engine   │         │   Session Management    │
+│                         │         │                         │
+│ ├─ Pattern Analysis     │         │ ├─ Real-time Updates    │
+│ ├─ Code Quality Scoring │         │ ├─ State Persistence    │
+│ ├─ Communication Rating │         │ └─ Collaboration Sync   │
+│ └─ Rubric Evaluation    │         │                         │
+└─────────────────────────┘         └─────────────────────────┘
+              │                               │
+              └───────────────┬───────────────┘
+                              ▼
+┌─────────────────────────────────────────────────────────────┐
+│                  Database Layer                             │
+│                                                             │
+│ ┌─────────────┐ ┌─────────────┐ ┌─────────────────────────┐ │
+│ │    Users    │ │  Sessions   │ │   Performance Metrics   │ │
+│ │             │ │             │ │                         │ │
+│ │ ├─ Profile  │ │ ├─ Code     │ │ ├─ Time Series Data     │ │
+│ │ ├─ Tier     │ │ ├─ Chat     │ │ ├─ Aggregated Scores    │ │
+│ │ └─ Settings │ │ └─ Feedback │ │ └─ Historical Trends    │ │
+│ └─────────────┘ └─────────────┘ └─────────────────────────┘ │
+└─────────────────────────────────────────────────────────────┘
+```
+
+## Data Flow Architecture
+
+### 1. Interview Session Initiation
+```
+User Request → API Gateway → Session Service → Database
+     ↓              ↓              ↓             ↓
+Frontend ← WebSocket ← Real-time ← State Store
+```
+
+### 2. Real-time Code Analysis
+```
+Code Change → Debounce → AI Engine → Analysis Results
+     ↓             ↓          ↓            ↓
+State Store → WebSocket → Frontend → UI Update
+```
+
+### 3. Performance Dashboard
+```
+Dashboard Request → Analytics Service → Aggregation Engine
+        ↓                  ↓                 ↓
+    Time-series ← Database Queries ← Performance Metrics
+        ↓
+    Chart Data → Frontend Visualization
+```
+
+## Technology Stack
+
+### Frontend Layer
+- **Framework**: React 18 with TypeScript
+- **State Management**: Zustand with persistence
+- **UI Components**: Tailwind CSS + Headless UI
+- **Code Editor**: Monaco Editor (VS Code engine)
+- **Charts**: Recharts for performance visualization
+- **Real-time**: WebSocket with auto-reconnection
+
+### Backend Layer
+- **API Framework**: Express.js with TypeScript
+- **Validation**: Zod schema validation
+- **Authentication**: JWT with refresh tokens
+- **Rate Limiting**: Express-rate-limit
+- **Real-time**: Socket.io for WebSocket management
+
+### AI Integration Layer
+- **Primary Provider**: Anthropic Claude (Sonnet)
+- **Fallback Provider**: OpenAI GPT-4
+- **Analysis Pipeline**: Custom pattern recognition
+- **Feedback Generation**: Template-based with AI enhancement
+
+### Data Layer
+- **Primary Database**: PostgreSQL 14+
+- **Schema Management**: Prisma ORM
+- **Caching**: Redis for session data
+- **File Storage**: AWS S3 for exports
+- **Analytics**: Time-series optimized tables
+
+### Infrastructure Layer
+- **Deployment**: Docker containers
+- **Orchestration**: Kubernetes or Docker Compose
+- **Load Balancing**: Nginx reverse proxy
+- **Monitoring**: Prometheus + Grafana
+- **Logging**: Winston with structured logs
+
+## Performance Requirements
+
+### Response Times
+- **API Endpoints**: < 200ms (95th percentile)
+- **AI Analysis**: < 3 seconds for code feedback
+- **Dashboard Loading**: < 1 second with caching
+- **Real-time Updates**: < 100ms latency
+
+### Scalability Targets
+- **Concurrent Users**: 1,000 active sessions
+- **Database**: 10M+ session records
+- **API Throughput**: 10,000 requests/minute
+- **Storage**: 1TB+ code and feedback data
+
+### Availability Requirements
+- **Uptime**: 99.9% availability target
+- **Recovery Time**: < 5 minutes for critical failures
+- **Data Backup**: Daily automated backups
+- **Disaster Recovery**: Cross-region replication
+
+## Security Considerations
+
+### Authentication & Authorization
+- JWT tokens with short expiration (15 minutes)
+- Refresh tokens stored securely (httpOnly cookies)
+- Role-based access control (RBAC)
+- API key authentication for service-to-service calls
+
+### Data Protection
+- Encryption at rest (AES-256)
+- TLS 1.3 for data in transit
+- Input sanitization and validation
+- Rate limiting per user/IP
+- CORS configuration for frontend
+
+### AI Safety
+- Content filtering for malicious code
+- Sandbox execution for code analysis
+- Privacy-preserving feedback generation
+- Audit logs for all AI interactions
+
+## Monitoring & Observability
+
+### Application Metrics
+- Request latency and throughput
+- Error rates by endpoint
+- AI analysis performance
+- User engagement metrics
+
+### Infrastructure Metrics
+- CPU, memory, and disk usage
+- Database query performance
+- Network latency and bandwidth
+- Cache hit/miss ratios
+
+### Business Metrics
+- Session completion rates
+- User satisfaction scores
+- Feature usage analytics
+- Revenue and conversion tracking
+
+## Development Workflow
+
+### Code Organization
+```
+src/
+├── components/           # React components
+│   ├── simulator/        # 3-panel interface
+│   ├── dashboard/        # Performance analytics
+│   └── common/           # Shared components
+├── services/             # Business logic layer
+│   ├── api/              # API client
+│   ├── ai/               # AI feedback engine
+│   └── realtime/         # WebSocket handling
+├── store/                # State management
+├── hooks/                # Custom React hooks
+├── utils/                # Helper functions
+└── types/                # TypeScript definitions
+```
+
+### Deployment Pipeline
+1. **Development**: Feature branches with automated tests
+2. **Staging**: Integration testing with production-like data
+3. **Production**: Blue-green deployment with rollback capability
+4. **Monitoring**: Real-time alerts and performance tracking
+
+---
+
+*This architecture supports the Interview Copilot's core requirements while maintaining scalability, security, and maintainability for future enhancements.*
