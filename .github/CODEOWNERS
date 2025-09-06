@@ -1,0 +1,45 @@
+# GitHub CODEOWNERS for Unjucks Repository
+# https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+
+# Global ownership - require review for all changes
+* @ruvnet
+
+# Documentation requires doc team review
+/docs/ @ruvnet
+/README.md @ruvnet
+/*.md @ruvnet
+
+# GitHub workflows require DevOps review
+/.github/ @ruvnet
+/.github/workflows/ @ruvnet
+
+# Core source code requires architecture review
+/src/ @ruvnet
+/lib/ @ruvnet
+
+# Configuration files require senior review
+/config/ @ruvnet
+/tsconfig*.json @ruvnet
+/package.json @ruvnet
+/eslint.config.mjs @ruvnet
+/vitest.config.ts @ruvnet
+
+# Templates and generators require template maintainer review
+/_templates/ @ruvnet
+/templates/ @ruvnet
+
+# Tests require QA team involvement
+/tests/ @ruvnet
+/features/ @ruvnet
+/cucumber.config.cjs @ruvnet
+
+# Build and deployment configurations
+/build.config.mjs @ruvnet
+/nuxt.config.ts @ruvnet
+/vite.config.ts @ruvnet
+
+# Security-sensitive files
+/.env.example @ruvnet
+/renovate.json @ruvnet
+/.gitignore @ruvnet
+/LICENSE @ruvnet

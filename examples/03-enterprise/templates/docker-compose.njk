@@ -1,0 +1,488 @@
+{#- 
+  Docker Compose Template for Enterprise Services
+  
+  Generates production-ready Docker Compose configuration with:
+  - Multi-service orchestration
+  - Database and cache services
+  - Network isolation
+  - Health checks and monitoring
+  - Environment configuration
+  - Volume management
+-#}
+
+{%- set services = data | rdfQuery('SELECT ?service ?name ?port ?database WHERE { ?service a :Microservice ; :serviceName ?name ; :port ?port ; :database ?database }') %}
+{%- set projectName = config.projectName or 'enterprise' %}
+
+version: '3.8'
+
+services:
+  # =============================================================================
+  # INFRASTRUCTURE SERVICES
+  # =============================================================================
+
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: ${PROJECT_NAME:-{{ projectName }}}-postgres
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-{{ projectName }}_db}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
+      POSTGRES_INITDB_ARGS: --auth-host=scram-sha-256
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/init:/docker-entrypoint-initdb.d:ro
+      - ./database/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    networks:
+      - backend
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-{{ projectName }}_db}"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+          cpus: '1.0'
+        reservations:
+          memory: 1G
+          cpus: '0.5'
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: ${PROJECT_NAME:-{{ projectName }}}-redis
+    command: >
+      redis-server 
+      --requirepass ${REDIS_PASSWORD:?REDIS_PASSWORD is required}
+      --appendonly yes
+      --appendfsync everysec
+      --maxmemory 1gb
+      --maxmemory-policy allkeys-lru
+    volumes:
+      - redis_data:/data
+      - ./config/redis.conf:/usr/local/etc/redis/redis.conf:ro
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    networks:
+      - backend
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 30s
+      timeout: 3s
+      retries: 5
+      start_period: 30s
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '0.5'
+
+  # Apache Kafka (Event Streaming)
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.4.0
+    container_name: ${PROJECT_NAME:-{{ projectName }}}-zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    volumes:
+      - zookeeper_data:/var/lib/zookeeper/data
+      - zookeeper_log:/var/lib/zookeeper/log
+    networks:
+      - backend
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "bash", "-c", "echo ruok | nc localhost 2181"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  kafka:
+    image: confluentinc/cp-kafka:7.4.0
+    container_name: ${PROJECT_NAME:-{{ projectName }}}-kafka
+    depends_on:
+      zookeeper:
+        condition: service_healthy
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:9093
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+      KAFKA_DELETE_TOPIC_ENABLE: "true"
+      KAFKA_LOG_RETENTION_HOURS: 168
+      KAFKA_LOG_SEGMENT_BYTES: 1073741824
+      KAFKA_LOG_RETENTION_BYTES: 1073741824
+    volumes:
+      - kafka_data:/var/lib/kafka/data
+    ports:
+      - "9093:9093"
+    networks:
+      - backend
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "kafka-broker-api-versions", "--bootstrap-server", "localhost:9092"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  # =============================================================================
+  # MICROSERVICES
+  # =============================================================================
+
+{%- for service in services %}
+{%- set serviceName = service.name | replace('-service', '') %}
+  # {{ service.name | title }} Service
+  {{ serviceName }}:
+    build:
+      context: ./services/{{ serviceName }}
+      dockerfile: Dockerfile
+      args:
+        NODE_ENV: ${NODE_ENV:-production}
+        BUILD_VERSION: ${BUILD_VERSION:-latest}
+    container_name: ${PROJECT_NAME:-{{ projectName }}}-{{ serviceName }}
+    environment:
+      # Application Configuration
+      NODE_ENV: ${NODE_ENV:-production}
+      PORT: {{ service.port }}
+      SERVICE_NAME: {{ service.name }}
+      SERVICE_VERSION: ${SERVICE_VERSION:-1.0.0}
+      
+      # Database Configuration
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: ${POSTGRES_DB:-{{ projectName }}_db}
+      DB_USER: ${POSTGRES_USER:-postgres}
+      DB_PASSWORD: ${POSTGRES_PASSWORD}
+      DB_POOL_MIN: ${DB_POOL_MIN:-2}
+      DB_POOL_MAX: ${DB_POOL_MAX:-20}
+      
+      # Redis Configuration
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+      REDIS_DB: ${REDIS_DB:-0}
+      
+      # Kafka Configuration
+      KAFKA_BROKERS: kafka:9092
+      KAFKA_CLIENT_ID: {{ serviceName }}-service
+      KAFKA_GROUP_ID: {{ serviceName }}-group
+      
+      # Security Configuration
+      JWT_PUBLIC_KEY_PATH: /app/certs/jwt-public.pem
+      JWT_PRIVATE_KEY_PATH: /app/certs/jwt-private.pem
+      JWT_ISSUER: ${JWT_ISSUER:-enterprise.example.com}
+      JWT_AUDIENCE: ${JWT_AUDIENCE:-enterprise-api}
+      
+      # Encryption
+      ENCRYPTION_KEY: ${ENCRYPTION_KEY:?ENCRYPTION_KEY is required}
+      ENCRYPTION_ALGORITHM: ${ENCRYPTION_ALGORITHM:-AES-256-GCM}
+      
+      # Compliance
+      AUDIT_LEVEL: ${AUDIT_LEVEL:-FULL}
+      GDPR_ENABLED: ${GDPR_ENABLED:-true}
+      SOX_ENABLED: ${SOX_ENABLED:-true}
+      HIPAA_ENABLED: ${HIPAA_ENABLED:-false}
+      
+      # Monitoring & Observability
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+      METRICS_ENABLED: ${METRICS_ENABLED:-true}
+      TRACING_ENABLED: ${TRACING_ENABLED:-true}
+      JAEGER_ENDPOINT: ${JAEGER_ENDPOINT:-http://jaeger:14268/api/traces}
+      
+      # Rate Limiting
+      RATE_LIMIT_WINDOW_MS: ${RATE_LIMIT_WINDOW_MS:-900000}
+      RATE_LIMIT_MAX_REQUESTS: ${RATE_LIMIT_MAX_REQUESTS:-1000}
+      
+      # External Services
+      NOTIFICATION_SERVICE_URL: ${NOTIFICATION_SERVICE_URL:-http://notification:8005}
+      
+    ports:
+      - "{{ service.port }}:{{ service.port }}"
+    volumes:
+      - ./certs:/app/certs:ro
+      - ./logs/{{ serviceName }}:/app/logs
+      - ./config/{{ serviceName }}.yml:/app/config/production.yml:ro
+    networks:
+      - backend
+      - frontend
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:{{ service.port }}/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '1.0'
+        reservations:
+          memory: 512M
+          cpus: '0.25'
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.{{ serviceName }}.rule=PathPrefix(`/api/v1/{{ serviceName }}`)"
+      - "traefik.http.services.{{ serviceName }}.loadbalancer.server.port={{ service.port }}"
+      - "traefik.docker.network=frontend"
+
+{%- endfor %}
+
+  # =============================================================================
+  # API GATEWAY & LOAD BALANCER
+  # =============================================================================
+
+  # Traefik Reverse Proxy
+  traefik:
+    image: traefik:v3.0
+    container_name: ${PROJECT_NAME:-{{ projectName }}}-traefik
+    command:
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+      - "--certificatesresolvers.letsencrypt.acme.email=${ACME_EMAIL:-admin@enterprise.com}"
+      - "--certificatesresolvers.letsencrypt.acme.storage=/acme.json"
+      - "--certificatesresolvers.letsencrypt.acme.httpchallenge=true"
+      - "--certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web"
+      - "--metrics.prometheus=true"
+      - "--accesslog=true"
+      - "--log.level=${TRAEFIK_LOG_LEVEL:-INFO}"
+    ports:
+      - "80:80"
+      - "443:443"
+      - "8080:8080" # Traefik dashboard
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./config/traefik:/etc/traefik:ro
+      - ./certs:/certs:ro
+      - traefik_acme:/acme.json
+    networks:
+      - frontend
+      - backend
+    restart: unless-stopped
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.dashboard.rule=Host(`traefik.${DOMAIN:-localhost}`)"
+      - "traefik.http.routers.dashboard.service=api@internal"
+
+  # =============================================================================
+  # MONITORING & OBSERVABILITY
+  # =============================================================================
+
+  # Prometheus Metrics Collection
+  prometheus:
+    image: prom/prometheus:v2.47.0
+    container_name: ${PROJECT_NAME:-{{ projectName }}}-prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=30d'
+      - '--web.enable-lifecycle'
+      - '--web.enable-admin-api'
+    ports:
+      - "${PROMETHEUS_PORT:-9090}:9090"
+    volumes:
+      - ./config/prometheus:/etc/prometheus:ro
+      - prometheus_data:/prometheus
+    networks:
+      - backend
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:9090/-/healthy"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Grafana Dashboards
+  grafana:
+    image: grafana/grafana:10.1.0
+    container_name: ${PROJECT_NAME:-{{ projectName }}}-grafana
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD:?GRAFANA_PASSWORD is required}
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_USER:-admin}
+      GF_INSTALL_PLUGINS: ${GRAFANA_PLUGINS:-grafana-piechart-panel,grafana-worldmap-panel}
+      GF_SERVER_DOMAIN: ${GRAFANA_DOMAIN:-grafana.localhost}
+      GF_SMTP_ENABLED: ${GRAFANA_SMTP_ENABLED:-false}
+    ports:
+      - "${GRAFANA_PORT:-3000}:3000"
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./config/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./config/grafana/dashboards:/var/lib/grafana/dashboards:ro
+    networks:
+      - backend
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Jaeger Distributed Tracing
+  jaeger:
+    image: jaegertracing/all-in-one:1.48
+    container_name: ${PROJECT_NAME:-{{ projectName }}}-jaeger
+    environment:
+      COLLECTOR_OTLP_ENABLED: "true"
+      COLLECTOR_ZIPKIN_HOST_PORT: "9411"
+    ports:
+      - "16686:16686" # Jaeger UI
+      - "14268:14268" # HTTP collector
+    volumes:
+      - jaeger_data:/tmp
+    networks:
+      - backend
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:14269/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # =============================================================================
+  # SECURITY & COMPLIANCE
+  # =============================================================================
+
+  # Vault for Secrets Management
+  vault:
+    image: vault:1.15.1
+    container_name: ${PROJECT_NAME:-{{ projectName }}}-vault
+    environment:
+      VAULT_DEV_ROOT_TOKEN_ID: ${VAULT_ROOT_TOKEN:?VAULT_ROOT_TOKEN is required}
+      VAULT_DEV_LISTEN_ADDRESS: "0.0.0.0:8200"
+    ports:
+      - "8200:8200"
+    volumes:
+      - vault_data:/vault/data
+      - ./config/vault:/vault/config:ro
+    networks:
+      - backend
+    cap_add:
+      - IPC_LOCK
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "vault", "status"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # =============================================================================
+  # BACKUP & MAINTENANCE
+  # =============================================================================
+
+  # Database Backup Service
+  postgres-backup:
+    image: prodrigestivill/postgres-backup-local:15
+    container_name: ${PROJECT_NAME:-{{ projectName }}}-postgres-backup
+    environment:
+      POSTGRES_HOST: postgres
+      POSTGRES_DB: ${POSTGRES_DB:-{{ projectName }}_db}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_EXTRA_OPTS: "-Z9 --schema=public --blobs"
+      SCHEDULE: "${BACKUP_SCHEDULE:-@daily}"
+      BACKUP_KEEP_DAYS: ${BACKUP_KEEP_DAYS:-7}
+      BACKUP_KEEP_WEEKS: ${BACKUP_KEEP_WEEKS:-4}
+      BACKUP_KEEP_MONTHS: ${BACKUP_KEEP_MONTHS:-6}
+      HEALTHCHECK_PORT: 8080
+    volumes:
+      - postgres_backups:/backups
+    networks:
+      - backend
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+
+# =============================================================================
+# NETWORKS
+# =============================================================================
+
+networks:
+  frontend:
+    driver: bridge
+    name: ${PROJECT_NAME:-{{ projectName }}}-frontend
+    attachable: true
+  backend:
+    driver: bridge
+    name: ${PROJECT_NAME:-{{ projectName }}}-backend
+    internal: true
+    attachable: true
+
+# =============================================================================
+# VOLUMES
+# =============================================================================
+
+volumes:
+  # Database Storage
+  postgres_data:
+    driver: local
+    name: ${PROJECT_NAME:-{{ projectName }}}-postgres-data
+  postgres_backups:
+    driver: local
+    name: ${PROJECT_NAME:-{{ projectName }}}-postgres-backups
+  
+  # Cache Storage
+  redis_data:
+    driver: local
+    name: ${PROJECT_NAME:-{{ projectName }}}-redis-data
+  
+  # Message Queue Storage
+  kafka_data:
+    driver: local
+    name: ${PROJECT_NAME:-{{ projectName }}}-kafka-data
+  zookeeper_data:
+    driver: local
+    name: ${PROJECT_NAME:-{{ projectName }}}-zookeeper-data
+  zookeeper_log:
+    driver: local
+    name: ${PROJECT_NAME:-{{ projectName }}}-zookeeper-log
+  
+  # Monitoring Storage
+  prometheus_data:
+    driver: local
+    name: ${PROJECT_NAME:-{{ projectName }}}-prometheus-data
+  grafana_data:
+    driver: local
+    name: ${PROJECT_NAME:-{{ projectName }}}-grafana-data
+  jaeger_data:
+    driver: local
+    name: ${PROJECT_NAME:-{{ projectName }}}-jaeger-data
+  
+  # Security Storage
+  vault_data:
+    driver: local
+    name: ${PROJECT_NAME:-{{ projectName }}}-vault-data
+  
+  # Certificate Storage
+  traefik_acme:
+    driver: local
+    name: ${PROJECT_NAME:-{{ projectName }}}-traefik-acme
+
+# =============================================================================
+# CONFIGURATION OVERRIDES
+# =============================================================================
+
+# Override file for development
+# Create docker-compose.override.yml for local development settings

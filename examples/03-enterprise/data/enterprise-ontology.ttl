@@ -390,6 +390,326 @@
     :replication :MasterSlave .
 
 # =============================================================================
+# FORTUNE 500 ENTERPRISE EXTENSIONS
+# =============================================================================
+
+# Financial Services Domain
+:FinancialServices a :IndustryDomain ;
+    :name "Financial Services" ;
+    :regulatoryFrameworks :Basel3, :SOX, :GDPR, :PCI_DSS ;
+    :riskManagementRequired true ;
+    :realTimeProcessing true ;
+    :hasSubdomain :RiskManagement, :TradingPlatform, :ComplianceReporting, :FraudDetection .
+
+# Healthcare Domain  
+:Healthcare a :IndustryDomain ;
+    :name "Healthcare" ;
+    :regulatoryFrameworks :HIPAA, :FDA, :GDPR ;
+    :patientDataProtection true ;
+    :clinicalWorkflows true ;
+    :hasSubdomain :PatientManagement, :ClinicalTrials, :MedicalRecords, :BillingServices .
+
+# Manufacturing Domain
+:Manufacturing a :IndustryDomain ;
+    :name "Manufacturing" ;
+    :regulatoryFrameworks :ISO9001, :ISO14001, :OSHA ;
+    :supplyChainIntegration true ;
+    :iotDeviceManagement true ;
+    :hasSubdomain :SupplyChain, :QualityControl, :InventoryManagement, :ProductionPlanning .
+
+# Retail Domain
+:Retail a :IndustryDomain ;
+    :name "Retail" ;
+    :regulatoryFrameworks :PCI_DSS, :GDPR, :CCPA ;
+    :omniChannelSupport true ;
+    :customerAnalytics true ;
+    :hasSubdomain :ECommerce, :InventoryManagement, :CustomerAnalytics, :PointOfSale .
+
+# =============================================================================
+# ADVANCED MICROSERVICES
+# =============================================================================
+
+# Risk Management Service (Financial)
+:RiskManagement a :Microservice ;
+    :serviceName "risk-management-service" ;
+    :version "2.1.0" ;
+    :description "Real-time risk assessment and monitoring" ;
+    :port "8010" ;
+    :database :TimescaleDB ;
+    :cache :Redis ;
+    :messageQueue :Kafka ;
+    :streamProcessing :ApacheKafkaStreams ;
+    :exposesAPI :RiskAPI ;
+    :implementsPatterns :EventSourcing, :CQRS, :CircuitBreaker ;
+    :hasEntity :RiskProfile, :RiskAssessment, :RiskAlert, :ComplianceRule ;
+    :dependsOn :UserManagement, :AuditService, :NotificationService ;
+    :publishes :RiskAlertEvent, :ComplianceViolationEvent ;
+    :subscribes :TransactionEvent, :MarketDataEvent ;
+    :securityLevel :CRITICAL ;
+    :scalingPolicy :Auto ;
+    :realTimeProcessing true ;
+    :slaRequirements :SubSecondLatency .
+
+# Fraud Detection Service (Financial)
+:FraudDetection a :Microservice ;
+    :serviceName "fraud-detection-service" ;
+    :version "1.5.0" ;
+    :description "ML-powered fraud detection and prevention" ;
+    :port "8011" ;
+    :database :MongoDB ;
+    :cache :Redis ;
+    :messageQueue :Kafka ;
+    :mlFramework :TensorFlow ;
+    :exposesAPI :FraudAPI ;
+    :implementsPatterns :MachineLearning, :EventSourcing ;
+    :hasEntity :FraudRule, :TransactionAnalysis, :FraudAlert ;
+    :dependsOn :RiskManagement, :NotificationService ;
+    :publishes :FraudAlertEvent, :SuspiciousActivityEvent ;
+    :subscribes :TransactionEvent, :UserBehaviorEvent ;
+    :securityLevel :CRITICAL ;
+    :scalingPolicy :Horizontal ;
+    :realTimeScoring true .
+
+# Patient Management Service (Healthcare)
+:PatientManagement a :Microservice ;
+    :serviceName "patient-management-service" ;
+    :version "3.0.0" ;
+    :description "HIPAA-compliant patient data management" ;
+    :port "8012" ;
+    :database :PostgreSQL ;
+    :cache :Redis ;
+    :messageQueue :RabbitMQ ;
+    :exposesAPI :PatientAPI ;
+    :implementsPatterns :CQRS, :DataEncryption ;
+    :hasEntity :Patient, :MedicalRecord, :Appointment, :Treatment ;
+    :dependsOn :AuditService, :ConsentService ;
+    :publishes :PatientRegisteredEvent, :AppointmentScheduledEvent ;
+    :subscribes :ConsentUpdatedEvent ;
+    :securityLevel :CRITICAL ;
+    :encryptionRequired true ;
+    :complianceLevel :HIPAA ;
+    :dataRetentionYears 10 .
+
+# Supply Chain Service (Manufacturing)
+:SupplyChain a :Microservice ;
+    :serviceName "supply-chain-service" ;
+    :version "2.3.0" ;
+    :description "End-to-end supply chain visibility and optimization" ;
+    :port "8013" ;
+    :database :PostgreSQL ;
+    :cache :Redis ;
+    :messageQueue :Kafka ;
+    :exposesAPI :SupplyChainAPI ;
+    :implementsPatterns :EventSourcing, :Saga ;
+    :hasEntity :Supplier, :PurchaseOrder, :Shipment, :Inventory ;
+    :dependsOn :InventoryManagement, :NotificationService ;
+    :publishes :OrderCreatedEvent, :ShipmentStatusEvent ;
+    :subscribes :InventoryLowEvent, :ProductionDemandEvent ;
+    :securityLevel :HIGH ;
+    :scalingPolicy :Horizontal ;
+    :blockchainIntegration true .
+
+# =============================================================================
+# ENTERPRISE ENTITIES EXPANSION
+# =============================================================================
+
+# Risk Profile Entity (Financial)
+:RiskProfile a :Entity, :AuditableEntity ;
+    :tableName "risk_profiles" ;
+    :description "Customer or transaction risk assessment profile" ;
+    :hasField :RiskProfileId, :TenantId, :EntityType, :EntityId, :RiskScore, 
+              :RiskCategory, :AssessmentDate, :ExpiryDate, :AssessmentCriteria,
+              :RegulatoryFlags, :CreatedAt, :UpdatedAt, :Version ;
+    :hasRelation :RiskAssessments, :ComplianceChecks ;
+    :auditLevel :FULL ;
+    :complianceRules :Basel3, :SOX ;
+    :realTimeUpdates true .
+
+# Patient Entity (Healthcare)
+:Patient a :Entity, :AuditableEntity ;
+    :tableName "patients" ;
+    :description "HIPAA-compliant patient information" ;
+    :hasField :PatientId, :TenantId, :MRN, :FirstName, :LastName, :DateOfBirth,
+              :Gender, :SSN, :Address, :Phone, :Email, :EmergencyContact,
+              :InsuranceInfo, :ConsentStatus, :CreatedAt, :UpdatedAt, :Version ;
+    :hasRelation :MedicalRecords, :Appointments, :Treatments ;
+    :encryptionRequired true ;
+    :piiFields :SSN, :FirstName, :LastName, :DateOfBirth, :Address, :Phone, :Email ;
+    :auditLevel :FULL ;
+    :complianceRules :HIPAA ;
+    :dataRetentionYears 10 ;
+    :accessLoggingRequired true .
+
+# Medical Record Entity (Healthcare)
+:MedicalRecord a :Entity, :AuditableEntity ;
+    :tableName "medical_records" ;
+    :description "Patient medical history and clinical data" ;
+    :hasField :RecordId, :TenantId, :PatientId, :RecordType, :RecordDate,
+              :ProviderId, :Diagnosis, :Treatment, :Medications, :Allergies,
+              :VitalSigns, :LabResults, :Attachments, :CreatedAt, :UpdatedAt, :Version ;
+    :hasRelation :Patient, :Provider, :Appointments ;
+    :encryptionRequired true ;
+    :auditLevel :FULL ;
+    :complianceRules :HIPAA ;
+    :accessControlStrict true .
+
+# Supplier Entity (Manufacturing)
+:Supplier a :Entity, :AuditableEntity ;
+    :tableName "suppliers" ;
+    :description "Supply chain partner information" ;
+    :hasField :SupplierId, :TenantId, :CompanyName, :ContactName, :Address,
+              :Phone, :Email, :TaxId, :CertificationStatus, :QualityRating,
+              :PaymentTerms, :DeliveryTerms, :ContractStartDate, :ContractEndDate,
+              :IsActive, :CreatedAt, :UpdatedAt, :Version ;
+    :hasRelation :PurchaseOrders, :QualityAudits, :Contracts ;
+    :auditLevel :FULL ;
+    :complianceRules :ISO9001 ;
+    :blockchainTracking true .
+
+# =============================================================================
+# ADVANCED FIELD DEFINITIONS
+# =============================================================================
+
+# Risk Score Field
+:RiskScore a :Field ;
+    :name "riskScore" ;
+    :type "DECIMAL(5,2)" ;
+    :isRequired true ;
+    :minValue 0.00 ;
+    :maxValue 100.00 ;
+    :description "Calculated risk score from 0 (lowest) to 100 (highest)" .
+
+# Medical Record Number (MRN)
+:MRN a :Field ;
+    :name "mrn" ;
+    :type "VARCHAR(20)" ;
+    :isRequired true ;
+    :isUnique true ;
+    :isIndexed true ;
+    :validation "^MRN[0-9]{10}$" ;
+    :description "Unique medical record number" .
+
+# Social Security Number
+:SSN a :Field ;
+    :name "ssn" ;
+    :type "VARCHAR(11)" ;
+    :isRequired false ;
+    :isPII true ;
+    :isSensitive true ;
+    :encryptionRequired true ;
+    :validation "^[0-9]{3}-[0-9]{2}-[0-9]{4}$" ;
+    :maskingPattern "XXX-XX-XXXX" ;
+    :description "Social Security Number (encrypted)" .
+
+# =============================================================================
+# ADVANCED API DEFINITIONS
+# =============================================================================
+
+# Risk Management API
+:RiskAPI a :RestAPI ;
+    :name "Risk Management API" ;
+    :version "2.1.0" ;
+    :basePath "/api/v2/risk" ;
+    :authentication :JWT ;
+    :authorization :RBAC ;
+    :rateLimit "5000/hour" ;
+    :hasEndpoint :CalculateRisk, :GetRiskProfile, :UpdateRiskThresholds,
+                 :GetComplianceReport, :TriggerRiskAlert ;
+    :realTimeSupport true ;
+    :slaRequirements :SubSecondResponse .
+
+# Patient API (HIPAA Compliant)
+:PatientAPI a :RestAPI ;
+    :name "Patient Management API" ;
+    :version "3.0.0" ;
+    :basePath "/api/v3/patients" ;
+    :authentication :JWT ;
+    :authorization :ABAC ;
+    :rateLimit "1000/hour" ;
+    :hasEndpoint :GetPatient, :UpdatePatient, :CreateAppointment,
+                 :AccessMedicalRecord, :UpdateConsent ;
+    :complianceLevel :HIPAA ;
+    :auditAllAccess true ;
+    :encryptInTransit true .
+
+# =============================================================================
+# ENTERPRISE INTEGRATION PATTERNS
+# =============================================================================
+
+# Event-Driven Architecture Patterns
+:EnterpriseEventBus a :EventBus ;
+    :name "Enterprise Event Bus" ;
+    :provider :ApacheKafka ;
+    :topics :UserEvents, :TransactionEvents, :RiskEvents, :ComplianceEvents,
+            :PatientEvents, :SupplyChainEvents, :ManufacturingEvents ;
+    :partitioningStrategy :TenantBased ;
+    :retentionPolicy "P30D" ;
+    :replicationFactor 3 .
+
+# API Gateway Configuration
+:EnterpriseAPIGateway a :APIGateway ;
+    :name "Enterprise API Gateway" ;
+    :provider :Kong ;
+    :version "3.4.0" ;
+    :features :LoadBalancing, :RateLimiting, :Authentication, :Monitoring,
+              :CircuitBreaker, :RequestTransformation, :ResponseCaching ;
+    :securityPlugins :JWT, :OAuth2, :ACL, :IPRestriction ;
+    :monitoringPlugins :Prometheus, :Jaeger, :DataDog ;
+    :scalingPolicy :Auto .
+
+# Data Lake Configuration
+:EnterpriseDataLake a :DataLake ;
+    :name "Enterprise Data Lake" ;
+    :provider :AWS_S3 ;
+    :storageClasses :Standard, :InfrequentAccess, :Glacier ;
+    :encryptionAtRest true ;
+    :encryptionInTransit true ;
+    :accessLogging true ;
+    :versioning true ;
+    :lifecyclePolicies true .
+
+# =============================================================================
+# COMPLIANCE AND GOVERNANCE EXTENSIONS
+# =============================================================================
+
+# Basel III Compliance (Banking)
+:Basel3 a :ComplianceRule ;
+    :name "Basel III" ;
+    :description "International banking regulation framework" ;
+    :requiresRiskCalculation true ;
+    :capitalAdequacyRequired true ;
+    :liquidityRatioRequired true ;
+    :leverageRatioRequired true ;
+    :stressTestingRequired true ;
+    :reportingFrequency "monthly" ;
+    :appliesTo :FinancialTransactions, :RiskData .
+
+# HIPAA Compliance (Healthcare)
+:HIPAA a :ComplianceRule ;
+    :name "Health Insurance Portability and Accountability Act" ;
+    :description "US healthcare data protection regulation" ;
+    :requiresEncryption true ;
+    :requiresAccessControls true ;
+    :requiresAuditTrails true ;
+    :requiresPatientConsent true ;
+    :breachNotificationRequired true ;
+    :minimumNecessaryRule true ;
+    :businessAssociateAgreements true ;
+    :appliesTo :PatientData, :MedicalRecords .
+
+# ISO 9001 (Manufacturing)
+:ISO9001 a :ComplianceRule ;
+    :name "ISO 9001 Quality Management" ;
+    :description "International quality management standard" ;
+    :requiresDocumentControl true ;
+    :requiresProcessDocumentation true ;
+    :requiresContinuousImprovement true ;
+    :requiresCustomerSatisfaction true ;
+    :requiresManagementReview true ;
+    :auditFrequency "annual" ;
+    :appliesTo :ManufacturingProcesses, :QualityData .
+
+# =============================================================================
 # DEPLOYMENT & INFRASTRUCTURE
 # =============================================================================
 
@@ -415,6 +735,31 @@
     :minReplicas 2 ;
     :maxReplicas 10 ;
     :targetCPUUtilization "70%" .
+
+# Cloud-Specific Configurations
+:AWSConfig a :CloudConfig ;
+    :provider "AWS" ;
+    :region "us-east-1" ;
+    :availabilityZones "us-east-1a", "us-east-1b", "us-east-1c" ;
+    :vpc :EnterpriseVPC ;
+    :loadBalancer :ApplicationLoadBalancer ;
+    :database :RDS_PostgreSQL ;
+    :cache :ElastiCache_Redis ;
+    :messageQueue :AmazonMQ_RabbitMQ ;
+    :monitoring :CloudWatch ;
+    :logging :CloudWatchLogs .
+
+:AzureConfig a :CloudConfig ;
+    :provider "Azure" ;
+    :region "East US" ;
+    :resourceGroup "enterprise-rg" ;
+    :virtualNetwork :EnterpriseVNet ;
+    :loadBalancer :AzureLoadBalancer ;
+    :database :AzurePostgreSQL ;
+    :cache :AzureRedis ;
+    :messageQueue :ServiceBus ;
+    :monitoring :AzureMonitor ;
+    :logging :LogAnalytics .
 
 # Resource Limits
 :CPULimit a :ResourceLimit ;

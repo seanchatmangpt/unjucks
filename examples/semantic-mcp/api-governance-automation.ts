@@ -124,7 +124,7 @@ export class {{ serviceName }}GovernanceController {
         type: '{{ field.type }}',
         {% if field.encryption %}encryption: '{{ field.encryption }}',{% endif %}
         {% if field.anonymization %}anonymization: '{{ field.anonymization }}'{% endif %}
-      }{{ loop.last ? '' : ',' }}
+      }{% if not loop.last %},{% endif %}
       {% endfor %}
     };
     

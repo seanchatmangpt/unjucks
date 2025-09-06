@@ -3,9 +3,12 @@
 import { defineCommand, runMain } from "citty";
 import chalk from "chalk";
 import { createDynamicGenerateCommand, createTemplateHelpCommand } from "./lib/dynamic-commands.js";
+import { generateCommand } from "./commands/generate.js";
 import { listCommand } from "./commands/list.js";
 import { initCommand } from "./commands/init.js";
+import { injectCommand } from "./commands/inject.js";
 import { versionCommand } from "./commands/version.js";
+import { semanticCommand } from "./commands/semantic.js";
 
 // Get package version from package.json (production ready)
 function getVersion(): string {
@@ -26,7 +29,7 @@ const preprocessArgs = () => {
   const firstArg = rawArgs[0];
   
   // Don't transform if already using explicit commands
-  if (['generate', 'list', 'init', 'version', 'help'].includes(firstArg)) {
+  if (['generate', 'list', 'init', 'inject', 'version', 'help', 'semantic'].includes(firstArg)) {
     return rawArgs;
   }
   
@@ -77,11 +80,13 @@ const main = defineCommand({
     }
   },
   subCommands: {
-    generate: createDynamicGenerateCommand(),
+    generate: generateCommand, // Use the enhanced generate command
     list: listCommand,
     init: initCommand,
+    inject: injectCommand,
     version: versionCommand,
     help: createTemplateHelpCommand(),
+    semantic: semanticCommand,
   },
   run({ args }: { args: any }) {
     // Handle --version flag
@@ -101,9 +106,11 @@ const main = defineCommand({
       console.log();
       console.log(chalk.yellow("COMMANDS:"));
       console.log(chalk.gray("  generate  Generate files from templates"));
-      console.log(chalk.gray("  list      List available generators"));
-      console.log(chalk.gray("  init      Initialize a new project"));
+      console.log(chalk.gray("  list      List available generators and templates"));
+      console.log(chalk.gray("  init      Initialize a new project with scaffolding"));
+      console.log(chalk.gray("  inject    Inject or modify content in existing files"));
       console.log(chalk.gray("  help      Show template variable help"));
+      console.log(chalk.gray("  semantic  Generate code from RDF/OWL ontologies with semantic awareness"));
       console.log(chalk.gray("  version   Show version information"));
       console.log();
       console.log(chalk.yellow("OPTIONS:"));
@@ -116,6 +123,8 @@ const main = defineCommand({
       console.log(chalk.gray("  unjucks api endpoint users --auth     # Mixed positional + flags"));
       console.log(chalk.gray("  unjucks generate component citty      # Explicit syntax"));
       console.log(chalk.gray("  unjucks list                          # List generators"));
+      console.log(chalk.gray("  unjucks semantic generate -o schema.ttl --enterprise  # RDF code generation"));
+      console.log(chalk.gray("  unjucks semantic scaffold -o ontology.owl -n MyApp    # Full app scaffolding"));
       return;
     }
 
@@ -129,9 +138,11 @@ const main = defineCommand({
     console.log();
     console.log(chalk.yellow("Available commands:"));
     console.log(chalk.gray("  generate  Generate files from templates"));
-    console.log(chalk.gray("  list      List available generators"));
-    console.log(chalk.gray("  init      Initialize a new project"));
+    console.log(chalk.gray("  list      List available generators and templates"));
+    console.log(chalk.gray("  init      Initialize a new project with scaffolding"));
+    console.log(chalk.gray("  inject    Inject or modify content in existing files"));
     console.log(chalk.gray("  help      Show template variable help"));
+    console.log(chalk.gray("  semantic  Generate code from RDF/OWL ontologies with semantic awareness"));
     console.log(chalk.gray("  version   Show version information"));
     console.log();
     console.log(chalk.yellow("Examples:"));
@@ -140,6 +151,8 @@ const main = defineCommand({
     console.log(chalk.gray("  unjucks api endpoint users --auth     # Mixed positional + flags"));
     console.log(chalk.gray("  unjucks generate component citty      # Explicit syntax"));
     console.log(chalk.gray("  unjucks list                          # List generators"));
+    console.log(chalk.gray("  unjucks semantic generate -o schema.ttl --enterprise  # RDF code generation"));
+    console.log(chalk.gray("  unjucks semantic scaffold -o ontology.owl -n MyApp    # Full app scaffolding"));
     console.log();
     console.log(chalk.gray("Use --help with any command for more information."));
   },

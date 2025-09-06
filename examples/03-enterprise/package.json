@@ -1,0 +1,262 @@
+{
+  "name": "@unjucks/enterprise-example",
+  "version": "1.0.0",
+  "description": "Enterprise semantic code generation example demonstrating Fortune 500 use cases",
+  "type": "module",
+  "main": "enterprise-generation.js",
+  "bin": {
+    "enterprise-gen": "./enterprise-generation.js"
+  },
+  "scripts": {
+    "generate": "node enterprise-generation.js",
+    "generate:interactive": "node enterprise-generation.js",
+    "generate:microservice": "unjucks generate microservice --data ./data/enterprise-ontology.ttl",
+    "generate:api-gateway": "unjucks generate api-gateway --data ./data/enterprise-ontology.ttl",
+    "generate:data-model": "unjucks generate data-model --data ./data/enterprise-ontology.ttl",
+    "generate:openapi": "unjucks generate openapi-spec --data ./data/enterprise-ontology.ttl",
+    "generate:docker": "unjucks generate docker-compose --data ./data/enterprise-ontology.ttl",
+    "generate:tests": "unjucks generate test-suite --data ./data/enterprise-ontology.ttl",
+    "example:financial": "node enterprise-generation.js generate --name financial-platform --domain financial.enterprise.com --services risk-management,fraud-detection,compliance-reporting --compliance GDPR,SOX,Basel3 --target kubernetes",
+    "example:healthcare": "node enterprise-generation.js generate --name healthcare-platform --domain healthcare.enterprise.com --services patient-management,medical-records,billing --compliance GDPR,HIPAA --target aws",
+    "example:manufacturing": "node enterprise-generation.js generate --name manufacturing-platform --domain manufacturing.enterprise.com --services supply-chain,quality-control,inventory --compliance GDPR,ISO9001 --target azure",
+    "example:retail": "node enterprise-generation.js generate --name retail-platform --domain retail.enterprise.com --services e-commerce,inventory,analytics --compliance GDPR,PCI_DSS --target gcp",
+    "build": "tsc",
+    "test": "npm run test:unit && npm run test:integration",
+    "test:unit": "mocha 'tests/unit/**/*.test.js'",
+    "test:integration": "mocha 'tests/integration/**/*.test.js'",
+    "test:generated": "cd generated && npm test",
+    "validate": "ajv validate -s schemas/ontology.schema.json -d data/enterprise-ontology.ttl",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "docs": "typedoc --out docs src/",
+    "clean": "rm -rf generated/* dist/* node_modules/.cache"
+  },
+  "keywords": [
+    "enterprise",
+    "code-generation",
+    "semantic-web",
+    "ontology",
+    "microservices",
+    "compliance",
+    "governance",
+    "fortune-500",
+    "template-engine",
+    "nunjucks",
+    "turtle",
+    "rdf",
+    "sparql",
+    "api-gateway",
+    "data-modeling",
+    "gdpr",
+    "sox",
+    "hipaa",
+    "kubernetes",
+    "docker",
+    "openapi"
+  ],
+  "author": "Enterprise Development Team",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-org/unjucks.git",
+    "directory": "examples/03-enterprise"
+  },
+  "bugs": {
+    "url": "https://github.com/your-org/unjucks/issues"
+  },
+  "homepage": "https://github.com/your-org/unjucks/tree/main/examples/03-enterprise",
+  "dependencies": {
+    "yargs": "^17.7.2",
+    "inquirer": "^9.2.8",
+    "chalk": "^5.3.0",
+    "ora": "^7.0.1",
+    "unjucks": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "^20.5.0",
+    "@types/yargs": "^17.0.24",
+    "@types/inquirer": "^9.0.3",
+    "typescript": "^5.1.6",
+    "tsx": "^3.12.7",
+    "eslint": "^8.47.0",
+    "@typescript-eslint/eslint-plugin": "^6.4.0",
+    "@typescript-eslint/parser": "^6.4.0",
+    "prettier": "^3.0.2",
+    "typedoc": "^0.24.8",
+    "ajv": "^8.12.0",
+    "ajv-cli": "^5.0.0",
+    "mocha": "^10.2.0",
+    "chai": "^4.3.7",
+    "supertest": "^6.3.3"
+  },
+  "peerDependencies": {
+    "node": ">=18.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  },
+  "os": [
+    "darwin",
+    "linux",
+    "win32"
+  ],
+  "files": [
+    "enterprise-generation.js",
+    "enterprise-generation.d.ts",
+    "templates/**/*",
+    "data/**/*",
+    "schemas/**/*",
+    "README.md",
+    "LICENSE"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "unjucks": {
+    "templateDir": "./templates",
+    "dataDir": "./data",
+    "outputDir": "./generated",
+    "generators": {
+      "microservice": {
+        "template": "microservice.njk",
+        "description": "Generate enterprise microservice with security and compliance",
+        "variables": {
+          "serviceName": {
+            "type": "string",
+            "description": "Name of the microservice",
+            "required": true
+          },
+          "port": {
+            "type": "number",
+            "description": "Service port number",
+            "default": 8080
+          },
+          "database": {
+            "type": "string",
+            "description": "Database type (postgresql, mongodb, mysql)",
+            "default": "postgresql"
+          },
+          "compliance": {
+            "type": "array",
+            "description": "Compliance requirements",
+            "items": ["GDPR", "SOX", "CCPA", "HIPAA", "PCI_DSS", "Basel3", "ISO9001"],
+            "default": ["GDPR"]
+          }
+        }
+      },
+      "api-gateway": {
+        "template": "api-gateway.njk",
+        "description": "Generate Kong/Nginx API gateway configuration",
+        "variables": {
+          "provider": {
+            "type": "string",
+            "description": "Gateway provider (kong, nginx, aws)",
+            "default": "kong"
+          },
+          "services": {
+            "type": "array",
+            "description": "Services to route",
+            "required": true
+          }
+        }
+      },
+      "data-model": {
+        "template": "data-model.njk",
+        "description": "Generate PostgreSQL schema with compliance features",
+        "variables": {
+          "encryption": {
+            "type": "boolean",
+            "description": "Enable field-level encryption",
+            "default": true
+          },
+          "audit": {
+            "type": "string",
+            "description": "Audit level (NONE, BASIC, FULL)",
+            "default": "FULL"
+          }
+        }
+      },
+      "openapi-spec": {
+        "template": "openapi-spec.njk",
+        "description": "Generate OpenAPI 3.0 specification",
+        "variables": {
+          "version": {
+            "type": "string",
+            "description": "API version",
+            "default": "1.0.0"
+          }
+        }
+      },
+      "docker-compose": {
+        "template": "docker-compose.njk",
+        "description": "Generate Docker Compose with monitoring stack",
+        "variables": {
+          "monitoring": {
+            "type": "boolean",
+            "description": "Include monitoring stack",
+            "default": true
+          }
+        }
+      },
+      "test-suite": {
+        "template": "test-suite.njk",
+        "description": "Generate comprehensive test suite",
+        "variables": {
+          "coverage": {
+            "type": "number",
+            "description": "Target code coverage percentage",
+            "default": 90
+          }
+        }
+      }
+    }
+  },
+  "compliance": {
+    "gdpr": {
+      "dataRetention": "7 years",
+      "encryption": "AES-256-GCM",
+      "auditTrail": "complete",
+      "rightToBeForgotten": true,
+      "dataPortability": true
+    },
+    "sox": {
+      "auditTrail": "complete",
+      "dataIntegrity": "required",
+      "accessControl": "strict",
+      "changeTracking": "complete"
+    },
+    "hipaa": {
+      "encryption": "required",
+      "accessControl": "strict",
+      "auditTrail": "complete",
+      "minimumNecessary": true,
+      "businessAssociates": true
+    }
+  },
+  "performance": {
+    "sla": {
+      "responseTime": "<200ms",
+      "availability": "99.9%",
+      "throughput": "10,000 req/s",
+      "errorRate": "<0.1%"
+    },
+    "monitoring": {
+      "metrics": "prometheus",
+      "tracing": "jaeger",
+      "logging": "elk",
+      "alerting": "alertmanager"
+    }
+  },
+  "security": {
+    "authentication": "JWT",
+    "authorization": "RBAC",
+    "encryption": {
+      "atRest": "AES-256-GCM",
+      "inTransit": "TLS 1.3"
+    },
+    "rateLimiting": true,
+    "ipRestriction": true,
+    "csrfProtection": true
+  }
+}

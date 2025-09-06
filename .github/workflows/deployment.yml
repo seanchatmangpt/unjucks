@@ -1,0 +1,312 @@
+name: Deployment and Distribution
+
+on:
+  push:
+    tags:
+      - 'v*'
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+env:
+  NODE_VERSION: '20'
+
+jobs:
+  # Test across multiple platforms and Node versions
+  test:
+    name: Test on ${{ matrix.os }} with Node ${{ matrix.node }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        node: [18, 20, 22]
+        exclude:
+          # Reduce matrix size for efficiency
+          - os: windows-latest
+            node: 18
+          - os: windows-latest
+            node: 22
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js ${{ matrix.node }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run linting
+        run: npm run lint
+
+      - name: Run type checking
+        run: npm run typecheck
+
+      - name: Build package
+        run: npm run build
+
+      - name: Run unit tests
+        run: npm test
+
+      - name: Run deployment tests
+        run: npm run test:deployment
+
+      - name: Test CLI functionality
+        run: |
+          node bin/unjucks.cjs --version
+          node bin/unjucks.cjs list
+          node bin/unjucks.cjs --help
+
+      - name: Create package tarball
+        run: npm pack
+
+      - name: Test package size
+        run: |
+          PACKAGE_SIZE=$(stat -c%s *.tgz 2>/dev/null || stat -f%z *.tgz 2>/dev/null || echo "0")
+          echo "Package size: $PACKAGE_SIZE bytes"
+          if [ "$PACKAGE_SIZE" -gt 2097152 ]; then
+            echo "❌ Package size exceeds 2MB limit"
+            exit 1
+          else
+            echo "✅ Package size within limits"
+          fi
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: package-${{ matrix.os }}-node${{ matrix.node }}
+          path: |
+            *.tgz
+            dist/
+            test-results/
+
+  # Test installation in clean environments  
+  cleanroom-test:
+    name: Cleanroom Installation Test
+    needs: test
+    runs-on: ubuntu-latest
+    container:
+      image: node:${{ env.NODE_VERSION }}-alpine
+
+    steps:
+      - name: Install system dependencies
+        run: |
+          apk add --no-cache git bash curl
+
+      - name: Download package artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: package-ubuntu-latest-node20
+
+      - name: Test global installation
+        run: |
+          npm install -g *.tgz
+          unjucks --version
+          unjucks list
+          unjucks --help
+
+      - name: Test functionality in clean environment
+        run: |
+          mkdir test-project
+          cd test-project
+          unjucks init
+          unjucks generate component react --dry
+
+  # Homebrew formula validation
+  homebrew-test:
+    name: Homebrew Formula Test
+    needs: test
+    runs-on: macos-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Install Homebrew dependencies
+        run: brew install ruby
+
+      - name: Validate formula syntax
+        run: |
+          ruby -c homebrew/unjucks.rb
+          echo "✅ Formula syntax is valid"
+
+      - name: Test formula structure
+        run: |
+          grep -q "class Unjucks < Formula" homebrew/unjucks.rb
+          grep -q "depends_on \"node\"" homebrew/unjucks.rb
+          grep -q "test do" homebrew/unjucks.rb
+          echo "✅ Formula structure is correct"
+
+  # Create release (only on tags)
+  release:
+    name: Create Release
+    needs: [test, cleanroom-test, homebrew-test]
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v')
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build package
+        run: npm run build
+
+      - name: Run final tests
+        run: |
+          npm test
+          npm run test:deployment
+
+      - name: Create package
+        run: npm pack
+
+      - name: Get package info
+        id: package
+        run: |
+          echo "version=$(node -p "require('./package.json').version")" >> $GITHUB_OUTPUT
+          echo "name=$(node -p "require('./package.json').name")" >> $GITHUB_OUTPUT
+          echo "tarball=$(ls *.tgz)" >> $GITHUB_OUTPUT
+
+      - name: Publish to npm
+        run: npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Create GitHub Release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ steps.package.outputs.version }}
+          body: |
+            ## 🚀 Unjucks v${{ steps.package.outputs.version }}
+            
+            Semantic-aware scaffolding with RDF/Turtle support
+            
+            ### Installation
+            ```bash
+            # NPM Global
+            npm install -g unjucks
+            
+            # Homebrew (coming soon)
+            brew install unjucks
+            ```
+            
+            ### Changes
+            See [CHANGELOG.md](CHANGELOG.md) for details.
+            
+            ### Verification
+            - ✅ Cross-platform testing (Ubuntu, macOS, Windows)
+            - ✅ Node.js compatibility (18, 20, 22)
+            - ✅ Clean room installation testing
+            - ✅ Package size optimization
+            - ✅ CLI functionality validation
+            
+            Package size: ![npm bundle size](https://img.shields.io/bundlephobia/min/unjucks)
+          draft: false
+          prerelease: false
+
+      - name: Upload release asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./${{ steps.package.outputs.tarball }}
+          asset_name: ${{ steps.package.outputs.tarball }}
+          asset_content_type: application/gzip
+
+  # Update Homebrew formula (post-release)
+  update-homebrew:
+    name: Update Homebrew Formula
+    needs: release
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v')
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Get release info
+        id: release
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/v}
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "url=https://registry.npmjs.org/unjucks/-/unjucks-$VERSION.tgz" >> $GITHUB_OUTPUT
+
+      - name: Calculate SHA256
+        id: sha256
+        run: |
+          curl -s ${{ steps.release.outputs.url }} | sha256sum | cut -d' ' -f1 > sha256.txt
+          echo "sha256=$(cat sha256.txt)" >> $GITHUB_OUTPUT
+
+      - name: Update formula
+        run: |
+          sed -i 's|url "https://registry.npmjs.org/unjucks/-/unjucks-.*\.tgz"|url "${{ steps.release.outputs.url }}"|g' homebrew/unjucks.rb
+          sed -i 's|sha256 ".*"|sha256 "${{ steps.sha256.outputs.sha256 }}"|g' homebrew/unjucks.rb
+
+      - name: Create Pull Request to Homebrew
+        uses: peter-evans/create-pull-request@v5
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: "Update Homebrew formula to v${{ steps.release.outputs.version }}"
+          title: "Update Unjucks to v${{ steps.release.outputs.version }}"
+          body: |
+            ## Update Homebrew Formula
+            
+            This PR updates the Homebrew formula for Unjucks to version ${{ steps.release.outputs.version }}.
+            
+            ### Changes
+            - Updated URL to point to new release tarball
+            - Updated SHA256 hash
+            - Version bump to v${{ steps.release.outputs.version }}
+            
+            ### Verification
+            - [x] Formula syntax validated
+            - [x] SHA256 hash verified
+            - [x] NPM package published successfully
+          branch: homebrew-update-${{ steps.release.outputs.version }}
+
+# Workflow notifications
+  notify:
+    name: Notify Deployment Status
+    needs: [test, cleanroom-test, homebrew-test]
+    runs-on: ubuntu-latest
+    if: always()
+    
+    steps:
+      - name: Deployment Success
+        if: needs.test.result == 'success' && needs.cleanroom-test.result == 'success' && needs.homebrew-test.result == 'success'
+        run: |
+          echo "🎉 All deployment tests passed!"
+          echo "✅ Cross-platform compatibility verified"
+          echo "✅ Clean room installation successful"
+          echo "✅ Homebrew formula validated"
+          echo "📦 Ready for distribution"
+
+      - name: Deployment Failure
+        if: needs.test.result == 'failure' || needs.cleanroom-test.result == 'failure' || needs.homebrew-test.result == 'failure'
+        run: |
+          echo "❌ Deployment tests failed!"
+          echo "Test results: ${{ needs.test.result }}"
+          echo "Cleanroom: ${{ needs.cleanroom-test.result }}"
+          echo "Homebrew: ${{ needs.homebrew-test.result }}"
+          exit 1

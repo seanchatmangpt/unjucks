@@ -22,7 +22,7 @@ import {
   BatchValidationResult,
   PerformanceMetrics,
   RdfValidationContext
-} from './types/validation.js';
+} from './types/validation';
 
 /**
  * Production-ready semantic validation engine

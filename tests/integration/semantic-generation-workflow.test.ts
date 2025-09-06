@@ -5,21 +5,21 @@ import { tmpdir } from 'os';
 import { mkdtemp, rm } from 'fs/promises';
 import { Store, Parser, Quad } from 'n3';
 import yaml from 'js-yaml';
-import { TemplateEngine } from '../../src/lib/template-engine';
+import { SemanticTemplateEngine } from '../../src/lib/semantic-template-engine';
 import { RDFDataLoader } from '../../src/lib/rdf-data-loader';
 import { TurtleParser } from '../../src/lib/turtle-parser';
 import { RDFFilters } from '../../src/lib/rdf-filters';
 
 describe('Semantic Generation Workflow - End-to-End', () => {
   let tempDir: string;
-  let templateEngine: TemplateEngine;
+  let templateEngine: SemanticTemplateEngine;
   let rdfLoader: RDFDataLoader;
   let turtleParser: TurtleParser;
   let rdfFilters: RDFFilters;
 
   beforeAll(async () => {
     tempDir = await mkdtemp(join(tmpdir(), 'semantic-e2e-'));
-    templateEngine = new TemplateEngine();
+    templateEngine = new SemanticTemplateEngine();
     rdfLoader = new RDFDataLoader();
     turtleParser = new TurtleParser();
     rdfFilters = new RDFFilters();
@@ -145,15 +145,20 @@ org:{{ project.id }} org:usesTechnology "{{ tech }}" .
       await fs.writeFile(templatePath, semanticTemplate);
 
       // Step 3: Generate RDF/TTL from template
-      const generatedTtl = await templateEngine.render(templatePath, enterpriseData);
+      const templateContent = await fs.readFile(templatePath, 'utf-8');
+      const renderResult = await templateEngine.renderTemplate(templatePath, templateContent, {
+        variables: enterpriseData,
+        semanticValidation: false // Skip validation for performance
+      });
+      
       const ttlOutputPath = join(tempDir, 'generated-ontology.ttl');
-      await fs.writeFile(ttlOutputPath, generatedTtl);
+      await fs.writeFile(ttlOutputPath, renderResult.content);
 
       // Verify TTL generation
-      expect(generatedTtl).toContain('org:acme-corp a org:Organization');
-      expect(generatedTtl).toContain('foaf:name "Acme Corporation"');
-      expect(generatedTtl).toContain('org:engineering a org:Department');
-      expect(generatedTtl).toContain('org:emp-1 a foaf:Person');
+      expect(renderResult.content).toContain('org:acme-corp a org:Organization');
+      expect(renderResult.content).toContain('foaf:name "Acme Corporation"');
+      expect(renderResult.content).toContain('org:engineering a org:Department');
+      expect(renderResult.content).toContain('org:emp-1 a foaf:Person');
 
       // Step 4: Parse and validate generated RDF
       const store = await turtleParser.parseFile(ttlOutputPath);
@@ -337,16 +342,20 @@ export default {{ organization.name | replace(' ', '') }}ApiClient;`;
       const apiTemplatePath = join(tempDir, 'api-client-template.njk');
       await fs.writeFile(apiTemplatePath, apiTemplate);
 
-      const generatedClient = await templateEngine.render(apiTemplatePath, enterpriseData);
+      const apiTemplateContent = await fs.readFile(apiTemplatePath, 'utf-8');
+      const clientResult = await templateEngine.renderTemplate(apiTemplatePath, apiTemplateContent, {
+        variables: enterpriseData,
+        semanticValidation: false
+      });
       const clientPath = join(tempDir, 'acme-corp-api-client.ts');
-      await fs.writeFile(clientPath, generatedClient);
+      await fs.writeFile(clientPath, clientResult.content);
 
       // Step 7: Validate generated code structure
-      expect(generatedClient).toContain('export class AcmeCorpApiClient');
-      expect(generatedClient).toContain('async getOrganization(): Promise<Organization>');
-      expect(generatedClient).toContain('async getDepartments(): Promise<Department[]>');
-      expect(generatedClient).toContain('async searchEmployeesBySkill(skill: string)');
-      expect(generatedClient).toContain('totalEmployees: number');
+      expect(clientResult.content).toContain('export class AcmeCorpApiClient');
+      expect(clientResult.content).toContain('async getOrganization(): Promise<Organization>');
+      expect(clientResult.content).toContain('async getDepartments(): Promise<Department[]>');
+      expect(clientResult.content).toContain('async searchEmployeesBySkill(skill: string)');
+      expect(clientResult.content).toContain('totalEmployees: number');
 
       // Step 8: Generate GraphQL schema from semantic data
       const graphqlTemplate = `---
@@ -470,14 +479,18 @@ type Subscription {
       const gqlTemplatePath = join(tempDir, 'graphql-schema-template.njk');
       await fs.writeFile(gqlTemplatePath, graphqlTemplate);
 
-      const generatedSchema = await templateEngine.render(gqlTemplatePath, enterpriseData);
+      const gqlTemplateContent = await fs.readFile(gqlTemplatePath, 'utf-8');
+      const schemaResult = await templateEngine.renderTemplate(gqlTemplatePath, gqlTemplateContent, {
+        variables: enterpriseData,
+        semanticValidation: false
+      });
       const schemaPath = join(tempDir, 'acme-corp-schema.graphql');
-      await fs.writeFile(schemaPath, generatedSchema);
+      await fs.writeFile(schemaPath, schemaResult.content);
 
       // Step 9: Final validation of complete workflow
-      expect(generatedSchema).toContain('type Organization');
-      expect(generatedSchema).toContain('enum ProjectStatus');
-      expect(generatedSchema).toContain('searchEmployeesBySkill(skill: String!)');
+      expect(schemaResult.content).toContain('type Organization');
+      expect(schemaResult.content).toContain('enum ProjectStatus');
+      expect(schemaResult.content).toContain('searchEmployeesBySkill(skill: String!)');
 
       // Verify all files exist
       expect(await fs.access(yamlPath)).resolves;
@@ -487,7 +500,10 @@ type Subscription {
 
       // Performance validation - check generation time for large dataset
       const startTime = Date.now();
-      await templateEngine.render(templatePath, enterpriseData);
+      await templateEngine.renderTemplate(templatePath, templateContent, {
+        variables: enterpriseData,
+        semanticValidation: false
+      });
       const generationTime = Date.now() - startTime;
       
       expect(generationTime).toBeLessThan(5000); // Should complete within 5 seconds
@@ -527,7 +543,12 @@ kg:{{ rel.from | replace(':', '_') }} kg:{{ rel.type }} kg:{{ rel.to | replace('
       const templatePath = join(tempDir, 'relationship-template.njk');
       await fs.writeFile(templatePath, relationshipTemplate);
 
-      const result = await templateEngine.render(templatePath, complexData);
+      const templateContent = await fs.readFile(templatePath, 'utf-8');
+      const renderResult = await templateEngine.renderTemplate(templatePath, templateContent, {
+        variables: complexData,
+        semanticValidation: false
+      });
+      const result = renderResult.content;
       
       expect(result).toContain('kg:person_john a kg:Person');
       expect(result).toContain('kg:person_john kg:worksFor kg:company_acme');
@@ -548,7 +569,9 @@ kg:{{ rel.from | replace(':', '_') }} kg:{{ rel.type }} kg:{{ rel.to | replace('
 
       await expect(async () => {
         const data = yaml.load(await fs.readFile(yamlPath, 'utf-8'));
-        await templateEngine.render('simple-template.njk', data);
+        await templateEngine.renderTemplate('simple-template.njk', '{{ data }}', {
+          variables: { data }
+        });
       }).rejects.toThrow();
     });
 
@@ -573,7 +596,12 @@ ex:{{ person.id }} a foaf:Person ;
       const templatePath = join(tempDir, 'invalid-template.njk');
       await fs.writeFile(templatePath, template);
 
-      const result = await templateEngine.render(templatePath, invalidData);
+      const templateContent = await fs.readFile(templatePath, 'utf-8');
+      const renderResult = await templateEngine.renderTemplate(templatePath, templateContent, {
+        variables: invalidData,
+        semanticValidation: false
+      });
+      const result = renderResult.content;
       const ttlPath = join(tempDir, 'invalid-person.ttl');
       await fs.writeFile(ttlPath, result);
 
@@ -607,7 +635,12 @@ ex:{{ item.id }} a ex:Item ;
       await fs.writeFile(templatePath, largeTemplate);
 
       const startTime = Date.now();
-      const result = await templateEngine.render(templatePath, largeData);
+      const templateContent = await fs.readFile(templatePath, 'utf-8');
+      const renderResult = await templateEngine.renderTemplate(templatePath, templateContent, {
+        variables: largeData,
+        semanticValidation: false
+      });
+      const result = renderResult.content;
       const endTime = Date.now();
 
       expect(result).toContain('ex:item-0 a ex:Item');

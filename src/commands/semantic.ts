@@ -92,17 +92,17 @@ export const semanticCommand = defineCommand({
           consola.start('Starting semantic code generation...');
           
           const config: SemanticTemplateConfig = {
-            ontologyPaths: args.ontology ? [args.ontology] : undefined,
-            templateDir: args.templates,
-            outputDir: args.output,
-            enterpriseMode: args.enterprise,
-            generateTypes: args.types,
-            generateSchemas: args.schemas,
-            generateValidators: args.validators,
-            generateTests: args.tests,
-            generateDocs: args.docs,
-            validateOutput: args.validate,
-            crossPackageSharing: args['cross-package']
+            ontologyPaths: args.ontology ? [String(args.ontology)] : undefined,
+            templateDir: String(args.templates),
+            outputDir: String(args.output),
+            enterpriseMode: Boolean(args.enterprise),
+            generateTypes: Boolean(args.types),
+            generateSchemas: Boolean(args.schemas),
+            generateValidators: Boolean(args.validators),
+            generateTests: Boolean(args.tests),
+            generateDocs: Boolean(args.docs),
+            validateOutput: Boolean(args.validate),
+            crossPackageSharing: Boolean(args['cross-package'])
           };
 
           const orchestrator = new SemanticTemplateOrchestrator(config);
@@ -183,8 +183,8 @@ export const semanticCommand = defineCommand({
           
           const converter = new RDFTypeConverter();
           const result = await converter.convertTurtleToTypeScript(
-            args.ontology,
-            args.output
+            String(args.ontology),
+            String(args.output)
           );
 
           consola.success(`Generated types for ${result.definitions.length} entities`);
@@ -195,7 +195,7 @@ export const semanticCommand = defineCommand({
 
           if (args.validators) {
             const validators = converter.generateValidationHelpers(result.definitions);
-            await fs.writeFile(path.join(args.output, 'validators.ts'), validators);
+            await fs.writeFile(path.join(String(args.output), 'validators.ts'), validators);
             consola.success('Generated validation helpers');
           }
 
@@ -252,14 +252,14 @@ export const semanticCommand = defineCommand({
           consola.start(`Scaffolding ${args.template} application: ${args.name}`);
           
           const scaffoldConfig: SemanticTemplateConfig = {
-            ontologyPaths: [args.ontology],
-            templateDir: `_templates/scaffold/${args.template}`,
-            outputDir: `./${args.name}`,
+            ontologyPaths: [String(args.ontology)],
+            templateDir: `_templates/scaffold/${String(args.template)}`,
+            outputDir: `./${String(args.name)}`,
             enterpriseMode: true,
             generateTypes: true,
             generateSchemas: true,
             generateValidators: true,
-            generateTests: args.testing,
+            generateTests: Boolean(args.testing),
             generateDocs: true
           };
 
@@ -313,7 +313,7 @@ export const semanticCommand = defineCommand({
             consola.info('Validating RDF ontology...');
             const converter = new RDFTypeConverter();
             try {
-              await converter.convertTurtleToTypeScript(args.ontology, './temp-validation');
+              await converter.convertTurtleToTypeScript(String(args.ontology), './temp-validation');
               await fs.rm('./temp-validation', { recursive: true, force: true });
               consola.success('✅ Ontology is valid');
               validationCount++;

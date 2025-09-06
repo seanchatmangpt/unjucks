@@ -1,0 +1,832 @@
+{#- 
+  Enterprise Data Model Template
+  
+  Generates comprehensive data models with:
+  - Multi-tenant database schemas
+  - GDPR/SOX compliance features  
+  - Data lineage and governance
+  - Encryption and privacy controls
+  - Audit trails and versioning
+  - Performance optimizations
+  - Integration patterns
+-#}
+
+{%- set entities = data | rdfQuery('SELECT ?entity ?name ?description WHERE { ?entity a :Entity ; :tableName ?name ; :description ?description }') %}
+{%- set complianceRules = data | rdfQuery('SELECT ?rule ?name ?type WHERE { ?rule a :ComplianceRule ; :name ?name ; :type ?type }') %}
+{%- set auditConfig = data | rdfQuery('SELECT ?level WHERE { ?config a :AuditConfig ; :level ?level }') | first %}
+
+-- =============================================================================
+-- ENTERPRISE DATA MODEL
+-- Generated from Semantic Domain Model
+-- Compliance: GDPR, SOX, CCPA, HIPAA
+-- =============================================================================
+
+-- Enable necessary extensions
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+CREATE EXTENSION IF NOT EXISTS "pgcrypto";
+CREATE EXTENSION IF NOT EXISTS "pg_trgm";
+CREATE EXTENSION IF NOT EXISTS "btree_gin";
+
+-- =============================================================================
+-- DOMAIN TYPES AND ENUMS
+-- =============================================================================
+
+-- Common status enum
+CREATE TYPE status_type AS ENUM ('active', 'inactive', 'pending', 'suspended', 'deleted');
+
+-- Audit action types
+CREATE TYPE audit_action AS ENUM (
+    'CREATE', 'READ', 'UPDATE', 'DELETE', 
+    'LOGIN', 'LOGOUT', 'EXPORT', 'IMPORT',
+    'GRANT', 'REVOKE', 'APPROVE', 'REJECT'
+);
+
+-- Compliance event types
+CREATE TYPE compliance_event AS ENUM (
+    'DATA_ACCESS', 'DATA_EXPORT', 'DATA_DELETE',
+    'CONSENT_GRANTED', 'CONSENT_REVOKED',
+    'RIGHT_TO_FORGET', 'DATA_PORTABILITY'
+);
+
+-- Encryption status
+CREATE TYPE encryption_status AS ENUM ('encrypted', 'plain', 'hashed', 'masked');
+
+-- Data classification levels
+CREATE TYPE data_classification AS ENUM (
+    'PUBLIC', 'INTERNAL', 'CONFIDENTIAL', 'RESTRICTED', 'TOP_SECRET'
+);
+
+-- =============================================================================
+-- UTILITY FUNCTIONS
+-- =============================================================================
+
+-- Function to generate time-based UUIDs for better performance
+CREATE OR REPLACE FUNCTION generate_time_uuid() RETURNS UUID AS $$
+BEGIN
+    RETURN uuid_generate_v1mc();
+END;
+$$ LANGUAGE plpgsql;
+
+-- Function to encrypt PII data
+CREATE OR REPLACE FUNCTION encrypt_pii(data TEXT) RETURNS TEXT AS $$
+DECLARE
+    encryption_key TEXT;
+BEGIN
+    encryption_key := current_setting('app.encryption_key', true);
+    IF encryption_key IS NULL OR encryption_key = '' THEN
+        RAISE EXCEPTION 'Encryption key not configured';
+    END IF;
+    RETURN encode(encrypt(data::bytea, encryption_key, 'aes'), 'base64');
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Function to decrypt PII data
+CREATE OR REPLACE FUNCTION decrypt_pii(encrypted_data TEXT) RETURNS TEXT AS $$
+DECLARE
+    encryption_key TEXT;
+BEGIN
+    IF encrypted_data IS NULL OR encrypted_data = '' THEN
+        RETURN NULL;
+    END IF;
+    encryption_key := current_setting('app.encryption_key', true);
+    RETURN convert_from(decrypt(decode(encrypted_data, 'base64'), encryption_key, 'aes'), 'UTF8');
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Function to mask sensitive data
+CREATE OR REPLACE FUNCTION mask_data(data TEXT, mask_char TEXT DEFAULT '*') RETURNS TEXT AS $$
+BEGIN
+    IF data IS NULL OR length(data) <= 4 THEN
+        RETURN repeat(mask_char, length(data));
+    END IF;
+    RETURN left(data, 2) || repeat(mask_char, length(data) - 4) || right(data, 2);
+END;
+$$ LANGUAGE plpgsql;
+
+-- =============================================================================
+-- TENANT MANAGEMENT
+-- =============================================================================
+
+CREATE TABLE tenants (
+    id UUID PRIMARY KEY DEFAULT generate_time_uuid(),
+    name VARCHAR(255) NOT NULL,
+    domain VARCHAR(255) UNIQUE NOT NULL,
+    subscription_tier VARCHAR(50) NOT NULL DEFAULT 'standard',
+    max_users INTEGER DEFAULT 100,
+    storage_limit_gb INTEGER DEFAULT 10,
+    api_rate_limit INTEGER DEFAULT 1000,
+    encryption_enabled BOOLEAN DEFAULT TRUE,
+    data_residency VARCHAR(50) DEFAULT 'US',
+    compliance_requirements TEXT[] DEFAULT '{}',
+    custom_fields JSONB DEFAULT '{}',
+    
+    -- Audit fields
+    is_active BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    created_by UUID,
+    updated_by UUID,
+    version INTEGER DEFAULT 1,
+    
+    -- Soft delete
+    deleted_at TIMESTAMP WITH TIME ZONE,
+    deleted_by UUID
+);
+
+-- Indexes for performance
+CREATE INDEX idx_tenants_domain ON tenants(domain) WHERE deleted_at IS NULL;
+CREATE INDEX idx_tenants_active ON tenants(is_active) WHERE deleted_at IS NULL;
+CREATE INDEX idx_tenants_compliance ON tenants USING GIN(compliance_requirements);
+
+-- =============================================================================
+-- ENTITY TABLES
+-- =============================================================================
+
+{%- for entity in entities %}
+{%- set entityName = entity.name %}
+{%- set fields = data | rdfQuery('SELECT ?field ?name ?type ?required ?pii ?sensitive WHERE { :' + (entity.entity | split('#') | last) + ' :hasField ?field . ?field :name ?name ; :type ?type ; :required ?required . OPTIONAL { ?field :isPII ?pii } OPTIONAL { ?field :isSensitive ?sensitive } }') %}
+{%- set relations = data | rdfQuery('SELECT ?relation ?target WHERE { :' + (entity.entity | split('#') | last) + ' :hasRelation ?relation }') %}
+
+-- {{ entity.description }}
+CREATE TABLE {{ entityName }} (
+{%- for field in fields %}
+{%- set fieldType = field.type | mapPostgresType %}
+{%- set isRequired = field.required %}
+{%- set isPII = field.pii or false %}
+{%- set isSensitive = field.sensitive or false %}
+    {{ field.name | snakeCase }} {{ fieldType }}{{ ' NOT NULL' if isRequired else '' }}{{ ' DEFAULT generate_time_uuid()' if field.name == 'id' else '' }},
+{%- endfor %}
+    
+    -- Multi-tenancy
+    tenant_id UUID NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
+    
+    -- Data governance
+    data_classification data_classification DEFAULT 'INTERNAL',
+    encryption_status encryption_status DEFAULT 'plain',
+    data_retention_days INTEGER DEFAULT 2555, -- 7 years for SOX compliance
+    
+    -- Audit trail
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    created_by UUID,
+    updated_by UUID,
+    version INTEGER DEFAULT 1,
+    
+    -- Soft delete with compliance
+    deleted_at TIMESTAMP WITH TIME ZONE,
+    deleted_by UUID,
+    deletion_reason VARCHAR(255),
+    
+    -- Compliance tracking
+    consent_given_at TIMESTAMP WITH TIME ZONE,
+    consent_expires_at TIMESTAMP WITH TIME ZONE,
+    last_accessed_at TIMESTAMP WITH TIME ZONE,
+    access_count INTEGER DEFAULT 0,
+    
+    PRIMARY KEY (id, tenant_id)
+);
+
+-- Row Level Security for multi-tenancy
+ALTER TABLE {{ entityName }} ENABLE ROW LEVEL SECURITY;
+
+-- Policy for tenant isolation
+CREATE POLICY {{ entityName }}_tenant_isolation ON {{ entityName }}
+    USING (tenant_id = current_setting('app.current_tenant_id')::UUID);
+
+-- Policy for soft delete
+CREATE POLICY {{ entityName }}_soft_delete ON {{ entityName }}
+    USING (deleted_at IS NULL);
+
+-- Indexes for performance
+CREATE INDEX idx_{{ entityName }}_tenant_id ON {{ entityName }}(tenant_id) WHERE deleted_at IS NULL;
+CREATE INDEX idx_{{ entityName }}_active ON {{ entityName }}(tenant_id, is_active) WHERE deleted_at IS NULL AND is_active = TRUE;
+CREATE INDEX idx_{{ entityName }}_created_at ON {{ entityName }}(created_at);
+CREATE INDEX idx_{{ entityName }}_updated_at ON {{ entityName }}(updated_at);
+
+{%- if entity.entity | contains('User') %}
+CREATE INDEX idx_{{ entityName }}_email ON {{ entityName }}(tenant_id, email) WHERE deleted_at IS NULL;
+CREATE INDEX idx_{{ entityName }}_username ON {{ entityName }}(tenant_id, username) WHERE deleted_at IS NULL;
+{%- endif %}
+
+{%- if entity.entity | contains('Order') %}
+CREATE INDEX idx_{{ entityName }}_status ON {{ entityName }}(tenant_id, status) WHERE deleted_at IS NULL;
+CREATE INDEX idx_{{ entityName }}_user_id ON {{ entityName }}(tenant_id, user_id) WHERE deleted_at IS NULL;
+{%- endif %}
+
+{%- if entity.entity | contains('Product') %}
+CREATE INDEX idx_{{ entityName }}_sku ON {{ entityName }}(sku) WHERE deleted_at IS NULL;
+CREATE INDEX idx_{{ entityName }}_category ON {{ entityName }}(category) WHERE deleted_at IS NULL;
+CREATE INDEX idx_{{ entityName }}_search ON {{ entityName }} USING gin(to_tsvector('english', name || ' ' || description));
+{%- endif %}
+
+-- Partial indexes for common queries
+CREATE INDEX idx_{{ entityName }}_recent ON {{ entityName }}(tenant_id, created_at DESC) 
+    WHERE deleted_at IS NULL AND created_at > CURRENT_TIMESTAMP - INTERVAL '30 days';
+
+-- =============================================================================
+-- DATA VERSIONING FOR {{ entityName | upper }}
+-- =============================================================================
+
+CREATE TABLE {{ entityName }}_history (
+    history_id UUID PRIMARY KEY DEFAULT generate_time_uuid(),
+    original_id UUID NOT NULL,
+    tenant_id UUID NOT NULL,
+    operation audit_action NOT NULL,
+    
+{%- for field in fields %}
+    {{ field.name | snakeCase }}_old {{ field.type | mapPostgresType }},
+    {{ field.name | snakeCase }}_new {{ field.type | mapPostgresType }},
+{%- endfor %}
+    
+    changed_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    changed_by UUID,
+    change_reason VARCHAR(255),
+    ip_address INET,
+    user_agent TEXT,
+    
+    FOREIGN KEY (tenant_id) REFERENCES tenants(id)
+);
+
+-- Index for history queries
+CREATE INDEX idx_{{ entityName }}_history_original ON {{ entityName }}_history(original_id, tenant_id);
+CREATE INDEX idx_{{ entityName }}_history_changed_at ON {{ entityName }}_history(changed_at);
+
+-- =============================================================================
+-- COMPLIANCE TRACKING FOR {{ entityName | upper }}
+-- =============================================================================
+
+CREATE TABLE {{ entityName }}_compliance_events (
+    event_id UUID PRIMARY KEY DEFAULT generate_time_uuid(),
+    {{ entityName | snakeCase }}_id UUID NOT NULL,
+    tenant_id UUID NOT NULL,
+    event_type compliance_event NOT NULL,
+    event_data JSONB,
+    
+    -- Legal basis (GDPR Article 6)
+    legal_basis VARCHAR(50), -- 'consent', 'contract', 'legal_obligation', etc.
+    consent_id UUID,
+    
+    -- Event metadata
+    occurred_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    processed_by UUID,
+    ip_address INET,
+    user_agent TEXT,
+    
+    -- Data subject rights
+    right_exercised VARCHAR(50), -- 'access', 'rectification', 'erasure', 'portability'
+    request_id UUID,
+    
+    FOREIGN KEY (tenant_id) REFERENCES tenants(id),
+    FOREIGN KEY ({{ entityName | snakeCase }}_id, tenant_id) REFERENCES {{ entityName }}(id, tenant_id)
+);
+
+CREATE INDEX idx_{{ entityName }}_compliance_events ON {{ entityName }}_compliance_events({{ entityName | snakeCase }}_id, tenant_id);
+CREATE INDEX idx_{{ entityName }}_compliance_occurred_at ON {{ entityName }}_compliance_events(occurred_at);
+
+{%- endfor %}
+
+-- =============================================================================
+-- AUDIT LOG SYSTEM
+-- =============================================================================
+
+CREATE TABLE audit_logs (
+    id UUID PRIMARY KEY DEFAULT generate_time_uuid(),
+    tenant_id UUID REFERENCES tenants(id),
+    
+    -- Action details
+    action audit_action NOT NULL,
+    resource_type VARCHAR(100) NOT NULL,
+    resource_id UUID,
+    
+    -- User context
+    user_id UUID,
+    session_id VARCHAR(255),
+    ip_address INET,
+    user_agent TEXT,
+    
+    -- Request context
+    request_id UUID,
+    endpoint VARCHAR(255),
+    http_method VARCHAR(10),
+    
+    -- Change tracking
+    old_values JSONB,
+    new_values JSONB,
+    field_changes TEXT[],
+    
+    -- Compliance
+    legal_basis VARCHAR(50),
+    consent_reference VARCHAR(255),
+    
+    -- Metadata
+    occurred_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    severity VARCHAR(20) DEFAULT 'INFO', -- DEBUG, INFO, WARN, ERROR, CRITICAL
+    tags TEXT[] DEFAULT '{}',
+    
+    -- Retention
+    retention_period INTERVAL DEFAULT INTERVAL '7 years',
+    auto_delete_at TIMESTAMP WITH TIME ZONE GENERATED ALWAYS AS (occurred_at + retention_period) STORED
+);
+
+-- Partitioning by month for performance
+CREATE TABLE audit_logs_template (LIKE audit_logs INCLUDING ALL);
+
+-- Indexes for audit queries
+CREATE INDEX idx_audit_logs_tenant_occurred ON audit_logs(tenant_id, occurred_at);
+CREATE INDEX idx_audit_logs_user_action ON audit_logs(user_id, action, occurred_at);
+CREATE INDEX idx_audit_logs_resource ON audit_logs(resource_type, resource_id);
+CREATE INDEX idx_audit_logs_severity ON audit_logs(severity, occurred_at) WHERE severity IN ('ERROR', 'CRITICAL');
+
+-- =============================================================================
+-- GDPR DATA SUBJECT RIGHTS
+-- =============================================================================
+
+CREATE TABLE data_subject_requests (
+    id UUID PRIMARY KEY DEFAULT generate_time_uuid(),
+    tenant_id UUID NOT NULL REFERENCES tenants(id),
+    
+    -- Request details
+    request_type VARCHAR(50) NOT NULL, -- 'access', 'rectification', 'erasure', 'portability', 'restriction'
+    subject_email VARCHAR(255) NOT NULL,
+    subject_name VARCHAR(255),
+    verification_token VARCHAR(255) UNIQUE,
+    verified_at TIMESTAMP WITH TIME ZONE,
+    
+    -- Processing
+    status VARCHAR(50) DEFAULT 'pending', -- 'pending', 'verified', 'processing', 'completed', 'rejected'
+    assigned_to UUID,
+    priority VARCHAR(20) DEFAULT 'normal', -- 'low', 'normal', 'high', 'urgent'
+    
+    -- Legal compliance
+    received_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    due_date TIMESTAMP WITH TIME ZONE GENERATED ALWAYS AS (received_at + INTERVAL '30 days') STORED,
+    completed_at TIMESTAMP WITH TIME ZONE,
+    
+    -- Response data
+    response_data JSONB,
+    response_format VARCHAR(20) DEFAULT 'json', -- 'json', 'xml', 'csv', 'pdf'
+    delivery_method VARCHAR(20) DEFAULT 'email', -- 'email', 'download', 'mail'
+    
+    -- Audit
+    created_by UUID,
+    processed_by UUID,
+    notes TEXT,
+    
+    CHECK (request_type IN ('access', 'rectification', 'erasure', 'portability', 'restriction')),
+    CHECK (status IN ('pending', 'verified', 'processing', 'completed', 'rejected'))
+);
+
+CREATE INDEX idx_dsr_tenant_status ON data_subject_requests(tenant_id, status);
+CREATE INDEX idx_dsr_due_date ON data_subject_requests(due_date) WHERE status NOT IN ('completed', 'rejected');
+CREATE INDEX idx_dsr_email ON data_subject_requests(subject_email);
+
+-- =============================================================================
+-- CONSENT MANAGEMENT
+-- =============================================================================
+
+CREATE TABLE consent_records (
+    id UUID PRIMARY KEY DEFAULT generate_time_uuid(),
+    tenant_id UUID NOT NULL REFERENCES tenants(id),
+    
+    -- Subject identification
+    data_subject_id UUID,
+    email VARCHAR(255) NOT NULL,
+    
+    -- Consent details
+    purpose VARCHAR(255) NOT NULL,
+    legal_basis VARCHAR(50) NOT NULL, -- 'consent', 'legitimate_interest', 'contract', etc.
+    consent_given BOOLEAN NOT NULL,
+    consent_text TEXT,
+    
+    -- Granular permissions
+    processing_purposes TEXT[] DEFAULT '{}',
+    data_categories TEXT[] DEFAULT '{}',
+    third_party_sharing BOOLEAN DEFAULT FALSE,
+    marketing_consent BOOLEAN DEFAULT FALSE,
+    profiling_consent BOOLEAN DEFAULT FALSE,
+    
+    -- Timing
+    granted_at TIMESTAMP WITH TIME ZONE,
+    expires_at TIMESTAMP WITH TIME ZONE,
+    withdrawn_at TIMESTAMP WITH TIME ZONE,
+    last_updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    
+    -- Source tracking
+    source VARCHAR(100), -- 'website', 'mobile_app', 'email', 'phone', 'paper'
+    source_url TEXT,
+    ip_address INET,
+    user_agent TEXT,
+    
+    -- Compliance
+    version INTEGER DEFAULT 1,
+    parent_consent_id UUID REFERENCES consent_records(id),
+    
+    -- Audit
+    created_by UUID,
+    withdrawn_by UUID
+);
+
+CREATE INDEX idx_consent_tenant_subject ON consent_records(tenant_id, data_subject_id);
+CREATE INDEX idx_consent_email ON consent_records(email);
+CREATE INDEX idx_consent_expires ON consent_records(expires_at) WHERE expires_at IS NOT NULL;
+CREATE INDEX idx_consent_active ON consent_records(tenant_id, consent_given, withdrawn_at) WHERE consent_given = true AND withdrawn_at IS NULL;
+
+-- =============================================================================
+-- DATA LINEAGE TRACKING
+-- =============================================================================
+
+CREATE TABLE data_lineage (
+    id UUID PRIMARY KEY DEFAULT generate_time_uuid(),
+    tenant_id UUID NOT NULL REFERENCES tenants(id),
+    
+    -- Source system
+    source_system VARCHAR(100) NOT NULL,
+    source_table VARCHAR(100) NOT NULL,
+    source_column VARCHAR(100),
+    source_record_id UUID,
+    
+    -- Target system
+    target_system VARCHAR(100) NOT NULL,
+    target_table VARCHAR(100) NOT NULL,
+    target_column VARCHAR(100),
+    target_record_id UUID,
+    
+    -- Transformation
+    transformation_type VARCHAR(50), -- 'copy', 'transform', 'aggregate', 'join'
+    transformation_logic TEXT,
+    
+    -- Timing
+    processed_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    processing_job_id VARCHAR(255),
+    
+    -- Quality
+    data_quality_score DECIMAL(3,2),
+    validation_status VARCHAR(20) DEFAULT 'pending', -- 'pending', 'passed', 'failed'
+    validation_errors JSONB,
+    
+    -- Metadata
+    metadata JSONB DEFAULT '{}',
+    tags TEXT[] DEFAULT '{}'
+);
+
+CREATE INDEX idx_lineage_source ON data_lineage(tenant_id, source_system, source_table, source_record_id);
+CREATE INDEX idx_lineage_target ON data_lineage(tenant_id, target_system, target_table, target_record_id);
+CREATE INDEX idx_lineage_processed_at ON data_lineage(processed_at);
+
+-- =============================================================================
+-- ENCRYPTION KEY MANAGEMENT
+-- =============================================================================
+
+CREATE TABLE encryption_keys (
+    id UUID PRIMARY KEY DEFAULT generate_time_uuid(),
+    tenant_id UUID REFERENCES tenants(id),
+    
+    -- Key details
+    key_name VARCHAR(100) NOT NULL,
+    key_purpose VARCHAR(50) NOT NULL, -- 'data_encryption', 'backup_encryption', 'communication'
+    algorithm VARCHAR(50) NOT NULL DEFAULT 'AES-256-GCM',
+    key_version INTEGER DEFAULT 1,
+    
+    -- Key lifecycle
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    activated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    expires_at TIMESTAMP WITH TIME ZONE,
+    rotated_at TIMESTAMP WITH TIME ZONE,
+    destroyed_at TIMESTAMP WITH TIME ZONE,
+    
+    -- Status
+    status VARCHAR(20) DEFAULT 'active', -- 'pending', 'active', 'rotating', 'deprecated', 'destroyed'
+    
+    -- HSM/KMS integration
+    external_key_id VARCHAR(255),
+    kms_provider VARCHAR(50), -- 'aws_kms', 'azure_keyvault', 'hashicorp_vault'
+    
+    -- Audit
+    created_by UUID,
+    last_used_at TIMESTAMP WITH TIME ZONE,
+    use_count INTEGER DEFAULT 0,
+    
+    UNIQUE(tenant_id, key_name, key_version)
+);
+
+CREATE INDEX idx_encryption_keys_tenant ON encryption_keys(tenant_id, status);
+CREATE INDEX idx_encryption_keys_expires ON encryption_keys(expires_at) WHERE expires_at IS NOT NULL;
+
+-- =============================================================================
+-- PERFORMANCE MONITORING
+-- =============================================================================
+
+CREATE TABLE query_performance_log (
+    id UUID PRIMARY KEY DEFAULT generate_time_uuid(),
+    tenant_id UUID REFERENCES tenants(id),
+    
+    -- Query details
+    query_hash VARCHAR(64) NOT NULL,
+    query_text TEXT,
+    table_name VARCHAR(100),
+    operation_type VARCHAR(20), -- 'SELECT', 'INSERT', 'UPDATE', 'DELETE'
+    
+    -- Performance metrics
+    execution_time_ms INTEGER NOT NULL,
+    rows_affected INTEGER,
+    cpu_time_ms INTEGER,
+    io_reads INTEGER,
+    io_writes INTEGER,
+    
+    -- Context
+    user_id UUID,
+    session_id VARCHAR(255),
+    application_name VARCHAR(100),
+    
+    -- Timing
+    executed_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    
+    -- Indexing for analysis
+    is_slow_query BOOLEAN GENERATED ALWAYS AS (execution_time_ms > 1000) STORED
+);
+
+-- Keep only last 30 days of performance data
+CREATE INDEX idx_query_perf_executed_at ON query_performance_log(executed_at);
+CREATE INDEX idx_query_perf_slow ON query_performance_log(tenant_id, is_slow_query, executed_at) WHERE is_slow_query = true;
+
+-- =============================================================================
+-- TRIGGERS FOR AUDIT AND COMPLIANCE
+-- =============================================================================
+
+-- Generic audit trigger function
+CREATE OR REPLACE FUNCTION audit_trigger_function() RETURNS TRIGGER AS $$
+DECLARE
+    old_data JSONB;
+    new_data JSONB;
+    audit_action audit_action;
+BEGIN
+    -- Determine action
+    IF TG_OP = 'INSERT' THEN
+        audit_action := 'CREATE';
+        new_data := to_jsonb(NEW);
+        old_data := NULL;
+    ELSIF TG_OP = 'UPDATE' THEN
+        audit_action := 'UPDATE';
+        old_data := to_jsonb(OLD);
+        new_data := to_jsonb(NEW);
+    ELSIF TG_OP = 'DELETE' THEN
+        audit_action := 'DELETE';
+        old_data := to_jsonb(OLD);
+        new_data := NULL;
+    END IF;
+
+    -- Insert audit record
+    INSERT INTO audit_logs (
+        tenant_id, action, resource_type, resource_id,
+        user_id, old_values, new_values, occurred_at
+    ) VALUES (
+        COALESCE(NEW.tenant_id, OLD.tenant_id),
+        audit_action,
+        TG_TABLE_NAME,
+        COALESCE(NEW.id, OLD.id),
+        current_setting('app.current_user_id', true)::UUID,
+        old_data,
+        new_data,
+        CURRENT_TIMESTAMP
+    );
+
+    -- Return appropriate record
+    IF TG_OP = 'DELETE' THEN
+        RETURN OLD;
+    ELSE
+        RETURN NEW;
+    END IF;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Apply audit triggers to all main tables
+{%- for entity in entities %}
+CREATE TRIGGER {{ entity.name }}_audit_trigger
+    AFTER INSERT OR UPDATE OR DELETE ON {{ entity.name }}
+    FOR EACH ROW EXECUTE FUNCTION audit_trigger_function();
+{%- endfor %}
+
+-- Update timestamp trigger
+CREATE OR REPLACE FUNCTION update_timestamp_function() RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at := CURRENT_TIMESTAMP;
+    NEW.version := OLD.version + 1;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+{%- for entity in entities %}
+CREATE TRIGGER {{ entity.name }}_update_timestamp
+    BEFORE UPDATE ON {{ entity.name }}
+    FOR EACH ROW EXECUTE FUNCTION update_timestamp_function();
+{%- endfor %}
+
+-- =============================================================================
+-- DATA RETENTION AND PURGING
+-- =============================================================================
+
+-- Function to purge expired data based on retention policies
+CREATE OR REPLACE FUNCTION purge_expired_data() RETURNS INTEGER AS $$
+DECLARE
+    purged_count INTEGER := 0;
+    tenant_record RECORD;
+BEGIN
+    -- Purge audit logs past retention period
+    DELETE FROM audit_logs WHERE auto_delete_at < CURRENT_TIMESTAMP;
+    GET DIAGNOSTICS purged_count = ROW_COUNT;
+    
+    -- Purge performance logs older than 30 days
+    DELETE FROM query_performance_log WHERE executed_at < CURRENT_TIMESTAMP - INTERVAL '30 days';
+    
+    -- Purge soft-deleted records older than legal requirements
+{%- for entity in entities %}
+    DELETE FROM {{ entity.name }} 
+    WHERE deleted_at < CURRENT_TIMESTAMP - INTERVAL '7 years'
+    AND deleted_at IS NOT NULL;
+{%- endfor %}
+    
+    RETURN purged_count;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Schedule purge job (requires pg_cron extension)
+-- SELECT cron.schedule('purge-expired-data', '0 2 * * *', 'SELECT purge_expired_data();');
+
+-- =============================================================================
+-- VIEWS FOR REPORTING AND ANALYTICS
+-- =============================================================================
+
+-- Active users view with privacy protection
+CREATE VIEW active_users AS
+SELECT 
+    u.tenant_id,
+    u.id,
+    mask_data(u.email) as masked_email,
+    u.first_name,
+    mask_data(u.last_name) as masked_last_name,
+    u.is_active,
+    u.last_login_at,
+    u.created_at
+FROM users u
+WHERE u.deleted_at IS NULL
+  AND u.is_active = true
+  AND u.tenant_id = current_setting('app.current_tenant_id')::UUID;
+
+-- Compliance dashboard view
+CREATE VIEW compliance_dashboard AS
+SELECT 
+    t.name as tenant_name,
+    COUNT(DISTINCT u.id) as total_users,
+    COUNT(DISTINCT CASE WHEN cr.consent_given = true THEN cr.data_subject_id END) as consented_users,
+    COUNT(DISTINCT dsr.id) as pending_dsr_requests,
+    COUNT(DISTINCT CASE WHEN dsr.due_date < CURRENT_TIMESTAMP THEN dsr.id END) as overdue_requests,
+    AVG(EXTRACT(days FROM (dsr.completed_at - dsr.received_at))) as avg_response_days
+FROM tenants t
+LEFT JOIN users u ON t.id = u.tenant_id AND u.deleted_at IS NULL
+LEFT JOIN consent_records cr ON t.id = cr.tenant_id AND cr.withdrawn_at IS NULL
+LEFT JOIN data_subject_requests dsr ON t.id = dsr.tenant_id
+WHERE t.deleted_at IS NULL
+GROUP BY t.id, t.name;
+
+-- Audit trail summary view
+CREATE VIEW audit_summary AS
+SELECT 
+    tenant_id,
+    resource_type,
+    action,
+    DATE_TRUNC('day', occurred_at) as audit_date,
+    COUNT(*) as event_count,
+    COUNT(DISTINCT user_id) as unique_users
+FROM audit_logs
+WHERE occurred_at >= CURRENT_TIMESTAMP - INTERVAL '30 days'
+GROUP BY tenant_id, resource_type, action, DATE_TRUNC('day', occurred_at)
+ORDER BY audit_date DESC, event_count DESC;
+
+-- =============================================================================
+-- SECURITY POLICIES AND CONSTRAINTS
+-- =============================================================================
+
+-- Prevent data modification without proper tenant context
+CREATE OR REPLACE FUNCTION check_tenant_context() RETURNS TRIGGER AS $$
+BEGIN
+    IF current_setting('app.current_tenant_id', true) IS NULL THEN
+        RAISE EXCEPTION 'Tenant context not set. All operations must specify tenant_id.';
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Apply tenant context check to all tenant-aware tables
+{%- for entity in entities %}
+CREATE TRIGGER {{ entity.name }}_tenant_check
+    BEFORE INSERT OR UPDATE ON {{ entity.name }}
+    FOR EACH ROW EXECUTE FUNCTION check_tenant_context();
+{%- endfor %}
+
+-- Create roles for different access levels
+CREATE ROLE app_admin;
+CREATE ROLE app_user;
+CREATE ROLE app_readonly;
+CREATE ROLE app_audit;
+
+-- Grant permissions
+GRANT ALL ON ALL TABLES IN SCHEMA public TO app_admin;
+GRANT SELECT, INSERT, UPDATE ON ALL TABLES IN SCHEMA public TO app_user;
+GRANT SELECT ON ALL TABLES IN SCHEMA public TO app_readonly;
+GRANT SELECT ON audit_logs, audit_summary TO app_audit;
+
+-- =============================================================================
+-- INITIALIZATION DATA
+-- =============================================================================
+
+-- Create system tenant
+INSERT INTO tenants (
+    id, name, domain, subscription_tier, 
+    compliance_requirements, created_by
+) VALUES (
+    '00000000-0000-0000-0000-000000000001',
+    'System Tenant',
+    'system.enterprise.com',
+    'enterprise',
+    ARRAY['GDPR', 'SOX', 'CCPA'],
+    '00000000-0000-0000-0000-000000000001'
+) ON CONFLICT (id) DO NOTHING;
+
+-- Create default encryption key
+INSERT INTO encryption_keys (
+    id, tenant_id, key_name, key_purpose, 
+    algorithm, status, created_by
+) VALUES (
+    '00000000-0000-0000-0000-000000000002',
+    '00000000-0000-0000-0000-000000000001',
+    'default_data_key',
+    'data_encryption',
+    'AES-256-GCM',
+    'active',
+    '00000000-0000-0000-0000-000000000001'
+) ON CONFLICT (id) DO NOTHING;
+
+-- =============================================================================
+-- COMMENTS FOR DOCUMENTATION
+-- =============================================================================
+
+COMMENT ON SCHEMA public IS 'Enterprise data model with multi-tenancy, compliance, and governance features';
+
+{%- for entity in entities %}
+COMMENT ON TABLE {{ entity.name }} IS '{{ entity.description }}';
+{%- set fields = data | rdfQuery('SELECT ?field ?name ?description WHERE { :' + (entity.entity | split('#') | last) + ' :hasField ?field . ?field :name ?name . OPTIONAL { ?field :description ?description } }') %}
+{%- for field in fields %}
+{%- if field.description %}
+COMMENT ON COLUMN {{ entity.name }}.{{ field.name | snakeCase }} IS '{{ field.description }}';
+{%- endif %}
+{%- endfor %}
+{%- endfor %}
+
+COMMENT ON TABLE audit_logs IS 'Comprehensive audit trail for all system operations';
+COMMENT ON TABLE data_subject_requests IS 'GDPR data subject rights requests tracking';
+COMMENT ON TABLE consent_records IS 'GDPR consent management and tracking';
+COMMENT ON TABLE data_lineage IS 'Data transformation and movement tracking for governance';
+COMMENT ON TABLE encryption_keys IS 'Encryption key lifecycle management';
+
+-- =============================================================================
+-- SAMPLE QUERIES FOR TESTING
+-- =============================================================================
+
+/*
+-- Set tenant context
+SET app.current_tenant_id = '00000000-0000-0000-0000-000000000001';
+SET app.current_user_id = '00000000-0000-0000-0000-000000000001';
+SET app.encryption_key = 'sample_key_for_testing_only_change_in_production';
+
+-- Test data insertion with audit
+INSERT INTO users (tenant_id, username, email, first_name, last_name, is_active)
+VALUES (
+    current_setting('app.current_tenant_id')::UUID,
+    'test.user',
+    encrypt_pii('test@example.com'),
+    'Test',
+    'User',
+    true
+);
+
+-- Test compliance event tracking
+INSERT INTO users_compliance_events (
+    users_id, tenant_id, event_type, legal_basis, occurred_at
+) VALUES (
+    (SELECT id FROM users WHERE username = 'test.user' LIMIT 1),
+    current_setting('app.current_tenant_id')::UUID,
+    'DATA_ACCESS',
+    'consent',
+    CURRENT_TIMESTAMP
+);
+
+-- Test data subject request
+INSERT INTO data_subject_requests (
+    tenant_id, request_type, subject_email, subject_name
+) VALUES (
+    current_setting('app.current_tenant_id')::UUID,
+    'access',
+    'test@example.com',
+    'Test User'
+);
+*/

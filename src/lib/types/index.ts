@@ -376,6 +376,9 @@ export type {
   VariableEnhancementConfig
 } from './semantic-frontmatter.types.js';
 
+// Re-export validation types
+export * from './validation';
+
 // Workflow chain types
 export interface WorkflowChainStep {
   type: 'api-standardization' | 'compliance-scaffolding' | 'database-migrations' | 'cicd-pipelines' | 'documentation-generation';

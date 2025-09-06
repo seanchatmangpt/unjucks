@@ -1,0 +1,911 @@
+{#- 
+  OpenAPI 3.0 Specification Template
+  
+  Generates comprehensive API documentation with:
+  - Complete endpoint definitions
+  - Security schemes and requirements
+  - Request/response schemas
+  - Error handling documentation
+  - Compliance annotations
+  - Rate limiting specifications
+-#}
+
+{%- set service = data | rdfQuery('SELECT ?service ?name ?version ?description WHERE { ?service a :Microservice ; :serviceName ?serviceName ; :version ?version ; :description ?description }') | first %}
+{%- set api = data | rdfQuery('SELECT ?api ?name ?version ?basePath ?authentication WHERE { ?service :exposesAPI ?api . ?api :name ?name ; :version ?version ; :basePath ?basePath ; :authentication ?authentication }') | first %}
+{%- set entities = data | rdfQuery('SELECT ?entity WHERE { ?service :hasEntity ?entity }') %}
+{%- set endpoints = data | rdfQuery('SELECT ?endpoint ?method ?path ?description WHERE { ?api :hasEndpoint ?endpoint . ?endpoint :method ?method ; :path ?path ; :description ?description }') %}
+
+openapi: 3.0.3
+info:
+  title: {{ api.name or service.name | title }}
+  version: {{ api.version or service.version }}
+  description: |
+    {{ service.description }}
+    
+    ## Enterprise Features
+    - **Multi-tenant**: Automatic tenant isolation
+    - **Compliance**: GDPR, SOX, CCPA compliant
+    - **Security**: JWT authentication, rate limiting
+    - **Audit**: Complete activity tracking
+    - **Performance**: Sub-200ms response times
+    
+    ## Rate Limits
+    - **Standard**: 1,000 requests per hour
+    - **Enterprise**: 5,000 requests per hour
+    - **Premium**: 10,000 requests per hour
+    
+    ## Authentication
+    All endpoints require JWT authentication via the Authorization header:
+    ```
+    Authorization: Bearer <jwt_token>
+    ```
+    
+    ## Multi-tenancy
+    All requests must include a tenant identifier:
+    ```
+    X-Tenant-ID: <tenant_uuid>
+    ```
+    
+  contact:
+    name: Enterprise API Support
+    email: api-support@enterprise.com
+    url: https://developer.enterprise.com/support
+  license:
+    name: Enterprise License
+    url: https://enterprise.com/license
+  termsOfService: https://enterprise.com/terms
+
+servers:
+  - url: https://api.enterprise.com{{ api.basePath or '/api/v1' }}
+    description: Production API
+  - url: https://staging-api.enterprise.com{{ api.basePath or '/api/v1' }}
+    description: Staging API
+  - url: http://localhost:{{ service.port or '8080' }}{{ api.basePath or '/api/v1' }}
+    description: Local Development
+
+security:
+  - JWTAuth: []
+  - TenantHeader: []
+
+paths:
+{%- for entity in entities %}
+{%- set entityName = entity.entity | split('#') | last %}
+{%- set entityPath = entityName.toLowerCase() %}
+{%- set fields = data | rdfQuery('SELECT ?field ?name ?type ?required WHERE { :' + entityName + ' :hasField ?field . ?field :name ?name ; :type ?type ; :required ?required }') %}
+
+  # =============================================================================
+  # {{ entityName }} ENDPOINTS
+  # =============================================================================
+
+  /{{ entityPath }}s:
+    get:
+      summary: List {{ entityName }}s
+      description: |
+        Retrieve a paginated list of {{ entityName.toLowerCase() }}s for the authenticated tenant.
+        
+        **Compliance**: This endpoint logs all access for audit purposes.
+        **Performance**: Results are cached for 5 minutes.
+      operationId: list{{ entityName }}s
+      tags:
+        - {{ entityName }}
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/LimitParam'
+        - $ref: '#/components/parameters/SortParam'
+        - $ref: '#/components/parameters/FilterParam'
+      responses:
+        '200':
+          description: Successful response
+          headers:
+            X-Total-Count:
+              description: Total number of {{ entityPath }}s
+              schema:
+                type: integer
+            X-Rate-Limit-Remaining:
+              $ref: '#/components/headers/X-Rate-Limit-Remaining'
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/{{ entityName }}'
+                  pagination:
+                    $ref: '#/components/schemas/Pagination'
+                  meta:
+                    $ref: '#/components/schemas/ResponseMeta'
+              examples:
+                success:
+                  summary: Successful list response
+                  value:
+                    data:
+                      - id: "123e4567-e89b-12d3-a456-426614174000"
+                        tenantId: "987fcdeb-51a2-4567-8901-23456789abcd"
+{%- for field in fields | slice(0, 5) %}
+{%- if field.name not in ['id', 'tenantId'] %}
+                        {{ field.name | camelCase }}: "Sample {{ field.name }}"
+{%- endif %}
+{%- endfor %}
+                        createdAt: "2023-10-01T10:00:00Z"
+                        updatedAt: "2023-10-01T10:00:00Z"
+                        version: 1
+                    pagination:
+                      page: 1
+                      limit: 50
+                      total: 1
+                      pages: 1
+                    meta:
+                      requestId: "req_123456789"
+                      timestamp: "2023-10-01T10:00:00Z"
+                      processingTimeMs: 45
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '500':
+          $ref: '#/components/responses/InternalError'
+      security:
+        - JWTAuth: ["{{ entityPath }}:read"]
+        - TenantHeader: []
+      x-rate-limit: "1000/hour"
+      x-cache-ttl: "PT5M"
+      x-audit-required: true
+
+    post:
+      summary: Create {{ entityName }}
+      description: |
+        Create a new {{ entityName.toLowerCase() }} in the authenticated tenant.
+        
+        **Compliance**: 
+        - All PII fields are encrypted at rest
+        - Full audit trail is maintained
+        - GDPR consent may be required
+        
+        **Validation**:
+        - All required fields must be provided
+        - Business rules are enforced
+        - Duplicate detection is performed
+      operationId: create{{ entityName }}
+      tags:
+        - {{ entityName }}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Create{{ entityName }}Request'
+            examples:
+              minimal:
+                summary: Minimal valid request
+                value:
+{%- for field in fields %}
+{%- if field.required and field.name not in ['id', 'tenantId', 'createdAt', 'updatedAt', 'createdBy', 'updatedBy', 'version'] %}
+                  {{ field.name | camelCase }}: "Sample {{ field.name }}"
+{%- endif %}
+{%- endfor %}
+      responses:
+        '201':
+          description: {{ entityName }} created successfully
+          headers:
+            Location:
+              description: URL of the created {{ entityPath }}
+              schema:
+                type: string
+                format: uri
+            X-Rate-Limit-Remaining:
+              $ref: '#/components/headers/X-Rate-Limit-Remaining'
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/{{ entityName }}'
+                  meta:
+                    $ref: '#/components/schemas/ResponseMeta'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '500':
+          $ref: '#/components/responses/InternalError'
+      security:
+        - JWTAuth: ["{{ entityPath }}:create"]
+        - TenantHeader: []
+      x-rate-limit: "100/hour"
+      x-audit-required: true
+      x-compliance-check: true
+
+  /{{ entityPath }}s/{id}:
+    get:
+      summary: Get {{ entityName }}
+      description: |
+        Retrieve a specific {{ entityName.toLowerCase() }} by ID.
+        
+        **Security**: Users can only access {{ entityPath }}s within their tenant.
+        **Compliance**: Access is logged for audit purposes.
+      operationId: get{{ entityName }}
+      tags:
+        - {{ entityName }}
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: {{ entityName }} ID
+          schema:
+            type: string
+            format: uuid
+          example: "123e4567-e89b-12d3-a456-426614174000"
+      responses:
+        '200':
+          description: Successful response
+          headers:
+            ETag:
+              description: Entity version for optimistic locking
+              schema:
+                type: string
+            X-Rate-Limit-Remaining:
+              $ref: '#/components/headers/X-Rate-Limit-Remaining'
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/{{ entityName }}'
+                  meta:
+                    $ref: '#/components/schemas/ResponseMeta'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '500':
+          $ref: '#/components/responses/InternalError'
+      security:
+        - JWTAuth: ["{{ entityPath }}:read"]
+        - TenantHeader: []
+      x-rate-limit: "5000/hour"
+      x-cache-ttl: "PT15M"
+      x-audit-required: true
+
+    put:
+      summary: Update {{ entityName }}
+      description: |
+        Update an existing {{ entityName.toLowerCase() }}.
+        
+        **Concurrency**: Uses optimistic locking via ETag header.
+        **Compliance**: All changes are audited and versioned.
+        **Validation**: Business rules and data integrity are enforced.
+      operationId: update{{ entityName }}
+      tags:
+        - {{ entityName }}
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: {{ entityName }} ID
+          schema:
+            type: string
+            format: uuid
+        - name: If-Match
+          in: header
+          required: true
+          description: Current entity version for optimistic locking
+          schema:
+            type: string
+          example: "\"123\""
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Update{{ entityName }}Request'
+      responses:
+        '200':
+          description: {{ entityName }} updated successfully
+          headers:
+            ETag:
+              description: New entity version
+              schema:
+                type: string
+            X-Rate-Limit-Remaining:
+              $ref: '#/components/headers/X-Rate-Limit-Remaining'
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/{{ entityName }}'
+                  meta:
+                    $ref: '#/components/schemas/ResponseMeta'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '412':
+          description: Precondition Failed - Version conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error:
+                  code: "VERSION_CONFLICT"
+                  message: "The {{ entityPath }} has been modified by another user"
+                  details: "Current version is 124, provided version is 123"
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '500':
+          $ref: '#/components/responses/InternalError'
+      security:
+        - JWTAuth: ["{{ entityPath }}:update"]
+        - TenantHeader: []
+      x-rate-limit: "100/hour"
+      x-audit-required: true
+      x-compliance-check: true
+
+    delete:
+      summary: Delete {{ entityName }}
+      description: |
+        Soft delete a {{ entityName.toLowerCase() }}.
+        
+        **Data Retention**: Records are soft-deleted and retained per compliance requirements.
+        **Cascade**: Related entities may be affected based on business rules.
+        **Audit**: Deletion is fully audited with reason tracking.
+      operationId: delete{{ entityName }}
+      tags:
+        - {{ entityName }}
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: {{ entityName }} ID
+          schema:
+            type: string
+            format: uuid
+        - name: reason
+          in: query
+          description: Reason for deletion (required for audit)
+          schema:
+            type: string
+            maxLength: 255
+          example: "User requested account closure"
+      responses:
+        '204':
+          description: {{ entityName }} deleted successfully
+          headers:
+            X-Rate-Limit-Remaining:
+              $ref: '#/components/headers/X-Rate-Limit-Remaining'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: Conflict - Cannot delete due to dependencies
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error:
+                  code: "DELETE_CONFLICT"
+                  message: "Cannot delete {{ entityPath }} with active dependencies"
+                  details: "This {{ entityPath }} has 5 active relationships"
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '500':
+          $ref: '#/components/responses/InternalError'
+      security:
+        - JWTAuth: ["{{ entityPath }}:delete"]
+        - TenantHeader: []
+      x-rate-limit: "50/hour"
+      x-audit-required: true
+      x-compliance-check: true
+
+{%- endfor %}
+
+  # =============================================================================
+  # SYSTEM ENDPOINTS
+  # =============================================================================
+
+  /health:
+    get:
+      summary: Health Check
+      description: Service health status and dependencies
+      operationId: healthCheck
+      tags:
+        - System
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum: [healthy, degraded, unhealthy]
+                  timestamp:
+                    type: string
+                    format: date-time
+                  version:
+                    type: string
+                  uptime:
+                    type: number
+                  dependencies:
+                    type: object
+                    properties:
+                      database:
+                        type: string
+                        enum: [healthy, unhealthy]
+                      redis:
+                        type: string
+                        enum: [healthy, unhealthy]
+                      kafka:
+                        type: string
+                        enum: [healthy, unhealthy]
+              example:
+                status: "healthy"
+                timestamp: "2023-10-01T10:00:00Z"
+                version: "{{ service.version }}"
+                uptime: 86400
+                dependencies:
+                  database: "healthy"
+                  redis: "healthy"
+                  kafka: "healthy"
+        '503':
+          description: Service is unhealthy
+      security: []
+      x-rate-limit: "none"
+
+  /metrics:
+    get:
+      summary: Prometheus Metrics
+      description: Application metrics in Prometheus format
+      operationId: getMetrics
+      tags:
+        - System
+      responses:
+        '200':
+          description: Metrics data
+          content:
+            text/plain:
+              schema:
+                type: string
+      security:
+        - MetricsAuth: []
+      x-rate-limit: "1000/hour"
+
+components:
+  securitySchemes:
+    JWTAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: |
+        JWT token obtained from the authentication endpoint.
+        
+        **Claims Required**:
+        - `sub`: User ID
+        - `tenant_id`: Tenant ID  
+        - `permissions`: Array of permissions
+        - `exp`: Expiration time
+        - `iat`: Issued at time
+        - `iss`: Issuer (enterprise.example.com)
+        - `aud`: Audience (enterprise-api)
+    
+    TenantHeader:
+      type: apiKey
+      in: header
+      name: X-Tenant-ID
+      description: Tenant identifier for multi-tenant isolation
+    
+    MetricsAuth:
+      type: http
+      scheme: basic
+      description: Basic authentication for metrics endpoint
+
+  parameters:
+    PageParam:
+      name: page
+      in: query
+      description: Page number (1-based)
+      schema:
+        type: integer
+        minimum: 1
+        default: 1
+      example: 1
+
+    LimitParam:
+      name: limit
+      in: query
+      description: Number of items per page
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 1000
+        default: 50
+      example: 50
+
+    SortParam:
+      name: sort
+      in: query
+      description: Sort field and order (field:asc or field:desc)
+      schema:
+        type: string
+        pattern: '^[a-zA-Z_][a-zA-Z0-9_]*:(asc|desc)$'
+      example: "createdAt:desc"
+
+    FilterParam:
+      name: filter
+      in: query
+      description: Filter expression (field=value)
+      schema:
+        type: string
+      example: "status=active"
+
+  headers:
+    X-Rate-Limit-Remaining:
+      description: Number of requests remaining in the current window
+      schema:
+        type: integer
+      example: 999
+
+  responses:
+    BadRequest:
+      description: Bad Request - Invalid input parameters
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            error:
+              code: "BAD_REQUEST"
+              message: "Invalid input parameters"
+              details: "Field 'email' must be a valid email address"
+              requestId: "req_123456789"
+
+    Unauthorized:
+      description: Unauthorized - Authentication required
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            error:
+              code: "UNAUTHORIZED"
+              message: "Authentication required"
+              details: "Missing or invalid JWT token"
+
+    Forbidden:
+      description: Forbidden - Insufficient permissions
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            error:
+              code: "FORBIDDEN"
+              message: "Insufficient permissions"
+              details: "User lacks required permission for this operation"
+
+    NotFound:
+      description: Not Found - Resource does not exist
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            error:
+              code: "NOT_FOUND"
+              message: "Resource not found"
+              details: "The requested resource does not exist or has been deleted"
+
+    Conflict:
+      description: Conflict - Resource already exists
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            error:
+              code: "CONFLICT"
+              message: "Resource already exists"
+              details: "A resource with the same unique identifier already exists"
+
+    ValidationError:
+      description: Unprocessable Entity - Validation failed
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: object
+                properties:
+                  code:
+                    type: string
+                  message:
+                    type: string
+                  validationErrors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        field:
+                          type: string
+                        message:
+                          type: string
+                        code:
+                          type: string
+          example:
+            error:
+              code: "VALIDATION_ERROR"
+              message: "Validation failed"
+              validationErrors:
+                - field: "email"
+                  message: "Must be a valid email address"
+                  code: "INVALID_EMAIL"
+                - field: "age"
+                  message: "Must be between 18 and 120"
+                  code: "OUT_OF_RANGE"
+
+    RateLimited:
+      description: Too Many Requests - Rate limit exceeded
+      headers:
+        X-Rate-Limit-Reset:
+          description: Unix timestamp when rate limit resets
+          schema:
+            type: integer
+        Retry-After:
+          description: Seconds to wait before retrying
+          schema:
+            type: integer
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            error:
+              code: "RATE_LIMITED"
+              message: "Rate limit exceeded"
+              details: "Maximum 1000 requests per hour allowed"
+
+    InternalError:
+      description: Internal Server Error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            error:
+              code: "INTERNAL_ERROR"
+              message: "An unexpected error occurred"
+              requestId: "req_123456789"
+
+  schemas:
+{%- for entity in entities %}
+{%- set entityName = entity.entity | split('#') | last %}
+{%- set fields = data | rdfQuery('SELECT ?field ?name ?type ?required ?description WHERE { :' + entityName + ' :hasField ?field . ?field :name ?name ; :type ?type ; :required ?required . OPTIONAL { ?field :description ?description } }') %}
+
+    {{ entityName }}:
+      type: object
+      description: {{ entityName }} entity with full audit fields
+      required:
+{%- for field in fields %}
+{%- if field.required %}
+        - {{ field.name | camelCase }}
+{%- endif %}
+{%- endfor %}
+      properties:
+{%- for field in fields %}
+        {{ field.name | camelCase }}:
+          type: {{ field.type | mapOpenAPIType }}
+{%- if field.description %}
+          description: {{ field.description }}
+{%- endif %}
+{%- if field.name == 'id' %}
+          format: uuid
+          example: "123e4567-e89b-12d3-a456-426614174000"
+{%- endif %}
+{%- if field.type == 'TIMESTAMP' %}
+          format: date-time
+          example: "2023-10-01T10:00:00Z"
+{%- endif %}
+{%- if field.name == 'version' %}
+          minimum: 1
+          example: 1
+{%- endif %}
+{%- endfor %}
+      x-compliance:
+        - GDPR
+        - SOX
+        - CCPA
+
+    Create{{ entityName }}Request:
+      type: object
+      description: Request payload for creating a new {{ entityName.toLowerCase() }}
+      required:
+{%- for field in fields %}
+{%- if field.required and field.name not in ['id', 'tenantId', 'createdAt', 'updatedAt', 'createdBy', 'updatedBy', 'version'] %}
+        - {{ field.name | camelCase }}
+{%- endif %}
+{%- endfor %}
+      properties:
+{%- for field in fields %}
+{%- if field.name not in ['id', 'tenantId', 'createdAt', 'updatedAt', 'createdBy', 'updatedBy', 'version'] %}
+        {{ field.name | camelCase }}:
+          type: {{ field.type | mapOpenAPIType }}
+{%- if field.description %}
+          description: {{ field.description }}
+{%- endif %}
+{%- if field.type == 'TIMESTAMP' %}
+          format: date-time
+{%- endif %}
+{%- endif %}
+{%- endfor %}
+
+    Update{{ entityName }}Request:
+      type: object
+      description: Request payload for updating an existing {{ entityName.toLowerCase() }}
+      properties:
+{%- for field in fields %}
+{%- if field.name not in ['id', 'tenantId', 'createdAt', 'updatedAt', 'createdBy', 'updatedBy', 'version'] %}
+        {{ field.name | camelCase }}:
+          type: {{ field.type | mapOpenAPIType }}
+{%- if field.description %}
+          description: {{ field.description }}
+{%- endif %}
+{%- if field.type == 'TIMESTAMP' %}
+          format: date-time
+{%- endif %}
+{%- endif %}
+{%- endfor %}
+
+{%- endfor %}
+
+    Pagination:
+      type: object
+      description: Pagination metadata
+      properties:
+        page:
+          type: integer
+          minimum: 1
+          description: Current page number
+        limit:
+          type: integer
+          minimum: 1
+          maximum: 1000
+          description: Number of items per page
+        total:
+          type: integer
+          minimum: 0
+          description: Total number of items
+        pages:
+          type: integer
+          minimum: 0
+          description: Total number of pages
+        hasNext:
+          type: boolean
+          description: Whether there are more pages
+        hasPrev:
+          type: boolean
+          description: Whether there are previous pages
+
+    ResponseMeta:
+      type: object
+      description: Response metadata
+      properties:
+        requestId:
+          type: string
+          description: Unique request identifier
+          example: "req_123456789"
+        timestamp:
+          type: string
+          format: date-time
+          description: Response timestamp
+        processingTimeMs:
+          type: integer
+          description: Processing time in milliseconds
+          example: 45
+        version:
+          type: string
+          description: API version
+          example: "{{ service.version }}"
+
+    ErrorResponse:
+      type: object
+      description: Standard error response format
+      required:
+        - error
+      properties:
+        error:
+          type: object
+          required:
+            - code
+            - message
+          properties:
+            code:
+              type: string
+              description: Error code for programmatic handling
+              example: "VALIDATION_ERROR"
+            message:
+              type: string
+              description: Human-readable error message
+              example: "Validation failed for one or more fields"
+            details:
+              type: string
+              description: Additional error details
+              example: "Field 'email' must be a valid email address"
+            requestId:
+              type: string
+              description: Request ID for tracking
+              example: "req_123456789"
+            timestamp:
+              type: string
+              format: date-time
+              description: Error timestamp
+              example: "2023-10-01T10:00:00Z"
+
+tags:
+{%- for entity in entities %}
+{%- set entityName = entity.entity | split('#') | last %}
+  - name: {{ entityName }}
+    description: {{ entityName }} management operations
+{%- endfor %}
+  - name: System
+    description: System health and monitoring endpoints
+
+x-enterprise-features:
+  compliance:
+    - GDPR
+    - SOX  
+    - CCPA
+    - HIPAA
+  security:
+    - JWT Authentication
+    - Role-based Access Control
+    - Multi-tenant Isolation
+    - Rate Limiting
+  monitoring:
+    - Request Tracing
+    - Performance Metrics
+    - Error Tracking
+    - Audit Logging
+  performance:
+    - Response Time SLA: <200ms
+    - Availability SLA: 99.9%
+    - Throughput: 10,000 req/s
+    - Caching: 15-minute TTL

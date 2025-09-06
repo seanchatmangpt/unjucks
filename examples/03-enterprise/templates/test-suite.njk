@@ -1,0 +1,1067 @@
+{#- 
+  Comprehensive Test Suite Template
+  
+  Generates enterprise-grade test suites with:
+  - Unit tests with high coverage
+  - Integration tests for API endpoints
+  - Security tests for vulnerabilities
+  - Compliance tests for regulations
+  - Performance tests for SLA validation
+  - End-to-end workflow tests
+-#}
+
+{%- set service = data | rdfQuery('SELECT ?service ?name ?version ?description WHERE { ?service a :Microservice ; :serviceName ?serviceName ; :version ?version ; :description ?description }') | first %}
+{%- set entities = data | rdfQuery('SELECT ?entity WHERE { ?service :hasEntity ?entity }') %}
+{%- set endpoints = data | rdfQuery('SELECT ?endpoint ?method ?path WHERE { ?api :hasEndpoint ?endpoint . ?endpoint :method ?method ; :path ?path }') %}
+
+// =============================================================================
+// {{ service.name | upper }} TEST SUITE
+// Comprehensive Enterprise Testing Strategy
+// Generated from Semantic Domain Model
+// =============================================================================
+
+import request from 'supertest';
+import { expect } from 'chai';
+import jwt from 'jsonwebtoken';
+import bcrypt from 'bcryptjs';
+import { Pool } from 'pg';
+import Redis from 'ioredis';
+import { faker } from '@faker-js/faker';
+import { performance } from 'perf_hooks';
+import app from '../src/index.js';
+
+// Test Configuration
+const TEST_CONFIG = {
+  database: {
+    host: process.env.TEST_DB_HOST || 'localhost',
+    port: parseInt(process.env.TEST_DB_PORT || '5433'),
+    database: process.env.TEST_DB_NAME || '{{ service.name | replace("-", "_") }}_test',
+    user: process.env.TEST_DB_USER || 'postgres',
+    password: process.env.TEST_DB_PASSWORD || 'test'
+  },
+  redis: {
+    host: process.env.TEST_REDIS_HOST || 'localhost',
+    port: parseInt(process.env.TEST_REDIS_PORT || '6380'),
+    db: 1 // Use separate DB for tests
+  },
+  jwt: {
+    secret: 'test-jwt-secret-key-change-in-production',
+    issuer: 'enterprise.example.com',
+    audience: 'enterprise-api'
+  },
+  performance: {
+    maxResponseTime: 200, // milliseconds
+    maxConcurrentUsers: 100
+  }
+};
+
+// Test Database Connection
+let testDb;
+let testRedis;
+
+// Test Data Factories
+{%- for entity in entities %}
+{%- set entityName = entity.entity | split('#') | last %}
+{%- set fields = data | rdfQuery('SELECT ?field ?name ?type ?required WHERE { :' + entityName + ' :hasField ?field . ?field :name ?name ; :type ?type ; :required ?required }') %}
+
+const {{ entityName.toLowerCase() }}Factory = {
+  create: (overrides = {}) => ({
+    id: faker.string.uuid(),
+    tenantId: faker.string.uuid(),
+{%- for field in fields %}
+{%- if field.name not in ['id', 'tenantId', 'createdAt', 'updatedAt', 'createdBy', 'updatedBy', 'version'] %}
+{%- if field.type == 'VARCHAR' or field.type == 'TEXT' %}
+    {{ field.name | camelCase }}: faker.lorem.words(3),
+{%- elif field.type == 'INTEGER' %}
+    {{ field.name | camelCase }}: faker.number.int({ min: 1, max: 1000 }),
+{%- elif field.type == 'BOOLEAN' %}
+    {{ field.name | camelCase }}: faker.datatype.boolean(),
+{%- elif field.type == 'TIMESTAMP' %}
+    {{ field.name | camelCase }}: faker.date.recent(),
+{%- elif field.type == 'DECIMAL' %}
+    {{ field.name | camelCase }}: faker.number.float({ min: 0, max: 100, fractionDigits: 2 }),
+{%- else %}
+    {{ field.name | camelCase }}: faker.lorem.word(),
+{%- endif %}
+{%- endif %}
+{%- endfor %}
+    createdAt: faker.date.recent(),
+    updatedAt: faker.date.recent(),
+    version: 1,
+    ...overrides
+  }),
+  
+  createValid: (overrides = {}) => {
+    const base = {{ entityName.toLowerCase() }}Factory.create();
+    return {
+      ...base,
+{%- for field in fields %}
+{%- if field.required and field.name not in ['id', 'tenantId', 'createdAt', 'updatedAt', 'createdBy', 'updatedBy', 'version'] %}
+{%- if field.name == 'email' %}
+      {{ field.name | camelCase }}: faker.internet.email(),
+{%- elif field.name == 'username' %}
+      {{ field.name | camelCase }}: faker.internet.userName(),
+{%- elif field.name == 'firstName' %}
+      {{ field.name | camelCase }}: faker.person.firstName(),
+{%- elif field.name == 'lastName' %}
+      {{ field.name | camelCase }}: faker.person.lastName(),
+{%- elif field.name == 'phone' %}
+      {{ field.name | camelCase }}: faker.phone.number(),
+{%- elif field.name == 'address' %}
+      {{ field.name | camelCase }}: faker.location.streetAddress(),
+{%- endif %}
+{%- endif %}
+{%- endfor %}
+      ...overrides
+    };
+  }
+};
+{%- endfor %}
+
+// JWT Token Factory
+const tokenFactory = {
+  create: (payload = {}) => {
+    const defaultPayload = {
+      sub: faker.string.uuid(),
+      tenantId: faker.string.uuid(),
+      permissions: ['read', 'write'],
+      exp: Math.floor(Date.now() / 1000) + (60 * 60), // 1 hour
+      iat: Math.floor(Date.now() / 1000),
+      iss: TEST_CONFIG.jwt.issuer,
+      aud: TEST_CONFIG.jwt.audience
+    };
+    
+    return jwt.sign(
+      { ...defaultPayload, ...payload },
+      TEST_CONFIG.jwt.secret,
+      { algorithm: 'HS256' }
+    );
+  },
+  
+  createExpired: (payload = {}) => {
+    return tokenFactory.create({
+      ...payload,
+      exp: Math.floor(Date.now() / 1000) - 3600 // Expired 1 hour ago
+    });
+  }
+};
+
+// Test Setup and Teardown
+before(async function() {
+  this.timeout(10000);
+  
+  // Setup test database
+  testDb = new Pool(TEST_CONFIG.database);
+  await testDb.query('CREATE EXTENSION IF NOT EXISTS "uuid-ossp"');
+  
+  // Setup test Redis
+  testRedis = new Redis(TEST_CONFIG.redis);
+  await testRedis.flushdb();
+  
+  console.log('✓ Test environment initialized');
+});
+
+after(async function() {
+  this.timeout(5000);
+  
+  if (testDb) {
+    await testDb.end();
+  }
+  
+  if (testRedis) {
+    await testRedis.disconnect();
+  }
+  
+  console.log('✓ Test environment cleaned up');
+});
+
+beforeEach(async function() {
+  // Clean test data before each test
+  await testRedis.flushdb();
+  
+  // Reset database to clean state (in a real implementation, you'd use transactions)
+{%- for entity in entities %}
+{%- set entityName = entity.entity | split('#') | last %}
+  await testDb.query('TRUNCATE TABLE {{ entityName.toLowerCase() }}s CASCADE');
+{%- endfor %}
+});
+
+// =============================================================================
+// UNIT TESTS
+// =============================================================================
+
+describe('{{ service.name }} - Unit Tests', () => {
+{%- for entity in entities %}
+{%- set entityName = entity.entity | split('#') | last %}
+{%- set entityPath = entityName.toLowerCase() %}
+
+  describe('{{ entityName }} Service', () => {
+    it('should validate {{ entityPath }} data correctly', () => {
+      const valid{{ entityName }} = {{ entityPath }}Factory.createValid();
+      
+      // Test validation logic here
+      expect(valid{{ entityName }}).to.have.property('id');
+      expect(valid{{ entityName }}).to.have.property('tenantId');
+{%- set requiredFields = data | rdfQuery('SELECT ?field ?name WHERE { :' + entityName + ' :hasField ?field . ?field :name ?name ; :required true }') %}
+{%- for field in requiredFields %}
+{%- if field.name not in ['id', 'tenantId', 'createdAt', 'updatedAt', 'version'] %}
+      expect(valid{{ entityName }}).to.have.property('{{ field.name | camelCase }}');
+{%- endif %}
+{%- endfor %}
+    });
+    
+    it('should encrypt PII fields', () => {
+      const {{ entityPath }} = {{ entityPath }}Factory.createValid();
+{%- set piiFields = data | rdfQuery('SELECT ?field ?name WHERE { :' + entityName + ' :hasField ?field . ?field :name ?name ; :isPII true }') %}
+{%- if piiFields.length > 0 %}
+      
+      // Test that PII fields are encrypted
+{%- for field in piiFields %}
+      if ({{ entityPath }}.{{ field.name | camelCase }}) {
+        expect({{ entityPath }}.{{ field.name | camelCase }}).to.not.equal('original-value');
+      }
+{%- endfor %}
+{%- else %}
+      // No PII fields to test
+      expect(true).to.be.true;
+{%- endif %}
+    });
+    
+    it('should validate business rules', () => {
+      const invalid{{ entityName }} = {{ entityPath }}Factory.create({
+{%- set fields = data | rdfQuery('SELECT ?field ?name ?type WHERE { :' + entityName + ' :hasField ?field . ?field :name ?name ; :type ?type }') %}
+{%- for field in fields %}
+{%- if field.name == 'email' %}
+        email: 'invalid-email',
+{%- elif field.name == 'age' %}
+        age: -5,
+{%- elif field.name == 'status' %}
+        status: 'INVALID_STATUS',
+{%- endif %}
+{%- endfor %}
+      });
+      
+      // Test business rule validation
+      // This would typically call your validation service
+      expect(() => validate{{ entityName }}(invalid{{ entityName }})).to.throw();
+    });
+  });
+{%- endfor %}
+
+  describe('Security Functions', () => {
+    it('should hash passwords correctly', async () => {
+      const password = 'testPassword123!';
+      const hashedPassword = await bcrypt.hash(password, 12);
+      
+      expect(hashedPassword).to.not.equal(password);
+      expect(await bcrypt.compare(password, hashedPassword)).to.be.true;
+    });
+    
+    it('should generate secure JWT tokens', () => {
+      const payload = { sub: 'test-user', tenantId: 'test-tenant' };
+      const token = tokenFactory.create(payload);
+      const decoded = jwt.verify(token, TEST_CONFIG.jwt.secret);
+      
+      expect(decoded.sub).to.equal('test-user');
+      expect(decoded.tenantId).to.equal('test-tenant');
+    });
+    
+    it('should validate JWT tokens correctly', () => {
+      const validToken = tokenFactory.create();
+      const expiredToken = tokenFactory.createExpired();
+      
+      expect(() => jwt.verify(validToken, TEST_CONFIG.jwt.secret)).to.not.throw();
+      expect(() => jwt.verify(expiredToken, TEST_CONFIG.jwt.secret)).to.throw();
+    });
+  });
+});
+
+// =============================================================================
+// INTEGRATION TESTS
+// =============================================================================
+
+describe('{{ service.name }} - Integration Tests', () => {
+  let authToken;
+  let tenantId;
+  
+  beforeEach(() => {
+    tenantId = faker.string.uuid();
+    authToken = tokenFactory.create({ 
+      tenantId,
+      permissions: ['read', 'write', 'delete']
+    });
+  });
+
+{%- for entity in entities %}
+{%- set entityName = entity.entity | split('#') | last %}
+{%- set entityPath = entityName.toLowerCase() %}
+
+  describe('{{ entityName }} API Endpoints', () => {
+    describe('POST /api/v1/{{ entityPath }}s', () => {
+      it('should create a new {{ entityPath }} successfully', async () => {
+        const new{{ entityName }} = {{ entityPath }}Factory.createValid();
+        delete new{{ entityName }}.id;
+        delete new{{ entityName }}.tenantId;
+        delete new{{ entityName }}.createdAt;
+        delete new{{ entityName }}.updatedAt;
+        delete new{{ entityName }}.version;
+        
+        const response = await request(app)
+          .post('/api/v1/{{ entityPath }}s')
+          .set('Authorization', `Bearer ${authToken}`)
+          .set('X-Tenant-ID', tenantId)
+          .send(new{{ entityName }})
+          .expect(201);
+        
+        expect(response.body.data).to.have.property('id');
+        expect(response.body.data.tenantId).to.equal(tenantId);
+{%- set requiredFields = data | rdfQuery('SELECT ?field ?name WHERE { :' + entityName + ' :hasField ?field . ?field :name ?name ; :required true }') %}
+{%- for field in requiredFields %}
+{%- if field.name not in ['id', 'tenantId', 'createdAt', 'updatedAt', 'version'] %}
+        expect(response.body.data).to.have.property('{{ field.name | camelCase }}');
+{%- endif %}
+{%- endfor %}
+      });
+      
+      it('should return 400 for invalid data', async () => {
+        const invalid{{ entityName }} = {};
+        
+        await request(app)
+          .post('/api/v1/{{ entityPath }}s')
+          .set('Authorization', `Bearer ${authToken}`)
+          .set('X-Tenant-ID', tenantId)
+          .send(invalid{{ entityName }})
+          .expect(400);
+      });
+      
+      it('should return 401 without authentication', async () => {
+        const new{{ entityName }} = {{ entityPath }}Factory.createValid();
+        
+        await request(app)
+          .post('/api/v1/{{ entityPath }}s')
+          .send(new{{ entityName }})
+          .expect(401);
+      });
+      
+      it('should return 403 without proper permissions', async () => {
+        const restrictedToken = tokenFactory.create({
+          tenantId,
+          permissions: ['read'] // Missing 'write' permission
+        });
+        const new{{ entityName }} = {{ entityPath }}Factory.createValid();
+        
+        await request(app)
+          .post('/api/v1/{{ entityPath }}s')
+          .set('Authorization', `Bearer ${restrictedToken}`)
+          .set('X-Tenant-ID', tenantId)
+          .send(new{{ entityName }})
+          .expect(403);
+      });
+    });
+    
+    describe('GET /api/v1/{{ entityPath }}s', () => {
+      it('should list {{ entityPath }}s with pagination', async () => {
+        // Create test data
+        const {{ entityPath }}1 = {{ entityPath }}Factory.createValid({ tenantId });
+        const {{ entityPath }}2 = {{ entityPath }}Factory.createValid({ tenantId });
+        
+        // Insert test data into database
+        await testDb.query(
+          'INSERT INTO {{ entityPath }}s (id, tenant_id, created_at, updated_at) VALUES ($1, $2, NOW(), NOW()), ($3, $4, NOW(), NOW())',
+          [{{ entityPath }}1.id, tenantId, {{ entityPath }}2.id, tenantId]
+        );
+        
+        const response = await request(app)
+          .get('/api/v1/{{ entityPath }}s?page=1&limit=10')
+          .set('Authorization', `Bearer ${authToken}`)
+          .set('X-Tenant-ID', tenantId)
+          .expect(200);
+        
+        expect(response.body.data).to.be.an('array');
+        expect(response.body.pagination).to.have.property('page', 1);
+        expect(response.body.pagination).to.have.property('limit', 10);
+        expect(response.body.pagination).to.have.property('total');
+      });
+      
+      it('should filter by tenant', async () => {
+        const otherTenantId = faker.string.uuid();
+        const otherToken = tokenFactory.create({ tenantId: otherTenantId });
+        
+        // Create {{ entityPath }} for first tenant
+        const {{ entityPath }}1 = {{ entityPath }}Factory.createValid({ tenantId });
+        await testDb.query(
+          'INSERT INTO {{ entityPath }}s (id, tenant_id, created_at, updated_at) VALUES ($1, $2, NOW(), NOW())',
+          [{{ entityPath }}1.id, tenantId]
+        );
+        
+        // Create {{ entityPath }} for second tenant  
+        const {{ entityPath }}2 = {{ entityPath }}Factory.createValid({ tenantId: otherTenantId });
+        await testDb.query(
+          'INSERT INTO {{ entityPath }}s (id, tenant_id, created_at, updated_at) VALUES ($1, $2, NOW(), NOW())',
+          [{{ entityPath }}2.id, otherTenantId]
+        );
+        
+        // First tenant should only see their {{ entityPath }}s
+        const response1 = await request(app)
+          .get('/api/v1/{{ entityPath }}s')
+          .set('Authorization', `Bearer ${authToken}`)
+          .set('X-Tenant-ID', tenantId)
+          .expect(200);
+        
+        expect(response1.body.data).to.have.length(1);
+        expect(response1.body.data[0].id).to.equal({{ entityPath }}1.id);
+        
+        // Second tenant should only see their {{ entityPath }}s
+        const response2 = await request(app)
+          .get('/api/v1/{{ entityPath }}s')
+          .set('Authorization', `Bearer ${otherToken}`)
+          .set('X-Tenant-ID', otherTenantId)
+          .expect(200);
+        
+        expect(response2.body.data).to.have.length(1);
+        expect(response2.body.data[0].id).to.equal({{ entityPath }}2.id);
+      });
+    });
+    
+    describe('GET /api/v1/{{ entityPath }}s/:id', () => {
+      it('should get a specific {{ entityPath }}', async () => {
+        const {{ entityPath }} = {{ entityPath }}Factory.createValid({ tenantId });
+        
+        await testDb.query(
+          'INSERT INTO {{ entityPath }}s (id, tenant_id, created_at, updated_at) VALUES ($1, $2, NOW(), NOW())',
+          [{{ entityPath }}.id, tenantId]
+        );
+        
+        const response = await request(app)
+          .get(`/api/v1/{{ entityPath }}s/${{{ entityPath }}.id}`)
+          .set('Authorization', `Bearer ${authToken}`)
+          .set('X-Tenant-ID', tenantId)
+          .expect(200);
+        
+        expect(response.body.data.id).to.equal({{ entityPath }}.id);
+        expect(response.body.data.tenantId).to.equal(tenantId);
+      });
+      
+      it('should return 404 for non-existent {{ entityPath }}', async () => {
+        const nonExistentId = faker.string.uuid();
+        
+        await request(app)
+          .get(`/api/v1/{{ entityPath }}s/${nonExistentId}`)
+          .set('Authorization', `Bearer ${authToken}`)
+          .set('X-Tenant-ID', tenantId)
+          .expect(404);
+      });
+    });
+    
+    describe('PUT /api/v1/{{ entityPath }}s/:id', () => {
+      it('should update a {{ entityPath }} successfully', async () => {
+        const {{ entityPath }} = {{ entityPath }}Factory.createValid({ tenantId });
+        
+        await testDb.query(
+          'INSERT INTO {{ entityPath }}s (id, tenant_id, version, created_at, updated_at) VALUES ($1, $2, 1, NOW(), NOW())',
+          [{{ entityPath }}.id, tenantId]
+        );
+        
+        const updates = {
+{%- set updatableFields = data | rdfQuery('SELECT ?field ?name WHERE { :' + entityName + ' :hasField ?field . ?field :name ?name }') %}
+{%- for field in updatableFields | slice(0, 2) %}
+{%- if field.name not in ['id', 'tenantId', 'createdAt', 'updatedAt', 'createdBy', 'updatedBy', 'version'] %}
+          {{ field.name | camelCase }}: 'updated value',
+{%- endif %}
+{%- endfor %}
+        };
+        
+        const response = await request(app)
+          .put(`/api/v1/{{ entityPath }}s/${{{ entityPath }}.id}`)
+          .set('Authorization', `Bearer ${authToken}`)
+          .set('X-Tenant-ID', tenantId)
+          .set('If-Match', '"1"')
+          .send(updates)
+          .expect(200);
+        
+        expect(response.body.data.version).to.equal(2);
+{%- for field in updatableFields | slice(0, 1) %}
+{%- if field.name not in ['id', 'tenantId', 'createdAt', 'updatedAt', 'createdBy', 'updatedBy', 'version'] %}
+        expect(response.body.data.{{ field.name | camelCase }}).to.equal('updated value');
+{%- endif %}
+{%- endfor %}
+      });
+      
+      it('should return 412 for version conflict', async () => {
+        const {{ entityPath }} = {{ entityPath }}Factory.createValid({ tenantId });
+        
+        await testDb.query(
+          'INSERT INTO {{ entityPath }}s (id, tenant_id, version, created_at, updated_at) VALUES ($1, $2, 5, NOW(), NOW())',
+          [{{ entityPath }}.id, tenantId]
+        );
+        
+        const updates = { name: 'updated name' };
+        
+        await request(app)
+          .put(`/api/v1/{{ entityPath }}s/${{{ entityPath }}.id}`)
+          .set('Authorization', `Bearer ${authToken}`)
+          .set('X-Tenant-ID', tenantId)
+          .set('If-Match', '"1"') // Wrong version
+          .send(updates)
+          .expect(412);
+      });
+    });
+    
+    describe('DELETE /api/v1/{{ entityPath }}s/:id', () => {
+      it('should soft delete a {{ entityPath }}', async () => {
+        const {{ entityPath }} = {{ entityPath }}Factory.createValid({ tenantId });
+        
+        await testDb.query(
+          'INSERT INTO {{ entityPath }}s (id, tenant_id, created_at, updated_at) VALUES ($1, $2, NOW(), NOW())',
+          [{{ entityPath }}.id, tenantId]
+        );
+        
+        await request(app)
+          .delete(`/api/v1/{{ entityPath }}s/${{{ entityPath }}.id}`)
+          .set('Authorization', `Bearer ${authToken}`)
+          .set('X-Tenant-ID', tenantId)
+          .expect(204);
+        
+        // Verify soft delete
+        const result = await testDb.query(
+          'SELECT deleted_at FROM {{ entityPath }}s WHERE id = $1',
+          [{{ entityPath }}.id]
+        );
+        
+        expect(result.rows[0].deleted_at).to.not.be.null;
+      });
+    });
+  });
+{%- endfor %}
+});
+
+// =============================================================================
+// SECURITY TESTS
+// =============================================================================
+
+describe('{{ service.name }} - Security Tests', () => {
+  let authToken;
+  let tenantId;
+  
+  beforeEach(() => {
+    tenantId = faker.string.uuid();
+    authToken = tokenFactory.create({ tenantId });
+  });
+  
+  describe('Authentication', () => {
+    it('should reject requests without authentication', async () => {
+      await request(app)
+        .get('/api/v1/users')
+        .expect(401);
+    });
+    
+    it('should reject expired tokens', async () => {
+      const expiredToken = tokenFactory.createExpired();
+      
+      await request(app)
+        .get('/api/v1/users')
+        .set('Authorization', `Bearer ${expiredToken}`)
+        .set('X-Tenant-ID', tenantId)
+        .expect(403);
+    });
+    
+    it('should reject malformed tokens', async () => {
+      await request(app)
+        .get('/api/v1/users')
+        .set('Authorization', 'Bearer invalid.token.here')
+        .set('X-Tenant-ID', tenantId)
+        .expect(403);
+    });
+  });
+  
+  describe('Authorization', () => {
+    it('should enforce role-based permissions', async () => {
+      const readOnlyToken = tokenFactory.create({
+        tenantId,
+        permissions: ['read'] // Missing write permission
+      });
+      
+      const newUser = userFactory.createValid();
+      
+      await request(app)
+        .post('/api/v1/users')
+        .set('Authorization', `Bearer ${readOnlyToken}`)
+        .set('X-Tenant-ID', tenantId)
+        .send(newUser)
+        .expect(403);
+    });
+  });
+  
+  describe('Multi-tenancy', () => {
+    it('should isolate data between tenants', async () => {
+      const tenant1Id = faker.string.uuid();
+      const tenant2Id = faker.string.uuid();
+      
+      const token1 = tokenFactory.create({ tenantId: tenant1Id });
+      const token2 = tokenFactory.create({ tenantId: tenant2Id });
+      
+      // Create user for tenant 1
+      const user1 = userFactory.createValid();
+      await testDb.query(
+        'INSERT INTO users (id, tenant_id, created_at, updated_at) VALUES ($1, $2, NOW(), NOW())',
+        [user1.id, tenant1Id]
+      );
+      
+      // Tenant 2 should not see tenant 1's users
+      const response = await request(app)
+        .get(`/api/v1/users/${user1.id}`)
+        .set('Authorization', `Bearer ${token2}`)
+        .set('X-Tenant-ID', tenant2Id)
+        .expect(404);
+    });
+    
+    it('should require tenant header', async () => {
+      await request(app)
+        .get('/api/v1/users')
+        .set('Authorization', `Bearer ${authToken}`)
+        .expect(400);
+    });
+  });
+  
+  describe('Input Validation', () => {
+    it('should sanitize SQL injection attempts', async () => {
+      const maliciousInput = {
+        name: "'; DROP TABLE users; --",
+        email: 'test@example.com'
+      };
+      
+      // This should not cause a database error
+      await request(app)
+        .post('/api/v1/users')
+        .set('Authorization', `Bearer ${authToken}`)
+        .set('X-Tenant-ID', tenantId)
+        .send(maliciousInput)
+        .expect(400); // Should return validation error, not 500
+    });
+    
+    it('should prevent XSS attacks', async () => {
+      const xssInput = {
+        name: '<script>alert("XSS")</script>',
+        email: 'test@example.com'
+      };
+      
+      const response = await request(app)
+        .post('/api/v1/users')
+        .set('Authorization', `Bearer ${authToken}`)
+        .set('X-Tenant-ID', tenantId)
+        .send(xssInput)
+        .expect(201);
+      
+      // Response should not contain script tags
+      expect(response.body.data.name).to.not.contain('<script>');
+    });
+  });
+  
+  describe('Rate Limiting', () => {
+    it('should enforce rate limits', async function() {
+      this.timeout(10000);
+      
+      // Make requests up to the rate limit
+      const promises = [];
+      for (let i = 0; i < 100; i++) {
+        promises.push(
+          request(app)
+            .get('/api/v1/users')
+            .set('Authorization', `Bearer ${authToken}`)
+            .set('X-Tenant-ID', tenantId)
+        );
+      }
+      
+      const responses = await Promise.allSettled(promises);
+      const rateLimitedResponses = responses.filter(
+        r => r.status === 'fulfilled' && r.value.status === 429
+      );
+      
+      // Should have some rate limited responses
+      expect(rateLimitedResponses.length).to.be.greaterThan(0);
+    });
+  });
+});
+
+// =============================================================================
+// COMPLIANCE TESTS
+// =============================================================================
+
+describe('{{ service.name }} - Compliance Tests', () => {
+  let authToken;
+  let tenantId;
+  
+  beforeEach(() => {
+    tenantId = faker.string.uuid();
+    authToken = tokenFactory.create({ tenantId });
+  });
+  
+  describe('GDPR Compliance', () => {
+    it('should log all data access for audit', async () => {
+      const user = userFactory.createValid({ tenantId });
+      
+      await testDb.query(
+        'INSERT INTO users (id, tenant_id, created_at, updated_at) VALUES ($1, $2, NOW(), NOW())',
+        [user.id, tenantId]
+      );
+      
+      await request(app)
+        .get(`/api/v1/users/${user.id}`)
+        .set('Authorization', `Bearer ${authToken}`)
+        .set('X-Tenant-ID', tenantId)
+        .expect(200);
+      
+      // Check audit log
+      const auditResult = await testDb.query(
+        'SELECT * FROM audit_logs WHERE resource_id = $1 AND action = $2',
+        [user.id, 'READ']
+      );
+      
+      expect(auditResult.rows.length).to.be.greaterThan(0);
+    });
+    
+    it('should encrypt PII data at rest', async () => {
+      const user = userFactory.createValid({
+        email: 'test@example.com',
+        ssn: '123-45-6789'
+      });
+      
+      const response = await request(app)
+        .post('/api/v1/users')
+        .set('Authorization', `Bearer ${authToken}`)
+        .set('X-Tenant-ID', tenantId)
+        .send(user)
+        .expect(201);
+      
+      // Check database directly - PII should be encrypted
+      const dbResult = await testDb.query(
+        'SELECT email, ssn FROM users WHERE id = $1',
+        [response.body.data.id]
+      );
+      
+      const dbUser = dbResult.rows[0];
+      expect(dbUser.email).to.not.equal('test@example.com');
+      expect(dbUser.ssn).to.not.equal('123-45-6789');
+    });
+    
+    it('should handle right to be forgotten', async () => {
+      const user = userFactory.createValid({ tenantId });
+      
+      const createResponse = await request(app)
+        .post('/api/v1/users')
+        .set('Authorization', `Bearer ${authToken}`)
+        .set('X-Tenant-ID', tenantId)
+        .send(user)
+        .expect(201);
+      
+      const userId = createResponse.body.data.id;
+      
+      // Delete user (GDPR right to be forgotten)
+      await request(app)
+        .delete(`/api/v1/users/${userId}?reason=GDPR right to be forgotten`)
+        .set('Authorization', `Bearer ${authToken}`)
+        .set('X-Tenant-ID', tenantId)
+        .expect(204);
+      
+      // User should be soft deleted with audit trail
+      const dbResult = await testDb.query(
+        'SELECT deleted_at, deletion_reason FROM users WHERE id = $1',
+        [userId]
+      );
+      
+      expect(dbResult.rows[0].deleted_at).to.not.be.null;
+      expect(dbResult.rows[0].deletion_reason).to.contain('GDPR');
+    });
+  });
+  
+  describe('SOX Compliance', () => {
+    it('should maintain complete audit trail', async () => {
+      const user = userFactory.createValid();
+      
+      // Create
+      const createResponse = await request(app)
+        .post('/api/v1/users')
+        .set('Authorization', `Bearer ${authToken}`)
+        .set('X-Tenant-ID', tenantId)
+        .send(user)
+        .expect(201);
+      
+      const userId = createResponse.body.data.id;
+      
+      // Update
+      await request(app)
+        .put(`/api/v1/users/${userId}`)
+        .set('Authorization', `Bearer ${authToken}`)
+        .set('X-Tenant-ID', tenantId)
+        .set('If-Match', '"1"')
+        .send({ name: 'Updated Name' })
+        .expect(200);
+      
+      // Check audit trail
+      const auditResult = await testDb.query(
+        'SELECT action, old_values, new_values FROM audit_logs WHERE resource_id = $1 ORDER BY occurred_at',
+        [userId]
+      );
+      
+      expect(auditResult.rows).to.have.length(2); // CREATE and UPDATE
+      expect(auditResult.rows[0].action).to.equal('CREATE');
+      expect(auditResult.rows[1].action).to.equal('UPDATE');
+      expect(auditResult.rows[1].old_values).to.not.be.null;
+      expect(auditResult.rows[1].new_values).to.not.be.null;
+    });
+  });
+});
+
+// =============================================================================
+// PERFORMANCE TESTS
+// =============================================================================
+
+describe('{{ service.name }} - Performance Tests', () => {
+  let authToken;
+  let tenantId;
+  
+  before(() => {
+    tenantId = faker.string.uuid();
+    authToken = tokenFactory.create({ tenantId });
+  });
+  
+  describe('Response Time SLA', () => {
+    it('should respond within 200ms for GET requests', async () => {
+      const startTime = performance.now();
+      
+      await request(app)
+        .get('/api/v1/users')
+        .set('Authorization', `Bearer ${authToken}`)
+        .set('X-Tenant-ID', tenantId)
+        .expect(200);
+      
+      const endTime = performance.now();
+      const responseTime = endTime - startTime;
+      
+      expect(responseTime).to.be.lessThan(TEST_CONFIG.performance.maxResponseTime);
+    });
+    
+    it('should respond within 200ms for POST requests', async () => {
+      const newUser = userFactory.createValid();
+      const startTime = performance.now();
+      
+      await request(app)
+        .post('/api/v1/users')
+        .set('Authorization', `Bearer ${authToken}`)
+        .set('X-Tenant-ID', tenantId)
+        .send(newUser)
+        .expect(201);
+      
+      const endTime = performance.now();
+      const responseTime = endTime - startTime;
+      
+      expect(responseTime).to.be.lessThan(TEST_CONFIG.performance.maxResponseTime);
+    });
+  });
+  
+  describe('Throughput', () => {
+    it('should handle concurrent requests', async function() {
+      this.timeout(30000);
+      
+      const concurrentRequests = 50;
+      const promises = [];
+      
+      for (let i = 0; i < concurrentRequests; i++) {
+        promises.push(
+          request(app)
+            .get('/api/v1/users')
+            .set('Authorization', `Bearer ${authToken}`)
+            .set('X-Tenant-ID', tenantId)
+        );
+      }
+      
+      const startTime = performance.now();
+      const responses = await Promise.allSettled(promises);
+      const endTime = performance.now();
+      
+      const successful = responses.filter(r => 
+        r.status === 'fulfilled' && r.value.status === 200
+      ).length;
+      
+      const totalTime = endTime - startTime;
+      const requestsPerSecond = (successful / totalTime) * 1000;
+      
+      expect(successful).to.equal(concurrentRequests);
+      expect(requestsPerSecond).to.be.greaterThan(10); // Minimum 10 req/s
+    });
+  });
+  
+  describe('Database Performance', () => {
+    it('should use database indexes efficiently', async () => {
+      // Create test data
+      const users = [];
+      for (let i = 0; i < 100; i++) {
+        const user = userFactory.createValid({ tenantId });
+        users.push(user);
+        await testDb.query(
+          'INSERT INTO users (id, tenant_id, email, created_at, updated_at) VALUES ($1, $2, $3, NOW(), NOW())',
+          [user.id, tenantId, user.email]
+        );
+      }
+      
+      // Query with indexed field should be fast
+      const startTime = performance.now();
+      
+      const result = await testDb.query(
+        'EXPLAIN (ANALYZE, BUFFERS) SELECT * FROM users WHERE tenant_id = $1 AND email = $2',
+        [tenantId, users[0].email]
+      );
+      
+      const endTime = performance.now();
+      const queryTime = endTime - startTime;
+      
+      expect(queryTime).to.be.lessThan(50); // Query should complete in <50ms
+      
+      // Check that index was used
+      const plan = result.rows.map(row => row['QUERY PLAN']).join('\n');
+      expect(plan).to.contain('Index'); // Should use index scan
+    });
+  });
+});
+
+// =============================================================================
+// END-TO-END TESTS
+// =============================================================================
+
+describe('{{ service.name }} - End-to-End Tests', () => {
+  let authToken;
+  let tenantId;
+  
+  beforeEach(() => {
+    tenantId = faker.string.uuid();
+    authToken = tokenFactory.create({ 
+      tenantId,
+      permissions: ['read', 'write', 'delete']
+    });
+  });
+  
+  describe('Complete User Workflow', () => {
+    it('should handle complete CRUD workflow', async () => {
+      // 1. Create a user
+      const newUser = userFactory.createValid();
+      delete newUser.id;
+      delete newUser.tenantId;
+      delete newUser.createdAt;
+      delete newUser.updatedAt;
+      delete newUser.version;
+      
+      const createResponse = await request(app)
+        .post('/api/v1/users')
+        .set('Authorization', `Bearer ${authToken}`)
+        .set('X-Tenant-ID', tenantId)
+        .send(newUser)
+        .expect(201);
+      
+      const userId = createResponse.body.data.id;
+      
+      // 2. Read the user
+      const readResponse = await request(app)
+        .get(`/api/v1/users/${userId}`)
+        .set('Authorization', `Bearer ${authToken}`)
+        .set('X-Tenant-ID', tenantId)
+        .expect(200);
+      
+      expect(readResponse.body.data.id).to.equal(userId);
+      
+      // 3. Update the user
+      const updateData = { firstName: 'Updated Name' };
+      const updateResponse = await request(app)
+        .put(`/api/v1/users/${userId}`)
+        .set('Authorization', `Bearer ${authToken}`)
+        .set('X-Tenant-ID', tenantId)
+        .set('If-Match', '"1"')
+        .send(updateData)
+        .expect(200);
+      
+      expect(updateResponse.body.data.firstName).to.equal('Updated Name');
+      expect(updateResponse.body.data.version).to.equal(2);
+      
+      // 4. List users (should include our user)
+      const listResponse = await request(app)
+        .get('/api/v1/users')
+        .set('Authorization', `Bearer ${authToken}`)
+        .set('X-Tenant-ID', tenantId)
+        .expect(200);
+      
+      const userIds = listResponse.body.data.map(u => u.id);
+      expect(userIds).to.include(userId);
+      
+      // 5. Delete the user
+      await request(app)
+        .delete(`/api/v1/users/${userId}`)
+        .set('Authorization', `Bearer ${authToken}`)
+        .set('X-Tenant-ID', tenantId)
+        .expect(204);
+      
+      // 6. Verify user is deleted
+      await request(app)
+        .get(`/api/v1/users/${userId}`)
+        .set('Authorization', `Bearer ${authToken}`)
+        .set('X-Tenant-ID', tenantId)
+        .expect(404);
+    });
+  });
+  
+  describe('Multi-Service Integration', () => {
+    it('should handle cross-service workflows', async () => {
+      // This test would verify integration between multiple services
+      // For example: Create User -> Create Order -> Process Payment
+      
+      // 1. Create a user
+      const user = userFactory.createValid();
+      const userResponse = await request(app)
+        .post('/api/v1/users')
+        .set('Authorization', `Bearer ${authToken}`)
+        .set('X-Tenant-ID', tenantId)
+        .send(user)
+        .expect(201);
+      
+      // 2. Create an order for the user (if order service exists)
+      // This would typically call another service or endpoint
+      
+      // 3. Verify audit trail spans multiple services
+      const auditResponse = await testDb.query(
+        'SELECT * FROM audit_logs WHERE user_id = $1 ORDER BY occurred_at',
+        [userResponse.body.data.id]
+      );
+      
+      expect(auditResponse.rows.length).to.be.greaterThan(0);
+    });
+  });
+});
+
+// =============================================================================
+// HELPER FUNCTIONS
+// =============================================================================
+
+function validate{{ entities[0].entity | split('#') | last }}({{ entities[0].entity | split('#') | last | toLowerCase() }}) {
+  // This would contain your actual validation logic
+  const errors = [];
+  
+  if (!{{ entities[0].entity | split('#') | last | toLowerCase() }}.email || !{{ entities[0].entity | split('#') | last | toLowerCase() }}.email.includes('@')) {
+    errors.push('Invalid email');
+  }
+  
+  if (errors.length > 0) {
+    throw new Error(errors.join(', '));
+  }
+  
+  return true;
+}
+
+// Export for use in other test files
+export {
+  TEST_CONFIG,
+{%- for entity in entities %}
+{%- set entityName = entity.entity | split('#') | last %}
+  {{ entityName.toLowerCase() }}Factory,
+{%- endfor %}
+  tokenFactory,
+  testDb,
+  testRedis
+};

@@ -1,0 +1,228 @@
+/* Unjucks Custom Theme CSS */
+
+:root {
+  --primary-color: #0066cc;
+  --secondary-color: #4a90e2;
+  --accent-color: #ff6b35;
+  --background-light: #f8f9fa;
+  --text-dark: #2c3e50;
+  --border-color: #e1e5e9;
+  --code-bg: #f4f4f4;
+  --success-color: #28a745;
+  --warning-color: #ffc107;
+  --error-color: #dc3545;
+}
+
+/* Header and Navigation */
+.sidebar {
+  border-right: 2px solid var(--border-color);
+}
+
+.chapter-item a {
+  transition: all 0.3s ease;
+}
+
+.chapter-item a:hover {
+  background-color: var(--background-light);
+  border-left: 4px solid var(--primary-color);
+}
+
+/* Content Styling */
+.content h1, .content h2, .content h3, .content h4, .content h5, .content h6 {
+  color: var(--primary-color);
+  border-bottom: 2px solid var(--border-color);
+  padding-bottom: 0.5rem;
+  margin-top: 2rem;
+}
+
+.content h1 {
+  font-size: 2.5rem;
+  color: var(--text-dark);
+  border-bottom: 3px solid var(--primary-color);
+}
+
+.content h2 {
+  font-size: 2rem;
+  color: var(--primary-color);
+}
+
+/* Code blocks and inline code */
+.content pre {
+  background-color: var(--code-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  padding: 1rem;
+  margin: 1rem 0;
+  overflow-x: auto;
+}
+
+.content code {
+  background-color: var(--code-bg);
+  padding: 0.2rem 0.4rem;
+  border-radius: 3px;
+  font-size: 0.9em;
+}
+
+.content pre code {
+  background-color: transparent;
+  padding: 0;
+}
+
+/* Blockquotes */
+.content blockquote {
+  border-left: 4px solid var(--primary-color);
+  background-color: var(--background-light);
+  padding: 1rem 1.5rem;
+  margin: 1.5rem 0;
+  border-radius: 0 6px 6px 0;
+}
+
+/* Tables */
+.content table {
+  border-collapse: collapse;
+  margin: 1.5rem 0;
+  width: 100%;
+}
+
+.content th, .content td {
+  border: 1px solid var(--border-color);
+  padding: 0.75rem;
+  text-align: left;
+}
+
+.content th {
+  background-color: var(--primary-color);
+  color: white;
+  font-weight: 600;
+}
+
+.content tr:nth-child(even) {
+  background-color: var(--background-light);
+}
+
+/* Links */
+.content a {
+  color: var(--primary-color);
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+  transition: all 0.3s ease;
+}
+
+.content a:hover {
+  border-bottom: 1px solid var(--primary-color);
+}
+
+/* Lists */
+.content ul, .content ol {
+  margin: 1rem 0;
+  padding-left: 2rem;
+}
+
+.content li {
+  margin: 0.5rem 0;
+  line-height: 1.6;
+}
+
+/* Custom badges/callouts */
+.content .badge {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.content .badge-success {
+  background-color: var(--success-color);
+  color: white;
+}
+
+.content .badge-warning {
+  background-color: var(--warning-color);
+  color: var(--text-dark);
+}
+
+.content .badge-error {
+  background-color: var(--error-color);
+  color: white;
+}
+
+/* Search */
+#searchbar {
+  border: 2px solid var(--border-color);
+  border-radius: 25px;
+  padding: 0.5rem 1rem;
+  transition: all 0.3s ease;
+}
+
+#searchbar:focus {
+  border-color: var(--primary-color);
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.1);
+}
+
+/* Print styles */
+@media print {
+  .sidebar, .nav-chapters, .mobile-nav-chapters {
+    display: none !important;
+  }
+  
+  .page {
+    margin: 0 !important;
+  }
+  
+  .content {
+    max-width: none !important;
+    margin: 0 !important;
+  }
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .content h1 {
+    font-size: 2rem;
+  }
+  
+  .content h2 {
+    font-size: 1.5rem;
+  }
+  
+  .content table {
+    font-size: 0.875rem;
+  }
+  
+  .content th, .content td {
+    padding: 0.5rem;
+  }
+}
+
+/* Dark theme support */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background-light: #2c3e50;
+    --text-dark: #ecf0f1;
+    --border-color: #34495e;
+    --code-bg: #34495e;
+  }
+}
+
+/* Custom animations */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.content > * {
+  animation: fadeIn 0.6s ease-out;
+}
+
+/* Unjucks branding */
+.content::before {
+  content: "";
+  display: block;
+  height: 4px;
+  background: linear-gradient(90deg, var(--primary-color), var(--secondary-color), var(--accent-color));
+  margin-bottom: 2rem;
+}

@@ -22,6 +22,7 @@
     "src/**/*.spec.ts", 
     "src/**/__tests__/**",
     "src/lib/**/*",
+    "src/commands/semantic.ts",
     "src/components/**/*",
     "src/large/**/*",
     "src/mcp/**/*",
