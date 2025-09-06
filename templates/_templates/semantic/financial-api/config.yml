@@ -1,0 +1,193 @@
+---
+name: "FIBO Financial API"
+description: "Generate FIBO ontology-driven financial services APIs with regulatory compliance and risk management"
+category: "financial"
+jtbd: "Create standardized financial APIs that comply with FIBO ontology and banking regulations"
+tags: 
+  - financial
+  - fibo
+  - banking
+  - compliance
+  - risk-management
+  - regulatory
+
+# RDF/Semantic Configuration with FIBO ontology
+rdf:
+  type: "inline"
+  source: |
+    @prefix fibo: <https://spec.edmcouncil.org/fibo/ontology/> .
+    @prefix fibo-loan: <https://spec.edmcouncil.org/fibo/ontology/LOAN/> .
+    @prefix fibo-sec: <https://spec.edmcouncil.org/fibo/ontology/SEC/> .
+    @prefix fibo-der: <https://spec.edmcouncil.org/fibo/ontology/DER/> .
+    @prefix basel: <https://basel.org/framework/> .
+    @prefix sox: <https://sox-compliance.org/> .
+    @prefix unjucks: <http://unjucks.dev/ontology/> .
+    @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+    
+    # FIBO Financial Instruments
+    fibo-loan:Loan a unjucks:FinancialInstrument ;
+        unjucks:generatesAPI "/api/fibo/loans" ;
+        unjucks:requiresCompliance basel:BaselIII, sox:Section404 ;
+        unjucks:hasRiskCalculation fibo:CreditRisk, fibo:MarketRisk ;
+        unjucks:requiresAudit true ;
+        unjucks:dataRetention "7years" ;
+        unjucks:hasProperty fibo:LoanAmount, fibo:InterestRate, fibo:CreditScore ;
+        unjucks:requiresApprovalWorkflow true .
+    
+    fibo-sec:Security a unjucks:FinancialInstrument ;
+        unjucks:generatesAPI "/api/fibo/securities" ;
+        unjucks:requiresCompliance sox:Section302, basel:MarketRisk ;
+        unjucks:hasRiskCalculation fibo:MarketRisk, fibo:OperationalRisk ;
+        unjucks:requiresValuation true ;
+        unjucks:hasProperty fibo:ISIN, fibo:MarketPrice, fibo:Volatility .
+        
+    fibo-der:Derivative a unjucks:FinancialInstrument ;
+        unjucks:generatesAPI "/api/fibo/derivatives" ;
+        unjucks:requiresCompliance basel:CVA, basel:CounterpartyRisk ;
+        unjucks:hasRiskCalculation fibo:CounterpartyRisk, fibo:MarketRisk ;
+        unjucks:requiresMarginCalculation true ;
+        unjucks:complexityLevel "HIGH" .
+    
+    # Risk Management Rules
+    fibo:RiskCalculation a unjucks:BusinessRule ;
+        unjucks:implements basel:IRB ;
+        unjucks:requiresStressTest true ;
+        unjucks:regulatoryCapital "8%" ;
+        unjucks:generatesMethods "calculateRWA", "generateCapitalReport" .
+    
+    # Compliance Frameworks
+    basel:BaselIII a unjucks:RegulatoryFramework ;
+        unjucks:capitalRequirement "8%" ;
+        unjucks:leverageRatio "3%" ;
+        unjucks:liquidityCoverage "100%" ;
+        unjucks:generatesReports true .
+    
+    sox:Section404 a unjucks:ComplianceRule ;
+        unjucks:requiresInternalControls true ;
+        unjucks:requiresExecutiveCertification true ;
+        unjucks:auditFrequency "quarterly" ;
+        unjucks:generateAuditTrail true .
+
+variables:
+  - name: "serviceName"
+    type: "string"
+    description: "Name of the financial service"
+    required: true
+    validation: "^[a-z][a-z0-9-]*$"
+    examples: ["loan-processing", "securities-trading", "risk-calculation"]
+    
+  - name: "fiboInstruments"
+    type: "array"
+    description: "FIBO financial instruments to implement"
+    required: true
+    options: ["Loan", "Security", "Derivative", "Bond", "Equity", "ForeignExchange"]
+    defaultValue: ["Loan", "Security"]
+    
+  - name: "riskModels"
+    type: "array"
+    description: "Risk models to implement"
+    required: true
+    options: ["CreditRisk", "MarketRisk", "OperationalRisk", "CounterpartyRisk", "LiquidityRisk"]
+    defaultValue: ["CreditRisk", "MarketRisk"]
+    
+  - name: "regulatoryFrameworks"
+    type: "array"
+    description: "Regulatory frameworks to comply with"
+    required: true
+    options: ["BaselIII", "BaselIV", "MiFIDII", "DoddFrank", "EMIR", "CCAR"]
+    defaultValue: ["BaselIII"]
+    
+  - name: "complianceLevel"
+    type: "string"
+    description: "Compliance rigor level"
+    required: true
+    options: ["standard", "enhanced", "regulatory", "systemically-important"]
+    defaultValue: "standard"
+    
+  - name: "reportingFrequency"
+    type: "string"
+    description: "Regulatory reporting frequency"
+    required: true
+    options: ["daily", "weekly", "monthly", "quarterly", "annually"]
+    defaultValue: "monthly"
+    
+  - name: "database"
+    type: "string"
+    description: "Database optimized for financial data"
+    required: true
+    options: ["postgresql", "oracle", "sql-server", "mongodb", "kdb+"]
+    defaultValue: "postgresql"
+    
+  - name: "riskEngine"
+    type: "string"
+    description: "Risk calculation engine"
+    required: true
+    options: ["monte-carlo", "var", "expected-shortfall", "stress-testing", "backtesting"]
+    defaultValue: "monte-carlo"
+    
+  - name: "auditRetention"
+    type: "string"
+    description: "Regulatory audit retention period"
+    required: true
+    options: ["3years", "5years", "7years", "10years", "permanent"]
+    defaultValue: "7years"
+    
+  - name: "tradingVenue"
+    type: "string"
+    description: "Trading venue integration"
+    required: false
+    options: ["nyse", "nasdaq", "lse", "eurex", "cme", "ice"]
+    
+  - name: "clearingHouse"
+    type: "string"
+    description: "Central clearing counterparty"
+    required: false
+    options: ["lch", "eurex-clearing", "cme-clearing", "ice-clear"]
+
+files:
+  - template: "fibo-service.ts.njk"
+    to: "src/services/{{ serviceName | kebabCase }}.service.ts"
+    
+  - template: "risk-calculator.ts.njk"
+    to: "src/utils/risk-calculator.ts"
+    
+  - template: "compliance-controller.ts.njk"
+    to: "src/controllers/compliance.controller.ts"
+    
+  - template: "regulatory-reporter.ts.njk"
+    to: "src/services/regulatory-reporter.ts"
+    
+  - template: "audit-middleware.ts.njk"
+    to: "src/middleware/audit.middleware.ts"
+    
+  - template: "basel-calculator.ts.njk"
+    to: "src/calculators/basel-calculator.ts"
+    
+  - template: "financial-entities.ts.njk"
+    to: "src/entities/financial-instruments.entities.ts"
+    
+  - template: "deployment.yaml.njk"
+    to: "k8s/{{ serviceName | kebabCase }}-deployment.yaml"
+    
+  - template: "regulatory-config.yaml.njk"
+    to: "config/regulatory-frameworks.yaml"
+    
+  - template: "compliance-documentation.md.njk"
+    to: "docs/compliance/fibo-compliance.md"
+
+# FIBO-specific injection points
+inject:
+  - name: "risk-calculations"
+    description: "Add risk calculation methods to existing services"
+    pattern: "// RISK CALCULATIONS INJECTION"
+    type: "after"
+    
+  - name: "regulatory-reporting"
+    description: "Add regulatory reporting endpoints"
+    pattern: "// REGULATORY REPORTING INJECTION" 
+    type: "after"
+    
+  - name: "basel-compliance"
+    description: "Inject Basel III compliance checks"
+    pattern: "// BASEL COMPLIANCE INJECTION"
+    type: "before"

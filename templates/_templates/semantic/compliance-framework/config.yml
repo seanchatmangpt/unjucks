@@ -1,0 +1,256 @@
+---
+name: "Regulatory Compliance Framework"
+description: "Generate automated compliance systems using real regulatory ontologies for multi-jurisdiction requirements"
+category: "compliance"
+jtbd: "Create automated compliance frameworks that understand and implement real regulatory requirements across industries"
+tags: 
+  - compliance
+  - regulatory
+  - governance
+  - audit
+  - multi-jurisdiction
+  - automation
+
+# RDF/Semantic Configuration with regulatory ontologies
+rdf:
+  type: "inline"
+  source: |
+    @prefix reg: <http://regulatory.gov/ontology/> .
+    @prefix sox: <https://sox-compliance.org/> .
+    @prefix gdpr: <https://gdpr.eu/ontology/> .
+    @prefix hipaa: <http://hipaa.org/safeguards/> .
+    @prefix pci: <https://pcisecuritystandards.org/> .
+    @prefix iso27001: <https://iso27001.com/> .
+    @prefix nist: <https://nist.gov/cybersecurity/> .
+    @prefix basel: <https://basel.org/framework/> .
+    @prefix mifid: <https://mifid.eu/> .
+    @prefix unjucks: <http://unjucks.dev/ontology/> .
+    @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+    
+    # SOX Compliance
+    sox:Section302 a unjucks:ComplianceRequirement ;
+        unjucks:generatesControls sox:ExecutiveCertification ;
+        unjucks:requiresEvidence true ;
+        unjucks:auditFrequency "quarterly" ;
+        unjucks:generatesAPI "/api/compliance/sox/302" ;
+        unjucks:automatesReporting true ;
+        unjucks:requiresExecutiveSignoff true .
+    
+    sox:Section404 a unjucks:ComplianceRequirement ;
+        unjucks:generatesControls sox:InternalControls ;
+        unjucks:requiresEvidence true ;
+        unjucks:requiresWalkthroughs true ;
+        unjucks:auditFrequency "annually" ;
+        unjucks:generatesAPI "/api/compliance/sox/404" ;
+        unjucks:requiresITGC true .
+    
+    # GDPR Compliance
+    gdpr:RightToBeForgtotten a unjucks:ComplianceRequirement ;
+        unjucks:generatesAPI "/api/compliance/gdpr/deletion" ;
+        unjucks:responseTime "30days" ;
+        unjucks:requiresDataMapping true ;
+        unjucks:automatesDataDeletion true ;
+        unjucks:generatesProofOfDeletion true .
+    
+    gdpr:DataPortability a unjucks:ComplianceRequirement ;
+        unjucks:generatesAPI "/api/compliance/gdpr/export" ;
+        unjucks:responseTime "30days" ;
+        unjucks:outputFormat "JSON", "XML", "CSV" ;
+        unjucks:includesMetadata true .
+    
+    gdpr:ConsentManagement a unjucks:ComplianceRequirement ;
+        unjucks:generatesAPI "/api/compliance/gdpr/consent" ;
+        unjucks:granularConsent true ;
+        unjucks:withdrawalMechanism true ;
+        unjucks:consentRecords true ;
+        unjucks:auditTrail true .
+    
+    # HIPAA Compliance
+    hipaa:PhysicalSafeguards a unjucks:ComplianceRequirement ;
+        unjucks:requiresAccessControls true ;
+        unjucks:requiresWorkstationSecurity true ;
+        unjucks:requiresDeviceControls true ;
+        unjucks:generatesAPI "/api/compliance/hipaa/physical" .
+    
+    hipaa:TechnicalSafeguards a unjucks:ComplianceRequirement ;
+        unjucks:requiresEncryption "AES-256" ;
+        unjucks:requiresAccessLogging true ;
+        unjucks:requiresIntegrityControls true ;
+        unjucks:generatesAPI "/api/compliance/hipaa/technical" ;
+        unjucks:requiresUserAuthentication true .
+    
+    # PCI DSS Compliance
+    pci:Requirement1 a unjucks:ComplianceRequirement ;
+        unjucks:title "Firewall Configuration" ;
+        unjucks:generatesFirewallRules true ;
+        unjucks:requiresNetworkSegmentation true ;
+        unjucks:generatesAPI "/api/compliance/pci/firewall" .
+    
+    pci:Requirement3 a unjucks:ComplianceRequirement ;
+        unjucks:title "Data Protection" ;
+        unjucks:requiresEncryption true ;
+        unjucks:requiresKeyManagement true ;
+        unjucks:prohibitsPrimaryAccountData true ;
+        unjucks:generatesAPI "/api/compliance/pci/data-protection" .
+    
+    # ISO 27001 Compliance
+    iso27001:A51 a unjucks:ComplianceRequirement ;
+        unjucks:title "Information Security Policy" ;
+        unjucks:requiresManagementApproval true ;
+        unjucks:requiresRegularReview true ;
+        unjucks:generatesAPI "/api/compliance/iso27001/policy" .
+    
+    iso27001:A812 a unjucks:ComplianceRequirement ;
+        unjucks:title "Vulnerability Management" ;
+        unjucks:requiresVulnerabilityScanning true ;
+        unjucks:requiresPatchManagement true ;
+        unjucks:generatesAPI "/api/compliance/iso27001/vulnerability" .
+    
+    # Basel III Banking Compliance
+    basel:CapitalAdequacy a unjucks:ComplianceRequirement ;
+        unjucks:minimumRatio "8%" ;
+        unjucks:requiresStressTesting true ;
+        unjucks:reportingFrequency "quarterly" ;
+        unjucks:generatesAPI "/api/compliance/basel/capital" ;
+        unjucks:calculatesCET1 true .
+    
+    # Cross-Framework Integration
+    unjucks:ComplianceOrchestration a unjucks:IntegrationFramework ;
+        unjucks:coordinatesRequirements sox:Section404, gdpr:ConsentManagement, hipaa:TechnicalSafeguards ;
+        unjucks:resolvesConflicts true ;
+        unjucks:prioritizesRequirements true ;
+        unjucks:generatesUnifiedDashboard true .
+
+variables:
+  - name: "serviceName"
+    type: "string"
+    description: "Name of the compliance service"
+    required: true
+    validation: "^[a-z][a-z0-9-]*$"
+    examples: ["multi-compliance", "sox-automation", "gdpr-portal"]
+    
+  - name: "complianceFrameworks"
+    type: "array"
+    description: "Regulatory frameworks to implement"
+    required: true
+    options: ["SOX", "GDPR", "HIPAA", "PCI-DSS", "ISO27001", "NIST", "Basel III", "MiFID II"]
+    defaultValue: ["SOX", "GDPR"]
+    
+  - name: "jurisdictions"
+    type: "array"
+    description: "Legal jurisdictions for compliance"
+    required: true
+    options: ["US", "EU", "UK", "Canada", "Australia", "Singapore", "Japan", "Global"]
+    defaultValue: ["US", "EU"]
+    
+  - name: "industryVertical"
+    type: "string"
+    description: "Industry vertical for specialized compliance"
+    required: true
+    options: ["financial", "healthcare", "technology", "manufacturing", "retail", "energy", "general"]
+    defaultValue: "technology"
+    
+  - name: "complianceLevel"
+    type: "string"
+    description: "Compliance automation level"
+    required: true
+    options: ["monitoring", "automation", "full-automation", "self-healing"]
+    defaultValue: "automation"
+    
+  - name: "auditTrailRetention"
+    type: "string"
+    description: "Audit trail retention period"
+    required: true
+    options: ["1year", "3years", "7years", "10years", "indefinite"]
+    defaultValue: "7years"
+    
+  - name: "reportingFrequency"
+    type: "array"
+    description: "Compliance reporting frequencies needed"
+    required: true
+    options: ["real-time", "daily", "weekly", "monthly", "quarterly", "annually"]
+    defaultValue: ["monthly", "quarterly"]
+    
+  - name: "riskTolerance"
+    type: "string"
+    description: "Organizational risk tolerance"
+    required: true
+    options: ["low", "medium", "high", "very-high"]
+    defaultValue: "low"
+    
+  - name: "automatedRemediation"
+    type: "boolean"
+    description: "Enable automated compliance remediation"
+    required: false
+    defaultValue: false
+    
+  - name: "integratedGRC"
+    type: "boolean"
+    description: "Integrate with GRC platforms"
+    required: false
+    defaultValue: true
+    
+  - name: "blockchainEvidence"
+    type: "boolean"
+    description: "Use blockchain for tamper-proof evidence"
+    required: false
+    defaultValue: false
+
+files:
+  - template: "compliance-service.ts.njk"
+    to: "src/services/{{ serviceName | kebabCase }}.service.ts"
+    
+  - template: "regulatory-engine.ts.njk"
+    to: "src/engines/regulatory-engine.ts"
+    
+  - template: "compliance-controller.ts.njk"
+    to: "src/controllers/compliance.controller.ts"
+    
+  - template: "audit-trail-service.ts.njk"
+    to: "src/services/audit-trail.service.ts"
+    
+  - template: "evidence-collector.ts.njk"
+    to: "src/collectors/evidence-collector.ts"
+    
+  - template: "remediation-engine.ts.njk"
+    to: "src/engines/remediation-engine.ts"
+    skipIf: "!automatedRemediation"
+    
+  - template: "grc-integration.ts.njk"
+    to: "src/integrations/grc-integration.ts"
+    skipIf: "!integratedGRC"
+    
+  - template: "blockchain-evidence.ts.njk"
+    to: "src/blockchain/evidence-blockchain.ts"
+    skipIf: "!blockchainEvidence"
+    
+  - template: "compliance-dashboard.vue.njk"
+    to: "src/components/ComplianceDashboard.vue"
+    
+  - template: "risk-assessment.ts.njk"
+    to: "src/services/risk-assessment.service.ts"
+    
+  - template: "deployment.yaml.njk"
+    to: "k8s/{{ serviceName | kebabCase }}-deployment.yaml"
+    
+  - template: "compliance-config.yaml.njk"
+    to: "config/regulatory-frameworks.yaml"
+    
+  - template: "compliance-policies.md.njk"
+    to: "docs/compliance/regulatory-policies.md"
+
+inject:
+  - name: "compliance-checks"
+    description: "Add compliance validation to existing endpoints"
+    pattern: "// COMPLIANCE CHECKS INJECTION"
+    type: "before"
+    
+  - name: "audit-logging"
+    description: "Add comprehensive audit logging"
+    pattern: "// AUDIT LOGGING INJECTION"
+    type: "after"
+    
+  - name: "evidence-collection"
+    description: "Add automated evidence collection"
+    pattern: "// EVIDENCE COLLECTION INJECTION"
+    type: "after"

@@ -1,0 +1,343 @@
+---
+to: "{{ outputDir }}/server/api{{ operation.path }}.{{ operation.method.lower() }}.ts"
+inject: false
+skipIf: "!{{ operationId }}"
+rdf:
+  type: file
+  source: "{{ rdfSchemaPath || 'schemas/openapi.ttl' }}"
+  query:
+    subject: "{{ operationUri }}"
+    predicate: "http://openapi.org/spec#operation"
+---
+/**
+ * Nuxt server API route for {{ operationId }}
+ * Generated from OpenAPI specification
+ * Path: {{ operation.method.upper() }} {{ operation.path }}
+ */
+{% set operation = rdf.operations | selectattr("operationId", "equalto", operationId) | first %}
+{% set requestSchema = operation.requestBody.content["application/json"].schema if operation.requestBody %}
+{% set responseSchema = operation.responses["200"].content["application/json"].schema if operation.responses["200"] %}
+
+export default defineEventHandler(async (event) => {
+  try {
+    {% if operation.method.lower() in ['post', 'put', 'patch'] %}
+    // Parse request body
+    const body = await readBody(event)
+    
+    // Validate request body
+    const validationResult = validateRequest{{ operationId | pascalCase }}(body)
+    if (!validationResult.valid) {
+      throw createError({
+        statusCode: 400,
+        statusMessage: 'Invalid request data',
+        data: { errors: validationResult.errors }
+      })
+    }
+    {% endif %}
+
+    {% if operation.parameters %}
+    // Extract path and query parameters
+    const params = getRouterParams(event)
+    const query = getQuery(event)
+    {% endif %}
+
+    {% if operation.security %}
+    // Authentication check
+    const authResult = await validateAuth(event)
+    if (!authResult.valid) {
+      throw createError({
+        statusCode: 401,
+        statusMessage: 'Unauthorized',
+        data: { message: authResult.message }
+      })
+    }
+    {% endif %}
+
+    // Execute the operation
+    {% if operation.method.lower() === 'get' %}
+    const result = await handle{{ operationId | pascalCase }}Get({
+      {% if operation.parameters %}
+      params,
+      query,
+      {% endif %}
+      {% if operation.security %}
+      user: authResult.user,
+      {% endif %}
+    })
+    {% elif operation.method.lower() === 'post' %}
+    const result = await handle{{ operationId | pascalCase }}Post({
+      body,
+      {% if operation.parameters %}
+      params,
+      query,
+      {% endif %}
+      {% if operation.security %}
+      user: authResult.user,
+      {% endif %}
+    })
+    {% elif operation.method.lower() === 'put' %}
+    const result = await handle{{ operationId | pascalCase }}Put({
+      body,
+      {% if operation.parameters %}
+      params,
+      query,
+      {% endif %}
+      {% if operation.security %}
+      user: authResult.user,
+      {% endif %}
+    })
+    {% elif operation.method.lower() === 'delete' %}
+    const result = await handle{{ operationId | pascalCase }}Delete({
+      {% if operation.parameters %}
+      params,
+      query,
+      {% endif %}
+      {% if operation.security %}
+      user: authResult.user,
+      {% endif %}
+    })
+    {% endif %}
+
+    // Set response headers
+    setHeaders(event, {
+      'Content-Type': 'application/json',
+      {% if operation.responses["200"].headers %}
+      {% for headerName, headerSpec in operation.responses["200"].headers %}
+      '{{ headerName }}': result.{{ headerName | camelCase }},
+      {% endfor %}
+      {% endif %}
+    })
+
+    return result
+
+  } catch (error: any) {
+    // Error handling
+    console.error(`Error in {{ operationId }}:`, error)
+    
+    if (error.statusCode) {
+      throw error
+    }
+
+    throw createError({
+      statusCode: 500,
+      statusMessage: 'Internal Server Error',
+      data: { 
+        message: error.message || 'An unexpected error occurred',
+        operationId: '{{ operationId }}'
+      }
+    })
+  }
+})
+
+{% if operation.method.lower() in ['post', 'put', 'patch'] %}
+/**
+ * Validate request body for {{ operationId }}
+ */
+function validateRequest{{ operationId | pascalCase }}(body: any): { valid: boolean; errors: string[] } {
+  const errors: string[] = []
+  
+  if (!body) {
+    errors.push('Request body is required')
+    return { valid: false, errors }
+  }
+
+  {% if requestSchema.required %}
+  // Check required fields
+  {% for field in requestSchema.required %}
+  if (!body.{{ field }}) {
+    errors.push('Field "{{ field }}" is required')
+  }
+  {% endfor %}
+  {% endif %}
+
+  {% for property, details in requestSchema.properties %}
+  // Validate {{ property }}
+  if (body.{{ property }} !== undefined) {
+    {% if details.type === 'string' %}
+    if (typeof body.{{ property }} !== 'string') {
+      errors.push('Field "{{ property }}" must be a string')
+    }
+    {% if details.minLength %}
+    if (body.{{ property }}.length < {{ details.minLength }}) {
+      errors.push('Field "{{ property }}" must be at least {{ details.minLength }} characters')
+    }
+    {% endif %}
+    {% if details.maxLength %}
+    if (body.{{ property }}.length > {{ details.maxLength }}) {
+      errors.push('Field "{{ property }}" cannot exceed {{ details.maxLength }} characters')
+    }
+    {% endif %}
+    {% elif details.type === 'number' %}
+    if (typeof body.{{ property }} !== 'number') {
+      errors.push('Field "{{ property }}" must be a number')
+    }
+    {% if details.minimum %}
+    if (body.{{ property }} < {{ details.minimum }}) {
+      errors.push('Field "{{ property }}" must be at least {{ details.minimum }}')
+    }
+    {% endif %}
+    {% if details.maximum %}
+    if (body.{{ property }} > {{ details.maximum }}) {
+      errors.push('Field "{{ property }}" cannot exceed {{ details.maximum }}')
+    }
+    {% endif %}
+    {% elif details.type === 'boolean' %}
+    if (typeof body.{{ property }} !== 'boolean') {
+      errors.push('Field "{{ property }}" must be a boolean')
+    }
+    {% elif details.type === 'array' %}
+    if (!Array.isArray(body.{{ property }})) {
+      errors.push('Field "{{ property }}" must be an array')
+    }
+    {% elif details.enum %}
+    const validValues{{ property | pascalCase }} = [{{ details.enum | map('tojson') | join(', ') }}]
+    if (!validValues{{ property | pascalCase }}.includes(body.{{ property }})) {
+      errors.push(`Field "{{ property }}" must be one of: ${validValues{{ property | pascalCase }}.join(', ')}`)
+    }
+    {% endif %}
+  }
+  {% endfor %}
+
+  return { valid: errors.length === 0, errors }
+}
+{% endif %}
+
+{% if operation.security %}
+/**
+ * Validate authentication for {{ operationId }}
+ */
+async function validateAuth(event: any): Promise<{ valid: boolean; message?: string; user?: any }> {
+  const authHeader = getHeader(event, 'authorization')
+  
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return { valid: false, message: 'Missing or invalid authorization header' }
+  }
+
+  const token = authHeader.slice(7)
+  
+  try {
+    // Validate JWT token (implement your token validation logic)
+    const user = await verifyJWTToken(token)
+    
+    {% if operation.security.scopes %}
+    // Check required scopes
+    const requiredScopes = [{{ operation.security.scopes | map('tojson') | join(', ') }}]
+    const hasRequiredScopes = requiredScopes.every(scope => user.scopes?.includes(scope))
+    
+    if (!hasRequiredScopes) {
+      return { valid: false, message: 'Insufficient permissions' }
+    }
+    {% endif %}
+
+    return { valid: true, user }
+  } catch (error) {
+    return { valid: false, message: 'Invalid token' }
+  }
+}
+
+/**
+ * Verify JWT token (implement your token verification logic)
+ */
+async function verifyJWTToken(token: string): Promise<any> {
+  // Implement JWT verification logic here
+  // This is a placeholder - replace with actual implementation
+  throw new Error('JWT verification not implemented')
+}
+{% endif %}
+
+/**
+ * Business logic handlers for {{ operationId }}
+ */
+{% if operation.method.lower() === 'get' %}
+async function handle{{ operationId | pascalCase }}Get(context: {
+  {% if operation.parameters %}
+  params: Record<string, any>;
+  query: Record<string, any>;
+  {% endif %}
+  {% if operation.security %}
+  user: any;
+  {% endif %}
+}): Promise<any> {
+  // Implement your GET logic here
+  // This is a placeholder - replace with actual implementation
+  
+  return {
+    {% if responseSchema %}
+    {% for property, details in responseSchema.properties %}
+    {{ property }}: {{ details.example | tojson | default('null') }},
+    {% endfor %}
+    {% else %}
+    success: true,
+    message: 'Operation completed successfully'
+    {% endif %}
+  }
+}
+{% elif operation.method.lower() === 'post' %}
+async function handle{{ operationId | pascalCase }}Post(context: {
+  body: any;
+  {% if operation.parameters %}
+  params: Record<string, any>;
+  query: Record<string, any>;
+  {% endif %}
+  {% if operation.security %}
+  user: any;
+  {% endif %}
+}): Promise<any> {
+  // Implement your POST logic here
+  // This is a placeholder - replace with actual implementation
+  
+  return {
+    {% if responseSchema %}
+    {% for property, details in responseSchema.properties %}
+    {{ property }}: {{ details.example | tojson | default('null') }},
+    {% endfor %}
+    {% else %}
+    success: true,
+    message: 'Resource created successfully'
+    {% endif %}
+  }
+}
+{% elif operation.method.lower() === 'put' %}
+async function handle{{ operationId | pascalCase }}Put(context: {
+  body: any;
+  {% if operation.parameters %}
+  params: Record<string, any>;
+  query: Record<string, any>;
+  {% endif %}
+  {% if operation.security %}
+  user: any;
+  {% endif %}
+}): Promise<any> {
+  // Implement your PUT logic here
+  // This is a placeholder - replace with actual implementation
+  
+  return {
+    {% if responseSchema %}
+    {% for property, details in responseSchema.properties %}
+    {{ property }}: {{ details.example | tojson | default('null') }},
+    {% endfor %}
+    {% else %}
+    success: true,
+    message: 'Resource updated successfully'
+    {% endif %}
+  }
+}
+{% elif operation.method.lower() === 'delete' %}
+async function handle{{ operationId | pascalCase }}Delete(context: {
+  {% if operation.parameters %}
+  params: Record<string, any>;
+  query: Record<string, any>;
+  {% endif %}
+  {% if operation.security %}
+  user: any;
+  {% endif %}
+}): Promise<any> {
+  // Implement your DELETE logic here
+  // This is a placeholder - replace with actual implementation
+  
+  return {
+    success: true,
+    message: 'Resource deleted successfully'
+  }
+}
+{% endif %}

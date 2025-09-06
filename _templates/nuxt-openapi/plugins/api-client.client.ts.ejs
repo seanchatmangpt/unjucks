@@ -1,0 +1,456 @@
+---
+to: plugins/{{ serviceName | kebabCase }}-client.client.ts
+skipIf: "{{ skipIf }}"
+---
+import type { 
+  {{ serviceName | pascalCase }}Client,
+  {{ serviceName | pascalCase }}Config,
+  ApiClientOptions
+} from '~/types/{{ serviceName | kebabCase }}'
+
+/**
+ * {{ serviceName | titleCase }} API Client Plugin
+ * Generated from OpenAPI specification
+ * 
+ * Provides a fully-typed API client with:
+ * - Authentication handling
+ * - Request/response interceptors
+ * - Error transformation
+ * - Streaming support
+ * - Automatic retries
+ */
+
+export default defineNuxtPlugin(async () => {
+  const config = useRuntimeConfig()
+  
+  // Client configuration
+  const clientConfig: {{ serviceName | pascalCase }}Config = {
+    baseUrl: config.public.{{ serviceName | camelCase }}.baseUrl,
+    timeout: 30000,
+    retries: 2,
+    headers: {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+      'User-Agent': `Nuxt-{{ serviceName | pascalCase }}-Client/{{ config.public.{{ serviceName | camelCase }}.version }}`
+    }
+  }
+  
+  // Create API client instance
+  const client = create{{ serviceName | pascalCase }}Client(clientConfig)
+  
+  // Initialize authentication on client-side
+  if (process.client) {
+    await initializeAuth(client)
+  }
+  
+  return {
+    provide: {
+      {{ serviceName | camelCase }}: client
+    }
+  }
+})
+
+/**
+ * Create API client with all operations
+ */
+function create{{ serviceName | pascalCase }}Client(config: {{ serviceName | pascalCase }}Config): {{ serviceName | pascalCase }}Client {
+  let authToken: string | null = null
+  let apiKey: string | null = null
+  
+  // Request interceptors
+  const requestInterceptors: Array<(config: any) => any> = []
+  const responseInterceptors: Array<(response: any) => any> = []
+  const errorInterceptors: Array<(error: any) => any> = []
+  
+  // Base fetch function with interceptors
+  const apiRequest = async <T>(endpoint: string, options: RequestInit = {}): Promise<T> => {
+    let requestConfig = {
+      ...options,
+      headers: {
+        ...config.headers,
+        ...options.headers
+      }
+    }
+    
+    // Apply authentication
+    if (authToken) {
+      requestConfig.headers = {
+        ...requestConfig.headers,
+        'Authorization': `Bearer ${authToken}`
+      }
+    }
+    
+    if (apiKey) {
+      requestConfig.headers = {
+        ...requestConfig.headers,
+        'X-API-Key': apiKey
+      }
+    }
+    
+    // Apply request interceptors
+    for (const interceptor of requestInterceptors) {
+      requestConfig = await interceptor(requestConfig)
+    }
+    
+    const url = endpoint.startsWith('http') ? endpoint : `${config.baseUrl}${endpoint}`
+    
+    try {
+      // Retry logic
+      let lastError: Error | null = null
+      const maxRetries = config.retries || 0
+      
+      for (let attempt = 0; attempt <= maxRetries; attempt++) {
+        try {
+          const response = await $fetch<T>(url, {
+            ...requestConfig,
+            timeout: config.timeout,
+            onResponseError({ response }) {
+              const apiError = new Error(response._data?.error || response.statusText)
+              ;(apiError as any).statusCode = response.status
+              ;(apiError as any).data = response._data
+              throw apiError
+            }
+          })
+          
+          // Apply response interceptors
+          let finalResponse = response
+          for (const interceptor of responseInterceptors) {
+            finalResponse = await interceptor(finalResponse)
+          }
+          
+          return finalResponse
+          
+        } catch (error: any) {
+          lastError = error
+          
+          // Don't retry on 4xx errors (client errors)
+          if (error.statusCode && error.statusCode >= 400 && error.statusCode < 500) {
+            break
+          }
+          
+          // Don't retry on last attempt
+          if (attempt === maxRetries) {
+            break
+          }
+          
+          // Exponential backoff
+          const delay = Math.min(1000 * Math.pow(2, attempt), 10000)
+          await new Promise(resolve => setTimeout(resolve, delay))
+        }
+      }
+      
+      // Apply error interceptors
+      let finalError = lastError!
+      for (const interceptor of errorInterceptors) {
+        finalError = await interceptor(finalError)
+      }
+      
+      throw finalError
+      
+    } catch (error: any) {
+      // Transform error to standardized format
+      const apiError = {
+        error: error.data?.error || error.message || 'Unknown error',
+        code: error.data?.code || `HTTP_${error.statusCode || 500}`,
+        status: error.statusCode || 500,
+        details: error.data?.details || {}
+      }
+      
+      throw apiError
+    }
+  }
+  
+  const client: {{ serviceName | pascalCase }}Client = {
+    config,
+    
+    {% for operation in operations %}
+    // {{ operation.summary }}
+    async {{ operation.operationId }}(
+      {% if operation.hasRequestBody %}request{% endif %}
+      {% if operation.hasPathParams %}{% for param in operation.pathParams %}{% if operation.hasRequestBody %}, {% endif %}{{ param.name }}{% endfor %}{% endif %}
+      {% if operation.hasQueryParams %}, options{% endif %}
+    ) {
+      let path = '{{ operation.path }}'
+      
+      {% if operation.hasPathParams %}
+      // Replace path parameters
+      {% for param in operation.pathParams %}
+      path = path.replace('{{"{"}}{{ param.name }}{{"}"}}', encodeURIComponent(String({{ param.name }})))
+      {% endfor %}
+      {% endif %}
+      
+      const requestOptions: RequestInit = {
+        method: '{{ operation.method | upper }}'
+      }
+      
+      {% if operation.hasRequestBody %}
+      requestOptions.body = JSON.stringify(request)
+      {% endif %}
+      
+      {% if operation.hasQueryParams %}
+      if (options) {
+        const searchParams = new URLSearchParams()
+        Object.entries(options).forEach(([key, value]) => {
+          if (value !== undefined && value !== null) {
+            searchParams.append(key, String(value))
+          }
+        })
+        if (searchParams.toString()) {
+          path += `?${searchParams.toString()}`
+        }
+      }
+      {% endif %}
+      
+      return await apiRequest<{{ operation.responseType }}>(path, requestOptions)
+    },
+    
+    {% endfor %}
+    
+    // Utility methods
+    setAuthToken(token: string) {
+      authToken = token
+      
+      // Persist token on client-side
+      if (process.client) {
+        const tokenCookie = useCookie('{{ serviceName | kebabCase }}-auth-token', {
+          secure: true,
+          sameSite: 'strict',
+          maxAge: 60 * 60 * 24 * 7 // 7 days
+        })
+        tokenCookie.value = token
+      }
+    },
+    
+    setApiKey(key: string) {
+      apiKey = key
+      
+      // Persist API key on client-side
+      if (process.client) {
+        const apiKeyCookie = useCookie('{{ serviceName | kebabCase }}-api-key', {
+          secure: true,
+          sameSite: 'strict'
+        })
+        apiKeyCookie.value = key
+      }
+    },
+    
+    clearAuth() {
+      authToken = null
+      apiKey = null
+      
+      // Clear cookies on client-side
+      if (process.client) {
+        const tokenCookie = useCookie('{{ serviceName | kebabCase }}-auth-token')
+        const apiKeyCookie = useCookie('{{ serviceName | kebabCase }}-api-key')
+        tokenCookie.value = null
+        apiKeyCookie.value = null
+      }
+    },
+    
+    updateConfig(newConfig: Partial<{{ serviceName | pascalCase }}Config>) {
+      Object.assign(config, newConfig)
+    }
+  }
+  
+  // Add interceptor methods (non-enumerable)
+  Object.defineProperties(client, {
+    addRequestInterceptor: {
+      value: (interceptor: (config: any) => any) => {
+        requestInterceptors.push(interceptor)
+      },
+      writable: false,
+      enumerable: false
+    },
+    addResponseInterceptor: {
+      value: (interceptor: (response: any) => any) => {
+        responseInterceptors.push(interceptor)
+      },
+      writable: false,
+      enumerable: false
+    },
+    addErrorInterceptor: {
+      value: (interceptor: (error: any) => any) => {
+        errorInterceptors.push(interceptor)
+      },
+      writable: false,
+      enumerable: false
+    }
+  })
+  
+  // Add default interceptors
+  setupDefaultInterceptors(client as any)
+  
+  return client
+}
+
+/**
+ * Initialize authentication from stored credentials
+ */
+async function initializeAuth(client: {{ serviceName | pascalCase }}Client) {
+  {% if hasBearerAuth %}
+  // Try to restore JWT token
+  const tokenCookie = useCookie('{{ serviceName | kebabCase }}-auth-token')
+  if (tokenCookie.value) {
+    try {
+      // Validate token is not expired
+      const payload = parseJWT(tokenCookie.value)
+      if (payload && payload.exp > Date.now() / 1000) {
+        client.setAuthToken(tokenCookie.value)
+      } else {
+        // Token expired, clear it
+        tokenCookie.value = null
+      }
+    } catch (error) {
+      console.warn('Invalid stored auth token:', error)
+      tokenCookie.value = null
+    }
+  }
+  {% endif %}
+  
+  {% if hasApiKeyAuth %}
+  // Try to restore API key
+  const apiKeyCookie = useCookie('{{ serviceName | kebabCase }}-api-key')
+  if (apiKeyCookie.value) {
+    client.setApiKey(apiKeyCookie.value)
+  }
+  {% endif %}
+}
+
+/**
+ * Setup default request/response interceptors
+ */
+function setupDefaultInterceptors(client: any) {
+  // Request ID interceptor
+  client.addRequestInterceptor((config: any) => {
+    config.headers = {
+      ...config.headers,
+      'X-Request-ID': generateRequestId()
+    }
+    return config
+  })
+  
+  // Correlation ID interceptor
+  client.addRequestInterceptor((config: any) => {
+    const correlationId = useNuxtApp().$router?.currentRoute?.value?.query?.correlationId as string
+    if (correlationId) {
+      config.headers = {
+        ...config.headers,
+        'X-Correlation-ID': correlationId
+      }
+    }
+    return config
+  })
+  
+  {% if features.monitoring %}
+  // Performance monitoring interceptor
+  client.addRequestInterceptor((config: any) => {
+    config._startTime = Date.now()
+    return config
+  })
+  
+  client.addResponseInterceptor((response: any, config?: any) => {
+    if (config?._startTime) {
+      const duration = Date.now() - config._startTime
+      // Report metrics to monitoring service
+      reportMetrics({
+        operation: config.url?.split('/').pop() || 'unknown',
+        duration,
+        status: 'success'
+      })
+    }
+    return response
+  })
+  
+  client.addErrorInterceptor((error: any, config?: any) => {
+    if (config?._startTime) {
+      const duration = Date.now() - config._startTime
+      // Report error metrics
+      reportMetrics({
+        operation: config.url?.split('/').pop() || 'unknown',
+        duration,
+        status: 'error',
+        errorCode: error.status
+      })
+    }
+    return error
+  })
+  {% endif %}
+  
+  {% if features.caching %}
+  // Response caching interceptor for GET requests
+  client.addResponseInterceptor((response: any, config?: any) => {
+    if (config?.method === 'GET' && shouldCacheResponse(config.url)) {
+      setCacheEntry(config.url, response)
+    }
+    return response
+  })
+  {% endif %}
+}
+
+// Utility functions
+{% if hasBearerAuth %}
+function parseJWT(token: string): any {
+  try {
+    const payload = token.split('.')[1]
+    const decoded = atob(payload.replace(/-/g, '+').replace(/_/g, '/'))
+    return JSON.parse(decoded)
+  } catch {
+    return null
+  }
+}
+{% endif %}
+
+function generateRequestId(): string {
+  return `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+}
+
+{% if features.monitoring %}
+function reportMetrics(metrics: any) {
+  // Implementation depends on your monitoring solution
+  if (process.client && window.gtag) {
+    window.gtag('event', 'api_call', {
+      custom_parameter_operation: metrics.operation,
+      custom_parameter_duration: metrics.duration,
+      custom_parameter_status: metrics.status
+    })
+  }
+}
+{% endif %}
+
+{% if features.caching %}
+const responseCache = new Map()
+
+function shouldCacheResponse(url: string): boolean {
+  // Cache GET requests for models, health checks, etc.
+  return url.includes('/models') || url.includes('/health')
+}
+
+function setCacheEntry(url: string, response: any) {
+  const ttl = 5 * 60 * 1000 // 5 minutes
+  responseCache.set(url, {
+    data: response,
+    expires: Date.now() + ttl
+  })
+  
+  // Cleanup expired entries periodically
+  setTimeout(() => {
+    const entry = responseCache.get(url)
+    if (entry && Date.now() > entry.expires) {
+      responseCache.delete(url)
+    }
+  }, ttl)
+}
+{% endif %}
+
+// Type augmentation for Nuxt app
+declare module '#app' {
+  interface NuxtApp {
+    ${{ serviceName | camelCase }}: {{ serviceName | pascalCase }}Client
+  }
+}
+
+declare module 'vue' {
+  interface ComponentCustomProperties {
+    ${{ serviceName | camelCase }}: {{ serviceName | pascalCase }}Client
+  }
+}

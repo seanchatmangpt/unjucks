@@ -1,0 +1,488 @@
+---
+to: "{{ outputDir }}/plugins/{{ pluginName | kebabCase }}.client.ts"
+inject: false
+skipIf: "!generatePlugin"
+---
+/**
+ * Nuxt plugin for {{ appName || "OpenAPI" }} client
+ * Generated from OpenAPI specification
+ */
+import { $fetch, type FetchOptions } from 'ofetch'
+
+{% if authProvider === 'jwt' %}
+interface AuthState {
+  token: string | null
+  refreshToken: string | null
+  user: any | null
+  expiresAt: number | null
+}
+
+class AuthService {
+  private state = ref<AuthState>({
+    token: null,
+    refreshToken: null,
+    user: null,
+    expiresAt: null
+  })
+
+  constructor() {
+    // Restore auth state from localStorage
+    if (process.client) {
+      this.restoreAuthState()
+    }
+  }
+
+  isAuthenticated(): boolean {
+    return !!(this.state.value.token && this.isTokenValid())
+  }
+
+  private isTokenValid(): boolean {
+    if (!this.state.value.expiresAt) return true
+    return Date.now() < this.state.value.expiresAt
+  }
+
+  async login(credentials: { email: string; password: string }) {
+    try {
+      const response = await $fetch('/auth/login', {
+        method: 'POST',
+        body: credentials
+      })
+
+      this.setAuthData(response)
+      return response
+    } catch (error) {
+      throw new Error('Login failed')
+    }
+  }
+
+  async refresh() {
+    if (!this.state.value.refreshToken) {
+      throw new Error('No refresh token available')
+    }
+
+    try {
+      const response = await $fetch('/auth/refresh', {
+        method: 'POST',
+        body: { refreshToken: this.state.value.refreshToken }
+      })
+
+      this.setAuthData(response)
+      return response
+    } catch (error) {
+      this.logout()
+      throw new Error('Token refresh failed')
+    }
+  }
+
+  logout() {
+    this.state.value = {
+      token: null,
+      refreshToken: null,
+      user: null,
+      expiresAt: null
+    }
+
+    if (process.client) {
+      localStorage.removeItem('auth_token')
+      localStorage.removeItem('auth_refresh_token')
+      localStorage.removeItem('auth_user')
+      localStorage.removeItem('auth_expires_at')
+    }
+  }
+
+  getToken(): string | null {
+    return this.state.value.token
+  }
+
+  getUser() {
+    return this.state.value.user
+  }
+
+  private setAuthData(authData: any) {
+    this.state.value = {
+      token: authData.accessToken || authData.token,
+      refreshToken: authData.refreshToken,
+      user: authData.user,
+      expiresAt: authData.expiresIn 
+        ? Date.now() + (authData.expiresIn * 1000)
+        : null
+    }
+
+    if (process.client) {
+      localStorage.setItem('auth_token', this.state.value.token!)
+      if (this.state.value.refreshToken) {
+        localStorage.setItem('auth_refresh_token', this.state.value.refreshToken)
+      }
+      if (this.state.value.user) {
+        localStorage.setItem('auth_user', JSON.stringify(this.state.value.user))
+      }
+      if (this.state.value.expiresAt) {
+        localStorage.setItem('auth_expires_at', this.state.value.expiresAt.toString())
+      }
+    }
+  }
+
+  private restoreAuthState() {
+    const token = localStorage.getItem('auth_token')
+    const refreshToken = localStorage.getItem('auth_refresh_token')
+    const userStr = localStorage.getItem('auth_user')
+    const expiresAtStr = localStorage.getItem('auth_expires_at')
+
+    if (token) {
+      this.state.value = {
+        token,
+        refreshToken,
+        user: userStr ? JSON.parse(userStr) : null,
+        expiresAt: expiresAtStr ? parseInt(expiresAtStr) : null
+      }
+
+      // Check if token is expired and try to refresh
+      if (!this.isTokenValid() && refreshToken) {
+        this.refresh().catch(() => {
+          this.logout()
+        })
+      }
+    }
+  }
+}
+{% elif authProvider === 'oauth2' %}
+class OAuth2Service {
+  private config = useRuntimeConfig()
+
+  getAuthorizationUrl(options: {
+    scopes?: string[]
+    state?: string
+    redirectUri?: string
+  } = {}) {
+    const params = new URLSearchParams({
+      response_type: 'code',
+      client_id: this.config.public.oauthClientId,
+      redirect_uri: options.redirectUri || `${window.location.origin}/auth/callback`,
+      scope: (options.scopes || []).join(' '),
+      ...(options.state && { state: options.state })
+    })
+
+    return `${this.config.public.oauthAuthUrl}?${params.toString()}`
+  }
+
+  async exchangeCodeForToken(code: string, redirectUri?: string) {
+    return await $fetch('/auth/oauth/callback', {
+      method: 'POST',
+      body: {
+        code,
+        redirect_uri: redirectUri || `${window.location.origin}/auth/callback`
+      }
+    })
+  }
+}
+{% elif authProvider === 'apiKey' %}
+class APIKeyService {
+  private apiKey = ref<string | null>(null)
+
+  constructor() {
+    if (process.client) {
+      this.apiKey.value = localStorage.getItem('api_key')
+    }
+  }
+
+  setAPIKey(key: string) {
+    this.apiKey.value = key
+    if (process.client) {
+      localStorage.setItem('api_key', key)
+    }
+  }
+
+  getAPIKey(): string | null {
+    return this.apiKey.value
+  }
+
+  clearAPIKey() {
+    this.apiKey.value = null
+    if (process.client) {
+      localStorage.removeItem('api_key')
+    }
+  }
+
+  isAuthenticated(): boolean {
+    return !!this.apiKey.value
+  }
+}
+{% endif %}
+
+// API Client class
+class {{ clientName || "APIClient" }} {
+  private config = useRuntimeConfig()
+  {% if authProvider === 'jwt' %}
+  private auth: AuthService
+  {% elif authProvider === 'oauth2' %}
+  private auth: OAuth2Service
+  {% elif authProvider === 'apiKey' %}
+  private auth: APIKeyService
+  {% endif %}
+
+  constructor(
+    {% if authProvider === 'jwt' %}
+    auth: AuthService
+    {% elif authProvider === 'oauth2' %}
+    auth: OAuth2Service
+    {% elif authProvider === 'apiKey' %}
+    auth: APIKeyService
+    {% endif %}
+  ) {
+    this.auth = auth
+  }
+
+  private async getHeaders(): Promise<Record<string, string>> {
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json'
+    }
+
+    {% if authProvider === 'jwt' %}
+    const token = this.auth.getToken()
+    if (token) {
+      headers.Authorization = `Bearer ${token}`
+    }
+    {% elif authProvider === 'oauth2' %}
+    const token = this.auth.getAccessToken?.()
+    if (token) {
+      headers.Authorization = `Bearer ${token}`
+    }
+    {% elif authProvider === 'apiKey' %}
+    const apiKey = this.auth.getAPIKey()
+    if (apiKey) {
+      headers['X-API-Key'] = apiKey
+    }
+    {% endif %}
+
+    return headers
+  }
+
+  async request<T = any>(
+    url: string, 
+    options: FetchOptions & {
+      skipAuth?: boolean
+    } = {}
+  ): Promise<T> {
+    const { skipAuth, ...fetchOptions } = options
+    
+    const defaultOptions: FetchOptions = {
+      baseURL: this.config.public.apiBase,
+      headers: skipAuth ? undefined : await this.getHeaders(),
+      {% if enableCaching %}
+      // Add caching configuration
+      cache: 'default',
+      {% endif %}
+      
+      // Error handling
+      onResponseError({ response }) {
+        {% if authProvider === 'jwt' %}
+        // Handle token expiration
+        if (response.status === 401 && !skipAuth) {
+          // Try to refresh token
+          return this.auth.refresh().then(() => {
+            // Retry the original request
+            return this.request(url, { ...options, skipAuth: false })
+          }).catch(() => {
+            // Redirect to login if refresh fails
+            this.auth.logout()
+            throw new Error('Authentication required')
+          })
+        }
+        {% endif %}
+
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`)
+      },
+
+      {% if enableOpenTelemetry %}
+      // Add tracing headers
+      onRequest({ options }) {
+        options.headers = {
+          ...options.headers,
+          'x-trace-id': crypto.randomUUID(),
+          'x-client': '{{ appName || "nuxt-openapi-client" }}'
+        }
+      },
+      {% endif %}
+
+      {% if enableMetrics %}
+      // Performance monitoring
+      onRequestError({ error }) {
+        console.error('API Request Error:', error)
+        // Send to monitoring service
+      }
+      {% endif %}
+    }
+
+    return $fetch(url, defu(fetchOptions, defaultOptions))
+  }
+
+  // Convenience methods
+  get<T = any>(url: string, options?: FetchOptions): Promise<T> {
+    return this.request<T>(url, { method: 'GET', ...options })
+  }
+
+  post<T = any>(url: string, body?: any, options?: FetchOptions): Promise<T> {
+    return this.request<T>(url, { method: 'POST', body, ...options })
+  }
+
+  put<T = any>(url: string, body?: any, options?: FetchOptions): Promise<T> {
+    return this.request<T>(url, { method: 'PUT', body, ...options })
+  }
+
+  patch<T = any>(url: string, body?: any, options?: FetchOptions): Promise<T> {
+    return this.request<T>(url, { method: 'PATCH', body, ...options })
+  }
+
+  delete<T = any>(url: string, options?: FetchOptions): Promise<T> {
+    return this.request<T>(url, { method: 'DELETE', ...options })
+  }
+
+  {% if enableStreaming %}
+  // Streaming support
+  async stream(url: string, options: {
+    onData?: (chunk: any) => void
+    onError?: (error: Error) => void
+    onComplete?: () => void
+    signal?: AbortSignal
+  } = {}) {
+    const headers = await this.getHeaders()
+    
+    try {
+      const response = await fetch(`${this.config.public.apiBase}${url}`, {
+        method: 'GET',
+        headers,
+        signal: options.signal
+      })
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`)
+      }
+
+      const reader = response.body?.getReader()
+      if (!reader) {
+        throw new Error('Response body is not readable')
+      }
+
+      const decoder = new TextDecoder()
+
+      try {
+        while (true) {
+          const { done, value } = await reader.read()
+
+          if (done) {
+            options.onComplete?.()
+            break
+          }
+
+          const chunk = decoder.decode(value)
+          const lines = chunk.split('\n').filter(line => line.trim())
+
+          for (const line of lines) {
+            try {
+              const data = JSON.parse(line)
+              options.onData?.(data)
+            } catch {
+              // Handle non-JSON chunks
+              options.onData?.(line)
+            }
+          }
+        }
+      } finally {
+        reader.releaseLock()
+      }
+    } catch (error) {
+      options.onError?.(error as Error)
+    }
+  }
+  {% endif %}
+
+  {% if enableRealtime %}
+  // WebSocket support
+  connectWebSocket(endpoint: string, options: {
+    onMessage?: (data: any) => void
+    onError?: (error: Event) => void
+    onClose?: (event: CloseEvent) => void
+    onOpen?: (event: Event) => void
+  } = {}) {
+    const wsUrl = `${this.config.public.websocketUrl}${endpoint}`
+    const ws = new WebSocket(wsUrl)
+
+    ws.onopen = (event) => {
+      {% if authProvider === 'jwt' %}
+      // Send authentication token
+      const token = this.auth.getToken()
+      if (token) {
+        ws.send(JSON.stringify({ type: 'auth', token }))
+      }
+      {% endif %}
+      
+      options.onOpen?.(event)
+    }
+
+    ws.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data)
+        options.onMessage?.(data)
+      } catch {
+        options.onMessage?.(event.data)
+      }
+    }
+
+    ws.onerror = options.onError
+    ws.onclose = options.onClose
+
+    return ws
+  }
+  {% endif %}
+}
+
+export default defineNuxtPlugin(async () => {
+  {% if authProvider === 'jwt' %}
+  const auth = new AuthService()
+  {% elif authProvider === 'oauth2' %}  
+  const auth = new OAuth2Service()
+  {% elif authProvider === 'apiKey' %}
+  const auth = new APIKeyService()
+  {% endif %}
+  
+  const apiClient = new {{ clientName || "APIClient" }}(auth)
+
+  return {
+    provide: {
+      {% if authProvider %}
+      auth,
+      {% endif %}
+      {{ pluginName | camelCase || "apiClient" }}: apiClient,
+      api: apiClient // Shorter alias
+    }
+  }
+})
+
+// Global type declarations for auto-completion
+declare module '#app' {
+  interface NuxtApp {
+    {% if authProvider === 'jwt' %}
+    $auth: AuthService
+    {% elif authProvider === 'oauth2' %}
+    $auth: OAuth2Service
+    {% elif authProvider === 'apiKey' %}
+    $auth: APIKeyService
+    {% endif %}
+    ${{ pluginName | camelCase || "apiClient" }}: {{ clientName || "APIClient" }}
+    $api: {{ clientName || "APIClient" }}
+  }
+}
+
+declare module 'vue' {
+  interface ComponentCustomProperties {
+    {% if authProvider === 'jwt' %}
+    $auth: AuthService
+    {% elif authProvider === 'oauth2' %}
+    $auth: OAuth2Service  
+    {% elif authProvider === 'apiKey' %}
+    $auth: APIKeyService
+    {% endif %}
+    ${{ pluginName | camelCase || "apiClient" }}: {{ clientName || "APIClient" }}
+    $api: {{ clientName || "APIClient" }}
+  }
+}

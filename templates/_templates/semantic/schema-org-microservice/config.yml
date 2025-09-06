@@ -1,0 +1,203 @@
+---
+name: "Schema.org Microservice"
+description: "Generate microservices with embedded Schema.org structured data for enhanced SEO and API discoverability"
+category: "semantic-web"
+jtbd: "Create API services that automatically generate structured data markup and enhance digital presence"
+tags: 
+  - schema-org
+  - structured-data
+  - seo
+  - json-ld
+  - microdata
+  - semantic-markup
+
+# RDF/Semantic Configuration with Schema.org vocabulary
+rdf:
+  type: "inline"
+  source: |
+    @prefix schema: <http://schema.org/> .
+    @prefix unjucks: <http://unjucks.dev/ontology/> .
+    @prefix seo: <http://seo.org/> .
+    @prefix api: <http://api-semantics.org/> .
+    @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+    
+    # Schema.org Organization
+    schema:Organization a unjucks:SchemaResource ;
+        unjucks:generatesAPI "/api/organization" ;
+        unjucks:generatesJSONLD true ;
+        unjucks:embedsInHTML true ;
+        unjucks:enhancesSEO true ;
+        unjucks:hasProperty schema:name, schema:url, schema:logo, schema:contactPoint ;
+        unjucks:enablesRichSnippets true .
+    
+    schema:Product a unjucks:SchemaResource ;
+        unjucks:generatesAPI "/api/products" ;
+        unjucks:generatesJSONLD true ;
+        unjucks:enhancesSEO true ;
+        unjucks:hasProperty schema:name, schema:description, schema:offers, schema:brand ;
+        unjucks:enablesProductRichSnippets true ;
+        unjucks:integratesEcommerce true .
+    
+    schema:Service a unjucks:SchemaResource ;
+        unjucks:generatesAPI "/api/services" ;
+        unjucks:generatesJSONLD true ;
+        unjucks:hasProperty schema:name, schema:description, schema:provider, schema:areaServed ;
+        unjucks:enablesServiceMarkup true .
+    
+    schema:Person a unjucks:SchemaResource ;
+        unjucks:generatesAPI "/api/people" ;
+        unjucks:generatesJSONLD true ;
+        unjucks:hasProperty schema:name, schema:jobTitle, schema:worksFor, schema:sameAs ;
+        unjucks:enablesPersonRichSnippets true ;
+        unjucks:integratesLinkedIn true .
+    
+    schema:Event a unjucks:SchemaResource ;
+        unjucks:generatesAPI "/api/events" ;
+        unjucks:generatesJSONLD true ;
+        unjucks:hasProperty schema:name, schema:startDate, schema:location, schema:organizer ;
+        unjucks:enablesEventRichSnippets true ;
+        unjucks:integratesCalendar true .
+    
+    schema:Article a unjucks:SchemaResource ;
+        unjucks:generatesAPI "/api/articles" ;
+        unjucks:generatesJSONLD true ;
+        unjucks:hasProperty schema:headline, schema:author, schema:datePublished, schema:articleBody ;
+        unjucks:enablesNewsArticleMarkup true ;
+        unjucks:integratesCMS true .
+    
+    # SEO Enhancement Rules
+    seo:RichSnippets a unjucks:SEOFeature ;
+        unjucks:improvesCTR "15-30%" ;
+        unjucks:enhancesVisibility true ;
+        unjucks:supportedByGoogle true ;
+        unjucks:supportedByBing true ;
+        unjucks:supportedByYandex true .
+    
+    # API Discoverability
+    api:OpenAPIIntegration a unjucks:APIFeature ;
+        unjucks:generatesOpenAPISpec true ;
+        unjucks:enhancesDocumentation true ;
+        unjucks:enablesAPIMarketplace true ;
+        unjucks:semanticDescriptions true .
+
+variables:
+  - name: "serviceName"
+    type: "string"
+    description: "Name of the microservice"
+    required: true
+    validation: "^[a-z][a-z0-9-]*$"
+    examples: ["product-catalog", "organization-api", "event-manager"]
+    
+  - name: "schemaTypes"
+    type: "array"
+    description: "Schema.org types to implement"
+    required: true
+    options: ["Organization", "Product", "Service", "Person", "Event", "Article", "Place", "Review"]
+    defaultValue: ["Organization", "Product"]
+    
+  - name: "outputFormats"
+    type: "array"
+    description: "Structured data output formats"
+    required: true
+    options: ["JSON-LD", "Microdata", "RDFa", "OpenGraph", "Twitter Cards"]
+    defaultValue: ["JSON-LD", "OpenGraph"]
+    
+  - name: "seoLevel"
+    type: "string"
+    description: "SEO optimization level"
+    required: true
+    options: ["basic", "enhanced", "advanced", "enterprise"]
+    defaultValue: "enhanced"
+    
+  - name: "richSnippets"
+    type: "array"
+    description: "Rich snippet types to enable"
+    required: true
+    options: ["Product", "Organization", "Person", "Event", "Article", "Review", "FAQ", "Breadcrumb"]
+    defaultValue: ["Product", "Organization"]
+    
+  - name: "searchEngines"
+    type: "array"
+    description: "Search engines to optimize for"
+    required: true
+    options: ["Google", "Bing", "Yahoo", "DuckDuckGo", "Yandex", "Baidu"]
+    defaultValue: ["Google", "Bing"]
+    
+  - name: "apiDocumentation"
+    type: "string"
+    description: "API documentation enhancement"
+    required: true
+    options: ["basic", "openapi", "graphql", "semantic-openapi"]
+    defaultValue: "semantic-openapi"
+    
+  - name: "integrateAnalytics"
+    type: "boolean"
+    description: "Integrate with analytics platforms"
+    required: false
+    defaultValue: true
+    
+  - name: "enableValidation"
+    type: "boolean"
+    description: "Enable Schema.org markup validation"
+    required: false
+    defaultValue: true
+    
+  - name: "cacheOptimization"
+    type: "boolean"
+    description: "Enable structured data caching"
+    required: false
+    defaultValue: true
+
+files:
+  - template: "schema-service.ts.njk"
+    to: "src/services/{{ serviceName | kebabCase }}.service.ts"
+    
+  - template: "schema-controller.ts.njk"
+    to: "src/controllers/{{ serviceName | kebabCase }}.controller.ts"
+    
+  - template: "json-ld-generator.ts.njk"
+    to: "src/generators/json-ld-generator.ts"
+    
+  - template: "seo-middleware.ts.njk"
+    to: "src/middleware/seo-middleware.ts"
+    
+  - template: "structured-data-validator.ts.njk"
+    to: "src/validators/structured-data-validator.ts"
+    skipIf: "!enableValidation"
+    
+  - template: "schema-cache.ts.njk"
+    to: "src/cache/schema-cache.ts"
+    skipIf: "!cacheOptimization"
+    
+  - template: "openapi-schema-integration.ts.njk"
+    to: "src/docs/openapi-schema-integration.ts"
+    skipIf: "apiDocumentation != 'semantic-openapi'"
+    
+  - template: "analytics-integration.ts.njk"
+    to: "src/integrations/analytics-integration.ts"
+    skipIf: "!integrateAnalytics"
+    
+  - template: "deployment.yaml.njk"
+    to: "k8s/{{ serviceName | kebabCase }}-deployment.yaml"
+    
+  - template: "schema-config.yaml.njk"
+    to: "config/schema-org-config.yaml"
+    
+  - template: "seo-documentation.md.njk"
+    to: "docs/seo/schema-org-implementation.md"
+
+inject:
+  - name: "json-ld-injection"
+    description: "Add JSON-LD structured data to existing pages"
+    pattern: "<!-- JSON-LD INJECTION -->"
+    type: "after"
+    
+  - name: "microdata-injection"
+    description: "Add microdata markup to existing HTML"
+    pattern: "<!-- MICRODATA INJECTION -->"
+    type: "after"
+    
+  - name: "seo-headers"
+    description: "Add SEO-optimized headers to API responses"
+    pattern: "// SEO HEADERS INJECTION"
+    type: "after"

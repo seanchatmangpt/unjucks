@@ -1,0 +1,269 @@
+---
+to: "{{ outputDir }}/nuxt.config.ts"
+inject: false
+skipIf: "!generateNuxtConfig"
+---
+// https://nuxt.com/docs/api/configuration/nuxt-config
+export default defineNuxtConfig({
+  devtools: { enabled: true },
+  
+  // Application configuration
+  app: {
+    head: {
+      title: '{{ appName || "OpenAPI Client" }}',
+      meta: [
+        { charset: 'utf-8' },
+        { name: 'viewport', content: 'width=device-width, initial-scale=1' },
+        { hid: 'description', name: 'description', content: '{{ appDescription || "Generated from OpenAPI specification" }}' }
+      ],
+      link: [
+        { rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' }
+      ]
+    }
+  },
+
+  // Server-side rendering
+  {% if enableSSR %}
+  ssr: true,
+  {% else %}
+  ssr: false,
+  {% endif %}
+
+  // Build target
+  {% if buildTarget %}
+  nitro: {
+    preset: '{{ generateNitroPreset | default("node-server") }}'
+  },
+  {% endif %}
+
+  // CSS framework
+  {% if uiFramework === 'nuxt-ui' %}
+  css: ['~/assets/css/main.css'],
+  
+  modules: [
+    '@nuxt/ui',
+    '@pinia/nuxt',
+    '@vueuse/nuxt'
+    {% if enablePWA %},
+    '@vite-pwa/nuxt'
+    {% endif %}
+    {% if enableOpenTelemetry %},
+    '@nuxt/telemetry'
+    {% endif %}
+  ],
+  
+  ui: {
+    global: true,
+    icons: ['heroicons']
+  },
+  {% elif uiFramework === 'vuetify' %}
+  css: ['vuetify/lib/styles/main.sass'],
+  
+  modules: [
+    '@pinia/nuxt',
+    '@vueuse/nuxt'
+  ],
+  
+  build: {
+    transpile: ['vuetify']
+  },
+  
+  vite: {
+    define: {
+      'process.env.DEBUG': false,
+    },
+    css: {
+      preprocessorOptions: {
+        sass: {
+          additionalData: '@use "vuetify/settings" with ($color-pack: false)\n'
+        }
+      }
+    }
+  },
+  {% endif %}
+
+  // Runtime configuration
+  runtimeConfig: {
+    // Private keys (only available on server-side)
+    {% if authProvider === 'jwt' %}
+    jwtSecret: process.env.JWT_SECRET,
+    {% elif authProvider === 'oauth2' %}
+    oauthClientSecret: process.env.OAUTH_CLIENT_SECRET,
+    {% elif authProvider === 'apiKey' %}
+    apiKeySecret: process.env.API_KEY_SECRET,
+    {% endif %}
+    
+    // Public keys (exposed to client-side)
+    public: {
+      apiBase: process.env.API_BASE_URL || '{{ baseUrl || "/api" }}',
+      {% if authProvider === 'oauth2' %}
+      oauthClientId: process.env.OAUTH_CLIENT_ID,
+      oauthAuthUrl: process.env.OAUTH_AUTH_URL,
+      oauthTokenUrl: process.env.OAUTH_TOKEN_URL,
+      {% elif authProvider === 'openIdConnect' %}
+      openIdConnectUrl: process.env.OPENID_CONNECT_URL,
+      {% endif %}
+      {% if enableStreaming %}
+      enableStreaming: {{ enableStreaming | tojson }},
+      {% endif %}
+      {% if enableCaching %}
+      enableCaching: {{ enableCaching | tojson }},
+      {% endif %}
+      {% if enableRealtime %}
+      websocketUrl: process.env.WEBSOCKET_URL || 'ws://localhost:3001',
+      {% endif %}
+    }
+  },
+
+  // TypeScript configuration
+  typescript: {
+    strict: {{ strictTypes | default(true) | tojson }},
+    typeCheck: true
+  },
+
+  // Development server
+  devServer: {
+    port: {{ devServerPort | default(3000) }},
+    {% if enableHMR %}
+    hmr: {
+      port: {{ devServerPort | default(3000) + 1 }}
+    }
+    {% endif %}
+  },
+
+  // Build configuration
+  build: {
+    analyze: process.env.ANALYZE === 'true'
+  },
+
+  // Vite configuration
+  vite: {
+    {% if enableMetrics %}
+    build: {
+      rollupOptions: {
+        plugins: [
+          // Add performance monitoring
+        ]
+      }
+    },
+    {% endif %}
+    
+    define: {
+      __APP_VERSION__: JSON.stringify(process.env.npm_package_version || '1.0.0'),
+      __BUILD_TIME__: JSON.stringify(new Date().toISOString())
+    },
+
+    server: {
+      proxy: {
+        // Proxy API requests during development
+        '/api': {
+          target: process.env.API_BASE_URL || 'http://localhost:3001',
+          changeOrigin: true,
+          secure: false
+        }
+        {% if enableRealtime %},
+        '/ws': {
+          target: process.env.WEBSOCKET_URL || 'ws://localhost:3001',
+          ws: true,
+          changeOrigin: true
+        }
+        {% endif %}
+      }
+    }
+  },
+
+  {% if enablePWA %}
+  // PWA configuration
+  pwa: {
+    registerType: 'autoUpdate',
+    workbox: {
+      navigateFallback: '/',
+      globPatterns: ['**/*.{js,css,html,png,svg,ico}']
+    },
+    client: {
+      installPrompt: true,
+      periodicSyncForUpdates: 20
+    },
+    devOptions: {
+      enabled: true,
+      suppressWarnings: true,
+      navigateFallbackAllowlist: [/^\/$/],
+      type: 'module'
+    },
+    manifest: {
+      name: '{{ appName || "OpenAPI Client" }}',
+      short_name: '{{ appName || "API Client" }}',
+      description: '{{ appDescription || "Generated from OpenAPI specification" }}',
+      theme_color: '#ffffff',
+      background_color: '#ffffff',
+      display: 'standalone',
+      icons: [
+        {
+          src: 'pwa-192x192.png',
+          sizes: '192x192',
+          type: 'image/png'
+        },
+        {
+          src: 'pwa-512x512.png',
+          sizes: '512x512',
+          type: 'image/png'
+        }
+      ]
+    }
+  },
+  {% endif %}
+
+  {% if enableOpenTelemetry %}
+  // Telemetry configuration
+  telemetry: {
+    enabled: true,
+    consent: false
+  },
+  {% endif %}
+
+  // Security headers
+  security: {
+    headers: {
+      contentSecurityPolicy: {
+        'img-src': ["'self'", 'data:', 'https:'],
+        'script-src': ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
+        'style-src': ["'self'", "'unsafe-inline'"],
+        'connect-src': ["'self'", process.env.API_BASE_URL || "'self'"]
+      },
+      crossOriginEmbedderPolicy: process.env.NODE_ENV === 'development' ? 'unsafe-none' : 'require-corp'
+    }
+  },
+
+  // Experimental features
+  experimental: {
+    payloadExtraction: false,
+    inlineSSRStyles: false,
+    {% if enableOfflineSupport %}
+    appManifest: true
+    {% endif %}
+  },
+
+  // Hooks for custom logic
+  hooks: {
+    'render:route': (url, result, context) => {
+      // Custom rendering logic
+      {% if enableSemanticAnnotations %}
+      if (url.includes('/api-test/')) {
+        // Add semantic annotations for API testing pages
+        result.html = result.html.replace(
+          '<head>',
+          '<head>\n    <script type="application/ld+json">\n    {\n      "@context": "https://schema.org",\n      "@type": "SoftwareApplication",\n      "name": "{{ appName | default("API Client") }}",\n      "description": "{{ appDescription | default("Generated from OpenAPI specification") }}",\n      "applicationCategory": "DeveloperApplication"\n    }\n    </script>'
+        )
+      }
+      {% endif %}
+    },
+    
+    'nitro:config': (nitroConfig) => {
+      // Nitro configuration customization
+      {% if enableMetrics %}
+      nitroConfig.experimental = nitroConfig.experimental || {}
+      nitroConfig.experimental.wasm = true
+      {% endif %}
+    }
+  }
+})

@@ -1,0 +1,299 @@
+{% set instruments = ($rdf.query('?s rdf:type unjucks:FinancialInstrument') | rdfObject('unjucks:generatesAPI')) %}
+import { Injectable, Logger } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { RiskCalculator } from '../utils/risk-calculator';
+import { RegulatoryReporter } from './regulatory-reporter';
+import { BaselCalculator } from '../calculators/basel-calculator';
+import { AuditMiddleware } from '../middleware/audit.middleware';
+{% for instrument in fiboInstruments %}
+import { {{ instrument }}Entity } from '../entities/{{ instrument | kebabCase }}.entity';
+import { Create{{ instrument }}Dto, Update{{ instrument }}Dto } from '../dto/{{ instrument | kebabCase }}.dto';
+{% endfor %}
+
+/**
+ * {{ serviceName | titleCase }} Service
+ * 
+ * FIBO Ontology-Compliant Financial Services API
+ * 
+ * Regulatory Compliance: {{ regulatoryFrameworks | join(', ') }}
+ * Risk Models: {{ riskModels | join(', ') }}
+ * Reporting: {{ reportingFrequency }}
+ * Audit Retention: {{ auditRetention }}
+ * 
+ * Generated from FIBO ontology with semantic business rules
+ */
+@Injectable()
+export class {{ serviceName | pascalCase }}Service {
+  private readonly logger = new Logger({{ serviceName | pascalCase }}Service.name);
+  
+  constructor(
+    {% for instrument in fiboInstruments %}
+    @InjectRepository({{ instrument }}Entity)
+    private {{ instrument | camelCase }}Repository: Repository<{{ instrument }}Entity>,
+    {% endfor %}
+    private riskCalculator: RiskCalculator,
+    private regulatoryReporter: RegulatoryReporter,
+    private baselCalculator: BaselCalculator,
+    private auditMiddleware: AuditMiddleware
+  ) {}
+
+  {% for instrument in fiboInstruments %}
+  {% set instrumentUri = 'fibo-loan:' + instrument %}
+  {% if instrument == 'Security' %}{% set instrumentUri = 'fibo-sec:' + instrument %}{% endif %}
+  {% if instrument == 'Derivative' %}{% set instrumentUri = 'fibo-der:' + instrument %}{% endif %}
+  {% set apiPath = ($rdf.rdfObject(instrumentUri, 'unjucks:generatesAPI'))[0].value %}
+  {% set riskCalculations = $rdf.rdfObject(instrumentUri, 'unjucks:hasRiskCalculation') %}
+  {% set complianceReqs = $rdf.rdfObject(instrumentUri, 'unjucks:requiresCompliance') %}
+  
+  /**
+   * Create {{ instrument }} - FIBO Compliant
+   * 
+   * API Path: {{ apiPath }}
+   * Risk Models: {{ riskCalculations | map(attribute='value') | join(', ') }}
+   * Compliance: {{ complianceReqs | map(attribute='value') | join(', ') }}
+   */
+  async create{{ instrument }}(
+    create{{ instrument }}Dto: Create{{ instrument }}Dto, 
+    userId: string,
+    institutionId: string
+  ): Promise<{{ instrument }}Entity> {
+    
+    // FIBO Business Rule Validation
+    await this.validateFIBOBusinessRules(create{{ instrument }}Dto, '{{ instrument }}');
+    
+    // Risk Assessment - Generated from FIBO ontology
+    {% for riskType in riskCalculations %}
+    {% set riskTypeLocal = riskType.value | rdfCompact %}
+    const {{ riskTypeLocal | camelCase }}Assessment = await this.riskCalculator.calculate{{ riskTypeLocal }}(
+      create{{ instrument }}Dto,
+      '{{ instrument }}'
+    );
+    {% endfor %}
+    
+    // Regulatory Capital Calculation (Basel III)
+    {% if 'basel:BaselIII' in (complianceReqs | map(attribute='value')) %}
+    const capitalRequirement = await this.baselCalculator.calculateRWA(
+      create{{ instrument }}Dto,
+      [{% for risk in riskCalculations %}'{{ risk.value | rdfCompact }}'{% if not loop.last %}, {% endif %}{% endfor %}]
+    );
+    {% endif %}
+    
+    // Create financial instrument with risk data
+    const {{ instrument | camelCase }} = this.{{ instrument | camelCase }}Repository.create({
+      ...create{{ instrument }}Dto,
+      {% for riskType in riskCalculations %}
+      {{ riskType.value | rdfCompact | camelCase }}: {{ riskType.value | rdfCompact | camelCase }}Assessment,
+      {% endfor %}
+      {% if 'basel:BaselIII' in (complianceReqs | map(attribute='value')) %}
+      capitalRequirement,
+      {% endif %}
+      institutionId,
+      createdAt: new Date(),
+      createdBy: userId
+    });
+    
+    const saved{{ instrument }} = await this.{{ instrument | camelCase }}Repository.save({{ instrument | camelCase }});
+    
+    // Regulatory Reporting
+    await this.regulatoryReporter.reportNewInstrument({
+      instrumentType: '{{ instrument }}',
+      instrumentId: saved{{ instrument }}.id,
+      institutionId,
+      {% for framework in regulatoryFrameworks %}
+      {{ framework | camelCase }}: true,
+      {% endfor %}
+      reportingDate: new Date()
+    });
+    
+    // SOX Compliance Audit Trail
+    {% if 'sox:Section404' in (complianceReqs | map(attribute='value')) %}
+    await this.auditMiddleware.logInternalControl({
+      userId,
+      action: 'CREATE_{{ instrument | constantCase }}',
+      instrumentId: saved{{ instrument }}.id,
+      controls: await this.generateInternalControlsReport(saved{{ instrument }}),
+      executiveCertificationRequired: true,
+      timestamp: new Date()
+    });
+    {% endif %}
+    
+    this.logger.log(`{{ instrument }} created: ${saved{{ instrument }}.id} with risk assessment complete`);
+    return saved{{ instrument }};
+  }
+  
+  /**
+   * Calculate Real-Time Risk for {{ instrument }}
+   */
+  async calculateRealTimeRisk(id: string, marketData: any): Promise<RiskAssessment> {
+    const {{ instrument | camelCase }} = await this.{{ instrument | camelCase }}Repository.findOne({ 
+      where: { id } 
+    });
+    
+    if (!{{ instrument | camelCase }}) {
+      throw new NotFoundException('{{ instrument }} not found');
+    }
+    
+    // Real-time risk calculation using FIBO semantic rules
+    const riskAssessment = {
+      {% for riskType in riskCalculations %}
+      {% set riskTypeLocal = riskType.value | rdfCompact %}
+      {{ riskTypeLocal | camelCase }}: await this.riskCalculator.calculateRealTime{{ riskTypeLocal }}(
+        {{ instrument | camelCase }}, 
+        marketData
+      ),
+      {% endfor %}
+      timestamp: new Date(),
+      confidence: await this.calculateConfidenceInterval({{ instrument | camelCase }}, marketData)
+    };
+    
+    // Update instrument with new risk assessment
+    {{ instrument | camelCase }}.lastRiskAssessment = riskAssessment;
+    await this.{{ instrument | camelCase }}Repository.save({{ instrument | camelCase }});
+    
+    // Trigger regulatory alerts if risk thresholds exceeded
+    await this.checkRiskThresholds(riskAssessment, {{ instrument | camelCase }});
+    
+    return riskAssessment;
+  }
+  
+  /**
+   * Generate Regulatory Report for {{ instrument }}
+   */
+  async generateRegulatoryReport(
+    startDate: Date, 
+    endDate: Date,
+    framework: 'BaselIII' | 'MiFIDII' | 'DoddFrank'
+  ): Promise<RegulatoryReport> {
+    const {{ instrument | camelCase | plural }} = await this.{{ instrument | camelCase }}Repository.find({
+      where: {
+        createdAt: Between(startDate, endDate)
+      }
+    });
+    
+    const report = await this.regulatoryReporter.generate{{ framework }}Report({
+      instrumentType: '{{ instrument }}',
+      instruments: {{ instrument | camelCase | plural }},
+      reportingPeriod: { startDate, endDate },
+      {% for riskType in riskCalculations %}
+      {{ riskType.value | rdfCompact | camelCase }}Metrics: await this.aggregateRiskMetrics(
+        {{ instrument | camelCase | plural }}, 
+        '{{ riskType.value | rdfCompact }}'
+      ),
+      {% endfor %}
+      compliance: {
+        {% for req in complianceReqs %}
+        {{ req.value | rdfCompact | camelCase }}: await this.validateCompliance(
+          {{ instrument | camelCase | plural }}, 
+          '{{ req.value | rdfCompact }}'
+        ),
+        {% endfor %}
+      }
+    });
+    
+    // Executive certification for SOX compliance
+    {% if 'sox:Section404' in (complianceReqs | map(attribute='value')) %}
+    report.executiveCertification = await this.generateExecutiveCertification(report);
+    {% endif %}
+    
+    return report;
+  }
+  {% endfor %}
+  
+  /**
+   * FIBO Business Rule Validation
+   */
+  private async validateFIBOBusinessRules(data: any, instrumentType: string): Promise<void> {
+    const validationRules = this.getFIBOValidationRules(instrumentType);
+    
+    for (const rule of validationRules) {
+      const isValid = await this.validateBusinessRule(data, rule);
+      if (!isValid) {
+        throw new BadRequestException(`FIBO validation failed: ${rule.description}`);
+      }
+    }
+  }
+  
+  /**
+   * Get FIBO validation rules from ontology
+   */
+  private getFIBOValidationRules(instrumentType: string) {
+    const rules = {
+      {% for instrument in fiboInstruments %}
+      {% set instrumentUri = 'fibo-loan:' + instrument %}
+      {% if instrument == 'Security' %}{% set instrumentUri = 'fibo-sec:' + instrument %}{% endif %}
+      {% if instrument == 'Derivative' %}{% set instrumentUri = 'fibo-der:' + instrument %}{% endif %}
+      {% set properties = $rdf.rdfObject(instrumentUri, 'unjucks:hasProperty') %}
+      '{{ instrument }}': [
+        {% for prop in properties %}
+        {
+          property: '{{ prop.value | rdfCompact }}',
+          required: true,
+          description: '{{ instrument }} requires {{ prop.value | rdfCompact }} property for FIBO compliance'
+        }{% if not loop.last %},{% endif %}
+        {% endfor %}
+      ]{% if not loop.last %},{% endif %}
+      {% endfor %}
+    };
+    
+    return rules[instrumentType] || [];
+  }
+  
+  /**
+   * Check risk thresholds against regulatory limits
+   */
+  private async checkRiskThresholds(riskAssessment: any, instrument: any): Promise<void> {
+    {% for framework in regulatoryFrameworks %}
+    {% if framework == 'BaselIII' %}
+    // Basel III Risk Thresholds
+    const capitalRatio = await this.baselCalculator.calculateCapitalRatio(instrument);
+    if (capitalRatio < 0.08) { // 8% minimum
+      await this.regulatoryReporter.triggerAlert({
+        type: 'CAPITAL_ADEQUACY_BREACH',
+        instrumentId: instrument.id,
+        currentRatio: capitalRatio,
+        minimumRequired: 0.08,
+        framework: 'BaselIII'
+      });
+    }
+    {% endif %}
+    {% endfor %}
+  }
+  
+  /**
+   * Generate executive certification for SOX compliance
+   */
+  private async generateExecutiveCertification(report: any): Promise<ExecutiveCertification> {
+    return {
+      certificationDate: new Date(),
+      reportAccuracy: true,
+      internalControlsEffective: true,
+      material: report.material || false,
+      executiveSignature: 'PENDING_SIGNATURE',
+      complianceOfficerReview: 'PENDING_REVIEW'
+    };
+  }
+  
+  /**
+   * Aggregate risk metrics for regulatory reporting
+   */
+  private async aggregateRiskMetrics(instruments: any[], riskType: string): Promise<RiskMetrics> {
+    const metrics = instruments.reduce((acc, instrument) => {
+      const riskValue = instrument[`${riskType.charAt(0).toLowerCase() + riskType.slice(1)}`];
+      acc.total += riskValue || 0;
+      acc.count += 1;
+      acc.max = Math.max(acc.max, riskValue || 0);
+      acc.min = Math.min(acc.min, riskValue || Infinity);
+      return acc;
+    }, { total: 0, count: 0, max: 0, min: Infinity });
+    
+    return {
+      riskType,
+      totalExposure: metrics.total,
+      averageRisk: metrics.total / metrics.count,
+      maximumRisk: metrics.max,
+      minimumRisk: metrics.min === Infinity ? 0 : metrics.min,
+      instrumentCount: metrics.count
+    };
+  }
+}

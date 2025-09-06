@@ -1,0 +1,348 @@
+---
+to: "{{ outputDir }}/utils/api-utils.ts"
+inject: false
+---
+/**
+ * API utility functions
+ * Generated from OpenAPI specification
+ */
+
+// Type-safe query string builder
+export function buildQueryString(params: Record<string, any>): string {
+  const searchParams = new URLSearchParams()
+  
+  for (const [key, value] of Object.entries(params)) {
+    if (value !== undefined && value !== null) {
+      if (Array.isArray(value)) {
+        value.forEach(v => searchParams.append(key, String(v)))
+      } else {
+        searchParams.append(key, String(value))
+      }
+    }
+  }
+  
+  return searchParams.toString()
+}
+
+// Path parameter replacement
+export function replacePath(path: string, params: Record<string, any>): string {
+  let result = path
+  
+  for (const [key, value] of Object.entries(params)) {
+    if (value !== undefined && value !== null) {
+      result = result.replace(`{${key}}`, String(value))
+    }
+  }
+  
+  return result
+}
+
+// Response type guards
+export function isApiError(error: any): error is ApiError {
+  return error && typeof error === 'object' && 
+         'statusCode' in error && 'message' in error
+}
+
+export function isValidationError(error: any): error is ValidationError {
+  return isApiError(error) && error.statusCode === 400 && 
+         'details' in error && Array.isArray(error.details?.errors)
+}
+
+// Generic API error class
+export class ApiError extends Error {
+  constructor(
+    public statusCode: number,
+    message: string,
+    public details?: any
+  ) {
+    super(message)
+    this.name = 'ApiError'
+  }
+
+  static fromResponse(response: Response, data?: any): ApiError {
+    return new ApiError(
+      response.status,
+      data?.message || response.statusText || 'API Error',
+      data
+    )
+  }
+}
+
+// Validation error class
+export class ValidationError extends ApiError {
+  constructor(
+    message: string,
+    public errors: string[]
+  ) {
+    super(400, message, { errors })
+    this.name = 'ValidationError'
+  }
+}
+
+// HTTP status helpers
+export const HttpStatus = {
+  OK: 200,
+  CREATED: 201,
+  NO_CONTENT: 204,
+  BAD_REQUEST: 400,
+  UNAUTHORIZED: 401,
+  FORBIDDEN: 403,
+  NOT_FOUND: 404,
+  METHOD_NOT_ALLOWED: 405,
+  CONFLICT: 409,
+  UNPROCESSABLE_ENTITY: 422,
+  INTERNAL_SERVER_ERROR: 500,
+  BAD_GATEWAY: 502,
+  SERVICE_UNAVAILABLE: 503,
+} as const
+
+export type HttpStatusCode = typeof HttpStatus[keyof typeof HttpStatus]
+
+// Response wrapper
+export interface ApiResponse<T = any> {
+  data: T
+  status: HttpStatusCode
+  statusText: string
+  headers: Record<string, string>
+}
+
+// Pagination helpers
+export interface PaginationParams {
+  page?: number
+  limit?: number
+  offset?: number
+  cursor?: string
+}
+
+export interface PaginatedResponse<T> {
+  data: T[]
+  pagination: {
+    page?: number
+    limit?: number
+    offset?: number
+    total?: number
+    hasNext?: boolean
+    hasPrev?: boolean
+    nextCursor?: string
+    prevCursor?: string
+  }
+}
+
+export function createPaginationQuery(params: PaginationParams): Record<string, any> {
+  const query: Record<string, any> = {}
+  
+  if (params.page !== undefined) query.page = params.page
+  if (params.limit !== undefined) query.limit = params.limit
+  if (params.offset !== undefined) query.offset = params.offset
+  if (params.cursor !== undefined) query.cursor = params.cursor
+  
+  return query
+}
+
+// Retry logic
+export interface RetryOptions {
+  maxRetries: number
+  initialDelay: number
+  maxDelay: number
+  backoffMultiplier: number
+  retryCondition?: (error: any) => boolean
+}
+
+export async function withRetry<T>(
+  fn: () => Promise<T>,
+  options: Partial<RetryOptions> = {}
+): Promise<T> {
+  const {
+    maxRetries = 3,
+    initialDelay = 1000,
+    maxDelay = 10000,
+    backoffMultiplier = 2,
+    retryCondition = (error) => {
+      if (isApiError(error)) {
+        return error.statusCode >= 500 || error.statusCode === 429
+      }
+      return true
+    }
+  } = options
+
+  let lastError: any
+  let delay = initialDelay
+
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    try {
+      return await fn()
+    } catch (error) {
+      lastError = error
+
+      if (attempt === maxRetries || !retryCondition(error)) {
+        throw error
+      }
+
+      // Wait before retrying
+      await new Promise(resolve => setTimeout(resolve, delay))
+      delay = Math.min(delay * backoffMultiplier, maxDelay)
+    }
+  }
+
+  throw lastError
+}
+
+// Request timeout wrapper
+export function withTimeout<T>(
+  promise: Promise<T>,
+  timeoutMs: number,
+  errorMessage = 'Request timeout'
+): Promise<T> {
+  return Promise.race([
+    promise,
+    new Promise<never>((_, reject) =>
+      setTimeout(() => reject(new Error(errorMessage)), timeoutMs)
+    )
+  ])
+}
+
+// Request deduplication
+const requestCache = new Map<string, Promise<any>>()
+
+export function deduplicate<T>(
+  key: string,
+  fn: () => Promise<T>,
+  ttlMs = 5000
+): Promise<T> {
+  if (requestCache.has(key)) {
+    return requestCache.get(key)!
+  }
+
+  const promise = fn().finally(() => {
+    // Remove from cache after TTL
+    setTimeout(() => {
+      if (requestCache.get(key) === promise) {
+        requestCache.delete(key)
+      }
+    }, ttlMs)
+  })
+
+  requestCache.set(key, promise)
+  return promise
+}
+
+// Content-Type helpers
+export const ContentType = {
+  JSON: 'application/json',
+  FORM_DATA: 'multipart/form-data',
+  FORM_URLENCODED: 'application/x-www-form-urlencoded',
+  TEXT_PLAIN: 'text/plain',
+  TEXT_HTML: 'text/html',
+  XML: 'application/xml',
+  BINARY: 'application/octet-stream',
+} as const
+
+export function getContentType(data: any): string {
+  if (data instanceof FormData) {
+    return ContentType.FORM_DATA
+  }
+  
+  if (data instanceof URLSearchParams) {
+    return ContentType.FORM_URLENCODED
+  }
+  
+  if (typeof data === 'string') {
+    return ContentType.TEXT_PLAIN
+  }
+  
+  if (data instanceof ArrayBuffer || data instanceof Uint8Array) {
+    return ContentType.BINARY
+  }
+  
+  return ContentType.JSON
+}
+
+// Date handling utilities
+export function formatDateForAPI(date: Date): string {
+  return date.toISOString()
+}
+
+export function parseDateFromAPI(dateString: string): Date {
+  return new Date(dateString)
+}
+
+// Validation utilities
+export function validateEmail(email: string): boolean {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+  return emailRegex.test(email)
+}
+
+export function validateURL(url: string): boolean {
+  try {
+    new URL(url)
+    return true
+  } catch {
+    return false
+  }
+}
+
+export function validateUUID(uuid: string): boolean {
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+  return uuidRegex.test(uuid)
+}
+
+// Environment detection
+export const isServer = typeof window === 'undefined'
+export const isClient = !isServer
+export const isDevelopment = process.env.NODE_ENV === 'development'
+export const isProduction = process.env.NODE_ENV === 'production'
+
+// Storage utilities (client-side only)
+export function getStorageItem(key: string, defaultValue?: any): any {
+  if (isServer) return defaultValue
+
+  try {
+    const item = localStorage.getItem(key)
+    return item ? JSON.parse(item) : defaultValue
+  } catch {
+    return defaultValue
+  }
+}
+
+export function setStorageItem(key: string, value: any): void {
+  if (isServer) return
+
+  try {
+    localStorage.setItem(key, JSON.stringify(value))
+  } catch (error) {
+    console.warn('Failed to save to localStorage:', error)
+  }
+}
+
+export function removeStorageItem(key: string): void {
+  if (isServer) return
+
+  try {
+    localStorage.removeItem(key)
+  } catch (error) {
+    console.warn('Failed to remove from localStorage:', error)
+  }
+}
+
+// Deep merge utility
+export function deepMerge<T = any>(target: any, ...sources: any[]): T {
+  if (!sources.length) return target
+  const source = sources.shift()
+
+  if (isObject(target) && isObject(source)) {
+    for (const key in source) {
+      if (isObject(source[key])) {
+        if (!target[key]) Object.assign(target, { [key]: {} })
+        deepMerge(target[key], source[key])
+      } else {
+        Object.assign(target, { [key]: source[key] })
+      }
+    }
+  }
+
+  return deepMerge(target, ...sources)
+}
+
+function isObject(item: any): item is Record<string, any> {
+  return item && typeof item === 'object' && !Array.isArray(item)
+}

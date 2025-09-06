@@ -1,0 +1,427 @@
+{% set entities = ($rdf.query('?s rdf:type unjucks:SupplyChainEntity') | rdfObject('unjucks:generatesAPI')) %}
+import { Injectable, Logger } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { EPCISEventProcessor } from '../processors/epcis-event-processor';
+import { TraceabilityService } from './traceability.service';
+import { GS1Validator } from '../validators/gs1-validator';
+import { RecallManager } from './recall-manager';
+{% if blockchainEnabled %}
+import { BlockchainIntegration } from '../blockchain/blockchain-integration';
+{% endif %}
+{% if antiCounterfeiting %}
+import { AntiCounterfeitingService } from './anti-counterfeiting';
+{% endif %}
+{% for entity in gs1Entities %}
+import { {{ entity }}Entity } from '../entities/{{ entity | kebabCase }}.entity';
+import { Create{{ entity }}Dto, Update{{ entity }}Dto } from '../dto/{{ entity | kebabCase }}.dto';
+{% endfor %}
+
+/**
+ * {{ serviceName | titleCase }} Service
+ * 
+ * GS1-Compliant Supply Chain Management
+ * 
+ * Standards: GS1 Global Standards, EPCIS 2.0
+ * Identification: {{ identificationKeys | join(', ') }}
+ * Events: {{ epcisEvents | join(', ') }}
+ * Compliance: {{ complianceRegions | join(', ') }}
+ * Traceability: {{ traceabilityLevel }}
+ * 
+ * Generated from GS1 vocabulary with semantic supply chain rules
+ */
+@Injectable()
+export class {{ serviceName | pascalCase }}Service {
+  private readonly logger = new Logger({{ serviceName | pascalCase }}Service.name);
+  
+  constructor(
+    {% for entity in gs1Entities %}
+    @InjectRepository({{ entity }}Entity)
+    private {{ entity | camelCase }}Repository: Repository<{{ entity }}Entity>,
+    {% endfor %}
+    private epcisProcessor: EPCISEventProcessor,
+    private traceabilityService: TraceabilityService,
+    private gs1Validator: GS1Validator,
+    private recallManager: RecallManager,
+    {% if blockchainEnabled %}
+    private blockchainIntegration: BlockchainIntegration,
+    {% endif %}
+    {% if antiCounterfeiting %}
+    private antiCounterfeitingService: AntiCounterfeitingService,
+    {% endif %}
+  ) {}
+
+  {% for entity in gs1Entities %}
+  {% set entityUri = 'gs1:' + entity %}
+  {% set apiPath = ($rdf.rdfObject(entityUri, 'unjucks:generatesAPI'))[0].value %}
+  {% set identifierType = $rdf.rdfObject(entityUri, 'unjucks:hasIdentifier') %}
+  {% set properties = $rdf.rdfObject(entityUri, 'unjucks:hasProperty') %}
+  
+  /**
+   * Create {{ entity }} - GS1 Compliant
+   * 
+   * API Path: {{ apiPath }}
+   * Identifier: {{ identifierType[0].value | rdfCompact }}
+   * Properties: {{ properties | map(attribute='value') | map('rdfCompact') | join(', ') }}
+   */
+  async create{{ entity }}(
+    create{{ entity }}Dto: Create{{ entity }}Dto, 
+    userId: string,
+    organizationGLN: string
+  ): Promise<{{ entity }}Entity> {
+    
+    // GS1 Key Validation
+    {% for keyType in identificationKeys %}
+    {% if keyType in (identifierType | map(attribute='value') | map('rdfCompact')) %}
+    await this.gs1Validator.validate{{ keyType }}(create{{ entity }}Dto.{{ keyType | camelCase }});
+    {% endif %}
+    {% endfor %}
+    
+    // GS1 Master Data Validation
+    await this.validateGS1MasterData(create{{ entity }}Dto, '{{ entity }}');
+    
+    {% if antiCounterfeiting and entity == 'Product' %}
+    // Generate anti-counterfeiting features
+    const authenticityToken = await this.antiCounterfeitingService.generateAuthenticityToken(
+      create{{ entity }}Dto
+    );
+    {% endif %}
+    
+    const {{ entity | camelCase }} = this.{{ entity | camelCase }}Repository.create({
+      ...create{{ entity }}Dto,
+      organizationGLN,
+      {% if antiCounterfeiting and entity == 'Product' %}
+      authenticityToken,
+      {% endif %}
+      createdAt: new Date(),
+      createdBy: userId
+    });
+    
+    const saved{{ entity }} = await this.{{ entity | camelCase }}Repository.save({{ entity | camelCase }});
+    
+    // Capture EPCIS ObjectEvent for entity creation
+    await this.epcisProcessor.captureObjectEvent({
+      eventType: 'ObjectEvent',
+      action: 'ADD',
+      {% for keyType in identificationKeys %}
+      {% if keyType in (identifierType | map(attribute='value') | map('rdfCompact')) %}
+      {{ keyType | camelCase }}List: [saved{{ entity }}.{{ keyType | camelCase }}],
+      {% endif %}
+      {% endfor %}
+      eventTime: new Date(),
+      eventTimeZoneOffset: '+00:00',
+      readPoint: organizationGLN,
+      bizStep: 'urn:epcglobal:cbv:bizstep:commissioning',
+      disposition: 'urn:epcglobal:cbv:disp:active',
+      userId
+    });
+    
+    {% if blockchainEnabled %}
+    // Record on blockchain for immutable traceability
+    await this.blockchainIntegration.recordEvent({
+      eventType: 'ENTITY_CREATED',
+      entityType: '{{ entity }}',
+      entityId: saved{{ entity }}.id,
+      {% for keyType in identificationKeys %}
+      {% if keyType in (identifierType | map(attribute='value') | map('rdfCompact')) %}
+      {{ keyType | camelCase }}: saved{{ entity }}.{{ keyType | camelCase }},
+      {% endif %}
+      {% endfor %}
+      timestamp: new Date(),
+      organizationGLN,
+      hash: await this.calculateEntityHash(saved{{ entity }})
+    });
+    {% endif %}
+    
+    this.logger.log(`{{ entity }} created: ${saved{{ entity }}.id} with GS1 compliance validation`);
+    return saved{{ entity }};
+  }
+  
+  /**
+   * Track {{ entity }} Movement
+   */
+  async track{{ entity }}Movement(
+    {% for keyType in identificationKeys %}
+    {% if keyType in (identifierType | map(attribute='value') | map('rdfCompact')) %}
+    {{ keyType | camelCase }}: string,
+    {% endif %}
+    {% endfor %}
+    fromLocation: string, // GLN
+    toLocation: string, // GLN
+    userId: string
+  ): Promise<TrackingResult> {
+    
+    {% for keyType in identificationKeys %}
+    {% if keyType in (identifierType | map(attribute='value') | map('rdfCompact')) %}
+    const {{ entity | camelCase }} = await this.{{ entity | camelCase }}Repository.findOne({
+      where: { {{ keyType | camelCase }} }
+    });
+    {% endif %}
+    {% endfor %}
+    
+    if (!{{ entity | camelCase }}) {
+      throw new NotFoundException('{{ entity }} not found');
+    }
+    
+    // Capture EPCIS ObjectEvent for movement
+    const movementEvent = await this.epcisProcessor.captureObjectEvent({
+      eventType: 'ObjectEvent',
+      action: 'OBSERVE',
+      {% for keyType in identificationKeys %}
+      {% if keyType in (identifierType | map(attribute='value') | map('rdfCompact')) %}
+      {{ keyType | camelCase }}List: [{{ keyType | camelCase }}],
+      {% endif %}
+      {% endfor %}
+      eventTime: new Date(),
+      eventTimeZoneOffset: '+00:00',
+      readPoint: toLocation,
+      bizLocation: fromLocation,
+      bizStep: 'urn:epcglobal:cbv:bizstep:shipping',
+      disposition: 'urn:epcglobal:cbv:disp:in_transit',
+      sourceList: [{
+        type: 'urn:epcglobal:cbv:sdt:owning_party',
+        source: fromLocation
+      }],
+      destinationList: [{
+        type: 'urn:epcglobal:cbv:sdt:owning_party',
+        destination: toLocation
+      }],
+      userId
+    });
+    
+    // Update traceability chain
+    await this.traceabilityService.addTraceabilityLink({
+      {% for keyType in identificationKeys %}
+      {% if keyType in (identifierType | map(attribute='value') | map('rdfCompact')) %}
+      entityIdentifier: {{ keyType | camelCase }},
+      identifierType: '{{ keyType }}',
+      {% endif %}
+      {% endfor %}
+      eventId: movementEvent.eventId,
+      fromLocation,
+      toLocation,
+      eventTime: new Date(),
+      eventType: 'MOVEMENT'
+    });
+    
+    {% if blockchainEnabled %}
+    // Record movement on blockchain
+    await this.blockchainIntegration.recordMovement({
+      {% for keyType in identificationKeys %}
+      {% if keyType in (identifierType | map(attribute='value') | map('rdfCompact')) %}
+      {{ keyType | camelCase }},
+      {% endif %}
+      {% endfor %}
+      fromLocation,
+      toLocation,
+      eventId: movementEvent.eventId,
+      timestamp: new Date(),
+      previousHash: await this.getLastBlockchainHash({{ keyType | camelCase }})
+    });
+    {% endif %}
+    
+    return {
+      success: true,
+      eventId: movementEvent.eventId,
+      traceabilityUpdated: true,
+      {% if blockchainEnabled %}
+      blockchainRecorded: true,
+      {% endif %}
+    };
+  }
+  
+  /**
+   * Get Complete Traceability History for {{ entity }}
+   */
+  async getTraceabilityHistory(
+    {% for keyType in identificationKeys %}
+    {% if keyType in (identifierType | map(attribute='value') | map('rdfCompact')) %}
+    {{ keyType | camelCase }}: string
+    {% endif %}
+    {% endfor %}
+  ): Promise<TraceabilityChain> {
+    
+    // Get all EPCIS events for this entity
+    const events = await this.epcisProcessor.getEventsFor{{ keyType.replace('_', '') }}({{ keyType | camelCase }});
+    
+    // Build complete traceability chain
+    const traceabilityChain = await this.traceabilityService.buildTraceabilityChain({
+      {% for keyType in identificationKeys %}
+      {% if keyType in (identifierType | map(attribute='value') | map('rdfCompact')) %}
+      identifier: {{ keyType | camelCase }},
+      identifierType: '{{ keyType }}',
+      {% endif %}
+      {% endfor %}
+      events,
+      includeTransformations: true,
+      includeAggregations: true
+    });
+    
+    {% if blockchainEnabled %}
+    // Verify blockchain integrity
+    const blockchainVerification = await this.blockchainIntegration.verifyTraceabilityChain(
+      {{ keyType | camelCase }}
+    );
+    
+    traceabilityChain.blockchainVerified = blockchainVerification.verified;
+    traceabilityChain.integrityHash = blockchainVerification.hash;
+    {% endif %}
+    
+    {% if antiCounterfeiting and entity == 'Product' %}
+    // Add authenticity verification
+    traceabilityChain.authenticityStatus = await this.antiCounterfeitingService.verifyAuthenticity(
+      {{ keyType | camelCase }}
+    );
+    {% endif %}
+    
+    return traceabilityChain;
+  }
+  
+  /**
+   * Initiate Product Recall for {{ entity }}
+   */
+  async initiateRecall(
+    {% for keyType in identificationKeys %}
+    {% if keyType in (identifierType | map(attribute='value') | map('rdfCompact')) %}
+    {{ keyType | camelCase }}: string,
+    {% endif %}
+    {% endfor %}
+    recallReason: string,
+    severity: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL',
+    userId: string
+  ): Promise<RecallResult> {
+    
+    // Get complete traceability to identify affected products/locations
+    const traceabilityChain = await this.getTraceabilityHistory({{ keyType | camelCase }});
+    
+    // Initiate recall process
+    const recallResult = await this.recallManager.initiateRecall({
+      {% for keyType in identificationKeys %}
+      {% if keyType in (identifierType | map(attribute='value') | map('rdfCompact')) %}
+      {{ keyType | camelCase }},
+      {% endif %}
+      {% endfor %}
+      reason: recallReason,
+      severity,
+      affectedLocations: traceabilityChain.locations,
+      affectedProducts: traceabilityChain.relatedProducts,
+      initiatedBy: userId,
+      initiatedAt: new Date()
+    });
+    
+    // Capture EPCIS ObjectEvent for recall
+    await this.epcisProcessor.captureObjectEvent({
+      eventType: 'ObjectEvent',
+      action: 'DELETE', // Recall action
+      {% for keyType in identificationKeys %}
+      {% if keyType in (identifierType | map(attribute='value') | map('rdfCompact')) %}
+      {{ keyType | camelCase }}List: [{{ keyType | camelCase }}],
+      {% endif %}
+      {% endfor %}
+      eventTime: new Date(),
+      eventTimeZoneOffset: '+00:00',
+      bizStep: 'urn:epcglobal:cbv:bizstep:recall',
+      disposition: 'urn:epcglobal:cbv:disp:recalled',
+      userId,
+      ilmd: {
+        recallReason,
+        severity,
+        recallId: recallResult.recallId
+      }
+    });
+    
+    return recallResult;
+  }
+  {% endfor %}
+  
+  /**
+   * Process EDI Messages
+   */
+  {% for ediType in ediMessages %}
+  async process{{ ediType }}(
+    ediMessage: {{ ediType }}Message,
+    tradingPartnerGLN: string
+  ): Promise<EDIProcessingResult> {
+    
+    // Validate EDI message structure
+    await this.gs1Validator.validateEDIMessage(ediMessage, '{{ ediType }}');
+    
+    // Process based on EDI message type
+    const processingResult = await this.processEDIMessage({
+      messageType: '{{ ediType }}',
+      message: ediMessage,
+      tradingPartnerGLN,
+      receivedAt: new Date()
+    });
+    
+    // Update relevant entities based on EDI content
+    {% if ediType == 'ORDERS' %}
+    await this.processOrdersMessage(ediMessage, tradingPartnerGLN);
+    {% elif ediType == 'INVOIC' %}
+    await this.processInvoiceMessage(ediMessage, tradingPartnerGLN);
+    {% elif ediType == 'DESADV' %}
+    await this.processDeliveryAdvice(ediMessage, tradingPartnerGLN);
+    {% endif %}
+    
+    return processingResult;
+  }
+  {% endfor %}
+  
+  /**
+   * Validate GS1 Master Data
+   */
+  private async validateGS1MasterData(data: any, entityType: string): Promise<void> {
+    const validationRules = this.getGS1ValidationRules(entityType);
+    
+    for (const rule of validationRules) {
+      const isValid = await this.gs1Validator.validateRule(data, rule);
+      if (!isValid) {
+        throw new BadRequestException(`GS1 validation failed: ${rule.description}`);
+      }
+    }
+  }
+  
+  /**
+   * Get GS1 validation rules from vocabulary
+   */
+  private getGS1ValidationRules(entityType: string) {
+    const rules = {
+      {% for entity in gs1Entities %}
+      {% set entityUri = 'gs1:' + entity %}
+      {% set properties = $rdf.rdfObject(entityUri, 'unjucks:hasProperty') %}
+      '{{ entity }}': [
+        {% for prop in properties %}
+        {
+          property: '{{ prop.value | rdfCompact }}',
+          required: true,
+          description: '{{ entity }} requires {{ prop.value | rdfCompact }} property for GS1 compliance'
+        }{% if not loop.last %},{% endif %}
+        {% endfor %}
+      ]{% if not loop.last %},{% endif %}
+      {% endfor %}
+    };
+    
+    return rules[entityType] || [];
+  }
+  
+  {% if blockchainEnabled %}
+  /**
+   * Calculate entity hash for blockchain integrity
+   */
+  private async calculateEntityHash(entity: any): Promise<string> {
+    const hashData = {
+      ...entity,
+      timestamp: entity.createdAt
+    };
+    
+    return this.blockchainIntegration.calculateHash(hashData);
+  }
+  
+  /**
+   * Get last blockchain hash for entity
+   */
+  private async getLastBlockchainHash(identifier: string): Promise<string> {
+    return this.blockchainIntegration.getLastHashForEntity(identifier);
+  }
+  {% endif %}
+}

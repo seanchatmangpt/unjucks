@@ -108,7 +108,7 @@ paths:
             schema:
               $ref: '#/components/schemas/ChatRequest'
             examples:
-              simplChat:
+              simpleChat:
                 summary: Simple chat completion
                 value:
                   model: "llama3.2"
@@ -318,13 +318,13 @@ components:
       scheme: bearer
       bearerFormat: JWT
       description: Bearer token authentication for secure Ollama instances
-    
+
     apiKeyAuth:
       type: apiKey
       in: header
       name: X-API-Key
       description: API key authentication for custom Ollama deployments
-    
+
     customHeaders:
       type: apiKey
       in: header
@@ -338,12 +338,12 @@ components:
       description: |
         Dynamic model selection supporting various model types:
         - Chat models: llama3.2, mistral, phi4-mini
-        - Vision models: llava, llama3.2-vision  
+        - Vision models: llava, llama3.2-vision
         - Code models: codellama, deepseek-coder-v2
         - Embedding models: nomic-embed-text, all-minilm
       examples:
         - "llama3.2"
-        - "mistral" 
+        - "mistral"
         - "phi4-mini"
         - "llava"
         - "codellama"
@@ -377,7 +377,7 @@ components:
         stream:
           type: boolean
           default: true
-          description: Enable streaming response (default: true)
+          description: Enable streaming response
         raw:
           type: boolean
           default: false
@@ -409,7 +409,7 @@ components:
           minimum: 0.0
           maximum: 2.0
           default: 0.8
-          description: Controls randomness in generation (0.0 = deterministic, 2.0 = very random)
+          description: Controls randomness in generation
         top_k:
           type: integer
           minimum: 1
@@ -1033,22 +1033,22 @@ tags:
     description: |
       Text completion and generation endpoints supporting various model types including 
       chat, code, and vision models with streaming capabilities.
-  
+
   - name: Chat
     description: |
       Conversational AI endpoints with message history support, tool calling capabilities,
       and advanced features like reasoning mode.
-    
+
   - name: Tool Calling
     description: |
       Function calling capabilities allowing models to interact with external tools and APIs
       using structured JSON schemas with Zod validation support.
-    
+
   - name: Embeddings
     description: |
       Vector embedding generation for text inputs supporting both single and batch processing
       with specialized embedding models.
-    
+
   - name: Models
     description: |
       Model management operations including listing, inspection, downloading, and deletion

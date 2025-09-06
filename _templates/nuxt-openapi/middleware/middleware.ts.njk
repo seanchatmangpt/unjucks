@@ -1,0 +1,357 @@
+---
+to: "{{ outputDir }}/middleware/{{ middlewareName | kebabCase }}.ts"
+inject: false
+skipIf: "!{{ middlewareName }}"
+rdf:
+  type: file
+  source: "{{ rdfSchemaPath || 'schemas/openapi.ttl' }}"
+  query:
+    subject: "{{ securitySchemeUri }}"
+    predicate: "http://openapi.org/spec#securityScheme"
+---
+/**
+ * Authentication middleware: {{ middlewareName }}
+ * Generated from OpenAPI security specification
+ */
+{% set securityScheme = rdf.securitySchemes | selectattr("name", "equalto", middlewareName) | first %}
+
+export default defineNuxtRouteMiddleware((to, from) => {
+  {% if securityScheme.type === 'http' and securityScheme.scheme === 'bearer' %}
+  // JWT Bearer token authentication
+  const { $auth } = useNuxtApp()
+  
+  if (!$auth.isAuthenticated()) {
+    throw createError({
+      statusCode: 401,
+      statusMessage: 'Authentication required'
+    })
+  }
+  
+  const token = $auth.getToken()
+  if (!token) {
+    throw createError({
+      statusCode: 401,
+      statusMessage: 'Missing authentication token'
+    })
+  }
+  
+  // Validate token format
+  if (!isValidJWTFormat(token)) {
+    throw createError({
+      statusCode: 401,
+      statusMessage: 'Invalid token format'
+    })
+  }
+  
+  {% if securityScheme.bearerFormat === 'JWT' %}
+  // Additional JWT validation
+  try {
+    const payload = parseJWTPayload(token)
+    
+    // Check token expiration
+    if (payload.exp && payload.exp < Math.floor(Date.now() / 1000)) {
+      throw createError({
+        statusCode: 401,
+        statusMessage: 'Token has expired'
+      })
+    }
+    
+    // Check required claims
+    {% if securityScheme.requiredClaims %}
+    const requiredClaims = {{ securityScheme.requiredClaims | tojson }}
+    for (const claim of requiredClaims) {
+      if (!payload[claim]) {
+        throw createError({
+          statusCode: 401,
+          statusMessage: `Missing required claim: ${claim}`
+        })
+      }
+    }
+    {% endif %}
+    
+    // Store user context for the request
+    to.meta.user = {
+      id: payload.sub,
+      email: payload.email,
+      roles: payload.roles || [],
+      permissions: payload.permissions || [],
+      ...payload
+    }
+  } catch (error) {
+    throw createError({
+      statusCode: 401,
+      statusMessage: 'Invalid token'
+    })
+  }
+  {% endif %}
+  
+  {% elif securityScheme.type === 'apiKey' %}
+  // API Key authentication
+  const apiKey = {% if securityScheme.in === 'header' %}
+    getHeader(useRequestEvent(), '{{ securityScheme.name }}')
+  {% elif securityScheme.in === 'query' %}
+    getQuery(to).{{ securityScheme.name }}
+  {% elif securityScheme.in === 'cookie' %}
+    getCookie('{{ securityScheme.name }}')
+  {% endif %}
+  
+  if (!apiKey) {
+    throw createError({
+      statusCode: 401,
+      statusMessage: 'API key required'
+    })
+  }
+  
+  // Validate API key
+  const isValidKey = await validateAPIKey(apiKey as string)
+  if (!isValidKey) {
+    throw createError({
+      statusCode: 401,
+      statusMessage: 'Invalid API key'
+    })
+  }
+  
+  {% elif securityScheme.type === 'oauth2' %}
+  // OAuth2 authentication
+  const { $auth } = useNuxtApp()
+  
+  if (!$auth.isAuthenticated()) {
+    // Redirect to OAuth2 provider
+    const redirectUrl = $auth.getAuthorizationUrl({
+      {% if securityScheme.flows.authorizationCode %}
+      flow: 'authorizationCode',
+      authorizationUrl: '{{ securityScheme.flows.authorizationCode.authorizationUrl }}',
+      scopes: [{{ (securityScheme.flows.authorizationCode.scopes or {}).keys() | map('tojson') | join(', ') }}],
+      {% elif securityScheme.flows.implicit %}
+      flow: 'implicit',
+      authorizationUrl: '{{ securityScheme.flows.implicit.authorizationUrl }}',
+      scopes: [{{ (securityScheme.flows.implicit.scopes or {}).keys() | map('tojson') | join(', ') }}],
+      {% endif %}
+      redirectUri: `${useRequestURL().origin}/auth/callback`,
+      state: to.fullPath
+    })
+    
+    return navigateTo(redirectUrl, { external: true })
+  }
+  
+  // Validate OAuth2 token
+  const accessToken = $auth.getAccessToken()
+  if (!accessToken) {
+    throw createError({
+      statusCode: 401,
+      statusMessage: 'Missing access token'
+    })
+  }
+  
+  // Check token scopes
+  const tokenScopes = $auth.getTokenScopes()
+  const requiredScopes = getRequiredScopes(to.path)
+  
+  if (requiredScopes.length > 0) {
+    const hasRequiredScopes = requiredScopes.every(scope => 
+      tokenScopes.includes(scope)
+    )
+    
+    if (!hasRequiredScopes) {
+      throw createError({
+        statusCode: 403,
+        statusMessage: 'Insufficient permissions'
+      })
+    }
+  }
+  
+  {% elif securityScheme.type === 'openIdConnect' %}
+  // OpenID Connect authentication
+  const { $auth } = useNuxtApp()
+  
+  if (!$auth.isAuthenticated()) {
+    // Redirect to OpenID Connect provider
+    const redirectUrl = await $auth.getOpenIDConnectUrl({
+      openIdConnectUrl: '{{ securityScheme.openIdConnectUrl }}',
+      redirectUri: `${useRequestURL().origin}/auth/callback`,
+      state: to.fullPath,
+      nonce: generateNonce()
+    })
+    
+    return navigateTo(redirectUrl, { external: true })
+  }
+  
+  // Validate ID token
+  const idToken = $auth.getIdToken()
+  if (!idToken) {
+    throw createError({
+      statusCode: 401,
+      statusMessage: 'Missing ID token'
+    })
+  }
+  
+  try {
+    const payload = await verifyOpenIDToken(idToken, '{{ securityScheme.openIdConnectUrl }}')
+    
+    // Store user context
+    to.meta.user = {
+      id: payload.sub,
+      email: payload.email,
+      name: payload.name,
+      picture: payload.picture,
+      ...payload
+    }
+  } catch (error) {
+    throw createError({
+      statusCode: 401,
+      statusMessage: 'Invalid ID token'
+    })
+  }
+  
+  {% else %}
+  // Unsupported authentication type
+  throw createError({
+    statusCode: 501,
+    statusMessage: 'Authentication type not implemented'
+  })
+  {% endif %}
+})
+
+// Helper functions
+{% if securityScheme.type === 'http' and securityScheme.scheme === 'bearer' %}
+function isValidJWTFormat(token: string): boolean {
+  const parts = token.split('.')
+  return parts.length === 3 && parts.every(part => part.length > 0)
+}
+
+function parseJWTPayload(token: string): any {
+  try {
+    const payload = token.split('.')[1]
+    const decoded = atob(payload.replace(/-/g, '+').replace(/_/g, '/'))
+    return JSON.parse(decoded)
+  } catch {
+    throw new Error('Invalid JWT format')
+  }
+}
+{% endif %}
+
+{% if securityScheme.type === 'apiKey' %}
+async function validateAPIKey(apiKey: string): Promise<boolean> {
+  // Implement your API key validation logic here
+  // This could involve:
+  // - Database lookup
+  // - External service validation
+  // - Rate limiting checks
+  // - Permission validation
+  
+  try {
+    const { $apiKeyService } = useNuxtApp()
+    const keyInfo = await $apiKeyService.validate(apiKey)
+    
+    return keyInfo.valid && keyInfo.active
+  } catch {
+    return false
+  }
+}
+{% endif %}
+
+{% if securityScheme.type === 'oauth2' %}
+function getRequiredScopes(path: string): string[] {
+  // Define path-to-scopes mapping based on your API structure
+  const scopeMap: Record<string, string[]> = {
+    {% for path, pathItem in rdf.paths %}
+    {% for method, operation in pathItem %}
+    {% if operation.security %}
+    {% for security in operation.security %}
+    {% for schemeName, scopes in security %}
+    {% if schemeName === middlewareName %}
+    '{{ path }}': {{ scopes | tojson }},
+    {% endif %}
+    {% endfor %}
+    {% endfor %}
+    {% endif %}
+    {% endfor %}
+    {% endfor %}
+  }
+  
+  // Find matching path (you might want to use a more sophisticated matching)
+  for (const [pathPattern, scopes] of Object.entries(scopeMap)) {
+    if (path.match(pathPattern.replace(/\{[^}]+\}/g, '[^/]+') + '$')) {
+      return scopes
+    }
+  }
+  
+  return []
+}
+{% endif %}
+
+{% if securityScheme.type === 'openIdConnect' %}
+function generateNonce(): string {
+  return Math.random().toString(36).substring(2, 15) + 
+         Math.random().toString(36).substring(2, 15)
+}
+
+async function verifyOpenIDToken(token: string, issuer: string): Promise<any> {
+  // Implement OpenID Connect token verification
+  // This should include:
+  // - Fetching the JWKS from the issuer
+  // - Verifying the token signature
+  // - Validating claims (iss, aud, exp, iat, nonce)
+  
+  try {
+    const { $openIDService } = useNuxtApp()
+    return await $openIDService.verifyToken(token, issuer)
+  } catch (error) {
+    throw new Error('Token verification failed')
+  }
+}
+{% endif %}
+
+// Role-based access control helper
+export function requireRole(requiredRoles: string | string[]) {
+  return defineNuxtRouteMiddleware((to) => {
+    const user = to.meta.user as any
+    
+    if (!user) {
+      throw createError({
+        statusCode: 401,
+        statusMessage: 'Authentication required'
+      })
+    }
+    
+    const userRoles = user.roles || []
+    const required = Array.isArray(requiredRoles) ? requiredRoles : [requiredRoles]
+    
+    const hasRequiredRole = required.some(role => userRoles.includes(role))
+    
+    if (!hasRequiredRole) {
+      throw createError({
+        statusCode: 403,
+        statusMessage: 'Insufficient permissions'
+      })
+    }
+  })
+}
+
+// Permission-based access control helper
+export function requirePermission(requiredPermissions: string | string[]) {
+  return defineNuxtRouteMiddleware((to) => {
+    const user = to.meta.user as any
+    
+    if (!user) {
+      throw createError({
+        statusCode: 401,
+        statusMessage: 'Authentication required'
+      })
+    }
+    
+    const userPermissions = user.permissions || []
+    const required = Array.isArray(requiredPermissions) ? requiredPermissions : [requiredPermissions]
+    
+    const hasRequiredPermission = required.every(permission => 
+      userPermissions.includes(permission)
+    )
+    
+    if (!hasRequiredPermission) {
+      throw createError({
+        statusCode: 403,
+        statusMessage: 'Insufficient permissions'
+      })
+    }
+  })
+}

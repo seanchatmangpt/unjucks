@@ -1,0 +1,311 @@
+---
+to: "{{ outputDir }}/types/{{ schemaName | kebabCase }}.ts"
+inject: false
+skipIf: "!{{ schemaName }}"
+rdf:
+  type: file
+  source: "{{ rdfSchemaPath || 'schemas/openapi.ttl' }}"
+  query:
+    subject: "{{ schemaUri }}"
+    predicate: "http://openapi.org/spec#schema"
+---
+/**
+ * TypeScript types for {{ schemaName }}
+ * Generated from OpenAPI specification
+ */
+
+{% set schema = rdf.schemas | selectattr("name", "equalto", schemaName) | first %}
+
+{% if schema.allOf %}
+// Composed type using allOf
+export type {{ schemaName }} = 
+  {% for subSchema in schema.allOf %}
+  & {{ subSchema.ref | extractRef }}
+  {% endfor %};
+
+{% for subSchema in schema.allOf %}
+{% if subSchema.properties %}
+export interface {{ subSchema.ref | extractRef }} {
+  {% for property, details in subSchema.properties %}
+  {{ property }}{% if not (details.required and property in details.required) %}?{% endif %}: {{ details | tsType }};
+  {% endfor %}
+}
+{% endif %}
+{% endfor %}
+
+{% elif schema.oneOf %}
+// Union type using oneOf
+export type {{ schemaName }} = 
+  {% for subSchema in schema.oneOf %}
+  | {{ subSchema.ref | extractRef }}
+  {% endfor %};
+
+{% for subSchema in schema.oneOf %}
+{% if subSchema.properties %}
+export interface {{ subSchema.ref | extractRef }} {
+  {% for property, details in subSchema.properties %}
+  {{ property }}{% if not (details.required and property in details.required) %}?{% endif %}: {{ details | tsType }};
+  {% endfor %}
+}
+{% endif %}
+{% endfor %}
+
+{% elif schema.anyOf %}
+// Intersection type using anyOf
+export type {{ schemaName }} = 
+  {% for subSchema in schema.anyOf %}
+  {% if loop.first %}{{ subSchema.ref | extractRef }}{% else %} & {{ subSchema.ref | extractRef }}{% endif %}
+  {% endfor %};
+
+{% for subSchema in schema.anyOf %}
+{% if subSchema.properties %}
+export interface {{ subSchema.ref | extractRef }} {
+  {% for property, details in subSchema.properties %}
+  {{ property }}{% if not (details.required and property in details.required) %}?{% endif %}: {{ details | tsType }};
+  {% endfor %}
+}
+{% endif %}
+{% endfor %}
+
+{% elif schema.type === 'object' %}
+// Object type
+export interface {{ schemaName }} {
+  {% for property, details in schema.properties %}
+  /**
+   * {{ details.description | default('') }}
+   {% if details.example %} * @example {{ details.example }}{% endif %}
+   {% if details.deprecated %} * @deprecated{% endif %}
+   */
+  {{ property }}{% if not (schema.required and property in schema.required) %}?{% endif %}: {{ details | tsType }};
+  {% endfor %}
+  
+  {% if schema.additionalProperties %}
+  // Additional properties allowed
+  [key: string]: {% if schema.additionalProperties === true %}any{% else %}{{ schema.additionalProperties | tsType }}{% endif %};
+  {% endif %}
+}
+
+{% elif schema.type === 'array' %}
+// Array type
+export type {{ schemaName }} = {{ schema.items | tsType }}[];
+
+{% if schema.items.type === 'object' %}
+export interface {{ schemaName }}Item {
+  {% for property, details in schema.items.properties %}
+  {{ property }}{% if not (schema.items.required and property in schema.items.required) %}?{% endif %}: {{ details | tsType }};
+  {% endfor %}
+}
+{% endif %}
+
+{% elif schema.enum %}
+// Enum type
+export type {{ schemaName }} = {{ schema.enum | map('tojson') | join(' | ') }};
+
+// Enum object for runtime use
+export const {{ schemaName }}Values = {
+  {% for value in schema.enum %}
+  {{ value | constantCase }}: {{ value | tojson }},
+  {% endfor %}
+} as const;
+
+{% elif schema.type === 'string' %}
+{% if schema.format %}
+// String type with format: {{ schema.format }}
+export type {{ schemaName }} = string; // Format: {{ schema.format }}
+{% else %}
+// String type
+export type {{ schemaName }} = string;
+{% endif %}
+
+{% else %}
+// {{ schema.type | title }} type
+export type {{ schemaName }} = {{ schema.type | tsType }};
+{% endif %}
+
+{% if schema.discriminator %}
+// Discriminated union
+export type {{ schemaName }}Discriminated = 
+  {% for mapping in schema.discriminator.mapping %}
+  | ({{ mapping.value | extractRef }} & { {{ schema.discriminator.propertyName }}: "{{ mapping.key }}" })
+  {% endfor %};
+{% endif %}
+
+// Request/Response types for operations using this schema
+{% for operation in rdf.operations %}
+{% if operation.requestBody and operation.requestBody.content["application/json"].schema.ref | extractRef === schemaName %}
+export interface {{ operation.operationId | pascalCase }}Request extends {{ schemaName }} {}
+{% endif %}
+{% if operation.responses["200"] and operation.responses["200"].content["application/json"].schema.ref | extractRef === schemaName %}
+export interface {{ operation.operationId | pascalCase }}Response extends {{ schemaName }} {}
+{% endif %}
+{% endfor %}
+
+// Type guards
+export function is{{ schemaName }}(obj: any): obj is {{ schemaName }} {
+  if (!obj || typeof obj !== 'object') return false;
+  
+  {% if schema.type === 'object' %}
+  {% if schema.required %}
+  // Check required properties
+  const requiredProps = [{{ schema.required | map('tojson') | join(', ') }}];
+  for (const prop of requiredProps) {
+    if (!(prop in obj)) return false;
+  }
+  {% endif %}
+  
+  // Check property types
+  {% for property, details in schema.properties %}
+  {% if details.type === 'string' %}
+  if (obj.{{ property }} !== undefined && typeof obj.{{ property }} !== 'string') return false;
+  {% elif details.type === 'number' %}
+  if (obj.{{ property }} !== undefined && typeof obj.{{ property }} !== 'number') return false;
+  {% elif details.type === 'boolean' %}
+  if (obj.{{ property }} !== undefined && typeof obj.{{ property }} !== 'boolean') return false;
+  {% elif details.type === 'array' %}
+  if (obj.{{ property }} !== undefined && !Array.isArray(obj.{{ property }})) return false;
+  {% elif details.enum %}
+  if (obj.{{ property }} !== undefined && !{{ details.enum | map('tojson') | list | tojson }}.includes(obj.{{ property }})) return false;
+  {% endif %}
+  {% endfor %}
+  
+  {% elif schema.type === 'array' %}
+  if (!Array.isArray(obj)) return false;
+  
+  {% elif schema.enum %}
+  const validValues = {{ schema.enum | map('tojson') | list | tojson }};
+  return validValues.includes(obj);
+  
+  {% else %}
+  // Basic type check for {{ schema.type }}
+  return typeof obj === '{{ schema.type }}';
+  {% endif %}
+  
+  return true;
+}
+
+// Validation functions
+export interface ValidationResult {
+  valid: boolean;
+  errors: string[];
+}
+
+export function validate{{ schemaName }}(obj: any): ValidationResult {
+  const errors: string[] = [];
+  
+  {% if schema.type === 'object' %}
+  if (!obj || typeof obj !== 'object') {
+    errors.push('Value must be an object');
+    return { valid: false, errors };
+  }
+  
+  {% if schema.required %}
+  // Validate required properties
+  const requiredProps = [{{ schema.required | map('tojson') | join(', ') }}];
+  for (const prop of requiredProps) {
+    if (!(prop in obj)) {
+      errors.push(`Missing required property: ${prop}`);
+    }
+  }
+  {% endif %}
+  
+  // Validate property types and constraints
+  {% for property, details in schema.properties %}
+  if (obj.{{ property }} !== undefined) {
+    {% if details.type === 'string' %}
+    if (typeof obj.{{ property }} !== 'string') {
+      errors.push('Property "{{ property }}" must be a string');
+    }
+    {% if details.minLength %}
+    if (obj.{{ property }}.length < {{ details.minLength }}) {
+      errors.push('Property "{{ property }}" must be at least {{ details.minLength }} characters');
+    }
+    {% endif %}
+    {% if details.maxLength %}
+    if (obj.{{ property }}.length > {{ details.maxLength }}) {
+      errors.push('Property "{{ property }}" cannot exceed {{ details.maxLength }} characters');
+    }
+    {% endif %}
+    {% if details.pattern %}
+    if (!new RegExp('{{ details.pattern }}').test(obj.{{ property }})) {
+      errors.push('Property "{{ property }}" does not match required pattern');
+    }
+    {% endif %}
+    {% elif details.type === 'number' %}
+    if (typeof obj.{{ property }} !== 'number') {
+      errors.push('Property "{{ property }}" must be a number');
+    }
+    {% if details.minimum %}
+    if (obj.{{ property }} < {{ details.minimum }}) {
+      errors.push('Property "{{ property }}" must be at least {{ details.minimum }}');
+    }
+    {% endif %}
+    {% if details.maximum %}
+    if (obj.{{ property }} > {{ details.maximum }}) {
+      errors.push('Property "{{ property }}" cannot exceed {{ details.maximum }}');
+    }
+    {% endif %}
+    {% elif details.type === 'array' %}
+    if (!Array.isArray(obj.{{ property }})) {
+      errors.push('Property "{{ property }}" must be an array');
+    }
+    {% if details.minItems %}
+    if (obj.{{ property }}.length < {{ details.minItems }}) {
+      errors.push('Property "{{ property }}" must have at least {{ details.minItems }} items');
+    }
+    {% endif %}
+    {% if details.maxItems %}
+    if (obj.{{ property }}.length > {{ details.maxItems }}) {
+      errors.push('Property "{{ property }}" cannot have more than {{ details.maxItems }} items');
+    }
+    {% endif %}
+    {% elif details.enum %}
+    const validValues{{ property | pascalCase }} = {{ details.enum | map('tojson') | list | tojson }};
+    if (!validValues{{ property | pascalCase }}.includes(obj.{{ property }})) {
+      errors.push(`Property "{{ property }}" must be one of: ${validValues{{ property | pascalCase }}.join(', ')}`);
+    }
+    {% endif %}
+  }
+  {% endfor %}
+  
+  {% endif %}
+  
+  return { valid: errors.length === 0, errors };
+}
+
+// Default values
+export const {{ schemaName }}Defaults: Partial<{{ schemaName }}> = {
+  {% for property, details in schema.properties %}
+  {% if details.default is defined %}
+  {{ property }}: {{ details.default | tojson }},
+  {% endif %}
+  {% endfor %}
+};
+
+// JSON Schema definition (for runtime validation)
+export const {{ schemaName }}Schema = {
+  type: "{{ schema.type }}",
+  {% if schema.properties %}
+  properties: {
+    {% for property, details in schema.properties %}
+    {{ property }}: {
+      type: "{{ details.type }}",
+      {% if details.description %}description: {{ details.description | tojson }},{% endif %}
+      {% if details.example is defined %}example: {{ details.example | tojson }},{% endif %}
+      {% if details.default is defined %}default: {{ details.default | tojson }},{% endif %}
+      {% if details.enum %}enum: {{ details.enum | map('tojson') | list | tojson }},{% endif %}
+      {% if details.minLength %}minLength: {{ details.minLength }},{% endif %}
+      {% if details.maxLength %}maxLength: {{ details.maxLength }},{% endif %}
+      {% if details.minimum %}minimum: {{ details.minimum }},{% endif %}
+      {% if details.maximum %}maximum: {{ details.maximum }},{% endif %}
+      {% if details.pattern %}pattern: {{ details.pattern | tojson }},{% endif %}
+    },
+    {% endfor %}
+  },
+  {% endif %}
+  {% if schema.required %}
+  required: {{ schema.required | map('tojson') | list | tojson }},
+  {% endif %}
+  {% if schema.additionalProperties is defined %}
+  additionalProperties: {{ schema.additionalProperties | tojson }},
+  {% endif %}
+} as const;

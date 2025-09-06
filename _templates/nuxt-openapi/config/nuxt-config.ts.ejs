@@ -1,0 +1,270 @@
+---
+to: nuxt.config.ts
+inject: true
+before: "export default defineNuxtConfig({"
+skipIf: "{{ skipIf }}"
+---
+// https://nuxt.com/docs/api/configuration/nuxt-config
+export default defineNuxtConfig({
+  // App configuration
+  app: {
+    head: {
+      title: '{{ serviceName | titleCase }} API Client',
+      meta: [
+        { charset: 'utf-8' },
+        { name: 'viewport', content: 'width=device-width, initial-scale=1' },
+        { name: 'description', content: 'Generated {{ serviceName }} API client with TypeScript support' }
+      ]
+    }
+  },
+
+  // Development configuration
+  devtools: { enabled: true },
+
+  // CSS framework
+  css: ['@/assets/css/main.css'],
+
+  // Modules
+  modules: [
+    '@nuxtjs/tailwindcss',
+    '@pinia/nuxt',
+    '@vueuse/nuxt'
+  ],
+
+  // Runtime configuration
+  runtimeConfig: {
+    // Private keys (only available on server-side)
+    {{ serviceName | camelCase }}: {
+      {% if hasApiKeyAuth %}
+      apiKey: process.env.{{ serviceName | upperCase }}_API_KEY || '',
+      {% endif %}
+      {% if hasBearerAuth %}
+      bearerToken: process.env.{{ serviceName | upperCase }}_BEARER_TOKEN || '',
+      {% endif %}
+      baseUrl: process.env.{{ serviceName | upperCase }}_BASE_URL || '{{ defaultBaseUrl }}',
+    },
+    
+    // Public keys (exposed to client-side)
+    public: {
+      {{ serviceName | camelCase }}: {
+        baseUrl: process.env.{{ serviceName | upperCase }}_PUBLIC_BASE_URL || '{{ defaultBaseUrl }}',
+        version: '{{ apiVersion }}',
+        {% if features.rateLimiting %}
+        rateLimiting: {
+          enabled: process.env.{{ serviceName | upperCase }}_RATE_LIMITING_ENABLED !== 'false',
+          maxRequests: parseInt(process.env.{{ serviceName | upperCase }}_MAX_REQUESTS || '100'),
+          windowMs: parseInt(process.env.{{ serviceName | upperCase }}_WINDOW_MS || '60000')
+        },
+        {% endif %}
+        {% if features.caching %}
+        caching: {
+          enabled: process.env.{{ serviceName | upperCase }}_CACHING_ENABLED !== 'false',
+          defaultTtl: parseInt(process.env.{{ serviceName | upperCase }}_CACHE_TTL || '300')
+        },
+        {% endif %}
+        {% if features.streaming %}
+        streaming: {
+          enabled: true,
+          timeout: parseInt(process.env.{{ serviceName | upperCase }}_STREAM_TIMEOUT || '30000')
+        },
+        {% endif %}
+        {% if features.monitoring %}
+        monitoring: {
+          enabled: process.env.{{ serviceName | upperCase }}_MONITORING_ENABLED === 'true',
+          endpoint: process.env.{{ serviceName | upperCase }}_MONITORING_ENDPOINT || ''
+        }
+        {% endif %}
+      }
+    }
+  },
+
+  // Server-side rendering
+  ssr: true,
+
+  // TypeScript configuration
+  typescript: {
+    strict: true,
+    typeCheck: true
+  },
+
+  // Build configuration
+  build: {
+    transpile: [
+      {% if features.validation %}
+      'zod'
+      {% endif %}
+    ]
+  },
+
+  // Vite configuration
+  vite: {
+    define: {
+      __API_VERSION__: JSON.stringify('{{ apiVersion }}'),
+      __BUILD_TIME__: JSON.stringify(new Date().toISOString())
+    }
+  },
+
+  // Plugins
+  plugins: [
+    '~/plugins/{{ serviceName | kebabCase }}-client.client.ts',
+    {% if hasAuth %}
+    '~/plugins/auth.client.ts',
+    {% endif %}
+    {% if features.monitoring %}
+    '~/plugins/monitoring.client.ts',
+    {% endif %}
+  ],
+
+  // Composables auto-imports
+  composables: {
+    dirs: [
+      'composables',
+      'composables/{{ serviceName | kebabCase }}'
+    ]
+  },
+
+  // Auto-import components
+  components: [
+    {
+      path: '~/components',
+      pathPrefix: false
+    },
+    {
+      path: '~/components/{{ serviceName | kebabCase }}',
+      prefix: '{{ serviceName | pascalCase }}'
+    }
+  ],
+
+  // Route rules for performance
+  routeRules: {
+    // Static generation for documentation
+    '/{{ serviceName | kebabCase }}/docs/**': { prerender: true },
+    
+    // SPA for demo pages (client-side only for API calls)
+    '/{{ serviceName | kebabCase }}/demo': { ssr: false },
+    
+    {% if features.caching %}
+    // ISR for dynamic content with API data
+    '/{{ serviceName | kebabCase }}/models': { isr: 300 }, // 5 minutes
+    '/{{ serviceName | kebabCase }}/health': { isr: 60 }, // 1 minute
+    {% endif %}
+  },
+
+  // Nitro configuration (server)
+  nitro: {
+    experimental: {
+      wasm: true
+    },
+    {% if features.cors %}
+    // CORS configuration
+    cors: {
+      origin: process.env.NODE_ENV === 'development' 
+        ? ['http://localhost:3000', 'http://localhost:3001']
+        : ['{{ productionUrl }}'],
+      methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+      allowedHeaders: ['Content-Type', 'Authorization', 'X-API-Key', 'X-Correlation-ID'],
+      credentials: true
+    },
+    {% endif %}
+    
+    // Environment variables for server
+    runtimeConfig: {
+      {{ serviceName | camelCase }}ApiKey: process.env.{{ serviceName | upperCase }}_API_KEY,
+      {{ serviceName | camelCase }}BaseUrl: process.env.{{ serviceName | upperCase }}_BASE_URL,
+      {% if features.monitoring %}
+      monitoringEnabled: process.env.{{ serviceName | upperCase }}_MONITORING_ENABLED === 'true',
+      {% endif %}
+      {% if features.logging %}
+      logLevel: process.env.LOG_LEVEL || 'info',
+      {% endif %}
+    }
+  },
+
+  // Tailwind CSS configuration
+  tailwindcss: {
+    cssPath: '~/assets/css/main.css',
+    configPath: 'tailwind.config.js',
+    exposeConfig: false,
+    viewer: true
+  },
+
+  // Pinia store configuration
+  pinia: {
+    autoImports: [
+      'defineStore',
+      ['defineStore', 'definePiniaStore']
+    ]
+  },
+
+  // Development server
+  devServer: {
+    port: 3000,
+    host: '0.0.0.0'
+  },
+
+  // Experimental features
+  experimental: {
+    payloadExtraction: false,
+    typedPages: true,
+    viewTransition: true
+  },
+
+  // Error handling
+  debug: process.env.NODE_ENV === 'development',
+
+  // Security headers
+  security: {
+    headers: {
+      contentSecurityPolicy: {
+        'base-uri': ["'self'"],
+        'font-src': ["'self'", 'https:', 'data:'],
+        'form-action': ["'self'"],
+        'frame-ancestors': ["'none'"],
+        'img-src': ["'self'", 'data:', 'https:'],
+        'object-src': ["'none'"],
+        'script-src-attr': ["'none'"],
+        'style-src': ["'self'", 'https:', "'unsafe-inline'"],
+        'upgrade-insecure-requests': true
+      },
+      crossOriginEmbedderPolicy: process.env.NODE_ENV === 'development' ? 'unsafe-none' : 'require-corp',
+      crossOriginOpenerPolicy: 'same-origin',
+      crossOriginResourcePolicy: 'same-origin',
+      originAgentCluster: '?1',
+      referrerPolicy: 'no-referrer',
+      strictTransportSecurity: {
+        maxAge: 31536000,
+        includeSubdomains: true
+      },
+      xContentTypeOptions: 'nosniff',
+      xDNSPrefetchControl: 'off',
+      xDownloadOptions: 'noopen',
+      xFrameOptions: 'DENY',
+      xPermittedCrossDomainPolicies: 'none',
+      xXSSProtection: '0'
+    }
+  }
+})
+
+// Environment-specific overrides
+{% raw %}
+if (process.env.NODE_ENV === 'production') {
+  // Production optimizations
+  config.build = {
+    ...config.build,
+    analyze: false,
+    extractCSS: true,
+    optimization: {
+      splitChunks: {
+        chunks: 'all',
+        cacheGroups: {
+          vendor: {
+            test: /[\\/]node_modules[\\/]/,
+            name: 'vendors',
+            chunks: 'all'
+          }
+        }
+      }
+    }
+  }
+}
+{% endraw %}

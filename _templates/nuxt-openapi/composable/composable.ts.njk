@@ -1,0 +1,210 @@
+---
+to: "{{ outputDir }}/composables/use{{ operationId | pascalCase }}.ts"
+inject: false
+skipIf: "!{{ operationId }}"
+rdf:
+  type: file
+  source: "{{ rdfSchemaPath || 'schemas/openapi.ttl' }}"
+  query:
+    subject: "{{ operationUri }}"
+    predicate: "http://openapi.org/spec#operation"
+rdfPrefixes:
+  openapi: "http://openapi.org/spec#"
+  http: "http://www.w3.org/2011/http#"
+  rdfs: "http://www.w3.org/2000/01/rdf-schema#"
+---
+/**
+ * Composable for {{ operationId }} API operation
+ * Generated from OpenAPI specification
+ */
+import { ref, type Ref } from 'vue'
+import { $fetch, type FetchOptions } from 'ofetch'
+
+{% set operation = rdf.operations | selectattr("operationId", "equalto", operationId) | first %}
+{% set requestSchema = operation.requestBody.content["application/json"].schema if operation.requestBody %}
+{% set responseSchema = operation.responses["200"].content["application/json"].schema if operation.responses["200"] %}
+
+export interface {{ operationId | pascalCase }}Request {
+{%- if requestSchema %}
+{%- for property, details in requestSchema.properties %}
+  {{ property }}{% if not details.required %}?{% endif %}: {{ details.type | tsType }};
+{%- endfor %}
+{%- endif %}
+}
+
+export interface {{ operationId | pascalCase }}Response {
+{%- if responseSchema %}
+{%- for property, details in responseSchema.properties %}
+  {{ property }}{% if not details.required %}?{% endif %}: {{ details.type | tsType }};
+{%- endfor %}
+{%- else %}
+  success: boolean;
+  message?: string;
+{%- endif %}
+}
+
+export interface {{ operationId | pascalCase }}Error {
+  statusCode: number;
+  message: string;
+  details?: Record<string, any>;
+}
+
+export interface Use{{ operationId | pascalCase }}Options {
+  server?: string;
+  immediate?: boolean;
+  transform?: (data: {{ operationId | pascalCase }}Response) => any;
+  onRequest?: (context: { request: string; options: FetchOptions }) => void;
+  onResponse?: (context: { response: {{ operationId | pascalCase }}Response }) => void;
+  onError?: (context: { error: {{ operationId | pascalCase }}Error }) => void;
+}
+
+export function use{{ operationId | pascalCase }}(
+  params?: {{ operationId | pascalCase }}Request,
+  options: Use{{ operationId | pascalCase }}Options = {}
+) {
+  const { server = '{{ baseUrl || "/api" }}', immediate = false } = options
+  
+  const data: Ref<{{ operationId | pascalCase }}Response | null> = ref(null)
+  const error: Ref<{{ operationId | pascalCase }}Error | null> = ref(null)
+  const pending = ref(false)
+
+  const execute = async (requestData?: {{ operationId | pascalCase }}Request) => {
+    try {
+      pending.value = true
+      error.value = null
+
+      const payload = requestData || params
+      {% if operation.method.toLowerCase() === 'get' %}
+      const query = payload ? new URLSearchParams(payload as any).toString() : ''
+      const url = `${server}{{ operation.path }}${query ? '?' + query : ''}`
+      {% else %}
+      const url = `${server}{{ operation.path }}`
+      {% endif %}
+
+      const fetchOptions: FetchOptions = {
+        method: '{{ operation.method.upper() }}',
+        {% if operation.method.toLowerCase() !== 'get' %}
+        body: payload,
+        {% endif %}
+        headers: {
+          'Content-Type': 'application/json',
+          {% if operation.security %}
+          ...(await getAuthHeaders()),
+          {% endif %}
+        },
+        ...options.onRequest && { onRequest: options.onRequest },
+        ...options.onResponse && { onResponse: options.onResponse }
+      }
+
+      const response = await $fetch<{{ operationId | pascalCase }}Response>(url, fetchOptions)
+      
+      data.value = options.transform ? options.transform(response) : response
+      
+      return response
+    } catch (err: any) {
+      const apiError: {{ operationId | pascalCase }}Error = {
+        statusCode: err.statusCode || 500,
+        message: err.message || 'An error occurred',
+        details: err.data
+      }
+      
+      error.value = apiError
+      
+      if (options.onError) {
+        options.onError({ error: apiError })
+      }
+      
+      throw apiError
+    } finally {
+      pending.value = false
+    }
+  }
+
+  {% if operation.security %}
+  const getAuthHeaders = async () => {
+    const { $auth } = useNuxtApp()
+    const token = await $auth.getToken()
+    
+    return token ? {
+      Authorization: `Bearer ${token}`
+    } : {}
+  }
+  {% endif %}
+
+  // Execute immediately if requested
+  if (immediate && params) {
+    execute(params)
+  }
+
+  const refresh = () => execute(params)
+  const clear = () => {
+    data.value = null
+    error.value = null
+  }
+
+  return {
+    data: readonly(data),
+    error: readonly(error),
+    pending: readonly(pending),
+    execute,
+    refresh,
+    clear
+  }
+}
+
+// Reactive version for real-time updates
+export function use{{ operationId | pascalCase }}Reactive(
+  paramsRef: Ref<{{ operationId | pascalCase }}Request | undefined>,
+  options: Use{{ operationId | pascalCase }}Options = {}
+) {
+  const result = use{{ operationId | pascalCase }}(undefined, options)
+
+  // Watch for parameter changes
+  watch(
+    paramsRef,
+    (newParams) => {
+      if (newParams) {
+        result.execute(newParams)
+      } else {
+        result.clear()
+      }
+    },
+    { deep: true, immediate: true }
+  )
+
+  return result
+}
+
+{% if operation.method.toLowerCase() === 'post' or operation.method.toLowerCase() === 'put' %}
+// Optimistic update version for mutations
+export function use{{ operationId | pascalCase }}Optimistic(
+  options: Use{{ operationId | pascalCase }}Options & {
+    optimisticUpdate?: (data: {{ operationId | pascalCase }}Response) => void;
+    rollback?: () => void;
+  } = {}
+) {
+  const baseComposable = use{{ operationId | pascalCase }}(undefined, options)
+
+  const executeOptimistic = async (params: {{ operationId | pascalCase }}Request) => {
+    // Apply optimistic update
+    if (options.optimisticUpdate) {
+      options.optimisticUpdate(params as any)
+    }
+
+    try {
+      return await baseComposable.execute(params)
+    } catch (error) {
+      // Rollback on error
+      if (options.rollback) {
+        options.rollback()
+      }
+      throw error
+    }
+  }
+
+  return {
+    ...baseComposable,
+    execute: executeOptimistic
+  }
+}
+{% endif %}

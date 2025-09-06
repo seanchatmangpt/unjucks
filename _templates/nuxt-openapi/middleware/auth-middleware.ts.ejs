@@ -1,0 +1,474 @@
+---
+to: middleware/{{ serviceName | kebabCase }}-auth.{% if isGlobal %}global.{% endif %}ts
+skipIf: "{{ skipIf }}"
+---
+import type { AuthState, AuthTokens } from '~/types/{{ serviceName | kebabCase }}'
+
+/**
+ * {{ serviceName }} Authentication Middleware
+ * 
+ * @generated from OpenAPI security schemes
+ * Handles: {% for scheme in securitySchemes %}{{ scheme.type }}{% unless loop.last %}, {% endunless %}{% endfor %}
+ */
+
+export default defineNuxtRouteMiddleware(async (to, from) => {
+  // Skip auth for public routes
+  const publicRoutes = [
+    '/login',
+    '/register',
+    '/forgot-password',
+    '/health',
+    {% for route in publicRoutes %}
+    '{{ route }}',
+    {% endfor %}
+  ]
+  
+  if (publicRoutes.includes(to.path)) {
+    return
+  }
+  
+  // Check if route requires authentication
+  const requiresAuth = to.meta.auth !== false
+  
+  if (!requiresAuth) {
+    return
+  }
+  
+  const { ${{ serviceName | camelCase }} } = useNuxtApp()
+  const auth = useState<AuthState>('{{ serviceName | kebabCase }}.auth', () => ({
+    user: null,
+    tokens: null,
+    isAuthenticated: false,
+    isLoading: false,
+    error: null
+  }))
+  
+  // Check for existing authentication
+  if (!auth.value.isAuthenticated) {
+    await loadAuthFromStorage()
+  }
+  
+  // Validate current authentication
+  if (auth.value.isAuthenticated && auth.value.tokens) {
+    const isValid = await validateAuthentication()
+    
+    if (!isValid) {
+      await clearAuthentication()
+      return navigateTo('/login', { 
+        redirectTo: to.fullPath 
+      })
+    }
+  } else {
+    // No valid authentication found
+    return navigateTo('/login', { 
+      redirectTo: to.fullPath 
+    })
+  }
+  
+  // Check permissions for protected routes
+  if (to.meta.permissions) {
+    const hasPermission = checkPermissions(to.meta.permissions as string[])
+    if (!hasPermission) {
+      throw createError({
+        statusCode: 403,
+        statusMessage: 'Insufficient permissions'
+      })
+    }
+  }
+  
+  // Check role-based access
+  if (to.meta.roles) {
+    const hasRole = checkRoles(to.meta.roles as string[])
+    if (!hasRole) {
+      throw createError({
+        statusCode: 403,
+        statusMessage: 'Insufficient role privileges'
+      })
+    }
+  }
+  
+  // Refresh token if needed
+  {% if hasBearerAuth %}
+  if (shouldRefreshToken()) {
+    try {
+      await refreshAuthToken()
+    } catch (error) {
+      console.warn('Token refresh failed:', error)
+      await clearAuthentication()
+      return navigateTo('/login', { 
+        redirectTo: to.fullPath 
+      })
+    }
+  }
+  {% endif %}
+})
+
+// Authentication helper functions
+async function loadAuthFromStorage(): Promise<void> {
+  const auth = useState<AuthState>('{{ serviceName | kebabCase }}.auth')
+  
+  try {
+    {% if hasBearerAuth %}
+    // Load JWT tokens
+    const tokenData = useCookie<AuthTokens>('{{ serviceName | kebabCase }}-tokens', {
+      secure: true,
+      sameSite: 'strict',
+      httpOnly: false, // Needs to be accessible to client-side
+      maxAge: 60 * 60 * 24 * 7 // 7 days
+    })
+    
+    if (tokenData.value?.token) {
+      auth.value.tokens = tokenData.value
+      
+      // Decode and validate JWT token
+      const payload = decodeJWTPayload(tokenData.value.token)
+      if (payload && payload.exp > Date.now() / 1000) {
+        auth.value.user = {
+          id: payload.sub || payload.userId,
+          email: payload.email,
+          name: payload.name,
+          role: payload.role,
+          permissions: payload.permissions || []
+        }
+        auth.value.isAuthenticated = true
+        
+        // Update API client with token
+        const { ${{ serviceName | camelCase }} } = useNuxtApp()
+        ${{ serviceName | camelCase }}.setAuthToken(tokenData.value.token)
+      }
+    }
+    {% endif %}
+    
+    {% if hasApiKeyAuth %}
+    // Load API key
+    const apiKeyData = useCookie<string>('{{ serviceName | kebabCase }}-api-key', {
+      secure: true,
+      sameSite: 'strict',
+      httpOnly: false
+    })
+    
+    if (apiKeyData.value) {
+      if (!auth.value.tokens) {
+        auth.value.tokens = {}
+      }
+      auth.value.tokens.apiKey = apiKeyData.value
+      
+      // For API key auth, we need to validate it with the server
+      const isValid = await validateApiKey(apiKeyData.value)
+      if (isValid) {
+        auth.value.user = {
+          id: 'api-user',
+          role: 'api-client',
+          permissions: ['api-access']
+        }
+        auth.value.isAuthenticated = true
+        
+        // Update API client with key
+        const { ${{ serviceName | camelCase }} } = useNuxtApp()
+        ${{ serviceName | camelCase }}.setApiKey(apiKeyData.value)
+      }
+    }
+    {% endif %}
+    
+  } catch (error) {
+    console.error('Failed to load authentication from storage:', error)
+    await clearAuthentication()
+  }
+}
+
+async function validateAuthentication(): Promise<boolean> {
+  const auth = useState<AuthState>('{{ serviceName | kebabCase }}.auth')
+  
+  if (!auth.value.tokens) {
+    return false
+  }
+  
+  try {
+    {% if hasBearerAuth %}
+    // Validate JWT token
+    if (auth.value.tokens.token) {
+      const payload = decodeJWTPayload(auth.value.tokens.token)
+      
+      // Check expiration
+      if (!payload || payload.exp <= Date.now() / 1000) {
+        return false
+      }
+      
+      // Optionally validate with server
+      const { data } = await $fetch('/api/auth/validate', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${auth.value.tokens.token}`
+        }
+      }).catch(() => ({ data: null }))
+      
+      return !!data
+    }
+    {% endif %}
+    
+    {% if hasApiKeyAuth %}
+    // Validate API key
+    if (auth.value.tokens.apiKey) {
+      return await validateApiKey(auth.value.tokens.apiKey)
+    }
+    {% endif %}
+    
+    return false
+    
+  } catch (error) {
+    console.error('Authentication validation failed:', error)
+    return false
+  }
+}
+
+async function clearAuthentication(): Promise<void> {
+  const auth = useState<AuthState>('{{ serviceName | kebabCase }}.auth')
+  
+  // Clear state
+  auth.value.user = null
+  auth.value.tokens = null
+  auth.value.isAuthenticated = false
+  auth.value.error = null
+  
+  // Clear cookies
+  {% if hasBearerAuth %}
+  const tokenCookie = useCookie('{{ serviceName | kebabCase }}-tokens')
+  tokenCookie.value = null
+  {% endif %}
+  
+  {% if hasApiKeyAuth %}
+  const apiKeyCookie = useCookie('{{ serviceName | kebabCase }}-api-key')
+  apiKeyCookie.value = null
+  {% endif %}
+  
+  // Clear API client auth
+  const { ${{ serviceName | camelCase }} } = useNuxtApp()
+  ${{ serviceName | camelCase }}.clearAuth()
+}
+
+function checkPermissions(requiredPermissions: string[]): boolean {
+  const auth = useState<AuthState>('{{ serviceName | kebabCase }}.auth')
+  
+  if (!auth.value.user?.permissions) {
+    return false
+  }
+  
+  return requiredPermissions.every(permission => 
+    auth.value.user!.permissions!.includes(permission)
+  )
+}
+
+function checkRoles(requiredRoles: string[]): boolean {
+  const auth = useState<AuthState>('{{ serviceName | kebabCase }}.auth')
+  
+  if (!auth.value.user?.role) {
+    return false
+  }
+  
+  return requiredRoles.includes(auth.value.user.role)
+}
+
+{% if hasBearerAuth %}
+function shouldRefreshToken(): boolean {
+  const auth = useState<AuthState>('{{ serviceName | kebabCase }}.auth')
+  
+  if (!auth.value.tokens?.token) {
+    return false
+  }
+  
+  const payload = decodeJWTPayload(auth.value.tokens.token)
+  if (!payload) {
+    return false
+  }
+  
+  // Refresh if token expires in less than 5 minutes
+  const expiresIn = payload.exp - (Date.now() / 1000)
+  return expiresIn < 300
+}
+
+async function refreshAuthToken(): Promise<void> {
+  const auth = useState<AuthState>('{{ serviceName | kebabCase }}.auth')
+  
+  if (!auth.value.tokens?.refreshToken) {
+    throw new Error('No refresh token available')
+  }
+  
+  try {
+    const response = await $fetch<{ token: string; refreshToken: string }>('/api/auth/refresh', {
+      method: 'POST',
+      body: {
+        refreshToken: auth.value.tokens.refreshToken
+      }
+    })
+    
+    // Update tokens
+    auth.value.tokens.token = response.token
+    auth.value.tokens.refreshToken = response.refreshToken
+    
+    // Save to cookie
+    const tokenCookie = useCookie<AuthTokens>('{{ serviceName | kebabCase }}-tokens')
+    tokenCookie.value = auth.value.tokens
+    
+    // Update API client
+    const { ${{ serviceName | camelCase }} } = useNuxtApp()
+    ${{ serviceName | camelCase }}.setAuthToken(response.token)
+    
+  } catch (error) {
+    console.error('Token refresh failed:', error)
+    throw error
+  }
+}
+
+function decodeJWTPayload(token: string): any {
+  try {
+    const payload = token.split('.')[1]
+    const decoded = atob(payload.replace(/-/g, '+').replace(/_/g, '/'))
+    return JSON.parse(decoded)
+  } catch {
+    return null
+  }
+}
+{% endif %}
+
+{% if hasApiKeyAuth %}
+async function validateApiKey(apiKey: string): Promise<boolean> {
+  try {
+    const response = await $fetch('/api/auth/validate-api-key', {
+      method: 'POST',
+      headers: {
+        'X-API-Key': apiKey
+      }
+    })
+    
+    return !!response
+  } catch {
+    return false
+  }
+}
+{% endif %}
+
+// Type augmentation for route meta
+declare module 'vue-router' {
+  interface RouteMeta {
+    auth?: boolean
+    permissions?: string[]
+    roles?: string[]
+    {% for customMeta in customMetaFields %}
+    {{ customMeta.name }}?: {{ customMeta.type }}
+    {% endfor %}
+  }
+}
+
+// Export auth composables for use in components
+export const useAuth = () => {
+  const auth = useState<AuthState>('{{ serviceName | kebabCase }}.auth', () => ({
+    user: null,
+    tokens: null,
+    isAuthenticated: false,
+    isLoading: false,
+    error: null
+  }))
+  
+  const login = async (credentials: { 
+    {% if hasBearerAuth %}
+    email?: string
+    password?: string
+    {% endif %}
+    {% if hasApiKeyAuth %}
+    apiKey?: string
+    {% endif %}
+  }) => {
+    auth.value.isLoading = true
+    auth.value.error = null
+    
+    try {
+      {% if hasBearerAuth %}
+      if (credentials.email && credentials.password) {
+        const response = await $fetch<{ 
+          token: string
+          refreshToken: string
+          user: any 
+        }>('/api/auth/login', {
+          method: 'POST',
+          body: credentials
+        })
+        
+        auth.value.tokens = {
+          token: response.token,
+          refreshToken: response.refreshToken,
+          tokenType: 'Bearer'
+        }
+        auth.value.user = response.user
+        auth.value.isAuthenticated = true
+        
+        // Save tokens
+        const tokenCookie = useCookie<AuthTokens>('{{ serviceName | kebabCase }}-tokens')
+        tokenCookie.value = auth.value.tokens
+        
+        // Update API client
+        const { ${{ serviceName | camelCase }} } = useNuxtApp()
+        ${{ serviceName | camelCase }}.setAuthToken(response.token)
+      }
+      {% endif %}
+      
+      {% if hasApiKeyAuth %}
+      if (credentials.apiKey) {
+        const isValid = await validateApiKey(credentials.apiKey)
+        if (isValid) {
+          auth.value.tokens = { apiKey: credentials.apiKey }
+          auth.value.user = {
+            id: 'api-user',
+            role: 'api-client',
+            permissions: ['api-access']
+          }
+          auth.value.isAuthenticated = true
+          
+          // Save API key
+          const apiKeyCookie = useCookie('{{ serviceName | kebabCase }}-api-key')
+          apiKeyCookie.value = credentials.apiKey
+          
+          // Update API client
+          const { ${{ serviceName | camelCase }} } = useNuxtApp()
+          ${{ serviceName | camelCase }}.setApiKey(credentials.apiKey)
+        } else {
+          throw new Error('Invalid API key')
+        }
+      }
+      {% endif %}
+      
+    } catch (error: any) {
+      auth.value.error = {
+        error: error.message || 'Login failed',
+        code: 'LOGIN_ERROR',
+        status: error.statusCode || 401
+      }
+      throw error
+    } finally {
+      auth.value.isLoading = false
+    }
+  }
+  
+  const logout = async () => {
+    await clearAuthentication()
+    await navigateTo('/login')
+  }
+  
+  return {
+    // State
+    ...toRefs(auth.value),
+    
+    // Methods
+    login,
+    logout,
+    
+    // Computed
+    hasPermission: (permission: string) => 
+      computed(() => auth.value.user?.permissions?.includes(permission) || false),
+    hasRole: (role: string) => 
+      computed(() => auth.value.user?.role === role),
+    hasAnyRole: (roles: string[]) => 
+      computed(() => roles.includes(auth.value.user?.role || '')),
+    hasAnyPermission: (permissions: string[]) => 
+      computed(() => permissions.some(p => auth.value.user?.permissions?.includes(p))),
+  }
+}

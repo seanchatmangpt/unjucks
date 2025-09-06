@@ -29,8 +29,13 @@ export default defineNuxtConfig({
     }
   },
 
-  // Runtime config for MCP and swarm settings
+  // Runtime config for MCP and swarm settings + Ollama API
   runtimeConfig: {
+    // Private keys (only available on server-side)
+    ollamaBaseURL: process.env.OLLAMA_BASE_URL || 'http://localhost:11434',
+    ollamaApiKey: process.env.OLLAMA_API_KEY || '',
+    ollamaAuthToken: process.env.OLLAMA_AUTH_TOKEN || '',
+    
     mcp: {
       serverUrl: process.env.MCP_SERVER_URL || 'ws://localhost:3001',
       apiKey: process.env.MCP_API_KEY || '',
@@ -41,6 +46,10 @@ export default defineNuxtConfig({
       }
     },
     public: {
+      // Ollama API configuration (exposed to client-side)
+      ollamaBaseURL: process.env.NUXT_PUBLIC_OLLAMA_BASE_URL || 'http://localhost:11434',
+      ollamaRequireAuth: process.env.NUXT_PUBLIC_OLLAMA_REQUIRE_AUTH === 'true',
+      
       apiBase: process.env.NUXT_PUBLIC_API_BASE || '/api',
       mcpEnabled: true,
       realtimeEnabled: true

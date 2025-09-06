@@ -1,0 +1,584 @@
+---
+to: "{{ outputDir }}/pages/api-test/{{ operationId | kebabCase }}.vue"
+inject: false
+skipIf: "!{{ operationId }}"
+rdf:
+  type: file
+  source: "{{ rdfSchemaPath || 'schemas/openapi.ttl' }}"
+  query:
+    subject: "{{ operationUri }}"
+    predicate: "http://openapi.org/spec#operation"
+---
+<template>
+  <div class="api-test-page">
+    <div class="max-w-6xl mx-auto p-6">
+      <!-- Header -->
+      <div class="mb-8">
+        <h1 class="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+          {{ operationId | pascalCase }} API Test
+        </h1>
+        <div class="flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400">
+          <span class="px-2 py-1 bg-{{ operation.method | methodColor }}-100 text-{{ operation.method | methodColor }}-800 rounded-md font-mono">
+            {{ operation.method.upper() }}
+          </span>
+          <code class="bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">{{ operation.path }}</code>
+        </div>
+        {% if operation.description %}
+        <p class="mt-4 text-gray-700 dark:text-gray-300">{{ operation.description }}</p>
+        {% endif %}
+      </div>
+
+      <div class="grid lg:grid-cols-2 gap-8">
+        <!-- Request Panel -->
+        <div class="space-y-6">
+          <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+            <h2 class="text-xl font-semibold mb-4 text-gray-900 dark:text-white">Request</h2>
+            
+            {% if operation.parameters %}
+            <!-- Parameters -->
+            <div class="mb-6">
+              <h3 class="text-lg font-medium mb-3 text-gray-800 dark:text-gray-200">Parameters</h3>
+              <div class="space-y-4">
+                {% for param in operation.parameters %}
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    {{ param.name }}
+                    {% if param.required %}<span class="text-red-500">*</span>{% endif %}
+                    <span class="text-xs text-gray-500">({{ param.in }})</span>
+                  </label>
+                  {% if param.description %}
+                  <p class="text-xs text-gray-600 dark:text-gray-400 mb-2">{{ param.description }}</p>
+                  {% endif %}
+                  
+                  {% if param.schema.enum %}
+                  <USelect
+                    v-model="requestData.{{ param.name }}"
+                    :options="{{ param.schema.enum | map('tojson') | list | tojson }}"
+                    placeholder="Select {{ param.name }}"
+                    class="w-full"
+                  />
+                  {% elif param.schema.type === 'boolean' %}
+                  <UToggle
+                    v-model="requestData.{{ param.name }}"
+                    :label="param.name"
+                  />
+                  {% elif param.schema.type === 'number' %}
+                  <UInput
+                    v-model.number="requestData.{{ param.name }}"
+                    type="number"
+                    {% if param.schema.minimum %}:min="{{ param.schema.minimum }}"{% endif %}
+                    {% if param.schema.maximum %}:max="{{ param.schema.maximum }}"{% endif %}
+                    placeholder="Enter {{ param.name }}"
+                    class="w-full"
+                  />
+                  {% else %}
+                  <UInput
+                    v-model="requestData.{{ param.name }}"
+                    {% if param.schema.pattern %}:pattern="{{ param.schema.pattern }}"{% endif %}
+                    placeholder="Enter {{ param.name }}"
+                    class="w-full"
+                  />
+                  {% endif %}
+                </div>
+                {% endfor %}
+              </div>
+            </div>
+            {% endif %}
+
+            {% if operation.requestBody %}
+            <!-- Request Body -->
+            <div class="mb-6">
+              <h3 class="text-lg font-medium mb-3 text-gray-800 dark:text-gray-200">Request Body</h3>
+              
+              <UTabs :items="requestBodyTabs" class="w-full">
+                <template #form="{ item }">
+                  <div class="space-y-4 p-4">
+                    {% set requestSchema = operation.requestBody.content["application/json"].schema %}
+                    {% for property, details in requestSchema.properties %}
+                    <div>
+                      <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                        {{ property }}
+                        {% if requestSchema.required and property in requestSchema.required %}<span class="text-red-500">*</span>{% endif %}
+                      </label>
+                      {% if details.description %}
+                      <p class="text-xs text-gray-600 dark:text-gray-400 mb-2">{{ details.description }}</p>
+                      {% endif %}
+                      
+                      {% if details.enum %}
+                      <USelect
+                        v-model="requestData.{{ property }}"
+                        :options="{{ details.enum | map('tojson') | list | tojson }}"
+                        placeholder="Select {{ property }}"
+                        class="w-full"
+                      />
+                      {% elif details.type === 'boolean' %}
+                      <UToggle
+                        v-model="requestData.{{ property }}"
+                        :label="property"
+                      />
+                      {% elif details.type === 'number' %}
+                      <UInput
+                        v-model.number="requestData.{{ property }}"
+                        type="number"
+                        {% if details.minimum %}:min="{{ details.minimum }}"{% endif %}
+                        {% if details.maximum %}:max="{{ details.maximum }}"{% endif %}
+                        placeholder="Enter {{ property }}"
+                        class="w-full"
+                      />
+                      {% elif details.type === 'array' %}
+                      <div>
+                        <UButton
+                          @click="addArrayItem('{{ property }}')"
+                          variant="soft"
+                          size="sm"
+                          class="mb-2"
+                        >
+                          Add Item
+                        </UButton>
+                        <div v-for="(item, index) in (requestData.{{ property }} || [])" :key="index" class="flex gap-2 mb-2">
+                          <UInput
+                            v-model="requestData.{{ property }}[index]"
+                            placeholder="Item {{ "{{" }} index + 1 {{ "}}" }}"
+                            class="flex-1"
+                          />
+                          <UButton
+                            @click="removeArrayItem('{{ property }}', index)"
+                            variant="soft"
+                            color="red"
+                            size="sm"
+                          >
+                            Remove
+                          </UButton>
+                        </div>
+                      </div>
+                      {% elif details.type === 'object' %}
+                      <UTextarea
+                        v-model="requestData.{{ property }}"
+                        placeholder='{{ "{}" }}'
+                        rows="3"
+                        class="w-full font-mono text-sm"
+                      />
+                      {% else %}
+                      <UInput
+                        v-model="requestData.{{ property }}"
+                        {% if details.pattern %}:pattern="{{ details.pattern }}"{% endif %}
+                        placeholder="Enter {{ property }}"
+                        class="w-full"
+                      />
+                      {% endif %}
+                    </div>
+                    {% endfor %}
+                  </div>
+                </template>
+                
+                <template #json="{ item }">
+                  <div class="p-4">
+                    <UTextarea
+                      v-model="requestBodyJson"
+                      placeholder="Enter JSON request body..."
+                      :rows="12"
+                      class="w-full font-mono text-sm"
+                    />
+                  </div>
+                </template>
+              </UTabs>
+            </div>
+            {% endif %}
+
+            {% if operation.security %}
+            <!-- Authentication -->
+            <div class="mb-6">
+              <h3 class="text-lg font-medium mb-3 text-gray-800 dark:text-gray-200">Authentication</h3>
+              <UInput
+                v-model="authToken"
+                placeholder="Bearer token"
+                class="w-full"
+                type="password"
+              />
+            </div>
+            {% endif %}
+
+            <!-- Action Buttons -->
+            <div class="flex gap-3">
+              <UButton
+                @click="sendRequest"
+                :loading="pending"
+                size="lg"
+                class="flex-1"
+              >
+                Send Request
+              </UButton>
+              <UButton
+                @click="clearRequest"
+                variant="soft"
+                color="gray"
+                size="lg"
+              >
+                Clear
+              </UButton>
+            </div>
+          </div>
+
+          <!-- Code Examples -->
+          <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+            <h3 class="text-lg font-medium mb-4 text-gray-800 dark:text-gray-200">Code Examples</h3>
+            
+            <UTabs :items="codeExampleTabs" class="w-full">
+              <template #curl="{ item }">
+                <pre class="bg-gray-50 dark:bg-gray-900 p-4 rounded-lg overflow-x-auto text-sm"><code>{{ curlExample }}</code></pre>
+              </template>
+              
+              <template #javascript="{ item }">
+                <pre class="bg-gray-50 dark:bg-gray-900 p-4 rounded-lg overflow-x-auto text-sm"><code>{{ javascriptExample }}</code></pre>
+              </template>
+              
+              <template #composable="{ item }">
+                <pre class="bg-gray-50 dark:bg-gray-900 p-4 rounded-lg overflow-x-auto text-sm"><code>{{ composableExample }}</code></pre>
+              </template>
+            </UTabs>
+          </div>
+        </div>
+
+        <!-- Response Panel -->
+        <div class="space-y-6">
+          <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+            <h2 class="text-xl font-semibold mb-4 text-gray-900 dark:text-white">Response</h2>
+            
+            <div v-if="!hasResponse && !pending" class="text-center py-12 text-gray-500 dark:text-gray-400">
+              <div class="text-4xl mb-4">📡</div>
+              <p>Send a request to see the response</p>
+            </div>
+
+            <div v-if="pending" class="text-center py-12">
+              <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
+              <p class="text-gray-600 dark:text-gray-400">Sending request...</p>
+            </div>
+
+            <div v-if="hasResponse && !pending">
+              <!-- Response Status -->
+              <div class="mb-4">
+                <span :class="responseStatusClass" class="px-3 py-1 rounded-full text-sm font-medium">
+                  {{ responseStatus }}
+                </span>
+                <span class="ml-3 text-sm text-gray-600 dark:text-gray-400">
+                  {{ responseTime }}ms
+                </span>
+              </div>
+
+              <!-- Response Headers -->
+              <div v-if="responseHeaders" class="mb-4">
+                <h3 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Headers</h3>
+                <div class="bg-gray-50 dark:bg-gray-900 rounded p-3 text-sm font-mono">
+                  <div v-for="(value, key) in responseHeaders" :key="key" class="mb-1">
+                    <span class="text-gray-600 dark:text-gray-400">{{ key }}:</span>
+                    <span class="ml-2">{{ value }}</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Response Body -->
+              <div>
+                <h3 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Body</h3>
+                <UTabs :items="responseBodyTabs" class="w-full">
+                  <template #formatted="{ item }">
+                    <pre class="bg-gray-50 dark:bg-gray-900 p-4 rounded-lg overflow-auto text-sm max-h-96"><code>{{ formattedResponse }}</code></pre>
+                  </template>
+                  
+                  <template #raw="{ item }">
+                    <pre class="bg-gray-50 dark:bg-gray-900 p-4 rounded-lg overflow-auto text-sm max-h-96"><code>{{ rawResponse }}</code></pre>
+                  </template>
+                </UTabs>
+              </div>
+            </div>
+          </div>
+
+          <!-- Schema Documentation -->
+          {% if operation.responses["200"] %}
+          <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+            <h3 class="text-lg font-medium mb-4 text-gray-800 dark:text-gray-200">Response Schema</h3>
+            
+            {% set responseSchema = operation.responses["200"].content["application/json"].schema %}
+            <div class="space-y-3">
+              {% for property, details in responseSchema.properties %}
+              <div class="border-l-4 border-blue-200 pl-4">
+                <div class="font-medium text-sm">
+                  {{ property }}
+                  <span class="text-xs text-gray-500 ml-2">{{ details.type }}</span>
+                  {% if responseSchema.required and property in responseSchema.required %}
+                  <span class="text-xs text-red-500 ml-1">required</span>
+                  {% endif %}
+                </div>
+                {% if details.description %}
+                <p class="text-xs text-gray-600 dark:text-gray-400">{{ details.description }}</p>
+                {% endif %}
+                {% if details.example is defined %}
+                <code class="text-xs bg-gray-100 dark:bg-gray-700 px-1 py-0.5 rounded">{{ details.example | tojson }}</code>
+                {% endif %}
+              </div>
+              {% endfor %}
+            </div>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script setup lang="ts">
+import { computed, ref, watch } from 'vue'
+
+// Page meta
+definePageMeta({
+  title: '{{ operationId | pascalCase }} API Test',
+  description: 'Test the {{ operationId }} API endpoint'
+})
+
+// Reactive data
+const requestData = ref<Record<string, any>>({})
+const requestBodyJson = ref('')
+const authToken = ref('')
+const response = ref<any>(null)
+const responseStatus = ref<number | null>(null)
+const responseHeaders = ref<Record<string, string> | null>(null)
+const responseTime = ref<number>(0)
+const pending = ref(false)
+
+// Computed properties
+const hasResponse = computed(() => response.value !== null)
+
+const responseStatusClass = computed(() => {
+  if (!responseStatus.value) return ''
+  
+  if (responseStatus.value >= 200 && responseStatus.value < 300) {
+    return 'bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-100'
+  } else if (responseStatus.value >= 400 && responseStatus.value < 500) {
+    return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-800 dark:text-yellow-100'
+  } else if (responseStatus.value >= 500) {
+    return 'bg-red-100 text-red-800 dark:bg-red-800 dark:text-red-100'
+  } else {
+    return 'bg-blue-100 text-blue-800 dark:bg-blue-800 dark:text-blue-100'
+  }
+})
+
+const formattedResponse = computed(() => {
+  if (!response.value) return ''
+  
+  try {
+    return JSON.stringify(response.value, null, 2)
+  } catch {
+    return String(response.value)
+  }
+})
+
+const rawResponse = computed(() => {
+  return JSON.stringify(response.value)
+})
+
+// Tab configurations
+const requestBodyTabs = [
+  { key: 'form', label: 'Form', icon: 'i-heroicons-document-text' },
+  { key: 'json', label: 'JSON', icon: 'i-heroicons-code-bracket' }
+]
+
+const responseBodyTabs = [
+  { key: 'formatted', label: 'Formatted', icon: 'i-heroicons-eye' },
+  { key: 'raw', label: 'Raw', icon: 'i-heroicons-code-bracket' }
+]
+
+const codeExampleTabs = [
+  { key: 'curl', label: 'cURL', icon: 'i-heroicons-terminal' },
+  { key: 'javascript', label: 'JavaScript', icon: 'i-heroicons-code-bracket' },
+  { key: 'composable', label: 'Composable', icon: 'i-heroicons-sparkles' }
+]
+
+// Code examples
+const curlExample = computed(() => {
+  let curl = `curl -X {{ operation.method.upper() }} "{{ baseUrl || '$API_BASE' }}{{ operation.path }}"`
+  
+  {% if operation.security %}
+  if (authToken.value) {
+    curl += ` \\\n  -H "Authorization: Bearer ${authToken.value}"`
+  }
+  {% endif %}
+  
+  curl += ` \\\n  -H "Content-Type: application/json"`
+  
+  {% if operation.method.lower() in ['post', 'put', 'patch'] %}
+  if (requestBodyJson.value || Object.keys(requestData.value).length > 0) {
+    const body = requestBodyJson.value || JSON.stringify(requestData.value, null, 2)
+    curl += ` \\\n  -d '${body}'`
+  }
+  {% endif %}
+  
+  return curl
+})
+
+const javascriptExample = computed(() => {
+  return `// Using fetch API
+const response = await fetch('{{ baseUrl || '$API_BASE' }}{{ operation.path }}', {
+  method: '{{ operation.method.upper() }}',
+  headers: {
+    'Content-Type': 'application/json',
+    ${authToken.value ? `'Authorization': 'Bearer ${authToken.value}',` : ''}
+  },
+  ${Object.keys(requestData.value).length > 0 ? `body: JSON.stringify(${JSON.stringify(requestData.value, null, 4)}),` : ''}
+})
+
+const data = await response.json()
+console.log(data)`
+})
+
+const composableExample = computed(() => {
+  return `// Using the generated composable
+const { data, error, pending, execute } = use{{ operationId | pascalCase }}()
+
+// Execute the operation
+await execute(${Object.keys(requestData.value).length > 0 ? JSON.stringify(requestData.value, null, 2) : '{}'})`
+})
+
+// Methods
+const sendRequest = async () => {
+  try {
+    pending.value = true
+    response.value = null
+    
+    const startTime = Date.now()
+    
+    // Prepare request options
+    const requestOptions: any = {
+      method: '{{ operation.method.upper() }}',
+      headers: {
+        'Content-Type': 'application/json',
+        {% if operation.security %}
+        ...(authToken.value && { Authorization: `Bearer ${authToken.value}` }),
+        {% endif %}
+      }
+    }
+    
+    {% if operation.method.lower() in ['post', 'put', 'patch'] %}
+    // Add request body
+    const body = requestBodyJson.value ? JSON.parse(requestBodyJson.value) : requestData.value
+    if (Object.keys(body).length > 0) {
+      requestOptions.body = JSON.stringify(body)
+    }
+    {% endif %}
+    
+    // Build URL with query parameters
+    let url = '{{ baseUrl || "/api" }}{{ operation.path }}'
+    {% if operation.method.lower() === 'get' and operation.parameters %}
+    const queryParams = new URLSearchParams()
+    {% for param in operation.parameters %}
+    {% if param.in === 'query' %}
+    if (requestData.value.{{ param.name }}) {
+      queryParams.append('{{ param.name }}', String(requestData.value.{{ param.name }}))
+    }
+    {% endif %}
+    {% endfor %}
+    if (queryParams.toString()) {
+      url += '?' + queryParams.toString()
+    }
+    {% endif %}
+    
+    // Replace path parameters
+    {% for param in operation.parameters %}
+    {% if param.in === 'path' %}
+    if (requestData.value.{{ param.name }}) {
+      url = url.replace('{{ "{" }}{{ param.name }}{{ "}" }}', String(requestData.value.{{ param.name }}))
+    }
+    {% endif %}
+    {% endfor %}
+    
+    const res = await fetch(url, requestOptions)
+    const responseData = await res.json()
+    
+    responseTime.value = Date.now() - startTime
+    responseStatus.value = res.status
+    responseHeaders.value = Object.fromEntries(res.headers.entries())
+    response.value = responseData
+    
+  } catch (error: any) {
+    responseTime.value = Date.now() - (Date.now() - responseTime.value)
+    responseStatus.value = error.statusCode || 500
+    response.value = {
+      error: error.message || 'Request failed',
+      details: error
+    }
+  } finally {
+    pending.value = false
+  }
+}
+
+const clearRequest = () => {
+  requestData.value = {}
+  requestBodyJson.value = ''
+  response.value = null
+  responseStatus.value = null
+  responseHeaders.value = null
+  responseTime.value = 0
+}
+
+const addArrayItem = (field: string) => {
+  if (!requestData.value[field]) {
+    requestData.value[field] = []
+  }
+  requestData.value[field].push('')
+}
+
+const removeArrayItem = (field: string, index: number) => {
+  if (requestData.value[field]) {
+    requestData.value[field].splice(index, 1)
+  }
+}
+
+// Watch for changes in form data to sync with JSON
+watch(requestData, (newData) => {
+  if (Object.keys(newData).length > 0 && !requestBodyJson.value) {
+    requestBodyJson.value = JSON.stringify(newData, null, 2)
+  }
+}, { deep: true })
+
+// Watch for changes in JSON to sync with form
+watch(requestBodyJson, (newJson) => {
+  try {
+    if (newJson && newJson !== JSON.stringify(requestData.value, null, 2)) {
+      const parsed = JSON.parse(newJson)
+      requestData.value = { ...parsed }
+    }
+  } catch {
+    // Invalid JSON, ignore
+  }
+})
+
+// Initialize with default values
+onMounted(() => {
+  {% if operation.requestBody %}
+  {% set requestSchema = operation.requestBody.content["application/json"].schema %}
+  {% for property, details in requestSchema.properties %}
+  {% if details.default is defined %}
+  requestData.value.{{ property }} = {{ details.default | tojson }}
+  {% elif details.example is defined %}
+  requestData.value.{{ property }} = {{ details.example | tojson }}
+  {% endif %}
+  {% endfor %}
+  {% endif %}
+})
+</script>
+
+<style scoped>
+.api-test-page {
+  min-height: 100vh;
+  background-color: #f8fafc;
+}
+
+@media (prefers-color-scheme: dark) {
+  .api-test-page {
+    background-color: #0f172a;
+  }
+}
+
+pre code {
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+</style>

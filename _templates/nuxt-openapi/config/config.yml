@@ -1,0 +1,296 @@
+---
+# Nuxt OpenAPI Template Configuration
+# Template variables and their descriptions
+
+# Required variables
+operationId:
+  description: "OpenAPI operation ID (e.g., 'getUserById')"
+  type: string
+  required: true
+  example: "getUserById"
+
+# Optional variables with defaults
+outputDir:
+  description: "Output directory for generated files"
+  type: string
+  default: "."
+  example: "./src"
+
+baseUrl:
+  description: "Base URL for API endpoints"
+  type: string
+  default: "/api"
+  example: "https://api.example.com/v1"
+
+# Schema and RDF configuration
+schemaName:
+  description: "Name of the OpenAPI schema to generate types for"
+  type: string
+  example: "User"
+
+middlewareName:
+  description: "Name of the authentication middleware"
+  type: string
+  example: "auth"
+
+rdfSchemaPath:
+  description: "Path to the RDF schema file containing OpenAPI metadata"
+  type: string
+  default: "schemas/openapi.ttl"
+  example: "schemas/openapi.ttl"
+
+# Operation-specific URIs for RDF queries
+operationUri:
+  description: "RDF URI for the specific operation"
+  type: string
+  example: "http://api.example.com/operations#getUserById"
+
+schemaUri:
+  description: "RDF URI for the specific schema"
+  type: string
+  example: "http://api.example.com/schemas#User"
+
+securitySchemeUri:
+  description: "RDF URI for the security scheme"
+  type: string
+  example: "http://api.example.com/security#bearerAuth"
+
+# Application configuration
+appName:
+  description: "Name of the Nuxt application"
+  type: string
+  default: "OpenAPI App"
+  example: "My API Client"
+
+appDescription:
+  description: "Description of the Nuxt application"
+  type: string
+  default: "Generated from OpenAPI specification"
+  example: "Client application for the User Management API"
+
+# Authentication configuration
+authProvider:
+  description: "Authentication provider type"
+  type: string
+  default: "jwt"
+  options: ["jwt", "oauth2", "apiKey", "openIdConnect"]
+  example: "oauth2"
+
+# API client configuration
+clientName:
+  description: "Name of the API client class/composable"
+  type: string
+  default: "ApiClient"
+  example: "UserApiClient"
+
+enableStreaming:
+  description: "Enable streaming responses support"
+  type: boolean
+  default: false
+  example: true
+
+enableCaching:
+  description: "Enable response caching"
+  type: boolean
+  default: true
+  example: true
+
+# Development and testing options
+generateTests:
+  description: "Generate test files along with implementation"
+  type: boolean
+  default: false
+  example: true
+
+generateMockData:
+  description: "Generate mock data for development"
+  type: boolean
+  default: false
+  example: true
+
+generateDocs:
+  description: "Generate documentation files"
+  type: boolean
+  default: false
+  example: true
+
+# TypeScript configuration
+strictTypes:
+  description: "Use strict TypeScript types"
+  type: boolean
+  default: true
+  example: true
+
+generateValidation:
+  description: "Generate runtime validation functions"
+  type: boolean
+  default: true
+  example: true
+
+# UI configuration
+generateUIComponents:
+  description: "Generate Vue components for API testing"
+  type: boolean
+  default: true
+  example: true
+
+uiFramework:
+  description: "UI framework to use for generated components"
+  type: string
+  default: "nuxt-ui"
+  options: ["nuxt-ui", "vuetify", "quasar", "primevue"]
+  example: "nuxt-ui"
+
+# Error handling
+generateErrorTypes:
+  description: "Generate specific error types for each operation"
+  type: boolean
+  default: true
+  example: true
+
+# Performance options
+enableOptimisticUpdates:
+  description: "Enable optimistic updates for mutations"
+  type: boolean
+  default: false
+  example: true
+
+enableInfiniteQueries:
+  description: "Enable infinite query support for paginated endpoints"
+  type: boolean
+  default: false
+  example: true
+
+# Security options
+validateRequestBodies:
+  description: "Add request body validation"
+  type: boolean
+  default: true
+  example: true
+
+sanitizeInputs:
+  description: "Add input sanitization"
+  type: boolean
+  default: true
+  example: true
+
+# Plugin configuration
+generatePlugin:
+  description: "Generate Nuxt plugin for API client setup"
+  type: boolean
+  default: true
+  example: true
+
+pluginName:
+  description: "Name of the generated plugin"
+  type: string
+  default: "apiClient"
+  example: "userApi"
+
+# RDF and semantic features
+enableSemanticAnnotations:
+  description: "Include semantic annotations in generated code"
+  type: boolean
+  default: false
+  example: true
+
+rdfFormat:
+  description: "RDF serialization format"
+  type: string
+  default: "text/turtle"
+  options: ["text/turtle", "application/rdf+xml", "application/ld+json"]
+  example: "text/turtle"
+
+# Integration options
+enableOpenTelemetry:
+  description: "Add OpenTelemetry instrumentation"
+  type: boolean
+  default: false
+  example: true
+
+enableMetrics:
+  description: "Generate performance metrics collection"
+  type: boolean
+  default: false
+  example: true
+
+# Development server configuration
+devServerPort:
+  description: "Development server port"
+  type: number
+  default: 3000
+  example: 3001
+
+enableHMR:
+  description: "Enable Hot Module Replacement for development"
+  type: boolean
+  default: true
+  example: true
+
+# Build configuration
+buildTarget:
+  description: "Build target for the application"
+  type: string
+  default: "static"
+  options: ["static", "server", "spa"]
+  example: "static"
+
+enableSSR:
+  description: "Enable Server-Side Rendering"
+  type: boolean
+  default: true
+  example: false
+
+# Deployment options
+generateDockerfile:
+  description: "Generate Dockerfile for containerization"
+  type: boolean
+  default: false
+  example: true
+
+generateNitroPreset:
+  description: "Generate Nitro preset configuration"
+  type: string
+  example: "vercel"
+  options: ["vercel", "netlify", "cloudflare", "node-server"]
+
+# Advanced features
+enableRealtime:
+  description: "Enable real-time updates via WebSockets/SSE"
+  type: boolean
+  default: false
+  example: true
+
+enableOfflineSupport:
+  description: "Add offline support with service workers"
+  type: boolean
+  default: false
+  example: true
+
+enablePWA:
+  description: "Configure as Progressive Web App"
+  type: boolean
+  default: false
+  example: true
+
+# Custom filters and transformations
+customFilters:
+  description: "Custom Nunjucks filters to apply"
+  type: array
+  default: []
+  example: ["customTransform", "apiDocFormat"]
+
+# File organization
+fileNaming:
+  description: "File naming convention"
+  type: string
+  default: "kebab"
+  options: ["kebab", "camel", "pascal", "snake"]
+  example: "camel"
+
+directoryStructure:
+  description: "Directory structure style"
+  type: string
+  default: "feature"
+  options: ["feature", "type", "flat"]
+  example: "feature"

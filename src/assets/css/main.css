@@ -1,72 +1,112 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import 'tailwindcss/base';
+@import 'tailwindcss/components';
+@import 'tailwindcss/utilities';
 
-/* Custom scrollbar */
-::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+/* Custom styles for Ollama API test pages */
+.ollama-container {
+  @apply container mx-auto p-6;
 }
 
-::-webkit-scrollbar-track {
-  @apply bg-gray-100 dark:bg-gray-800 rounded;
+.ollama-card {
+  @apply bg-white border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow;
 }
 
-::-webkit-scrollbar-thumb {
-  @apply bg-gray-300 dark:bg-gray-600 rounded;
+.ollama-input {
+  @apply w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent;
 }
 
-::-webkit-scrollbar-thumb:hover {
-  @apply bg-gray-400 dark:bg-gray-500;
+.ollama-button {
+  @apply px-6 py-3 rounded-lg font-semibold transition-colors;
 }
 
-/* Line clamp utilities */
-.line-clamp-1 {
-  display: -webkit-box;
-  -webkit-line-clamp: 1;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
+.ollama-button-primary {
+  @apply ollama-button bg-blue-600 hover:bg-blue-700 text-white;
 }
 
-.line-clamp-2 {
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
+.ollama-button-secondary {
+  @apply ollama-button bg-gray-500 hover:bg-gray-600 text-white;
 }
 
-.line-clamp-3 {
-  display: -webkit-box;
-  -webkit-line-clamp: 3;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
+.ollama-button-success {
+  @apply ollama-button bg-green-600 hover:bg-green-700 text-white;
 }
 
-/* Loading animation */
-@keyframes pulse-subtle {
-  0%, 100% {
-    opacity: 1;
+.ollama-button-disabled {
+  @apply ollama-button bg-gray-300 cursor-not-allowed;
+}
+
+.ollama-message-user {
+  @apply mb-4 p-3 rounded-lg max-w-[80%] bg-blue-100 ml-auto;
+}
+
+.ollama-message-assistant {
+  @apply mb-4 p-3 rounded-lg max-w-[80%] bg-green-100;
+}
+
+.ollama-message-system {
+  @apply mb-4 p-3 rounded-lg max-w-[80%] bg-gray-100;
+}
+
+.ollama-status-connected {
+  @apply flex items-center space-x-2 text-green-700;
+}
+
+.ollama-status-disconnected {
+  @apply flex items-center space-x-2 text-red-700;
+}
+
+.ollama-status-indicator-connected {
+  @apply h-3 w-3 bg-green-500 rounded-full;
+}
+
+.ollama-status-indicator-disconnected {
+  @apply h-3 w-3 bg-red-500 rounded-full;
+}
+
+/* Loading animations */
+.ollama-spinner {
+  @apply animate-spin rounded-full border-b-2;
+}
+
+.ollama-spinner-sm {
+  @apply ollama-spinner h-4 w-4 border-blue-600;
+}
+
+.ollama-spinner-md {
+  @apply ollama-spinner h-6 w-6 border-blue-600;
+}
+
+.ollama-spinner-lg {
+  @apply ollama-spinner h-8 w-8 border-blue-600;
+}
+
+/* Progress bars */
+.ollama-progress {
+  @apply w-full bg-gray-200 rounded-full h-2;
+}
+
+.ollama-progress-bar {
+  @apply bg-green-600 h-2 rounded-full transition-all duration-300;
+}
+
+/* Code blocks */
+.ollama-code {
+  @apply bg-gray-200 px-2 py-1 rounded font-mono text-sm;
+}
+
+.ollama-pre {
+  @apply whitespace-pre-wrap font-mono text-sm bg-gray-50 p-4 rounded-lg border border-gray-200;
+}
+
+/* Responsive utilities */
+@media (max-width: 768px) {
+  .ollama-container {
+    @apply p-4;
   }
-  50% {
-    opacity: 0.8;
+  
+  .ollama-message-user,
+  .ollama-message-assistant,
+  .ollama-message-system {
+    @apply max-w-[95%];
   }
-}
-
-.animate-pulse-subtle {
-  animation: pulse-subtle 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-}
-
-/* Code highlighting */
-.hljs {
-  background: transparent !important;
-}
-
-/* Custom focus styles */
-.focus-visible:focus-visible {
-  @apply outline-none ring-2 ring-primary-500 ring-offset-2 dark:ring-offset-gray-900;
-}
-
-/* Transition utilities */
-.transition-colors-fast {
-  transition: color 150ms ease-in-out, background-color 150ms ease-in-out, border-color 150ms ease-in-out;
 }

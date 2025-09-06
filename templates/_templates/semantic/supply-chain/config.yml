@@ -1,0 +1,220 @@
+---
+name: "GS1 Supply Chain System"
+description: "Generate GS1-compliant supply chain management with global product identification and traceability"
+category: "supply-chain"
+jtbd: "Create interoperable supply chain systems using GS1 global standards for product identification and traceability"
+tags: 
+  - supply-chain
+  - gs1
+  - traceability
+  - gtin
+  - edi
+  - blockchain
+  - global-standards
+
+# RDF/Semantic Configuration with GS1 vocabulary
+rdf:
+  type: "inline"  
+  source: |
+    @prefix gs1: <https://gs1.org/voc/> .
+    @prefix epcis: <https://ns.gs1.org/epcis/> .
+    @prefix cbv: <https://ref.gs1.org/cbv/> .
+    @prefix edi: <https://gs1.org/edi/> .
+    @prefix blockchain: <https://blockchain.gs1.org/> .
+    @prefix unjucks: <http://unjucks.dev/ontology/> .
+    @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+    
+    # GS1 Product Identification
+    gs1:Product a unjucks:SupplyChainEntity ;
+        unjucks:hasIdentifier gs1:GTIN ;
+        unjucks:generatesAPI "/api/gs1/products" ;
+        unjucks:requiresTraceability true ;
+        unjucks:integratesEDI edi:ORDERS, edi:INVOIC, edi:DESADV ;
+        unjucks:complianceStandard "FDA21CFR", "EURegulation" ;
+        unjucks:hasProperty gs1:brand, gs1:productName, gs1:netWeight .
+    
+    gs1:Location a unjucks:SupplyChainEntity ;
+        unjucks:hasIdentifier gs1:GLN ;
+        unjucks:generatesAPI "/api/gs1/locations" ;
+        unjucks:hasProperty gs1:locationName, gs1:address, gs1:coordinates ;
+        unjucks:enablesTraceability true .
+    
+    gs1:LogisticUnit a unjucks:SupplyChainEntity ;
+        unjucks:hasIdentifier gs1:SSCC ;
+        unjucks:generatesAPI "/api/gs1/logistics" ;
+        unjucks:containsProducts gs1:Product ;
+        unjucks:trackMovement true .
+    
+    # EPCIS Events for Traceability
+    epcis:ObjectEvent a unjucks:TraceabilityEvent ;
+        unjucks:capturesAction cbv:add, cbv:delete ;
+        unjucks:capturesLocation gs1:Location ;
+        unjucks:capturesTime xsd:dateTime ;
+        unjucks:generatesBlockchainHash true ;
+        unjucks:enablesRecall true .
+    
+    epcis:TransformationEvent a unjucks:TraceabilityEvent ;
+        unjucks:capturesInputs gs1:Product ;
+        unjucks:capturesOutputs gs1:Product ;
+        unjucks:capturesProcessing unjucks:ManufacturingProcess ;
+        unjucks:enablesIngredientTracking true .
+    
+    # EDI Integration
+    edi:PurchaseOrder a unjucks:EDIMessage ;
+        unjucks:messageType "ORDERS" ;
+        unjucks:generatesAPI "/api/edi/purchase-orders" ;
+        unjucks:automatesOrderProcessing true ;
+        unjucks:validatesWith gs1:GTIN .
+    
+    edi:Invoice a unjucks:EDIMessage ;
+        unjucks:messageType "INVOIC" ;
+        unjucks:generatesAPI "/api/edi/invoices" ;
+        unjucks:linksToDelivery edi:DESADV ;
+        unjucks:requiresGS1Keys true .
+    
+    # Blockchain Traceability
+    blockchain:TraceabilityChain a unjucks:BlockchainIntegration ;
+        unjucks:hashesEvents epcis:ObjectEvent, epcis:TransformationEvent ;
+        unjucks:providesImmutability true ;
+        unjucks:enablesAntiCounterfeiting true ;
+        unjucks:generatesProofOfAuthenticity true .
+
+variables:
+  - name: "serviceName"
+    type: "string"
+    description: "Name of the supply chain service"
+    required: true
+    validation: "^[a-z][a-z0-9-]*$"
+    examples: ["product-traceability", "logistics-tracking", "edi-integration"]
+    
+  - name: "gs1Entities"
+    type: "array"
+    description: "GS1 entities to implement"
+    required: true
+    options: ["Product", "Location", "LogisticUnit", "Party", "TradeItem"]
+    defaultValue: ["Product", "Location"]
+    
+  - name: "identificationKeys"
+    type: "array"
+    description: "GS1 identification keys to support"
+    required: true
+    options: ["GTIN", "GLN", "SSCC", "GRAI", "GIAI", "GDTI", "GINC", "GSIN"]
+    defaultValue: ["GTIN", "GLN"]
+    
+  - name: "epcisEvents"
+    type: "array"
+    description: "EPCIS event types for traceability"
+    required: true
+    options: ["ObjectEvent", "AggregationEvent", "TransformationEvent", "TransactionEvent"]
+    defaultValue: ["ObjectEvent", "TransformationEvent"]
+    
+  - name: "ediMessages"
+    type: "array"
+    description: "EDI message types to support"
+    required: false
+    options: ["ORDERS", "ORDRSP", "INVOIC", "DESADV", "RECADV", "REMADV", "PRICAT"]
+    defaultValue: ["ORDERS", "INVOIC", "DESADV"]
+    
+  - name: "traceabilityLevel"
+    type: "string"
+    description: "Traceability granularity level"
+    required: true
+    options: ["batch", "lot", "item", "serialized"]
+    defaultValue: "batch"
+    
+  - name: "blockchainEnabled"
+    type: "boolean"
+    description: "Enable blockchain-based traceability"
+    required: false
+    defaultValue: false
+    
+  - name: "blockchainNetwork"
+    type: "string"
+    description: "Blockchain network for traceability"
+    required: false
+    options: ["ethereum", "hyperledger-fabric", "corda", "polygon", "private"]
+    
+  - name: "complianceRegions"
+    type: "array"
+    description: "Regulatory compliance regions"
+    required: true
+    options: ["FDA", "EU", "FSA", "CFIA", "ANVISA", "global"]
+    defaultValue: ["FDA", "EU"]
+    
+  - name: "database"
+    type: "string"
+    description: "Database optimized for supply chain data"
+    required: true
+    options: ["postgresql", "mongodb", "neo4j", "cassandra", "timescaledb"]
+    defaultValue: "postgresql"
+    
+  - name: "messagingSystem"
+    type: "string"
+    description: "Messaging system for real-time events"
+    required: true
+    options: ["rabbitmq", "kafka", "redis-streams", "aws-sqs", "azure-servicebus"]
+    defaultValue: "kafka"
+    
+  - name: "antiCounterfeiting"
+    type: "boolean"
+    description: "Enable anti-counterfeiting features"
+    required: false
+    defaultValue: true
+
+files:
+  - template: "gs1-service.ts.njk"
+    to: "src/services/{{ serviceName | kebabCase }}.service.ts"
+    
+  - template: "epcis-processor.ts.njk"
+    to: "src/processors/epcis-event-processor.ts"
+    
+  - template: "edi-controller.ts.njk"
+    to: "src/controllers/edi.controller.ts"
+    
+  - template: "traceability-service.ts.njk"
+    to: "src/services/traceability.service.ts"
+    
+  - template: "gs1-validator.ts.njk"
+    to: "src/validators/gs1-validator.ts"
+    
+  - template: "blockchain-integration.ts.njk"
+    to: "src/blockchain/blockchain-integration.ts"
+    skipIf: "!blockchainEnabled"
+    
+  - template: "recall-manager.ts.njk"
+    to: "src/services/recall-manager.ts"
+    
+  - template: "anti-counterfeiting.ts.njk"
+    to: "src/services/anti-counterfeiting.ts"
+    skipIf: "!antiCounterfeiting"
+    
+  - template: "deployment.yaml.njk"
+    to: "k8s/{{ serviceName | kebabCase }}-deployment.yaml"
+    
+  - template: "gs1-standards.yaml.njk"
+    to: "config/gs1-standards.yaml"
+    
+  - template: "supply-chain-documentation.md.njk"
+    to: "docs/supply-chain/gs1-implementation.md"
+
+# GS1-specific injection points
+inject:
+  - name: "gtin-validation"
+    description: "Add GTIN validation to existing product endpoints"
+    pattern: "// GTIN VALIDATION INJECTION"
+    type: "before"
+    
+  - name: "epcis-events"
+    description: "Add EPCIS event capture to existing workflows"
+    pattern: "// EPCIS EVENT INJECTION"
+    type: "after"
+    
+  - name: "edi-processing"
+    description: "Add EDI message processing"
+    pattern: "// EDI PROCESSING INJECTION"
+    type: "after"
+    
+  - name: "traceability-chain"
+    description: "Add traceability chain building"
+    pattern: "// TRACEABILITY CHAIN INJECTION"
+    type: "after"
