@@ -783,7 +783,7 @@ export interface OntologyValidationResult {
   coverage: number;
 }
 
-export interface ValidationRule {
+export interface RDFValidationRule {
   name: string;
   description: string;
   check: (data: TurtleData) => boolean;

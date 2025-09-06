@@ -359,15 +359,27 @@ export * from './turtle-types.js';
 export * from './enterprise-rdf.types.js';
 export * from './semantic-frontmatter.types.js';
 
-// Additional semantic re-exports
+// Additional semantic re-exports  
 export type {
   ValidationResult,
   ComplianceMapping,
   InferredProperties,
-  SemanticContext,
+  EnterpriseSemanticContext,
   TemplateVariableResult,
   OptimizedQueryResult
 } from './enterprise-rdf.types.js';
+
+// Import SemanticContext from the main semantic engine
+export type { SemanticContext } from '../semantic-template-engine.js';
+
+// Common semantic types (consolidated to avoid conflicts)
+export type {
+  PropertyDefinition,
+  ValidationRule,
+  CrossOntologyRule,
+  PerformanceProfile,
+  ClassDefinition
+} from './semantic-common.js';
 
 export type {
   SemanticQueryPattern,

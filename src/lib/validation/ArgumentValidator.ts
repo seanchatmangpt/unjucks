@@ -41,7 +41,7 @@ export interface ValidationMetadata {
   context: string;
 }
 
-export interface ValidationRule {
+export interface ArgumentValidationRule {
   name: string;
   priority: number;
   enabled: boolean;

@@ -47,6 +47,8 @@ export interface RDFDataLoadResult extends TurtleParseResult {
   success: boolean;
   source?: string;
   error?: string;
+  errors: string[];
+  data: TurtleParseResult;
 }
 
 /**
@@ -61,6 +63,8 @@ export class RDFDataLoader {
 
   constructor(options: RDFDataLoaderOptions = {}) {
     this.options = {
+      baseUri: options.baseUri ?? '',
+      cacheEnabled: options.cacheEnabled ?? true,
       defaultTTL: options.defaultTTL ?? 5 * 60 * 1000, // 5 minutes
       maxCacheSize: options.maxCacheSize ?? 100,
       enableCleanup: options.enableCleanup ?? true,
@@ -144,7 +148,10 @@ export class RDFDataLoader {
     return {
       ...result,
       success: true,
-      source: cacheKey
+      source: cacheKey,
+      error: undefined,
+      errors: [],
+      data: result
     } as RDFDataLoadResult;
   }
 
@@ -182,7 +189,10 @@ export class RDFDataLoader {
     return {
       ...merged,
       success: true,
-      source: 'frontmatter'
+      source: 'frontmatter',
+      error: undefined,
+      errors: [],
+      data: merged
     } as RDFDataLoadResult;
   }
 
@@ -256,7 +266,7 @@ export class RDFDataLoader {
    * Generate a cache key for a data source
    */
   private generateCacheKey(source: RDFDataSource): string {
-    const parts = [source.type];
+    const parts: string[] = [source.type];
     
     switch (source.type) {
       case 'file':
@@ -305,7 +315,9 @@ export class RDFDataLoader {
     if (this.cache.size >= this.options.maxCacheSize) {
       // Remove oldest entry
       const oldestKey = this.cache.keys().next().value;
-      this.cache.delete(oldestKey);
+      if (oldestKey) {
+        this.cache.delete(oldestKey);
+      }
     }
 
     this.cache.set(key, {
@@ -334,7 +346,8 @@ export class RDFDataLoader {
    */
   private cleanupExpiredEntries(): void {
     const now = Date.now();
-    for (const [key, entry] of this.cache.entries()) {
+    const entries = Array.from(this.cache.entries());
+    for (const [key, entry] of entries) {
       if (now - entry.timestamp > entry.ttl) {
         this.cache.delete(key);
       }
@@ -398,7 +411,7 @@ export class RDFDataLoader {
     // Merge all results
     const mergedTriples = results.flatMap(result => result.triples);
     const mergedPrefixes = Object.assign({}, ...results.map(result => result.prefixes));
-    const mergedNamedGraphs = Array.from(new Set(results.flatMap(result => result.namedGraphs)));
+    const mergedNamedGraphs = Array.from(new Set(results.flatMap(result => result.namedGraphs || [])));
 
     return {
       triples: mergedTriples,
@@ -407,7 +420,10 @@ export class RDFDataLoader {
       stats: {
         tripleCount: mergedTriples.length,
         namedGraphCount: mergedNamedGraphs.length,
-        prefixCount: Object.keys(mergedPrefixes).length
+        prefixCount: Object.keys(mergedPrefixes).length,
+        subjectCount: new Set(mergedTriples.map(t => t.subject.value)).size,
+        predicateCount: new Set(mergedTriples.map(t => t.predicate.value)).size,
+        parseTime: 0
       }
     };
   }

@@ -3,15 +3,24 @@ import { Store, DataFactory } from 'n3';
 import { FrontmatterParser, type FrontmatterConfig } from './frontmatter-parser.js';
 import { RDFDataLoader } from './rdf-data-loader.js';
 import { RDFFilters, registerRDFFilters } from './rdf-filters.js';
-import { TurtleParser } from './turtle-parser.js';
+import { TurtleParser, type ParsedTriple } from './turtle-parser.js';
 import type { 
   TurtleData, 
   RDFDataSource, 
   RDFTemplateContext,
+  RDFResource,
+  RDFDataLoadResult,
   SemanticValidationResult,
   CrossOntologyMapping,
   EnterprisePerformanceMetrics
 } from './types/turtle-types.js';
+import type {
+  PropertyDefinition,
+  ValidationRule,
+  CrossOntologyRule,
+  PerformanceProfile,
+  ClassDefinition
+} from './types/semantic-common.js';
 
 const { namedNode, literal } = DataFactory;
 
@@ -36,67 +45,7 @@ export interface OntologyDefinition {
   complianceFramework?: string;
 }
 
-/**
- * Class definition in ontology
- */
-export interface ClassDefinition {
-  uri: string;
-  label: string;
-  requiredProperties: string[];
-  optionalProperties: string[];
-  parentClasses: string[];
-  validationRules: string[];
-}
-
-/**
- * Property definition in ontology
- */
-export interface PropertyDefinition {
-  uri: string;
-  label: string;
-  domain: string[];
-  range: string[];
-  datatype?: string;
-  cardinality?: 'single' | 'multiple';
-  required: boolean;
-}
-
-/**
- * Validation rule for semantic checking
- */
-export interface ValidationRule {
-  id: string;
-  type: 'constraint' | 'inference' | 'compliance';
-  ontology: string;
-  rule: string;
-  severity: 'error' | 'warning' | 'info';
-  complianceFramework?: string;
-}
-
-/**
- * Cross-ontology mapping rule
- */
-export interface CrossOntologyRule {
-  id: string;
-  sourceOntology: string;
-  targetOntology: string;
-  sourceProperty: string;
-  targetProperty: string;
-  mappingType: 'equivalent' | 'similar' | 'broader' | 'narrower';
-  confidence: number;
-}
-
-/**
- * Performance profile for template rendering
- */
-export interface PerformanceProfile {
-  level: 'fast' | 'balanced' | 'comprehensive';
-  cacheEnabled: boolean;
-  indexingEnabled: boolean;
-  parallelProcessing: boolean;
-  maxMemoryUsage: number;
-  maxProcessingTime: number;
-}
+// Interface definitions moved to semantic-common.ts to avoid duplicates
 
 /**
  * Template rendering options
@@ -401,7 +350,7 @@ export class SemanticTemplateEngine {
         type: 'validation_error',
         ontology: 'system',
         valid: false,
-        errors: [`Validation system error: ${error instanceof Error ? error.message : String(error)}`],
+        errors: [{ code: 'SYSTEM_ERROR', message: `Validation system error: ${error instanceof Error ? error.message : String(error)}`, severity: 'error' as const }],
         warnings: [],
         metadata: { validationTime: performance.now() - startTime }
       });
@@ -553,12 +502,54 @@ export class SemanticTemplateEngine {
         };
       }
 
-      // Update RDF filters with loaded data
-      if (rdfResult.data.triples?.length) {
-        this.rdfFilters.updateStore(rdfResult.data.triples);
+      // Update RDF filters with loaded data (if method exists)
+      if (rdfResult.data.triples?.length && 'updateStore' in this.rdfFilters) {
+        (this.rdfFilters as any).updateStore(rdfResult.data.triples);
       }
 
-      return rdfResult;
+      // Ensure result has all required properties and convert format
+      const turtleData: TurtleData = {
+        subjects: {},
+        predicates: new Set(),
+        triples: rdfResult.triples || [],
+        prefixes: rdfResult.prefixes || {}
+      };
+
+      // Convert triples to subjects format if triples exist
+      if (rdfResult.triples) {
+        for (const triple of rdfResult.triples) {
+          const subjectUri = triple.subject?.value || 'unknown';
+          const predicateUri = triple.predicate?.value || 'unknown';
+          const objectValue = {
+            value: triple.object?.value || '',
+            type: (triple.object?.type as 'literal' | 'uri' | 'blank') || 'literal',
+            datatype: triple.object?.datatype,
+            language: triple.object?.language
+          };
+
+          if (!turtleData.subjects[subjectUri]) {
+            turtleData.subjects[subjectUri] = {
+              uri: subjectUri,
+              properties: {}
+            };
+          }
+
+          if (!turtleData.subjects[subjectUri].properties[predicateUri]) {
+            turtleData.subjects[subjectUri].properties[predicateUri] = [];
+          }
+
+          turtleData.subjects[subjectUri].properties[predicateUri].push(objectValue);
+          turtleData.predicates.add(predicateUri);
+        }
+      }
+
+      return {
+        data: turtleData,
+        variables: {},
+        metadata: { parseStats: rdfResult.stats },
+        success: rdfResult.success,
+        errors: rdfResult.errors || []
+      };
     } catch (error) {
       console.warn('RDF context loading error:', error);
       return {
@@ -566,7 +557,7 @@ export class SemanticTemplateEngine {
         variables: {},
         metadata: {},
         success: false,
-        errors: [error instanceof Error ? error.message : 'Unknown error loading RDF context']
+        errors: [{ code: 'RDF_LOAD_ERROR', message: error instanceof Error ? error.message : 'Unknown error loading RDF context', severity: 'error' as const }]
       };
     }
   }
@@ -586,16 +577,16 @@ export class SemanticTemplateEngine {
         subjects: rdfContext.data.subjects,
         prefixes: rdfContext.data.prefixes,
         query: (subject?: string, predicate?: string, object?: string) => {
-          return this.queryRDFData(rdfContext.data, subject, predicate, object);
+          return this.queryRDFData(rdfContext.data, subject, predicate, object) as any[];
         },
         getByType: (typeUri: string) => {
           return Object.values(rdfContext.data.subjects || {}).filter((resource: any) => 
             resource.type?.includes(typeUri)
-          );
+          ) as RDFResource[];
         },
         compact: (uri: string) => this.compactUri(uri, rdfContext.data.prefixes || {}),
         expand: (prefixed: string) => this.expandPrefixed(prefixed, rdfContext.data.prefixes || {})
-      } : {},
+      } : { subjects: {}, prefixes: {}, query: () => [], getByType: () => [], compact: (uri: string) => uri, expand: (prefixed: string) => prefixed },
       $semantic: {
         validationResults,
         ontologyMappings,
@@ -813,7 +804,7 @@ export class SemanticTemplateEngine {
         type: 'compliance_validation',
         ontology: framework,
         valid: false,
-        errors: [`Compliance framework ontology not found: ${framework}`],
+        errors: [{ code: 'FRAMEWORK_NOT_FOUND', message: `Compliance framework ontology not found: ${framework}`, severity: 'error' as const }],
         warnings: [],
         metadata: { framework }
       };
@@ -1024,8 +1015,8 @@ export class SemanticTemplateEngine {
     const status: Record<string, boolean> = {};
     
     for (const result of validationResults) {
-      if (result.ontology !== 'system' && result.ontology !== 'summary') {
-        status[result.ontology] = result.valid;
+      if (result.type !== 'system' && result.type !== 'summary') {
+        status[result.type] = result.valid;
       }
     }
     
@@ -1138,15 +1129,4 @@ export class SemanticTemplateEngine {
   }
 }
 
-// Export additional types and interfaces
-export type {
-  SemanticContext,
-  OntologyDefinition,
-  ClassDefinition,
-  PropertyDefinition,
-  ValidationRule,
-  CrossOntologyRule,
-  PerformanceProfile,
-  SemanticRenderOptions,
-  SemanticRenderResult
-};
+// Types are already exported inline above

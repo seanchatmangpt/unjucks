@@ -3,13 +3,13 @@
  * E2E integration of RDF type conversion with Unjucks code generation
  */
 
-import { RDFTypeConverter, TypeDefinition, PropertyDefinition as RDFPropertyDefinition } from './rdf-type-converter.js';
+import { RDFTypeConverter, TypeDefinition, RDFPropertyDefinition } from './rdf-type-converter.js';
 import { FrontmatterParser, ParsedTemplate } from './frontmatter-parser.js';
 import { FileInjector } from './file-injector.js';
 import { TemplateScanner } from './template-scanner.js';
-import { PropertyDefinition } from './semantic-template-engine.js';
+import type { PropertyDefinition } from './types/semantic-common.js';
 import nunjucks from 'nunjucks';
-import * as fs from 'node:fs/promises';
+import fs from 'fs-extra';
 import * as path from 'node:path';
 import { Glob } from 'glob';
 
@@ -279,9 +279,11 @@ export class SemanticTemplateOrchestrator {
    */
   private async discoverSemanticTemplates(): Promise<SemanticTemplate[]> {
     const templates: SemanticTemplate[] = [];
-    const templateFiles = await this.templateScanner.scanTemplate(this.config.templateDir!);
+    
+    // Get template files from directory scan (returns file paths)
+    const templateDirFiles = await this.discoverTemplateFiles(this.config.templateDir!);
 
-    for (const templateFile of templateFiles) {
+    for (const templateFile of templateDirFiles) {
       try {
         const content = await fs.readFile(templateFile.path, 'utf-8');
         const parsed = await this.frontmatterParser.parse(content);
@@ -300,6 +302,50 @@ export class SemanticTemplateOrchestrator {
     }
 
     return templates;
+  }
+
+  /**
+   * Discover template files in directory (returns actual file list, not scan result)
+   */
+  private async discoverTemplateFiles(templateDir: string): Promise<Array<{path: string, name: string}>> {
+    const templateFiles: Array<{path: string, name: string}> = [];
+    
+    try {
+      if (!(await fs.pathExists(templateDir))) {
+        return templateFiles;
+      }
+
+      const entries = await fs.readdir(templateDir, { withFileTypes: true });
+      
+      for (const entry of entries) {
+        const fullPath = path.join(templateDir, entry.name);
+        
+        if (entry.isDirectory()) {
+          // Recursively scan subdirectories
+          const subFiles = await this.discoverTemplateFiles(fullPath);
+          templateFiles.push(...subFiles);
+        } else if (this.isTemplateFile(entry.name)) {
+          templateFiles.push({
+            path: fullPath,
+            name: entry.name
+          });
+        }
+      }
+    } catch (error) {
+      console.warn(`⚠️  Failed to discover template files in ${templateDir}:`, error);
+    }
+    
+    return templateFiles;
+  }
+
+  /**
+   * Check if file is a template file based on extension
+   */
+  private isTemplateFile(filename: string): boolean {
+    const templateExtensions = ['.ejs', '.njk', '.nunjucks', '.hbs', '.mustache', '.jinja', '.j2'];
+    return templateExtensions.some(ext => filename.endsWith(ext)) || 
+           filename.includes('.ejs') || 
+           filename.includes('.njk');
   }
 
   /**

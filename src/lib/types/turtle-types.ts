@@ -1,4 +1,5 @@
 import type { Quad } from "n3";
+import type { ParsedTriple } from "../turtle-parser.js";
 
 /**
  * Core RDF/Turtle type definitions for the Unjucks template system
@@ -7,7 +8,7 @@ import type { Quad } from "n3";
 export interface TurtleData {
   subjects: Record<string, RDFResource>;
   predicates: Set<string>;
-  triples: Quad[];
+  triples: ParsedTriple[];
   prefixes: Record<string, string>;
 }
 
@@ -202,7 +203,7 @@ export interface RDFTemplateContext extends Record<string, any> {
   $rdf: {
     subjects: Record<string, RDFResource>;
     prefixes: Record<string, string>;
-    query: (subject?: string, predicate?: string, object?: string) => Quad[];
+    query: (subject?: string, predicate?: string, object?: string) => ParsedTriple[];
     getByType: (typeUri: string) => RDFResource[];
     compact: (uri: string) => string;
     expand: (prefixed: string) => string;
@@ -216,34 +217,32 @@ export interface RDFTemplateContext extends Record<string, any> {
 }
 
 export interface SemanticValidationResult {
+  type: string;
+  ontology: string;
   valid: boolean;
-  errors: Array<{
-    code: string;
-    message: string;
-    severity: 'error' | 'warning' | 'info';
-  }>;
-  warnings: Array<{
-    code: string;
-    message: string;
-    severity: 'error' | 'warning' | 'info';
-  }>;
+  errors: string[];
+  warnings: string[];
   metadata: Record<string, any>;
 }
 
 export interface CrossOntologyMapping {
   sourceOntology: string;
   targetOntology: string;
-  mappings: Array<{
-    sourceProperty: string;
-    targetProperty: string;
-    confidence: number;
-  }>;
+  sourceProperty: string;
+  targetProperty: string;
+  sourceValue: string;
+  mappedValue: string;
+  confidence: number;
+  mappingType: 'equivalent' | 'similar' | 'broader' | 'narrower';
+  metadata?: Record<string, any>;
 }
 
 export interface EnterprisePerformanceMetrics {
-  processingTime: number;
   renderTime: number;
   memoryUsage: number;
-  triplesProcessed: number;
-  ontologiesLoaded: number;
+  variableCount: number;
+  rdfTripleCount: number;
+  validationCount: number;
+  cacheHits: number;
+  optimizationsApplied: string[];
 }

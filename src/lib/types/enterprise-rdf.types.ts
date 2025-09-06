@@ -41,7 +41,10 @@ export interface InferredProperties {
   processingTime: number;
 }
 
-export interface SemanticContext {
+// SemanticContext moved to semantic-template-engine.ts to avoid duplicate exports
+// Use: import { SemanticContext } from '../semantic-template-engine.js';
+
+export interface EnterpriseSemanticContext {
   propertyMappings?: SemanticPropertyMapping[];
   hasOrganizations?: boolean;
   hasPersons?: boolean;
@@ -95,7 +98,7 @@ export default {
   ValidationResult,
   ComplianceMapping,
   InferredProperties,
-  SemanticContext,
+  EnterpriseSemanticContext,
   TemplateVariableResult,
   OptimizedQueryResult
 };

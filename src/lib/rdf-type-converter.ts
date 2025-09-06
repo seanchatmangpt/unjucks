@@ -13,12 +13,12 @@ export interface TypeDefinition {
   name: string;
   uri: string;
   description?: string;
-  properties: PropertyDefinition[];
+  properties: RDFPropertyDefinition[];
   extends?: string[];
   ontology: string;
 }
 
-export interface PropertyDefinition {
+export interface RDFPropertyDefinition {
   name: string;
   uri: string;
   type: TypescriptType;
@@ -146,8 +146,8 @@ export class RDFSchemaAnalyzer {
     };
   }
 
-  private getClassProperties(classUri: string): PropertyDefinition[] {
-    const properties: PropertyDefinition[] = [];
+  private getClassProperties(classUri: string): RDFPropertyDefinition[] {
+    const properties: RDFPropertyDefinition[] = [];
     
     // Find properties with domain pointing to this class
     const domainQuads = this.store.getQuads(
@@ -166,7 +166,7 @@ export class RDFSchemaAnalyzer {
     return properties;
   }
 
-  private buildPropertyDefinition(propertyUri: string): PropertyDefinition {
+  private buildPropertyDefinition(propertyUri: string): RDFPropertyDefinition {
     const name = this.getLocalName(propertyUri);
     const description = this.getDescription(propertyUri);
     const range = this.getRange(propertyUri);
@@ -392,7 +392,7 @@ import { z } from 'zod';`;
 }`;
   }
 
-  private generateProperty(prop: PropertyDefinition): string {
+  private generateProperty(prop: RDFPropertyDefinition): string {
     const optional = prop.required ? '' : '?';
     const typeStr = this.typeToString(prop.type);
     const description = prop.description ? `/** ${prop.description} */\n  ` : '';
@@ -448,7 +448,7 @@ export class ZodSchemaGenerator {
 export type ${type.name} = z.infer<typeof ${type.name}Schema>;`;
   }
 
-  private generateZodProperty(prop: PropertyDefinition): string {
+  private generateZodProperty(prop: RDFPropertyDefinition): string {
     let zodType = this.typeToZod(prop.type);
     
     // Apply constraints
@@ -592,7 +592,7 @@ export class TypeScriptToRDFConverter {
     return turtle;
   }
 
-  private generateProperty(prop: PropertyDefinition, baseUri: string): string {
+  private generateProperty(prop: RDFPropertyDefinition, baseUri: string): string {
     const propUri = `ex:${prop.name}`;
     let turtle = `${propUri} a owl:DatatypeProperty`;
 
