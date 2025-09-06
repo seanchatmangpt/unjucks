@@ -1,6 +1,6 @@
 {
   "name": "@seanchatmangpt/unjucks",
-  "version": "1.0.0",
+  "version": "2025.09.06.13.10",
   "type": "module",
   "description": "Nunjucks + Hygen style scaffolding with RDF/Turtle support",
   "main": "./dist/index.cjs",
@@ -25,6 +25,11 @@
   "scripts": {
     "build": "tsc --project tsconfig.build.json && npm run build:post",
     "build:post": "mv dist/index.js dist/index.cjs && chmod +x bin/unjucks.cjs",
+    "build:version": "node scripts/build-with-version.js",
+    "build:publish": "node scripts/build-with-version.js --publish",
+    "build:dry": "node scripts/build-with-version.js --dry-run",
+    "version:auto": "node scripts/auto-version.js",
+    "version:auto:dry": "node scripts/auto-version.js --dry-run",
     "prepare": "npm run build",
     "prepublishOnly": "npm test && npm run build",
     "test": "vitest run",
