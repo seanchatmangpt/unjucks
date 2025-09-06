@@ -119,7 +119,7 @@ const configs: Record<string, Config> = {
     }{% if env.cdn %},
     cdn: '{{ env.cdn }}'{% endif %}{% if env.monitoring %},
     monitoring: {{ env.monitoring }}{% endif %}
-  }{{ loop.last ? '' : ',' }}
+  }{% if not loop.last %},{% endif %}
 {% endfor %}
 };
 

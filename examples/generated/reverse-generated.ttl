@@ -1,0 +1,84 @@
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix ex: <http://example.org/> .
+
+# Classes
+ex:Person a owl:Class ;
+    rdfs:comment "A person - the core entity in most enterprise systems" .
+
+ex:Organization a owl:Class ;
+    rdfs:comment "An organization such as a company, NGO, or government agency" .
+
+ex:Employee a owl:Class ;
+    rdfs:comment "An employee of an organization" ;
+    rdfs:subClassOf ex:Person .
+
+ex:Product a owl:Class ;
+    rdfs:comment "Any offered product or service" .
+
+# Properties
+ex:name a owl:DatatypeProperty ;
+    rdfs:comment "The name of a person" ;
+    rdfs:range xsd:string .
+
+ex:email a owl:DatatypeProperty ;
+    rdfs:comment "Email address of a person" ;
+    rdfs:range xsd:string .
+
+ex:homepage a owl:DatatypeProperty ;
+    rdfs:comment "Personal homepage URL" ;
+    rdfs:range xsd:string .
+
+ex:age a owl:DatatypeProperty ;
+    rdfs:comment "Age of a person" ;
+    rdfs:range xsd:decimal .
+
+ex:knows a owl:DatatypeProperty ;
+    rdfs:comment "Person knows another person" ;
+    rdfs:range ex:Person .
+
+ex:name a owl:DatatypeProperty ;
+    rdfs:comment "Official name of the organization" ;
+    rdfs:range xsd:string .
+
+ex:url a owl:DatatypeProperty ;
+    rdfs:comment "Official website URL" ;
+    rdfs:range xsd:string .
+
+ex:numberOfEmployees a owl:DatatypeProperty ;
+    rdfs:comment "Number of employees" ;
+    rdfs:range xsd:decimal .
+
+ex:foundingDate a owl:DatatypeProperty ;
+    rdfs:comment "Date the organization was founded" ;
+    rdfs:range xsd:dateTime .
+
+ex:jobTitle a owl:DatatypeProperty ;
+    rdfs:comment "Job title or position" ;
+    rdfs:range xsd:string .
+
+ex:salary a owl:DatatypeProperty ;
+    rdfs:comment "Annual salary" ;
+    rdfs:range xsd:decimal .
+
+ex:startDate a owl:DatatypeProperty ;
+    rdfs:comment "Employment start date" ;
+    rdfs:range xsd:dateTime .
+
+ex:worksFor a owl:DatatypeProperty ;
+    rdfs:comment "Organization the person works for" ;
+    rdfs:range ex:Organization .
+
+ex:price a owl:DatatypeProperty ;
+    rdfs:comment "Product price" ;
+    rdfs:range xsd:decimal .
+
+ex:description a owl:DatatypeProperty ;
+    rdfs:comment "Product description" ;
+    rdfs:range xsd:string .
+
+ex:manufacturer a owl:DatatypeProperty ;
+    rdfs:comment "Organization that manufactures the product" ;
+    rdfs:range ex:Organization .

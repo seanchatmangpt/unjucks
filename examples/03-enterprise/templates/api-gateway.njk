@@ -1,0 +1,736 @@
+{#- 
+  Enterprise API Gateway Template
+  
+  Generates Kong/Nginx Plus/AWS API Gateway configurations with:
+  - Multi-service routing and load balancing
+  - Rate limiting and throttling
+  - Authentication and authorization
+  - SSL termination and security headers
+  - Request/response transformation
+  - Circuit breakers and health checks
+  - Monitoring and observability
+-#}
+
+{%- set gateway = data | rdfQuery('SELECT ?name ?version ?port WHERE { ?gateway a :APIGateway ; :name ?name ; :version ?version ; :port ?port }') | first %}
+{%- set services = data | rdfQuery('SELECT ?service ?name ?version ?port ?path WHERE { ?service a :Microservice ; :serviceName ?name ; :version ?version ; :port ?port ; :exposesAPI ?api . ?api :basePath ?path }') %}
+{%- set securityRules = data | rdfQuery('SELECT ?rule ?name ?type ?config WHERE { ?rule a :SecurityRule ; :name ?name ; :type ?type ; :configuration ?config }') %}
+
+# =============================================================================
+# ENTERPRISE API GATEWAY CONFIGURATION
+# Generated from Semantic Domain Model
+# =============================================================================
+
+version: "3.8"
+
+services:
+  # Kong API Gateway
+  kong-db:
+    image: postgres:13
+    environment:
+      POSTGRES_DB: kong
+      POSTGRES_USER: kong
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-kong}
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - kong_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "kong"]
+      interval: 30s
+      timeout: 30s
+      retries: 3
+    restart: on-failure
+
+  kong-migrations:
+    image: kong:3.4-alpine
+    command: kong migrations bootstrap
+    depends_on:
+      - kong-db
+    environment:
+      KONG_DATABASE: postgres
+      KONG_PG_HOST: kong-db
+      KONG_PG_DATABASE: kong
+      KONG_PG_USER: kong
+      KONG_PG_PASSWORD: ${POSTGRES_PASSWORD:-kong}
+    restart: "no"
+
+  kong:
+    image: kong:3.4-alpine
+    user: "${KONG_USER:-kong}"
+    depends_on:
+      - kong-db
+      - kong-migrations
+    environment:
+      KONG_DATABASE: postgres
+      KONG_PG_HOST: kong-db
+      KONG_PG_DATABASE: kong
+      KONG_PG_USER: kong
+      KONG_PG_PASSWORD: ${POSTGRES_PASSWORD:-kong}
+      KONG_PROXY_ACCESS_LOG: /dev/stdout
+      KONG_ADMIN_ACCESS_LOG: /dev/stdout
+      KONG_PROXY_ERROR_LOG: /dev/stderr
+      KONG_ADMIN_ERROR_LOG: /dev/stderr
+      KONG_ADMIN_LISTEN: "0.0.0.0:8001"
+      KONG_PROXY_LISTEN: "0.0.0.0:8000, 0.0.0.0:8443 ssl"
+      KONG_ADMIN_GUI_URL: "http://localhost:8002"
+      KONG_PLUGINS: "bundled,prometheus,rate-limiting,cors,jwt,oauth2,acl,request-transformer,response-transformer"
+    ports:
+      - "8000:8000"
+      - "8443:8443"
+      - "8001:8001"
+      - "8002:8002"
+    healthcheck:
+      test: ["CMD", "kong", "health"]
+      interval: 30s
+      timeout: 30s
+      retries: 3
+    restart: on-failure
+    volumes:
+      - ./kong/ssl:/opt/kong/ssl:ro
+      - ./kong/custom-plugins:/usr/local/custom:ro
+
+  # Prometheus for metrics collection
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus:/etc/prometheus
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--web.enable-lifecycle'
+    restart: unless-stopped
+
+  # Grafana for visualization
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./grafana/dashboards:/etc/grafana/provisioning/dashboards
+      - ./grafana/datasources:/etc/grafana/provisioning/datasources
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:-admin}
+    restart: unless-stopped
+
+  # Redis for rate limiting and caching
+  redis:
+    image: redis:7-alpine
+    command: redis-server --requirepass ${REDIS_PASSWORD:-redis123}
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 30s
+      timeout: 3s
+      retries: 5
+    restart: unless-stopped
+
+volumes:
+  kong_data:
+  prometheus_data:
+  grafana_data:
+  redis_data:
+
+---
+# Kong Configuration via Declarative Config
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: kong-declarative-config
+data:
+  kong.yml: |
+    _format_version: "3.0"
+    _transform: true
+
+    # Global Configuration
+    plugins:
+      - name: prometheus
+        config:
+          per_consumer: true
+          status_code_metrics: true
+          latency_metrics: true
+          bandwidth_metrics: true
+
+      - name: cors
+        config:
+          origins:
+{%- for origin in ['http://localhost:3000', 'https://app.enterprise.com'] %}
+            - "{{ origin }}"
+{%- endfor %}
+          methods:
+            - GET
+            - POST
+            - PUT
+            - DELETE
+            - OPTIONS
+          headers:
+            - Accept
+            - Accept-Version
+            - Content-Length
+            - Content-MD5
+            - Content-Type
+            - Date
+            - Authorization
+            - X-Tenant-ID
+          exposed_headers:
+            - X-Auth-Token
+          credentials: true
+          max_age: 3600
+
+      - name: rate-limiting
+        config:
+          minute: 1000
+          hour: 10000
+          policy: redis
+          redis_host: redis
+          redis_password: ${REDIS_PASSWORD:-redis123}
+          hide_client_headers: false
+
+    # Consumer Groups for Different User Tiers
+    consumer_groups:
+      - name: enterprise
+        tags: ["enterprise", "premium"]
+        plugins:
+          - name: rate-limiting
+            config:
+              minute: 5000
+              hour: 100000
+
+      - name: standard
+        tags: ["standard", "basic"]
+        plugins:
+          - name: rate-limiting
+            config:
+              minute: 1000
+              hour: 10000
+
+      - name: free
+        tags: ["free", "trial"]
+        plugins:
+          - name: rate-limiting
+            config:
+              minute: 100
+              hour: 1000
+
+    # JWT Configuration
+    consumers:
+      - username: enterprise-system
+        custom_id: system
+        tags: ["system", "service-account"]
+        jwt_secrets:
+          - algorithm: RS256
+            key: enterprise-jwt
+            rsa_public_key: |
+              -----BEGIN PUBLIC KEY-----
+              ${JWT_PUBLIC_KEY}
+              -----END PUBLIC KEY-----
+
+    # Services and Routes
+    services:
+{%- for service in services %}
+{%- set serviceName = service.name %}
+{%- set servicePort = service.port %}
+{%- set basePath = service.path %}
+      - name: {{ serviceName }}
+        url: http://{{ serviceName }}:{{ servicePort }}
+        tags: ["microservice", "{{ serviceName }}"]
+        connect_timeout: 60000
+        write_timeout: 60000
+        read_timeout: 60000
+        retries: 3
+        plugins:
+          - name: jwt
+            config:
+              uri_param_names: ["jwt"]
+              cookie_names: ["auth-token"]
+              claims_to_verify: ["exp", "iat"]
+              key_claim_name: "iss"
+              secret_is_base64: false
+
+          - name: acl
+            config:
+              whitelist: ["enterprise", "standard"]
+
+          - name: request-transformer
+            config:
+              add:
+                headers:
+                  - "X-Service-Name:{{ serviceName }}"
+                  - "X-Service-Version:{{ service.version }}"
+              remove:
+                headers:
+                  - "X-Internal-Auth"
+
+          - name: response-transformer
+            config:
+              add:
+                headers:
+                  - "X-Kong-Response-Latency:$upstream_response_time"
+                  - "X-Service-Instance:$upstream_addr"
+
+        routes:
+          - name: {{ serviceName }}-api
+            paths:
+              - {{ basePath }}
+            methods:
+              - GET
+              - POST
+              - PUT
+              - DELETE
+              - OPTIONS
+            strip_path: false
+            preserve_host: true
+            tags: ["api", "{{ serviceName }}"]
+            plugins:
+              - name: rate-limiting
+                config:
+                  minute: 100
+                  hour: 1000
+                  policy: redis
+                  redis_host: redis
+                  redis_password: ${REDIS_PASSWORD:-redis123}
+
+{%- if serviceName == 'user-management-service' %}
+          # Special routes for authentication
+          - name: {{ serviceName }}-auth
+            paths:
+              - {{ basePath }}/auth
+            methods:
+              - POST
+            strip_path: false
+            tags: ["auth", "public"]
+            plugins:
+              - name: rate-limiting
+                config:
+                  minute: 20
+                  hour: 100
+                  policy: redis
+{%- endif %}
+
+{%- if serviceName == 'order-processing-service' %}
+          # Special routes for webhooks (higher security)
+          - name: {{ serviceName }}-webhooks
+            paths:
+              - {{ basePath }}/webhooks
+            methods:
+              - POST
+            strip_path: false
+            tags: ["webhooks", "critical"]
+            plugins:
+              - name: rate-limiting
+                config:
+                  minute: 50
+                  hour: 500
+              - name: ip-restriction
+                config:
+                  whitelist: ["10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16"]
+{%- endif %}
+
+{%- endfor %}
+
+    # Global Rate Limiting Policies
+    rate_limiting_policies:
+      enterprise_tier:
+        minute: 5000
+        hour: 100000
+        day: 1000000
+      standard_tier:
+        minute: 1000
+        hour: 10000
+        day: 100000
+      free_tier:
+        minute: 100
+        hour: 1000
+        day: 10000
+
+---
+# Nginx Configuration for SSL Termination
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nginx-ssl-config
+data:
+  nginx.conf: |
+    events {
+        worker_connections 1024;
+    }
+
+    http {
+        upstream kong {
+{%- for i in range(3) %}
+            server kong-{{ i }}.kong-service:8000 max_fails=3 fail_timeout=30s;
+{%- endfor %}
+        }
+
+        # SSL Configuration
+        ssl_protocols TLSv1.2 TLSv1.3;
+        ssl_ciphers ECDHE-RSA-AES256-GCM-SHA512:DHE-RSA-AES256-GCM-SHA512:ECDHE-RSA-AES256-GCM-SHA384:DHE-RSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-SHA384;
+        ssl_prefer_server_ciphers on;
+        ssl_session_cache shared:SSL:10m;
+        ssl_session_timeout 10m;
+        ssl_stapling on;
+        ssl_stapling_verify on;
+
+        # Security Headers
+        add_header X-Frame-Options "SAMEORIGIN" always;
+        add_header X-XSS-Protection "1; mode=block" always;
+        add_header X-Content-Type-Options "nosniff" always;
+        add_header Referrer-Policy "no-referrer-when-downgrade" always;
+        add_header Content-Security-Policy "default-src 'self' http: https: data: blob: 'unsafe-inline'" always;
+        add_header Strict-Transport-Security "max-age=31536000; includeSubDomains; preload" always;
+
+        server {
+            listen 443 ssl http2;
+            server_name api.enterprise.com;
+
+            ssl_certificate /etc/ssl/certs/enterprise.crt;
+            ssl_certificate_key /etc/ssl/private/enterprise.key;
+
+            # Enable OCSP stapling
+            ssl_trusted_certificate /etc/ssl/certs/enterprise-chain.crt;
+
+            location / {
+                proxy_pass http://kong;
+                proxy_set_header Host $host;
+                proxy_set_header X-Real-IP $remote_addr;
+                proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+                proxy_set_header X-Forwarded-Proto $scheme;
+                proxy_set_header X-Forwarded-Host $host;
+                proxy_set_header X-Forwarded-Port $server_port;
+
+                # Circuit Breaker Configuration
+                proxy_connect_timeout 5s;
+                proxy_send_timeout 60s;
+                proxy_read_timeout 60s;
+                proxy_next_upstream error timeout http_500 http_502 http_503 http_504;
+                proxy_next_upstream_tries 3;
+                proxy_next_upstream_timeout 10s;
+            }
+
+            # Health Check Endpoint
+            location /health {
+                access_log off;
+                return 200 "healthy\n";
+                add_header Content-Type text/plain;
+            }
+
+            # Metrics endpoint (restricted access)
+            location /metrics {
+                allow 10.0.0.0/8;
+                allow 172.16.0.0/12;
+                allow 192.168.0.0/16;
+                deny all;
+                proxy_pass http://kong;
+            }
+        }
+
+        # HTTP to HTTPS redirect
+        server {
+            listen 80;
+            server_name api.enterprise.com;
+            return 301 https://$server_name$request_uri;
+        }
+    }
+
+---
+# Prometheus Configuration
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: prometheus-config
+data:
+  prometheus.yml: |
+    global:
+      scrape_interval: 15s
+      evaluation_interval: 15s
+
+    rule_files:
+      - "kong_rules.yml"
+      - "microservice_rules.yml"
+
+    scrape_configs:
+      - job_name: 'kong'
+        static_configs:
+          - targets: ['kong:8001']
+        metrics_path: /metrics
+        scrape_interval: 30s
+
+{%- for service in services %}
+      - job_name: '{{ service.name }}'
+        static_configs:
+          - targets: ['{{ service.name }}:{{ service.port }}']
+        metrics_path: /metrics
+        scrape_interval: 15s
+        scrape_timeout: 10s
+{%- endfor %}
+
+      - job_name: 'redis'
+        static_configs:
+          - targets: ['redis:6379']
+
+    alerting:
+      alertmanagers:
+        - static_configs:
+            - targets:
+              - alertmanager:9093
+
+  kong_rules.yml: |
+    groups:
+    - name: kong.rules
+      rules:
+      - alert: KongHighErrorRate
+        expr: kong_http_status{code=~"5.+"} / on (service) kong_http_status > 0.05
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Kong service {{ '{{' }} $labels.service {{ '}}' }} has high error rate"
+          description: "Service {{ '{{' }} $labels.service {{ '}}' }} error rate is {{ '{{' }} $value {{ '}}' }}"
+
+      - alert: KongHighLatency
+        expr: kong_latency{type="request"} > 1000
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Kong high latency detected"
+          description: "Request latency is {{ '{{' }} $value {{ '}}' }}ms"
+
+      - alert: KongRateLimitExceeded
+        expr: increase(kong_http_status{code="429"}[5m]) > 100
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "High rate limit violations"
+          description: "Rate limit exceeded {{ '{{' }} $value {{ '}}' }} times in 5 minutes"
+
+  microservice_rules.yml: |
+    groups:
+    - name: microservice.rules
+      rules:
+{%- for service in services %}
+      - alert: {{ service.name | upper | replace('-', '_') }}Down
+        expr: up{job="{{ service.name }}"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "{{ service.name }} is down"
+          description: "{{ service.name }} has been down for more than 1 minute"
+
+      - alert: {{ service.name | upper | replace('-', '_') }}HighMemory
+        expr: (node_memory_MemTotal_bytes{job="{{ service.name }}"} - node_memory_MemAvailable_bytes{job="{{ service.name }}"}) / node_memory_MemTotal_bytes{job="{{ service.name }}"} > 0.9
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "{{ service.name }} high memory usage"
+          description: "Memory usage is above 90% for more than 5 minutes"
+{%- endfor %}
+
+---
+# Grafana Dashboard Configuration
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-dashboards
+data:
+  kong-dashboard.json: |
+    {
+      "dashboard": {
+        "id": null,
+        "title": "Kong API Gateway Dashboard",
+        "tags": ["kong", "api-gateway"],
+        "timezone": "browser",
+        "panels": [
+          {
+            "title": "Request Rate",
+            "type": "graph",
+            "targets": [
+              {
+                "expr": "sum(rate(kong_http_status[5m])) by (service)",
+                "legendFormat": "{{ '{{' }}service{{ '}}' }}"
+              }
+            ]
+          },
+          {
+            "title": "Response Time",
+            "type": "graph",
+            "targets": [
+              {
+                "expr": "kong_latency{type=\"request\"}",
+                "legendFormat": "{{ '{{' }}service{{ '}}' }} - {{ '{{' }}type{{ '}}' }}"
+              }
+            ]
+          },
+          {
+            "title": "Error Rate",
+            "type": "graph",
+            "targets": [
+              {
+                "expr": "sum(rate(kong_http_status{code=~\"5.+\"}[5m])) by (service) / sum(rate(kong_http_status[5m])) by (service)",
+                "legendFormat": "{{ '{{' }}service{{ '}}' }}"
+              }
+            ]
+          },
+          {
+            "title": "Top Services by Request Volume",
+            "type": "piechart",
+            "targets": [
+              {
+                "expr": "sum(increase(kong_http_status[1h])) by (service)",
+                "legendFormat": "{{ '{{' }}service{{ '}}' }}"
+              }
+            ]
+          }
+        ],
+        "time": {
+          "from": "now-1h",
+          "to": "now"
+        },
+        "refresh": "30s"
+      }
+    }
+
+---
+# Kubernetes Ingress with Kong
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: enterprise-api-ingress
+  annotations:
+    kubernetes.io/ingress.class: kong
+    konghq.com/strip-path: "false"
+    konghq.com/protocols: https
+    konghq.com/https-redirect-status-code: "301"
+spec:
+  tls:
+    - hosts:
+        - api.enterprise.com
+      secretName: enterprise-tls
+  rules:
+    - host: api.enterprise.com
+      http:
+        paths:
+{%- for service in services %}
+          - path: {{ service.path }}
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ service.name }}
+                port:
+                  number: {{ service.port }}
+{%- endfor %}
+
+---
+# Kong Plugin Configurations
+apiVersion: configuration.konghq.com/v1
+kind: KongPlugin
+metadata:
+  name: enterprise-jwt-auth
+plugin: jwt
+config:
+  uri_param_names: ["jwt"]
+  cookie_names: ["auth-token"]
+  claims_to_verify: ["exp", "iat", "aud"]
+  key_claim_name: "iss"
+  secret_is_base64: false
+
+---
+apiVersion: configuration.konghq.com/v1
+kind: KongPlugin
+metadata:
+  name: enterprise-rate-limiting
+plugin: rate-limiting
+config:
+  minute: 1000
+  hour: 10000
+  policy: redis
+  redis_host: redis
+  redis_password: redis123
+  hide_client_headers: false
+
+---
+apiVersion: configuration.konghq.com/v1
+kind: KongPlugin
+metadata:
+  name: enterprise-prometheus
+plugin: prometheus
+config:
+  per_consumer: true
+  status_code_metrics: true
+  latency_metrics: true
+  bandwidth_metrics: true
+  upstream_health_metrics: true
+
+---
+# Circuit Breaker Configuration
+apiVersion: configuration.konghq.com/v1
+kind: KongPlugin
+metadata:
+  name: enterprise-circuit-breaker
+plugin: request-termination
+config:
+  status_code: 503
+  message: "Service temporarily unavailable due to circuit breaker"
+  trigger: "consecutive_5xx"
+  threshold: 5
+  window_size: 60
+
+---
+# API Analytics and Monitoring
+apiVersion: v1
+kind: Service
+metadata:
+  name: kong-analytics
+spec:
+  selector:
+    app: kong-analytics
+  ports:
+    - port: 8080
+      targetPort: 8080
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kong-analytics
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: kong-analytics
+  template:
+    metadata:
+      labels:
+        app: kong-analytics
+    spec:
+      containers:
+        - name: analytics
+          image: kong/kong-analytics:latest
+          ports:
+            - containerPort: 8080
+          env:
+            - name: KONG_ADMIN_URL
+              value: "http://kong:8001"
+            - name: POSTGRES_HOST
+              value: "kong-db"
+            - name: REDIS_HOST
+              value: "redis"
+          resources:
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+            requests:
+              memory: "256Mi"
+              cpu: "250m"

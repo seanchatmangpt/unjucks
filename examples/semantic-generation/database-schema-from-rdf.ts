@@ -112,7 +112,7 @@ const sqlTemplate = `
 {% for entity in entities %}
 CREATE TABLE {{ entity.tableName }} (
   {% for field in entity.fields %}
-  {{ field.columnName }} {{ field.sqlType }}{% if field.constraints %} {{ field.constraints }}{% endif %}{{ loop.last ? '' : ',' }}
+  {{ field.columnName }} {{ field.sqlType }}{% if field.constraints %} {{ field.constraints }}{% endif %}{% if not loop.last %},{% endif %}
   {% endfor %}
 );
 

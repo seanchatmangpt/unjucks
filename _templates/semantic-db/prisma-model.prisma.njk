@@ -1,0 +1,56 @@
+---
+to: prisma/schema.prisma
+ontology: {{ ontologyPath }}
+semanticTypes: true
+inject: true
+before: "// End of generated models"
+skipIf: "model {{ entityName }}"
+---
+
+{% set semanticType = semanticTypes[entityName] -%}
+/// {{ semanticType.description | default('Generated from ' + semanticType.ontology + ' ontology') }}
+/// Source URI: {{ semanticType.uri }}
+model {{ entityName }} {
+  id        String   @id @default(cuid())
+  
+  // Properties from RDF ontology
+  {% for prop in semanticType.properties -%}
+  {% set prismaType = prop.type | toPrismaType -%}
+  {% set isOptional = not prop.required -%}
+  {% set constraints = prop.constraints or {} -%}
+  
+  {% if prop.type.interface -%}
+  // Relationship to {{ prop.type.interface }}
+  {{ prop.name }}Id String{{ '?' if isOptional }}
+  {{ prop.name }}   {{ prop.type.interface }}{{ '?' if isOptional }} @relation(fields: [{{ prop.name }}Id], references: [id])
+  {% else -%}
+  {{ prop.name | ljust(12) }} {{ prismaType }}{{ '?' if isOptional }}{% if constraints.format == 'email' %} @unique{% endif %}{% if prop.description %} /// {{ prop.description }}{% endif %}
+  {% endif -%}
+  {% endfor %}
+  
+  // Metadata fields
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  {% if semanticType.properties | selectattr("type.interface") | list -%}
+  // Reverse relations
+  {% for prop in semanticType.properties -%}
+  {% if prop.type.interface -%}
+  
+  {% endif -%}
+  {% endfor -%}
+  {% endif -%}
+  
+  @@map("{{ entityName | lower }}s")
+  
+  {% if semanticType.properties | selectattr("constraints.format", "equalto", "email") | list -%}
+  // Indexes for performance
+  @@index([email])
+  {% endif -%}
+  {% if semanticType.properties | selectattr("name", "equalto", "name") | list -%}
+  @@index([name])
+  {% endif -%}
+  {% if semanticType.properties | selectattr("name", "equalto", "createdAt") | list -%}
+  @@index([createdAt])
+  {% endif %}
+}

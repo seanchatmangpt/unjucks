@@ -1,0 +1,489 @@
+# Healthcare Domain Semantic Model
+# Example configuration for generating healthcare ontology, data, SHACL shapes, and SPARQL queries
+# Usage: unjucks generate semantic healthcare --config examples/semantic-generation/healthcare-domain.yml
+
+# Domain Configuration
+domain: "healthcare"
+version: "2.1.0"
+baseIRI: "http://healthcare.example.org"
+creator: "Healthcare IT Department"
+license: "https://creativecommons.org/licenses/by/4.0/"
+
+# Namespace Declarations
+prefixes:
+  "": "http://healthcare.example.org/ontology#"
+  "hc": "http://healthcare.example.org/ontology#"
+  "patient": "http://healthcare.example.org/data/patient#"
+  "provider": "http://healthcare.example.org/data/provider#"
+  "fhir": "http://hl7.org/fhir/"
+  "snomed": "http://snomed.info/id/"
+  "icd10": "http://who.int/icd/entity/"
+  "loinc": "http://loinc.org/"
+  "hl7": "http://hl7.org/v3/"
+
+# Ontology Imports
+imports:
+  - "http://hl7.org/fhir/fhir.ttl"
+  - "http://purl.org/goodrelations/v1"
+  - "http://www.w3.org/ns/prov-o"
+
+# Class Definitions
+classes:
+  - name: "Patient"
+    label: "Patient"
+    comment: "An individual receiving or registered to receive healthcare services"
+    subClassOf: "Person"
+    restrictions:
+      - property: "hasPatientId"
+        type: "cardinality"
+        value: 1
+      - property: "hasDateOfBirth"
+        type: "cardinality"
+        value: 1
+      - property: "hasGender"
+        type: "someValuesFrom"
+        value: "Gender"
+    annotations:
+      - property: "skos:altLabel"
+        value: "Healthcare Recipient"
+      - property: "fhir:profile"
+        value: "Patient"
+
+  - name: "HealthcareProvider"
+    label: "Healthcare Provider"
+    comment: "Licensed medical professional providing healthcare services"
+    subClassOf: "Person"
+    restrictions:
+      - property: "hasLicense"
+        type: "minCardinality"
+        value: 1
+      - property: "hasSpecialty"
+        type: "someValuesFrom"
+        value: "MedicalSpecialty"
+
+  - name: "MedicalCondition"
+    label: "Medical Condition"
+    comment: "A health condition, disease, or disorder affecting a patient"
+    restrictions:
+      - property: "hasICD10Code"
+        type: "maxCardinality"
+        value: 1
+      - property: "hasSeverity"
+        type: "someValuesFrom"
+        value: "SeverityLevel"
+
+  - name: "Treatment"
+    label: "Treatment"
+    comment: "Medical intervention or therapy provided to address a condition"
+    restrictions:
+      - property: "prescribedBy"
+        type: "someValuesFrom"
+        value: "HealthcareProvider"
+      - property: "administeredTo"
+        type: "someValuesFrom"
+        value: "Patient"
+
+  - name: "MedicalRecord"
+    label: "Medical Record"
+    comment: "Documentation of patient's medical history and treatments"
+    restrictions:
+      - property: "belongsToPatient"
+        type: "cardinality"
+        value: 1
+      - property: "createdBy"
+        type: "someValuesFrom"
+        value: "HealthcareProvider"
+
+  - name: "Prescription"
+    label: "Prescription"
+    comment: "Written order for medication or treatment"
+    subClassOf: "Treatment"
+    restrictions:
+      - property: "hasMedication"
+        type: "someValuesFrom"
+        value: "Medication"
+      - property: "hasDosage"
+        type: "cardinality"
+        value: 1
+
+  - name: "Appointment"
+    label: "Medical Appointment"
+    comment: "Scheduled meeting between patient and healthcare provider"
+    restrictions:
+      - property: "scheduledWith"
+        type: "someValuesFrom"
+        value: "HealthcareProvider"
+      - property: "scheduledFor"
+        type: "someValuesFrom"
+        value: "Patient"
+      - property: "hasDateTime"
+        type: "cardinality"
+        value: 1
+
+  - name: "Facility"
+    label: "Healthcare Facility"
+    comment: "Physical location where healthcare services are provided"
+    subClassOf: "Organization"
+    restrictions:
+      - property: "hasAccreditation"
+        type: "someValuesFrom"
+        value: "Accreditation"
+
+# Property Definitions
+properties:
+  # Object Properties
+  - name: "treatedBy"
+    type: "ObjectProperty"
+    label: "treated by"
+    comment: "Relationship between patient and healthcare provider"
+    domain: "Patient"
+    range: "HealthcareProvider"
+    inverseOf: "treats"
+
+  - name: "diagnosesWith"
+    type: "ObjectProperty"
+    label: "diagnosed with"
+    domain: "Patient"
+    range: "MedicalCondition"
+
+  - name: "prescribes"
+    type: "ObjectProperty"
+    label: "prescribes"
+    domain: "HealthcareProvider"
+    range: "Prescription"
+
+  - name: "hasAllergy"
+    type: "ObjectProperty"
+    label: "has allergy to"
+    domain: "Patient"
+    range: "Allergen"
+    characteristics: ["Symmetric"]
+
+  # Data Properties
+  - name: "patientId"
+    type: "DatatypeProperty"
+    label: "patient identifier"
+    comment: "Unique identifier for patient"
+    domain: "Patient"
+    range: "xsd:string"
+    characteristics: ["Functional"]
+
+  - name: "dateOfBirth"
+    type: "DatatypeProperty"
+    label: "date of birth"
+    domain: "Patient"
+    range: "xsd:date"
+    characteristics: ["Functional"]
+
+  - name: "licenseNumber"
+    type: "DatatypeProperty"
+    label: "license number"
+    domain: "HealthcareProvider"
+    range: "xsd:string"
+
+  - name: "severity"
+    type: "DatatypeProperty"
+    label: "severity level"
+    domain: "MedicalCondition"
+    range: "xsd:string"
+
+  - name: "dosage"
+    type: "DatatypeProperty"
+    label: "medication dosage"
+    domain: "Prescription"
+    range: "xsd:string"
+
+# Sample Data Instances
+instances:
+  - name: "patient_john_doe"
+    types: ["Patient"]
+    label: "John Doe"
+    properties:
+      patientId: "P001234"
+      firstName: "John"
+      lastName: "Doe"
+      dateOfBirth: "1980-05-15"
+      gender: "Male"
+      phoneNumber: "+1-555-0123"
+      email: "john.doe@email.com"
+    relationships:
+      - property: "treatedBy"
+        target: "dr_smith"
+      - property: "diagnosesWith"
+        target: "diabetes_type2"
+    geospatial:
+      address: "123 Main St, City, State 12345"
+      lat: 40.7128
+      lng: -74.0060
+    provenance:
+      agent: "Registration System"
+      time: "2024-01-15T09:30:00Z"
+      source: "https://hospital.example.org/registration"
+
+  - name: "dr_smith"
+    types: ["HealthcareProvider"]
+    label: "Dr. Sarah Smith"
+    properties:
+      firstName: "Sarah"
+      lastName: "Smith"
+      title: "Dr."
+      licenseNumber: "MD123456"
+      specialty: "Endocrinology"
+      phoneNumber: "+1-555-0456"
+      email: "s.smith@hospital.example.org"
+    relationships:
+      - property: "worksAt"
+        target: "general_hospital"
+
+  - name: "diabetes_type2"
+    types: ["MedicalCondition"]
+    label: "Type 2 Diabetes"
+    properties:
+      icd10Code: "E11"
+      description: "Type 2 diabetes mellitus"
+      severity: "moderate"
+    annotations:
+      - property: "snomed:conceptId"
+        value: "44054006"
+
+  - name: "metformin_prescription"
+    types: ["Prescription"]
+    label: "Metformin Prescription for John Doe"
+    properties:
+      medicationName: "Metformin"
+      dosage: "500mg twice daily"
+      prescriptionDate: "2024-01-15"
+      duration: "30 days"
+    relationships:
+      - property: "prescribedBy"
+        target: "dr_smith"
+      - property: "prescribedFor"
+        target: "patient_john_doe"
+
+# SHACL Validation Shapes Configuration
+nodeShapes:
+  - name: "Patient"
+    targetClass: "Patient"
+    description: "Validation rules for patient data"
+    severity: "Violation"
+    properties:
+      - path: "patientId"
+        name: "Patient ID"
+        datatype: "xsd:string"
+        minCount: 1
+        maxCount: 1
+        pattern: "^P\\d{6}$"
+        message: "Patient ID must follow format P000000"
+      
+      - path: "dateOfBirth"
+        name: "Date of Birth"
+        datatype: "xsd:date"
+        minCount: 1
+        maxCount: 1
+        maxInclusive: "2024-12-31"
+        message: "Date of birth is required and cannot be in the future"
+      
+      - path: "firstName"
+        name: "First Name"
+        datatype: "xsd:string"
+        minCount: 1
+        maxCount: 1
+        minLength: 1
+        maxLength: 50
+      
+      - path: "lastName"
+        name: "Last Name"
+        datatype: "xsd:string"
+        minCount: 1
+        maxCount: 1
+        minLength: 1
+        maxLength: 50
+
+  - name: "HealthcareProvider"
+    targetClass: "HealthcareProvider"
+    description: "Validation rules for healthcare provider data"
+    properties:
+      - path: "licenseNumber"
+        name: "License Number"
+        datatype: "xsd:string"
+        minCount: 1
+        pattern: "^[A-Z]{2}\\d{6}$"
+        message: "License number must follow format AA000000"
+
+# SPARQL Queries Configuration
+queries:
+  - name: "all_patients"
+    description: "Retrieve all patients with basic information"
+    type: "SELECT"
+    distinct: true
+    select: ["patient", "firstName", "lastName", "patientId"]
+    where:
+      - type: "triple"
+        subject: "?patient"
+        predicate: "a"
+        object: "ont:Patient"
+      - type: "triple"
+        subject: "?patient"
+        predicate: "ont:firstName"
+        object: "?firstName"
+      - type: "triple"
+        subject: "?patient"
+        predicate: "ont:lastName"
+        object: "?lastName"
+      - type: "triple"
+        subject: "?patient"
+        predicate: "ont:patientId"
+        object: "?patientId"
+    orderBy: ["lastName", "firstName"]
+
+  - name: "patients_by_condition"
+    description: "Find patients diagnosed with a specific condition"
+    type: "SELECT"
+    select: ["patient", "name", "condition", "conditionName"]
+    where:
+      - type: "triple"
+        subject: "?patient"
+        predicate: "a"
+        object: "ont:Patient"
+      - type: "triple"
+        subject: "?patient"
+        predicate: "ont:firstName"
+        object: "?firstName"
+      - type: "triple"
+        subject: "?patient"
+        predicate: "ont:lastName"
+        object: "?lastName"
+      - type: "bind"
+        expression: "CONCAT(?firstName, ' ', ?lastName)"
+        variable: "name"
+      - type: "triple"
+        subject: "?patient"
+        predicate: "ont:diagnosesWith"
+        object: "?condition"
+      - type: "triple"
+        subject: "?condition"
+        predicate: "rdfs:label"
+        object: "?conditionName"
+    parameters: ["conditionType"]
+
+  - name: "provider_patient_count"
+    description: "Count of patients per healthcare provider"
+    type: "SELECT"
+    select: ["provider", "providerName", "patientCount"]
+    where:
+      - type: "triple"
+        subject: "?provider"
+        predicate: "a"
+        object: "ont:HealthcareProvider"
+      - type: "triple"
+        subject: "?provider"
+        predicate: "ont:firstName"
+        object: "?firstName"
+      - type: "triple"
+        subject: "?provider"
+        predicate: "ont:lastName"
+        object: "?lastName"
+      - type: "bind"
+        expression: "CONCAT('Dr. ', ?firstName, ' ', ?lastName)"
+        variable: "providerName"
+      - type: "triple"
+        subject: "?patient"
+        predicate: "ont:treatedBy"
+        object: "?provider"
+    groupBy: ["provider", "providerName"]
+    orderBy: 
+      - var: "patientCount"
+        desc: true
+
+# Analytics Queries
+analytics:
+  - name: "condition_prevalence"
+    description: "Prevalence of medical conditions"
+    metric: "Condition Distribution"
+    aggregation: "COUNT"
+    select: ["condition", "conditionName"]
+    patterns:
+      - subject: "?patient"
+        predicate: "ont:diagnosesWith"
+        object: "?condition"
+      - subject: "?condition"
+        predicate: "rdfs:label"
+        object: "?conditionName"
+    groupBy: ["condition", "conditionName"]
+    orderDesc: true
+    resultVariable: "patientCount"
+
+  - name: "age_demographics"
+    description: "Patient age distribution analysis"
+    metric: "Demographics"
+    aggregation: "COUNT"
+    select: ["ageGroup"]
+    patterns:
+      - subject: "?patient"
+        predicate: "a"
+        object: "ont:Patient"
+      - subject: "?patient"
+        predicate: "ont:dateOfBirth"
+        object: "?dob"
+    filters:
+      - "BIND(YEAR(NOW()) - YEAR(?dob) AS ?age)"
+      - "BIND(IF(?age < 18, 'Under 18', IF(?age < 35, '18-34', IF(?age < 50, '35-49', IF(?age < 65, '50-64', '65+')))) AS ?ageGroup)"
+    groupBy: ["ageGroup"]
+    orderBy: ["ageGroup"]
+    resultVariable: "patientCount"
+
+# Update Operations
+updates:
+  - name: "add_patient_contact"
+    description: "Add contact information for existing patient"
+    operation: "INSERT_WHERE"
+    insert:
+      - subject: "?patient"
+        predicate: "ont:emergencyContact"
+        object: "?contact"
+      - subject: "?patient"
+        predicate: "ont:emergencyPhone"
+        object: "?phone"
+    where:
+      - subject: "?patient"
+        predicate: "a"
+        object: "ont:Patient"
+      - subject: "?patient"
+        predicate: "ont:patientId"
+        object: "?patientId"
+    filters:
+      - "?patientId = 'P001234'"
+      - "BIND('Jane Doe' AS ?contact)"
+      - "BIND('+1-555-0789' AS ?phone)"
+
+# Configuration for different output formats
+outputFormats:
+  ontology:
+    path: "healthcare-ontology"
+    filename: "healthcare-ontology.ttl"
+  
+  data:
+    path: "healthcare-data" 
+    filename: "healthcare-instances.ttl"
+    
+  shapes:
+    path: "healthcare-shapes"
+    filename: "healthcare-shapes.ttl"
+    
+  queries:
+    path: "healthcare-queries"
+    filename: "healthcare-queries.sparql"
+
+# Generation metadata
+generationMetadata:
+  templateVersion: "1.0.0"
+  generatedBy: "Unjucks Semantic Generator"
+  compliance:
+    - "HIPAA"
+    - "HL7 FHIR R4"
+    - "SNOMED CT"
+  useCases:
+    - "Electronic Health Records"
+    - "Patient Management"
+    - "Clinical Decision Support"
+    - "Healthcare Analytics"

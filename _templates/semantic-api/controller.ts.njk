@@ -1,0 +1,223 @@
+---
+to: api/{{ entityName | lower }}/{{ entityName | lower }}.controller.ts
+ontology: {{ ontologyPath }}
+semanticTypes: true
+inject: false
+skipIf: "{{ skipExisting }}"
+---
+import { Request, Response } from 'express';
+import { {{ entityName }}Schema, validate{{ entityName }} } from '../../types/validators.js';
+import type { {{ entityName }} } from '../../types/schemas.js';
+
+{% set entityLower = entityName | lower -%}
+{% set semanticType = semanticTypes[entityName] -%}
+
+/**
+ * {{ semanticType.description | default('API controller for ' + entityName) }}
+ * Generated from RDF ontology: {{ semanticType.ontology }}
+ * Source URI: {{ semanticType.uri }}
+ */
+
+// GET /{{ entityLower }}s - List all {{ entityLower }}s
+export async function get{{ entityName }}s(req: Request, res: Response) {
+  try {
+    const { page = 1, limit = 10, ...filters } = req.query;
+    
+    // TODO: Implement database query with filtering
+    const {{ entityLower }}s = await db.{{ entityLower }}.findMany({
+      where: filters,
+      skip: (Number(page) - 1) * Number(limit),
+      take: Number(limit),
+      orderBy: { createdAt: 'desc' }
+    });
+    
+    const total = await db.{{ entityLower }}.count({ where: filters });
+    
+    res.json({
+      data: {{ entityLower }}s,
+      pagination: {
+        page: Number(page),
+        limit: Number(limit),
+        total,
+        pages: Math.ceil(total / Number(limit))
+      }
+    });
+  } catch (error) {
+    console.error('Error fetching {{ entityLower }}s:', error);
+    res.status(500).json({ 
+      error: 'Internal server error',
+      message: error.message 
+    });
+  }
+}
+
+// GET /{{ entityLower }}s/:id - Get single {{ entityLower }}
+export async function get{{ entityName }}(req: Request, res: Response) {
+  try {
+    const { id } = req.params;
+    
+    const {{ entityLower }} = await db.{{ entityLower }}.findUnique({
+      where: { id }{% if semanticType.properties | selectattr("type.interface") %},
+      include: {
+        {% for prop in semanticType.properties -%}
+        {% if prop.type.interface -%}
+        {{ prop.name }}: true,
+        {% endif -%}
+        {% endfor %}
+      }{% endif %}
+    });
+    
+    if (!{{ entityLower }}) {
+      return res.status(404).json({ 
+        error: '{{ entityName }} not found' 
+      });
+    }
+    
+    res.json({ data: {{ entityLower }} });
+  } catch (error) {
+    console.error('Error fetching {{ entityLower }}:', error);
+    res.status(500).json({ 
+      error: 'Internal server error',
+      message: error.message 
+    });
+  }
+}
+
+// POST /{{ entityLower }}s - Create new {{ entityLower }}
+export async function create{{ entityName }}(req: Request, res: Response) {
+  try {
+    const validated{{ entityName }} = validate{{ entityName }}(req.body);
+    
+    const created{{ entityName }} = await db.{{ entityLower }}.create({
+      data: validated{{ entityName }}{% if semanticType.properties | selectattr("type.interface") %},
+      include: {
+        {% for prop in semanticType.properties -%}
+        {% if prop.type.interface -%}
+        {{ prop.name }}: true,
+        {% endif -%}
+        {% endfor %}
+      }{% endif %}
+    });
+    
+    res.status(201).json({ 
+      data: created{{ entityName }},
+      message: '{{ entityName }} created successfully'
+    });
+  } catch (error) {
+    if (error.name === 'ZodError') {
+      res.status(400).json({ 
+        error: 'Validation failed', 
+        details: error.errors,
+        message: 'Please check your input data'
+      });
+    } else {
+      console.error('Error creating {{ entityLower }}:', error);
+      res.status(500).json({ 
+        error: 'Internal server error',
+        message: error.message 
+      });
+    }
+  }
+}
+
+// PUT /{{ entityLower }}s/:id - Update {{ entityLower }}
+export async function update{{ entityName }}(req: Request, res: Response) {
+  try {
+    const { id } = req.params;
+    
+    // Use partial schema for updates
+    const updates = {{ entityName }}Schema.partial().parse(req.body);
+    
+    const updated{{ entityName }} = await db.{{ entityLower }}.update({
+      where: { id },
+      data: updates{% if semanticType.properties | selectattr("type.interface") %},
+      include: {
+        {% for prop in semanticType.properties -%}
+        {% if prop.type.interface -%}
+        {{ prop.name }}: true,
+        {% endif -%}
+        {% endfor %}
+      }{% endif %}
+    });
+    
+    res.json({ 
+      data: updated{{ entityName }},
+      message: '{{ entityName }} updated successfully'
+    });
+  } catch (error) {
+    if (error.name === 'ZodError') {
+      res.status(400).json({ 
+        error: 'Validation failed', 
+        details: error.errors 
+      });
+    } else if (error.code === 'P2025') {
+      res.status(404).json({ 
+        error: '{{ entityName }} not found' 
+      });
+    } else {
+      console.error('Error updating {{ entityLower }}:', error);
+      res.status(500).json({ 
+        error: 'Internal server error',
+        message: error.message 
+      });
+    }
+  }
+}
+
+// DELETE /{{ entityLower }}s/:id - Delete {{ entityLower }}
+export async function delete{{ entityName }}(req: Request, res: Response) {
+  try {
+    const { id } = req.params;
+    
+    await db.{{ entityLower }}.delete({
+      where: { id }
+    });
+    
+    res.status(204).send();
+  } catch (error) {
+    if (error.code === 'P2025') {
+      res.status(404).json({ 
+        error: '{{ entityName }} not found' 
+      });
+    } else {
+      console.error('Error deleting {{ entityLower }}:', error);
+      res.status(500).json({ 
+        error: 'Internal server error',
+        message: error.message 
+      });
+    }
+  }
+}
+
+{% if semanticType.properties | selectattr("name", "equalto", "name") | list -%}
+// GET /{{ entityLower }}s/search - Search {{ entityLower }}s by name
+export async function search{{ entityName }}s(req: Request, res: Response) {
+  try {
+    const { q } = req.query;
+    
+    if (!q || typeof q !== 'string') {
+      return res.status(400).json({ 
+        error: 'Search query is required' 
+      });
+    }
+    
+    const {{ entityLower }}s = await db.{{ entityLower }}.findMany({
+      where: {
+        name: {
+          contains: q,
+          mode: 'insensitive'
+        }
+      },
+      take: 10
+    });
+    
+    res.json({ data: {{ entityLower }}s });
+  } catch (error) {
+    console.error('Error searching {{ entityLower }}s:', error);
+    res.status(500).json({ 
+      error: 'Internal server error',
+      message: error.message 
+    });
+  }
+}
+{% endif %}

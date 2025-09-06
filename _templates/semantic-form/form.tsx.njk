@@ -1,0 +1,234 @@
+---
+to: components/{{ entityName }}Form.tsx
+ontology: {{ ontologyPath }}
+semanticTypes: true
+inject: false
+skipIf: "{{ skipExisting }}"
+---
+import React from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { {{ entityName }}Schema, type {{ entityName }} } from '../types/schemas.js';
+
+{% set entityLower = entityName | lower -%}
+{% set semanticType = semanticTypes[entityName] -%}
+
+interface {{ entityName }}FormProps {
+  initial{{ entityName }}?: Partial<{{ entityName }}>;
+  onSubmit: (data: {{ entityName }}) => Promise<void> | void;
+  onCancel?: () => void;
+  isLoading?: boolean;
+}
+
+/**
+ * {{ semanticType.description | default('Form component for ' + entityName) }}
+ * Generated from RDF ontology: {{ semanticType.ontology }}
+ * Source URI: {{ semanticType.uri }}
+ */
+export function {{ entityName }}Form({ 
+  initial{{ entityName }}, 
+  onSubmit, 
+  onCancel, 
+  isLoading = false 
+}: {{ entityName }}FormProps) {
+  const {
+    register,
+    handleSubmit,
+    watch,
+    formState: { errors, isSubmitting, isDirty }
+  } = useForm<{{ entityName }}>({
+    resolver: zodResolver({{ entityName }}Schema),
+    defaultValues: initial{{ entityName }} || {}
+  });
+
+  const isFormSubmitting = isSubmitting || isLoading;
+
+  return (
+    <form 
+      onSubmit={handleSubmit(onSubmit)} 
+      className="{{ entityLower }}-form"
+      noValidate
+    >
+      <div className="form-header">
+        <h2>
+          {initial{{ entityName }} ? 'Edit' : 'Create'} {{ entityName }}
+        </h2>
+        {% if semanticType.description -%}
+        <p className="form-description">{{ semanticType.description }}</p>
+        {% endif %}
+      </div>
+      
+      <div className="form-fields">
+        {% for prop in semanticType.properties -%}
+        {% set fieldId = entityLower + '-' + prop.name -%}
+        {% set isRequired = prop.required -%}
+        {% set fieldType = prop.type -%}
+        
+        <div className="field-group">
+          <label htmlFor="{{ fieldId }}" className="field-label">
+            {{ prop.description | default(prop.name | title) }}
+            {% if isRequired %}<span className="required-indicator">*</span>{% endif %}
+          </label>
+          
+          {% if fieldType == 'boolean' -%}
+          <div className="checkbox-field">
+            <input
+              {...register('{{ prop.name }}')}
+              type="checkbox"
+              id="{{ fieldId }}"
+              className="checkbox-input"
+            />
+            <span className="checkbox-description">
+              {{ prop.description | default('Enable ' + prop.name) }}
+            </span>
+          </div>
+          {% elif fieldType == 'Date' -%}
+          <input
+            {...register('{{ prop.name }}', { valueAsDate: true })}
+            type="date"
+            id="{{ fieldId }}"
+            className="date-input"
+            {% if isRequired %}required{% endif %}
+          />
+          {% elif fieldType == 'number' -%}
+          <input
+            {...register('{{ prop.name }}', { valueAsNumber: true })}
+            type="number"
+            id="{{ fieldId }}"
+            className="number-input"
+            {% if prop.constraints.minimum %}min="{{ prop.constraints.minimum }}"{% endif %}
+            {% if prop.constraints.maximum %}max="{{ prop.constraints.maximum }}"{% endif %}
+            {% if isRequired %}required{% endif %}
+            placeholder="Enter {{ prop.name }}"
+          />
+          {% elif prop.constraints and prop.constraints.format == 'email' -%}
+          <input
+            {...register('{{ prop.name }}')}
+            type="email"
+            id="{{ fieldId }}"
+            className="email-input"
+            {% if isRequired %}required{% endif %}
+            placeholder="Enter email address"
+            autoComplete="email"
+          />
+          {% elif prop.constraints and prop.constraints.format == 'uri' -%}
+          <input
+            {...register('{{ prop.name }}')}
+            type="url"
+            id="{{ fieldId }}"
+            className="url-input"
+            {% if isRequired %}required{% endif %}
+            placeholder="https://example.com"
+          />
+          {% elif prop.constraints and prop.constraints.enum -%}
+          <select
+            {...register('{{ prop.name }}')}
+            id="{{ fieldId }}"
+            className="select-input"
+            {% if isRequired %}required{% endif %}
+          >
+            <option value="">Select {{ prop.name }}</option>
+            {% for option in prop.constraints.enum -%}
+            <option value="{{ option }}">{{ option | title }}</option>
+            {% endfor %}
+          </select>
+          {% elif prop.constraints and prop.constraints.maxLength and prop.constraints.maxLength > 100 -%}
+          <textarea
+            {...register('{{ prop.name }}')}
+            id="{{ fieldId }}"
+            className="textarea-input"
+            rows={4}
+            {% if prop.constraints.maxLength %}maxLength={{ prop.constraints.maxLength }}{% endif %}
+            {% if isRequired %}required{% endif %}
+            placeholder="Enter {{ prop.description | default(prop.name) }}"
+          />
+          {% else -%}
+          <input
+            {...register('{{ prop.name }}')}
+            type="text"
+            id="{{ fieldId }}"
+            className="text-input"
+            {% if prop.constraints.minLength %}minLength={{ prop.constraints.minLength }}{% endif %}
+            {% if prop.constraints.maxLength %}maxLength={{ prop.constraints.maxLength }}{% endif %}
+            {% if isRequired %}required{% endif %}
+            placeholder="Enter {{ prop.description | default(prop.name) }}"
+          />
+          {% endif -%}
+          
+          {errors.{{ prop.name }} && (
+            <span className="field-error" role="alert">
+              {errors.{{ prop.name }}?.message}
+            </span>
+          )}
+          
+          {% if prop.examples and prop.examples.length > 0 -%}
+          <div className="field-help">
+            Examples: {{ prop.examples | join(', ') }}
+          </div>
+          {% endif %}
+        </div>
+        
+        {% endfor %}
+      </div>
+      
+      <div className="form-actions">
+        <button 
+          type="submit" 
+          disabled={isFormSubmitting || !isDirty}
+          className="submit-button"
+        >
+          {isFormSubmitting ? (
+            <>
+              <span className="spinner" aria-hidden="true" />
+              {initial{{ entityName }} ? 'Updating...' : 'Creating...'}
+            </>
+          ) : (
+            initial{{ entityName }} ? 'Update {{ entityName }}' : 'Create {{ entityName }}'
+          )}
+        </button>
+        
+        {onCancel && (
+          <button 
+            type="button" 
+            onClick={onCancel}
+            disabled={isFormSubmitting}
+            className="cancel-button"
+          >
+            Cancel
+          </button>
+        )}
+      </div>
+    </form>
+  );
+}
+
+// Form validation hook for custom validation logic
+export function use{{ entityName }}FormValidation() {
+  const validateUnique{{ entityName }} = async (data: Partial<{{ entityName }}>) => {
+    // TODO: Implement server-side uniqueness validation
+    {% for prop in semanticType.properties -%}
+    {% if prop.constraints and 'unique' in (prop.constraints | string) -%}
+    if (data.{{ prop.name }}) {
+      const exists = await checkUnique{{ entityName }}{{ prop.name | title }}(data.{{ prop.name }});
+      if (exists) {
+        throw new Error('{{ prop.name | title }} already exists');
+      }
+    }
+    {% endif -%}
+    {% endfor %}
+    return true;
+  };
+
+  return { validateUnique{{ entityName }} };
+}
+
+// Helper function to create default {{ entityName }} data
+export function createDefault{{ entityName }}(): Partial<{{ entityName }}> {
+  return {
+    {% for prop in semanticType.properties -%}
+    {% if prop.required and prop.examples and prop.examples.length > 0 -%}
+    {{ prop.name }}: {{ prop.examples[0] | dump }},
+    {% endif -%}
+    {% endfor %}
+  };
+}

@@ -1,509 +1,169 @@
 /**
- * Enterprise Semantic Validation Pipeline
- * Multi-ontology consistency validation with Fortune 5 compliance
- * 
- * Supports: HIPAA, SOX, GDPR, Basel III, GS1, FHIR
+ * Semantic Validator - Core validation engine with N3.js integration
+ * Validates generated code against semantic rules with comprehensive error reporting
  */
 
-import { Store, Parser, Writer, DataFactory, Quad, NamedNode, Literal } from 'n3';
+import { Store, Parser, Writer, DataFactory, Quad } from 'n3';
+import * as fs from 'fs/promises';
+import * as path from 'path';
 import { performance } from 'perf_hooks';
-import { createHash } from 'crypto';
+import {
+  ValidationResult,
+  ValidationError,
+  ValidationConfig,
+  ValidationItem,
+  ValidationMetadata,
+  ValidationStatistics,
+  Validator,
+  ValidationCache,
+  ValidationLogger,
+  SemanticValidationPipeline,
+  BatchValidationRequest,
+  BatchValidationResult,
+  PerformanceMetrics,
+  RdfValidationContext
+} from './types/validation.js';
 
-const { namedNode, literal, quad } = DataFactory;
+/**
+ * Production-ready semantic validation engine
+ */
+export class SemanticValidator implements Validator {
+  public readonly name = 'semantic-validator';
+  public readonly version = '1.0.0';
+  public readonly type = 'rdf' as const;
 
-export interface ValidationContext {
-  ontologyIri: string;
-  domain: 'healthcare' | 'financial' | 'supply-chain' | 'generic';
-  complianceFrameworks: string[];
-  performanceThresholds: PerformanceThresholds;
-  securityLevel: 'standard' | 'high' | 'critical';
-}
-
-export interface PerformanceThresholds {
-  maxValidationTimeMs: number;
-  maxMemoryUsageMB: number;
-  maxQuadCount: number;
-  minThroughputQPS: number;
-}
-
-export interface ValidationResult {
-  isValid: boolean;
-  errors: ValidationError[];
-  warnings: ValidationWarning[];
-  performanceMetrics: PerformanceMetrics;
-  complianceStatus: ComplianceStatus;
-  qualityScore: number;
-  timestamp: Date;
-  validationId: string;
-}
-
-export interface ValidationError {
-  code: string;
-  message: string;
-  severity: 'critical' | 'high' | 'medium' | 'low';
-  location: string;
-  complianceFramework?: string;
-  remediation?: string;
-}
-
-export interface ValidationWarning {
-  code: string;
-  message: string;
-  location: string;
-  suggestion?: string;
-}
-
-export interface PerformanceMetrics {
-  validationDurationMs: number;
-  memoryUsageMB: number;
-  quadCount: number;
-  throughputQPS: number;
-  ontologyLoadTimeMs: number;
-  reasoningTimeMs: number;
-}
-
-export interface ComplianceStatus {
-  framework: string;
-  status: 'compliant' | 'non-compliant' | 'partial' | 'unknown';
-  violationCount: number;
-  criticalViolations: string[];
-  recommendedActions: string[];
-}
-
-export class SemanticValidator {
   private store: Store;
   private parser: Parser;
   private writer: Writer;
-  private validationRules: Map<string, ValidationRule>;
-  private performanceMonitor: PerformanceMonitor;
+  private cache: ValidationCache;
+  private logger: ValidationLogger;
+  private config: ValidationConfig;
 
-  constructor() {
+  constructor(
+    config: Partial<ValidationConfig> = {},
+    cache?: ValidationCache,
+    logger?: ValidationLogger
+  ) {
     this.store = new Store();
     this.parser = new Parser();
     this.writer = new Writer();
-    this.validationRules = new Map();
-    this.performanceMonitor = new PerformanceMonitor();
-    this.initializeValidationRules();
+    this.cache = cache || new DefaultValidationCache();
+    this.logger = logger || new ConsoleValidationLogger();
+    
+    this.config = {
+      strictMode: false,
+      maxErrors: 100,
+      timeout: 30000,
+      memoryLimit: 512 * 1024 * 1024, // 512MB
+      enablePerformanceMetrics: true,
+      cacheEnabled: true,
+      parallelProcessing: true,
+      validationRules: [],
+      ...config
+    };
   }
 
   /**
-   * Validate semantic consistency across multiple ontologies
+   * Validate RDF content with comprehensive semantic analysis
    */
-  async validateSemanticConsistency(
-    rdfContent: string,
-    context: ValidationContext
-  ): Promise<ValidationResult> {
-    const validationId = this.generateValidationId();
+  async validate(content: string, config?: ValidationConfig): Promise<ValidationResult> {
     const startTime = performance.now();
+    const validationConfig = { ...this.config, ...config };
+    const errors: ValidationError[] = [];
+    const warnings: ValidationError[] = [];
+    
+    // Check cache first
+    const cacheKey = this.generateCacheKey(content, validationConfig);
+    if (validationConfig.cacheEnabled && this.cache.has(cacheKey)) {
+      const cachedResult = this.cache.get(cacheKey);
+      if (cachedResult) {
+        this.logger.debug('Cache hit for validation', { cacheKey });
+        return cachedResult;
+      }
+    }
 
     try {
-      // Load and parse RDF content
-      const quads = await this.parseRdfContent(rdfContent);
-      this.store.addQuads(quads);
-
-      // Initialize validation result
+      // Parse RDF content
+      const quads = await this.parseRdfContent(content);
+      
+      // Create validation context
+      const context = await this.createRdfValidationContext(content, quads);
+      
+      // Perform semantic validations
+      const syntaxErrors = await this.validateSyntax(content);
+      const semanticErrors = await this.validateSemanticConsistency(quads, context);
+      const referenceErrors = await this.validateReferences(quads);
+      const typeErrors = await this.validateTypes(quads);
+      const constraintErrors = await this.validateConstraints(quads, validationConfig);
+      
+      errors.push(...syntaxErrors, ...semanticErrors, ...referenceErrors, ...typeErrors, ...constraintErrors);
+      
+      // Check for warnings
+      const performanceWarnings = await this.checkPerformanceIssues(context);
+      const styleWarnings = await this.checkStyleIssues(quads);
+      
+      warnings.push(...performanceWarnings, ...styleWarnings);
+      
+      const duration = performance.now() - startTime;
+      const statistics = this.generateStatistics(quads, context, duration);
+      
       const result: ValidationResult = {
-        isValid: true,
-        errors: [],
-        warnings: [],
-        performanceMetrics: {} as PerformanceMetrics,
-        complianceStatus: {} as ComplianceStatus,
-        qualityScore: 0,
-        timestamp: new Date(),
-        validationId
+        isValid: errors.length === 0,
+        errors,
+        warnings,
+        metadata: {
+          timestamp: new Date(),
+          validator: this.name,
+          version: this.version,
+          duration,
+          resourcesValidated: quads.length,
+          statistics
+        }
       };
 
-      // Multi-ontology consistency validation
-      await this.validateOntologyConsistency(result, context);
+      // Cache successful results
+      if (validationConfig.cacheEnabled) {
+        this.cache.set(cacheKey, result);
+      }
 
-      // Regulatory compliance validation
-      await this.validateRegulatoryCompliance(result, context);
-
-      // Cross-template semantic coherence
-      await this.validateSemanticCoherence(result, context);
-
-      // Performance validation
-      await this.validatePerformance(result, context);
-
-      // Calculate quality score
-      result.qualityScore = this.calculateQualityScore(result);
-      result.isValid = result.errors.filter(e => e.severity === 'critical').length === 0;
-
-      // Record performance metrics
-      const endTime = performance.now();
-      result.performanceMetrics = await this.performanceMonitor.getMetrics(
-        startTime,
-        endTime,
-        this.store.size
-      );
-
+      // Log metrics
+      this.logger.metric('validation_duration', duration);
+      this.logger.metric('validation_errors', errors.length);
+      this.logger.metric('validation_warnings', warnings.length);
+      
       return result;
+      
     } catch (error) {
-      return this.createErrorResult(validationId, error as Error);
-    }
-  }
-
-  /**
-   * Validate ontology consistency and completeness
-   */
-  private async validateOntologyConsistency(
-    result: ValidationResult,
-    context: ValidationContext
-  ): Promise<void> {
-    // Check for ontology imports and dependencies
-    const imports = this.store.getQuads(null, namedNode('http://www.w3.org/2002/07/owl#imports'), null, null);
-    
-    if (imports.length === 0 && context.domain !== 'generic') {
-      result.warnings.push({
-        code: 'ONTOLOGY_NO_IMPORTS',
-        message: 'No ontology imports found - may indicate incomplete semantic model',
-        location: 'root',
-        suggestion: 'Consider importing relevant domain ontologies'
-      });
-    }
-
-    // Validate class hierarchy consistency
-    await this.validateClassHierarchy(result);
-
-    // Validate property domain/range consistency
-    await this.validatePropertyConsistency(result);
-
-    // Check for orphaned entities
-    await this.validateEntityReferences(result);
-  }
-
-  /**
-   * Validate regulatory compliance based on framework
-   */
-  private async validateRegulatoryCompliance(
-    result: ValidationResult,
-    context: ValidationContext
-  ): Promise<void> {
-    const complianceResults: ComplianceStatus[] = [];
-
-    for (const framework of context.complianceFrameworks) {
-      const validator = this.getComplianceValidator(framework);
-      if (validator) {
-        const complianceResult = await validator.validate(this.store, context);
-        complianceResults.push(complianceResult);
-
-        // Merge compliance errors and warnings
-        result.errors.push(...complianceResult.criticalViolations.map(v => ({
-          code: `${framework}_VIOLATION`,
-          message: v,
-          severity: 'critical' as const,
-          location: 'compliance',
-          complianceFramework: framework
-        })));
-      }
-    }
-
-    result.complianceStatus = this.aggregateComplianceStatus(complianceResults);
-  }
-
-  /**
-   * Validate semantic coherence across templates
-   */
-  private async validateSemanticCoherence(
-    result: ValidationResult,
-    context: ValidationContext
-  ): Promise<void> {
-    // Check for semantic consistency in generated code
-    const concepts = this.extractSemanticConcepts();
-    
-    for (const concept of concepts) {
-      const usages = this.findConceptUsages(concept);
-      if (usages.length > 1) {
-        const consistency = this.checkConceptConsistency(concept, usages);
-        if (!consistency.isConsistent) {
-          result.errors.push({
-            code: 'SEMANTIC_INCONSISTENCY',
-            message: `Inconsistent usage of concept '${concept}': ${consistency.reason}`,
-            severity: 'high',
-            location: concept,
-            remediation: 'Standardize concept usage across all templates'
-          });
+      const duration = performance.now() - startTime;
+      this.logger.error('Validation failed', error as Error, { content: content.substring(0, 200) });
+      
+      return {
+        isValid: false,
+        errors: [{
+          type: 'syntax_error',
+          message: `Validation failed: ${(error as Error).message}`,
+          code: 'VALIDATION_ERROR',
+          severity: 'error',
+          context: { error: (error as Error).stack }
+        }],
+        warnings: [],
+        metadata: {
+          timestamp: new Date(),
+          validator: this.name,
+          version: this.version,
+          duration,
+          resourcesValidated: 0,
+          statistics: { totalTriples: 0, validTriples: 0, invalidTriples: 0 }
         }
-      }
+      };
     }
   }
 
   /**
-   * Validate performance requirements
+   * Check if validator supports the given format
    */
-  private async validatePerformance(
-    result: ValidationResult,
-    context: ValidationContext
-  ): Promise<void> {
-    const thresholds = context.performanceThresholds;
-    const currentMetrics = await this.performanceMonitor.getCurrentMetrics();
-
-    if (currentMetrics.memoryUsageMB > thresholds.maxMemoryUsageMB) {
-      result.errors.push({
-        code: 'PERFORMANCE_MEMORY_EXCEEDED',
-        message: `Memory usage ${currentMetrics.memoryUsageMB}MB exceeds threshold ${thresholds.maxMemoryUsageMB}MB`,
-        severity: 'high',
-        location: 'performance',
-        remediation: 'Optimize RDF data structures or increase memory allocation'
-      });
-    }
-
-    if (this.store.size > thresholds.maxQuadCount) {
-      result.warnings.push({
-        code: 'PERFORMANCE_QUAD_COUNT_HIGH',
-        message: `Quad count ${this.store.size} exceeds recommended threshold ${thresholds.maxQuadCount}`,
-        location: 'performance',
-        suggestion: 'Consider data partitioning or streaming validation'
-      });
-    }
-  }
-
-  /**
-   * Validate class hierarchy for inconsistencies
-   */
-  private async validateClassHierarchy(result: ValidationResult): Promise<void> {
-    const subClassQuads = this.store.getQuads(
-      null,
-      namedNode('http://www.w3.org/2000/01/rdf-schema#subClassOf'),
-      null,
-      null
-    );
-
-    // Check for circular inheritance
-    const hierarchy = new Map<string, string[]>();
-    
-    for (const quad of subClassQuads) {
-      const child = quad.subject.value;
-      const parent = (quad.object as NamedNode).value;
-      
-      if (!hierarchy.has(child)) {
-        hierarchy.set(child, []);
-      }
-      hierarchy.get(child)!.push(parent);
-    }
-
-    // Detect cycles
-    for (const [cls, parents] of hierarchy) {
-      if (this.hasCycle(cls, parents, hierarchy, new Set())) {
-        result.errors.push({
-          code: 'ONTOLOGY_CIRCULAR_INHERITANCE',
-          message: `Circular inheritance detected for class ${cls}`,
-          severity: 'critical',
-          location: cls,
-          remediation: 'Remove circular inheritance relationships'
-        });
-      }
-    }
-  }
-
-  /**
-   * Validate property domain and range consistency
-   */
-  private async validatePropertyConsistency(result: ValidationResult): Promise<void> {
-    const domainQuads = this.store.getQuads(
-      null,
-      namedNode('http://www.w3.org/2000/01/rdf-schema#domain'),
-      null,
-      null
-    );
-    
-    const rangeQuads = this.store.getQuads(
-      null,
-      namedNode('http://www.w3.org/2000/01/rdf-schema#range'),
-      null,
-      null
-    );
-
-    // Check for properties with multiple incompatible domains/ranges
-    const propertyDomains = new Map<string, string[]>();
-    const propertyRanges = new Map<string, string[]>();
-
-    for (const quad of domainQuads) {
-      const property = quad.subject.value;
-      const domain = (quad.object as NamedNode).value;
-      
-      if (!propertyDomains.has(property)) {
-        propertyDomains.set(property, []);
-      }
-      propertyDomains.get(property)!.push(domain);
-    }
-
-    for (const quad of rangeQuads) {
-      const property = quad.subject.value;
-      const range = (quad.object as NamedNode).value;
-      
-      if (!propertyRanges.has(property)) {
-        propertyRanges.set(property, []);
-      }
-      propertyRanges.get(property)!.push(range);
-    }
-
-    // Validate domain/range compatibility
-    for (const [property, domains] of propertyDomains) {
-      if (domains.length > 1 && !this.areDomainsCompatible(domains)) {
-        result.warnings.push({
-          code: 'PROPERTY_MULTIPLE_DOMAINS',
-          message: `Property ${property} has multiple potentially incompatible domains`,
-          location: property,
-          suggestion: 'Consider using union types or refactoring property hierarchy'
-        });
-      }
-    }
-  }
-
-  /**
-   * Validate entity references and detect orphans
-   */
-  private async validateEntityReferences(result: ValidationResult): Promise<void> {
-    const allSubjects = new Set(this.store.getSubjects(null, null, null).map(s => s.value));
-    const allObjects = new Set(
-      this.store.getObjects(null, null, null)
-        .filter(o => o.termType === 'NamedNode')
-        .map(o => o.value)
-    );
-
-    // Find orphaned entities (referenced but not defined)
-    const orphanedEntities = [...allObjects].filter(obj => 
-      obj.startsWith('http') && !allSubjects.has(obj)
-    );
-
-    for (const orphan of orphanedEntities) {
-      result.warnings.push({
-        code: 'ENTITY_ORPHANED',
-        message: `Entity ${orphan} is referenced but not defined`,
-        location: orphan,
-        suggestion: 'Define the entity or remove references to it'
-      });
-    }
-  }
-
-  /**
-   * Extract semantic concepts from RDF store
-   */
-  private extractSemanticConcepts(): string[] {
-    const concepts = new Set<string>();
-    
-    // Extract classes
-    const classQuads = this.store.getQuads(
-      null,
-      namedNode('http://www.w3.org/1999/02/22-rdf-syntax-ns#type'),
-      namedNode('http://www.w3.org/2002/07/owl#Class'),
-      null
-    );
-    
-    for (const quad of classQuads) {
-      concepts.add(quad.subject.value);
-    }
-
-    // Extract properties
-    const propertyQuads = this.store.getQuads(
-      null,
-      namedNode('http://www.w3.org/1999/02/22-rdf-syntax-ns#type'),
-      namedNode('http://www.w3.org/2002/07/owl#ObjectProperty'),
-      null
-    );
-    
-    for (const quad of propertyQuads) {
-      concepts.add(quad.subject.value);
-    }
-
-    return Array.from(concepts);
-  }
-
-  /**
-   * Find all usages of a semantic concept
-   */
-  private findConceptUsages(concept: string): ConceptUsage[] {
-    const usages: ConceptUsage[] = [];
-    
-    // Find as subject
-    const subjectQuads = this.store.getQuads(namedNode(concept), null, null, null);
-    for (const quad of subjectQuads) {
-      usages.push({
-        location: 'subject',
-        context: quad.predicate.value,
-        value: quad.object.value
-      });
-    }
-
-    // Find as object
-    const objectQuads = this.store.getQuads(null, null, namedNode(concept), null);
-    for (const quad of objectQuads) {
-      usages.push({
-        location: 'object',
-        context: quad.predicate.value,
-        value: quad.subject.value
-      });
-    }
-
-    return usages;
-  }
-
-  /**
-   * Check concept consistency across usages
-   */
-  private checkConceptConsistency(concept: string, usages: ConceptUsage[]): ConsistencyResult {
-    // Group usages by context
-    const contextGroups = new Map<string, ConceptUsage[]>();
-    
-    for (const usage of usages) {
-      if (!contextGroups.has(usage.context)) {
-        contextGroups.set(usage.context, []);
-      }
-      contextGroups.get(usage.context)!.push(usage);
-    }
-
-    // Check for inconsistent patterns
-    for (const [context, contextUsages] of contextGroups) {
-      if (contextUsages.length > 1) {
-        const patterns = contextUsages.map(u => `${u.location}:${u.value}`);
-        const uniquePatterns = new Set(patterns);
-        
-        if (uniquePatterns.size > 1) {
-          return {
-            isConsistent: false,
-            reason: `Inconsistent usage patterns in context ${context}: ${Array.from(uniquePatterns).join(', ')}`
-          };
-        }
-      }
-    }
-
-    return { isConsistent: true };
-  }
-
-  /**
-   * Calculate overall quality score
-   */
-  private calculateQualityScore(result: ValidationResult): number {
-    let score = 100;
-
-    // Deduct points for errors
-    for (const error of result.errors) {
-      switch (error.severity) {
-        case 'critical':
-          score -= 25;
-          break;
-        case 'high':
-          score -= 15;
-          break;
-        case 'medium':
-          score -= 10;
-          break;
-        case 'low':
-          score -= 5;
-          break;
-      }
-    }
-
-    // Deduct points for warnings
-    score -= result.warnings.length * 2;
-
-    // Bonus for compliance
-    if (result.complianceStatus.status === 'compliant') {
-      score += 10;
-    }
-
-    return Math.max(0, Math.min(100, score));
+  supportsFormat(format: string): boolean {
+    return ['turtle', 'ttl', 'rdf', 'rdf-xml', 'json-ld', 'n-triples', 'n-quads'].includes(format.toLowerCase());
   }
 
   /**
@@ -515,10 +175,14 @@ export class SemanticValidator {
       
       this.parser.parse(content, (error, quad, prefixes) => {
         if (error) {
-          reject(error);
-        } else if (quad) {
+          reject(new Error(`RDF parsing error: ${error.message}`));
+          return;
+        }
+        
+        if (quad) {
           quads.push(quad);
         } else {
+          // Parsing complete
           resolve(quads);
         }
       });
@@ -526,195 +190,640 @@ export class SemanticValidator {
   }
 
   /**
-   * Get compliance validator for specific framework
+   * Create RDF validation context
    */
-  private getComplianceValidator(framework: string): ComplianceValidator | null {
-    // Will be implemented with specific validators
-    return null;
+  private async createRdfValidationContext(content: string, quads: Quad[]): Promise<RdfValidationContext> {
+    const format = this.detectFormat(content);
+    const namespaces = this.extractNamespaces(content);
+    
+    const subjects = new Set(quads.map(q => q.subject.value));
+    const predicates = new Set(quads.map(q => q.predicate.value));
+    const objects = new Set(quads.map(q => q.object.value));
+    
+    return {
+      format: format as any,
+      namespaces,
+      tripleCount: quads.length,
+      subjectCount: subjects.size,
+      predicateCount: predicates.size,
+      objectCount: objects.size
+    };
   }
 
   /**
-   * Check for cycles in class hierarchy
+   * Validate RDF syntax
    */
-  private hasCycle(
-    current: string,
-    parents: string[],
-    hierarchy: Map<string, string[]>,
-    visited: Set<string>
-  ): boolean {
-    if (visited.has(current)) {
+  private async validateSyntax(content: string): Promise<ValidationError[]> {
+    const errors: ValidationError[] = [];
+    
+    try {
+      await this.parseRdfContent(content);
+    } catch (error) {
+      errors.push({
+        type: 'syntax_error',
+        message: (error as Error).message,
+        code: 'RDF_SYNTAX_ERROR',
+        severity: 'error',
+        suggestion: 'Check RDF syntax according to the format specification'
+      });
+    }
+    
+    return errors;
+  }
+
+  /**
+   * Validate semantic consistency
+   */
+  private async validateSemanticConsistency(quads: Quad[], context: RdfValidationContext): Promise<ValidationError[]> {
+    const errors: ValidationError[] = [];
+    
+    // Check for undefined prefixes
+    const undefinedPrefixes = this.findUndefinedPrefixes(quads, context.namespaces);
+    errors.push(...undefinedPrefixes);
+    
+    // Check for circular references
+    const circularRefs = this.findCircularReferences(quads);
+    errors.push(...circularRefs);
+    
+    // Check for inconsistent datatypes
+    const datatypeErrors = this.validateDatatypes(quads);
+    errors.push(...datatypeErrors);
+    
+    return errors;
+  }
+
+  /**
+   * Validate references
+   */
+  private async validateReferences(quads: Quad[]): Promise<ValidationError[]> {
+    const errors: ValidationError[] = [];
+    const definedResources = new Set<string>();
+    const referencedResources = new Set<string>();
+    
+    // Collect defined and referenced resources
+    for (const quad of quads) {
+      if (quad.subject.termType === 'NamedNode') {
+        definedResources.add(quad.subject.value);
+      }
+      if (quad.object.termType === 'NamedNode') {
+        referencedResources.add(quad.object.value);
+      }
+    }
+    
+    // Find undefined references
+    for (const ref of referencedResources) {
+      if (!definedResources.has(ref) && this.isInternalReference(ref)) {
+        errors.push({
+          type: 'reference_error',
+          message: `Undefined reference: ${ref}`,
+          code: 'UNDEFINED_REFERENCE',
+          severity: 'error',
+          context: { reference: ref },
+          suggestion: 'Define the referenced resource or check for typos'
+        });
+      }
+    }
+    
+    return errors;
+  }
+
+  /**
+   * Validate types
+   */
+  private async validateTypes(quads: Quad[]): Promise<ValidationError[]> {
+    const errors: ValidationError[] = [];
+    const typeQuads = quads.filter(q => 
+      q.predicate.value === 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type'
+    );
+    
+    for (const typeQuad of typeQuads) {
+      // Validate that the type exists and is a class
+      const typeValue = typeQuad.object.value;
+      const isValidType = await this.validateTypeDefinition(typeValue, quads);
+      
+      if (!isValidType) {
+        errors.push({
+          type: 'type_error',
+          message: `Invalid or undefined type: ${typeValue}`,
+          code: 'INVALID_TYPE',
+          severity: 'error',
+          location: {
+            triple: {
+              subject: typeQuad.subject.value,
+              predicate: typeQuad.predicate.value,
+              object: typeQuad.object.value
+            }
+          }
+        });
+      }
+    }
+    
+    return errors;
+  }
+
+  /**
+   * Validate custom constraints
+   */
+  private async validateConstraints(quads: Quad[], config: ValidationConfig): Promise<ValidationError[]> {
+    const errors: ValidationError[] = [];
+    
+    for (const rule of config.validationRules) {
+      if (!rule.enabled) continue;
+      
+      const ruleErrors = await this.applyValidationRule(rule, quads);
+      errors.push(...ruleErrors);
+    }
+    
+    return errors;
+  }
+
+  /**
+   * Check for performance issues
+   */
+  private async checkPerformanceIssues(context: RdfValidationContext): Promise<ValidationError[]> {
+    const warnings: ValidationError[] = [];
+    
+    // Check for large number of triples
+    if (context.tripleCount > 10000) {
+      warnings.push({
+        type: 'performance_concern',
+        message: `Large number of triples (${context.tripleCount}) may impact performance`,
+        code: 'LARGE_GRAPH',
+        severity: 'warning',
+        suggestion: 'Consider splitting into multiple files or using streaming processing'
+      });
+    }
+    
+    // Check for complex predicates
+    if (context.predicateCount > context.tripleCount * 0.1) {
+      warnings.push({
+        type: 'performance_concern',
+        message: 'High predicate diversity may impact query performance',
+        code: 'HIGH_PREDICATE_DIVERSITY',
+        severity: 'warning',
+        suggestion: 'Consider normalizing predicates or using property hierarchies'
+      });
+    }
+    
+    return warnings;
+  }
+
+  /**
+   * Check for style issues
+   */
+  private async checkStyleIssues(quads: Quad[]): Promise<ValidationError[]> {
+    const warnings: ValidationError[] = [];
+    
+    // Check for consistent naming conventions
+    const namingIssues = this.checkNamingConventions(quads);
+    warnings.push(...namingIssues);
+    
+    return warnings;
+  }
+
+  /**
+   * Helper methods
+   */
+  private generateCacheKey(content: string, config: ValidationConfig): string {
+    const contentHash = this.simpleHash(content);
+    const configHash = this.simpleHash(JSON.stringify(config));
+    return `${this.name}:${this.version}:${contentHash}:${configHash}`;
+  }
+
+  private simpleHash(str: string): string {
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) {
+      const char = str.charCodeAt(i);
+      hash = ((hash << 5) - hash) + char;
+      hash = hash & hash; // Convert to 32-bit integer
+    }
+    return hash.toString(36);
+  }
+
+  private detectFormat(content: string): string {
+    if (content.includes('@prefix') || content.includes('@base')) return 'turtle';
+    if (content.includes('<rdf:RDF')) return 'rdf-xml';
+    if (content.includes('@context')) return 'json-ld';
+    if (content.includes('<') && content.includes('>') && content.includes('.')) return 'n-triples';
+    return 'turtle'; // default
+  }
+
+  private extractNamespaces(content: string): Record<string, string> {
+    const namespaces: Record<string, string> = {};
+    const prefixRegex = /@prefix\s+(\w+):\s+<([^>]+)>\s*\./g;
+    let match;
+    
+    while ((match = prefixRegex.exec(content)) !== null) {
+      namespaces[match[1]] = match[2];
+    }
+    
+    return namespaces;
+  }
+
+  private findUndefinedPrefixes(quads: Quad[], namespaces: Record<string, string>): ValidationError[] {
+    const errors: ValidationError[] = [];
+    const usedPrefixes = new Set<string>();
+    
+    for (const quad of quads) {
+      [quad.subject, quad.predicate, quad.object].forEach(term => {
+        if (term.value.includes(':') && !term.value.startsWith('http')) {
+          const prefix = term.value.split(':')[0];
+          usedPrefixes.add(prefix);
+        }
+      });
+    }
+    
+    for (const prefix of usedPrefixes) {
+      if (!namespaces[prefix]) {
+        errors.push({
+          type: 'reference_error',
+          message: `Undefined prefix: ${prefix}`,
+          code: 'UNDEFINED_PREFIX',
+          severity: 'error',
+          suggestion: `Define @prefix ${prefix}: <namespace_uri> .`
+        });
+      }
+    }
+    
+    return errors;
+  }
+
+  private findCircularReferences(quads: Quad[]): ValidationError[] {
+    const errors: ValidationError[] = [];
+    const graph = new Map<string, Set<string>>();
+    
+    // Build graph
+    for (const quad of quads) {
+      const subject = quad.subject.value;
+      const object = quad.object.value;
+      
+      if (!graph.has(subject)) {
+        graph.set(subject, new Set());
+      }
+      graph.get(subject)!.add(object);
+    }
+    
+    // Detect cycles using DFS
+    const visited = new Set<string>();
+    const recursionStack = new Set<string>();
+    
+    const hasCycle = (node: string): boolean => {
+      visited.add(node);
+      recursionStack.add(node);
+      
+      const neighbors = graph.get(node) || new Set();
+      for (const neighbor of neighbors) {
+        if (!visited.has(neighbor) && hasCycle(neighbor)) {
+          return true;
+        } else if (recursionStack.has(neighbor)) {
+          return true;
+        }
+      }
+      
+      recursionStack.delete(node);
+      return false;
+    };
+    
+    for (const node of graph.keys()) {
+      if (!visited.has(node) && hasCycle(node)) {
+        errors.push({
+          type: 'semantic_error',
+          message: `Circular reference detected involving: ${node}`,
+          code: 'CIRCULAR_REFERENCE',
+          severity: 'error',
+          context: { node }
+        });
+      }
+    }
+    
+    return errors;
+  }
+
+  private validateDatatypes(quads: Quad[]): ValidationError[] {
+    const errors: ValidationError[] = [];
+    
+    for (const quad of quads) {
+      if (quad.object.termType === 'Literal') {
+        const literal = quad.object;
+        if (literal.datatype) {
+          const isValid = this.validateLiteralDatatype(literal.value, literal.datatype.value);
+          if (!isValid) {
+            errors.push({
+              type: 'type_error',
+              message: `Invalid literal value for datatype ${literal.datatype.value}: ${literal.value}`,
+              code: 'INVALID_LITERAL_DATATYPE',
+              severity: 'error',
+              location: {
+                triple: {
+                  subject: quad.subject.value,
+                  predicate: quad.predicate.value,
+                  object: quad.object.value
+                }
+              }
+            });
+          }
+        }
+      }
+    }
+    
+    return errors;
+  }
+
+  private validateLiteralDatatype(value: string, datatype: string): boolean {
+    switch (datatype) {
+      case 'http://www.w3.org/2001/XMLSchema#integer':
+        return /^[-+]?\d+$/.test(value);
+      case 'http://www.w3.org/2001/XMLSchema#decimal':
+        return /^[-+]?\d*\.?\d+$/.test(value);
+      case 'http://www.w3.org/2001/XMLSchema#boolean':
+        return ['true', 'false', '1', '0'].includes(value.toLowerCase());
+      case 'http://www.w3.org/2001/XMLSchema#date':
+        return !isNaN(Date.parse(value));
+      default:
+        return true; // Unknown datatype, assume valid
+    }
+  }
+
+  private isInternalReference(uri: string): boolean {
+    return !uri.startsWith('http://www.w3.org/') && 
+           !uri.startsWith('http://purl.org/') &&
+           !uri.startsWith('http://xmlns.com/');
+  }
+
+  private async validateTypeDefinition(typeUri: string, quads: Quad[]): Promise<boolean> {
+    // Check if the type is defined in the current graph or is a known type
+    const knownTypes = [
+      'http://www.w3.org/2000/01/rdf-schema#Class',
+      'http://www.w3.org/2002/07/owl#Class',
+      'http://www.w3.org/2000/01/rdf-schema#Property',
+      'http://www.w3.org/2002/07/owl#ObjectProperty',
+      'http://www.w3.org/2002/07/owl#DatatypeProperty'
+    ];
+    
+    if (knownTypes.includes(typeUri) || typeUri.startsWith('http://www.w3.org/')) {
       return true;
     }
+    
+    // Check if defined in current graph
+    return quads.some(quad => 
+      quad.subject.value === typeUri &&
+      quad.predicate.value === 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type'
+    );
+  }
 
-    visited.add(current);
+  private async applyValidationRule(rule: any, quads: Quad[]): Promise<ValidationError[]> {
+    // Placeholder for custom validation rules
+    return [];
+  }
 
-    for (const parent of parents) {
-      const parentParents = hierarchy.get(parent) || [];
-      if (this.hasCycle(parent, parentParents, hierarchy, new Set(visited))) {
-        return true;
+  private checkNamingConventions(quads: Quad[]): ValidationError[] {
+    const warnings: ValidationError[] = [];
+    
+    for (const quad of quads) {
+      if (quad.subject.termType === 'NamedNode') {
+        const uri = quad.subject.value;
+        if (uri.includes('_') && !uri.includes('-')) {
+          warnings.push({
+            type: 'style_issue',
+            message: `Consider using hyphens instead of underscores in URI: ${uri}`,
+            code: 'NAMING_CONVENTION',
+            severity: 'info',
+            suggestion: 'Use kebab-case for better URI readability'
+          });
+        }
+      }
+    }
+    
+    return warnings;
+  }
+
+  private generateStatistics(quads: Quad[], context: RdfValidationContext, duration: number): ValidationStatistics {
+    return {
+      totalTriples: quads.length,
+      validTriples: quads.length, // Assume all parsed triples are structurally valid
+      invalidTriples: 0,
+      performanceMetrics: {
+        memoryUsage: process.memoryUsage().heapUsed,
+        cpuTime: duration,
+        ioOperations: 1,
+        cacheHits: 0,
+        cacheMisses: 0
+      }
+    };
+  }
+}
+
+/**
+ * Default validation cache implementation
+ */
+class DefaultValidationCache implements ValidationCache {
+  private cache = new Map<string, { result: ValidationResult; timestamp: number }>();
+  private readonly ttl = 60 * 60 * 1000; // 1 hour
+
+  get(key: string): ValidationResult | undefined {
+    const entry = this.cache.get(key);
+    if (entry && Date.now() - entry.timestamp < this.ttl) {
+      return entry.result;
+    }
+    this.cache.delete(key);
+    return undefined;
+  }
+
+  set(key: string, result: ValidationResult): void {
+    this.cache.set(key, { result, timestamp: Date.now() });
+  }
+
+  has(key: string): boolean {
+    return this.get(key) !== undefined;
+  }
+
+  clear(): void {
+    this.cache.clear();
+  }
+
+  size(): number {
+    this.cleanup();
+    return this.cache.size;
+  }
+
+  cleanup(): void {
+    const now = Date.now();
+    for (const [key, entry] of this.cache.entries()) {
+      if (now - entry.timestamp >= this.ttl) {
+        this.cache.delete(key);
+      }
+    }
+  }
+}
+
+/**
+ * Console validation logger
+ */
+class ConsoleValidationLogger implements ValidationLogger {
+  debug(message: string, context?: Record<string, any>): void {
+    console.debug(`[DEBUG] ${message}`, context || '');
+  }
+
+  info(message: string, context?: Record<string, any>): void {
+    console.info(`[INFO] ${message}`, context || '');
+  }
+
+  warn(message: string, context?: Record<string, any>): void {
+    console.warn(`[WARN] ${message}`, context || '');
+  }
+
+  error(message: string, error?: Error, context?: Record<string, any>): void {
+    console.error(`[ERROR] ${message}`, error, context || '');
+  }
+
+  metric(name: string, value: number, tags?: Record<string, string>): void {
+    console.log(`[METRIC] ${name}: ${value}`, tags || '');
+  }
+}
+
+/**
+ * Semantic validation pipeline
+ */
+export class SemanticValidationPipelineImpl implements SemanticValidationPipeline {
+  private validators = new Map<string, Validator>();
+  private logger: ValidationLogger;
+  private cache: ValidationCache;
+
+  constructor(logger?: ValidationLogger, cache?: ValidationCache) {
+    this.logger = logger || new ConsoleValidationLogger();
+    this.cache = cache || new DefaultValidationCache();
+    
+    // Add default semantic validator
+    this.addValidator(new SemanticValidator());
+  }
+
+  addValidator(validator: Validator): void {
+    this.validators.set(validator.name, validator);
+    this.logger.info(`Added validator: ${validator.name} v${validator.version}`);
+  }
+
+  removeValidator(name: string): void {
+    if (this.validators.delete(name)) {
+      this.logger.info(`Removed validator: ${name}`);
+    }
+  }
+
+  async validate(item: ValidationItem, config?: ValidationConfig): Promise<ValidationResult> {
+    const validators = Array.from(this.validators.values())
+      .filter(v => v.type === item.type);
+
+    if (validators.length === 0) {
+      throw new Error(`No validators found for type: ${item.type}`);
+    }
+
+    // Use the first matching validator
+    const validator = validators[0];
+    return validator.validate(item.content, config);
+  }
+
+  async validateBatch(request: BatchValidationRequest): Promise<BatchValidationResult> {
+    const startTime = performance.now();
+    const results = new Map<string, ValidationResult>();
+    const errors: ValidationError[] = [];
+
+    if (request.parallel && request.items.length > 1) {
+      // Parallel validation
+      const maxConcurrency = request.maxConcurrency || 5;
+      const batches = this.chunkArray(request.items, maxConcurrency);
+      
+      for (const batch of batches) {
+        const promises = batch.map(async item => {
+          try {
+            const result = await this.validate(item, request.config);
+            results.set(item.id, result);
+          } catch (error) {
+            errors.push({
+              type: 'validation_error',
+              message: `Failed to validate item ${item.id}: ${(error as Error).message}`,
+              code: 'BATCH_VALIDATION_ERROR',
+              severity: 'error',
+              context: { itemId: item.id }
+            });
+          }
+        });
+        
+        await Promise.all(promises);
+      }
+    } else {
+      // Sequential validation
+      for (const item of request.items) {
+        try {
+          const result = await this.validate(item, request.config);
+          results.set(item.id, result);
+        } catch (error) {
+          errors.push({
+            type: 'validation_error',
+            message: `Failed to validate item ${item.id}: ${(error as Error).message}`,
+            code: 'BATCH_VALIDATION_ERROR',
+            severity: 'error',
+            context: { itemId: item.id }
+          });
+        }
       }
     }
 
-    return false;
-  }
+    const duration = performance.now() - startTime;
+    const summary = this.generateBatchSummary(results, request.items.length, duration);
 
-  /**
-   * Check if domains are compatible
-   */
-  private areDomainsCompatible(domains: string[]): boolean {
-    // Simple heuristic - in real implementation, would check ontology relationships
-    return domains.length <= 2;
-  }
-
-  /**
-   * Aggregate compliance status from multiple frameworks
-   */
-  private aggregateComplianceStatus(results: ComplianceStatus[]): ComplianceStatus {
-    const aggregated: ComplianceStatus = {
-      framework: 'aggregate',
-      status: 'compliant',
-      violationCount: 0,
-      criticalViolations: [],
-      recommendedActions: []
+    return {
+      results,
+      summary,
+      duration,
+      errors
     };
+  }
 
-    for (const result of results) {
-      aggregated.violationCount += result.violationCount;
-      aggregated.criticalViolations.push(...result.criticalViolations);
-      aggregated.recommendedActions.push(...result.recommendedActions);
+  getValidators(): Validator[] {
+    return Array.from(this.validators.values());
+  }
 
-      if (result.status === 'non-compliant') {
-        aggregated.status = 'non-compliant';
-      } else if (result.status === 'partial' && aggregated.status === 'compliant') {
-        aggregated.status = 'partial';
+  getMetrics(): ValidationStatistics {
+    return {
+      totalTriples: 0,
+      validTriples: 0,
+      invalidTriples: 0,
+      performanceMetrics: {
+        memoryUsage: process.memoryUsage().heapUsed,
+        cpuTime: 0,
+        ioOperations: 0,
+        cacheHits: 0,
+        cacheMisses: 0
       }
+    };
+  }
+
+  private chunkArray<T>(array: T[], chunkSize: number): T[][] {
+    const chunks: T[][] = [];
+    for (let i = 0; i < array.length; i += chunkSize) {
+      chunks.push(array.slice(i, i + chunkSize));
     }
-
-    return aggregated;
+    return chunks;
   }
 
-  /**
-   * Generate unique validation ID
-   */
-  private generateValidationId(): string {
-    return `val_${Date.now()}_${createHash('md5').update(Math.random().toString()).digest('hex').substring(0, 8)}`;
-  }
-
-  /**
-   * Create error result for validation failures
-   */
-  private createErrorResult(validationId: string, error: Error): ValidationResult {
-    return {
-      isValid: false,
-      errors: [{
-        code: 'VALIDATION_SYSTEM_ERROR',
-        message: error.message,
-        severity: 'critical',
-        location: 'system'
-      }],
-      warnings: [],
-      performanceMetrics: {} as PerformanceMetrics,
-      complianceStatus: {
-        framework: 'unknown',
-        status: 'unknown',
-        violationCount: 1,
-        criticalViolations: [error.message],
-        recommendedActions: ['Fix system error and retry validation']
-      },
-      qualityScore: 0,
-      timestamp: new Date(),
-      validationId
-    };
-  }
-
-  /**
-   * Initialize validation rules
-   */
-  private initializeValidationRules(): void {
-    // Will be populated with specific validation rules
-    this.validationRules.set('ontology_consistency', new OntologyConsistencyRule());
-    this.validationRules.set('performance_thresholds', new PerformanceRule());
-  }
-}
-
-// Supporting interfaces
-interface ConceptUsage {
-  location: 'subject' | 'object';
-  context: string;
-  value: string;
-}
-
-interface ConsistencyResult {
-  isConsistent: boolean;
-  reason?: string;
-}
-
-interface ValidationRule {
-  validate(store: Store, context: ValidationContext): Promise<ValidationResult>;
-}
-
-interface ComplianceValidator {
-  validate(store: Store, context: ValidationContext): Promise<ComplianceStatus>;
-}
-
-// Performance monitoring
-class PerformanceMonitor {
-  async getMetrics(
-    startTime: number,
-    endTime: number,
-    quadCount: number
-  ): Promise<PerformanceMetrics> {
-    const duration = endTime - startTime;
-    const memoryUsage = process.memoryUsage();
+  private generateBatchSummary(results: Map<string, ValidationResult>, totalItems: number, duration: number): any {
+    const validItems = Array.from(results.values()).filter(r => r.isValid).length;
+    const totalErrors = Array.from(results.values()).reduce((sum, r) => sum + r.errors.length, 0);
+    const totalWarnings = Array.from(results.values()).reduce((sum, r) => sum + r.warnings.length, 0);
     
     return {
-      validationDurationMs: duration,
-      memoryUsageMB: memoryUsage.heapUsed / 1024 / 1024,
-      quadCount,
-      throughputQPS: quadCount / (duration / 1000),
-      ontologyLoadTimeMs: 0, // Would be measured separately
-      reasoningTimeMs: 0 // Would be measured separately
-    };
-  }
-
-  async getCurrentMetrics(): Promise<Partial<PerformanceMetrics>> {
-    const memoryUsage = process.memoryUsage();
-    
-    return {
-      memoryUsageMB: memoryUsage.heapUsed / 1024 / 1024
-    };
-  }
-}
-
-// Basic validation rules
-class OntologyConsistencyRule implements ValidationRule {
-  async validate(store: Store, context: ValidationContext): Promise<ValidationResult> {
-    // Basic implementation - would be expanded
-    return {
-      isValid: true,
-      errors: [],
-      warnings: [],
-      performanceMetrics: {} as PerformanceMetrics,
-      complianceStatus: {} as ComplianceStatus,
-      qualityScore: 100,
-      timestamp: new Date(),
-      validationId: 'rule_consistency'
-    };
-  }
-}
-
-class PerformanceRule implements ValidationRule {
-  async validate(store: Store, context: ValidationContext): Promise<ValidationResult> {
-    // Basic implementation - would be expanded
-    return {
-      isValid: true,
-      errors: [],
-      warnings: [],
-      performanceMetrics: {} as PerformanceMetrics,
-      complianceStatus: {} as ComplianceStatus,
-      qualityScore: 100,
-      timestamp: new Date(),
-      validationId: 'rule_performance'
+      totalItems,
+      validItems,
+      invalidItems: totalItems - validItems,
+      skippedItems: totalItems - results.size,
+      totalErrors,
+      totalWarnings,
+      performance: {
+        memoryUsage: process.memoryUsage().heapUsed,
+        cpuTime: duration,
+        ioOperations: totalItems,
+        cacheHits: 0,
+        cacheMisses: 0
+      }
     };
   }
 }

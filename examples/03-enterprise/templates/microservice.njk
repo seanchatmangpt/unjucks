@@ -1,0 +1,841 @@
+{#- 
+  Enterprise Microservice Template
+  
+  Generates a complete production-ready microservice with:
+  - Multi-tenant architecture
+  - Enterprise security patterns
+  - Comprehensive audit logging
+  - Performance monitoring
+  - Compliance features (GDPR, SOX, etc.)
+-#}
+
+{%- set service = data | rdfQuery('SELECT ?service ?name ?version ?port ?database WHERE { ?service a :Microservice ; :serviceName ?name ; :version ?version ; :port ?port ; :database ?database }') | first %}
+{%- set entities = data | rdfQuery('SELECT ?entity WHERE { :' + service.name | replace('-', '') | title + ' :hasEntity ?entity }') %}
+{%- set events = data | rdfQuery('SELECT ?event WHERE { :' + service.name | replace('-', '') | title + ' :publishes ?event }') %}
+{%- set dependencies = data | rdfQuery('SELECT ?dep WHERE { :' + service.name | replace('-', '') | title + ' :dependsOn ?dep }') %}
+
+// =============================================================================
+// {{ service.name | upper }} MICROSERVICE
+// Generated from Enterprise Ontology
+// Version: {{ service.version }}
+// =============================================================================
+
+import express from 'express';
+import helmet from 'helmet';
+import cors from 'cors';
+import rateLimit from 'express-rate-limit';
+import compression from 'compression';
+import { createProxyMiddleware } from 'http-proxy-middleware';
+import jwt from 'jsonwebtoken';
+import bcrypt from 'bcryptjs';
+import { Pool } from 'pg';
+import Redis from 'ioredis';
+import pino from 'pino';
+import { register, collectDefaultMetrics, Counter, Histogram } from 'prom-client';
+import opentelemetry from '@opentelemetry/api';
+import { NodeSDK } from '@opentelemetry/sdk-node';
+import { Resource } from '@opentelemetry/resources';
+import { SemanticResourceAttributes } from '@opentelemetry/semantic-conventions';
+
+// =============================================================================
+// CONFIGURATION & ENVIRONMENT
+// =============================================================================
+
+interface ServiceConfig {
+  port: number;
+  environment: string;
+  serviceName: string;
+  version: string;
+  database: DatabaseConfig;
+  redis: RedisConfig;
+  jwt: JWTConfig;
+  monitoring: MonitoringConfig;
+  compliance: ComplianceConfig;
+}
+
+interface DatabaseConfig {
+  host: string;
+  port: number;
+  database: string;
+  username: string;
+  password: string;
+  pool: {
+    min: number;
+    max: number;
+    idle: number;
+  };
+}
+
+interface RedisConfig {
+  host: string;
+  port: number;
+  password?: string;
+  db: number;
+  ttl: number;
+}
+
+interface JWTConfig {
+  algorithm: string;
+  publicKey: string;
+  privateKey: string;
+  expiresIn: string;
+  issuer: string;
+  audience: string;
+}
+
+interface MonitoringConfig {
+  metricsEnabled: boolean;
+  tracingEnabled: boolean;
+  healthCheckPath: string;
+  metricsPath: string;
+}
+
+interface ComplianceConfig {
+  gdprEnabled: boolean;
+  soxEnabled: boolean;
+  auditLevel: 'NONE' | 'BASIC' | 'FULL';
+  encryptionRequired: boolean;
+}
+
+const config: ServiceConfig = {
+  port: parseInt(process.env.PORT || '{{ service.port }}'),
+  environment: process.env.NODE_ENV || 'development',
+  serviceName: '{{ service.name }}',
+  version: '{{ service.version }}',
+  database: {
+    host: process.env.DB_HOST || 'localhost',
+    port: parseInt(process.env.DB_PORT || '5432'),
+    database: process.env.DB_NAME || '{{ service.name | replace("-", "_") }}',
+    username: process.env.DB_USER || 'postgres',
+    password: process.env.DB_PASSWORD || '',
+    pool: {
+      min: 2,
+      max: 20,
+      idle: 10000
+    }
+  },
+  redis: {
+    host: process.env.REDIS_HOST || 'localhost',
+    port: parseInt(process.env.REDIS_PORT || '6379'),
+    password: process.env.REDIS_PASSWORD,
+    db: parseInt(process.env.REDIS_DB || '0'),
+    ttl: 900 // 15 minutes
+  },
+  jwt: {
+    algorithm: 'RS256',
+    publicKey: process.env.JWT_PUBLIC_KEY || '',
+    privateKey: process.env.JWT_PRIVATE_KEY || '',
+    expiresIn: '1h',
+    issuer: 'enterprise.example.com',
+    audience: 'enterprise-api'
+  },
+  monitoring: {
+    metricsEnabled: true,
+    tracingEnabled: true,
+    healthCheckPath: '/health',
+    metricsPath: '/metrics'
+  },
+  compliance: {
+    gdprEnabled: true,
+    soxEnabled: true,
+    auditLevel: 'FULL',
+    encryptionRequired: true
+  }
+};
+
+// =============================================================================
+// LOGGING & OBSERVABILITY
+// =============================================================================
+
+const logger = pino({
+  name: config.serviceName,
+  level: process.env.LOG_LEVEL || 'info',
+  formatters: {
+    level: (label) => ({ level: label }),
+    bindings: (bindings) => ({
+      service: config.serviceName,
+      version: config.version,
+      environment: config.environment,
+      pid: bindings.pid,
+      hostname: bindings.hostname
+    })
+  },
+  serializers: {
+    req: pino.stdSerializers.req,
+    res: pino.stdSerializers.res,
+    err: pino.stdSerializers.err
+  },
+  redact: ['req.headers.authorization', 'password', 'token']
+});
+
+// Metrics
+collectDefaultMetrics({ register });
+
+const httpRequestDuration = new Histogram({
+  name: 'http_request_duration_seconds',
+  help: 'HTTP request duration in seconds',
+  labelNames: ['method', 'route', 'status_code'],
+  buckets: [0.1, 0.3, 0.5, 0.7, 1, 3, 5, 7, 10]
+});
+
+const httpRequestTotal = new Counter({
+  name: 'http_requests_total',
+  help: 'Total number of HTTP requests',
+  labelNames: ['method', 'route', 'status_code']
+});
+
+// Tracing
+if (config.monitoring.tracingEnabled) {
+  const sdk = new NodeSDK({
+    resource: new Resource({
+      [SemanticResourceAttributes.SERVICE_NAME]: config.serviceName,
+      [SemanticResourceAttributes.SERVICE_VERSION]: config.version
+    })
+  });
+  sdk.start();
+}
+
+// =============================================================================
+// DATABASE & CACHE CONNECTIONS
+// =============================================================================
+
+const db = new Pool({
+  host: config.database.host,
+  port: config.database.port,
+  database: config.database.database,
+  user: config.database.username,
+  password: config.database.password,
+  min: config.database.pool.min,
+  max: config.database.pool.max,
+  idleTimeoutMillis: config.database.pool.idle
+});
+
+const redis = new Redis({
+  host: config.redis.host,
+  port: config.redis.port,
+  password: config.redis.password,
+  db: config.redis.db,
+  retryDelayOnFailover: 100,
+  maxRetriesPerRequest: 3
+});
+
+// =============================================================================
+// MIDDLEWARE
+// =============================================================================
+
+// Security middleware
+const securityMiddleware = [
+  helmet({
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        styleSrc: ["'self'", "'unsafe-inline'"],
+        scriptSrc: ["'self'"],
+        imgSrc: ["'self'", "data:"],
+        connectSrc: ["'self'"]
+      }
+    },
+    hsts: {
+      maxAge: 31536000,
+      includeSubDomains: true,
+      preload: true
+    }
+  }),
+  cors({
+    origin: process.env.ALLOWED_ORIGINS?.split(',') || ['http://localhost:3000'],
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Tenant-ID']
+  }),
+  rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 1000, // limit each IP to 1000 requests per windowMs
+    message: 'Too many requests from this IP',
+    standardHeaders: true,
+    legacyHeaders: false
+  }),
+  compression()
+];
+
+// Authentication middleware
+const authenticateJWT = async (req: any, res: any, next: any) => {
+  const authHeader = req.headers.authorization;
+  const token = authHeader && authHeader.split(' ')[1];
+
+  if (!token) {
+    return res.status(401).json({ error: 'Access token required' });
+  }
+
+  try {
+    const decoded = jwt.verify(token, config.jwt.publicKey, {
+      algorithm: config.jwt.algorithm as jwt.Algorithm,
+      issuer: config.jwt.issuer,
+      audience: config.jwt.audience
+    });
+    
+    req.user = decoded;
+    next();
+  } catch (error) {
+    logger.warn({ error: error.message }, 'JWT verification failed');
+    return res.status(403).json({ error: 'Invalid or expired token' });
+  }
+};
+
+// Multi-tenancy middleware
+const tenantMiddleware = (req: any, res: any, next: any) => {
+  const tenantId = req.headers['x-tenant-id'] || req.user?.tenantId;
+  
+  if (!tenantId) {
+    return res.status(400).json({ error: 'Tenant ID required' });
+  }
+  
+  req.tenantId = tenantId;
+  next();
+};
+
+// Audit logging middleware
+const auditMiddleware = (req: any, res: any, next: any) => {
+  if (config.compliance.auditLevel === 'NONE') {
+    return next();
+  }
+
+  const auditData = {
+    timestamp: new Date().toISOString(),
+    userId: req.user?.sub,
+    tenantId: req.tenantId,
+    action: `${req.method} ${req.path}`,
+    ipAddress: req.ip,
+    userAgent: req.headers['user-agent'],
+    requestId: req.id
+  };
+
+  // Store audit log asynchronously
+  setImmediate(async () => {
+    try {
+      await db.query(
+        'INSERT INTO audit_logs (user_id, tenant_id, action, ip_address, user_agent, request_id, created_at) VALUES ($1, $2, $3, $4, $5, $6, $7)',
+        [auditData.userId, auditData.tenantId, auditData.action, auditData.ipAddress, auditData.userAgent, auditData.requestId, auditData.timestamp]
+      );
+    } catch (error) {
+      logger.error({ error }, 'Failed to write audit log');
+    }
+  });
+
+  next();
+};
+
+// Metrics middleware
+const metricsMiddleware = (req: any, res: any, next: any) => {
+  const start = Date.now();
+  
+  res.on('finish', () => {
+    const duration = (Date.now() - start) / 1000;
+    const labels = {
+      method: req.method,
+      route: req.route?.path || req.path,
+      status_code: res.statusCode
+    };
+    
+    httpRequestDuration.observe(labels, duration);
+    httpRequestTotal.inc(labels);
+  });
+  
+  next();
+};
+
+// =============================================================================
+// DATA ACCESS LAYER
+// =============================================================================
+
+{%- for entity in entities %}
+{%- set entityName = entity.entity | split('#') | last %}
+{%- set fields = data | rdfQuery('SELECT ?field ?name ?type ?required WHERE { :' + entityName + ' :hasField ?field . ?field :name ?name ; :type ?type ; :required ?required }') %}
+
+class {{ entityName }}Repository {
+  private tableName = '{{ entityName.toLowerCase() }}s';
+
+  async findById(id: string, tenantId: string): Promise<{{ entityName }} | null> {
+    const cacheKey = `{{ entityName.toLowerCase() }}:${tenantId}:${id}`;
+    
+    // Check cache first
+    const cached = await redis.get(cacheKey);
+    if (cached) {
+      return JSON.parse(cached);
+    }
+
+    const query = `
+      SELECT * FROM ${this.tableName} 
+      WHERE id = $1 AND tenant_id = $2 AND deleted_at IS NULL
+    `;
+    
+    const result = await db.query(query, [id, tenantId]);
+    
+    if (result.rows.length === 0) {
+      return null;
+    }
+
+    const entity = this.mapRowToEntity(result.rows[0]);
+    
+    // Cache the result
+    await redis.setex(cacheKey, config.redis.ttl, JSON.stringify(entity));
+    
+    return entity;
+  }
+
+  async findAll(tenantId: string, options: FindOptions = {}): Promise<{{ entityName }}[]> {
+    const { limit = 50, offset = 0, sortBy = 'created_at', sortOrder = 'DESC' } = options;
+    
+    const query = `
+      SELECT * FROM ${this.tableName}
+      WHERE tenant_id = $1 AND deleted_at IS NULL
+      ORDER BY ${sortBy} ${sortOrder}
+      LIMIT $2 OFFSET $3
+    `;
+    
+    const result = await db.query(query, [tenantId, limit, offset]);
+    
+    return result.rows.map(row => this.mapRowToEntity(row));
+  }
+
+  async create(entity: Create{{ entityName }}Request, tenantId: string, userId: string): Promise<{{ entityName }}> {
+    const id = crypto.randomUUID();
+    const now = new Date().toISOString();
+    
+    const query = `
+      INSERT INTO ${this.tableName} (
+        id, tenant_id,
+{%- for field in fields %}
+{%- if field.name not in ['id', 'tenantId', 'createdAt', 'updatedAt', 'createdBy', 'updatedBy', 'version'] %}
+        {{ field.name | snakeCase }},
+{%- endif %}
+{%- endfor %}
+        created_at, updated_at, created_by, updated_by, version
+      ) VALUES (
+        $1, $2,
+{%- for field in fields %}
+{%- if field.name not in ['id', 'tenantId', 'createdAt', 'updatedAt', 'createdBy', 'updatedBy', 'version'] %}
+        ${{ loop.index + 2 }},
+{%- endif %}
+{%- endfor %}
+        ${{ fields.length - 4 }}, ${{ fields.length - 3 }}, ${{ fields.length - 2 }}, ${{ fields.length - 1 }}, 1
+      )
+      RETURNING *
+    `;
+    
+    const values = [
+      id, tenantId,
+{%- for field in fields %}
+{%- if field.name not in ['id', 'tenantId', 'createdAt', 'updatedAt', 'createdBy', 'updatedBy', 'version'] %}
+      entity.{{ field.name | camelCase }},
+{%- endif %}
+{%- endfor %}
+      now, now, userId, userId
+    ];
+    
+    const result = await db.query(query, values);
+    const created = this.mapRowToEntity(result.rows[0]);
+    
+    // Invalidate cache
+    await this.invalidateCache(tenantId, id);
+    
+    // Publish domain event
+    await this.publishEvent('{{ entityName.toLowerCase() }}.created', created);
+    
+    return created;
+  }
+
+  async update(id: string, entity: Update{{ entityName }}Request, tenantId: string, userId: string, version: number): Promise<{{ entityName }}> {
+    const now = new Date().toISOString();
+    
+    const query = `
+      UPDATE ${this.tableName} SET
+{%- for field in fields %}
+{%- if field.name not in ['id', 'tenantId', 'createdAt', 'createdBy', 'version'] %}
+        {{ field.name | snakeCase }} = ${{ loop.index + 1 }},
+{%- endif %}
+{%- endfor %}
+        updated_at = ${{ fields.length - 2 }},
+        updated_by = ${{ fields.length - 1 }},
+        version = version + 1
+      WHERE id = ${{ fields.length }} AND tenant_id = ${{ fields.length + 1 }} AND version = ${{ fields.length + 2 }} AND deleted_at IS NULL
+      RETURNING *
+    `;
+    
+    const values = [
+{%- for field in fields %}
+{%- if field.name not in ['id', 'tenantId', 'createdAt', 'createdBy', 'version'] %}
+      entity.{{ field.name | camelCase }} !== undefined ? entity.{{ field.name | camelCase }} : null,
+{%- endif %}
+{%- endfor %}
+      now, userId, id, tenantId, version
+    ];
+    
+    const result = await db.query(query, values);
+    
+    if (result.rows.length === 0) {
+      throw new Error('{{ entityName }} not found or version conflict');
+    }
+
+    const updated = this.mapRowToEntity(result.rows[0]);
+    
+    // Invalidate cache
+    await this.invalidateCache(tenantId, id);
+    
+    // Publish domain event
+    await this.publishEvent('{{ entityName.toLowerCase() }}.updated', updated);
+    
+    return updated;
+  }
+
+  async delete(id: string, tenantId: string, userId: string): Promise<boolean> {
+    const now = new Date().toISOString();
+    
+    const query = `
+      UPDATE ${this.tableName} 
+      SET deleted_at = $1, updated_by = $2, version = version + 1
+      WHERE id = $3 AND tenant_id = $4 AND deleted_at IS NULL
+    `;
+    
+    const result = await db.query(query, [now, userId, id, tenantId]);
+    
+    if (result.rowCount === 0) {
+      return false;
+    }
+
+    // Invalidate cache
+    await this.invalidateCache(tenantId, id);
+    
+    // Publish domain event
+    await this.publishEvent('{{ entityName.toLowerCase() }}.deleted', { id, tenantId });
+    
+    return true;
+  }
+
+  private mapRowToEntity(row: any): {{ entityName }} {
+    return {
+{%- for field in fields %}
+      {{ field.name | camelCase }}: row.{{ field.name | snakeCase }},
+{%- endfor %}
+    };
+  }
+
+  private async invalidateCache(tenantId: string, id: string): Promise<void> {
+    const cacheKey = `{{ entityName.toLowerCase() }}:${tenantId}:${id}`;
+    await redis.del(cacheKey);
+  }
+
+  private async publishEvent(eventType: string, data: any): Promise<void> {
+    // Implementation would depend on your event bus (Kafka, RabbitMQ, etc.)
+    logger.info({ eventType, data }, 'Domain event published');
+  }
+}
+
+{%- endfor %}
+
+// =============================================================================
+// BUSINESS LOGIC LAYER
+// =============================================================================
+
+{%- for entity in entities %}
+{%- set entityName = entity.entity | split('#') | last %}
+
+class {{ entityName }}Service {
+  private repository = new {{ entityName }}Repository();
+
+  async get{{ entityName }}(id: string, tenantId: string): Promise<{{ entityName }} | null> {
+    return await this.repository.findById(id, tenantId);
+  }
+
+  async list{{ entityName }}s(tenantId: string, options: FindOptions): Promise<{{ entityName }}[]> {
+    return await this.repository.findAll(tenantId, options);
+  }
+
+  async create{{ entityName }}(request: Create{{ entityName }}Request, tenantId: string, userId: string): Promise<{{ entityName }}> {
+    // Business logic validation
+    await this.validateCreate{{ entityName }}(request, tenantId);
+    
+    return await this.repository.create(request, tenantId, userId);
+  }
+
+  async update{{ entityName }}(id: string, request: Update{{ entityName }}Request, tenantId: string, userId: string, version: number): Promise<{{ entityName }}> {
+    // Business logic validation
+    await this.validateUpdate{{ entityName }}(id, request, tenantId);
+    
+    return await this.repository.update(id, request, tenantId, userId, version);
+  }
+
+  async delete{{ entityName }}(id: string, tenantId: string, userId: string): Promise<boolean> {
+    // Business logic validation
+    await this.validateDelete{{ entityName }}(id, tenantId);
+    
+    return await this.repository.delete(id, tenantId, userId);
+  }
+
+  private async validateCreate{{ entityName }}(request: Create{{ entityName }}Request, tenantId: string): Promise<void> {
+    // Implement business rules validation
+  }
+
+  private async validateUpdate{{ entityName }}(id: string, request: Update{{ entityName }}Request, tenantId: string): Promise<void> {
+    // Implement business rules validation
+  }
+
+  private async validateDelete{{ entityName }}(id: string, tenantId: string): Promise<void> {
+    // Implement business rules validation
+  }
+}
+
+{%- endfor %}
+
+// =============================================================================
+// API CONTROLLERS
+// =============================================================================
+
+const app = express();
+
+// Apply global middleware
+app.use(...securityMiddleware);
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+app.use(metricsMiddleware);
+
+// Health check endpoint
+app.get(config.monitoring.healthCheckPath, async (req, res) => {
+  try {
+    // Check database connection
+    await db.query('SELECT 1');
+    
+    // Check Redis connection
+    await redis.ping();
+    
+    res.json({
+      status: 'healthy',
+      timestamp: new Date().toISOString(),
+      version: config.version,
+      uptime: process.uptime()
+    });
+  } catch (error) {
+    logger.error({ error }, 'Health check failed');
+    res.status(503).json({
+      status: 'unhealthy',
+      error: error.message,
+      timestamp: new Date().toISOString()
+    });
+  }
+});
+
+// Metrics endpoint
+app.get(config.monitoring.metricsPath, async (req, res) => {
+  res.set('Content-Type', register.contentType);
+  res.send(await register.metrics());
+});
+
+// Protected routes
+app.use('/api/v1', authenticateJWT, tenantMiddleware, auditMiddleware);
+
+{%- for entity in entities %}
+{%- set entityName = entity.entity | split('#') | last %}
+{%- set serviceName = entityName.toLowerCase() %}
+
+const {{ serviceName }}Service = new {{ entityName }}Service();
+
+// {{ entityName }} endpoints
+app.get('/api/v1/{{ serviceName }}s', async (req, res) => {
+  try {
+    const options = {
+      limit: parseInt(req.query.limit as string) || 50,
+      offset: parseInt(req.query.offset as string) || 0,
+      sortBy: req.query.sortBy as string || 'created_at',
+      sortOrder: req.query.sortOrder as string || 'DESC'
+    };
+    
+    const {{ serviceName }}s = await {{ serviceName }}Service.list{{ entityName }}s(req.tenantId, options);
+    
+    res.json({
+      data: {{ serviceName }}s,
+      pagination: {
+        limit: options.limit,
+        offset: options.offset,
+        total: {{ serviceName }}s.length // In production, implement proper count
+      }
+    });
+  } catch (error) {
+    logger.error({ error, tenantId: req.tenantId }, 'Failed to list {{ serviceName }}s');
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.get('/api/v1/{{ serviceName }}s/:id', async (req, res) => {
+  try {
+    const {{ serviceName }} = await {{ serviceName }}Service.get{{ entityName }}(req.params.id, req.tenantId);
+    
+    if (!{{ serviceName }}) {
+      return res.status(404).json({ error: '{{ entityName }} not found' });
+    }
+    
+    res.json({ data: {{ serviceName }} });
+  } catch (error) {
+    logger.error({ error, {{ serviceName }}Id: req.params.id, tenantId: req.tenantId }, 'Failed to get {{ serviceName }}');
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.post('/api/v1/{{ serviceName }}s', async (req, res) => {
+  try {
+    const {{ serviceName }} = await {{ serviceName }}Service.create{{ entityName }}(req.body, req.tenantId, req.user.sub);
+    
+    res.status(201).json({ data: {{ serviceName }} });
+  } catch (error) {
+    logger.error({ error, tenantId: req.tenantId, userId: req.user.sub }, 'Failed to create {{ serviceName }}');
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.put('/api/v1/{{ serviceName }}s/:id', async (req, res) => {
+  try {
+    const version = parseInt(req.headers['if-match'] as string);
+    if (!version) {
+      return res.status(428).json({ error: 'Version header (If-Match) required for optimistic locking' });
+    }
+    
+    const {{ serviceName }} = await {{ serviceName }}Service.update{{ entityName }}(req.params.id, req.body, req.tenantId, req.user.sub, version);
+    
+    res.json({ data: {{ serviceName }} });
+  } catch (error) {
+    if (error.message.includes('version conflict')) {
+      return res.status(409).json({ error: 'Version conflict - resource was modified by another request' });
+    }
+    
+    logger.error({ error, {{ serviceName }}Id: req.params.id, tenantId: req.tenantId }, 'Failed to update {{ serviceName }}');
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.delete('/api/v1/{{ serviceName }}s/:id', async (req, res) => {
+  try {
+    const deleted = await {{ serviceName }}Service.delete{{ entityName }}(req.params.id, req.tenantId, req.user.sub);
+    
+    if (!deleted) {
+      return res.status(404).json({ error: '{{ entityName }} not found' });
+    }
+    
+    res.status(204).send();
+  } catch (error) {
+    logger.error({ error, {{ serviceName }}Id: req.params.id, tenantId: req.tenantId }, 'Failed to delete {{ serviceName }}');
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+{%- endfor %}
+
+// =============================================================================
+// ERROR HANDLING
+// =============================================================================
+
+// Global error handler
+app.use((error: any, req: any, res: any, next: any) => {
+  logger.error({
+    error: {
+      message: error.message,
+      stack: error.stack,
+      name: error.name
+    },
+    request: {
+      method: req.method,
+      url: req.url,
+      headers: req.headers,
+      body: req.body
+    }
+  }, 'Unhandled error');
+  
+  res.status(500).json({
+    error: 'Internal server error',
+    requestId: req.id,
+    timestamp: new Date().toISOString()
+  });
+});
+
+// 404 handler
+app.use((req, res) => {
+  res.status(404).json({
+    error: 'Not found',
+    path: req.path,
+    method: req.method
+  });
+});
+
+// =============================================================================
+// SERVER STARTUP
+// =============================================================================
+
+const server = app.listen(config.port, () => {
+  logger.info({
+    port: config.port,
+    environment: config.environment,
+    version: config.version,
+    pid: process.pid
+  }, `${config.serviceName} started`);
+});
+
+// Graceful shutdown
+process.on('SIGTERM', () => {
+  logger.info('Received SIGTERM, shutting down gracefully');
+  
+  server.close(() => {
+    logger.info('HTTP server closed');
+    
+    db.end(() => {
+      logger.info('Database connection closed');
+    });
+    
+    redis.disconnect();
+    logger.info('Redis connection closed');
+    
+    process.exit(0);
+  });
+});
+
+process.on('SIGINT', () => {
+  logger.info('Received SIGINT, shutting down gracefully');
+  process.emit('SIGTERM');
+});
+
+// =============================================================================
+// TYPE DEFINITIONS
+// =============================================================================
+
+{%- for entity in entities %}
+{%- set entityName = entity.entity | split('#') | last %}
+{%- set fields = data | rdfQuery('SELECT ?field ?name ?type ?required WHERE { :' + entityName + ' :hasField ?field . ?field :name ?name ; :type ?type ; :required ?required }') %}
+
+interface {{ entityName }} {
+{%- for field in fields %}
+  {{ field.name | camelCase }}{{ '?' if not field.required else '' }}: {{ field.type | mapTSType }};
+{%- endfor %}
+}
+
+interface Create{{ entityName }}Request {
+{%- for field in fields %}
+{%- if field.name not in ['id', 'tenantId', 'createdAt', 'updatedAt', 'createdBy', 'updatedBy', 'version'] %}
+  {{ field.name | camelCase }}{{ '?' if not field.required else '' }}: {{ field.type | mapTSType }};
+{%- endif %}
+{%- endfor %}
+}
+
+interface Update{{ entityName }}Request {
+{%- for field in fields %}
+{%- if field.name not in ['id', 'tenantId', 'createdAt', 'updatedAt', 'createdBy', 'updatedBy', 'version'] %}
+  {{ field.name | camelCase }}?: {{ field.type | mapTSType }};
+{%- endif %}
+{%- endfor %}
+}
+
+{%- endfor %}
+
+interface FindOptions {
+  limit?: number;
+  offset?: number;
+  sortBy?: string;
+  sortOrder?: 'ASC' | 'DESC';
+}
+
+export { app, config };

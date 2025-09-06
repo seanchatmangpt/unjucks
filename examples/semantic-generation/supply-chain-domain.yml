@@ -1,0 +1,844 @@
+# Supply Chain Management Domain Semantic Model
+# Example configuration for generating supply chain ontology, data, SHACL shapes, and SPARQL queries
+# Usage: unjucks generate semantic supply-chain --config examples/semantic-generation/supply-chain-domain.yml
+
+# Domain Configuration
+domain: "supply-chain"
+version: "2.4.0"
+baseIRI: "http://supplychain.example.org"
+creator: "Supply Chain Operations Department"
+license: "https://creativecommons.org/licenses/by-sa/4.0/"
+
+# Namespace Declarations
+prefixes:
+  "": "http://supplychain.example.org/ontology#"
+  "sc": "http://supplychain.example.org/ontology#"
+  "product": "http://supplychain.example.org/data/product#"
+  "supplier": "http://supplychain.example.org/data/supplier#"
+  "shipment": "http://supplychain.example.org/data/shipment#"
+  "gs1": "http://gs1.org/voc/"
+  "epcis": "http://epcis.gs1.org/vocabulary/"
+  "un": "http://unece.org/cefact/vocabularies/"
+  "iso8601": "http://www.w3.org/2001/XMLSchema#"
+  "wgs84": "http://www.w3.org/2003/01/geo/wgs84_pos#"
+  "time": "http://www.w3.org/2006/time#"
+  "gn": "http://www.geonames.org/ontology#"
+  "blockchain": "http://blockchain.example.org/ontology#"
+
+# Ontology Imports
+imports:
+  - "http://gs1.org/voc/epcis.ttl"
+  - "http://www.w3.org/2006/time"
+  - "http://www.w3.org/2003/01/geo/wgs84_pos"
+  - "http://www.w3.org/ns/prov-o"
+  - "http://www.w3.org/ns/org"
+
+# Class Definitions
+classes:
+  - name: "Supplier"
+    label: "Supplier"
+    comment: "Organization or entity that provides goods or services in the supply chain"
+    subClassOf: "Organization"
+    restrictions:
+      - property: "hasSupplierId"
+        type: "cardinality"
+        value: 1
+      - property: "hasQualificationStatus"
+        type: "someValuesFrom"
+        value: "QualificationStatus"
+      - property: "hasCertification"
+        type: "someValuesFrom"
+        value: "Certification"
+    annotations:
+      - property: "gs1:definition"
+        value: "Party that supplies products or services"
+      - property: "skos:note"
+        value: "Subject to supplier qualification and audit processes"
+
+  - name: "Product"
+    label: "Product"
+    comment: "Good or commodity that moves through the supply chain"
+    restrictions:
+      - property: "hasProductId"
+        type: "cardinality"
+        value: 1
+      - property: "hasGTIN"
+        type: "maxCardinality"
+        value: 1
+      - property: "hasCategory"
+        type: "someValuesFrom"
+        value: "ProductCategory"
+      - property: "hasTraceabilityLevel"
+        type: "someValuesFrom"
+        value: "TraceabilityLevel"
+
+  - name: "Shipment"
+    label: "Shipment"
+    comment: "Physical movement of goods from one location to another"
+    restrictions:
+      - property: "hasShipmentId"
+        type: "cardinality"
+        value: 1
+      - property: "hasOrigin"
+        type: "someValuesFrom"
+        value: "Location"
+      - property: "hasDestination"
+        type: "someValuesFrom"
+        value: "Location"
+      - property: "hasCarrier"
+        type: "someValuesFrom"
+        value: "Carrier"
+      - property: "hasShipmentStatus"
+        type: "someValuesFrom"
+        value: "ShipmentStatus"
+
+  - name: "Warehouse"
+    label: "Warehouse"
+    comment: "Storage facility for goods in the supply chain"
+    subClassOf: "Location"
+    restrictions:
+      - property: "hasWarehouseId"
+        type: "cardinality"
+        value: 1
+      - property: "hasCapacity"
+        type: "someValuesFrom"
+        value: "Capacity"
+      - property: "hasManager"
+        type: "someValuesFrom"
+        value: "Person"
+
+  - name: "Inventory"
+    label: "Inventory"
+    comment: "Stock of goods at a specific location and time"
+    restrictions:
+      - property: "locatedAt"
+        type: "someValuesFrom"
+        value: "Location"
+      - property: "hasProduct"
+        type: "someValuesFrom"
+        value: "Product"
+      - property: "hasQuantity"
+        type: "someValuesFrom"
+        value: "Quantity"
+      - property: "asOfDate"
+        type: "cardinality"
+        value: 1
+
+  - name: "TraceabilityEvent"
+    label: "Traceability Event"
+    comment: "Event in the product lifecycle for traceability purposes"
+    subClassOf: "Event"
+    restrictions:
+      - property: "hasEventId"
+        type: "cardinality"
+        value: 1
+      - property: "hasEventType"
+        type: "someValuesFrom"
+        value: "EventType"
+      - property: "involvesProduct"
+        type: "someValuesFrom"
+        value: "Product"
+      - property: "occurredAt"
+        type: "someValuesFrom"
+        value: "Location"
+
+  - name: "QualityAssessment"
+    label: "Quality Assessment"
+    comment: "Evaluation of product or supplier quality standards"
+    restrictions:
+      - property: "assessmentId"
+        type: "cardinality"
+        value: 1
+      - property: "assessmentType"
+        type: "someValuesFrom"
+        value: "AssessmentType"
+      - property: "assessmentScore"
+        type: "someValuesFrom"
+        value: "xsd:decimal"
+      - property: "assessedBy"
+        type: "someValuesFrom"
+        value: "QualityInspector"
+
+  - name: "SustainabilityMetric"
+    label: "Sustainability Metric"
+    comment: "Measurement of environmental and social sustainability factors"
+    restrictions:
+      - property: "hasMetricType"
+        type: "someValuesFrom"
+        value: "MetricType"
+      - property: "hasMetricValue"
+        type: "someValuesFrom"
+        value: "xsd:decimal"
+      - property: "hasUnit"
+        type: "someValuesFrom"
+        value: "Unit"
+      - property: "measuredFor"
+        type: "someValuesFrom"
+        value: ["Product", "Supplier", "Shipment"]
+
+# Property Definitions
+properties:
+  # Object Properties
+  - name: "suppliedBy"
+    type: "ObjectProperty"
+    label: "supplied by"
+    comment: "Relationship between product and its supplier"
+    domain: "Product"
+    range: "Supplier"
+    inverseOf: "supplies"
+
+  - name: "shippedFrom"
+    type: "ObjectProperty"
+    label: "shipped from"
+    domain: "Shipment"
+    range: "Location"
+
+  - name: "shippedTo"
+    type: "ObjectProperty"
+    label: "shipped to"
+    domain: "Shipment"
+    range: "Location"
+
+  - name: "contains"
+    type: "ObjectProperty"
+    label: "contains"
+    comment: "Relationship between shipment and products it contains"
+    domain: "Shipment"
+    range: "Product"
+    characteristics: ["Transitive"]
+
+  - name: "predecessorEvent"
+    type: "ObjectProperty"
+    label: "predecessor event"
+    comment: "Links traceability events in sequence"
+    domain: "TraceabilityEvent"
+    range: "TraceabilityEvent"
+    characteristics: ["Transitive"]
+
+  - name: "hasSustainabilityMetric"
+    type: "ObjectProperty"
+    label: "has sustainability metric"
+    domain: ["Product", "Supplier", "Shipment"]
+    range: "SustainabilityMetric"
+
+  # Data Properties
+  - name: "supplierId"
+    type: "DatatypeProperty"
+    label: "supplier identifier"
+    comment: "Unique identifier for supplier"
+    domain: "Supplier"
+    range: "xsd:string"
+    characteristics: ["Functional"]
+
+  - name: "productId"
+    type: "DatatypeProperty"
+    label: "product identifier"
+    domain: "Product"
+    range: "xsd:string"
+    characteristics: ["Functional"]
+
+  - name: "gtin"
+    type: "DatatypeProperty"
+    label: "Global Trade Item Number"
+    comment: "GS1 standard product identifier"
+    domain: "Product"
+    range: "xsd:string"
+
+  - name: "shipmentDate"
+    type: "DatatypeProperty"
+    label: "shipment date"
+    domain: "Shipment"
+    range: "xsd:dateTime"
+
+  - name: "deliveryDate"
+    type: "DatatypeProperty"
+    label: "expected delivery date"
+    domain: "Shipment"
+    range: "xsd:dateTime"
+
+  - name: "carbonFootprint"
+    type: "DatatypeProperty"
+    label: "carbon footprint"
+    comment: "CO2 emissions associated with product or shipment"
+    domain: ["Product", "Shipment"]
+    range: "xsd:decimal"
+
+  - name: "leadTime"
+    type: "DatatypeProperty"
+    label: "lead time"
+    comment: "Time from order to delivery in days"
+    domain: "Supplier"
+    range: "xsd:integer"
+
+# Sample Data Instances
+instances:
+  - name: "supplier_global_electronics"
+    types: ["Supplier", "ManufacturingSupplier"]
+    label: "Global Electronics Inc."
+    properties:
+      supplierId: "SUP_GE_001"
+      companyName: "Global Electronics Inc."
+      country: "South Korea"
+      establishedDate: "1995-03-15"
+      qualificationStatus: "APPROVED"
+      leadTime: 14
+      onTimeDeliveryRate: 0.95
+      qualityRating: 4.7
+    relationships:
+      - property: "hasCertification"
+        target: "iso9001_cert"
+      - property: "hasCertification"
+        target: "iso14001_cert"
+      - property: "supplies"
+        target: "smartphone_components"
+    geospatial:
+      address: "123 Industrial Park, Seoul, South Korea"
+      lat: 37.5665
+      lng: 126.9780
+    provenance:
+      agent: "Supplier Management System"
+      time: "2023-01-10T08:00:00Z"
+      source: "https://procurement.example.org/suppliers"
+
+  - name: "smartphone_components"
+    types: ["Product", "ElectronicComponent"]
+    label: "Smartphone Component Kit"
+    properties:
+      productId: "PROD_SC_789"
+      gtin: "1234567890123"
+      productName: "Advanced Smartphone Components"
+      category: "ELECTRONICS"
+      weight: 0.250
+      dimensions: "100x50x10mm"
+      traceabilityLevel: "BATCH_LEVEL"
+      shelfLife: 730
+      temperatureRange: "-10to50C"
+    relationships:
+      - property: "suppliedBy"
+        target: "supplier_global_electronics"
+      - property: "hasQualityStandard"
+        target: "iec_standard"
+    sustainability:
+      carbonFootprint: 2.5
+      recyclabilityIndex: 0.85
+      conflictMinerals: "COMPLIANT"
+
+  - name: "shipment_asia_europe_001"
+    types: ["Shipment", "ContainerShipment"]
+    label: "Asia-Europe Container Shipment"
+    properties:
+      shipmentId: "SHIP_AE_456789"
+      containerNumber: "MSKU1234567"
+      shipmentDate: "2024-02-01T14:30:00Z"
+      estimatedDelivery: "2024-02-20T10:00:00Z"
+      actualDelivery: "2024-02-19T15:45:00Z"
+      shipmentStatus: "DELIVERED"
+      totalWeight: 15000
+      totalVolume: 67.5
+      temperature: "AMBIENT"
+    relationships:
+      - property: "shippedFrom"
+        target: "port_busan"
+      - property: "shippedTo"
+        target: "port_rotterdam"
+      - property: "contains"
+        target: "smartphone_components"
+      - property: "carriedBy"
+        target: "vessel_ever_given"
+    tracking:
+      - timestamp: "2024-02-01T14:30:00Z"
+        location: "Port of Busan, South Korea"
+        event: "DEPARTURE"
+      - timestamp: "2024-02-10T06:00:00Z"
+        location: "Suez Canal"
+        event: "TRANSIT"
+      - timestamp: "2024-02-19T15:45:00Z"
+        location: "Port of Rotterdam, Netherlands"
+        event: "ARRIVAL"
+
+  - name: "warehouse_netherlands_01"
+    types: ["Warehouse", "DistributionCenter"]
+    label: "Netherlands Distribution Center"
+    properties:
+      warehouseId: "WH_NL_001"
+      facilityName: "Benelux Distribution Hub"
+      capacity: 50000
+      currentOccupancy: 32500
+      temperatureControlled: true
+      securityLevel: "HIGH"
+      operatingHours: "24x7"
+    geospatial:
+      address: "Distributiepark 1, 3000 AA Rotterdam, Netherlands"
+      lat: 51.9244
+      lng: 4.4777
+    relationships:
+      - property: "managedBy"
+        target: "warehouse_manager_nl"
+      - property: "stores"
+        target: "smartphone_components"
+
+  - name: "traceability_event_production"
+    types: ["TraceabilityEvent", "ProductionEvent"]
+    label: "Component Production Event"
+    properties:
+      eventId: "EVENT_PROD_001"
+      eventType: "PRODUCTION"
+      eventTime: "2024-01-25T10:30:00Z"
+      batchNumber: "BATCH_20240125_001"
+      quantity: 1000
+      qualityCheckPassed: true
+    relationships:
+      - property: "involvesProduct"
+        target: "smartphone_components"
+      - property: "occurredAt"
+        target: "supplier_global_electronics"
+      - property: "performedBy"
+        target: "production_line_a"
+    blockchain:
+      transactionHash: "0x1234567890abcdef..."
+      blockNumber: 18756432
+      gasUsed: 21000
+
+  - name: "quality_assessment_incoming"
+    types: ["QualityAssessment", "IncomingInspection"]
+    label: "Incoming Quality Inspection"
+    properties:
+      assessmentId: "QA_INC_001"
+      assessmentType: "INCOMING_INSPECTION"
+      assessmentDate: "2024-02-20T09:00:00Z"
+      assessmentScore: 9.2
+      passFailStatus: "PASS"
+      defectRate: 0.003
+      sampleSize: 100
+      inspectionDuration: 120
+    relationships:
+      - property: "assessedProduct"
+        target: "smartphone_components"
+      - property: "assessedBy"
+        target: "quality_inspector_001"
+      - property: "followsStandard"
+        target: "iso2859_standard"
+
+  - name: "sustainability_report_q1"
+    types: ["SustainabilityMetric", "CarbonFootprintMetric"]
+    label: "Q1 Carbon Footprint Assessment"
+    properties:
+      metricId: "SUST_CO2_Q1_2024"
+      metricType: "CARBON_FOOTPRINT"
+      metricValue: 125.5
+      unit: "kg CO2 equivalent"
+      reportingPeriod: "Q1_2024"
+      measurementStandard: "GHG_PROTOCOL"
+      verificationStatus: "THIRD_PARTY_VERIFIED"
+    relationships:
+      - property: "measuredFor"
+        target: "shipment_asia_europe_001"
+      - property: "verifiedBy"
+        target: "sustainability_auditor"
+
+# SHACL Validation Shapes Configuration
+nodeShapes:
+  - name: "Supplier"
+    targetClass: "Supplier"
+    description: "Validation rules for supplier data with compliance requirements"
+    severity: "Violation"
+    properties:
+      - path: "supplierId"
+        name: "Supplier ID"
+        datatype: "xsd:string"
+        minCount: 1
+        maxCount: 1
+        pattern: "^SUP_[A-Z]{2,3}_\\d{3}$"
+        message: "Supplier ID must follow format SUP_XX_000"
+      
+      - path: "qualificationStatus"
+        name: "Qualification Status"
+        datatype: "xsd:string"
+        minCount: 1
+        in: ["PENDING", "APPROVED", "SUSPENDED", "REJECTED"]
+        message: "Qualification status must be one of the approved values"
+      
+      - path: "leadTime"
+        name: "Lead Time"
+        datatype: "xsd:integer"
+        minInclusive: 1
+        maxInclusive: 365
+        message: "Lead time must be between 1 and 365 days"
+      
+      - path: "onTimeDeliveryRate"
+        name: "On-Time Delivery Rate"
+        datatype: "xsd:decimal"
+        minInclusive: 0.0
+        maxInclusive: 1.0
+        message: "Delivery rate must be between 0 and 1"
+
+  - name: "Product"
+    targetClass: "Product"
+    description: "Validation rules for product data with traceability requirements"
+    properties:
+      - path: "productId"
+        name: "Product ID"
+        datatype: "xsd:string"
+        minCount: 1
+        maxCount: 1
+        pattern: "^PROD_[A-Z]{2,3}_\\d{3}$"
+        message: "Product ID must follow format PROD_XX_000"
+      
+      - path: "gtin"
+        name: "GTIN"
+        datatype: "xsd:string"
+        pattern: "^\\d{13}$"
+        message: "GTIN must be a 13-digit number"
+      
+      - path: "traceabilityLevel"
+        name: "Traceability Level"
+        datatype: "xsd:string"
+        minCount: 1
+        in: ["ITEM_LEVEL", "BATCH_LEVEL", "LOT_LEVEL"]
+        message: "Traceability level must be one of the defined levels"
+
+  - name: "Shipment"
+    targetClass: "Shipment"
+    description: "Validation rules for shipment tracking and compliance"
+    properties:
+      - path: "shipmentId"
+        name: "Shipment ID"
+        datatype: "xsd:string"
+        minCount: 1
+        maxCount: 1
+        pattern: "^SHIP_[A-Z]{2,3}_\\d{6}$"
+        message: "Shipment ID must follow format SHIP_XX_000000"
+      
+      - path: "shipmentDate"
+        name: "Shipment Date"
+        datatype: "xsd:dateTime"
+        minCount: 1
+        maxCount: 1
+        message: "Shipment date is required"
+      
+      - path: "estimatedDelivery"
+        name: "Estimated Delivery"
+        datatype: "xsd:dateTime"
+        minCount: 1
+        message: "Estimated delivery date is required"
+    
+    sparql:
+      - message: "Delivery date should not be earlier than shipment date"
+        severity: "Warning"
+        select: |
+          SELECT $this ?shipDate ?deliveryDate WHERE {
+            $this sc:shipmentDate ?shipDate .
+            $this sc:estimatedDelivery ?deliveryDate .
+            FILTER(?deliveryDate < ?shipDate)
+          }
+
+# SPARQL Queries Configuration
+queries:
+  - name: "supplier_performance_dashboard"
+    description: "Comprehensive supplier performance metrics"
+    type: "SELECT"
+    distinct: true
+    select: ["supplier", "supplierName", "totalOrders", "avgLeadTime", "onTimeRate", "qualityScore"]
+    where:
+      - type: "triple"
+        subject: "?supplier"
+        predicate: "a"
+        object: "sc:Supplier"
+      - type: "triple"
+        subject: "?supplier"
+        predicate: "sc:companyName"
+        object: "?supplierName"
+      - type: "optional"
+        patterns:
+          - subject: "?supplier"
+            predicate: "sc:leadTime"
+            object: "?avgLeadTime"
+      - type: "optional"
+        patterns:
+          - subject: "?supplier"
+            predicate: "sc:onTimeDeliveryRate"
+            object: "?onTimeRate"
+      - type: "optional"
+        patterns:
+          - subject: "?supplier"
+            predicate: "sc:qualityRating"
+            object: "?qualityScore"
+      - type: "subquery"
+        query: |
+          SELECT ?supplier (COUNT(?shipment) AS ?totalOrders) WHERE {
+            ?product sc:suppliedBy ?supplier .
+            ?shipment sc:contains ?product .
+          } GROUP BY ?supplier
+    orderBy:
+      - var: "onTimeRate"
+        desc: true
+
+  - name: "product_traceability_chain"
+    description: "Complete traceability chain for a specific product"
+    type: "SELECT"
+    select: ["event", "eventType", "eventTime", "location", "actor", "nextEvent"]
+    where:
+      - type: "values"
+        variables: ["targetProduct"]
+        values: [["product:smartphone_components"]]
+      - type: "triple"
+        subject: "?event"
+        predicate: "sc:involvesProduct"
+        object: "?targetProduct"
+      - type: "triple"
+        subject: "?event"
+        predicate: "sc:eventType"
+        object: "?eventType"
+      - type: "triple"
+        subject: "?event"
+        predicate: "sc:eventTime"
+        object: "?eventTime"
+      - type: "optional"
+        patterns:
+          - subject: "?event"
+            predicate: "sc:occurredAt"
+            object: "?location"
+      - type: "optional"
+        patterns:
+          - subject: "?event"
+            predicate: "sc:performedBy"
+            object: "?actor"
+      - type: "optional"
+        patterns:
+          - subject: "?nextEvent"
+            predicate: "sc:predecessorEvent"
+            object: "?event"
+    orderBy: ["eventTime"]
+
+  - name: "shipment_delay_analysis"
+    description: "Analyze shipment delays and their root causes"
+    type: "SELECT"
+    select: ["shipment", "origin", "destination", "plannedDays", "actualDays", "delayDays", "carrier"]
+    where:
+      - type: "triple"
+        subject: "?shipment"
+        predicate: "a"
+        object: "sc:Shipment"
+      - type: "triple"
+        subject: "?shipment"
+        predicate: "sc:shipmentDate"
+        object: "?shipDate"
+      - type: "triple"
+        subject: "?shipment"
+        predicate: "sc:estimatedDelivery"
+        object: "?estimatedDelivery"
+      - type: "triple"
+        subject: "?shipment"
+        predicate: "sc:actualDelivery"
+        object: "?actualDelivery"
+      - type: "triple"
+        subject: "?shipment"
+        predicate: "sc:shippedFrom"
+        object: "?origin"
+      - type: "triple"
+        subject: "?shipment"
+        predicate: "sc:shippedTo"
+        object: "?destination"
+      - type: "optional"
+        patterns:
+          - subject: "?shipment"
+            predicate: "sc:carriedBy"
+            object: "?carrier"
+      - type: "bind"
+        expression: "(?estimatedDelivery - ?shipDate) / (60*60*24)"
+        variable: "plannedDays"
+      - type: "bind"
+        expression: "(?actualDelivery - ?shipDate) / (60*60*24)"
+        variable: "actualDays"
+      - type: "bind"
+        expression: "?actualDays - ?plannedDays"
+        variable: "delayDays"
+      - type: "filter"
+        expression: "?delayDays > 1"
+    orderBy:
+      - var: "delayDays"
+        desc: true
+
+  - name: "sustainability_metrics_summary"
+    description: "Environmental impact metrics across supply chain"
+    type: "SELECT"
+    select: ["entity", "entityType", "metricType", "metricValue", "unit", "reportPeriod"]
+    where:
+      - type: "triple"
+        subject: "?entity"
+        predicate: "sc:hasSustainabilityMetric"
+        object: "?metric"
+      - type: "triple"
+        subject: "?metric"
+        predicate: "sc:hasMetricType"
+        object: "?metricType"
+      - type: "triple"
+        subject: "?metric"
+        predicate: "sc:hasMetricValue"
+        object: "?metricValue"
+      - type: "triple"
+        subject: "?metric"
+        predicate: "sc:hasUnit"
+        object: "?unit"
+      - type: "optional"
+        patterns:
+          - subject: "?metric"
+            predicate: "sc:reportingPeriod"
+            object: "?reportPeriod"
+      - type: "bind"
+        expression: "IF(EXISTS{?entity a sc:Product}, 'Product', IF(EXISTS{?entity a sc:Supplier}, 'Supplier', 'Shipment'))"
+        variable: "entityType"
+    orderBy: ["entityType", "metricType"]
+
+# Analytics Queries
+analytics:
+  - name: "inventory_turnover_analysis"
+    description: "Analyze inventory turnover rates by product category"
+    metric: "Inventory Performance"
+    aggregation: "AVG"
+    aggregateField: "turnoverRate"
+    select: ["category", "location"]
+    patterns:
+      - subject: "?inventory"
+        predicate: "a"
+        object: "sc:Inventory"
+      - subject: "?inventory"
+        predicate: "sc:hasProduct"
+        object: "?product"
+      - subject: "?product"
+        predicate: "sc:hasCategory"
+        object: "?category"
+      - subject: "?inventory"
+        predicate: "sc:locatedAt"
+        object: "?location"
+      - subject: "?inventory"
+        predicate: "sc:hasQuantity"
+        object: "?quantity"
+      - subject: "?inventory"
+        predicate: "sc:turnoverRate"
+        object: "?turnoverRate"
+    groupBy: ["category", "location"]
+    orderBy: ["category"]
+    resultVariable: "avgTurnover"
+
+  - name: "carbon_footprint_by_route"
+    description: "Carbon emissions analysis by shipping routes"
+    metric: "Environmental Impact"
+    aggregation: "SUM"
+    aggregateField: "carbonFootprint"
+    select: ["originCountry", "destinationCountry"]
+    patterns:
+      - subject: "?shipment"
+        predicate: "a"
+        object: "sc:Shipment"
+      - subject: "?shipment"
+        predicate: "sc:shippedFrom"
+        object: "?origin"
+      - subject: "?origin"
+        predicate: "sc:country"
+        object: "?originCountry"
+      - subject: "?shipment"
+        predicate: "sc:shippedTo"
+        object: "?destination"
+      - subject: "?destination"
+        predicate: "sc:country"
+        object: "?destinationCountry"
+      - subject: "?shipment"
+        predicate: "sc:carbonFootprint"
+        object: "?carbonFootprint"
+    groupBy: ["originCountry", "destinationCountry"]
+    orderDesc: true
+    resultVariable: "totalEmissions"
+
+# Blockchain Integration Queries
+reasoning:
+  - name: "supply_chain_provenance_verification"
+    description: "Verify supply chain provenance using blockchain records"
+    reasoningType: "CUSTOM"
+    select: ["product", "event", "blockHash", "verified"]
+    patterns:
+      - subject: "?event"
+        predicate: "sc:involvesProduct"
+        object: "?product"
+      - subject: "?event"
+        predicate: "blockchain:transactionHash"
+        object: "?txHash"
+      - subject: "?event"
+        predicate: "blockchain:blockNumber"
+        object: "?blockNum"
+    inferences:
+      - condition: "EXISTS { ?event blockchain:transactionHash ?hash }"
+        conclusion: "true"
+        variable: "verified"
+    filters:
+      - "BOUND(?txHash)"
+
+# Update Operations
+updates:
+  - name: "update_shipment_status"
+    description: "Update shipment tracking status and location"
+    operation: "MODIFY"
+    delete:
+      - subject: "?shipment"
+        predicate: "sc:shipmentStatus"
+        object: "?oldStatus"
+      - subject: "?shipment"
+        predicate: "sc:currentLocation"
+        object: "?oldLocation"
+    insert:
+      - subject: "?shipment"
+        predicate: "sc:shipmentStatus"
+        object: "?newStatus"
+      - subject: "?shipment"
+        predicate: "sc:currentLocation"
+        object: "?newLocation"
+      - subject: "?shipment"
+        predicate: "sc:lastUpdated"
+        object: "?updateTime"
+    where:
+      - subject: "?shipment"
+        predicate: "a"
+        object: "sc:Shipment"
+      - subject: "?shipment"
+        predicate: "sc:shipmentStatus"
+        object: "?oldStatus"
+    filters:
+      - "BIND(NOW() AS ?updateTime)"
+
+# Configuration for different output formats
+outputFormats:
+  ontology:
+    path: "supply-chain-ontology"
+    filename: "supply-chain-ontology.ttl"
+  
+  data:
+    path: "supply-chain-data" 
+    filename: "supply-chain-instances.ttl"
+    
+  shapes:
+    path: "supply-chain-shapes"
+    filename: "supply-chain-shapes.ttl"
+    
+  queries:
+    path: "supply-chain-queries"
+    filename: "supply-chain-queries.sparql"
+
+# Generation metadata
+generationMetadata:
+  templateVersion: "1.0.0"
+  generatedBy: "Unjucks Semantic Generator"
+  compliance:
+    - "GS1 Standards"
+    - "EPCIS 2.0"
+    - "ISO 28000"
+    - "WCO SAFE Framework"
+    - "C-TPAT"
+    - "GDPR"
+  useCases:
+    - "Supply Chain Transparency"
+    - "Product Traceability"
+    - "Supplier Risk Management"
+    - "Sustainability Reporting"
+    - "Quality Assurance"
+    - "Blockchain Integration"
+    - "Inventory Optimization"

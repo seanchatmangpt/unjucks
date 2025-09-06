@@ -10,6 +10,7 @@ export * from './lib/dynamic-commands';
 export * from './lib/rdf-filters';
 export * from './lib/turtle-parser';
 export * from './lib/rdf-data-loader';
+export * from './lib/rdf-type-converter';
 export * from './lib/types/turtle-types';
 
 // CLI commands
