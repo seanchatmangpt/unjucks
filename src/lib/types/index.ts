@@ -355,6 +355,27 @@ export interface ExecutionResult {
 export * from './rdf.types.js';
 export * from './turtle-types.js';
 
+// Enterprise semantic types
+export * from './enterprise-rdf.types.js';
+export * from './semantic-frontmatter.types.js';
+
+// Additional semantic re-exports
+export type {
+  ValidationResult,
+  ComplianceMapping,
+  InferredProperties,
+  SemanticContext,
+  TemplateVariableResult,
+  OptimizedQueryResult
+} from './enterprise-rdf.types.js';
+
+export type {
+  SemanticQueryPattern,
+  SemanticValidationRequirements,
+  EnterpriseDataSource,
+  VariableEnhancementConfig
+} from './semantic-frontmatter.types.js';
+
 // Workflow chain types
 export interface WorkflowChainStep {
   type: 'api-standardization' | 'compliance-scaffolding' | 'database-migrations' | 'cicd-pipelines' | 'documentation-generation';

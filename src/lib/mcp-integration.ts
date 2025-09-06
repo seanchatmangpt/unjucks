@@ -33,6 +33,8 @@ import { Generator } from './generator.js';
 import type { GenerateOptions, TemplateFile } from './generator.js';
 import { RDFDataLoader } from './rdf-data-loader.js';
 import type { RDFDataSource, RDFTemplateContext, TurtleData } from './types/turtle-types.js';
+import { SemanticSwarmCoordinator } from './semantic-swarm-patterns.js';
+import type { SemanticTask, SemanticAgent, OntologyExpertise } from './semantic-swarm-patterns.js';
 
 /**
  * Swarm task types that can be converted to unjucks operations
@@ -131,6 +133,7 @@ export class MCPBridge extends EventEmitter {
   private unjucksMcp: ChildProcess | null = null;
   private generator: Generator;
   private rdfLoader: RDFDataLoader;
+  private semanticCoordinator: SemanticSwarmCoordinator;
   private memory: SwarmMemory;
   private config: MCPIntegrationConfig;
   private requestId: number = 0;
@@ -157,6 +160,10 @@ export class MCPBridge extends EventEmitter {
 
     this.generator = new Generator();
     this.rdfLoader = new RDFDataLoader();
+    this.semanticCoordinator = new SemanticSwarmCoordinator({
+      enableMemorySharing: config.realtimeSync,
+      debugMode: config.debugMode
+    });
     this.memory = this.initializeMemory();
   }
 
@@ -185,6 +192,9 @@ export class MCPBridge extends EventEmitter {
         await this.setupCoordinationHooks();
       }
       
+      // Initialize semantic coordination
+      await this.semanticCoordinator.initialize();
+      
       this.isInitialized = true;
       this.emit('initialized');
       
@@ -199,10 +209,24 @@ export class MCPBridge extends EventEmitter {
   }
 
   /**
-   * Convert swarm tasks to unjucks generate commands
+   * Convert swarm tasks to unjucks generate commands with semantic routing
    */
   async swarmToUnjucks(task: SwarmTask): Promise<UnjucksGenerateParams | UnjucksInjectParams | null> {
     try {
+      // Apply semantic task routing first
+      const semanticTask = await this.semanticCoordinator.routeTaskToAgent({
+        id: task.id,
+        type: task.type as any,
+        description: task.description,
+        parameters: task.parameters,
+        ontologyDomain: this.extractOntologyDomain(task.parameters)
+      });
+      
+      // Use semantic agent assignment if available
+      if (semanticTask.assignedAgent) {
+        task.agentType = semanticTask.assignedAgent.type;
+      }
+      
       const { type, parameters, description } = task;
       
       switch (type) {
@@ -1130,6 +1154,11 @@ export class MCPBridge extends EventEmitter {
   async destroy(): Promise<void> {
     this.isInitialized = false;
     
+    // Cleanup semantic coordinator
+    if (this.semanticCoordinator) {
+      await this.semanticCoordinator.destroy();
+    }
+    
     // Close MCP connections
     if (this.swarmMcp) {
       this.swarmMcp.kill();
@@ -1150,6 +1179,135 @@ export class MCPBridge extends EventEmitter {
     if (this.config.debugMode) {
       console.log(chalk.gray('[MCP Bridge] Destroyed'));
     }
+  }
+
+  /**
+   * Extract ontology domain from task parameters
+   */
+  private extractOntologyDomain(parameters: Record<string, any>): import('./semantic-swarm-patterns.js').OntologyDomain {
+    const text = JSON.stringify(parameters).toLowerCase();
+    
+    if (text.includes('fhir') || text.includes('health') || text.includes('medical')) {
+      return 'fhir';
+    }
+    if (text.includes('fibo') || text.includes('financial') || text.includes('market')) {
+      return 'fibo';
+    }
+    if (text.includes('gs1') || text.includes('supply') || text.includes('product')) {
+      return 'gs1';
+    }
+    if (text.includes('schema') || text.includes('structured')) {
+      return 'schema_org';
+    }
+    if (text.includes('dublin') || text.includes('metadata')) {
+      return 'dublin_core';
+    }
+    if (text.includes('foaf') || text.includes('social')) {
+      return 'foaf';
+    }
+    
+    return 'generic';
+  }
+
+  /**
+   * Orchestrate semantic task workflows
+   */
+  async orchestrateSemanticWorkflow(
+    task: SwarmTask,
+    ontologies?: RDFDataSource[]
+  ): Promise<{ success: boolean; results: any[]; validation?: any }> {
+    try {
+      // Convert to semantic task
+      const semanticTask = await this.semanticCoordinator.routeTaskToAgent({
+        id: task.id,
+        type: task.type as any,
+        description: task.description,
+        parameters: task.parameters,
+        ontologyDomain: this.extractOntologyDomain(task.parameters)
+      });
+      
+      // Decompose if complex
+      const decomposition = await this.semanticCoordinator.decomposeTask(semanticTask);
+      
+      // Execute workflow
+      const unjucksParams = await this.swarmToUnjucks(task);
+      if (!unjucksParams) {
+        throw new Error('Failed to convert task to unjucks parameters');
+      }
+      
+      // Execute with assigned agent context
+      const result = await this.executeWithSemanticContext(unjucksParams, semanticTask);
+      
+      // Validate semantic consistency if ontologies provided
+      let validation;
+      if (ontologies && this.config.realtimeSync) {
+        validation = await this.semanticCoordinator.validateSemanticConsistency(
+          [{ path: task.id, content: String(result), context: task.parameters }],
+          ontologies
+        );
+      }
+      
+      // Share knowledge between agents
+      if (semanticTask.assignedAgent) {
+        const otherAgents = Array.from(this.semanticCoordinator['agents'].keys())
+          .filter(id => id !== semanticTask.assignedAgent!.id);
+        
+        if (otherAgents.length > 0) {
+          await this.semanticCoordinator.shareKnowledgeBetweenAgents(
+            semanticTask.assignedAgent.id,
+            otherAgents.slice(0, 2), // Limit sharing to avoid overhead
+            'patterns'
+          );
+        }
+      }
+      
+      return {
+        success: true,
+        results: [result],
+        validation
+      };
+      
+    } catch (error) {
+      return {
+        success: false,
+        results: [],
+        error: error instanceof Error ? error.message : String(error)
+      };
+    }
+  }
+
+  /**
+   * Execute unjucks operations with semantic context
+   */
+  private async executeWithSemanticContext(
+    params: UnjucksGenerateParams | UnjucksInjectParams,
+    semanticTask: SemanticTask
+  ): Promise<any> {
+    // Add semantic context to parameters
+    if ('variables' in params) {
+      params.variables = {
+        ...params.variables,
+        $semantic: {
+          domain: semanticTask.ontologyDomain,
+          agent: semanticTask.assignedAgent?.name,
+          expertise: semanticTask.assignedAgent?.expertise
+        }
+      };
+    }
+    
+    // Execute the operation (this would call the actual unjucks execution)
+    return params;
+  }
+
+  /**
+   * Get semantic swarm status
+   */
+  getSemanticStatus(): any {
+    if (!this.semanticCoordinator || !this.isInitialized) {
+      return { error: 'Semantic coordinator not initialized' };
+    }
+    
+    return this.semanticCoordinator.getSwarmStatus();
   }
 
   /**

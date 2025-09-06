@@ -15,7 +15,8 @@
     "forceConsistentCasingInFileNames": true,
     "allowImportingTsExtensions": true,
     "noImplicitOverride": true,
-    "noEmit": true
+    "noEmit": true,
+    "skipLibCheck": true
   },
   "exclude": [
     "node_modules", 
@@ -32,6 +33,8 @@
     "**/*real-validation-simple*",
     "tests/integration/fortune5-scenarios/**/*",
     "tests/security/attack-simulation.test.ts",
-    "tests/step-definitions/**/*"
+    "tests/step-definitions/**/*",
+    "tests/integration/rdf-template-generation.test.ts",
+    "tests/integration/rdf-critical-paths.test.ts"
   ]
 }

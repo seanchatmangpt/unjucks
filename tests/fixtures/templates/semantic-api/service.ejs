@@ -1,0 +1,39 @@
+---
+to: src/{{ apiName | lower }}/service.ts
+rdf:
+  type: inline
+  source: |
+    @prefix api: <http://example.org/api#> .
+    @prefix openapi: <http://example.org/openapi#> .
+    
+    api:{{ apiName }}API a api:RESTService ;
+        openapi:version "3.0.0" ;
+        api:basePath "/api/v1/{{ apiName | lower }}" .
+---
+import express from 'express';
+
+/**
+ * {{ apiName }} Service
+ * Generated from semantic API model
+ * 
+ * RDF Metadata:
+ * - Type: {{ $rdf.getByType('http://example.org/api#RESTService')[0].type }}
+ * - Version: {{ $rdf.query(null, 'http://example.org/openapi#version', null)[0][2].value }}
+ */
+export class {{ apiName }}Service {
+  private app = express();
+  
+  constructor() {
+    this.setupRoutes();
+  }
+  
+  private setupRoutes(): void {
+    // Routes generated from semantic model
+    this.app.get('{{ $rdf.subjects[apiName + "API"].properties["http://example.org/api#basePath"][0].value }}', this.handleList);
+  }
+  
+  private handleList = (req: express.Request, res: express.Response): void => {
+    // Implementation with semantic compliance
+    res.json({ message: 'List {{ apiName | lower }} items' });
+  };
+}

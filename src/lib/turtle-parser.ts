@@ -1,341 +1,277 @@
-import { Parser, Store, Quad, NamedNode, BlankNode, Literal, Term, DataFactory } from 'n3';
+import { Parser, Store, Quad, Term, NamedNode, Literal, BlankNode } from 'n3';
 
 /**
- * Represents a parsed RDF triple/quad with JavaScript-friendly structure
+ * Core RDF term types for compatibility with N3.js
  */
-export interface ParsedTriple {
-  subject: ParsedTerm;
-  predicate: ParsedTerm;
-  object: ParsedTerm;
-  graph?: ParsedTerm;
-}
+export type RDFTermType = 'uri' | 'literal' | 'blank';
 
 /**
- * Represents an RDF term (URI, blank node, or literal) in JavaScript-friendly format
+ * RDF term interface matching N3.js structure
  */
-export interface ParsedTerm {
-  type: 'uri' | 'blank' | 'literal';
+export interface RDFTerm {
+  type: RDFTermType;
   value: string;
   datatype?: string;
   language?: string;
 }
 
 /**
- * Namespace prefix mappings
+ * Parsed RDF triple structure
+ */
+export interface ParsedTriple {
+  subject: RDFTerm;
+  predicate: RDFTerm;
+  object: RDFTerm;
+}
+
+/**
+ * Namespace prefixes mapping
  */
 export interface NamespacePrefixes {
   [prefix: string]: string;
 }
 
 /**
- * Result of parsing a Turtle document
+ * Parse statistics
+ */
+export interface ParseStats {
+  tripleCount: number;
+  prefixCount: number;
+  subjectCount: number;
+  predicateCount: number;
+  parseTime: number;
+}
+
+/**
+ * Complete parse result
  */
 export interface TurtleParseResult {
   triples: ParsedTriple[];
   prefixes: NamespacePrefixes;
-  namedGraphs: string[];
-  stats: {
-    tripleCount: number;
-    namedGraphCount: number;
-    prefixCount: number;
-  };
+  stats: ParseStats;
 }
 
 /**
- * Options for parsing Turtle documents
+ * Parser configuration options
  */
 export interface TurtleParseOptions {
   baseIRI?: string;
   format?: 'text/turtle' | 'application/n-triples' | 'application/n-quads' | 'text/n3';
   blankNodePrefix?: string;
-  factory?: typeof DataFactory;
 }
 
 /**
- * Custom error for Turtle parsing failures
+ * Custom error class for Turtle parsing errors
  */
 export class TurtleParseError extends Error {
-  constructor(
-    message: string,
-    public readonly line?: number,
-    public readonly column?: number,
-    public readonly originalError?: Error
-  ) {
+  public name = 'TurtleParseError';
+  public line?: number;
+  public column?: number;
+  public originalError?: Error;
+
+  constructor(message: string, line?: number, column?: number, originalError?: Error) {
     super(message);
-    this.name = 'TurtleParseError';
+    this.line = line;
+    this.column = column;
+    this.originalError = originalError;
   }
 }
 
 /**
- * Converts an N3 Term to a ParsedTerm
- */
-function termToObject(term: Term): ParsedTerm {
-  if (term.termType === 'NamedNode') {
-    return {
-      type: 'uri',
-      value: term.value
-    };
-  } else if (term.termType === 'BlankNode') {
-    return {
-      type: 'blank',
-      value: term.value
-    };
-  } else if (term.termType === 'Literal') {
-    const literal = term as Literal;
-    const result: ParsedTerm = {
-      type: 'literal',
-      value: literal.value
-    };
-    
-    if (literal.datatype && literal.datatype.value !== 'http://www.w3.org/2001/XMLSchema#string') {
-      result.datatype = literal.datatype.value;
-    }
-    
-    if (literal.language) {
-      result.language = literal.language;
-    }
-    
-    return result;
-  }
-  
-  throw new TurtleParseError(`Unknown term type: ${term.termType}`);
-}
-
-/**
- * Extracts namespace prefixes from a Store
- */
-function extractPrefixes(store: Store): NamespacePrefixes {
-  const prefixes: NamespacePrefixes = {};
-  
-  // Get prefixes from the store's internal prefix map
-  const storePrefixes = (store as any)._prefixes;
-  if (storePrefixes) {
-    for (const [prefix, uri] of Object.entries(storePrefixes)) {
-      if (typeof uri === 'string') {
-        prefixes[prefix] = uri;
-      }
-    }
-  }
-  
-  return prefixes;
-}
-
-/**
- * Extracts unique named graphs from triples
- */
-function extractNamedGraphs(triples: ParsedTriple[]): string[] {
-  const graphs = new Set<string>();
-  
-  for (const triple of triples) {
-    if (triple.graph && triple.graph.type === 'uri') {
-      graphs.add(triple.graph.value);
-    }
-  }
-  
-  return Array.from(graphs).sort();
-}
-
-/**
- * Main Turtle parser class
+ * Main Turtle parser class using N3.js
  */
 export class TurtleParser {
-  private parser: Parser;
   private options: TurtleParseOptions;
 
   constructor(options: TurtleParseOptions = {}) {
     this.options = {
-      format: 'text/turtle',
-      blankNodePrefix: '_:',
+      baseIRI: options.baseIRI || 'http://example.org/',
+      format: options.format || 'text/turtle',
+      blankNodePrefix: options.blankNodePrefix || '_:',
       ...options
     };
+  }
+
+  /**
+   * Parse Turtle content asynchronously
+   */
+  async parse(content: string): Promise<TurtleParseResult> {
+    return Promise.resolve(this.parseSync(content));
+  }
+
+  /**
+   * Parse Turtle content synchronously
+   */
+  parseSync(content: string): TurtleParseResult {
+    const startTime = Date.now();
     
-    this.parser = new Parser({
-      baseIRI: this.options.baseIRI,
-      format: this.options.format,
-      blankNodePrefix: this.options.blankNodePrefix,
-      factory: this.options.factory
-    });
-  }
-
-  /**
-   * Parse a Turtle string into structured JavaScript objects
-   */
-  async parse(turtleContent: string): Promise<TurtleParseResult> {
-    return new Promise((resolve, reject) => {
-      const store = new Store();
-      const quads: Quad[] = [];
-      let isResolved = false;
-      
-      // Add timeout to prevent hanging
-      const timeoutId = setTimeout(() => {
-        if (!isResolved) {
-          isResolved = true;
-          reject(new TurtleParseError('Parse operation timed out'));
-        }
-      }, 10000); // 10 second timeout
-      
-      this.parser.parse(turtleContent, (error, quad, prefixes) => {
-        if (isResolved) return; // Prevent multiple resolutions
-        
-        if (error) {
-          isResolved = true;
-          clearTimeout(timeoutId);
-          
-          // Extract line and column information if available
-          const match = error.message.match(/line (\d+), column (\d+)/);
-          const line = match ? parseInt(match[1], 10) : undefined;
-          const column = match ? parseInt(match[2], 10) : undefined;
-          
-          reject(new TurtleParseError(
-            `Failed to parse Turtle: ${error.message}`,
-            line,
-            column,
-            error
-          ));
-          return;
-        }
-
-        if (quad) {
-          quads.push(quad);
-          store.add(quad);
-        } else {
-          // Parsing complete
-          isResolved = true;
-          clearTimeout(timeoutId);
-          
-          try {
-            const triples = quads.map(quad => ({
-              subject: termToObject(quad.subject),
-              predicate: termToObject(quad.predicate),
-              object: termToObject(quad.object),
-              ...(quad.graph && quad.graph.value !== '' ? { graph: termToObject(quad.graph) } : {})
-            }));
-
-            const prefixMap = extractPrefixes(store);
-            const namedGraphs = extractNamedGraphs(triples);
-
-            const result: TurtleParseResult = {
-              triples,
-              prefixes: prefixMap,
-              namedGraphs,
-              stats: {
-                tripleCount: triples.length,
-                namedGraphCount: namedGraphs.length,
-                prefixCount: Object.keys(prefixMap).length
-              }
-            };
-
-            resolve(result);
-          } catch (processingError) {
-            reject(new TurtleParseError(
-              `Failed to process parsed triples: ${processingError.message}`,
-              undefined,
-              undefined,
-              processingError as Error
-            ));
-          }
-        }
-      });
-    });
-  }
-
-  /**
-   * Parse a Turtle string synchronously (throws on error)
-   */
-  parseSync(turtleContent: string): TurtleParseResult {
-    const store = new Store();
-    const quads: Quad[] = [];
-    let parseError: Error | null = null;
-
-    this.parser.parse(turtleContent, (error, quad) => {
-      if (error) {
-        parseError = error;
-        return;
-      }
-      if (quad) {
-        quads.push(quad);
-        store.add(quad);
-      }
-    });
-
-    if (parseError) {
-      const match = parseError.message.match(/line (\d+), column (\d+)/);
-      const line = match ? parseInt(match[1], 10) : undefined;
-      const column = match ? parseInt(match[2], 10) : undefined;
-      
-      throw new TurtleParseError(
-        `Failed to parse Turtle: ${parseError.message}`,
-        line,
-        column,
-        parseError
-      );
+    // Input validation
+    if (typeof content !== 'string') {
+      throw new TurtleParseError('Content must be a string');
     }
 
-    const triples = quads.map(quad => ({
-      subject: termToObject(quad.subject),
-      predicate: termToObject(quad.predicate),
-      object: termToObject(quad.object),
-      ...(quad.graph && quad.graph.value !== '' ? { graph: termToObject(quad.graph) } : {})
-    }));
+    const parser = new Parser({
+      baseIRI: this.options.baseIRI,
+      format: this.options.format,
+      blankNodePrefix: this.options.blankNodePrefix
+    });
 
-    const prefixMap = extractPrefixes(store);
-    const namedGraphs = extractNamedGraphs(triples);
+    const triples: ParsedTriple[] = [];
+    const prefixes: NamespacePrefixes = {};
+    const subjects = new Set<string>();
+    const predicates = new Set<string>();
 
-    return {
-      triples,
-      prefixes: prefixMap,
-      namedGraphs,
-      stats: {
-        tripleCount: triples.length,
-        namedGraphCount: namedGraphs.length,
-        prefixCount: Object.keys(prefixMap).length
+    try {
+      const quads = parser.parse(content);
+      
+      // Process all parsed quads
+      for (const quad of quads) {
+        const parsedTriple = this.convertQuadToTriple(quad);
+        triples.push(parsedTriple);
+        subjects.add(this.getTermKey(parsedTriple.subject));
+        predicates.add(parsedTriple.predicate.value);
       }
+
+      // Extract prefixes from content using regex
+      const prefixMatches = content.match(/@prefix\s+(\w*):?\s*<([^>]+)>/g);
+      if (prefixMatches) {
+        for (const match of prefixMatches) {
+          const prefixMatch = match.match(/@prefix\s+(\w*):?\s*<([^>]+)>/);
+          if (prefixMatch) {
+            const [, prefix, uri] = prefixMatch;
+            prefixes[prefix || ''] = uri;
+          }
+        }
+      }
+
+      const parseTime = Date.now() - startTime;
+      
+      const stats: ParseStats = {
+        tripleCount: triples.length,
+        prefixCount: Object.keys(prefixes).length,
+        subjectCount: subjects.size,
+        predicateCount: predicates.size,
+        parseTime
+      };
+
+      const result: TurtleParseResult = {
+        triples,
+        prefixes,
+        stats
+      };
+
+      return result;
+    } catch (error: any) {
+      const parseError = new TurtleParseError(
+        `Parse error: ${error.message}`,
+        undefined,
+        undefined,
+        error
+      );
+      throw parseError;
+    }
+  }
+
+  /**
+   * Create N3 Store from turtle content
+   */
+  async createStore(content: string): Promise<Store> {
+    const store = new Store();
+    const parser = new Parser({
+      baseIRI: this.options.baseIRI,
+      format: this.options.format,
+      blankNodePrefix: this.options.blankNodePrefix
+    });
+
+    try {
+      const quads = parser.parse(content);
+      store.addQuads(quads);
+      return store;
+    } catch (error: any) {
+      throw new TurtleParseError(`Store creation error: ${error.message}`, undefined, undefined, error);
+    }
+  }
+
+  /**
+   * Convert N3 Quad to our ParsedTriple format
+   */
+  private convertQuadToTriple(quad: Quad): ParsedTriple {
+    return {
+      subject: this.convertTerm(quad.subject),
+      predicate: this.convertTerm(quad.predicate),
+      object: this.convertTerm(quad.object)
     };
   }
 
   /**
-   * Create a new Store from parsed triples for advanced querying
+   * Convert N3 Term to our RDFTerm format
    */
-  createStore(turtleContent: string): Promise<Store> {
-    return new Promise((resolve, reject) => {
-      const store = new Store();
+  private convertTerm(term: Term): RDFTerm {
+    if (term.termType === 'NamedNode') {
+      return {
+        type: 'uri',
+        value: term.value
+      };
+    }
+    
+    if (term.termType === 'Literal') {
+      const literalTerm = term as Literal;
+      const result: RDFTerm = {
+        type: 'literal',
+        value: literalTerm.value
+      };
       
-      this.parser.parse(turtleContent, (error, quad) => {
-        if (error) {
-          reject(new TurtleParseError(`Failed to create store: ${error.message}`, undefined, undefined, error));
-          return;
-        }
-        
-        if (quad) {
-          store.add(quad);
-        } else {
-          resolve(store);
-        }
-      });
-    });
+      // Only include datatype if it exists and is not the default string datatype
+      if (literalTerm.datatype && literalTerm.datatype.value !== 'http://www.w3.org/1999/02/22-rdf-syntax-ns#langString') {
+        result.datatype = literalTerm.datatype.value;
+      }
+      
+      // Only include language if it exists and is not empty
+      if (literalTerm.language && literalTerm.language.length > 0) {
+        result.language = literalTerm.language;
+      }
+      
+      return result;
+    }
+    
+    if (term.termType === 'BlankNode') {
+      return {
+        type: 'blank',
+        value: term.value
+      };
+    }
+
+    // Fallback for other term types
+    return {
+      type: 'uri',
+      value: term.value
+    };
+  }
+
+  /**
+   * Get a string key for a term for deduplication
+   */
+  private getTermKey(term: RDFTerm): string {
+    return `${term.type}:${term.value}`;
   }
 }
 
 /**
- * Utility functions for working with parsed Turtle data
+ * Utility class for working with parsed Turtle data
  */
 export class TurtleUtils {
   /**
    * Filter triples by subject URI
    */
   static filterBySubject(triples: ParsedTriple[], subjectUri: string): ParsedTriple[] {
-    return triples.filter(triple => 
-      triple.subject.type === 'uri' && triple.subject.value === subjectUri
-    );
+    return triples.filter(triple => triple.subject.value === subjectUri);
   }
 
   /**
    * Filter triples by predicate URI
    */
   static filterByPredicate(triples: ParsedTriple[], predicateUri: string): ParsedTriple[] {
-    return triples.filter(triple => 
-      triple.predicate.type === 'uri' && triple.predicate.value === predicateUri
-    );
+    return triples.filter(triple => triple.predicate.value === predicateUri);
   }
 
   /**
@@ -343,15 +279,6 @@ export class TurtleUtils {
    */
   static filterByObject(triples: ParsedTriple[], objectValue: string): ParsedTriple[] {
     return triples.filter(triple => triple.object.value === objectValue);
-  }
-
-  /**
-   * Filter triples by named graph
-   */
-  static filterByGraph(triples: ParsedTriple[], graphUri: string): ParsedTriple[] {
-    return triples.filter(triple => 
-      triple.graph && triple.graph.type === 'uri' && triple.graph.value === graphUri
-    );
   }
 
   /**
@@ -372,11 +299,13 @@ export class TurtleUtils {
   }
 
   /**
-   * Convert a prefixed URI to full URI using prefix mappings
+   * Expand prefixed URI to full URI
    */
   static expandPrefix(prefixedUri: string, prefixes: NamespacePrefixes): string {
     const colonIndex = prefixedUri.indexOf(':');
-    if (colonIndex === -1) return prefixedUri;
+    if (colonIndex === -1) {
+      return prefixedUri;
+    }
     
     const prefix = prefixedUri.substring(0, colonIndex);
     const localName = prefixedUri.substring(colonIndex + 1);
@@ -389,7 +318,7 @@ export class TurtleUtils {
   }
 
   /**
-   * Convert full URI to prefixed form if possible
+   * Compact full URI to prefixed form
    */
   static compactUri(fullUri: string, prefixes: NamespacePrefixes): string {
     for (const [prefix, namespace] of Object.entries(prefixes)) {
@@ -402,87 +331,87 @@ export class TurtleUtils {
   }
 
   /**
-   * Extract all unique subjects from triples
+   * Get unique subjects from triples
    */
-  static getSubjects(triples: ParsedTriple[]): ParsedTerm[] {
-    const subjects = new Map<string, ParsedTerm>();
+  static getSubjects(triples: ParsedTriple[]): RDFTerm[] {
+    const uniqueSubjects = new Map<string, RDFTerm>();
     
     for (const triple of triples) {
       const key = `${triple.subject.type}:${triple.subject.value}`;
-      subjects.set(key, triple.subject);
+      uniqueSubjects.set(key, triple.subject);
     }
     
-    return Array.from(subjects.values());
+    return Array.from(uniqueSubjects.values());
   }
 
   /**
-   * Extract all unique predicates from triples
+   * Get unique predicates from triples
    */
-  static getPredicates(triples: ParsedTriple[]): ParsedTerm[] {
-    const predicates = new Map<string, ParsedTerm>();
+  static getPredicates(triples: ParsedTriple[]): RDFTerm[] {
+    const uniquePredicates = new Map<string, RDFTerm>();
     
     for (const triple of triples) {
       const key = `${triple.predicate.type}:${triple.predicate.value}`;
-      predicates.set(key, triple.predicate);
+      uniquePredicates.set(key, triple.predicate);
     }
     
-    return Array.from(predicates.values());
+    return Array.from(uniquePredicates.values());
   }
 
   /**
-   * Extract all unique objects from triples
+   * Convert literal values based on datatype
    */
-  static getObjects(triples: ParsedTriple[]): ParsedTerm[] {
-    const objects = new Map<string, ParsedTerm>();
-    
-    for (const triple of triples) {
-      const key = `${triple.object.type}:${triple.object.value}`;
-      objects.set(key, triple.object);
+  static convertLiteralValue(term: RDFTerm): any {
+    if (term.type !== 'literal') {
+      return term.value;
     }
-    
-    return Array.from(objects.values());
-  }
 
-  /**
-   * Validate that a string is a valid URI
-   */
-  static isValidUri(uri: string): boolean {
-    try {
-      new URL(uri);
-      return true;
-    } catch {
-      return false;
+    const datatype = term.datatype;
+    const value = term.value;
+
+    if (!datatype) {
+      return value;
     }
-  }
 
-  /**
-   * Convert literal value to JavaScript native type based on datatype
-   */
-  static convertLiteralValue(term: ParsedTerm): any {
-    if (term.type !== 'literal') return term.value;
-    
-    if (!term.datatype) return term.value;
-    
-    switch (term.datatype) {
+    switch (datatype) {
       case 'http://www.w3.org/2001/XMLSchema#integer':
       case 'http://www.w3.org/2001/XMLSchema#int':
       case 'http://www.w3.org/2001/XMLSchema#long':
-        return parseInt(term.value, 10);
+      case 'http://www.w3.org/2001/XMLSchema#short':
+        return parseInt(value, 10);
       
       case 'http://www.w3.org/2001/XMLSchema#decimal':
       case 'http://www.w3.org/2001/XMLSchema#double':
       case 'http://www.w3.org/2001/XMLSchema#float':
-        return parseFloat(term.value);
+        return parseFloat(value);
       
       case 'http://www.w3.org/2001/XMLSchema#boolean':
-        return term.value === 'true';
+        return value === 'true' || value === '1';
       
       case 'http://www.w3.org/2001/XMLSchema#date':
       case 'http://www.w3.org/2001/XMLSchema#dateTime':
-        return new Date(term.value);
+      case 'http://www.w3.org/2001/XMLSchema#time':
+        return new Date(value);
       
       default:
-        return term.value;
+        return value;
+    }
+  }
+
+  /**
+   * Validate URI format
+   */
+  static isValidUri(uri: string): boolean {
+    if (!uri || typeof uri !== 'string') {
+      return false;
+    }
+
+    try {
+      new URL(uri);
+      return true;
+    } catch {
+      // Try URN format
+      return /^urn:[a-z0-9][a-z0-9-]{0,31}:/.test(uri);
     }
   }
 }
@@ -490,32 +419,17 @@ export class TurtleUtils {
 /**
  * Convenience function to parse Turtle content with default options
  */
-export async function parseTurtle(
-  turtleContent: string, 
-  options: TurtleParseOptions = {}
-): Promise<TurtleParseResult> {
+export async function parseTurtle(content: string, options?: TurtleParseOptions): Promise<TurtleParseResult> {
   const parser = new TurtleParser(options);
-  return parser.parse(turtleContent);
+  return parser.parse(content);
 }
 
 /**
- * Convenience function to parse Turtle content synchronously
+ * Convenience function to parse Turtle content synchronously (returns empty result)
  */
-export function parseTurtleSync(
-  turtleContent: string, 
-  options: TurtleParseOptions = {}
-): TurtleParseResult {
+export function parseTurtleSync(content: string, options?: TurtleParseOptions): TurtleParseResult {
   const parser = new TurtleParser(options);
-  return parser.parseSync(turtleContent);
+  return parser.parseSync(content);
 }
 
-/**
- * Export all types and classes for external use
- */
-export default {
-  TurtleParser,
-  TurtleUtils,
-  parseTurtle,
-  parseTurtleSync,
-  TurtleParseError
-};
+// All types and classes are already exported individually above

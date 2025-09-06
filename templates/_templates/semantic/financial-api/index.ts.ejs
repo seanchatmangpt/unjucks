@@ -1,0 +1,522 @@
+---
+to: "<%= to || 'src/api/' + apiName.toLowerCase().replace(/\s+/g, '-') %>.controller.ts"
+ontologies:
+  fibo:
+    uri: "https://spec.edmcouncil.org/fibo/ontology"
+    version: "2023Q2"
+    local: "./ontologies/fibo-core.ttl"
+  iso20022:
+    uri: "urn:iso:std:iso:20022"
+    version: "2022"
+    local: "./ontologies/iso20022-messages.ttl"
+semanticValidation: true
+reasoning: "owl"
+compliance:
+  framework: "PCI-DSS"
+  version: "4.0"
+  rules:
+    - "card_data_protection"
+    - "secure_transmission"
+    - "access_restrictions"
+    - "vulnerability_management"
+    - "secure_coding"
+skipIf: "!withFinancial"
+---
+/**
+ * <%= apiName %> Financial API Controller
+ * 
+ * Generated from FIBO ontology with PCI-DSS compliance
+ * Semantic validation: <%= $compliance.validationResults | json %>
+ * 
+ * @ontology FIBO (Financial Industry Business Ontology)
+ * @compliance PCI-DSS <%= $compliance.version %>
+ * @generated <%= new Date().toISOString() %>
+ */
+
+import { Request, Response, NextFunction } from 'express';
+import { body, param, query, validationResult } from 'express-validator';
+import { Logger } from '@/utils/logger';
+import { SecurityLogger } from '@/utils/security-logger';
+import { TokenizationService } from '@/services/tokenization.service';
+import { EncryptionService } from '@/services/encryption.service';
+import { FraudDetectionService } from '@/services/fraud-detection.service';
+import { ComplianceService } from '@/services/compliance.service';
+
+// FIBO-based financial entities from ontology
+<% for (const entity of $ontologies.fibo.classes.filter(c => c.uri.includes('FinancialInstrument') || c.uri.includes('Party') || c.uri.includes('Account'))) { -%>
+interface <%= entity.uri.split('/').pop().replace(/([a-z])([A-Z])/g, '$1$2') %> {
+  <% if (entity.properties.identifier) { -%>
+  identifier: string;
+  <% } -%>
+  <% if (entity.properties.name) { -%>
+  name: string;
+  <% } -%>
+  <% if (entity.properties.description) { -%>
+  description?: string;
+  <% } -%>
+  <% if (entity.properties.status) { -%>
+  status: 'active' | 'inactive' | 'suspended';
+  <% } -%>
+  <% if (entity.properties.creationDate) { -%>
+  creationDate: Date;
+  <% } -%>
+  <% if (entity.properties.currency) { -%>
+  currency?: string;
+  <% } -%>
+}
+
+<% } -%>
+
+// ISO 20022 message structures
+interface PaymentInstruction {
+  messageId: string;
+  creationDateTime: Date;
+  instructionId: string;
+  endToEndId: string;
+  instructedAmount: {
+    currency: string;
+    amount: number;
+  };
+  creditorAccount: {
+    iban?: string;
+    other?: {
+      identification: string;
+      schemeName: string;
+    };
+  };
+  debtorAccount: {
+    iban?: string;
+    other?: {
+      identification: string;
+      schemeName: string;
+    };
+  };
+  remittanceInformation?: {
+    unstructured: string;
+  };
+}
+
+interface TransactionStatus {
+  originalMessageId: string;
+  originalInstructionId: string;
+  status: 'ACTC' | 'ACCP' | 'ACSP' | 'ACSC' | 'RJCT';
+  statusReasonCode?: string;
+  statusReasonInformation?: string;
+}
+
+/**
+ * PCI-DSS compliant <%= apiName %> controller
+ * Implements secure payment processing with semantic validation
+ */
+export class <%= apiName.replace(/\s+/g, '') %>Controller {
+  private readonly logger = new Logger('<%= apiName %>Controller');
+  private readonly securityLogger = new SecurityLogger();
+  private readonly tokenization = new TokenizationService();
+  private readonly encryption = new EncryptionService();
+  private readonly fraudDetection = new FraudDetectionService();
+  private readonly compliance = new ComplianceService();
+
+  constructor() {
+    this.logger.info('Initializing <%= apiName %> controller with FIBO compliance');
+  }
+
+  <% if (withPayments) { -%>
+  /**
+   * Process payment instruction
+   * @ontology fibo:PaymentObligation, iso20022:CustomerCreditTransferInitiation
+   * @compliance PCI-DSS card_data_protection, secure_transmission
+   */
+  async processPayment = [
+    // Input validation
+    body('messageId').isString().isLength({ min: 1, max: 35 }),
+    body('instructionId').isString().isLength({ min: 1, max: 35 }),
+    body('endToEndId').isString().isLength({ min: 1, max: 35 }),
+    body('instructedAmount.currency').isISO4217(),
+    body('instructedAmount.amount').isFloat({ gt: 0 }),
+    body('creditorAccount.iban').optional().isIBAN(),
+    body('debtorAccount.iban').optional().isIBAN(),
+    
+    async (req: Request, res: Response, next: NextFunction) => {
+      try {
+        // Validate request
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+          await this.securityLogger.logValidationFailure({
+            endpoint: '/payments',
+            errors: errors.array(),
+            clientIp: req.ip,
+            timestamp: new Date()
+          });
+          return res.status(400).json({
+            status: 'error',
+            message: 'Invalid payment instruction',
+            errors: errors.array()
+          });
+        }
+
+        const paymentInstruction: PaymentInstruction = {
+          messageId: req.body.messageId,
+          creationDateTime: new Date(),
+          instructionId: req.body.instructionId,
+          endToEndId: req.body.endToEndId,
+          instructedAmount: req.body.instructedAmount,
+          creditorAccount: req.body.creditorAccount,
+          debtorAccount: req.body.debtorAccount,
+          remittanceInformation: req.body.remittanceInformation
+        };
+
+        // Tokenize sensitive account data
+        if (paymentInstruction.creditorAccount.iban) {
+          paymentInstruction.creditorAccount.iban = await this.tokenization.tokenize(
+            paymentInstruction.creditorAccount.iban,
+            'IBAN'
+          );
+        }
+        
+        if (paymentInstruction.debtorAccount.iban) {
+          paymentInstruction.debtorAccount.iban = await this.tokenization.tokenize(
+            paymentInstruction.debtorAccount.iban,
+            'IBAN'
+          );
+        }
+
+        // Fraud detection
+        const fraudRisk = await this.fraudDetection.assessRisk({
+          amount: paymentInstruction.instructedAmount.amount,
+          currency: paymentInstruction.instructedAmount.currency,
+          creditor: paymentInstruction.creditorAccount,
+          debtor: paymentInstruction.debtorAccount,
+          clientIp: req.ip,
+          userAgent: req.headers['user-agent']
+        });
+
+        if (fraudRisk.riskLevel === 'HIGH') {
+          await this.securityLogger.logFraudAlert({
+            messageId: paymentInstruction.messageId,
+            riskScore: fraudRisk.score,
+            reasons: fraudRisk.reasons,
+            clientIp: req.ip,
+            timestamp: new Date()
+          });
+          
+          return res.status(403).json({
+            status: 'rejected',
+            messageId: paymentInstruction.messageId,
+            reasonCode: 'FRAUD_DETECTED',
+            reasonText: 'Transaction blocked due to fraud detection'
+          });
+        }
+
+        // Process payment
+        const result = await this.executePayment(paymentInstruction);
+
+        // Log successful transaction
+        await this.securityLogger.logTransaction({
+          messageId: paymentInstruction.messageId,
+          amount: paymentInstruction.instructedAmount.amount,
+          currency: paymentInstruction.instructedAmount.currency,
+          status: result.status,
+          timestamp: new Date()
+        });
+
+        res.status(200).json({
+          status: 'accepted',
+          messageId: paymentInstruction.messageId,
+          transactionId: result.transactionId,
+          estimatedProcessingTime: '2-5 minutes'
+        });
+
+      } catch (error) {
+        this.logger.error('Payment processing failed', error);
+        await this.securityLogger.logError({
+          error: error.message,
+          endpoint: '/payments',
+          clientIp: req.ip,
+          timestamp: new Date()
+        });
+        next(error);
+      }
+    }
+  ];
+  <% } -%>
+
+  <% if (withAccountManagement) { -%>
+  /**
+   * Create financial account
+   * @ontology fibo:FinancialAccount
+   * @compliance PCI-DSS access_restrictions, secure_coding
+   */
+  async createAccount = [
+    body('accountType').isIn(['CHECKING', 'SAVINGS', 'CREDIT', 'INVESTMENT']),
+    body('currency').isISO4217(),
+    body('customerId').isString().isLength({ min: 1, max: 50 }),
+    body('accountName').isString().isLength({ min: 1, max: 100 }),
+    
+    async (req: Request, res: Response, next: NextFunction) => {
+      try {
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+          return res.status(400).json({
+            status: 'error',
+            errors: errors.array()
+          });
+        }
+
+        // Validate customer exists and is authorized
+        const customerValidation = await this.compliance.validateCustomer(
+          req.body.customerId,
+          req.headers.authorization
+        );
+
+        if (!customerValidation.valid) {
+          await this.securityLogger.logUnauthorizedAccess({
+            customerId: req.body.customerId,
+            clientIp: req.ip,
+            timestamp: new Date()
+          });
+          
+          return res.status(403).json({
+            status: 'error',
+            message: 'Customer validation failed'
+          });
+        }
+
+        const account = {
+          accountId: await this.generateSecureAccountId(),
+          accountType: req.body.accountType,
+          currency: req.body.currency,
+          customerId: req.body.customerId,
+          accountName: req.body.accountName,
+          status: 'active' as const,
+          creationDate: new Date(),
+          balance: 0,
+          availableBalance: 0
+        };
+
+        // Encrypt sensitive account data
+        const encryptedAccount = await this.encryption.encryptAccountData(account);
+        
+        // Store account (implementation-specific)
+        await this.storeAccount(encryptedAccount);
+
+        await this.securityLogger.logAccountCreation({
+          accountId: account.accountId,
+          customerId: account.customerId,
+          accountType: account.accountType,
+          timestamp: new Date()
+        });
+
+        res.status(201).json({
+          status: 'created',
+          accountId: account.accountId,
+          accountType: account.accountType,
+          currency: account.currency,
+          creationDate: account.creationDate
+        });
+
+      } catch (error) {
+        this.logger.error('Account creation failed', error);
+        next(error);
+      }
+    }
+  ];
+  <% } -%>
+
+  <% if (withTransactionHistory) { -%>
+  /**
+   * Get transaction history
+   * @ontology fibo:Transaction
+   * @compliance PCI-DSS access_restrictions, card_data_protection
+   */
+  async getTransactionHistory = [
+    param('accountId').isString().isLength({ min: 1, max: 50 }),
+    query('fromDate').optional().isISO8601(),
+    query('toDate').optional().isISO8601(),
+    query('limit').optional().isInt({ min: 1, max: 100 }),
+    
+    async (req: Request, res: Response, next: NextFunction) => {
+      try {
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+          return res.status(400).json({
+            status: 'error',
+            errors: errors.array()
+          });
+        }
+
+        const { accountId } = req.params;
+        const { fromDate, toDate, limit = 50 } = req.query;
+
+        // Validate account access
+        const accessValidation = await this.compliance.validateAccountAccess(
+          accountId,
+          req.headers.authorization
+        );
+
+        if (!accessValidation.valid) {
+          await this.securityLogger.logUnauthorizedAccess({
+            accountId,
+            clientIp: req.ip,
+            timestamp: new Date()
+          });
+          
+          return res.status(403).json({
+            status: 'error',
+            message: 'Account access denied'
+          });
+        }
+
+        // Retrieve and decrypt transactions
+        const transactions = await this.getAccountTransactions({
+          accountId,
+          fromDate: fromDate ? new Date(fromDate as string) : undefined,
+          toDate: toDate ? new Date(toDate as string) : undefined,
+          limit: Number(limit)
+        });
+
+        // Mask sensitive data for response
+        const maskedTransactions = transactions.map(tx => ({
+          transactionId: tx.transactionId,
+          date: tx.date,
+          amount: tx.amount,
+          currency: tx.currency,
+          description: tx.description,
+          type: tx.type,
+          status: tx.status,
+          // Mask account numbers
+          counterpartyAccount: tx.counterpartyAccount ? 
+            this.maskAccountNumber(tx.counterpartyAccount) : undefined
+        }));
+
+        await this.securityLogger.logDataAccess({
+          accountId,
+          dataType: 'TRANSACTION_HISTORY',
+          recordCount: transactions.length,
+          clientIp: req.ip,
+          timestamp: new Date()
+        });
+
+        res.status(200).json({
+          status: 'success',
+          accountId,
+          transactions: maskedTransactions,
+          totalCount: transactions.length
+        });
+
+      } catch (error) {
+        this.logger.error('Transaction history retrieval failed', error);
+        next(error);
+      }
+    }
+  ];
+  <% } -%>
+
+  /**
+   * Execute payment instruction
+   * @ontology fibo:PaymentObligation
+   */
+  private async executePayment(instruction: PaymentInstruction): Promise<{ status: string; transactionId: string }> {
+    // Implementation would integrate with payment processor
+    // This is a placeholder for actual payment processing logic
+    
+    const transactionId = await this.generateTransactionId();
+    
+    // Validate account balances, limits, etc.
+    const validation = await this.validatePaymentInstruction(instruction);
+    if (!validation.valid) {
+      throw new Error(validation.reason);
+    }
+
+    // Process the payment
+    await this.processPaymentInstruction(instruction, transactionId);
+
+    return {
+      status: 'ACCP', // Accepted Customer Credit Transfer
+      transactionId
+    };
+  }
+
+  /**
+   * Validate payment instruction against business rules
+   */
+  private async validatePaymentInstruction(instruction: PaymentInstruction): Promise<{ valid: boolean; reason?: string }> {
+    // Semantic validation against FIBO ontology constraints
+    // Check required fields, data types, business rules
+    
+    if (instruction.instructedAmount.amount <= 0) {
+      return { valid: false, reason: 'Amount must be greater than zero' };
+    }
+
+    if (!instruction.creditorAccount.iban && !instruction.creditorAccount.other) {
+      return { valid: false, reason: 'Creditor account identification required' };
+    }
+
+    if (!instruction.debtorAccount.iban && !instruction.debtorAccount.other) {
+      return { valid: false, reason: 'Debtor account identification required' };
+    }
+
+    return { valid: true };
+  }
+
+  /**
+   * Process payment instruction
+   */
+  private async processPaymentInstruction(instruction: PaymentInstruction, transactionId: string): Promise<void> {
+    // Implementation would:
+    // 1. Debit debtor account
+    // 2. Credit creditor account
+    // 3. Update transaction records
+    // 4. Send notifications
+    
+    this.logger.info(`Processing payment ${instruction.messageId} with transaction ID ${transactionId}`);
+  }
+
+  /**
+   * Generate secure account ID
+   */
+  private async generateSecureAccountId(): Promise<string> {
+    // Generate cryptographically secure account identifier
+    const crypto = await import('crypto');
+    return crypto.randomUUID();
+  }
+
+  /**
+   * Generate transaction ID
+   */
+  private async generateTransactionId(): Promise<string> {
+    const crypto = await import('crypto');
+    return `TXN_${Date.now()}_${crypto.randomBytes(8).toString('hex').toUpperCase()}`;
+  }
+
+  /**
+   * Store account securely
+   */
+  private async storeAccount(account: any): Promise<void> {
+    // Implementation would store in secure database
+    this.logger.debug(`Storing account: ${account.accountId}`);
+  }
+
+  /**
+   * Get account transactions
+   */
+  private async getAccountTransactions(params: {
+    accountId: string;
+    fromDate?: Date;
+    toDate?: Date;
+    limit: number;
+  }): Promise<any[]> {
+    // Implementation would retrieve from database
+    this.logger.debug(`Retrieving transactions for account: ${params.accountId}`);
+    return [];
+  }
+
+  /**
+   * Mask account number for security
+   */
+  private maskAccountNumber(accountNumber: string): string {
+    if (accountNumber.length <= 4) return accountNumber;
+    return '*'.repeat(accountNumber.length - 4) + accountNumber.slice(-4);
+  }
+}
+
+export default <%= apiName.replace(/\s+/g, '') %>Controller;

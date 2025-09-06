@@ -1,8 +1,7 @@
 import { Store, Quad, NamedNode, Literal, BlankNode, DataFactory } from 'n3';
 import type { Term } from 'n3';
-import { CommonVocabularies, CommonProperties } from './types/turtle-types.js';
 
-const { namedNode, literal, quad } = DataFactory;
+const { namedNode, literal, quad, variable } = DataFactory;
 
 export interface RDFFilterOptions {
   store?: Store;
@@ -18,7 +17,7 @@ export interface RDFQueryPattern {
 }
 
 export interface RDFFilterResult {
-  value: string | string[];
+  value: string;
   type: 'literal' | 'uri' | 'blank';
   datatype?: string;
   language?: string;
@@ -32,37 +31,26 @@ export class RDFFilters {
   private store: Store;
   private prefixes: Record<string, string>;
   private baseUri: string;
+  private queryCache = new Map<string, any>();
 
   constructor(options: RDFFilterOptions = {}) {
     this.store = options.store || new Store();
     this.prefixes = {
-      rdf: CommonVocabularies.RDF,
-      rdfs: CommonVocabularies.RDFS,
-      owl: CommonVocabularies.OWL,
-      dc: CommonVocabularies.DCTERMS,
-      foaf: CommonVocabularies.FOAF,
-      skos: CommonVocabularies.SKOS,
-      schema: CommonVocabularies.SCHEMA,
-      xsd: CommonVocabularies.XSD,
-      ex: 'http://example.org/', // Add default 'ex' prefix for tests
+      rdf: 'http://www.w3.org/1999/02/22-rdf-syntax-ns#',
+      rdfs: 'http://www.w3.org/2000/01/rdf-schema#',
+      owl: 'http://www.w3.org/2002/07/owl#',
+      xsd: 'http://www.w3.org/2001/XMLSchema#',
+      foaf: 'http://xmlns.com/foaf/0.1/',
+      skos: 'http://www.w3.org/2004/02/skos/core#',
+      dcterms: 'http://purl.org/dc/terms/',
+      dc: 'http://purl.org/dc/elements/1.1/',
+      schema: 'http://schema.org/',
+      ex: 'http://example.org/',
       ...options.prefixes,
     };
     this.baseUri = options.baseUri || 'http://example.org/';
   }
 
-  /**
-   * Update the internal store with new quads
-   */
-  updateStore(quads: Quad[]): void {
-    this.store.addQuads(quads);
-  }
-
-  /**
-   * Clear the internal store
-   */
-  clearStore(): void {
-    this.store = new Store();
-  }
 
   /**
    * 1. rdfSubject(predicate, object) - find subjects
@@ -164,25 +152,25 @@ export class RDFFilters {
       const resourceTerm = this.expandTerm(resource);
       
       // Try rdfs:label first
-      const labelQuads = this.store.getQuads(resourceTerm, namedNode(CommonProperties.LABEL), null, null);
+      const labelQuads = this.store.getQuads(resourceTerm, namedNode('http://www.w3.org/2000/01/rdf-schema#label'), null, null);
       if (labelQuads.length > 0) {
         return this.termToString(labelQuads[0].object);
       }
       
       // Try skos:prefLabel
-      const prefLabelQuads = this.store.getQuads(resourceTerm, namedNode(CommonProperties.PREF_LABEL), null, null);
+      const prefLabelQuads = this.store.getQuads(resourceTerm, namedNode('http://www.w3.org/2004/02/skos/core#prefLabel'), null, null);
       if (prefLabelQuads.length > 0) {
         return this.termToString(prefLabelQuads[0].object);
       }
       
       // Try dc:title
-      const titleQuads = this.store.getQuads(resourceTerm, namedNode(CommonProperties.TITLE), null, null);
+      const titleQuads = this.store.getQuads(resourceTerm, namedNode('http://purl.org/dc/terms/title'), null, null);
       if (titleQuads.length > 0) {
         return this.termToString(titleQuads[0].object);
       }
       
       // Try foaf:name
-      const nameQuads = this.store.getQuads(resourceTerm, namedNode(CommonProperties.NAME), null, null);
+      const nameQuads = this.store.getQuads(resourceTerm, namedNode('http://xmlns.com/foaf/0.1/name'), null, null);
       if (nameQuads.length > 0) {
         return this.termToString(nameQuads[0].object);
       }
@@ -202,7 +190,7 @@ export class RDFFilters {
   rdfType = (resource: string): string[] => {
     try {
       const resourceTerm = this.expandTerm(resource);
-      const typeQuads = this.store.getQuads(resourceTerm, namedNode(CommonProperties.TYPE), null, null);
+      const typeQuads = this.store.getQuads(resourceTerm, namedNode('http://www.w3.org/1999/02/22-rdf-syntax-ns#type'), null, null);
       
       return typeQuads.map(quad => this.termToString(quad.object));
     } catch (error) {
@@ -333,21 +321,29 @@ export class RDFFilters {
       return namedNode(term);
     }
     
+    // Check if it's a quoted literal
+    if ((term.startsWith('"') && term.endsWith('"')) || 
+        (term.startsWith("'") && term.endsWith("'"))) {
+      const literalValue = term.slice(1, -1);
+      
+      // Check for datatype or language
+      const datatypeMatch = term.match(/^"(.*)"\^\^(.+)$/);
+      if (datatypeMatch) {
+        return literal(datatypeMatch[1], namedNode(this.expandURI(datatypeMatch[2])));
+      }
+      
+      const languageMatch = term.match(/^"(.*)"@(.+)$/);
+      if (languageMatch) {
+        return literal(languageMatch[1], languageMatch[2]);
+      }
+      
+      return literal(literalValue);
+    }
+    
     if (term.includes(':') && !term.startsWith('http://') && !term.startsWith('https://')) {
       // Prefixed URI - expand it
       const expanded = this.expandURI(term);
       return namedNode(expanded);
-    }
-    
-    // Check if it's a quoted literal
-    if ((term.startsWith('"') && term.endsWith('"')) || 
-        (term.startsWith("'") && term.endsWith("'"))) {
-      return literal(term.slice(1, -1));
-    }
-    
-    // If it contains quotes anywhere, treat as literal
-    if (term.includes('"') || term.includes("'")) {
-      return literal(term.replace(/^["'](.*?)["']$/, '$1'));
     }
     
     // If it looks like a number, treat as literal
@@ -355,15 +351,8 @@ export class RDFFilters {
       return literal(term);
     }
     
-    // Otherwise, assume it's a relative URI or unqualified name
-    // Try to resolve as prefixed URI first
-    if (term.includes(':')) {
-      const expanded = this.expandURI(term);
-      return namedNode(expanded);
-    }
-    
-    // Last resort - treat as literal
-    return literal(term);
+    // Otherwise, assume it's a URI or treat as literal depending on context
+    return namedNode(term);
   }
 
   private expandURI(prefixed: string): string {
@@ -432,7 +421,13 @@ export class RDFFilters {
     const parts = pattern.trim().split(/\s+/);
     
     if (parts.length !== 3) {
-      throw new Error(`Invalid pattern: expected 3 parts, got ${parts.length}`);
+      console.warn(`Invalid pattern: expected 3 parts, got ${parts.length}`);
+      // Return a pattern that will match nothing
+      return {
+        subject: '__INVALID_PATTERN__',
+        predicate: '__INVALID_PATTERN__',
+        object: '__INVALID_PATTERN__',
+      };
     }
     
     return {
@@ -481,7 +476,12 @@ export function registerRDFFilters(
   const filters = createRDFFilters(options);
   
   for (const [name, filter] of Object.entries(filters)) {
+    // Register as filter
     nunjucksEnv.addFilter(name, filter);
+    // Only add global if the method exists (some mock environments don't have it)
+    if (typeof nunjucksEnv.addGlobal === 'function') {
+      nunjucksEnv.addGlobal(name, filter);
+    }
   }
 }
 

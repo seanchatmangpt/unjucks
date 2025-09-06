@@ -1,0 +1,47 @@
+---
+to: api/{{ serviceName | kebabCase }}/{{ endpoint | kebabCase }}.controller.ts
+turtle: "./data/api-metadata.ttl"
+rdfSchema: "./schemas/api-governance.ttl"
+rdfPrefixes:
+  api: "http://unjucks.dev/api/"
+  foaf: "http://xmlns.com/foaf/0.1/"
+  dcterms: "http://purl.org/dc/terms/"
+skipIf: "endpoint == 'health'"
+inject: true
+after: "// GENERATED_CONTROLLERS"
+---
+import { Controller, Get, Post, ApiTags, ApiOperation } from '@nestjs/common';
+import { {{ serviceName | pascalCase }}Service } from '../services/{{ serviceName | kebabCase }}.service';
+
+@Controller('{{ serviceName | kebabCase }}')
+@ApiTags('{{ serviceName | titleCase }}')
+export class {{ serviceName | pascalCase }}Controller {
+  constructor(private readonly {{ serviceName | camelCase }}Service: {{ serviceName | pascalCase }}Service) {}
+
+  @Get('{{ endpoint | kebabCase }}')
+  @ApiOperation({ 
+    summary: '{{ $rdf.property(endpoint.uri, "dcterms:description") | first }}',
+    description: '{{ $rdf.comment(endpoint.uri) }}'
+  })
+  async {{ endpoint | camelCase }}(): Promise<{{ $rdf.property(endpoint.uri, "api:returnType") | first | pascalCase }}> {
+    {% if $rdf.hasType(endpoint.uri, "api:SecureEndpoint") %}
+    // Security validation required for this endpoint
+    await this.validateAuthentication();
+    {% endif %}
+    
+    {% if $rdf.property(endpoint.uri, "api:requiresAuditLog") | first == "true" %}
+    // Audit logging required for compliance
+    this.auditLogger.log('{{ endpoint | camelCase }}', 'accessed');
+    {% endif %}
+    
+    return this.{{ serviceName | camelCase }}Service.{{ endpoint | camelCase }}();
+  }
+
+  {% if $rdf.hasType(endpoint.uri, "api:CRUDEndpoint") %}
+  @Post('{{ endpoint | kebabCase }}')
+  @ApiOperation({ summary: 'Create new {{ serviceName | kebabCase }}' })
+  async create{{ serviceName | pascalCase }}(data: Create{{ serviceName | pascalCase }}Dto): Promise<{{ serviceName | pascalCase }}> {
+    return this.{{ serviceName | camelCase }}Service.create(data);
+  }
+  {% endif %}
+}

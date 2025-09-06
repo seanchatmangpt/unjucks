@@ -1,0 +1,377 @@
+---
+to: "<%= to || 'src/services/' + serviceName.toLowerCase().replace(/\s+/g, '-') %>.service.ts"
+ontologies:
+  fhir:
+    uri: "http://hl7.org/fhir"
+    version: "R4"
+    local: "./ontologies/fhir-r4.ttl"
+  snomed:
+    uri: "http://snomed.info/sct"
+    version: "2023-01"
+    local: "./ontologies/snomed-ct.ttl"
+semanticValidation: true
+reasoning: "rdfs"
+compliance:
+  framework: "HIPAA"
+  version: "2023"
+  rules:
+    - "minimum_necessary"
+    - "access_controls" 
+    - "audit_logs"
+    - "encryption_at_rest"
+    - "encryption_in_transit"
+skipIf: "!withHealthcare"
+---
+/**
+ * <%= serviceName %> Healthcare Service
+ * 
+ * Generated from FHIR R4 ontology with HIPAA compliance
+ * Semantic validation: <%= $compliance.validationResults | json %>
+ * 
+ * @ontology FHIR R4 (http://hl7.org/fhir)
+ * @compliance HIPAA <%= $compliance.version %>
+ * @generated <%= new Date().toISOString() %>
+ */
+
+import { 
+  Patient, 
+  Encounter, 
+  Observation, 
+  DiagnosticReport, 
+  Medication,
+  Bundle,
+  Resource,
+  CodeableConcept,
+  Identifier
+} from 'fhir/r4';
+import { v4 as uuidv4 } from 'uuid';
+import { Logger } from '@/utils/logger';
+import { AuditLogger } from '@/utils/audit-logger';
+import { EncryptionService } from '@/services/encryption.service';
+import { AccessControlService } from '@/services/access-control.service';
+
+// FHIR Resource interfaces from ontology
+<% for (const resourceType of $ontologies.fhir.classes.filter(c => c.uri.includes('/Resource'))) { -%>
+interface <%= resourceType.uri.split('/').pop() %>Resource extends Resource {
+  resourceType: '<%= resourceType.uri.split('/').pop() %>';
+  <% if (resourceType.properties.identifier) { -%>
+  identifier?: Identifier[];
+  <% } -%>
+  <% if (resourceType.properties.meta) { -%>
+  meta?: {
+    versionId?: string;
+    lastUpdated?: string;
+    profile?: string[];
+    security?: CodeableConcept[];
+    tag?: CodeableConcept[];
+  };
+  <% } -%>
+}
+
+<% } -%>
+
+/**
+ * HIPAA-compliant <%= serviceName %> service
+ * Implements minimum necessary principle and comprehensive audit logging
+ */
+export class <%= serviceName.replace(/\s+/g, '') %>Service {
+  private readonly logger = new Logger('<%= serviceName %>Service');
+  private readonly auditLogger = new AuditLogger();
+  private readonly encryption = new EncryptionService();
+  private readonly accessControl = new AccessControlService();
+
+  constructor() {
+    this.logger.info('Initializing <%= serviceName %> service with FHIR R4 compliance');
+  }
+
+  <% if (withPatientManagement) { -%>
+  /**
+   * Create a new patient record
+   * @ontology fhir:Patient
+   * @compliance HIPAA minimum_necessary, access_controls, audit_logs
+   */
+  async createPatient(
+    patientData: Partial<Patient>,
+    requesterContext: { userId: string; role: string; purpose: string }
+  ): Promise<Patient> {
+    // Access control validation
+    await this.accessControl.validateAccess(
+      requesterContext,
+      'patient:create',
+      { purpose: requesterContext.purpose }
+    );
+
+    // Audit log the access attempt
+    await this.auditLogger.logAccess({
+      action: 'CREATE',
+      resourceType: 'Patient',
+      userId: requesterContext.userId,
+      timestamp: new Date(),
+      purpose: requesterContext.purpose,
+      minimumNecessary: true
+    });
+
+    const patient: Patient = {
+      resourceType: 'Patient',
+      id: uuidv4(),
+      meta: {
+        versionId: '1',
+        lastUpdated: new Date().toISOString(),
+        profile: ['http://hl7.org/fhir/StructureDefinition/Patient'],
+        security: [
+          {
+            system: 'http://terminology.hl7.org/CodeSystem/v3-ActReason',
+            code: 'HCOMPL',
+            display: 'HIPAA Compliant'
+          }
+        ]
+      },
+      identifier: patientData.identifier || [],
+      active: patientData.active !== false,
+      name: patientData.name || [],
+      telecom: patientData.telecom || [],
+      gender: patientData.gender,
+      birthDate: patientData.birthDate,
+      address: patientData.address || [],
+      // Encrypted sensitive fields
+      ...(patientData.name && {
+        name: await this.encryption.encryptField(patientData.name, 'patient_name')
+      }),
+      ...(patientData.telecom && {
+        telecom: await this.encryption.encryptField(patientData.telecom, 'patient_contact')
+      })
+    };
+
+    this.logger.info(`Created patient with ID: ${patient.id}`);
+    return patient;
+  }
+
+  /**
+   * Get patient by ID with access controls
+   * @ontology fhir:Patient
+   * @compliance HIPAA access_controls, audit_logs, minimum_necessary
+   */
+  async getPatient(
+    patientId: string,
+    requesterContext: { userId: string; role: string; purpose: string },
+    fields?: string[]
+  ): Promise<Patient | null> {
+    // Validate access
+    await this.accessControl.validateAccess(
+      requesterContext,
+      'patient:read',
+      { patientId, purpose: requesterContext.purpose }
+    );
+
+    // Audit the access
+    await this.auditLogger.logAccess({
+      action: 'READ',
+      resourceType: 'Patient',
+      resourceId: patientId,
+      userId: requesterContext.userId,
+      timestamp: new Date(),
+      purpose: requesterContext.purpose,
+      fieldsAccessed: fields,
+      minimumNecessary: true
+    });
+
+    // Retrieve and decrypt patient data
+    const patient = await this.retrievePatient(patientId);
+    if (!patient) return null;
+
+    // Apply minimum necessary principle - only return requested fields
+    if (fields) {
+      return this.applyMinimumNecessary(patient, fields);
+    }
+
+    return patient;
+  }
+  <% } -%>
+
+  <% if (withObservations) { -%>
+  /**
+   * Create medical observation
+   * @ontology fhir:Observation
+   * @compliance HIPAA encryption_at_rest, audit_logs
+   */
+  async createObservation(
+    observationData: Partial<Observation>,
+    requesterContext: { userId: string; role: string; purpose: string }
+  ): Promise<Observation> {
+    await this.accessControl.validateAccess(
+      requesterContext,
+      'observation:create',
+      { purpose: requesterContext.purpose }
+    );
+
+    const observation: Observation = {
+      resourceType: 'Observation',
+      id: uuidv4(),
+      meta: {
+        versionId: '1',
+        lastUpdated: new Date().toISOString(),
+        profile: ['http://hl7.org/fhir/StructureDefinition/Observation'],
+        security: [
+          {
+            system: 'http://terminology.hl7.org/CodeSystem/v3-Confidentiality',
+            code: 'R',
+            display: 'Restricted'
+          }
+        ]
+      },
+      status: observationData.status || 'final',
+      code: observationData.code!,
+      subject: observationData.subject!,
+      encounter: observationData.encounter,
+      effectiveDateTime: observationData.effectiveDateTime || new Date().toISOString(),
+      valueQuantity: observationData.valueQuantity,
+      valueString: observationData.valueString,
+      component: observationData.component
+    };
+
+    // Encrypt sensitive values
+    if (observation.valueString) {
+      observation.valueString = await this.encryption.encryptField(
+        observation.valueString,
+        'observation_value'
+      );
+    }
+
+    await this.auditLogger.logAccess({
+      action: 'CREATE',
+      resourceType: 'Observation',
+      userId: requesterContext.userId,
+      timestamp: new Date(),
+      purpose: requesterContext.purpose
+    });
+
+    return observation;
+  }
+  <% } -%>
+
+  <% if (withEncounters) { -%>
+  /**
+   * Create patient encounter
+   * @ontology fhir:Encounter
+   * @compliance HIPAA access_controls, audit_logs
+   */
+  async createEncounter(
+    encounterData: Partial<Encounter>,
+    requesterContext: { userId: string; role: string; purpose: string }
+  ): Promise<Encounter> {
+    await this.accessControl.validateAccess(
+      requesterContext,
+      'encounter:create',
+      { purpose: requesterContext.purpose }
+    );
+
+    const encounter: Encounter = {
+      resourceType: 'Encounter',
+      id: uuidv4(),
+      meta: {
+        versionId: '1',
+        lastUpdated: new Date().toISOString(),
+        profile: ['http://hl7.org/fhir/StructureDefinition/Encounter']
+      },
+      identifier: encounterData.identifier || [],
+      status: encounterData.status || 'in-progress',
+      class: encounterData.class!,
+      subject: encounterData.subject!,
+      participant: encounterData.participant || [],
+      period: encounterData.period || {
+        start: new Date().toISOString()
+      },
+      reasonCode: encounterData.reasonCode,
+      diagnosis: encounterData.diagnosis,
+      location: encounterData.location
+    };
+
+    await this.auditLogger.logAccess({
+      action: 'CREATE',
+      resourceType: 'Encounter',
+      userId: requesterContext.userId,
+      timestamp: new Date(),
+      purpose: requesterContext.purpose
+    });
+
+    return encounter;
+  }
+  <% } -%>
+
+  /**
+   * Apply minimum necessary principle to patient data
+   * @compliance HIPAA minimum_necessary
+   */
+  private applyMinimumNecessary(patient: Patient, requestedFields: string[]): Partial<Patient> {
+    const allowedFields = new Set(requestedFields);
+    const filtered: Partial<Patient> = {
+      resourceType: patient.resourceType,
+      id: patient.id,
+      meta: patient.meta
+    };
+
+    if (allowedFields.has('name')) filtered.name = patient.name;
+    if (allowedFields.has('gender')) filtered.gender = patient.gender;
+    if (allowedFields.has('birthDate')) filtered.birthDate = patient.birthDate;
+    if (allowedFields.has('telecom')) filtered.telecom = patient.telecom;
+    if (allowedFields.has('address')) filtered.address = patient.address;
+    if (allowedFields.has('identifier')) filtered.identifier = patient.identifier;
+
+    return filtered;
+  }
+
+  /**
+   * Retrieve patient from storage (implementation-specific)
+   */
+  private async retrievePatient(patientId: string): Promise<Patient | null> {
+    // Implementation would connect to FHIR server or database
+    // This is a placeholder for actual implementation
+    this.logger.debug(`Retrieving patient: ${patientId}`);
+    return null;
+  }
+
+  /**
+   * Validate FHIR resource against ontology constraints
+   * @ontology fhir:Resource
+   */
+  private async validateFhirResource(resource: Resource): Promise<boolean> {
+    // Semantic validation against FHIR ontology
+    // This would include checking:
+    // - Required fields based on ontology
+    // - Data type constraints
+    // - Cardinality constraints
+    // - Terminology bindings
+    
+    const requiredFields = this.getRequiredFieldsFromOntology(resource.resourceType);
+    for (const field of requiredFields) {
+      if (!(field in resource)) {
+        this.logger.error(`Missing required field: ${field} in ${resource.resourceType}`);
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  /**
+   * Get required fields from FHIR ontology
+   */
+  private getRequiredFieldsFromOntology(resourceType: string): string[] {
+    // This would query the FHIR ontology for mandatory fields
+    // Placeholder implementation
+    const commonRequired = ['resourceType', 'id'];
+    
+    switch (resourceType) {
+      case 'Patient':
+        return [...commonRequired];
+      case 'Observation':
+        return [...commonRequired, 'status', 'code', 'subject'];
+      case 'Encounter':
+        return [...commonRequired, 'status', 'class', 'subject'];
+      default:
+        return commonRequired;
+    }
+  }
+}
+
+export default <%= serviceName.replace(/\s+/g, '') %>Service;

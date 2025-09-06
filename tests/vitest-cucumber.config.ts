@@ -9,8 +9,10 @@ export default defineConfig({
     
     // Comprehensive test file patterns for RDF/Turtle validation
     include: [
+      'tests/features/semantic-core.feature.spec.ts',
       'tests/features/turtle-data-support.feature.spec.ts',
       'tests/integration/turtle-template-integration.test.ts',
+      'tests/integration/semantic-80-20.test.ts',
       'tests/performance/turtle-performance.test.ts',
       'tests/security/turtle-security.test.ts',
       'tests/unit/turtle-parser.test.ts',

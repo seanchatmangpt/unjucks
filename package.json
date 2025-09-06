@@ -1,31 +1,14 @@
 {
   "name": "unjucks",
-  "type": "module",
   "version": "1.0.0",
-  "packageManager": "pnpm@9.12.1",
-  "description": "The next-generation code generator - intelligent, fast, and AI-integrated scaffolding tool that makes Hygen and Yeoman obsolete",
-  "author": "unjs",
-  "license": "MIT",
-  "funding": "https://github.com/sponsors/unjs",
-  "homepage": "https://github.com/unjs/unjucks#readme",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/unjs/unjucks.git"
+  "type": "module",
+  "description": "Nunjucks + Hygen style scaffolding with RDF/Turtle support",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "bin": {
+    "unjucks": "./bin/unjucks.cjs"
   },
-  "bugs": {
-    "url": "https://github.com/unjs/unjucks/issues"
-  },
-  "keywords": [
-    "code-generator",
-    "scaffolding",
-    "templates",
-    "cli",
-    "ai-integration",
-    "mcp",
-    "nunjucks",
-    "hygen-alternative",
-    "yeoman-alternative"
-  ],
   "exports": {
     ".": {
       "import": "./dist/index.mjs",
@@ -33,87 +16,60 @@
       "types": "./dist/index.d.ts"
     }
   },
-  "main": "./dist/index.cjs",
-  "module": "./dist/index.mjs",
-  "types": "./dist/index.d.ts",
-  "bin": {
-    "unjucks": "./bin/unjucks.mjs"
-  },
   "files": [
-    "bin",
-    "dist"
+    "dist",
+    "bin"
   ],
   "scripts": {
     "build": "tsc",
-    "dev": "vitest dev",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:cucumber": "vitest run --config vitest.cucumber.config.ts",
+    "test:bdd": "npm run test:cucumber",
+    "test:integration": "vitest run tests/integration/",
+    "test:validation": "vitest run tests/validation/",
+    "test:security": "vitest run tests/security/",
+    "test:performance": "vitest run tests/benchmarks/",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
-    "prepack": "pnpm build",
-    "release": "changelogen --release && npm publish && git push --follow-tags",
-    "test": "vitest run",
-    "test:unit": "vitest run --exclude tests/features/",
-    "test:types": "tsc --noEmit --skipLibCheck",
-    "typecheck": "tsc --noEmit --skipLibCheck",
-    "test:bdd": "vitest run --config config/vitest.cucumber.config.ts",
-    "test:performance": "vitest run tests/performance/ --reporter=verbose",
-    "test:integration": "vitest run tests/integration/ --reporter=verbose",
-    "test:security": "vitest run tests/security/ --reporter=verbose",
-    "test:swarm": "vitest run --config config/vitest.swarm.config.ts",
-    "test:swarm:watch": "vitest watch --config config/vitest.swarm.config.ts",
-    "test:swarm:ui": "vitest --config config/vitest.swarm.config.ts --ui",
-    "test:swarm:coverage": "vitest run --config config/vitest.swarm.config.ts --coverage",
-    "dev:frontend": "nuxt dev src",
-    "build:frontend": "nuxt build src",
-    "preview:frontend": "nuxt preview src",
-    "mcp:server": "tsx src/mcp-server.ts",
-    "server:dev": "tsx watch src/server/index.ts",
-    "server:start": "node dist/server/index.js",
-    "build:server": "tsc -p tsconfig.server.json"
+    "typecheck": "tsc --noEmit",
+    "dev": "tsc --watch"
   },
-  "peerDependencies": {
-    "@nuxt/ui": "^2.18.7",
-    "nuxt": "^3.13.2"
-  },
+  "keywords": [
+    "template",
+    "generator",
+    "nunjucks",
+    "hygen",
+    "scaffolding",
+    "rdf",
+    "turtle",
+    "semantic-web",
+    "n3"
+  ],
+  "author": "Unjucks Team",
+  "license": "MIT",
   "dependencies": {
+    "@types/node": "^20.0.0",
+    "axios": "^1.6.0",
+    "chokidar": "^4.0.3",
     "citty": "^0.1.6",
-    "c12": "^1.11.1",
-    "consola": "^3.2.3",
-    "defu": "^6.1.4",
-    "jiti": "^1.21.6",
-    "magicast": "^0.3.5",
-    "mlly": "^1.7.1",
+    "glob": "^10.3.10",
+    "gray-matter": "^4.0.3",
+    "n3": "^1.26.0",
     "nunjucks": "^3.2.4",
-    "ofetch": "^1.4.0",
-    "ohash": "^1.1.3",
-    "pathe": "^1.1.2",
-    "scule": "^1.3.0",
-    "ufo": "^1.5.4",
-    "unimport": "^3.13.1"
+    "yaml": "^2.4.1"
   },
   "devDependencies": {
-    "@vitejs/plugin-vue": "^5.2.1",
-    "vite": "^6.0.7",
-    "@antfu/eslint-config": "^3.7.3",
-    "@nuxt/eslint": "^0.5.7",
-    "@nuxt/ui": "^2.18.7",
-    "@pinia/nuxt": "^0.5.5",
-    "@types/node": "^22.7.4",
+    "@amiceli/vitest-cucumber": "^5.2.1",
     "@types/nunjucks": "^3.2.6",
-    "@vitest/ui": "^2.1.2",
-    "@vueuse/nuxt": "^11.1.0",
-    "automd": "^0.3.8",
-    "changelogen": "^0.5.7",
-    "eslint": "^9.12.0",
-    "jszip": "^3.10.1",
-    "nuxt": "^3.13.2",
-    "nuxt-security": "^2.0.0",
-    "simple-git-hooks": "^2.11.1",
-    "typescript": "^5.6.2",
-    "unbuild": "^2.0.0",
-    "vitest": "^2.1.2",
-    "vitest-cucumber": "^8.0.1"
+    "@typescript-eslint/eslint-plugin": "^8.42.0",
+    "@typescript-eslint/parser": "^8.42.0",
+    "@vitest/ui": "^3.2.4",
+    "eslint-plugin-import": "^2.32.0",
+    "typescript": "^5.4.2",
+    "vitest": "^3.2.4"
   },
-  "simple-git-hooks": {
-    "pre-commit": "pnpm lint:fix"
+  "peerDependencies": {
+    "chokidar": "^3.3.0"
   }
 }

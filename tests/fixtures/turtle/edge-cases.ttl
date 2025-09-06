@@ -1,100 +1,28 @@
 @prefix ex: <http://example.org/> .
-@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
-@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 
-# Edge cases for turtle parsing
+# Unicode characters test
+<#unicode> ex:name "Unicode: ñ, é, ü, 中文, 😀" ; ex:type "unicode-test" .
 
-# Empty strings
-ex:emptyString rdfs:label "" .
+# Very long literal
+<#longLiteral> ex:description "This is a very long literal value that goes on and on and on and contains a lot of text to test how the parser handles very long string values in RDF triples. It includes multiple sentences and should be parsed correctly without any issues. The parser should handle this gracefully and not have performance problems with long strings." .
 
-# Very long string
-ex:longString rdfs:label "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum." .
+# Empty string literal
+<#empty> ex:value "" ; ex:type "empty-string" .
 
-# Unicode characters
-ex:unicode rdfs:label "Héllo Wørld! 🌍 αβγδε 中文" .
+# Special characters
+<#special> ex:chars "Special: <>\"'&\n\t\r" ; ex:type "special-chars" .
 
-# Special characters in strings
-ex:specialChars rdfs:label "Line 1\nLine 2\tTabbed\r\nWindows line ending" .
-
-# Numeric edge cases
-ex:zeroInt ex:value 0 .
-ex:negativeInt ex:value -42 .
-ex:maxInt ex:value 9223372036854775807 .
-ex:minInt ex:value -9223372036854775808 .
-ex:floatZero ex:value 0.0 .
-ex:floatNegative ex:value -3.14159 .
-ex:scientificNotation ex:value 1.23e-10 .
-ex:infinityValue ex:value "INF"^^xsd:float .
-ex:nanValue ex:value "NaN"^^xsd:float .
-
-# Boolean values
-ex:trueBoolean ex:value true .
-ex:falseBoolean ex:value false .
-
-# Date/time edge cases
-ex:minDate ex:date "0001-01-01"^^xsd:date .
-ex:maxDate ex:date "9999-12-31"^^xsd:date .
-ex:leapYear ex:date "2024-02-29"^^xsd:date .
-ex:timeWithTimezone ex:datetime "2024-03-15T14:30:00+02:00"^^xsd:dateTime .
-ex:utcTime ex:datetime "2024-03-15T14:30:00Z"^^xsd:dateTime .
-
-# Multiple values for same property
-ex:multiValue ex:tag "tag1", "tag2", "tag3" .
-
-# Blank nodes
-[] a ex:AnonymousResource ;
-   rdfs:label "Anonymous" ;
-   ex:value 123 .
-
-# Nested blank nodes
-ex:container ex:contains [
-    ex:item [
-        ex:name "Nested Item" ;
-        ex:value 456
-    ]
-] .
-
-# Collection (list)
-ex:list ex:items ( "first" "second" "third" ) .
-
-# Empty collection
-ex:emptyList ex:items () .
-
-# URI with special characters
-<http://example.org/path%20with%20spaces> rdfs:label "URI with encoded spaces" .
-
-# URIs with fragments and query parameters
-<http://example.org/resource?param=value&other=123#fragment> rdfs:label "Complex URI" .
-
-# Very short and very long local names
-ex:a rdfs:label "Short" .
-ex:verylonglocalnamethatshouldstillbeparsedcorrectlyeventhoughitsquitelengthyandmaybeuncomfortabletoread rdfs:label "Long local name" .
-
-# Properties with no values (should be filtered out)
-# ex:emptyProperty
-
-# Resources with only type
-ex:typeOnly a ex:SomeClass .
-
-# Multiple types
-ex:multiType a ex:Class1, ex:Class2, ex:Class3 .
-
-# Self-referential
-ex:selfRef ex:sameAs ex:selfRef .
-
-# Circular references
-ex:a ex:references ex:b .
-ex:b ex:references ex:c .
-ex:c ex:references ex:a .
-
-# Datatype variations
-ex:stringDatatype ex:value "string"^^xsd:string .
-ex:tokenDatatype ex:value "token"^^xsd:token .
-ex:anyURIDatatype ex:value "http://example.org/"^^xsd:anyURI .
+# Numeric datatypes
+<#numbers> 
+  ex:integer "42"^^xsd:integer ;
+  ex:decimal "3.14159"^^xsd:decimal ;
+  ex:boolean "true"^^xsd:boolean ;
+  ex:date "2024-01-01T00:00:00Z"^^xsd:dateTime .
 
 # Language tags
-ex:englishLabel rdfs:label "English"@en .
-ex:frenchLabel rdfs:label "Français"@fr .
-ex:chineseLabel rdfs:label "中文"@zh .
-ex:multiLangLabel rdfs:label "English"@en, "Français"@fr, "中文"@zh .
+<#languages> 
+  ex:greeting "Hello"@en ;
+  ex:greeting "Bonjour"@fr ;
+  ex:greeting "Hola"@es ;
+  ex:greeting "こんにちは"@ja .

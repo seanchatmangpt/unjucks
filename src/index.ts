@@ -19,3 +19,6 @@ export * from './commands/version';
 
 // MCP server exports (optional - only when needed)
 export * from './mcp';
+
+// Semantic web capabilities
+export * from './mcp/semantic-server.js';

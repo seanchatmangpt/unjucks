@@ -1,0 +1,395 @@
+# N3 Reasoning Rules for Enterprise Compliance
+# These rules implement Fortune 5 compliance requirements using N3 syntax
+
+@prefix enterprise: <http://example.org/enterprise#> .
+@prefix api: <http://example.org/api#> .
+@prefix security: <http://example.org/security#> .
+@prefix compliance: <http://example.org/compliance#> .
+@prefix governance: <http://example.org/governance#> .
+@prefix audit: <http://example.org/audit#> .
+@prefix pci: <http://example.org/pci#> .
+@prefix gdpr: <http://example.org/gdpr#> .
+@prefix sox: <http://example.org/sox#> .
+@prefix log: <http://www.w3.org/2000/10/swap/log#> .
+
+# ============================
+# SOX COMPLIANCE RULES
+# ============================
+
+# Rule: Financial data requires comprehensive audit logging
+{
+    ?service a api:Service .
+    ?service compliance:dataClassification "Financial Data" .
+}
+=>
+{
+    ?service sox:auditLoggingRequired true .
+    ?service sox:auditLevel "COMPREHENSIVE" .
+    ?service sox:retentionPeriod "7years" .
+    ?service sox:separationOfDutiesRequired true .
+} .
+
+# Rule: SOX-applicable services require CFO approval for changes
+{
+    ?service compliance:applicableFrameworks compliance:SOX .
+    ?service security:securityLevel security:Restricted .
+}
+=>
+{
+    ?service sox:requiresCFOApproval true .
+    ?service sox:changeControlRequired true .
+    ?service sox:businessContinuityRequired true .
+} .
+
+# Rule: Financial reporting services require data integrity controls
+{
+    ?service a api:Service .
+    ?service compliance:dataClassification "Financial Data" .
+    ?service api:serviceDescription ?desc .
+    ?desc log:includes "reporting" .
+}
+=>
+{
+    ?service sox:dataIntegrityRequired true .
+    ?service sox:checksumValidation true .
+    ?service sox:transactionLogging true .
+    ?service sox:concurrencyControl true .
+} .
+
+# ============================
+# GDPR COMPLIANCE RULES  
+# ============================
+
+# Rule: Personal data processing in EU requires GDPR compliance
+{
+    ?service a api:Service .
+    ?service compliance:dataClassification "Personal Identifiable Information" .
+    ?service api:deploymentRegion "EU" .
+}
+=>
+{
+    ?service gdpr:gdprApplicable true .
+    ?service gdpr:lawfulBasisRequired true .
+    ?service gdpr:consentManagementRequired true .
+    ?service gdpr:dataSubjectRightsRequired true .
+} .
+
+# Rule: GDPR services must implement data subject rights
+{
+    ?service gdpr:gdprApplicable true .
+}
+=>
+{
+    ?service gdpr:rightToAccessRequired true .
+    ?service gdpr:rightToErasureRequired true .
+    ?service gdpr:rightToPortabilityRequired true .
+    ?service gdpr:rightToRectificationRequired true .
+    ?service gdpr:privacyByDesignRequired true .
+} .
+
+# Rule: Sensitive personal data requires explicit consent
+{
+    ?service a api:Service .
+    ?service compliance:dataClassification "Sensitive Personal Data" .
+    ?service gdpr:gdprApplicable true .
+}
+=>
+{
+    ?service gdpr:explicitConsentRequired true .
+    ?service gdpr:dataProtectionOfficerRequired true .
+    ?service gdpr:dataProtectionImpactAssessment true .
+} .
+
+# ============================
+# PCI-DSS COMPLIANCE RULES
+# ============================
+
+# Rule: Payment card data requires PCI-DSS compliance
+{
+    ?service a api:Service .
+    ?service compliance:dataClassification "Payment Card Data" .
+}
+=>
+{
+    ?service pci:pciDSSApplicable true .
+    ?service pci:cardholderDataEnvironment true .
+    ?service pci:encryptionAtRest true .
+    ?service pci:encryptionInTransit true .
+    ?service pci:networkSegmentation true .
+} .
+
+# Rule: PCI services require tokenization of sensitive data
+{
+    ?service pci:pciDSSApplicable true .
+    ?service api:handlesCardNumber true .
+}
+=>
+{
+    ?service pci:tokenizationRequired true .
+    ?service pci:panStorageProhibited true .
+    ?service pci:cvvStorageProhibited true .
+    ?service pci:displayMasking true .
+} .
+
+# Rule: PCI services require vulnerability management
+{
+    ?service pci:cardholderDataEnvironment true .
+}
+=>
+{
+    ?service pci:vulnerabilityScanning true .
+    ?service pci:penetrationTesting true .
+    ?service pci:securityPatching true .
+    ?service pci:antivirusRequired true .
+} .
+
+# ============================
+# SECURITY RULES
+# ============================
+
+# Rule: Confidential services require strong authentication
+{
+    ?service a api:Service .
+    ?service security:securityLevel security:Confidential .
+}
+=>
+{
+    ?service security:multifactorAuthenticationRequired true .
+    ?service security:sessionManagement true .
+    ?service security:accessLogging true .
+} .
+
+# Rule: Restricted services require maximum security
+{
+    ?service a api:Service .
+    ?service security:securityLevel security:Restricted .
+}
+=>
+{
+    ?service security:zeroTrustRequired true .
+    ?service security:endToEndEncryption true .
+    ?service security:privilegedAccessManagement true .
+    ?service security:continuousMonitoring true .
+} .
+
+# Rule: External-facing services require additional security measures
+{
+    ?service a api:Service .
+    ?service api:accessPattern "External" .
+}
+=>
+{
+    ?service security:rateLimiting true .
+    ?service security:ddosProtection true .
+    ?service security:webApplicationFirewall true .
+    ?service security:botDetection true .
+} .
+
+# ============================
+# GOVERNANCE RULES
+# ============================
+
+# Rule: Critical services require architecture review
+{
+    ?service a api:Service .
+    ?service governance:criticality "Critical" .
+}
+=>
+{
+    ?service governance:architectureReviewRequired true .
+    ?service governance:securityReviewRequired true .
+    ?service governance:performanceReviewRequired true .
+    ?service governance:disasterRecoveryRequired true .
+} .
+
+# Rule: Services handling multiple compliance frameworks require enhanced governance
+{
+    ?service a api:Service .
+    ?service compliance:applicableFrameworks ?framework1, ?framework2 .
+    ?framework1 log:notEqualTo ?framework2 .
+}
+=>
+{
+    ?service governance:enhancedGovernanceRequired true .
+    ?service governance:complianceOfficerReview true .
+    ?service governance:legalReview true .
+    ?service governance:crossFrameworkAnalysis true .
+} .
+
+# ============================
+# AUDIT AND MONITORING RULES
+# ============================
+
+# Rule: High-value services require comprehensive audit logging
+{
+    ?service a api:Service .
+    ?service governance:businessValue "High" .
+}
+=>
+{
+    ?service audit:comprehensiveLogging true .
+    ?service audit:realTimeMonitoring true .
+    ?service audit:anomalyDetection true .
+    ?service audit:threatIntelligence true .
+} .
+
+# Rule: Audit logs must be immutable and centralized
+{
+    ?service audit:auditLoggingRequired true .
+}
+=>
+{
+    ?service audit:immutableLogging true .
+    ?service audit:centralizedLogging true .
+    ?service audit:logIntegrityVerification true .
+    ?service audit:logEncryption true .
+} .
+
+# ============================
+# DATA LIFECYCLE RULES
+# ============================
+
+# Rule: Sensitive data requires lifecycle management
+{
+    ?service a api:Service .
+    ?service compliance:dataClassification ?classification .
+    ?classification log:in ("Financial Data" "Personal Identifiable Information" "Payment Card Data") .
+}
+=>
+{
+    ?service governance:dataLifecycleManagement true .
+    ?service governance:dataMinimization true .
+    ?service governance:purposeLimitation true .
+    ?service governance:dataQuality true .
+} .
+
+# Rule: Data retention periods must comply with longest applicable requirement
+{
+    ?service compliance:applicableFrameworks compliance:SOX .
+    ?service compliance:applicableFrameworks compliance:GDPR .
+}
+=>
+{
+    ?service governance:retentionPeriod "7years" .
+    ?service governance:retentionRationale "SOX requires 7 years, GDPR allows longer for legitimate interests" .
+} .
+
+# ============================
+# INCIDENT RESPONSE RULES
+# ============================
+
+# Rule: Services with restricted data require immediate incident response
+{
+    ?service a api:Service .
+    ?service security:securityLevel security:Restricted .
+}
+=>
+{
+    ?service governance:incidentResponseRequired true .
+    ?service governance:maxResponseTime "15minutes" .
+    ?service governance:escalationRequired true .
+    ?service governance:forensicCapability true .
+} .
+
+# Rule: Compliance-critical services require breach notification procedures
+{
+    ?service compliance:applicableFrameworks ?framework .
+    ?framework log:in (compliance:GDPR compliance:HIPAA compliance:PCI_DSS) .
+}
+=>
+{
+    ?service governance:breachNotificationRequired true .
+    ?service governance:regulatoryReporting true .
+    ?service governance:customerNotification true .
+    ?service governance:mediaManagement true .
+} .
+
+# ============================
+# PERFORMANCE AND AVAILABILITY RULES
+# ============================
+
+# Rule: Critical services require high availability
+{
+    ?service a api:Service .
+    ?service governance:criticality "Critical" .
+}
+=>
+{
+    ?service governance:highAvailabilityRequired true .
+    ?service governance:minimumSLA "99.9%" .
+    ?service governance:redundancyRequired true .
+    ?service governance:failoverTesting true .
+} .
+
+# Rule: Financial services require additional availability measures
+{
+    ?service compliance:applicableFrameworks compliance:SOX .
+    ?service governance:criticality "Critical" .
+}
+=>
+{
+    ?service governance:minimumSLA "99.99%" .
+    ?service governance:disasterRecoveryTesting true .
+    ?service governance:businessContinuityPlan true .
+} .
+
+# ============================
+# CHANGE MANAGEMENT RULES
+# ============================
+
+# Rule: Production services require change approval
+{
+    ?service a api:Service .
+    ?service governance:environment "Production" .
+}
+=>
+{
+    ?service governance:changeApprovalRequired true .
+    ?service governance:rollbackPlan true .
+    ?service governance:testingRequired true .
+    ?service governance:deploymentWindow true .
+} .
+
+# Rule: Compliance-sensitive services require additional change controls
+{
+    ?service compliance:auditRequired true .
+}
+=>
+{
+    ?service governance:enhancedChangeControl true .
+    ?service governance:complianceReview true .
+    ?service governance:changeAuditTrail true .
+    ?service governance:rollbackValidation true .
+} .
+
+# ============================
+# INTEGRATION RULES
+# ============================
+
+# Rule: Services integrating with external systems require additional security
+{
+    ?service a api:Service .
+    ?service api:hasIntegration ?integration .
+    ?integration api:integrationType "External" .
+}
+=>
+{
+    ?service security:externalIntegrationSecurity true .
+    ?service security:apiKeyManagement true .
+    ?service security:certificateManagement true .
+    ?service security:connectionEncryption true .
+} .
+
+# Rule: Third-party integrations require vendor risk assessment
+{
+    ?service api:hasIntegration ?integration .
+    ?integration api:vendor ?vendor .
+    ?vendor governance:vendorType "ThirdParty" .
+}
+=>
+{
+    ?service governance:vendorRiskAssessment true .
+    ?service governance:contractualCompliance true .
+    ?service governance:vendorMonitoring true .
+    ?service governance:dataProcessingAgreement true .
+} .

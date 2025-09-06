@@ -1,0 +1,18 @@
+---
+to: src/api/{{ name }}.ts
+inject: false
+---
+/**
+ * {{ name }} API Service
+ */
+export class {{ name }}Service {
+  async getUsers(): Promise<User[]> {
+    // Database access
+    return await this.userRepository.findAll();
+  }
+  
+  async createPayment(data: PaymentData): Promise<Payment> {
+    // Financial transaction processing
+    return await this.paymentProcessor.process(data);
+  }
+}

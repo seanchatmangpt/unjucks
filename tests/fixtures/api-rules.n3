@@ -1,0 +1,78 @@
+# API Governance Rules in N3 format
+@prefix api: <http://unjucks.dev/api/> .
+@prefix template: <http://unjucks.dev/template/> .
+@prefix compliance: <http://unjucks.dev/compliance/> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix foaf: <http://xmlns.com/foaf/0.1/> .
+
+# Rule 1: All public API endpoints must have documentation
+{ ?endpoint a api:PublicEndpoint } 
+=> 
+{ ?endpoint api:requiresDocumentation true ;
+            api:requiresVersioning true } .
+
+# Rule 2: Secure endpoints require authentication middleware
+{ ?endpoint a api:SecureEndpoint }
+=>
+{ ?endpoint api:requiresAuthentication true ;
+            api:requiresInputValidation true ;
+            api:requiresRateLimiting true } .
+
+# Rule 3: CRUD endpoints need full REST implementation
+{ ?endpoint a api:CRUDEndpoint }
+=>
+{ ?endpoint api:requiresCreateMethod true ;
+            api:requiresReadMethod true ;
+            api:requiresUpdateMethod true ;
+            api:requiresDeleteMethod true ;
+            api:requiresValidation true } .
+
+# Rule 4: Financial data endpoints require audit logging
+{ ?endpoint api:accessesFinancialData true }
+=>
+{ ?endpoint api:requiresAuditLog true ;
+            compliance:requiresSOXCompliance true ;
+            api:requiresEncryption true } .
+
+# Rule 5: User data endpoints must comply with GDPR
+{ ?endpoint api:processesPersonalData true }
+=>
+{ ?endpoint compliance:requiresGDPRCompliance true ;
+            api:requiresConsentCheck true ;
+            api:requiresDataMinimization true ;
+            api:supportsDeletion true } .
+
+# Rule 6: Template that generates secure endpoint needs security imports
+{ ?template template:generatesEndpoint ?endpoint .
+  ?endpoint a api:SecureEndpoint }
+=>
+{ ?template template:requiresSecurityImports true ;
+            template:requiresAuthenticationMiddleware true } .
+
+# Rule 7: API documentation must include OpenAPI annotations
+{ ?endpoint api:requiresDocumentation true }
+=>
+{ ?endpoint api:requiresOpenAPITags true ;
+            api:requiresOperationSummary true ;
+            api:requiresResponseSchema true } .
+
+# Rule 8: Rate limiting configuration for high-traffic endpoints
+{ ?endpoint api:isHighTraffic true }
+=>
+{ ?endpoint api:requiresRateLimiting true ;
+            api:recommendsCaching true ;
+            api:requiresPerformanceMonitoring true } .
+
+# Rule 9: Database access endpoints need transaction support
+{ ?endpoint api:accessesDatabase true }
+=>
+{ ?endpoint api:requiresTransactionSupport true ;
+            api:requiresConnectionPooling true ;
+            api:requiresQueryValidation true } .
+
+# Rule 10: External API integration endpoints need circuit breaker
+{ ?endpoint api:callsExternalService true }
+=>
+{ ?endpoint api:requiresCircuitBreaker true ;
+            api:requiresRetryMechanism true ;
+            api:requiresTimeoutConfiguration true } .

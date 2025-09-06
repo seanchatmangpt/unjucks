@@ -1,0 +1,312 @@
+# Enterprise Governance Rules using N3 Logic
+# Defines semantic reasoning rules for template compliance and code generation
+
+@prefix template: <http://unjucks.dev/template/> .
+@prefix api: <http://unjucks.dev/api/> .
+@prefix security: <http://unjucks.dev/security/> .
+@prefix compliance: <http://unjucks.dev/compliance/> .
+@prefix sox: <http://compliance.enterprise.org/sox/> .
+@prefix gdpr: <http://compliance.enterprise.org/gdpr/> .
+@prefix data: <http://unjucks.dev/data/> .
+@prefix audit: <http://unjucks.dev/audit/> .
+@prefix monitoring: <http://unjucks.dev/monitoring/> .
+@prefix access: <http://unjucks.dev/access/> .
+@prefix financial: <http://unjucks.dev/financial/> .
+@prefix privacy: <http://unjucks.dev/privacy/> .
+@prefix documentation: <http://unjucks.dev/documentation/> .
+@prefix versioning: <http://unjucks.dev/versioning/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+
+# Rule 1: Public API Security Requirements
+# If a template generates public API endpoints, it must implement authentication and rate limiting
+{ 
+    ?template api:generatesEndpoint true .
+    ?template api:isPublic true 
+} 
+=> 
+{ 
+    ?template api:requiresAuthentication true ;
+              api:requiresAuthorization true ;
+              api:requiresRateLimiting true ;
+              api:requiresInputValidation true ;
+              api:requiresOutputSanitization true ;
+              security:threatLevel "high" ;
+              compliance:requiresSecurityReview true .
+} .
+
+# Rule 2: API Versioning Requirements  
+# All API endpoints must implement versioning for backward compatibility
+{
+    ?template api:generatesEndpoint true
+}
+=>
+{
+    ?template api:requiresVersioning true ;
+              versioning:strategy "semantic" ;
+              api:requiresDeprecationPlan true ;
+              documentation:requiresChangelog true .
+} .
+
+# Rule 3: Financial Data SOX Compliance
+# Templates processing financial data must meet SOX requirements
+{
+    ?template template:hasFinancialData true
+}
+=>
+{
+    ?template sox:requiresAuditTrail true ;
+              sox:requiresAccessControl true ;
+              sox:dataRetentionPeriod "P7Y" ;
+              audit:requiresImmutableLog true ;
+              access:minimumAuthLevel "manager" ;
+              compliance:requiresFinancialAudit true .
+} .
+
+# Rule 4: Financial Reporting Additional Requirements
+{
+    ?template template:accessesFinancialReports true
+}
+=>
+{
+    ?template sox:requiresSegregationOfDuties true ;
+              sox:requiresChangeManagement true ;
+              access:requiresMultiFactorAuth true ;
+              audit:requiresRealTimeMonitoring true ;
+              compliance:requiresCfoApproval true .
+} .
+
+# Rule 5: GDPR Personal Data Processing
+# Templates processing personal data must implement GDPR compliance
+{
+    ?template data:processesPersonalData true
+}
+=>
+{
+    ?template gdpr:requiresConsent true ;
+              gdpr:requiresDpia false ;
+              gdpr:dataRetentionMax "P2Y" ;
+              privacy:requiresPrivacyNotice true ;
+              data:requiresMinimization true ;
+              gdpr:supportsDsar true ;
+              gdpr:supportsErasure true .
+} .
+
+# Rule 6: Sensitive Personal Data Enhanced Protection
+{
+    ?template data:processesPersonalData true .
+    ?template data:processesSensitiveData true
+}
+=>
+{
+    ?template gdpr:requiresDpo true ;
+              gdpr:requiresDpia true ;
+              privacy:requiresExplicitConsent true ;
+              security:requiresEncryptionAtRest true ;
+              security:requiresEncryptionInTransit true ;
+              access:requiresStrictAccessControl true ;
+              audit:requiresDetailedLogging true .
+} .
+
+# Rule 7: High-Volume API Rate Limiting
+# APIs with high traffic must implement advanced rate limiting
+{
+    ?template api:generatesEndpoint true .
+    ?template api:expectedRequestsPerMinute ?rpm .
+    ?rpm math:greaterThan 1000
+}
+=>
+{
+    ?template api:requiresAdvancedRateLimiting true ;
+              api:requiresLoadBalancing true ;
+              monitoring:requiresRealTimeMetrics true ;
+              api:requiresCaching true ;
+              infrastructure:requiresAutoScaling true .
+} .
+
+# Rule 8: Database Access Audit Requirements
+# Templates accessing databases must implement audit logging
+{
+    ?template template:accessesDatabase true
+}
+=>
+{
+    ?template audit:requiresDatabaseAuditTrail true ;
+              security:requiresConnectionEncryption true ;
+              access:requiresDatabaseRoleBasedAccess true ;
+              monitoring:requiresQueryPerformanceMonitoring true ;
+              compliance:requiresDataGovernance true .
+} .
+
+# Rule 9: Cross-Border Data Transfer GDPR Rules
+{
+    ?template data:processesPersonalData true .
+    ?template data:transfersToThirdCountry true
+}
+=>
+{
+    ?template gdpr:requiresAdequacyDecision true ;
+              gdpr:requiresStandardContractualClauses true ;
+              privacy:requiresTransferImpactAssessment true ;
+              legal:requiresLegalBasisDocumentation true ;
+              compliance:requiresDataTransferAgreement true .
+} .
+
+# Rule 10: API Documentation Requirements
+# Public APIs must have comprehensive documentation
+{
+    ?template api:generatesEndpoint true .
+    ?template api:isPublic true
+}
+=>
+{
+    ?template api:requiresDocumentation true ;
+              documentation:requiresOpenApiSpec true ;
+              documentation:requiresExamples true ;
+              documentation:requiresErrorCodes true ;
+              documentation:requiresRateLimitDocumentation true ;
+              documentation:requiresSecurityDocumentation true .
+} .
+
+# Rule 11: Payment Processing Special Requirements
+{
+    ?template template:processesPayments true
+}
+=>
+{
+    ?template security:requiresPciCompliance true ;
+              security:requiresTokenization true ;
+              audit:requiresPaymentAuditTrail true ;
+              sox:requiresFinancialReconciliation true ;
+              compliance:requiresPciAudit true ;
+              access:requiresPaymentProcessorAccess true ;
+              monitoring:requiresFraudDetection true .
+} .
+
+# Rule 12: Healthcare Data HIPAA Requirements
+{
+    ?template data:processesHealthData true
+}
+=>
+{
+    ?template compliance:requiresHipaaCompliance true ;
+              security:requiresHealthcareEncryption true ;
+              access:requiresHipaaAccessControl true ;
+              audit:requiresHipaaAuditLog true ;
+              privacy:requiresHealthcarePrivacyNotice true ;
+              legal:requiresBusinessAssociateAgreement true .
+} .
+
+# Rule 13: Machine Learning Model Compliance
+{
+    ?template template:deploysMlModel true
+}
+=>
+{
+    ?template compliance:requiresModelGovernance true ;
+              audit:requiresModelVersioning true ;
+              monitoring:requiresModelMonitoring true ;
+              documentation:requiresModelDocumentation true ;
+              security:requiresModelSecurityScan true ;
+              compliance:requiresAlgorithmicAudit true .
+} .
+
+# Rule 14: Real-time System Requirements
+{
+    ?template template:isRealTimeSystem true
+}
+=>
+{
+    ?template monitoring:requiresRealTimeMonitoring true ;
+              infrastructure:requiresHighAvailability true ;
+              performance:requiresLatencyMonitoring true ;
+              infrastructure:requiresRedundancy true ;
+              monitoring:requiresAlerting true ;
+              performance:requiresLoadTesting true .
+} .
+
+# Rule 15: Microservices Architecture Requirements
+{
+    ?template template:isMicroservice true
+}
+=>
+{
+    ?template api:requiresServiceDiscovery true ;
+              monitoring:requiresDistributedTracing true ;
+              infrastructure:requiresCircuitBreaker true ;
+              monitoring:requiresHealthChecks true ;
+              api:requiresContainerization true ;
+              documentation:requiresServiceDocumentation true .
+} .
+
+# Rule 16: Critical Infrastructure Security
+{
+    ?template template:isCriticalInfrastructure true
+}
+=>
+{
+    ?template security:requiresZeroTrust true ;
+              security:requiresPenetrationTesting true ;
+              access:requiresPrivilegedAccessManagement true ;
+              monitoring:requiresSecurityMonitoring true ;
+              compliance:requiresSecurityCertification true ;
+              audit:requiresSecurityAudit true ;
+              infrastructure:requiresDisasterRecovery true .
+} .
+
+# Rule 17: Multi-tenant System Requirements
+{
+    ?template template:isMultiTenant true
+}
+=>
+{
+    ?template security:requiresTenantIsolation true ;
+              data:requiresDataSegregation true ;
+              access:requiresTenantBasedAccess true ;
+              monitoring:requiresPerTenantMonitoring true ;
+              compliance:requiresTenantComplianceIsolation true ;
+              performance:requiresResourceQuotas true .
+} .
+
+# Rule 18: External API Integration Security
+{
+    ?template template:integratesExternalApis true
+}
+=>
+{
+    ?template security:requiresApiSecurityScanning true ;
+              monitoring:requiresExternalApiMonitoring true ;
+              security:requiresApiKeyManagement true ;
+              compliance:requiresVendorAssessment true ;
+              access:requiresApiAccessControl true ;
+              audit:requiresExternalApiAudit true .
+} .
+
+# Rule 19: Data Analytics Privacy Requirements
+{
+    ?template template:performsDataAnalytics true .
+    ?template data:processesPersonalData true
+}
+=>
+{
+    ?template privacy:requiresDataAnonymization true ;
+              privacy:requiresPseudonymization true ;
+              gdpr:requiresLegitimateInterestAssessment true ;
+              compliance:requiresAnalyticsGovernance true ;
+              data:requiresDataLineage true ;
+              privacy:requiresPrivacyEnhancingTechnologies true .
+} .
+
+# Rule 20: Emergency Access Requirements
+# Critical systems must have emergency access procedures
+{
+    ?template template:isCriticalSystem true
+}
+=>
+{
+    ?template access:requiresEmergencyAccess true ;
+              audit:requiresEmergencyAccessAudit true ;
+              access:requiresBreakGlassAccess true ;
+              monitoring:requiresEmergencyAccessAlerts true ;
+              compliance:requiresEmergencyAccessApproval true ;
+              documentation:requiresEmergencyProcedures true .
+} .

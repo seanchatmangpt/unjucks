@@ -1,5 +1,6 @@
 import yaml from "yaml";
 import type { RDFDataSource } from "./types/turtle-types.js";
+import { SemanticValidator } from "./semantic-validator.js";
 
 export interface FrontmatterConfig {
   to?: string;
@@ -26,6 +27,39 @@ export interface FrontmatterConfig {
     subject?: string;
     predicate?: string;
     object?: string;
+    limit?: number;
+    orderBy?: string;
+  };
+  
+  // Semantic validation and processing
+  semanticValidation?: {
+    enabled?: boolean;
+    ontologies?: string[];
+    strictMode?: boolean;
+    complianceFrameworks?: ('GDPR' | 'HIPAA' | 'SOX' | 'FHIR' | 'FIBO' | 'GS1')[];
+    validationLevel?: 'strict' | 'warn' | 'info';
+  };
+  
+  // Enterprise data sources with semantic context
+  dataSources?: Array<{
+    type: 'file' | 'uri' | 'graphql' | 'sparql';
+    source: string;
+    query?: string;
+    endpoint?: string;
+    headers?: Record<string, string>;
+    ontologyContext?: string;
+    semanticMapping?: boolean;
+    performanceProfile?: 'fast' | 'balanced' | 'comprehensive';
+  }>;
+  
+  // Template variable enhancement with cross-ontology support
+  variableEnhancement?: {
+    semanticMapping?: boolean;
+    typeInference?: boolean;
+    ontologyContext?: string | string[];
+    crossOntologyMapping?: boolean;
+    enterpriseValidation?: boolean;
+    performanceOptimization?: boolean;
   };
 }
 
@@ -36,10 +70,28 @@ export interface ParsedTemplate {
 }
 
 export class FrontmatterParser {
+  private semanticValidator?: SemanticValidator;
+
+  constructor(enableValidation: boolean = false) {
+    if (enableValidation) {
+      this.semanticValidator = new SemanticValidator({
+        performanceThresholds: {
+          maxTriples: 100000,
+          maxMemoryMB: 2048,
+          maxProcessingTimeMs: 5000,
+          maxQueryLatencyMs: 100
+        },
+        enabledCompliances: ['GDPR', 'HIPAA', 'SOX']
+      });
+    }
+  }
+
   /**
-   * Parse template content with frontmatter
+   * Parse template content with frontmatter and optional semantic validation
    */
-  parse(templateContent: string): ParsedTemplate {
+  async parse(templateContent: string, enableSemanticValidation: boolean = false): Promise<ParsedTemplate & {
+    validationResult?: any;
+  }> {
     const frontmatterRegex = /^---\s*\n([\s\S]*?)\n---\s*\n([\s\S]*)$/;
     const match = templateContent.match(frontmatterRegex);
 
@@ -55,11 +107,34 @@ export class FrontmatterParser {
       const frontmatter = yaml.parse(match[1]) as FrontmatterConfig;
       const content = match[2];
 
-      return {
+      const result: ParsedTemplate & { validationResult?: any } = {
         frontmatter: frontmatter || {},
         content,
         hasValidFrontmatter: true,
       };
+
+      // Semantic validation if enabled and RDF configuration present
+      if (enableSemanticValidation && this.semanticValidator && this.hasRDFConfig(frontmatter)) {
+        try {
+          // This would require RDFDataLoader to get actual data for validation
+          // For now, just validate the configuration structure
+          const configValidation = this.validate(frontmatter);
+          if (!configValidation.valid) {
+            result.validationResult = {
+              valid: false,
+              errors: configValidation.errors.map(err => ({
+                code: 'FRONTMATTER_CONFIG_ERROR',
+                message: err,
+                severity: 'error'
+              }))
+            };
+          }
+        } catch (validationError) {
+          console.warn('Semantic validation failed:', validationError);
+        }
+      }
+
+      return result;
     } catch (error) {
       console.warn("Warning: Invalid YAML frontmatter, ignoring:", error);
       return {

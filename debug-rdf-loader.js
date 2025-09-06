@@ -1,30 +1,32 @@
-import { RDFDataLoader } from './src/lib/rdf-data-loader.js';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
-const loader = new RDFDataLoader({
-  baseUri: 'http://example.org/',
-  cacheEnabled: true,
-  validateSyntax: true
-});
-
-const turtleData = `
-@prefix ex: <http://example.org/> .
-@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-
-ex:Test rdfs:label "Test Resource"@en .
-`;
-
-const source = {
-  type: 'inline',
-  source: turtleData,
-  format: 'text/turtle'
-};
-
-try {
-  const result = await loader.loadFromSource(source);
-  console.log('Success:', result.success);
-  console.log('Errors:', result.errors);
-  console.log('Data subjects:', Object.keys(result.data.subjects));
-  console.log('Variables:', Object.keys(result.variables));
-} catch (error) {
-  console.error('Error:', error);
+// Test RDF data loading directly without TypeScript compilation
+async function testRDFLoading() {
+  try {
+    console.log('Testing RDF data loading without TS compilation...');
+    
+    // Get current directory
+    const __filename = fileURLToPath(import.meta.url);
+    const __dirname = path.dirname(__filename);
+    
+    // Load the turtle file content
+    const turtleFile = path.join(__dirname, 'tests/fixtures/turtle/basic-person.ttl');
+    const content = fs.readFileSync(turtleFile, 'utf-8');
+    console.log('Loaded turtle file, length:', content.length);
+    
+    // Try direct n3 parsing which we know works
+    const { Parser, Store } = await import('n3');
+    const parser = new Parser();
+    const quads = parser.parse(content);
+    console.log('N3 direct parsing succeeded, quads:', quads.length);
+    
+    console.log('Success: We can parse the file correctly!');
+    
+  } catch (error) {
+    console.error('Error:', error.message);
+  }
 }
+
+testRDFLoading();

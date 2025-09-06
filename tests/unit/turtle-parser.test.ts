@@ -234,29 +234,27 @@ describe('TurtleParser', () => {
 
   describe('parseSync', () => {
     it('should successfully parse file synchronously', async () => {
-      // Note: N3 parser is inherently async, so parseSync will return empty results
-      // This test verifies that parseSync doesn't crash but produces empty results
+      // N3.js actually works synchronously, so parseSync returns real results
       const turtleContent = `
         <http://example.org/person1> <http://xmlns.com/foaf/0.1/name> "John Doe" .
       `;
 
       const result = parser.parseSync(turtleContent);
 
-      // parseSync returns empty results because N3 parser is async
-      expect(result.triples.length).toBe(0);
-      expect(result.stats.tripleCount).toBe(0);
+      // parseSync now returns actual parsed results
+      expect(result.triples.length).toBeGreaterThan(0);
+      expect(result.stats.tripleCount).toBeGreaterThan(0);
       
-      // Compare with async version to show the difference
+      // Compare with async version - should be the same
       const asyncResult = await parser.parse(turtleContent);
-      expect(asyncResult.triples.length).toBeGreaterThan(0);
+      expect(asyncResult.triples.length).toBe(result.triples.length);
     }, ASYNC_TIMEOUT);
 
     it('should handle parse errors synchronously', () => {
-      // parseSync doesn't throw because the async N3 parser never calls back synchronously
+      // parseSync throws errors synchronously since N3.js is actually synchronous
       const invalidTurtle = 'invalid turtle content with syntax error @';
 
-      const result = parser.parseSync(invalidTurtle);
-      expect(result.triples.length).toBe(0); // Empty result, no error thrown
+      expect(() => parser.parseSync(invalidTurtle)).toThrow(TurtleParseError);
     });
   });
 
@@ -514,16 +512,16 @@ describe('convenience functions', () => {
       const content = '<http://example.org/test> <http://example.org/prop> "value" .';
       const result = parseTurtleSync(content);
       
-      // parseSync returns empty results due to N3 async nature
-      expect(result.triples.length).toBe(0);
+      // parseSync now returns actual parsed results
+      expect(result.triples.length).toBeGreaterThan(0);
+      expect(result.stats.tripleCount).toBeGreaterThan(0);
     });
 
     it('should handle invalid content gracefully', () => {
       const invalidContent = 'invalid turtle content with syntax error @';
       
-      // parseSync doesn't throw due to async nature, just returns empty result
-      const result = parseTurtleSync(invalidContent);
-      expect(result.triples.length).toBe(0);
+      // parseSync throws errors synchronously since N3.js is actually synchronous
+      expect(() => parseTurtleSync(invalidContent)).toThrow(TurtleParseError);
     });
   });
 });

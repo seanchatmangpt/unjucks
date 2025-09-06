@@ -14,6 +14,12 @@ export { unjucksTemplateMarketplace } from './unjucks-template-marketplace.js';
 export { unjucksRealtimeCollab } from './unjucks-realtime-collab.js';
 export { unjucksE2ESwarm } from '../swarm/e2e-orchestrator.js';
 
+// Semantic tools
+export { unjucksSemanticValidate } from './unjucks-semantic-validate.js';
+export { unjucksReasoningApply } from './unjucks-reasoning-apply.js';
+export { unjucksKnowledgeQuery } from './unjucks-knowledge-query.js';
+export { unjucksComplianceCheck } from './unjucks-compliance-check.js';
+
 // Tool registry mapping tool names to implementations
 export const TOOL_IMPLEMENTATIONS = {
   unjucks_list: unjucksList,
@@ -25,7 +31,12 @@ export const TOOL_IMPLEMENTATIONS = {
   unjucks_enterprise_auth: unjucksEnterpriseAuth,
   unjucks_template_marketplace: unjucksTemplateMarketplace,
   unjucks_realtime_collab: unjucksRealtimeCollab,
-  unjucks_e2e_swarm: unjucksE2ESwarm
+  unjucks_e2e_swarm: unjucksE2ESwarm,
+  // Semantic tools
+  unjucks_semantic_validate: unjucksSemanticValidate,
+  unjucks_reasoning_apply: unjucksReasoningApply,
+  unjucks_knowledge_query: unjucksKnowledgeQuery,
+  unjucks_compliance_check: unjucksComplianceCheck
 } as const;
 
 export type ToolName = keyof typeof TOOL_IMPLEMENTATIONS;

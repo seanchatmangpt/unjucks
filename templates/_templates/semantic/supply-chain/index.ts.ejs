@@ -1,0 +1,704 @@
+---
+to: "<%= to || 'src/services/' + serviceName.toLowerCase().replace(/\s+/g, '-') %>.service.ts"
+ontologies:
+  gs1:
+    uri: "https://gs1.org/voc/"
+    version: "2023"
+    local: "./ontologies/gs1-digital-link.ttl"
+  epcis:
+    uri: "https://ref.gs1.org/epcis/"
+    version: "2.0"
+    local: "./ontologies/epcis-2.0.ttl"
+  cbv:
+    uri: "https://ref.gs1.org/cbv/"
+    version: "2.0"
+    local: "./ontologies/cbv-2.0.ttl"
+semanticValidation: true
+reasoning: "rdfs"
+compliance:
+  framework: "GS1"
+  version: "2023"
+  rules:
+    - "unique_identification"
+    - "interoperability"
+    - "data_quality"
+    - "privacy_protection"
+    - "authenticity"
+skipIf: "!withSupplyChain"
+---
+/**
+ * <%= serviceName %> Supply Chain Service
+ * 
+ * Generated from GS1 Digital Standards with EPCIS compliance
+ * Semantic validation: <%= $compliance.validationResults | json %>
+ * 
+ * @ontology GS1 Digital Standards (https://gs1.org/voc/)
+ * @compliance GS1 <%= $compliance.version %>, EPCIS 2.0
+ * @generated <%= new Date().toISOString() %>
+ */
+
+import { Logger } from '@/utils/logger';
+import { TraceabilityLogger } from '@/utils/traceability-logger';
+import { DigitalLinkService } from '@/services/digital-link.service';
+import { BlockchainService } from '@/services/blockchain.service';
+import { QualityAssuranceService } from '@/services/quality-assurance.service';
+
+// GS1 Digital Standards interfaces from ontology
+<% for (const concept of $ontologies.gs1.classes.filter(c => c.uri.includes('Product') || c.uri.includes('Location') || c.uri.includes('Organization'))) { -%>
+interface <%= concept.uri.split('/').pop() %> {
+  <% if (concept.properties.gtin) { -%>
+  gtin: string; // Global Trade Item Number
+  <% } -%>
+  <% if (concept.properties.gln) { -%>
+  gln: string; // Global Location Number
+  <% } -%>
+  <% if (concept.properties.sscc) { -%>
+  sscc: string; // Serial Shipping Container Code
+  <% } -%>
+  <% if (concept.properties.productName) { -%>
+  productName: string;
+  <% } -%>
+  <% if (concept.properties.brandName) { -%>
+  brandName?: string;
+  <% } -%>
+  <% if (concept.properties.netContent) { -%>
+  netContent?: {
+    value: number;
+    unitOfMeasure: string;
+  };
+  <% } -%>
+  <% if (concept.properties.productionDate) { -%>
+  productionDate?: Date;
+  <% } -%>
+  <% if (concept.properties.expirationDate) { -%>
+  expirationDate?: Date;
+  <% } -%>
+}
+
+<% } -%>
+
+// EPCIS Event structures
+interface EPCISEvent {
+  eventType: 'ObjectEvent' | 'AggregationEvent' | 'TransactionEvent' | 'TransformationEvent';
+  eventTime: Date;
+  eventTimeZoneOffset: string;
+  recordTime?: Date;
+  eventID: string;
+  errorDeclaration?: {
+    declarationTime: Date;
+    reason: string;
+    correctiveEventIDs: string[];
+  };
+}
+
+interface ObjectEvent extends EPCISEvent {
+  eventType: 'ObjectEvent';
+  epcList: string[];
+  action: 'ADD' | 'OBSERVE' | 'DELETE';
+  bizStep?: string;
+  disposition?: string;
+  readPoint?: {
+    id: string;
+  };
+  bizLocation?: {
+    id: string;
+  };
+  bizTransactionList?: Array<{
+    type: string;
+    bizTransaction: string;
+  }>;
+  quantityList?: Array<{
+    epcClass: string;
+    quantity: number;
+    uom?: string;
+  }>;
+}
+
+interface AggregationEvent extends EPCISEvent {
+  eventType: 'AggregationEvent';
+  parentID?: string;
+  childEPCs: string[];
+  action: 'ADD' | 'DELETE';
+  bizStep?: string;
+  disposition?: string;
+  readPoint?: {
+    id: string;
+  };
+  bizLocation?: {
+    id: string;
+  };
+}
+
+interface TransformationEvent extends EPCISEvent {
+  eventType: 'TransformationEvent';
+  inputEPCList?: string[];
+  inputQuantityList?: Array<{
+    epcClass: string;
+    quantity: number;
+    uom?: string;
+  }>;
+  outputEPCList?: string[];
+  outputQuantityList?: Array<{
+    epcClass: string;
+    quantity: number;
+    uom?: string;
+  }>;
+  transformationID?: string;
+  bizStep?: string;
+  disposition?: string;
+  readPoint?: {
+    id: string;
+  };
+  bizLocation?: {
+    id: string;
+  };
+}
+
+// Supply Chain tracking context
+interface SupplyChainContext {
+  traceabilityRequired: boolean;
+  qualityControlLevel: 'basic' | 'enhanced' | 'pharmaceutical';
+  blockchainEnabled: boolean;
+  sustainabilityTracking: boolean;
+  regulatoryCompliance: string[];
+}
+
+/**
+ * GS1-compliant <%= serviceName %> service
+ * Implements end-to-end supply chain visibility with EPCIS events
+ */
+export class <%= serviceName.replace(/\s+/g, '') %>Service {
+  private readonly logger = new Logger('<%= serviceName %>Service');
+  private readonly traceabilityLogger = new TraceabilityLogger();
+  private readonly digitalLink = new DigitalLinkService();
+  private readonly blockchain = new BlockchainService();
+  private readonly qualityAssurance = new QualityAssuranceService();
+
+  constructor() {
+    this.logger.info('Initializing <%= serviceName %> service with GS1 Digital Standards');
+  }
+
+  <% if (withProductTracking) { -%>
+  /**
+   * Register product with GS1 identifiers
+   * @ontology gs1:Product, gs1:GTIN
+   * @compliance GS1 unique_identification, data_quality
+   */
+  async registerProduct(
+    productData: {
+      gtin: string;
+      productName: string;
+      brandName?: string;
+      manufacturer: {
+        gln: string;
+        name: string;
+      };
+      netContent?: {
+        value: number;
+        unitOfMeasure: string;
+      };
+      productCategory: string;
+      lotNumber?: string;
+      serialNumber?: string;
+      productionDate?: Date;
+      expirationDate?: Date;
+    },
+    context: SupplyChainContext
+  ): Promise<{
+    digitalLink: string;
+    epcisEventId: string;
+    blockchainTxId?: string;
+  }> {
+    // Validate GTIN format
+    if (!this.validateGTIN(productData.gtin)) {
+      throw new Error(`Invalid GTIN format: ${productData.gtin}`);
+    }
+
+    // Validate GLN format
+    if (!this.validateGLN(productData.manufacturer.gln)) {
+      throw new Error(`Invalid GLN format: ${productData.manufacturer.gln}`);
+    }
+
+    // Create EPC (Electronic Product Code)
+    const epc = this.generateEPC({
+      gtin: productData.gtin,
+      lotNumber: productData.lotNumber,
+      serialNumber: productData.serialNumber
+    });
+
+    // Generate Digital Link
+    const digitalLink = await this.digitalLink.generateProductLink({
+      gtin: productData.gtin,
+      lot: productData.lotNumber,
+      ser: productData.serialNumber,
+      manufacturerGln: productData.manufacturer.gln
+    });
+
+    // Create EPCIS Object Event for product creation
+    const objectEvent: ObjectEvent = {
+      eventType: 'ObjectEvent',
+      eventTime: new Date(),
+      eventTimeZoneOffset: '+00:00',
+      recordTime: new Date(),
+      eventID: `urn:uuid:${this.generateUUID()}`,
+      epcList: [epc],
+      action: 'ADD',
+      bizStep: 'urn:epcglobal:cbv:bizstep:commissioning',
+      disposition: 'urn:epcglobal:cbv:disp:active',
+      readPoint: {
+        id: `urn:epc:id:sgln:${productData.manufacturer.gln}.0`
+      },
+      bizLocation: {
+        id: `urn:epc:id:sgln:${productData.manufacturer.gln}.0`
+      },
+      bizTransactionList: [
+        {
+          type: 'urn:epcglobal:cbv:btt:prodorder',
+          bizTransaction: `urn:epc:id:gdti:${productData.manufacturer.gln}.${Date.now()}`
+        }
+      ]
+    };
+
+    // Record EPCIS event
+    await this.recordEPCISEvent(objectEvent);
+
+    // Optional blockchain registration
+    let blockchainTxId: string | undefined;
+    if (context.blockchainEnabled) {
+      blockchainTxId = await this.blockchain.registerProduct({
+        epc,
+        gtin: productData.gtin,
+        digitalLink,
+        eventId: objectEvent.eventID,
+        timestamp: objectEvent.eventTime
+      });
+    }
+
+    // Log traceability event
+    await this.traceabilityLogger.logProductRegistration({
+      epc,
+      gtin: productData.gtin,
+      productName: productData.productName,
+      manufacturer: productData.manufacturer.name,
+      digitalLink,
+      eventId: objectEvent.eventID,
+      blockchainTxId,
+      timestamp: new Date()
+    });
+
+    return {
+      digitalLink,
+      epcisEventId: objectEvent.eventID,
+      blockchainTxId
+    };
+  }
+  <% } -%>
+
+  <% if (withMovementTracking) { -%>
+  /**
+   * Track product movement in supply chain
+   * @ontology epcis:ObjectEvent, gs1:Location
+   * @compliance GS1 interoperability, authenticity
+   */
+  async trackMovement(
+    movementData: {
+      epcs: string[];
+      action: 'OBSERVE' | 'ADD' | 'DELETE';
+      bizStep: string;
+      disposition: string;
+      fromLocation?: {
+        gln: string;
+        name: string;
+      };
+      toLocation: {
+        gln: string;
+        name: string;
+      };
+      businessTransaction?: {
+        type: string;
+        id: string;
+      };
+      temperature?: {
+        value: number;
+        unit: 'CELSIUS' | 'FAHRENHEIT';
+      };
+      humidity?: {
+        value: number;
+        unit: 'PERCENT';
+      };
+    },
+    context: SupplyChainContext
+  ): Promise<{
+    eventId: string;
+    digitalLinks: string[];
+    qualityStatus: 'PASS' | 'FAIL' | 'WARNING';
+  }> {
+    // Validate EPCs
+    for (const epc of movementData.epcs) {
+      if (!this.validateEPC(epc)) {
+        throw new Error(`Invalid EPC format: ${epc}`);
+      }
+    }
+
+    // Validate GLNs
+    if (movementData.fromLocation && !this.validateGLN(movementData.fromLocation.gln)) {
+      throw new Error(`Invalid source GLN: ${movementData.fromLocation.gln}`);
+    }
+    if (!this.validateGLN(movementData.toLocation.gln)) {
+      throw new Error(`Invalid destination GLN: ${movementData.toLocation.gln}`);
+    }
+
+    // Create EPCIS Object Event for movement
+    const objectEvent: ObjectEvent = {
+      eventType: 'ObjectEvent',
+      eventTime: new Date(),
+      eventTimeZoneOffset: '+00:00',
+      recordTime: new Date(),
+      eventID: `urn:uuid:${this.generateUUID()}`,
+      epcList: movementData.epcs,
+      action: movementData.action,
+      bizStep: movementData.bizStep,
+      disposition: movementData.disposition,
+      readPoint: {
+        id: `urn:epc:id:sgln:${movementData.toLocation.gln}.0`
+      },
+      bizLocation: {
+        id: `urn:epc:id:sgln:${movementData.toLocation.gln}.0`
+      }
+    };
+
+    // Add business transaction if provided
+    if (movementData.businessTransaction) {
+      objectEvent.bizTransactionList = [
+        {
+          type: movementData.businessTransaction.type,
+          bizTransaction: movementData.businessTransaction.id
+        }
+      ];
+    }
+
+    // Quality control checks
+    let qualityStatus: 'PASS' | 'FAIL' | 'WARNING' = 'PASS';
+    
+    if (context.qualityControlLevel !== 'basic') {
+      const qualityCheck = await this.qualityAssurance.checkEnvironmentalConditions({
+        temperature: movementData.temperature,
+        humidity: movementData.humidity,
+        location: movementData.toLocation.gln,
+        products: movementData.epcs
+      });
+      
+      qualityStatus = qualityCheck.overallStatus;
+      
+      if (qualityStatus === 'FAIL') {
+        // Create error declaration event
+        const errorEvent: ObjectEvent = {
+          ...objectEvent,
+          eventID: `urn:uuid:${this.generateUUID()}`,
+          errorDeclaration: {
+            declarationTime: new Date(),
+            reason: 'Quality control failure',
+            correctiveEventIDs: [objectEvent.eventID]
+          }
+        };
+        await this.recordEPCISEvent(errorEvent);
+      }
+    }
+
+    // Record EPCIS event
+    await this.recordEPCISEvent(objectEvent);
+
+    // Generate digital links for tracking
+    const digitalLinks: string[] = [];
+    for (const epc of movementData.epcs) {
+      const gtin = this.extractGTINFromEPC(epc);
+      const lot = this.extractLotFromEPC(epc);
+      const ser = this.extractSerialFromEPC(epc);
+      
+      const digitalLink = await this.digitalLink.generateTrackingLink({
+        gtin,
+        lot,
+        ser,
+        locationGln: movementData.toLocation.gln
+      });
+      digitalLinks.push(digitalLink);
+    }
+
+    // Log traceability event
+    await this.traceabilityLogger.logMovement({
+      epcs: movementData.epcs,
+      action: movementData.action,
+      fromLocation: movementData.fromLocation?.name,
+      toLocation: movementData.toLocation.name,
+      eventId: objectEvent.eventID,
+      qualityStatus,
+      timestamp: new Date()
+    });
+
+    return {
+      eventId: objectEvent.eventID,
+      digitalLinks,
+      qualityStatus
+    };
+  }
+  <% } -%>
+
+  <% if (withAggregation) { -%>
+  /**
+   * Handle product aggregation (e.g., palletization)
+   * @ontology epcis:AggregationEvent, gs1:SSCC
+   * @compliance GS1 interoperability, unique_identification
+   */
+  async aggregateProducts(
+    aggregationData: {
+      parentId?: string; // SSCC for container/pallet
+      childEPCs: string[];
+      action: 'ADD' | 'DELETE';
+      bizStep: string;
+      location: {
+        gln: string;
+        name: string;
+      };
+      aggregationType: 'PALLET' | 'CONTAINER' | 'CASE';
+    },
+    context: SupplyChainContext
+  ): Promise<{
+    eventId: string;
+    containerSSCC?: string;
+    aggregationComplete: boolean;
+  }> {
+    // Generate SSCC if not provided
+    let containerSSCC = aggregationData.parentId;
+    if (!containerSSCC && aggregationData.action === 'ADD') {
+      containerSSCC = this.generateSSCC(aggregationData.location.gln);
+    }
+
+    // Validate identifiers
+    if (containerSSCC && !this.validateSSCC(containerSSCC)) {
+      throw new Error(`Invalid SSCC format: ${containerSSCC}`);
+    }
+
+    for (const epc of aggregationData.childEPCs) {
+      if (!this.validateEPC(epc)) {
+        throw new Error(`Invalid EPC format: ${epc}`);
+      }
+    }
+
+    // Create EPCIS Aggregation Event
+    const aggregationEvent: AggregationEvent = {
+      eventType: 'AggregationEvent',
+      eventTime: new Date(),
+      eventTimeZoneOffset: '+00:00',
+      recordTime: new Date(),
+      eventID: `urn:uuid:${this.generateUUID()}`,
+      parentID: containerSSCC,
+      childEPCs: aggregationData.childEPCs,
+      action: aggregationData.action,
+      bizStep: aggregationData.bizStep,
+      disposition: 'urn:epcglobal:cbv:disp:in_transit',
+      readPoint: {
+        id: `urn:epc:id:sgln:${aggregationData.location.gln}.0`
+      },
+      bizLocation: {
+        id: `urn:epc:id:sgln:${aggregationData.location.gln}.0`
+      }
+    };
+
+    // Record EPCIS event
+    await this.recordEPCISEvent(aggregationEvent);
+
+    // Update blockchain if enabled
+    if (context.blockchainEnabled && containerSSCC) {
+      await this.blockchain.recordAggregation({
+        containerSSCC,
+        childEPCs: aggregationData.childEPCs,
+        action: aggregationData.action,
+        eventId: aggregationEvent.eventID,
+        timestamp: aggregationEvent.eventTime
+      });
+    }
+
+    await this.traceabilityLogger.logAggregation({
+      containerSSCC,
+      childEPCs: aggregationData.childEPCs,
+      action: aggregationData.action,
+      location: aggregationData.location.name,
+      eventId: aggregationEvent.eventID,
+      timestamp: new Date()
+    });
+
+    return {
+      eventId: aggregationEvent.eventID,
+      containerSSCC,
+      aggregationComplete: aggregationData.action === 'ADD'
+    };
+  }
+  <% } -%>
+
+  /**
+   * Query supply chain history
+   * @ontology epcis:Event
+   * @compliance GS1 authenticity, privacy_protection
+   */
+  async getSupplyChainHistory(
+    identifier: string,
+    options: {
+      includeChildren?: boolean;
+      includeParents?: boolean;
+      maxDepth?: number;
+      fromDate?: Date;
+      toDate?: Date;
+    } = {}
+  ): Promise<{
+    identifier: string;
+    events: EPCISEvent[];
+    digitalLinks: string[];
+    sustainabilityMetrics?: {
+      carbonFootprint: number;
+      recyclingRate: number;
+      ethicalSourcing: boolean;
+    };
+  }> {
+    // Query EPCIS events for the identifier
+    const events = await this.queryEPCISEvents(identifier, options);
+    
+    // Generate digital links for key events
+    const digitalLinks = await this.generateHistoryDigitalLinks(identifier, events);
+    
+    // Calculate sustainability metrics if tracking enabled
+    let sustainabilityMetrics;
+    if (options.includeChildren || options.includeParents) {
+      sustainabilityMetrics = await this.calculateSustainabilityMetrics(identifier, events);
+    }
+
+    return {
+      identifier,
+      events,
+      digitalLinks,
+      sustainabilityMetrics
+    };
+  }
+
+  // GS1 validation methods
+  private validateGTIN(gtin: string): boolean {
+    // GTIN validation with check digit
+    if (!/^\d{14}$/.test(gtin)) return false;
+    
+    let sum = 0;
+    for (let i = 0; i < 13; i++) {
+      sum += parseInt(gtin[i]) * (i % 2 === 0 ? 1 : 3);
+    }
+    const checkDigit = (10 - (sum % 10)) % 10;
+    return checkDigit === parseInt(gtin[13]);
+  }
+
+  private validateGLN(gln: string): boolean {
+    // GLN validation with check digit
+    if (!/^\d{13}$/.test(gln)) return false;
+    
+    let sum = 0;
+    for (let i = 0; i < 12; i++) {
+      sum += parseInt(gln[i]) * (i % 2 === 0 ? 1 : 3);
+    }
+    const checkDigit = (10 - (sum % 10)) % 10;
+    return checkDigit === parseInt(gln[12]);
+  }
+
+  private validateSSCC(sscc: string): boolean {
+    // SSCC validation with check digit
+    if (!/^\d{18}$/.test(sscc)) return false;
+    
+    let sum = 0;
+    for (let i = 0; i < 17; i++) {
+      sum += parseInt(sscc[i]) * (i % 2 === 0 ? 3 : 1);
+    }
+    const checkDigit = (10 - (sum % 10)) % 10;
+    return checkDigit === parseInt(sscc[17]);
+  }
+
+  private validateEPC(epc: string): boolean {
+    // Basic EPC URI validation
+    return epc.startsWith('urn:epc:id:sgtin:') || 
+           epc.startsWith('urn:epc:id:sscc:') ||
+           epc.startsWith('urn:epc:id:sgln:');
+  }
+
+  private generateEPC(data: { gtin: string; lotNumber?: string; serialNumber?: string }): string {
+    // Generate SGTIN-96 EPC
+    const companyPrefix = data.gtin.substring(1, 8);
+    const itemReference = data.gtin.substring(8, 13);
+    const serial = data.serialNumber || Date.now().toString();
+    
+    return `urn:epc:id:sgtin:${companyPrefix}.${itemReference}.${serial}`;
+  }
+
+  private generateSSCC(gln: string): string {
+    const extensionDigit = '0';
+    const companyPrefix = gln.substring(0, 7);
+    const serialReference = Date.now().toString().substring(-9);
+    const base = extensionDigit + companyPrefix + serialReference.padStart(9, '0');
+    
+    // Calculate check digit
+    let sum = 0;
+    for (let i = 0; i < 17; i++) {
+      sum += parseInt(base[i]) * (i % 2 === 0 ? 3 : 1);
+    }
+    const checkDigit = (10 - (sum % 10)) % 10;
+    
+    return base + checkDigit.toString();
+  }
+
+  private generateUUID(): string {
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+      const r = Math.random() * 16 | 0;
+      const v = c === 'x' ? r : (r & 0x3 | 0x8);
+      return v.toString(16);
+    });
+  }
+
+  private extractGTINFromEPC(epc: string): string {
+    // Extract GTIN from SGTIN EPC
+    const match = epc.match(/urn:epc:id:sgtin:(\d{7})\.(\d{5})\.\d+/);
+    if (match) {
+      return '0' + match[1] + match[2] + '0'; // Simplified
+    }
+    return '';
+  }
+
+  private extractLotFromEPC(epc: string): string | undefined {
+    // Implementation would extract lot from EPC if present
+    return undefined;
+  }
+
+  private extractSerialFromEPC(epc: string): string | undefined {
+    const match = epc.match(/\.(\d+)$/);
+    return match ? match[1] : undefined;
+  }
+
+  private async recordEPCISEvent(event: EPCISEvent): Promise<void> {
+    // Implementation would store in EPCIS repository
+    this.logger.info(`Recording EPCIS event: ${event.eventID}`);
+  }
+
+  private async queryEPCISEvents(identifier: string, options: any): Promise<EPCISEvent[]> {
+    // Implementation would query EPCIS repository
+    this.logger.debug(`Querying EPCIS events for: ${identifier}`);
+    return [];
+  }
+
+  private async generateHistoryDigitalLinks(identifier: string, events: EPCISEvent[]): Promise<string[]> {
+    // Generate digital links for historical events
+    return events.map(event => `https://id.gs1.org/${identifier}?event=${event.eventID}`);
+  }
+
+  private async calculateSustainabilityMetrics(identifier: string, events: EPCISEvent[]): Promise<any> {
+    // Calculate sustainability metrics from supply chain data
+    return {
+      carbonFootprint: 0,
+      recyclingRate: 0,
+      ethicalSourcing: true
+    };
+  }
+}
+
+export default <%= serviceName.replace(/\s+/g, '') %>Service;
