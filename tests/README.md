@@ -109,3 +109,4 @@ expect(content).toContain('MyComponent');
 - **@performance**: Performance and timing tests
 - **@requires-build**: Tests requiring built project
 - **@requires-fixtures**: Tests using specific fixtures
+

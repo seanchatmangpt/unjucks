@@ -127,6 +127,13 @@ describe('RDFDataLoader', () => {
       
       const result = await loader.loadFromSource(source);
       
+      console.log('Test result:', { 
+        success: result.success, 
+        errors: result.errors,
+        subjectsKeys: Object.keys(result.data.subjects),
+        variables: result.variables
+      });
+      
       expect(result.success).toBe(true);
       expect(result.data.subjects).toHaveProperty('http://example.org/InlineTest');
     });

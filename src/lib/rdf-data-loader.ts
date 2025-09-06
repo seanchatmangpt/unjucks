@@ -759,23 +759,23 @@ export class RDFDataLoader {
     }
   }
 
-  private convertQuadsToTurtleData(quads: Quad[]): TurtleData {
+  private convertTurtleParseResultToTurtleData(parseResult: TurtleParseResult): TurtleData {
     const subjects: Record<string, RDFResource> = {};
     const predicates = new Set<string>();
-    const prefixes: Record<string, string> = {};
     
-    // Add default prefixes
-    Object.assign(prefixes, {
+    // Start with parsed prefixes and add default ones
+    const prefixes: Record<string, string> = {
+      ...parseResult.prefixes,
       rdf: CommonVocabularies.RDF,
       rdfs: CommonVocabularies.RDFS,
       owl: CommonVocabularies.OWL,
       xsd: CommonVocabularies.XSD
-    });
+    };
     
-    for (const quad of quads) {
-      const subjectUri = quad.subject.value;
-      const predicateUri = quad.predicate.value;
-      const objectValue = this.convertRDFNode(quad.object);
+    for (const triple of parseResult.triples) {
+      const subjectUri = triple.subject.value;
+      const predicateUri = triple.predicate.value;
+      const objectValue = this.convertParsedTermToRDFValue(triple.object);
       
       predicates.add(predicateUri);
       
@@ -802,6 +802,14 @@ export class RDFDataLoader {
       }
     }
     
+    // Convert ParsedTriples to Quads for compatibility (this is a simplification)
+    const quads: Quad[] = parseResult.triples.map(triple => ({
+      subject: { termType: 'NamedNode' as const, value: triple.subject.value },
+      predicate: { termType: 'NamedNode' as const, value: triple.predicate.value },
+      object: this.convertParsedTermToQuadObject(triple.object),
+      graph: { termType: 'DefaultGraph' as const, value: '' }
+    })) as Quad[];
+    
     return {
       subjects,
       predicates,
@@ -810,24 +818,27 @@ export class RDFDataLoader {
     };
   }
 
-  private convertRDFNode(node: NamedNode | BlankNode | Literal): RDFValue {
-    if (node.termType === 'Literal') {
-      return {
-        value: node.value,
-        type: 'literal',
-        datatype: node.datatype?.value,
-        language: node.language || undefined
-      };
-    } else if (node.termType === 'NamedNode') {
-      return {
-        value: node.value,
-        type: 'uri'
-      };
+  private convertParsedTermToRDFValue(term: any): RDFValue {
+    return {
+      value: term.value,
+      type: term.type,
+      datatype: term.datatype,
+      language: term.language
+    };
+  }
+
+  private convertParsedTermToQuadObject(term: any): NamedNode | BlankNode | Literal {
+    if (term.type === 'uri') {
+      return { termType: 'NamedNode', value: term.value } as NamedNode;
+    } else if (term.type === 'blank') {
+      return { termType: 'BlankNode', value: term.value } as BlankNode;
     } else {
       return {
-        value: node.value,
-        type: 'blank'
-      };
+        termType: 'Literal',
+        value: term.value,
+        datatype: term.datatype ? { termType: 'NamedNode', value: term.datatype } : undefined,
+        language: term.language || ''
+      } as Literal;
     }
   }
 
@@ -1000,25 +1011,13 @@ export class RDFDataLoader {
   }
 
   private convertToJavaScriptValue(rdfValue: RDFValue): any {
-    if (rdfValue.type === 'literal') {
-      switch (rdfValue.datatype) {
-        case `${CommonVocabularies.XSD}integer`:
-        case `${CommonVocabularies.XSD}int`:
-          return parseInt(rdfValue.value, 10);
-        case `${CommonVocabularies.XSD}decimal`:
-        case `${CommonVocabularies.XSD}double`:
-        case `${CommonVocabularies.XSD}float`:
-          return parseFloat(rdfValue.value);
-        case `${CommonVocabularies.XSD}boolean`:
-          return rdfValue.value === 'true';
-        case `${CommonVocabularies.XSD}date`:
-        case `${CommonVocabularies.XSD}dateTime`:
-          return new Date(rdfValue.value);
-        default:
-          return rdfValue.value;
-      }
-    }
-    return rdfValue.value;
+    // Use TurtleUtils for conversion
+    return TurtleUtils.convertLiteralValue({
+      type: rdfValue.type,
+      value: rdfValue.value,
+      datatype: rdfValue.datatype,
+      language: rdfValue.language
+    });
   }
 
   /**
