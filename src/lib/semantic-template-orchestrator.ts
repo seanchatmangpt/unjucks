@@ -3,10 +3,11 @@
  * E2E integration of RDF type conversion with Unjucks code generation
  */
 
-import { RDFTypeConverter, TypeDefinition } from './rdf-type-converter.js';
+import { RDFTypeConverter, TypeDefinition, PropertyDefinition as RDFPropertyDefinition } from './rdf-type-converter.js';
 import { FrontmatterParser, ParsedTemplate } from './frontmatter-parser.js';
 import { FileInjector } from './file-injector.js';
 import { TemplateScanner } from './template-scanner.js';
+import { PropertyDefinition } from './semantic-template-engine.js';
 import nunjucks from 'nunjucks';
 import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
@@ -278,7 +279,7 @@ export class SemanticTemplateOrchestrator {
    */
   private async discoverSemanticTemplates(): Promise<SemanticTemplate[]> {
     const templates: SemanticTemplate[] = [];
-    const templateFiles = await this.templateScanner.scanTemplates(this.config.templateDir!);
+    const templateFiles = await this.templateScanner.scanTemplate(this.config.templateDir!);
 
     for (const templateFile of templateFiles) {
       try {
@@ -560,7 +561,7 @@ model ${type.name} {
     });
 
     // Property constraint filters
-    this.nunjucksEnv.addFilter('zodConstraints', (property: PropertyDefinition) => {
+    this.nunjucksEnv.addFilter('zodConstraints', (property: RDFPropertyDefinition) => {
       const constraints: string[] = [];
       
       if (property.constraints?.minLength) {
@@ -592,12 +593,11 @@ model ${type.name} {
     const files: string[] = [];
     
     for (const pattern of patterns) {
-      const matches = await new Promise<string[]>((resolve) => {
-        const glob = new Glob(pattern, { ignore: ['node_modules/**', '.git/**'] });
-        const results: string[] = [];
-        glob.on('match', (match) => results.push(match));
-        glob.on('end', () => resolve(results));
-      });
+      const glob = new Glob(pattern, { ignore: ['node_modules/**', '.git/**'] });
+      const matches = [];
+      for await (const match of glob) {
+        matches.push(match);
+      }
       files.push(...matches);
     }
     
@@ -646,7 +646,7 @@ model ${type.name} {
 
   private async renderSemanticTemplate(template: SemanticTemplate, context: any): Promise<GeneratedFile[]> {
     // Implementation depends on template structure
-    const rendered = this.nunjucksEnv.renderString(template.parsed.body, context);
+    const rendered = this.nunjucksEnv.renderString(template.parsed.content, context);
     
     return [{
       path: this.resolveOutputPath(template.parsed.frontmatter.to || `${template.name}.generated.ts`),
@@ -660,7 +660,8 @@ model ${type.name} {
     return path.resolve(this.config.outputDir!, relativePath);
   }
 
-  private getInputType(prop: PropertyDefinition): string {
+  private getInputType(prop: RDFPropertyDefinition): string {
+    // Handle TypescriptType which can be string, object, or complex type
     if (typeof prop.type === 'string') {
       switch (prop.type) {
         case 'number': return 'number';
@@ -668,11 +669,15 @@ model ${type.name} {
         case 'Date': return 'date';
         default: return 'text';
       }
+    } else if (prop.type && typeof prop.type === 'object') {
+      // Handle complex types like { interface: string }, { union: TypescriptType[] }, { literal: string }
+      return 'text';
     }
     return 'text';
   }
 
-  private getPrismaType(prop: PropertyDefinition): string {
+  private getPrismaType(prop: RDFPropertyDefinition): string {
+    // Handle TypescriptType which can be string, object, or complex type
     if (typeof prop.type === 'string') {
       switch (prop.type) {
         case 'string': return 'String';
@@ -685,7 +690,7 @@ model ${type.name} {
     return 'String';
   }
 
-  private getPrismaConstraints(prop: PropertyDefinition): string {
+  private getPrismaConstraints(prop: RDFPropertyDefinition): string {
     const constraints: string[] = [];
     
     if (prop.constraints?.format === 'email') {

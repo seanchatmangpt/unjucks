@@ -10,6 +10,7 @@ import { performance } from 'perf_hooks';
 import {
   ValidationResult,
   ValidationError,
+  ValidationWarning,
   ValidationConfig,
   ValidationItem,
   ValidationMetadata,
@@ -70,7 +71,7 @@ export class SemanticValidator implements Validator {
     const startTime = performance.now();
     const validationConfig = { ...this.config, ...config };
     const errors: ValidationError[] = [];
-    const warnings: ValidationError[] = [];
+    const warnings: ValidationWarning[] = [];
     
     // Check cache first
     const cacheKey = this.generateCacheKey(content, validationConfig);
@@ -98,11 +99,11 @@ export class SemanticValidator implements Validator {
       
       errors.push(...syntaxErrors, ...semanticErrors, ...referenceErrors, ...typeErrors, ...constraintErrors);
       
-      // Check for warnings
+      // Performance and style warnings
       const performanceWarnings = await this.checkPerformanceIssues(context);
       const styleWarnings = await this.checkStyleIssues(quads);
-      
       warnings.push(...performanceWarnings, ...styleWarnings);
+      
       
       const duration = performance.now() - startTime;
       const statistics = this.generateStatistics(quads, context, duration);
@@ -340,8 +341,8 @@ export class SemanticValidator implements Validator {
   /**
    * Check for performance issues
    */
-  private async checkPerformanceIssues(context: RdfValidationContext): Promise<ValidationError[]> {
-    const warnings: ValidationError[] = [];
+  private async checkPerformanceIssues(context: RdfValidationContext): Promise<ValidationWarning[]> {
+    const warnings: ValidationWarning[] = [];
     
     // Check for large number of triples
     if (context.tripleCount > 10000) {
@@ -349,7 +350,6 @@ export class SemanticValidator implements Validator {
         type: 'performance_concern',
         message: `Large number of triples (${context.tripleCount}) may impact performance`,
         code: 'LARGE_GRAPH',
-        severity: 'warning',
         suggestion: 'Consider splitting into multiple files or using streaming processing'
       });
     }
@@ -360,7 +360,6 @@ export class SemanticValidator implements Validator {
         type: 'performance_concern',
         message: 'High predicate diversity may impact query performance',
         code: 'HIGH_PREDICATE_DIVERSITY',
-        severity: 'warning',
         suggestion: 'Consider normalizing predicates or using property hierarchies'
       });
     }
@@ -371,8 +370,8 @@ export class SemanticValidator implements Validator {
   /**
    * Check for style issues
    */
-  private async checkStyleIssues(quads: Quad[]): Promise<ValidationError[]> {
-    const warnings: ValidationError[] = [];
+  private async checkStyleIssues(quads: Quad[]): Promise<ValidationWarning[]> {
+    const warnings: ValidationWarning[] = [];
     
     // Check for consistent naming conventions
     const namingIssues = this.checkNamingConventions(quads);
@@ -576,8 +575,8 @@ export class SemanticValidator implements Validator {
     return [];
   }
 
-  private checkNamingConventions(quads: Quad[]): ValidationError[] {
-    const warnings: ValidationError[] = [];
+  private checkNamingConventions(quads: Quad[]): ValidationWarning[] {
+    const warnings: ValidationWarning[] = [];
     
     for (const quad of quads) {
       if (quad.subject.termType === 'NamedNode') {
@@ -587,8 +586,7 @@ export class SemanticValidator implements Validator {
             type: 'style_issue',
             message: `Consider using hyphens instead of underscores in URI: ${uri}`,
             code: 'NAMING_CONVENTION',
-            severity: 'info',
-            suggestion: 'Use kebab-case for better URI readability'
+                suggestion: 'Use kebab-case for better URI readability'
           });
         }
       }
@@ -738,7 +736,7 @@ export class SemanticValidationPipelineImpl implements SemanticValidationPipelin
             results.set(item.id, result);
           } catch (error) {
             errors.push({
-              type: 'validation_error',
+              type: 'semantic_error',
               message: `Failed to validate item ${item.id}: ${(error as Error).message}`,
               code: 'BATCH_VALIDATION_ERROR',
               severity: 'error',
@@ -757,7 +755,7 @@ export class SemanticValidationPipelineImpl implements SemanticValidationPipelin
           results.set(item.id, result);
         } catch (error) {
           errors.push({
-            type: 'validation_error',
+            type: 'semantic_error',
             message: `Failed to validate item ${item.id}: ${(error as Error).message}`,
             code: 'BATCH_VALIDATION_ERROR',
             severity: 'error',

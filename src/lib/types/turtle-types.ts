@@ -214,3 +214,36 @@ export interface RDFTemplateContext extends Record<string, any> {
   // Original template variables
   [key: string]: any;
 }
+
+export interface SemanticValidationResult {
+  valid: boolean;
+  errors: Array<{
+    code: string;
+    message: string;
+    severity: 'error' | 'warning' | 'info';
+  }>;
+  warnings: Array<{
+    code: string;
+    message: string;
+    severity: 'error' | 'warning' | 'info';
+  }>;
+  metadata: Record<string, any>;
+}
+
+export interface CrossOntologyMapping {
+  sourceOntology: string;
+  targetOntology: string;
+  mappings: Array<{
+    sourceProperty: string;
+    targetProperty: string;
+    confidence: number;
+  }>;
+}
+
+export interface EnterprisePerformanceMetrics {
+  processingTime: number;
+  renderTime: number;
+  memoryUsage: number;
+  triplesProcessed: number;
+  ontologiesLoaded: number;
+}

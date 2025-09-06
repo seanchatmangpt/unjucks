@@ -76,7 +76,7 @@ export class FileInjector {
     
     // SECURITY: Check file size limits
     try {
-      if (await fs.pathExists(sanitizedPath)) {
+      if (sanitizedPath && await fs.pathExists(sanitizedPath)) {
         const stats = await fs.stat(sanitizedPath);
         if (stats.size > MAX_FILE_SIZE) {
           this.templateDepth--;
@@ -101,6 +101,9 @@ export class FileInjector {
     );
 
     try {
+      if (!sanitizedPath) {
+        throw new Error('Sanitized path is required');
+      }
       const processPromise = this.processFileInternal(sanitizedPath, content, frontmatter, options);
       const result = await Promise.race([processPromise, timeoutPromise]);
       return result;
@@ -546,24 +549,30 @@ export class FileInjector {
       }
       
       // SECURITY: Verify file exists and we have permission to change it
-      if (!(await fs.pathExists(pathCheck.sanitizedPath))) {
-        console.error(`File does not exist: ${pathCheck.sanitizedPath}`);
+      const sanitizedPath = pathCheck.sanitizedPath;
+      if (!sanitizedPath) {
+        console.error('Sanitized path is undefined');
+        return false;
+      }
+      
+      if (!(await fs.pathExists(sanitizedPath))) {
+        console.error(`File does not exist: ${sanitizedPath}`);
         return false;
       }
       
       // Check if we can access the file before trying to change permissions
       try {
-        await fs.access(pathCheck.sanitizedPath, fs.constants.F_OK);
+        await fs.access(sanitizedPath, fs.constants.F_OK);
       } catch (error) {
-        console.error(`Cannot access file for chmod: ${pathCheck.sanitizedPath}`);
+        console.error(`Cannot access file for chmod: ${sanitizedPath}`);
         return false;
       }
 
-      await fs.chmod(pathCheck.sanitizedPath, mode);
+      await fs.chmod(sanitizedPath, mode);
       
       // SECURITY: Verify the permissions were actually set
       try {
-        const stats = await fs.stat(pathCheck.sanitizedPath);
+        const stats = await fs.stat(sanitizedPath);
         const actualMode = stats.mode & 0o7777;
         
         // The actual mode might differ due to umask, but should include our bits
@@ -654,7 +663,7 @@ export class FileInjector {
         }
       } catch (error) {
         // If existing operation failed or timed out, remove the stale lock
-        if (error && error.message?.includes('timeout')) {
+        if (error && typeof error === 'object' && 'message' in error && typeof (error as any).message === 'string' && (error as any).message.includes('timeout')) {
           this.fileLocks.delete(normalizedPath);
           break;
         }

@@ -28,6 +28,8 @@
     "build:version": "node scripts/build-with-version.js",
     "build:publish": "node scripts/build-with-version.js --publish",
     "build:dry": "node scripts/build-with-version.js --dry-run",
+    "build:remote": "node scripts/trigger-build.js",
+    "build:remote:dry": "node scripts/trigger-build.js --dry-run",
     "version:auto": "node scripts/auto-version.js",
     "version:auto:dry": "node scripts/auto-version.js --dry-run",
     "prepare": "npm run build",

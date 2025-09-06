@@ -75,13 +75,14 @@ export class FrontmatterParser {
   constructor(enableValidation: boolean = false) {
     if (enableValidation) {
       this.semanticValidator = new SemanticValidator({
-        performanceThresholds: {
-          maxTriples: 100000,
-          maxMemoryMB: 2048,
-          maxProcessingTimeMs: 5000,
-          maxQueryLatencyMs: 100
-        },
-        enabledCompliances: ['GDPR', 'HIPAA', 'SOX']
+        strictMode: true,
+        maxErrors: 100,
+        timeout: 5000,
+        memoryLimit: 2048,
+        enablePerformanceMetrics: true,
+        cacheEnabled: true,
+        parallelProcessing: false,
+        validationRules: []
       });
     }
   }

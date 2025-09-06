@@ -217,7 +217,7 @@ export class SemanticTemplateEngine {
 
     try {
       // Parse frontmatter with semantic configuration
-      const parsed = this.frontmatterParser.parse(templateContent);
+      const parsed = await this.frontmatterParser.parse(templateContent);
       
       if (!parsed.hasValidFrontmatter) {
         warnings.push('Template has no valid frontmatter configuration');
@@ -228,7 +228,7 @@ export class SemanticTemplateEngine {
       
       // Merge variables with semantic enhancement
       const enhancedVariables = await this.enhanceVariablesWithSemantics(
-        { ...options.variables, ...rdfContext.variables },
+        { ...options.variables, ...(rdfContext.variables || {}) },
         rdfContext.data,
         parsed.frontmatter
       );
@@ -538,7 +538,7 @@ export class SemanticTemplateEngine {
   /**
    * Load RDF context from frontmatter configuration
    */
-  private async loadRDFContext(frontmatter: FrontmatterConfig) {
+  private async loadRDFContext(frontmatter: FrontmatterConfig): Promise<RDFDataLoadResult> {
     try {
       const rdfResult = await this.rdfDataLoader.loadFromFrontmatter(frontmatter);
       
@@ -546,7 +546,10 @@ export class SemanticTemplateEngine {
         console.warn('Failed to load RDF context:', rdfResult.errors);
         return {
           data: { subjects: {}, predicates: new Set(), triples: [], prefixes: {} },
-          variables: {}
+          variables: {},
+          metadata: {},
+          success: false,
+          errors: rdfResult.errors || []
         };
       }
 
@@ -560,7 +563,10 @@ export class SemanticTemplateEngine {
       console.warn('RDF context loading error:', error);
       return {
         data: { subjects: {}, predicates: new Set(), triples: [], prefixes: {} },
-        variables: {}
+        variables: {},
+        metadata: {},
+        success: false,
+        errors: [error instanceof Error ? error.message : 'Unknown error loading RDF context']
       };
     }
   }

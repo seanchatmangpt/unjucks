@@ -26,6 +26,7 @@ export interface PropertyDefinition {
   description?: string;
   constraints?: PropertyConstraints;
   examples?: any[];
+  inherits?: boolean; // Add missing property for semantic-template-orchestrator compatibility
 }
 
 export interface PropertyConstraints {
@@ -86,7 +87,12 @@ export class RDFSchemaAnalyzer {
         } else {
           // Parsing complete
           if (prefixes) {
-            this.prefixes = { ...this.prefixes, ...prefixes };
+            // Convert NamedNode values to strings for prefixes
+            const stringPrefixes: Record<string, string> = {};
+            for (const [key, value] of Object.entries(prefixes)) {
+              stringPrefixes[key] = typeof value === 'string' ? value : value.value;
+            }
+            this.prefixes = { ...this.prefixes, ...stringPrefixes };
           }
           resolve();
         }

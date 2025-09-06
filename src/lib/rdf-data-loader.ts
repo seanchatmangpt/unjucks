@@ -26,6 +26,8 @@ interface CacheEntry {
  * Options for RDFDataLoader
  */
 export interface RDFDataLoaderOptions {
+  /** Base URI for resolving relative URIs */
+  baseUri?: string;
   /** Default TTL for cache entries in milliseconds (default: 5 minutes) */
   defaultTTL?: number;
   /** Maximum cache size (default: 100 entries) */
@@ -34,6 +36,8 @@ export interface RDFDataLoaderOptions {
   enableCleanup?: boolean;
   /** Cache cleanup interval in milliseconds (default: 1 minute) */
   cleanupInterval?: number;
+  /** Enable cache functionality */
+  cacheEnabled?: boolean;
 }
 
 /**
