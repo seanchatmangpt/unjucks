@@ -1,4 +1,5 @@
 import yaml from "yaml";
+import type { RDFDataSource } from "./types/turtle-types.js";
 
 export interface FrontmatterConfig {
   to?: string;
@@ -11,6 +12,21 @@ export interface FrontmatterConfig {
   skipIf?: string;
   chmod?: string | number;
   sh?: string | string[];
+  
+  // RDF/Turtle data source configurations
+  rdf?: RDFDataSource | string;
+  turtle?: RDFDataSource | string;
+  turtleData?: string;
+  rdfData?: string;
+  
+  // RDF-specific options
+  rdfBaseUri?: string;
+  rdfPrefixes?: Record<string, string>;
+  rdfQuery?: {
+    subject?: string;
+    predicate?: string;
+    object?: string;
+  };
 }
 
 export interface ParsedTemplate {
@@ -95,10 +111,85 @@ export class FrontmatterParser {
         }
     }
 
+    // Validate RDF configuration
+    if (frontmatter.rdf && typeof frontmatter.rdf === 'object') {
+      if (!frontmatter.rdf.source) {
+        errors.push("RDF configuration requires a 'source' property");
+      }
+      if (frontmatter.rdf.type && !['file', 'inline', 'uri'].includes(frontmatter.rdf.type)) {
+        errors.push("RDF type must be 'file', 'inline', or 'uri'");
+      }
+    }
+
+    if (frontmatter.turtle && typeof frontmatter.turtle === 'object') {
+      if (!frontmatter.turtle.source) {
+        errors.push("Turtle configuration requires a 'source' property");
+      }
+      if (frontmatter.turtle.type && !['file', 'inline', 'uri'].includes(frontmatter.turtle.type)) {
+        errors.push("Turtle type must be 'file', 'inline', or 'uri'");
+      }
+    }
+
+    // Validate RDF base URI format
+    if (frontmatter.rdfBaseUri && !this.isValidUri(frontmatter.rdfBaseUri)) {
+      errors.push("rdfBaseUri must be a valid URI");
+    }
+
     return {
       valid: errors.length === 0,
       errors,
     };
+  }
+
+  /**
+   * Check if frontmatter contains RDF configuration
+   */
+  hasRDFConfig(frontmatter: FrontmatterConfig): boolean {
+    return !!(
+      frontmatter.rdf ||
+      frontmatter.turtle ||
+      frontmatter.turtleData ||
+      frontmatter.rdfData
+    );
+  }
+
+  /**
+   * Extract RDF configuration from frontmatter
+   */
+  getRDFConfig(frontmatter: FrontmatterConfig): RDFDataSource | null {
+    if (frontmatter.rdf) {
+      if (typeof frontmatter.rdf === 'string') {
+        return { type: 'file', source: frontmatter.rdf };
+      }
+      return frontmatter.rdf;
+    }
+
+    if (frontmatter.turtle) {
+      if (typeof frontmatter.turtle === 'string') {
+        return { type: 'file', source: frontmatter.turtle, format: 'text/turtle' };
+      }
+      return { ...frontmatter.turtle, format: 'text/turtle' };
+    }
+
+    if (frontmatter.turtleData || frontmatter.rdfData) {
+      return {
+        type: 'inline',
+        source: frontmatter.turtleData || frontmatter.rdfData!,
+        format: 'text/turtle'
+      };
+    }
+
+    return null;
+  }
+
+  private isValidUri(uri: string): boolean {
+    try {
+      new URL(uri);
+      return true;
+    } catch {
+      // Also accept relative URIs or namespace patterns
+      return uri.includes(':') || uri.startsWith('/');
+    }
   }
 
   /**

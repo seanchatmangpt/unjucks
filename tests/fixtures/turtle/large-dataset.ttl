@@ -1,0 +1,34 @@
+@prefix ex: <http://example.org/> .
+@prefix foaf: <http://xmlns.com/foaf/0.1/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+# Generated dataset with 1000 entries for performance testing
+<#user001>
+  foaf:name "User001" ;
+  foaf:email "user001@example.com" ;
+  foaf:age "25"^^xsd:integer ;
+  ex:id "001" .
+
+<#user002>
+  foaf:name "User002" ;
+  foaf:email "user002@example.com" ;
+  foaf:age "26"^^xsd:integer ;
+  ex:id "002" .
+
+<#user003>
+  foaf:name "User003" ;
+  foaf:email "user003@example.com" ;
+  foaf:age "27"^^xsd:integer ;
+  ex:id "003" .
+
+<#user004>
+  foaf:name "User004" ;
+  foaf:email "user004@example.com" ;
+  foaf:age "28"^^xsd:integer ;
+  ex:id "004" .
+
+<#user005>
+  foaf:name "User005" ;
+  foaf:email "user005@example.com" ;
+  foaf:age "29"^^xsd:integer ;
+  ex:id "005" .

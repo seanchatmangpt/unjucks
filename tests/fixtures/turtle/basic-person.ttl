@@ -1,0 +1,18 @@
+@prefix foaf: <http://xmlns.com/foaf/0.1/> .
+@prefix schema: <https://schema.org/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+<#person1>
+  foaf:name "John Doe" ;
+  foaf:email "john.doe@example.com" ;
+  foaf:age "30"^^xsd:integer ;
+  schema:jobTitle "Software Engineer" ;
+  schema:organization "TechCorp Inc" ;
+  foaf:knows <#person2> .
+
+<#person2>
+  foaf:name "Jane Smith" ;
+  foaf:email "jane.smith@example.com" ;
+  foaf:age "28"^^xsd:integer ;
+  schema:jobTitle "Product Manager" ;
+  schema:organization "TechCorp Inc" .
