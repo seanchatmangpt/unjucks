@@ -23,6 +23,7 @@ export default defineConfig({
     setupFiles: ['./tests/setup/cucumber-setup.ts'],
     // Coverage configuration
     coverage: {
+      provider: 'v8',
       reporter: ['text', 'json', 'html'],
       include: ['src/**/*.ts'],
       exclude: [

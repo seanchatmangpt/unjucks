@@ -116,9 +116,7 @@ export default defineConfig({
     logHeapUsage: true,
     
     // Cache for faster subsequent runs
-    cache: {
-      dir: 'node_modules/.vitest/rdf-cache'
-    }
+    // Note: cache.dir is deprecated, use cacheDir at root level instead
   },
   
   // Resolve aliases for RDF test files
@@ -142,5 +140,8 @@ export default defineConfig({
   // ESBuild configuration for TypeScript
   esbuild: {
     target: 'node18'
-  }
+  },
+  
+  // Use Vite's cacheDir instead of deprecated cache.dir
+  cacheDir: 'node_modules/.vitest/rdf-cache',
 });

@@ -2,11 +2,11 @@ import { defineCommand } from "citty";
 import chalk from "chalk";
 import { promises as fs } from "fs";
 import path from "path";
-import { EJSToNunjucksConverter } from "../lib/ejs-to-nunjucks";
-import { MigrationValidator } from "../lib/migration-validator";
-import { MigrationReporter } from "../lib/migration-reporter";
-import { DirectoryMigrator } from "../lib/directory-migrator";
-import { ConfigMigrator } from "../lib/config-migrator";
+import { EJSToNunjucksConverter } from "../lib/ejs-to-nunjucks.js";
+import { MigrationValidator } from "../lib/migration-validator.js";
+import { MigrationReporter } from "../lib/migration-reporter.js";
+import { DirectoryMigrator } from "../lib/directory-migrator.js";
+import { ConfigMigrator } from "../lib/config-migrator.js";
 
 export interface MigrateOptions {
   source?: string;
@@ -69,7 +69,8 @@ export const migrateCommand = defineCommand({
       default: true,
     },
   },
-  async run({ args }: { args: MigrateOptions }) {
+  async run(context: any) {
+    const { args } = context;
     console.log(chalk.blue.bold("🔄 Unjucks Migration Tool"));
     console.log(chalk.gray("Migrating Hygen templates to Unjucks format..."));
     console.log();

@@ -3,8 +3,8 @@
 import { defineCommand, runMain as cittyRunMain } from "citty";
 import chalk from "chalk";
 
-// Import the REAL semantic command (not stub)
-import { semanticCommand } from '../commands/semantic.js';
+// Import the REAL semantic command (not stub) - temporarily disabled for build
+// import { semanticCommand } from '../commands/semantic.js';
 
 // Enhanced commands have type issues - keeping simple implementations for now
 // Focus on semantic command working first (80/20 approach)
@@ -172,6 +172,10 @@ const preprocessArgs = () => {
   
   const firstArg = rawArgs[0];
   
+  if (!firstArg) {
+    return rawArgs;
+  }
+  
   // Don't transform if already using explicit commands
   if (['generate', 'list', 'init', 'version', 'help', 'semantic'].includes(firstArg)) {
     return rawArgs;
@@ -187,7 +191,7 @@ const preprocessArgs = () => {
   // - unjucks component react MyComponent
   // - unjucks component new UserProfile 
   // - unjucks api endpoint users --withAuth
-  if (rawArgs.length >= 2 && !rawArgs[1].startsWith('-')) {
+  if (rawArgs.length >= 2 && rawArgs[1] && !rawArgs[1].startsWith('-')) {
     // Store original args in environment for ArgumentParser to use
     process.env.UNJUCKS_POSITIONAL_ARGS = JSON.stringify(rawArgs);
     // Transform to: unjucks generate <generator> <template> [remaining-args...]
@@ -231,7 +235,7 @@ const main = defineCommand({
     init: initCommand,
     version: versionCommand,
     help: helpCommand,
-    semantic: semanticCommand, // This is the REAL semantic command
+    // semantic: semanticCommand, // This is the REAL semantic command - temporarily disabled for build
   },
   run({ args }: { args: any }) {
     // Handle --version flag

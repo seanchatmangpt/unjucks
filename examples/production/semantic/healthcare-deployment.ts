@@ -4,9 +4,9 @@
  * Handles patient data, clinical workflows, and healthcare interoperability
  */
 
-import { UnjucksGenerator } from '../../../src/lib/generator';
-import { RDFDataLoader } from '../../../src/lib/rdf-data-loader';
-import { N3 } from 'n3';
+import { UnjucksGenerator } from '../../../src/lib/generator.js';
+import { RDFDataLoader } from '../../../src/lib/rdf-data-loader.js';
+import * as N3 from 'n3';
 
 // FHIR-based healthcare ontology for HIPAA compliance
 const fhirHealthcareOntology = `

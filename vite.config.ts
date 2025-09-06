@@ -1,9 +1,9 @@
 import { defineConfig } from 'vite'
-import vue from '@vitejs/plugin-vue'
+// import vue from '@vitejs/plugin-vue' // Commented out - not needed for this CLI project
 import { resolve } from 'path'
 
 export default defineConfig({
-  plugins: [vue()],
+  plugins: [], // Removed vue() since it's not needed for CLI project
   build: {
     lib: {
       entry: resolve(__dirname, 'src/index.ts'),
@@ -11,10 +11,10 @@ export default defineConfig({
       fileName: 'unjucks'
     },
     rollupOptions: {
-      external: ['vue', 'nuxt', '@nuxt/ui'],
+      external: [], // Removed Vue/Nuxt externals since they're not used
       output: {
         globals: {
-          vue: 'Vue'
+          // Removed vue global since it's not used
         }
       }
     },

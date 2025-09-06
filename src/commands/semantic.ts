@@ -87,7 +87,8 @@ export const semanticCommand = defineCommand({
           alias: 'w'
         }
       },
-      async run({ args }) {
+      async run(context: any) {
+        const { args } = context;
         try {
           consola.start('Starting semantic code generation...');
           
@@ -177,7 +178,8 @@ export const semanticCommand = defineCommand({
           alias: 'v'
         }
       },
-      async run({ args }) {
+      async run(context: any) {
+        const { args } = context;
         try {
           consola.start(`Converting ${args.ontology} to TypeScript types...`);
           
@@ -247,7 +249,8 @@ export const semanticCommand = defineCommand({
           default: true
         }
       },
-      async run({ args }) {
+      async run(context: any) {
+        const { args } = context;
         try {
           consola.start(`Scaffolding ${args.template} application: ${args.name}`);
           
@@ -301,7 +304,8 @@ export const semanticCommand = defineCommand({
           default: false
         }
       },
-      async run({ args }) {
+      async run(context: any) {
+        const { args } = context;
         try {
           consola.start('Validating semantic code generation...');
           

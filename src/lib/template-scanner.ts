@@ -1,6 +1,10 @@
 import fs from "fs-extra";
 import path from "node:path";
 import nunjucks from "nunjucks";
+import type {
+  TemplateVariable as UnifiedTemplateVariable,
+  TemplateScanResult as UnifiedTemplateScanResult,
+} from "../types/unified-types.js";
 
 export interface TemplateVariable {
   name: string;
@@ -44,7 +48,7 @@ export class TemplateScanner {
         type: this.inferVariableType(varName),
         description: this.generateDescription(varName),
         required: this.isRequiredVariable(varName),
-      }),
+      })
     );
 
     return {
@@ -58,7 +62,7 @@ export class TemplateScanner {
    */
   private async scanDirectory(
     dirPath: string,
-    variables: Set<string>,
+    variables: Set<string>
   ): Promise<void> {
     if (!(await fs.pathExists(dirPath))) {
       return;
@@ -70,7 +74,9 @@ export class TemplateScanner {
       const entryPath = path.join(dirPath, entry);
       const stat = await fs.stat(entryPath);
 
-      await (stat.isDirectory() ? this.scanDirectory(entryPath, variables) : this.scanFile(entryPath, variables));
+      await (stat.isDirectory()
+        ? this.scanDirectory(entryPath, variables)
+        : this.scanFile(entryPath, variables));
     }
   }
 
@@ -79,7 +85,7 @@ export class TemplateScanner {
    */
   private async scanFile(
     filePath: string,
-    variables: Set<string>,
+    variables: Set<string>
   ): Promise<void> {
     try {
       const content = await fs.readFile(filePath, "utf8");
@@ -101,7 +107,7 @@ export class TemplateScanner {
    */
   private extractVariablesFromContent(
     content: string,
-    variables: Set<string>,
+    variables: Set<string>
   ): void {
     // Match {{ variable }} syntax
     const variablePattern = /\{\{\s*([a-zA-Z_][a-zA-Z0-9_]*)\s*\}\}/g;
@@ -290,7 +296,7 @@ export class TemplateScanner {
    */
   convertArgsToVariables(
     args: Record<string, any>,
-    templateVariables: TemplateVariable[],
+    templateVariables: TemplateVariable[]
   ): Record<string, any> {
     const variables: Record<string, any> = {};
 
@@ -323,7 +329,7 @@ export class TemplateScanner {
    * Scan multiple templates and merge their variables
    */
   async scanMultipleTemplates(
-    templatePaths: string[],
+    templatePaths: string[]
   ): Promise<TemplateScanResult> {
     const allVariables = new Set<string>();
     const allPrompts: TemplateVariable[] = [];
@@ -344,7 +350,7 @@ export class TemplateScanner {
         type: this.inferVariableType(varName),
         description: this.generateDescription(varName),
         required: this.isRequiredVariable(varName),
-      }),
+      })
     );
 
     return {

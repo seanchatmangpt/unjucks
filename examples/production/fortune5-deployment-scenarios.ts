@@ -4,9 +4,9 @@
  * Uses RDF organization ontology to generate Kubernetes/Docker configs
  */
 
-import { UnjucksGenerator } from '../../src/lib/generator';
-import { RDFDataLoader } from '../../src/lib/rdf-data-loader';
-import { N3 } from 'n3';
+import { UnjucksGenerator } from '../../src/lib/generator.js';
+import { RDFDataLoader } from '../../src/lib/rdf-data-loader.js';
+import * as N3 from 'n3';
 
 // Sample enterprise organization ontology in Turtle format
 const enterpriseOntology = `

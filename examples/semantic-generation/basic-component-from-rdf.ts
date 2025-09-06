@@ -3,9 +3,9 @@
  * This shows the CORE PURPOSE of Unjucks: template + RDF data = generated files
  */
 
-import { TurtleParser } from '../../src/lib/turtle-parser';
-import { RDFDataLoader } from '../../src/lib/rdf-data-loader';
-import { RDFFilters } from '../../src/lib/rdf-filters';
+import { TurtleParser } from '../../src/lib/turtle-parser.js';
+import { RDFDataLoader } from '../../src/lib/rdf-data-loader.js';
+import { RDFFilters } from '../../src/lib/rdf-filters.js';
 import nunjucks from 'nunjucks';
 import { writeFileSync, mkdirSync } from 'fs';
 import { dirname } from 'path';

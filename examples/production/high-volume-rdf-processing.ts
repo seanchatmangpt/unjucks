@@ -4,9 +4,9 @@
  * Handles millions of triples with streaming, parallel processing, and caching
  */
 
-import { UnjucksGenerator } from '../../src/lib/generator';
-import { RDFDataLoader } from '../../src/lib/rdf-data-loader';
-import { N3 } from 'n3';
+import { UnjucksGenerator } from '../../src/lib/generator.js';
+import { RDFDataLoader } from '../../src/lib/rdf-data-loader.js';
+import * as N3 from 'n3';
 
 // High-volume RDF processing ontology
 const processingOntology = `

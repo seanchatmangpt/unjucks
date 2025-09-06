@@ -28,6 +28,10 @@ const preprocessArgs = () => {
   
   const firstArg = rawArgs[0];
   
+  if (!firstArg) {
+    return rawArgs;
+  }
+  
   // Don't transform if already using explicit commands
   if (['generate', 'list', 'init', 'inject', 'version', 'help', 'semantic'].includes(firstArg)) {
     return rawArgs;
@@ -43,7 +47,7 @@ const preprocessArgs = () => {
   // - unjucks component react MyComponent
   // - unjucks component new UserProfile 
   // - unjucks api endpoint users --withAuth
-  if (rawArgs.length >= 2 && !rawArgs[1].startsWith('-')) {
+  if (rawArgs.length >= 2 && rawArgs[1] && !rawArgs[1].startsWith('-')) {
     // Store original args in environment for ArgumentParser to use
     process.env.UNJUCKS_POSITIONAL_ARGS = JSON.stringify(rawArgs);
     // Transform to: unjucks generate <generator> <template> [remaining-args...]

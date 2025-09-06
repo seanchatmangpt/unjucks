@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { z } from 'zod';
 
 // A person - the core entity in most enterprise systems

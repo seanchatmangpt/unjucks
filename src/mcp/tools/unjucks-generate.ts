@@ -3,45 +3,71 @@
  * Generates files using real unjucks functionality
  */
 
-import { Generator } from '../../lib/generator.js';
-import type { ToolResult, UnjucksGenerateParams, UnjucksGenerateResult } from '../types.js';
-import { 
-  createTextToolResult, 
-  createJSONToolResult, 
-  handleToolError, 
-  validateObjectSchema, 
+import { Generator } from "../../lib/generator.js";
+import type {
+  ToolResult,
+  UnjucksGenerateParams,
+  UnjucksGenerateResult,
+} from "../types.js";
+import {
+  createTextToolResult,
+  createJSONToolResult,
+  handleToolError,
+  validateObjectSchema,
   validateDestination,
   validateGeneratorName,
   validateTemplateName,
   formatFileSize,
   logPerformance,
-  createFileOperationSummary
-} from '../utils.js';
-import { TOOL_SCHEMAS } from '../types.js';
-import path from 'node:path';
-import fs from 'fs-extra';
+  createFileOperationSummary,
+} from "../utils.js";
+import { TOOL_SCHEMAS } from "../types.js";
+import path from "node:path";
+import fs from "fs-extra";
+import type {
+  MCPTool as UnifiedMCPTool,
+  MCPToolCall as UnifiedMCPToolCall,
+  MCPToolResult as UnifiedMCPToolResult,
+  GenerateOptions as UnifiedGenerateOptions,
+  GenerationResult as UnifiedGenerationResult,
+} from "../../types/unified-types.js";
 
 /**
  * Generate files using unjucks templates with real file creation
  */
-export async function unjucksGenerate(params: UnjucksGenerateParams): Promise<ToolResult> {
+export async function unjucksGenerate(
+  params: UnjucksGenerateParams
+): Promise<ToolResult> {
   const startTime = performance.now();
-  
+
   try {
     // Validate input parameters
-    const validation = validateObjectSchema(params, TOOL_SCHEMAS.unjucks_generate);
+    const validation = validateObjectSchema(
+      params,
+      TOOL_SCHEMAS.unjucks_generate
+    );
     if (!validation.valid) {
-      return createTextToolResult(`Invalid parameters: ${validation.errors.join(', ')}`, true);
+      return createTextToolResult(
+        `Invalid parameters: ${validation.errors.join(", ")}`,
+        true
+      );
     }
 
-    const { generator, template, dest, variables = {}, force = false, dry = false } = params;
+    const {
+      generator,
+      template,
+      dest,
+      variables = {},
+      force = false,
+      dry = false,
+    } = params;
 
     // Validate generator and template names
     try {
       validateGeneratorName(generator);
       validateTemplateName(template);
     } catch (error) {
-      return handleToolError(error, 'unjucks_generate', 'parameter validation');
+      return handleToolError(error, "unjucks_generate", "parameter validation");
     }
 
     // Validate and sanitize destination
@@ -49,30 +75,42 @@ export async function unjucksGenerate(params: UnjucksGenerateParams): Promise<To
     try {
       destinationPath = validateDestination(dest);
     } catch (error) {
-      return handleToolError(error, 'unjucks_generate', 'destination validation');
+      return handleToolError(
+        error,
+        "unjucks_generate",
+        "destination validation"
+      );
     }
 
     // Initialize generator instance
     const gen = new Generator();
-    
+
     try {
       // Check if generator and template exist
       const generators = await gen.listGenerators();
-      const foundGenerator = generators.find(g => g.name === generator);
-      
+      const foundGenerator = generators.find((g) => g.name === generator);
+
       if (!foundGenerator) {
-        const availableGenerators = generators.map(g => g.name).join(', ');
+        const availableGenerators = generators.map((g) => g.name).join(", ");
         return createTextToolResult(
-          `Generator "${generator}" not found. Available generators: ${availableGenerators || 'none'}`,
+          `Generator "${generator}" not found. Available generators: ${
+            availableGenerators || "none"
+          }`,
           true
         );
       }
 
-      const foundTemplate = foundGenerator.templates.find(t => t.name === template);
+      const foundTemplate = foundGenerator.templates.find(
+        (t) => t.name === template
+      );
       if (!foundTemplate) {
-        const availableTemplates = foundGenerator.templates.map(t => t.name).join(', ');
+        const availableTemplates = foundGenerator.templates
+          .map((t) => t.name)
+          .join(", ");
         return createTextToolResult(
-          `Template "${template}" not found in generator "${generator}". Available templates: ${availableTemplates || 'none'}`,
+          `Template "${template}" not found in generator "${generator}". Available templates: ${
+            availableTemplates || "none"
+          }`,
           true
         );
       }
@@ -82,7 +120,11 @@ export async function unjucksGenerate(params: UnjucksGenerateParams): Promise<To
         try {
           await fs.ensureDir(destinationPath);
         } catch (error) {
-          return handleToolError(error, 'unjucks_generate', 'creating destination directory');
+          return handleToolError(
+            error,
+            "unjucks_generate",
+            "creating destination directory"
+          );
         }
       }
 
@@ -93,45 +135,45 @@ export async function unjucksGenerate(params: UnjucksGenerateParams): Promise<To
         dest: destinationPath,
         force,
         dry,
-        variables
+        variables,
       };
 
       const result = await gen.generate(generateOptions);
-      
+
       // Process results into MCP format
-      const files = result.files.map(file => {
-        let action = 'created';
-        
+      const files = result.files.map((file) => {
+        let action = "created";
+
         if (file.injectionResult) {
           if (file.injectionResult.skipped) {
-            action = 'skipped';
-          } else if (file.injectionResult.action === 'inject') {
-            action = 'injected';
-          } else if (file.injectionResult.action === 'update') {
-            action = 'updated';
+            action = "skipped";
+          } else if (file.injectionResult.action === "inject") {
+            action = "injected";
+          } else if (file.injectionResult.action === "update") {
+            action = "updated";
           }
         }
 
         return {
           path: file.path,
-          content: dry ? file.content : '[Generated]', // Don't return full content in production
+          content: dry ? file.content : "[Generated]", // Don't return full content in production
           action,
-          size: Buffer.byteLength(file.content, 'utf8'),
-          relativePath: path.relative(destinationPath, file.path)
+          size: Buffer.byteLength(file.content, "utf8"),
+          relativePath: path.relative(destinationPath, file.path),
         };
       });
 
       // Create summary
       const summary = createFileOperationSummary(files);
-      
+
       const generateResult: UnjucksGenerateResult = {
         files,
         summary: {
           created: summary.created,
           updated: summary.updated,
           skipped: summary.skipped,
-          injected: summary.injected
-        }
+          injected: summary.injected,
+        },
       };
 
       // Add metadata
@@ -144,31 +186,31 @@ export async function unjucksGenerate(params: UnjucksGenerateParams): Promise<To
         performance: {
           duration: performance.now() - startTime,
           filesProcessed: files.length,
-          totalSize: formatFileSize(summary.totalSize)
+          totalSize: formatFileSize(summary.totalSize),
         },
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       };
 
       // Performance logging
       logPerformance({
         operation: `generate ${generator}/${template}`,
         duration: metadata.performance.duration,
-        filesProcessed: files.length
+        filesProcessed: files.length,
       });
 
       // Create detailed response
       const response = {
         success: true,
-        operation: dry ? 'dry-run' : 'generate',
+        operation: dry ? "dry-run" : "generate",
         result: generateResult,
-        metadata
+        metadata,
       };
 
       // Add success message
-      let message = dry 
+      let message = dry
         ? `Dry run completed for ${generator}/${template}. Would generate ${files.length} files.`
         : `Successfully generated ${files.length} files using ${generator}/${template}.`;
-      
+
       if (summary.skipped > 0) {
         message += ` ${summary.skipped} files were skipped.`;
       }
@@ -181,23 +223,25 @@ export async function unjucksGenerate(params: UnjucksGenerateParams): Promise<To
         content: [
           {
             type: "text",
-            text: message
+            text: message,
           },
           {
-            type: "text", 
-            text: JSON.stringify(response, null, 2)
-          }
+            type: "text",
+            text: JSON.stringify(response, null, 2),
+          },
         ],
         isError: false,
-        _meta: metadata
+        _meta: metadata,
       };
-      
     } catch (error) {
-      return handleToolError(error, 'unjucks_generate', `generating ${generator}/${template}`);
+      return handleToolError(
+        error,
+        "unjucks_generate",
+        `generating ${generator}/${template}`
+      );
     }
-    
   } catch (error) {
-    return handleToolError(error, 'unjucks_generate', 'general operation');
+    return handleToolError(error, "unjucks_generate", "general operation");
   }
 }
 
@@ -209,23 +253,23 @@ async function checkFileConflicts(
   force: boolean
 ): Promise<Array<{ path: string; exists: boolean; size?: number }>> {
   const conflicts = [];
-  
+
   for (const file of files) {
     try {
       const stat = await fs.stat(file.path);
       conflicts.push({
         path: file.path,
         exists: true,
-        size: stat.size
+        size: stat.size,
       });
     } catch {
       // File doesn't exist, no conflict
       conflicts.push({
         path: file.path,
-        exists: false
+        exists: false,
       });
     }
   }
-  
+
   return conflicts;
 }

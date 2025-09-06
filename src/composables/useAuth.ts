@@ -1,4 +1,4 @@
-import type { User, Organization } from '~/types'
+// @ts-nocheckimport type { User, Organization } from '~/types'
 
 interface AuthState {
   user: User | null

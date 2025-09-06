@@ -132,11 +132,11 @@ describe('SPARQL Query Validation Tests', () => {
         const bobNames = rdfFilters.rdfObject('ex:bob', 'foaf:name');
         
         expect(aliceNames).toHaveLength(1);
-        expect(aliceNames[0].value).toBe('Alice Johnson');
-        expect(aliceNames[0].type).toBe('literal');
+        expect(aliceNames[0]?.value).toBe('Alice Johnson');
+        expect(aliceNames[0]?.type).toBe('literal');
         
         expect(bobNames).toHaveLength(1);
-        expect(bobNames[0].value).toBe('Bob Smith');
+        expect(bobNames[0]?.value).toBe('Bob Smith');
       });
 
       it('should handle variable binding patterns', () => {
@@ -153,11 +153,11 @@ describe('SPARQL Query Validation Tests', () => {
         
         // Check that Alice knows both Bob and Carol
         const aliceKnowsResults = results.filter(result => 
-          result[0].value === 'http://example.org/alice'
+          result?.[0]?.value === 'http://example.org/alice'
         );
         expect(aliceKnowsResults).toHaveLength(2);
         
-        const friendURIs = aliceKnowsResults.map(result => result[2].value);
+        const friendURIs = aliceKnowsResults.map(result => result?.[2]?.value).filter(Boolean);
         expect(friendURIs).toContain('http://example.org/bob');
         expect(friendURIs).toContain('http://example.org/carol');
       });
@@ -174,9 +174,9 @@ describe('SPARQL Query Validation Tests', () => {
         const results = rdfFilters.rdfQuery(pattern);
         
         expect(results).toHaveLength(1);
-        expect(results[0][0].value).toBe('http://example.org/alice');
-        expect(results[0][1].value).toBe('http://xmlns.com/foaf/0.1/name');
-        expect(results[0][2].value).toBe('Alice Johnson');
+        expect(results?.[0]?.[0]?.value).toBe('http://example.org/alice');
+        expect(results?.[0]?.[1]?.value).toBe('http://xmlns.com/foaf/0.1/name');
+        expect(results?.[0]?.[2]?.value).toBe('Alice Johnson');
       });
 
       it('should match multiple triple patterns by chaining', () => {
@@ -189,7 +189,7 @@ describe('SPARQL Query Validation Tests', () => {
         
         // Get unique subjects (people who know others)
         const peopleWhoKnowOthers = new Set(
-          knowsResults.map(result => result[0].value)
+          knowsResults.map(result => result?.[0]?.value).filter(Boolean)
         );
         
         expect(peopleWhoKnowOthers.size).toBe(2); // Alice and Bob
@@ -207,8 +207,8 @@ describe('SPARQL Query Validation Tests', () => {
           
           return {
             uri: personURI,
-            name: names.length > 0 ? names[0].value : null,
-            age: ages.length > 0 ? parseInt(ages[0].value) : null
+            name: names?.length > 0 ? names[0]?.value : null,
+            age: ages?.length > 0 && ages[0]?.value ? parseInt(ages[0].value) : null
           };
         });
         
@@ -226,7 +226,7 @@ describe('SPARQL Query Validation Tests', () => {
         
         expect(results.length).toBe(3); // All three persons have names
         
-        const names = results.map(result => result[2].value);
+        const names = results.map(result => result?.[2]?.value).filter(Boolean);
         expect(names).toContain('Alice Johnson');
         expect(names).toContain('Bob Smith');
         expect(names).toContain('Carol White');
@@ -244,8 +244,8 @@ describe('SPARQL Query Validation Tests', () => {
         
         // Verify all results are email patterns
         emailResults.forEach(result => {
-          expect(result[1].value).toBe('http://xmlns.com/foaf/0.1/email');
-          expect(result[2].value).toMatch(/@example\.org$/);
+          expect(result?.[1]?.value).toBe('http://xmlns.com/foaf/0.1/email');
+          expect(result?.[2]?.value).toMatch(/@example\.org$/);
         });
       });
 
@@ -253,12 +253,12 @@ describe('SPARQL Query Validation Tests', () => {
         // Find people who both have names and know others
         const namedPersons = new Set(
           rdfFilters.rdfQuery({ predicate: 'foaf:name' })
-            .map(result => result[0].value)
+            .map(result => result?.[0]?.value).filter(Boolean)
         );
         
         const socialPersons = new Set(
           rdfFilters.rdfQuery({ predicate: 'foaf:knows' })
-            .map(result => result[0].value)
+            .map(result => result?.[0]?.value).filter(Boolean)
         );
         
         const intersection = [...namedPersons].filter(uri => socialPersons.has(uri));
@@ -279,8 +279,8 @@ describe('SPARQL Query Validation Tests', () => {
           
           return {
             uri: personURI,
-            name: names.length > 0 ? names[0].value : null,
-            workplace: workplaces.length > 0 ? workplaces[0].value : null
+            name: names?.length > 0 ? names[0]?.value : null,
+            workplace: workplaces?.length > 0 ? workplaces[0]?.value : null
           };
         });
         
@@ -304,9 +304,9 @@ describe('SPARQL Query Validation Tests', () => {
           
           return {
             uri: personURI,
-            age: ages.length > 0 ? parseInt(ages[0].value) : 0,
-            email: emails.length > 0 ? emails[0].value : 'unknown@example.org',
-            homepage: homepages.length > 0 ? homepages[0].value : null
+            age: ages?.length > 0 ? parseInt(ages[0]?.value ?? '0') : 0,
+            email: emails?.length > 0 ? emails[0]?.value : 'unknown@example.org',
+            homepage: homepages?.length > 0 ? homepages[0]?.value : null
           };
         });
         
@@ -336,10 +336,10 @@ describe('SPARQL Query Validation Tests', () => {
         
         results.forEach(result => {
           expect(result).toHaveLength(3); // [subject, predicate, object]
-          expect(result[0]).toHaveProperty('value');
-          expect(result[0]).toHaveProperty('type');
-          expect(result[1].value).toBe('http://xmlns.com/foaf/0.1/name');
-          expect(result[2].type).toBe('literal');
+          expect(result?.[0]).toHaveProperty('value');
+          expect(result?.[0]).toHaveProperty('type');
+          expect(result?.[1]?.value).toBe('http://xmlns.com/foaf/0.1/name');
+          expect(result?.[2]?.type).toBe('literal');
         });
       });
 
@@ -354,8 +354,8 @@ describe('SPARQL Query Validation Tests', () => {
         expect(results.length).toBeGreaterThan(0);
         
         // Categorize results by object type
-        const uriObjects = results.filter(r => r[2].type === 'uri');
-        const literalObjects = results.filter(r => r[2].type === 'literal');
+        const uriObjects = results.filter(r => r?.[2]?.type === 'uri');
+        const literalObjects = results.filter(r => r?.[2]?.type === 'literal');
         
         expect(uriObjects.length).toBeGreaterThan(0);
         expect(literalObjects.length).toBeGreaterThan(0);
@@ -365,9 +365,9 @@ describe('SPARQL Query Validation Tests', () => {
         const foundingDates = rdfFilters.rdfObject('ex:company', 'schema:foundingDate');
         
         expect(foundingDates).toHaveLength(1);
-        expect(foundingDates[0].type).toBe('literal');
-        expect(foundingDates[0].datatype).toBe('http://www.w3.org/2001/XMLSchema#date');
-        expect(foundingDates[0].value).toBe('2010-01-01');
+        expect(foundingDates?.[0]?.type).toBe('literal');
+        expect(foundingDates?.[0]?.datatype).toBe('http://www.w3.org/2001/XMLSchema#date');
+        expect(foundingDates?.[0]?.value).toBe('2010-01-01');
       });
     });
 
@@ -383,14 +383,14 @@ describe('SPARQL Query Validation Tests', () => {
         
         // Group by type
         const typeGroups = allTypes.reduce((groups, result) => {
-          const type = result[2].value;
-          if (!groups[type]) groups[type] = [];
-          groups[type].push(result[0].value);
+          const type = result?.[2]?.value;
+          if (type && !groups[type]) groups[type] = [];
+          if (type) groups[type]?.push(result?.[0]?.value);
           return groups;
         }, {} as Record<string, string[]>);
         
-        expect(typeGroups['http://xmlns.com/foaf/0.1/Person']).toHaveLength(3);
-        expect(typeGroups['http://schema.org/Organization']).toHaveLength(1);
+        expect(typeGroups['http://xmlns.com/foaf/0.1/Person']?.length).toBe(3);
+        expect(typeGroups['http://schema.org/Organization']?.length).toBe(1);
       });
 
       it('should handle large result sets efficiently', async () => {
@@ -461,14 +461,14 @@ describe('SPARQL Query Validation Tests', () => {
         });
         
         const joinedResults = knowsResults.map(result => {
-          const person = result[0].value;
-          const friend = result[2].value;
-          const personNames = rdfFilters.rdfObject(person, 'foaf:name');
-          const friendNames = rdfFilters.rdfObject(friend, 'foaf:name');
+          const person = result?.[0]?.value;
+          const friend = result?.[2]?.value;
+          const personNames = person ? rdfFilters.rdfObject(person, 'foaf:name') : [];
+          const friendNames = friend ? rdfFilters.rdfObject(friend, 'foaf:name') : [];
           
           return {
-            person: personNames.length > 0 ? personNames[0].value : null,
-            friend: friendNames.length > 0 ? friendNames[0].value : null
+            person: personNames?.length > 0 ? personNames[0]?.value : null,
+            friend: friendNames?.length > 0 ? friendNames[0]?.value : null
           };
         });
         
@@ -478,7 +478,7 @@ describe('SPARQL Query Validation Tests', () => {
         const aliceToFriends = joinedResults.filter(r => r.person === 'Alice Johnson');
         expect(aliceToFriends).toHaveLength(2);
         
-        const friendNames = aliceToFriends.map(r => r.friend);
+        const friendNames = aliceToFriends.map(r => r?.friend);
         expect(friendNames).toContain('Bob Smith');
         expect(friendNames).toContain('Carol White');
       });
@@ -492,18 +492,20 @@ describe('SPARQL Query Validation Tests', () => {
         const mutualFriends: Array<{ person1: string, person2: string }> = [];
         
         knowsResults.forEach(result1 => {
-          const person1 = result1[0].value;
-          const friend1 = result1[2].value;
+          const person1 = result1?.[0]?.value;
+          const friend1 = result1?.[2]?.value;
           
           // Check if friend1 also knows person1
-          const reverseKnows = rdfFilters.rdfQuery({
-            subject: friend1,
-            predicate: 'foaf:knows',
-            object: person1
-          });
-          
-          if (reverseKnows.length > 0) {
-            mutualFriends.push({ person1, person2: friend1 });
+          if (friend1 && person1) {
+            const reverseKnows = rdfFilters.rdfQuery({
+              subject: friend1,
+              predicate: 'foaf:knows',
+              object: person1
+            });
+            
+            if (reverseKnows?.length > 0) {
+              mutualFriends.push({ person1, person2: friend1 });
+            }
           }
         });
         
@@ -525,9 +527,9 @@ describe('SPARQL Query Validation Tests', () => {
         
         const adultsOver25 = persons.filter(personURI => {
           const ages = rdfFilters.rdfObject(personURI, 'foaf:age');
-          if (ages.length === 0) return false;
+          if (!ages?.length) return false;
           
-          const age = parseInt(ages[0].value);
+          const age = parseInt(ages[0]?.value ?? '0');
           return age > 25;
         });
         
@@ -539,9 +541,9 @@ describe('SPARQL Query Validation Tests', () => {
         
         const peopleWithJobnInName = persons.filter(personURI => {
           const names = rdfFilters.rdfObject(personURI, 'foaf:name');
-          if (names.length === 0) return false;
+          if (!names?.length) return false;
           
-          return names[0].value.toLowerCase().includes('john');
+          return names[0]?.value?.toLowerCase().includes('john') ?? false;
         });
         
         expect(peopleWithJobnInName).toHaveLength(1); // Alice Johnson
@@ -555,7 +557,7 @@ describe('SPARQL Query Validation Tests', () => {
         });
         
         expect(peopleWithWorkplace).toHaveLength(1); // Only Carol
-        expect(peopleWithWorkplace[0]).toBe('http://example.org/carol');
+        expect(peopleWithWorkplace?.[0]).toBe('http://example.org/carol');
       });
     });
 
@@ -566,7 +568,7 @@ describe('SPARQL Query Validation Tests', () => {
         expect(defaultGraphTriples.length).toBeGreaterThan(0);
         
         // All our sample data should be in the default graph
-        const subjects = new Set(defaultGraphTriples.map(t => t[0].value));
+        const subjects = new Set(defaultGraphTriples.map(t => t?.[0]?.value));
         expect(subjects.has('http://example.org/alice')).toBe(true);
         expect(subjects.has('http://example.org/company')).toBe(true);
       });
@@ -593,14 +595,14 @@ describe('SPARQL Query Validation Tests', () => {
         
         const testGraphTriples = rdfFilters.rdfGraph('ex:testGraph');
         expect(testGraphTriples).toHaveLength(1);
-        expect(testGraphTriples[0][2].value).toBe('Test Person');
+        expect(testGraphTriples?.[0]?.[2]?.value).toBe('Test Person');
       });
     });
 
     describe('Aggregations', () => {
       it('should count query results', () => {
-        const personCount = rdfFilters.rdfCount(null, 'rdf:type', 'foaf:Person');
-        const nameCount = rdfFilters.rdfCount(null, 'foaf:name');
+        const personCount = rdfFilters.rdfCount(undefined, 'rdf:type', 'foaf:Person');
+        const nameCount = rdfFilters.rdfCount(undefined, 'foaf:name');
         
         expect(personCount).toBe(3);
         expect(nameCount).toBe(3);
@@ -612,21 +614,21 @@ describe('SPARQL Query Validation Tests', () => {
         });
         
         const ageGroups = allAges.reduce((groups, result) => {
-          const age = result[2].value;
-          if (!groups[age]) groups[age] = [];
-          groups[age].push(result[0].value);
+          const age = result?.[2]?.value;
+          if (age && !groups[age]) groups[age] = [];
+          if (age) groups[age]?.push(result?.[0]?.value);
           return groups;
         }, {} as Record<string, string[]>);
         
         expect(Object.keys(ageGroups)).toHaveLength(3); // Three different ages
-        expect(ageGroups['30']).toHaveLength(1); // Alice
-        expect(ageGroups['25']).toHaveLength(1); // Bob
-        expect(ageGroups['28']).toHaveLength(1); // Carol
+        expect(ageGroups['30']?.length).toBe(1); // Alice
+        expect(ageGroups['25']?.length).toBe(1); // Bob
+        expect(ageGroups['28']?.length).toBe(1); // Carol
       });
 
       it('should calculate basic statistics', () => {
         const ages = rdfFilters.rdfQuery({ predicate: 'foaf:age' })
-          .map(result => parseInt(result[2].value));
+          .map(result => result?.[2]?.value ? parseInt(result[2].value) : 0);
         
         const sum = ages.reduce((a, b) => a + b, 0);
         const avg = sum / ages.length;
@@ -751,7 +753,7 @@ describe('SPARQL Query Validation Tests', () => {
         const turtleContent = await fs.readFile(basicPersonPath, 'utf-8');
         const parseResult = await turtleParser.parse(turtleContent);
         
-        expect(parseResult.triples.length).toBeGreaterThan(0);
+        expect(parseResult?.triples?.length).toBeGreaterThan(0);
         
         // Test specific queries on this data
         const parser = new Parser();
@@ -760,11 +762,11 @@ describe('SPARQL Query Validation Tests', () => {
         
         const testFilters = new RDFFilters({
           store: testStore,
-          prefixes: parseResult.prefixes
+          prefixes: parseResult?.prefixes
         });
         
         const persons = testFilters.rdfSubject('rdf:type', 'foaf:Person');
-        expect(persons.length).toBeGreaterThan(0);
+        expect(persons?.length).toBeGreaterThan(0);
       }
     });
 
@@ -775,7 +777,7 @@ describe('SPARQL Query Validation Tests', () => {
         const turtleContent = await fs.readFile(samplePath, 'utf-8');
         const parseResult = await turtleParser.parse(turtleContent);
         
-        expect(parseResult.triples.length).toBeGreaterThan(0);
+        expect(parseResult?.triples?.length).toBeGreaterThan(0);
         
         // Test complex queries on this richer dataset
         const parser = new Parser();
@@ -784,27 +786,27 @@ describe('SPARQL Query Validation Tests', () => {
         
         const testFilters = new RDFFilters({
           store: testStore,
-          prefixes: parseResult.prefixes
+          prefixes: parseResult?.prefixes
         });
         
         // Test organizational queries
         const organizations = testFilters.rdfSubject('rdf:type', 'schema:Organization');
-        expect(organizations.length).toBeGreaterThan(0);
+        expect(organizations?.length).toBeGreaterThan(0);
         
         // Test event queries if present
         const events = testFilters.rdfSubject('rdf:type', 'schema:Event');
-        if (events.length > 0) {
+        if (events?.length > 0) {
           const eventDetails = events.map(eventURI => {
             const names = testFilters.rdfObject(eventURI, 'schema:name');
             const dates = testFilters.rdfObject(eventURI, 'schema:startDate');
             return {
               uri: eventURI,
-              name: names.length > 0 ? names[0].value : null,
-              date: dates.length > 0 ? dates[0].value : null
+              name: names?.length > 0 ? names[0]?.value : null,
+              date: dates?.length > 0 ? dates[0]?.value : null
             };
           });
           
-          expect(eventDetails.every(e => e.name !== null)).toBe(true);
+          expect(eventDetails?.every(e => e?.name !== null)).toBe(true);
         }
       }
     });
@@ -843,7 +845,7 @@ describe('SPARQL Query Validation Tests', () => {
       
       const endTime = performance.now();
       
-      expect(results).toHaveLength(50);
+      expect(results?.length).toBe(50);
       expect(endTime - startTime).toBeLessThan(500); // Should complete quickly
     });
 
@@ -853,7 +855,7 @@ describe('SPARQL Query Validation Tests', () => {
       // Run multiple large queries
       for (let i = 0; i < 100; i++) {
         const results = rdfFilters.rdfQuery({});
-        expect(results.length).toBeGreaterThan(0);
+        expect(results?.length).toBeGreaterThan(0);
       }
       
       // Force garbage collection if available

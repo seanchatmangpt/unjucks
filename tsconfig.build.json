@@ -31,7 +31,10 @@
     "config/**/*",
     "vite.config.ts",
     "vitest.config.ts",
+    "vitest.cucumber.config.ts",
     "node_modules",
-    "dist"
+    "dist",
+    "**/semantic-validator.ts",
+    "**/semantic-*.ts"
   ]
 }

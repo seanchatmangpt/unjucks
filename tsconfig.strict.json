@@ -1,0 +1,63 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    // Enhanced strict mode for gradual migration
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "strictNullChecks": true,
+    "noImplicitAny": true,
+    "noImplicitReturns": true,
+    "noImplicitThis": true,
+    "strictBindCallApply": true,
+    "strictFunctionTypes": true,
+    "strictPropertyInitialization": true,
+    
+    // Additional strict checks for migration
+    "exactOptionalPropertyTypes": true,
+    "noImplicitOverride": true,
+    "noPropertyAccessFromIndexSignature": true,
+    "noUncheckedIndexedAccess": true,
+    "useUnknownInCatchVariables": true,
+    
+    // Development-friendly settings
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true,
+    "allowUnreachableCode": false,
+    "allowUnusedLabels": false,
+    
+    // Keep flexible for migration
+    "noImplicitAny": true
+  },
+  "include": [
+    "src/**/*"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "tests/**/*",
+    "test-*/**/*",
+    "**/{{ * }}*",
+    "**/<%= * %>*",
+    "tests/fixtures/**/*.js",
+    "_templates/**/*",
+    "src/components/**/*.tsx", 
+    "src/components/**/*.ts",
+    "src/large/**/*",
+    "**/argument-parser.ts",
+    "**/*real-validation-simple*",
+    "tests/integration/fortune5-scenarios/**/*",
+    "tests/security/attack-simulation.test.ts",
+    "tests/step-definitions/**/*",
+    "tests/integration/rdf-template-generation.test.ts",
+    "tests/integration/rdf-critical-paths.test.ts",
+    "examples/generated/**/*",
+    "examples/generated-hr-types/**/*",
+    "examples/production/**/*",
+    "examples/**/node_modules/**/*",
+    "**/*.test.ts",
+    "**/*.spec.ts",
+    "**/__tests__/**/*",
+    "bin/**/*"
+  ]
+}

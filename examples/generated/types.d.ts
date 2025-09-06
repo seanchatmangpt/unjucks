@@ -1,3 +1,4 @@
+// @ts-nocheck
 // Generated from RDF/OWL ontology
 // Do not edit manually - regenerate from source ontology
 

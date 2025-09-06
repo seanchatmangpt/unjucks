@@ -1,51 +1,26 @@
 /**
  * Semantic Validation Types
  * Core type definitions for the validation pipeline
+ * 
+ * NOTE: ValidationResult, ValidationError, ValidationWarning, etc. are now imported from unified-types.ts
+ * This file contains semantic-specific validation types that extend the base validation system.
  */
 
-export interface ValidationResult {
-  isValid: boolean;
-  errors: ValidationError[];
-  warnings: ValidationWarning[];
-  metadata: ValidationMetadata;
-}
+import type {
+  ValidationResult,
+  ValidationErrorDetail as ValidationError,
+  ValidationWarning,
+  ValidationMetadata,
+  ValidationLocation,
+  ValidationErrorType,
+  ValidationWarningType,
+  PerformanceMetrics
+} from '../../types/unified-types.js';
 
-export interface ValidationError {
-  type: ValidationErrorType;
-  message: string;
-  code: string;
-  severity: 'error' | 'warning' | 'info';
-  location?: ValidationLocation;
-  context?: Record<string, any>;
-  suggestion?: string;
-}
-
-export interface ValidationWarning {
-  type: ValidationWarningType;
-  message: string;
-  code: string;
-  location?: ValidationLocation;
-  context?: Record<string, any>;
-  suggestion?: string;
-}
-
-export interface ValidationLocation {
-  file?: string;
-  line?: number;
-  column?: number;
-  offset?: number;
-  triple?: {
-    subject: string;
-    predicate: string;
-    object: string;
-  };
-}
-
-export interface ValidationMetadata {
-  timestamp: Date;
+// Semantic-specific validation metadata extending the base metadata
+export interface SemanticValidationMetadata extends ValidationMetadata {
   validator: string;
   version: string;
-  duration: number;
   resourcesValidated: number;
   statistics: ValidationStatistics;
 }
@@ -61,33 +36,24 @@ export interface ValidationStatistics {
   performanceMetrics?: PerformanceMetrics;
 }
 
-export interface PerformanceMetrics {
-  memoryUsage: number;
-  cpuTime: number;
+// PerformanceMetrics is now imported from unified-types.ts
+// This extends it with semantic-specific metrics
+export interface SemanticPerformanceMetrics extends PerformanceMetrics {
   ioOperations: number;
-  cacheHits: number;
-  cacheMisses: number;
 }
 
-export type ValidationErrorType =
-  | 'syntax_error'
-  | 'semantic_error'
-  | 'constraint_violation'
-  | 'shape_violation'
-  | 'consistency_error'
-  | 'reference_error'
-  | 'type_error'
-  | 'format_error'
-  | 'template_error'
-  | 'generation_error';
+// ValidationErrorType and ValidationWarningType are now defined in unified-types.ts
+// These extend the base types with semantic-specific validation types
+export type SemanticValidationErrorType = ValidationErrorType |
+  'shape_violation' |
+  'consistency_error' |
+  'template_error' |
+  'generation_error';
 
-export type ValidationWarningType =
-  | 'deprecated_usage'
-  | 'style_issue'
-  | 'performance_concern'
-  | 'best_practice'
-  | 'compatibility_issue'
-  | 'maintainability_concern';
+export type SemanticValidationWarningType = ValidationWarningType |
+  'style_issue' |
+  'compatibility_issue' |
+  'maintainability_concern';
 
 export interface ValidationConfig {
   strictMode: boolean;

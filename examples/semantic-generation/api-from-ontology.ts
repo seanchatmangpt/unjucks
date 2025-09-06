@@ -3,8 +3,8 @@
  * Shows how semantic data drives API code generation
  */
 
-import { TurtleParser } from '../../src/lib/turtle-parser';
-import { RDFFilters } from '../../src/lib/rdf-filters';
+import { TurtleParser } from '../../src/lib/turtle-parser.js';
+import { RDFFilters } from '../../src/lib/rdf-filters.js';
 import nunjucks from 'nunjucks';
 import { writeFileSync, mkdirSync } from 'fs';
 

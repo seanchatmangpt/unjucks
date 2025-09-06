@@ -5,6 +5,7 @@
  */
 
 import { RDFTypeConverter } from '../src/lib/rdf-type-converter.js';
+import type { UnjucksError } from '../src/types/unified-types.js';
 import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
 
@@ -115,8 +116,9 @@ const person: Person = {
 try {
   const validatedPerson = validatePerson(rawData);
   console.log("Valid person:", validatedPerson);
-} catch (error) {
-  console.error("Validation failed:", error.message);
+} catch (error: unknown) {
+  const errorMsg = error instanceof Error ? error.message : String(error);
+  console.error("Validation failed:", errorMsg);
 }
 
 // 4. Type guards
@@ -143,8 +145,9 @@ app.post('/api/person', (req, res) => {
     // Safe to use person - it's validated
     database.create(person);
     res.json(person);
-  } catch (error) {
-    res.status(400).json({ error: error.message });
+  } catch (error: unknown) {
+    const errorMsg = error instanceof Error ? error.message : String(error);
+    res.status(400).json({ error: errorMsg });
   }
 });
 
@@ -174,11 +177,13 @@ const PersonModel = sequelize.define('Person', {
     console.log('   ✅ Integration with existing TypeScript toolchain');
     console.log('   ✅ Enterprise-ready validation patterns');
 
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('❌ Demo failed:', error);
     process.exit(1);
   }
 }
 
 // Run the demo
-runFullCycleDemo().catch(console.error);
+runFullCycleDemo().catch((error: unknown) => {
+  console.error(error);
+});

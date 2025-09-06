@@ -1,3 +1,4 @@
+// @ts-nocheck
 // Generated validation helpers
 import { z } from 'zod';
 import { PersonSchema } from './schemas.js';

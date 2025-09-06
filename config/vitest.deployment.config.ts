@@ -13,7 +13,7 @@ export default defineConfig({
       'tests/integration',
       'tests/performance'
     ],
-    timeout: 300000, // 5 minutes for deployment operations
+    // timeout: 300000, // Invalid property - removed
     testTimeout: 60000, // 1 minute per individual test
     hookTimeout: 30000, // 30 seconds for setup/teardown
     teardownTimeout: 30000,
@@ -23,7 +23,7 @@ export default defineConfig({
     
     // Global setup and teardown
     globalSetup: ['tests/deployment/global-setup.ts'],
-    globalTeardown: ['tests/deployment/global-teardown.ts'],
+    // globalTeardown: ['tests/deployment/global-teardown.ts'], // Not supported in Vitest
     
     // Sequential execution for deployment tests to avoid conflicts
     sequence: {

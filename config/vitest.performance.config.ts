@@ -65,7 +65,7 @@ export default defineConfig({
     },
     
     // Reporter configuration for performance tests
-    reporter: process.env.CI 
+    reporters: process.env.CI 
       ? ['json', 'github-actions']
       : ['verbose', 'html'],
     

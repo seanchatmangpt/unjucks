@@ -1,46 +1,14 @@
-import { ParsedArguments, ParseContext } from '../parsers/PositionalParser.js';
-import { TemplateVariable } from '../template-scanner.js';
+import { ParsedArguments, ParseContext } from "../parsers/PositionalParser.js";
+import { TemplateVariable } from "../template-scanner.js";
+import type {
+  ValidationResult,
+  ValidationErrorDetail,
+  ValidationWarning,
+  ValidationSuggestion,
+  ValidationMetadata,
+} from "../../types/unified-types.js";
 
-export interface ValidationResult {
-  isValid: boolean;
-  errors: ValidationError[];
-  warnings: ValidationWarning[];
-  suggestions: ValidationSuggestion[];
-  metadata: ValidationMetadata;
-}
-
-export interface ValidationError {
-  type: 'missing-required' | 'invalid-type' | 'invalid-value' | 'conflicting-args' | 'unknown-arg';
-  field: string;
-  message: string;
-  severity: 'error' | 'warning';
-  suggestion?: string;
-  context?: any;
-}
-
-export interface ValidationWarning {
-  type: 'deprecated' | 'unused-arg' | 'type-mismatch' | 'performance';
-  field?: string;
-  message: string;
-  suggestion?: string;
-}
-
-export interface ValidationSuggestion {
-  type: 'correction' | 'completion' | 'optimization';
-  field?: string;
-  suggestion: string;
-  confidence: number; // 0-1
-  example?: string;
-}
-
-export interface ValidationMetadata {
-  validatedAt: Date;
-  validationTime: number;
-  rulesApplied: string[];
-  skipReasons: string[];
-  context: string;
-}
-
+// Local interface for argument-specific validation rules
 export interface ArgumentValidationRule {
   name: string;
   priority: number;
@@ -56,12 +24,12 @@ export interface ValidationConfig {
   enableWarnings: boolean;
   enableTypeCoercion: boolean;
   maxSuggestions: number;
-  customRules: ValidationRule[];
+  customRules: ArgumentValidationRule[];
 }
 
 export class ArgumentValidator {
   private config: ValidationConfig;
-  private rules: Map<string, ValidationRule>;
+  private rules: Map<string, ArgumentValidationRule>;
   private customValidators: Map<string, CustomValidator>;
 
   // Default validation configuration
@@ -79,7 +47,7 @@ export class ArgumentValidator {
     this.config = { ...ArgumentValidator.DEFAULT_CONFIG, ...config };
     this.rules = new Map();
     this.customValidators = new Map();
-    
+
     this.initializeBuiltInRules();
     this.registerCustomRules();
   }
@@ -87,19 +55,22 @@ export class ArgumentValidator {
   /**
    * Main validation entry point
    */
-  async validate(args: ParsedArguments, context?: ParseContext): Promise<ValidationResult> {
+  async validate(
+    args: ParsedArguments,
+    context?: ParseContext
+  ): Promise<ValidationResult> {
     const startTime = performance.now();
     const result: ValidationResult = {
-      isValid: true,
+      valid: true,
       errors: [],
       warnings: [],
       suggestions: [],
       metadata: {
-        validatedAt: new Date(),
         validationTime: 0,
         rulesApplied: [],
-        skipReasons: [],
-        context: context ? `${context.generator}/${context.template}` : 'unknown',
+        context: context
+          ? { generator: context.generator, template: context.template }
+          : {},
       },
     };
 
@@ -125,30 +96,44 @@ export class ArgumentValidator {
           result.metadata.rulesApplied.push(rule.name);
         } catch (error) {
           result.errors.push({
-            type: 'unknown-arg',
-            field: 'validation',
+            type: "unknown-arg",
             message: `Validation rule '${rule.name}' failed: ${error}`,
-            severity: 'error',
+            code: "RULE_FAILURE",
+            severity: "error",
+            location: undefined,
+            context: { rule: rule.name, error: String(error) },
+            suggestion: `Check the implementation of rule '${rule.name}'`,
+            timestamp: new Date()
           });
         }
       }
 
       // Generate suggestions if enabled
       if (this.config.enableSuggestions && result.errors.length > 0) {
-        const suggestions = await this.generateSuggestions(args, result.errors, context);
-        result.suggestions.push(...suggestions.slice(0, this.config.maxSuggestions));
+        const suggestions = await this.generateSuggestions(
+          args,
+          result.errors,
+          context
+        );
+        result.suggestions.push(
+          ...suggestions.slice(0, this.config.maxSuggestions)
+        );
       }
 
       // Determine overall validity
-      result.isValid = result.errors.filter(e => e.severity === 'error').length === 0;
-
+      result.valid =
+        result.errors.filter((e) => e.severity === "error").length === 0;
     } catch (error) {
-      result.isValid = false;
+      result.valid = false;
       result.errors.push({
-        type: 'unknown-arg',
-        field: 'validation',
+        type: "unknown-arg",
         message: `Validation failed: ${error}`,
-        severity: 'error',
+        code: "VALIDATION_FAILED",
+        severity: "error",
+        location: undefined,
+        context: { error: String(error) },
+        suggestion: "Check the validation input and configuration",
+        timestamp: new Date()
       });
     }
 
@@ -166,16 +151,14 @@ export class ArgumentValidator {
     context?: any
   ): Promise<ValidationResult> {
     const result: ValidationResult = {
-      isValid: true,
+      valid: true,
       errors: [],
       warnings: [],
       suggestions: [],
       metadata: {
-        validatedAt: new Date(),
         validationTime: 0,
         rulesApplied: rules,
-        skipReasons: [],
-        context: `field:${fieldName}`,
+        context: { fieldName },
       },
     };
 
@@ -185,17 +168,20 @@ export class ArgumentValidator {
         const ruleResult = await validator.validate(value, context);
         if (!ruleResult.isValid) {
           result.errors.push({
-            type: 'invalid-value',
-            field: fieldName,
+            type: "invalid-value",
             message: ruleResult.message,
-            severity: 'error',
+            code: "CUSTOM_VALIDATION_FAILED",
+            severity: "error",
+            location: undefined,
+            context: { field: fieldName, value, validator: ruleName },
             suggestion: ruleResult.suggestion,
+            timestamp: new Date()
           });
         }
       }
     }
 
-    result.isValid = result.errors.length === 0;
+    result.valid = result.errors.length === 0;
     return result;
   }
 
@@ -207,16 +193,14 @@ export class ArgumentValidator {
     templateVariables: TemplateVariable[]
   ): Promise<ValidationResult> {
     const result: ValidationResult = {
-      isValid: true,
+      valid: true,
       errors: [],
       warnings: [],
       suggestions: [],
       metadata: {
-        validatedAt: new Date(),
         validationTime: 0,
-        rulesApplied: ['variable-validation'],
-        skipReasons: [],
-        context: 'template-variables',
+        rulesApplied: ["variable-validation"],
+        context: { contextType: "template-variables", variableCount: Object.keys(variables).length, templateVariableCount: templateVariables.length },
       },
     };
 
@@ -224,43 +208,58 @@ export class ArgumentValidator {
     for (const templateVar of templateVariables) {
       if (templateVar.required && variables[templateVar.name] === undefined) {
         result.errors.push({
-          type: 'missing-required',
-          field: templateVar.name,
+          type: "missing-required",
           message: `Required variable '${templateVar.name}' is missing`,
-          severity: 'error',
+          code: "MISSING_REQUIRED_VAR",
+          severity: "error",
+          location: undefined,
+          context: { field: templateVar.name, templateVariable: templateVar },
           suggestion: `Add --${templateVar.name}="value" to your command`,
+          timestamp: new Date()
         });
       }
     }
 
     // Check variable types
     for (const [varName, value] of Object.entries(variables)) {
-      const templateVar = templateVariables.find(v => v.name === varName);
+      const templateVar = templateVariables.find((v) => v.name === varName);
       if (templateVar) {
-        const typeValidation = this.validateVariableType(varName, value, templateVar.type);
+        const typeValidation = this.validateVariableType(
+          varName,
+          value,
+          templateVar.type
+        );
         if (!typeValidation.isValid) {
           result.errors.push({
-            type: 'invalid-type',
-            field: varName,
+            type: "invalid-type",
             message: typeValidation.message,
-            severity: this.config.enableTypeCoercion ? 'warning' : 'error',
+            code: "INVALID_TYPE",
+            severity: this.config.enableTypeCoercion ? "warning" : "error",
+            location: undefined,
+            context: { field: varName, actualValue: value, expectedType: templateVar.type },
             suggestion: typeValidation.suggestion,
+            timestamp: new Date()
           });
         }
       } else {
         // Unknown variable
         if (this.config.strict) {
           result.errors.push({
-            type: 'unknown-arg',
-            field: varName,
+            type: "unknown-arg",
             message: `Unknown variable '${varName}' - not defined in template`,
-            severity: 'warning',
+            code: "UNKNOWN_VARIABLE",
+            severity: "warning",
+            location: undefined,
+            context: { field: varName, providedVariables: Object.keys(variables), templateVariables: templateVariables.map(v => v.name) },
+            suggestion: `Remove '${varName}' or add it to the template definition`,
+            timestamp: new Date()
           });
         }
       }
     }
 
-    result.isValid = result.errors.filter(e => e.severity === 'error').length === 0;
+    result.valid =
+      result.errors.filter((e) => e.severity === "error").length === 0;
     return result;
   }
 
@@ -270,20 +269,23 @@ export class ArgumentValidator {
   private initializeBuiltInRules(): void {
     // Required arguments validation
     this.addRule({
-      name: 'required-args',
+      name: "required-args",
       priority: 100,
       enabled: true,
       validate: async (args: ParsedArguments, context?: ParseContext) => {
         const result = this.createEmptyResult();
-        
+
         // Check for generator and template in positional args
         if (args.positionals.length < 2) {
           result.errors.push({
-            type: 'missing-required',
-            field: 'positionals',
-            message: 'Generator and template names are required',
-            severity: 'error',
-            suggestion: 'Usage: unjucks <generator> <template> [args...]',
+            type: "missing-required",
+            message: "Generator and template names are required",
+            code: "MISSING_POSITIONAL_ARGS",
+            severity: "error",
+            location: undefined,
+            context: { providedCount: args.positionals.length, requiredCount: 2, positionals: args.positionals },
+            suggestion: "Usage: unjucks <generator> <template> [args...]",
+            timestamp: new Date()
           });
         }
 
@@ -293,14 +295,17 @@ export class ArgumentValidator {
 
     // Type validation rule
     this.addRule({
-      name: 'type-validation',
+      name: "type-validation",
       priority: 90,
       enabled: true,
       validate: async (args: ParsedArguments, context?: ParseContext) => {
         const result = this.createEmptyResult();
-        
+
         if (context?.variables) {
-          const variableValidation = await this.validateVariables(args.variables, context.variables);
+          const variableValidation = await this.validateVariables(
+            args.variables,
+            context.variables
+          );
           this.mergeValidationResults(result, variableValidation);
         }
 
@@ -310,26 +315,29 @@ export class ArgumentValidator {
 
     // Conflicting arguments rule
     this.addRule({
-      name: 'conflicting-args',
+      name: "conflicting-args",
       priority: 80,
       enabled: true,
       validate: async (args: ParsedArguments) => {
         const result = this.createEmptyResult();
-        
+
         // Check for conflicting flags
         const conflicts = [
-          ['force', 'dry'],
-          ['quiet', 'verbose'],
+          ["force", "dry"],
+          ["quiet", "verbose"],
         ];
 
         for (const [flag1, flag2] of conflicts) {
           if (args.flags[flag1] && args.flags[flag2]) {
             result.errors.push({
-              type: 'conflicting-args',
-              field: `${flag1},${flag2}`,
+              type: "conflicting-args",
               message: `Conflicting arguments: --${flag1} and --${flag2} cannot be used together`,
-              severity: 'error',
+              code: "CONFLICTING_ARGS",
+              severity: "error",
+              location: undefined,
+              context: { conflictingFlags: [flag1, flag2], allFlags: Object.keys(args.flags) },
               suggestion: `Choose either --${flag1} or --${flag2}`,
+              timestamp: new Date()
             });
           }
         }
@@ -340,18 +348,23 @@ export class ArgumentValidator {
 
     // Performance warning rule
     this.addRule({
-      name: 'performance-warnings',
+      name: "performance-warnings",
       priority: 10,
       enabled: this.config.enableWarnings,
       validate: async (args: ParsedArguments) => {
         const result = this.createEmptyResult();
-        
+
         // Warn about potentially slow operations
         if (args.flags.force && !args.flags.backup) {
           result.warnings.push({
-            type: 'performance',
-            message: 'Using --force without --backup can be risky',
-            suggestion: 'Consider adding --backup for safety',
+            type: "performance",
+            message: "Using --force without --backup can be risky",
+            code: "RISKY_OPERATION",
+            severity: "warning",
+            location: undefined,
+            context: { hasForce: args.flags.force, hasBackup: args.flags.backup },
+            suggestion: "Consider adding --backup for safety",
+            timestamp: new Date()
           });
         }
 
@@ -372,9 +385,12 @@ export class ArgumentValidator {
   /**
    * Get rules applicable to the current arguments and context
    */
-  private getApplicableRules(args: ParsedArguments, context?: ParseContext): ValidationRule[] {
+  private getApplicableRules(
+    args: ParsedArguments,
+    context?: ParseContext
+  ): ArgumentValidationRule[] {
     return Array.from(this.rules.values())
-      .filter(rule => rule.enabled)
+      .filter((rule) => rule.enabled)
       .sort((a, b) => b.priority - a.priority); // Higher priority first
   }
 
@@ -384,17 +400,26 @@ export class ArgumentValidator {
   private validateVariableType(
     name: string,
     value: any,
-    expectedType: 'string' | 'boolean' | 'number'
+    expectedType: "string" | "boolean" | "number"
   ): { isValid: boolean; message: string; suggestion?: string } {
     const actualType = typeof value;
 
     switch (expectedType) {
-      case 'boolean':
-        if (actualType === 'boolean') return { isValid: true, message: '' };
-        if (typeof value === 'string') {
-          const boolValues = ['true', 'false', '1', '0', 'yes', 'no', 'on', 'off'];
+      case "boolean":
+        if (actualType === "boolean") return { isValid: true, message: "" };
+        if (typeof value === "string") {
+          const boolValues = [
+            "true",
+            "false",
+            "1",
+            "0",
+            "yes",
+            "no",
+            "on",
+            "off",
+          ];
           if (boolValues.includes(value.toLowerCase())) {
-            return { isValid: true, message: '' };
+            return { isValid: true, message: "" };
           }
         }
         return {
@@ -403,10 +428,10 @@ export class ArgumentValidator {
           suggestion: `Use true/false, 1/0, yes/no, or on/off for ${name}`,
         };
 
-      case 'number':
-        if (actualType === 'number') return { isValid: true, message: '' };
-        if (typeof value === 'string' && !isNaN(Number(value))) {
-          return { isValid: true, message: '' };
+      case "number":
+        if (actualType === "number") return { isValid: true, message: "" };
+        if (typeof value === "string" && !isNaN(Number(value))) {
+          return { isValid: true, message: "" };
         }
         return {
           isValid: false,
@@ -414,8 +439,8 @@ export class ArgumentValidator {
           suggestion: `Use a numeric value for ${name}`,
         };
 
-      case 'string':
-        if (actualType === 'string') return { isValid: true, message: '' };
+      case "string":
+        if (actualType === "string") return { isValid: true, message: "" };
         return {
           isValid: false,
           message: `Variable '${name}' expects string, got ${actualType}`,
@@ -423,7 +448,7 @@ export class ArgumentValidator {
         };
 
       default:
-        return { isValid: true, message: '' };
+        return { isValid: true, message: "" };
     }
   }
 
@@ -439,20 +464,22 @@ export class ArgumentValidator {
 
     for (const error of errors) {
       switch (error.type) {
-        case 'missing-required':
+        case "missing-required":
           suggestions.push({
-            type: 'completion',
+            type: "completion",
             field: error.field,
             suggestion: `Add the missing required argument: --${error.field}="value"`,
             confidence: 0.9,
-            example: `unjucks ${args.positionals.join(' ')} --${error.field}="example"`,
+            example: `unjucks ${args.positionals.join(" ")} --${
+              error.field
+            }="example"`,
           });
           break;
 
-        case 'invalid-type':
+        case "invalid-type":
           if (error.suggestion) {
             suggestions.push({
-              type: 'correction',
+              type: "correction",
               field: error.field,
               suggestion: error.suggestion,
               confidence: 0.8,
@@ -460,14 +487,17 @@ export class ArgumentValidator {
           }
           break;
 
-        case 'unknown-arg':
+        case "unknown-arg":
           // Suggest similar argument names
-          const similar = this.findSimilarArguments(error.field, context?.variables || []);
+          const similar = this.findSimilarArguments(
+            error.field,
+            context?.variables || []
+          );
           if (similar.length > 0) {
             suggestions.push({
-              type: 'correction',
+              type: "correction",
               field: error.field,
-              suggestion: `Did you mean: ${similar.join(', ')}?`,
+              suggestion: `Did you mean: ${similar.join(", ")}?`,
               confidence: 0.7,
             });
           }
@@ -481,25 +511,33 @@ export class ArgumentValidator {
   /**
    * Find similar argument names using fuzzy matching
    */
-  private findSimilarArguments(target: string, variables: TemplateVariable[]): string[] {
-    const candidates = variables.map(v => v.name);
-    
+  private findSimilarArguments(
+    target: string,
+    variables: TemplateVariable[]
+  ): string[] {
+    const candidates = variables.map((v) => v.name);
+
     return candidates
-      .map(candidate => ({
+      .map((candidate) => ({
         name: candidate,
-        similarity: this.calculateSimilarity(target.toLowerCase(), candidate.toLowerCase()),
+        similarity: this.calculateSimilarity(
+          target.toLowerCase(),
+          candidate.toLowerCase()
+        ),
       }))
-      .filter(item => item.similarity > 0.6)
+      .filter((item) => item.similarity > 0.6)
       .sort((a, b) => b.similarity - a.similarity)
       .slice(0, 3)
-      .map(item => item.name);
+      .map((item) => item.name);
   }
 
   /**
    * Calculate string similarity using Levenshtein distance
    */
   private calculateSimilarity(str1: string, str2: string): number {
-    const matrix = Array(str2.length + 1).fill(null).map(() => Array(str1.length + 1).fill(null));
+    const matrix = Array(str2.length + 1)
+      .fill(null)
+      .map(() => Array(str1.length + 1).fill(null));
 
     for (let i = 0; i <= str1.length; i++) matrix[0][i] = i;
     for (let j = 0; j <= str2.length; j++) matrix[j][0] = j;
@@ -508,8 +546,8 @@ export class ArgumentValidator {
       for (let i = 1; i <= str1.length; i++) {
         const indicator = str1[i - 1] === str2[j - 1] ? 0 : 1;
         matrix[j][i] = Math.min(
-          matrix[j][i - 1] + 1,      // deletion
-          matrix[j - 1][i] + 1,      // insertion
+          matrix[j][i - 1] + 1, // deletion
+          matrix[j - 1][i] + 1, // insertion
           matrix[j - 1][i - 1] + indicator // substitution
         );
       }
@@ -522,7 +560,10 @@ export class ArgumentValidator {
   /**
    * Merge validation results
    */
-  private mergeValidationResults(target: ValidationResult, source: ValidationResult): void {
+  private mergeValidationResults(
+    target: ValidationResult,
+    source: ValidationResult
+  ): void {
     target.errors.push(...source.errors);
     target.warnings.push(...source.warnings);
     target.suggestions.push(...source.suggestions);
@@ -534,16 +575,14 @@ export class ArgumentValidator {
    */
   private createEmptyResult(): ValidationResult {
     return {
-      isValid: true,
+      valid: true,
       errors: [],
       warnings: [],
       suggestions: [],
       metadata: {
-        validatedAt: new Date(),
         validationTime: 0,
         rulesApplied: [],
-        skipReasons: [],
-        context: '',
+        context: {},
       },
     };
   }
@@ -551,7 +590,7 @@ export class ArgumentValidator {
   /**
    * Add validation rule
    */
-  addRule(rule: ValidationRule): void {
+  addRule(rule: ArgumentValidationRule): void {
     this.rules.set(rule.name, rule);
   }
 
@@ -574,9 +613,9 @@ export class ArgumentValidator {
    */
   updateConfig(newConfig: Partial<ValidationConfig>): void {
     this.config = { ...this.config, ...newConfig };
-    
+
     // Update rule states based on new config
-    const performanceRule = this.rules.get('performance-warnings');
+    const performanceRule = this.rules.get("performance-warnings");
     if (performanceRule) {
       performanceRule.enabled = this.config.enableWarnings;
     }
@@ -596,7 +635,10 @@ export class ArgumentValidator {
 export interface CustomValidator {
   name: string;
   description: string;
-  validate(value: any, context?: any): Promise<{ isValid: boolean; message: string; suggestion?: string }>;
+  validate(
+    value: any,
+    context?: any
+  ): Promise<{ isValid: boolean; message: string; suggestion?: string }>;
 }
 
 /**
@@ -604,13 +646,15 @@ export interface CustomValidator {
  */
 export class BuiltInValidators {
   static readonly nameValidator: CustomValidator = {
-    name: 'validName',
-    description: 'Validates that a name is a valid identifier',
-    async validate(value: any): Promise<{ isValid: boolean; message: string; suggestion?: string }> {
-      if (typeof value !== 'string') {
+    name: "validName",
+    description: "Validates that a name is a valid identifier",
+    async validate(
+      value: any
+    ): Promise<{ isValid: boolean; message: string; suggestion?: string }> {
+      if (typeof value !== "string") {
         return {
           isValid: false,
-          message: 'Name must be a string',
+          message: "Name must be a string",
         };
       }
 
@@ -618,37 +662,40 @@ export class BuiltInValidators {
       if (!namePattern.test(value)) {
         return {
           isValid: false,
-          message: 'Name must start with a letter and contain only letters, numbers, and underscores',
-          suggestion: 'Use PascalCase or camelCase format',
+          message:
+            "Name must start with a letter and contain only letters, numbers, and underscores",
+          suggestion: "Use PascalCase or camelCase format",
         };
       }
 
-      return { isValid: true, message: '' };
+      return { isValid: true, message: "" };
     },
   };
 
   static readonly pathValidator: CustomValidator = {
-    name: 'validPath',
-    description: 'Validates that a path is safe and well-formed',
-    async validate(value: any): Promise<{ isValid: boolean; message: string; suggestion?: string }> {
-      if (typeof value !== 'string') {
+    name: "validPath",
+    description: "Validates that a path is safe and well-formed",
+    async validate(
+      value: any
+    ): Promise<{ isValid: boolean; message: string; suggestion?: string }> {
+      if (typeof value !== "string") {
         return {
           isValid: false,
-          message: 'Path must be a string',
+          message: "Path must be a string",
         };
       }
 
       // Check for dangerous path patterns
-      const dangerousPatterns = ['../', '../', '~/', '/etc/', '/usr/', '/var/'];
-      if (dangerousPatterns.some(pattern => value.includes(pattern))) {
+      const dangerousPatterns = ["../", "../", "~/", "/etc/", "/usr/", "/var/"];
+      if (dangerousPatterns.some((pattern) => value.includes(pattern))) {
         return {
           isValid: false,
-          message: 'Path contains potentially dangerous patterns',
-          suggestion: 'Use relative paths within the project directory',
+          message: "Path contains potentially dangerous patterns",
+          suggestion: "Use relative paths within the project directory",
         };
       }
 
-      return { isValid: true, message: '' };
+      return { isValid: true, message: "" };
     },
   };
 }

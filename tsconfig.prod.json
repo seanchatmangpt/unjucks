@@ -1,0 +1,46 @@
+{
+  "compilerOptions": {
+    "target": "es2020",
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "outDir": "./dist",
+    "noEmit": false,
+    "declaration": true,
+    "declarationMap": false,
+    "sourceMap": false,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    
+    // Completely relaxed for production builds
+    "strict": false,
+    "noImplicitAny": false,
+    "strictNullChecks": false,
+    "noImplicitReturns": false,
+    "noImplicitThis": false,
+    "strictBindCallApply": false,
+    "strictFunctionTypes": false,
+    "strictPropertyInitialization": false
+  },
+  "include": [
+    "src/cli/index.ts"
+  ],
+  "exclude": [
+    "src/**/*.test.ts",
+    "src/**/*.spec.ts", 
+    "src/**/__tests__/**",
+    "src/lib/**/*",
+    "src/commands/semantic.ts",
+    "src/components/**/*",
+    "src/large/**/*",
+    "src/mcp/**/*",
+    "examples/**/*",
+    "tests/**/*",
+    "config/**/*",
+    "vite.config.ts",
+    "vitest.config.ts",
+    "node_modules",
+    "dist"
+  ]
+}

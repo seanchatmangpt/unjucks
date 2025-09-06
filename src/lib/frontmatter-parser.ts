@@ -1,6 +1,12 @@
 import yaml from "yaml";
 import type { RDFDataSource } from "./types/turtle-types.js";
 import { SemanticValidator } from "./semantic-validator.js";
+import type {
+  FrontmatterConfig as UnifiedFrontmatterConfig,
+  ParsedTemplate as UnifiedParsedTemplate,
+  RDFDataSource as UnifiedRDFDataSource,
+  ValidationResult as UnifiedValidationResult,
+} from "../types/unified-types.js";
 
 export interface FrontmatterConfig {
   to?: string;
@@ -13,13 +19,13 @@ export interface FrontmatterConfig {
   skipIf?: string;
   chmod?: string | number;
   sh?: string | string[];
-  
+
   // RDF/Turtle data source configurations
   rdf?: RDFDataSource | string;
   turtle?: RDFDataSource | string;
   turtleData?: string;
   rdfData?: string;
-  
+
   // RDF-specific options
   rdfBaseUri?: string;
   rdfPrefixes?: Record<string, string>;
@@ -30,28 +36,35 @@ export interface FrontmatterConfig {
     limit?: number;
     orderBy?: string;
   };
-  
+
   // Semantic validation and processing
   semanticValidation?: {
     enabled?: boolean;
     ontologies?: string[];
     strictMode?: boolean;
-    complianceFrameworks?: ('GDPR' | 'HIPAA' | 'SOX' | 'FHIR' | 'FIBO' | 'GS1')[];
-    validationLevel?: 'strict' | 'warn' | 'info';
+    complianceFrameworks?: (
+      | "GDPR"
+      | "HIPAA"
+      | "SOX"
+      | "FHIR"
+      | "FIBO"
+      | "GS1"
+    )[];
+    validationLevel?: "strict" | "warn" | "info";
   };
-  
+
   // Enterprise data sources with semantic context
   dataSources?: Array<{
-    type: 'file' | 'uri' | 'graphql' | 'sparql';
+    type: "file" | "uri" | "graphql" | "sparql";
     source: string;
     query?: string;
     endpoint?: string;
     headers?: Record<string, string>;
     ontologyContext?: string;
     semanticMapping?: boolean;
-    performanceProfile?: 'fast' | 'balanced' | 'comprehensive';
+    performanceProfile?: "fast" | "balanced" | "comprehensive";
   }>;
-  
+
   // Template variable enhancement with cross-ontology support
   variableEnhancement?: {
     semanticMapping?: boolean;
@@ -82,7 +95,7 @@ export class FrontmatterParser {
         enablePerformanceMetrics: true,
         cacheEnabled: true,
         parallelProcessing: false,
-        validationRules: []
+        validationRules: [],
       });
     }
   }
@@ -90,9 +103,14 @@ export class FrontmatterParser {
   /**
    * Parse template content with frontmatter and optional semantic validation
    */
-  async parse(templateContent: string, enableSemanticValidation: boolean = false): Promise<ParsedTemplate & {
-    validationResult?: any;
-  }> {
+  async parse(
+    templateContent: string,
+    enableSemanticValidation: boolean = false
+  ): Promise<
+    ParsedTemplate & {
+      validationResult?: any;
+    }
+  > {
     const frontmatterRegex = /^---\s*\n([\s\S]*?)\n---\s*\n([\s\S]*)$/;
     const match = templateContent.match(frontmatterRegex);
 
@@ -115,7 +133,11 @@ export class FrontmatterParser {
       };
 
       // Semantic validation if enabled and RDF configuration present
-      if (enableSemanticValidation && this.semanticValidator && this.hasRDFConfig(frontmatter)) {
+      if (
+        enableSemanticValidation &&
+        this.semanticValidator &&
+        this.hasRDFConfig(frontmatter)
+      ) {
         try {
           // This would require RDFDataLoader to get actual data for validation
           // For now, just validate the configuration structure
@@ -123,15 +145,15 @@ export class FrontmatterParser {
           if (!configValidation.valid) {
             result.validationResult = {
               valid: false,
-              errors: configValidation.errors.map(err => ({
-                code: 'FRONTMATTER_CONFIG_ERROR',
+              errors: configValidation.errors.map((err) => ({
+                code: "FRONTMATTER_CONFIG_ERROR",
                 message: err,
-                severity: 'error'
-              }))
+                severity: "error",
+              })),
             };
           }
         } catch (validationError) {
-          console.warn('Semantic validation failed:', validationError);
+          console.warn("Semantic validation failed:", validationError);
         }
       }
 
@@ -149,7 +171,10 @@ export class FrontmatterParser {
   /**
    * Validate frontmatter configuration
    */
-  validate(frontmatter: FrontmatterConfig): { valid: boolean; errors: string[] } {
+  validate(frontmatter: FrontmatterConfig): {
+    valid: boolean;
+    errors: string[];
+  } {
     const errors: string[] = [];
 
     // Check mutually exclusive injection options
@@ -180,28 +205,39 @@ export class FrontmatterParser {
     if (frontmatter.chmod !== undefined) {
       if (typeof frontmatter.chmod === "string") {
         if (!/^[0-7]{3,4}$/.test(frontmatter.chmod)) {
-          errors.push("chmod string must be octal format (e.g., '755', '0644')");
+          errors.push(
+            "chmod string must be octal format (e.g., '755', '0644')"
+          );
         }
-      } else if (typeof frontmatter.chmod === "number" && (frontmatter.chmod < 0 || frontmatter.chmod > 0o777)) {
-          errors.push("chmod number must be between 0 and 0o777");
-        }
+      } else if (
+        typeof frontmatter.chmod === "number" &&
+        (frontmatter.chmod < 0 || frontmatter.chmod > 0o777)
+      ) {
+        errors.push("chmod number must be between 0 and 0o777");
+      }
     }
 
     // Validate RDF configuration
-    if (frontmatter.rdf && typeof frontmatter.rdf === 'object') {
+    if (frontmatter.rdf && typeof frontmatter.rdf === "object") {
       if (!frontmatter.rdf.source) {
         errors.push("RDF configuration requires a 'source' property");
       }
-      if (frontmatter.rdf.type && !['file', 'inline', 'uri'].includes(frontmatter.rdf.type)) {
+      if (
+        frontmatter.rdf.type &&
+        !["file", "inline", "uri"].includes(frontmatter.rdf.type)
+      ) {
         errors.push("RDF type must be 'file', 'inline', or 'uri'");
       }
     }
 
-    if (frontmatter.turtle && typeof frontmatter.turtle === 'object') {
+    if (frontmatter.turtle && typeof frontmatter.turtle === "object") {
       if (!frontmatter.turtle.source) {
         errors.push("Turtle configuration requires a 'source' property");
       }
-      if (frontmatter.turtle.type && !['file', 'inline', 'uri'].includes(frontmatter.turtle.type)) {
+      if (
+        frontmatter.turtle.type &&
+        !["file", "inline", "uri"].includes(frontmatter.turtle.type)
+      ) {
         errors.push("Turtle type must be 'file', 'inline', or 'uri'");
       }
     }
@@ -234,24 +270,28 @@ export class FrontmatterParser {
    */
   getRDFConfig(frontmatter: FrontmatterConfig): RDFDataSource | null {
     if (frontmatter.rdf) {
-      if (typeof frontmatter.rdf === 'string') {
-        return { type: 'file', source: frontmatter.rdf };
+      if (typeof frontmatter.rdf === "string") {
+        return { type: "file", source: frontmatter.rdf };
       }
       return frontmatter.rdf;
     }
 
     if (frontmatter.turtle) {
-      if (typeof frontmatter.turtle === 'string') {
-        return { type: 'file', source: frontmatter.turtle, format: 'text/turtle' };
+      if (typeof frontmatter.turtle === "string") {
+        return {
+          type: "file",
+          source: frontmatter.turtle,
+          format: "text/turtle",
+        };
       }
-      return { ...frontmatter.turtle, format: 'text/turtle' };
+      return { ...frontmatter.turtle, format: "text/turtle" };
     }
 
     if (frontmatter.turtleData || frontmatter.rdfData) {
       return {
-        type: 'inline',
+        type: "inline",
         source: frontmatter.turtleData || frontmatter.rdfData!,
-        format: 'text/turtle'
+        format: "text/turtle",
       };
     }
 
@@ -264,7 +304,7 @@ export class FrontmatterParser {
       return true;
     } catch {
       // Also accept relative URIs or namespace patterns
-      return uri.includes(':') || uri.startsWith('/');
+      return uri.includes(":") || uri.startsWith("/");
     }
   }
 
@@ -333,10 +373,10 @@ export class FrontmatterParser {
       if (equalityMatch) {
         const [, varName, value] = equalityMatch;
         const actualValue = variables[varName];
-        
+
         // Remove quotes if present
         const expectedValue = value.replace(/^["'](.*)["']$/, "$1");
-        
+
         return String(actualValue) === expectedValue;
       }
 
@@ -345,16 +385,19 @@ export class FrontmatterParser {
       if (inequalityMatch) {
         const [, varName, value] = inequalityMatch;
         const actualValue = variables[varName];
-        
+
         // Remove quotes if present
         const expectedValue = value.replace(/^["'](.*)["']$/, "$1");
-        
+
         return String(actualValue) !== expectedValue;
       }
 
       return false;
     } catch (error) {
-      console.warn(`Warning: Error evaluating skipIf condition: ${frontmatter.skipIf}`, error);
+      console.warn(
+        `Warning: Error evaluating skipIf condition: ${frontmatter.skipIf}`,
+        error
+      );
       return false;
     }
   }
@@ -368,9 +411,9 @@ export class FrontmatterParser {
     }
 
     // Handle string format like '755' or '0755'
-    const parsed = chmod.startsWith("0") ? 
-      Number.parseInt(chmod, 8) : 
-      Number.parseInt(chmod, 8);
+    const parsed = chmod.startsWith("0")
+      ? Number.parseInt(chmod, 8)
+      : Number.parseInt(chmod, 8);
 
     return parsed;
   }

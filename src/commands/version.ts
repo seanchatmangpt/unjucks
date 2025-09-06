@@ -41,7 +41,8 @@ export const versionCommand = defineCommand({
     name: "version",
     description: "Show version information",
   },
-  run() {
+  run(context: any) {
+    const { args } = context;
     const version = getVersion();
     console.log(version);
   },

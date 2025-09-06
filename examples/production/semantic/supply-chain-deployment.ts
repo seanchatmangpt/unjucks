@@ -4,9 +4,9 @@
  * Handles traceability, inventory management, and global standards compliance
  */
 
-import { UnjucksGenerator } from '../../../src/lib/generator';
-import { RDFDataLoader } from '../../../src/lib/rdf-data-loader';
-import { N3 } from 'n3';
+import { UnjucksGenerator } from '../../../src/lib/generator.js';
+import { RDFDataLoader } from '../../../src/lib/rdf-data-loader.js';
+import * as N3 from 'n3';
 
 // GS1-based supply chain ontology for global standards compliance
 const gs1SupplyChainOntology = `

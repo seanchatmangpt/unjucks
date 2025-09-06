@@ -44,7 +44,7 @@ export default defineConfig({
     benchmark: {
       include: ["tests/benchmarks/**/*.bench.ts", "tests/performance/**/*.bench.ts"],
       reporters: ["verbose"],
-      outputFile: "reports/benchmark-results.json",
+      outputFile: "reports/benchmark-results.json"
     },
     // Test environment setup
     environment: "node",
@@ -115,9 +115,7 @@ export default defineConfig({
       setupFiles: 'parallel', // Parallel setup for faster startup
     },
     // Intelligent test caching for unchanged scenarios
-    cache: {
-      dir: 'node_modules/.vitest',
-    },
+    // Note: cache.dir is deprecated, use cacheDir at the root level instead
     // Performance optimizations
     isolate: false, // Share contexts between tests for better performance
     passWithNoTests: true,
@@ -125,17 +123,10 @@ export default defineConfig({
     
     // Watch mode optimizations
     watch: true,
-    watchExclude: ['**/node_modules/**', '**/dist/**', '**/generated/**'],
-    // File change detection patterns for hot reload
-    chokidar: {
-      usePolling: false,
-      interval: 100,
-      binaryInterval: 300,
-      ignoreInitial: true,
-      ignorePermissionErrors: true,
-    },
     // BDD integration: vitest-cucumber handles .feature.spec.ts files
     // Original .feature files remain as reference/documentation
     // Unified test runner handles both unit tests and BDD scenarios
   },
+  // Use Vite's cacheDir instead of deprecated cache.dir
+  cacheDir: 'node_modules/.vitest',
 });

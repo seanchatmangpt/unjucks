@@ -90,10 +90,12 @@
   "homepage": "https://unjucks.dev",
   "dependencies": {
     "axios": "^1.6.0",
+    "bcrypt": "^6.0.0",
     "chalk": "^4.1.2",
-    "chokidar": "^4.0.3",
+    "chokidar": "^3.3.0",
     "citty": "^0.1.6",
     "cli-table3": "^0.6.5",
+    "confbox": "^0.2.2",
     "consola": "^3.4.2",
     "fs-extra": "^11.3.1",
     "glob": "^10.3.10",
@@ -106,17 +108,26 @@
   },
   "devDependencies": {
     "@amiceli/vitest-cucumber": "^5.2.1",
+    "@types/bcrypt": "^6.0.0",
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.3",
     "@types/fs-extra": "^11.0.4",
     "@types/inquirer": "^9.0.9",
+    "@types/jsonwebtoken": "^9.0.10",
     "@types/n3": "^1.26.0",
-    "@types/node": "^20.0.0",
+    "@types/node": "^20.19.13",
     "@types/nunjucks": "^3.2.6",
+    "@types/react": "^19.1.12",
+    "@types/react-dom": "^19.1.9",
     "@typescript-eslint/eslint-plugin": "^8.42.0",
     "@typescript-eslint/parser": "^8.42.0",
+    "@vitejs/plugin-vue": "^6.0.1",
     "@vitest/ui": "^3.2.4",
     "eslint-plugin-import": "^2.32.0",
     "typescript": "^5.4.2",
-    "vitest": "^3.2.4"
+    "vite": "^7.1.4",
+    "vitest": "^3.2.4",
+    "vue": "^3.5.21"
   },
   "peerDependencies": {
     "chokidar": "^3.3.0"

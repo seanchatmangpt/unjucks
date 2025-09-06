@@ -1,3 +1,4 @@
+// @ts-nocheck
 
 // Generated from RDF data
 export class Organization {

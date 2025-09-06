@@ -54,7 +54,7 @@ export default defineConfig({
     },
     
     // Reporter configuration for different test types
-    reporter: process.env.CI 
+    reporters: process.env.CI 
       ? ['json', 'github-actions']
       : ['verbose', 'html'],
     

@@ -1,13 +1,24 @@
-import { readFileSync } from 'node:fs';
-import { TurtleParser, type TurtleParseResult, type TurtleParseOptions } from './turtle-parser.js';
+import { readFileSync } from "node:fs";
+import {
+  TurtleParser,
+  type TurtleParseResult,
+  type TurtleParseOptions,
+} from "./turtle-parser.js";
+import type {
+  RDFDataSource as UnifiedRDFDataSource,
+  RDFDataLoadResult as UnifiedRDFDataLoadResult,
+  RDFDataLoaderOptions as UnifiedRDFDataLoaderOptions,
+  QueryOptions,
+  QueryResult,
+} from "../types/unified-types.js";
 
 /**
  * Data source types supported by RDFDataLoader
  */
 export interface RDFDataSource {
-  type: 'file' | 'inline' | 'uri';
+  type: "file" | "inline" | "uri";
   source?: string; // For compatibility with existing tests
-  path?: string;   // BDD test interface
+  path?: string; // BDD test interface
   content?: string; // BDD test interface
   uri?: string;
   options?: TurtleParseOptions;
@@ -63,12 +74,12 @@ export class RDFDataLoader {
 
   constructor(options: RDFDataLoaderOptions = {}) {
     this.options = {
-      baseUri: options.baseUri ?? '',
+      baseUri: options.baseUri ?? "",
       cacheEnabled: options.cacheEnabled ?? true,
       defaultTTL: options.defaultTTL ?? 5 * 60 * 1000, // 5 minutes
       maxCacheSize: options.maxCacheSize ?? 100,
       enableCleanup: options.enableCleanup ?? true,
-      cleanupInterval: options.cleanupInterval ?? 60 * 1000 // 1 minute
+      cleanupInterval: options.cleanupInterval ?? 60 * 1000, // 1 minute
     };
 
     this.parser = new TurtleParser();
@@ -83,19 +94,32 @@ export class RDFDataLoader {
    * Load RDF data from a specified source
    * Supports BDD test interface: { type: 'file', path: string } | { type: 'inline', content: string }
    */
-  async loadFromSource(source: RDFDataSource | { type: 'file'; path: string } | { type: 'inline'; content: string }): Promise<TurtleParseResult> {
+  async loadFromSource(
+    source:
+      | RDFDataSource
+      | { type: "file"; path: string }
+      | { type: "inline"; content: string }
+  ): Promise<TurtleParseResult> {
     // Convert different source formats to internal format
     let normalizedSource: RDFDataSource;
-    if ('path' in source) {
-      normalizedSource = { type: 'file', path: source.path, source: source.path };
-    } else if ('content' in source) {
-      normalizedSource = { type: 'inline', content: source.content, source: source.content };
+    if ("path" in source) {
+      normalizedSource = {
+        type: "file",
+        path: source.path,
+        source: source.path,
+      };
+    } else if ("content" in source) {
+      normalizedSource = {
+        type: "inline",
+        content: source.content,
+        source: source.content,
+      };
     } else {
       normalizedSource = source;
     }
 
     const cacheKey = this.generateCacheKey(normalizedSource);
-    
+
     // Check cache first
     const cachedEntry = this.cache.get(cacheKey);
     if (cachedEntry && !this.isExpired(cachedEntry)) {
@@ -105,32 +129,35 @@ export class RDFDataLoader {
     // Load data based on source type
     let content: string;
     switch (normalizedSource.type) {
-      case 'file':
+      case "file":
         const filePath = normalizedSource.path || normalizedSource.source;
         if (!filePath) {
-          throw new Error('File path is required for file source');
+          throw new Error("File path is required for file source");
         }
         content = await this.loadFromFile(filePath);
         break;
 
-      case 'inline':
-        const inlineContent = normalizedSource.content || normalizedSource.source;
+      case "inline":
+        const inlineContent =
+          normalizedSource.content || normalizedSource.source;
         if (!inlineContent) {
-          throw new Error('Content is required for inline source');
+          throw new Error("Content is required for inline source");
         }
         content = inlineContent;
         break;
 
-      case 'uri':
+      case "uri":
         const uri = normalizedSource.uri || normalizedSource.source;
         if (!uri) {
-          throw new Error('URI is required for URI source');
+          throw new Error("URI is required for URI source");
         }
         content = await this.loadFromURI(uri);
         break;
 
       default:
-        throw new Error(`Unsupported source type: ${(normalizedSource as any).type}`);
+        throw new Error(
+          `Unsupported source type: ${(normalizedSource as any).type}`
+        );
     }
 
     // Parse the content using TurtleParser
@@ -138,7 +165,7 @@ export class RDFDataLoader {
     if (parseOptions && Object.keys(parseOptions).length > 0) {
       this.parser = new TurtleParser(parseOptions);
     }
-    
+
     const result = await this.parser.parse(content);
 
     // Cache the result
@@ -151,7 +178,7 @@ export class RDFDataLoader {
       source: cacheKey,
       error: undefined,
       errors: [],
-      data: result
+      data: result,
     } as RDFDataLoadResult;
   }
 
@@ -159,9 +186,11 @@ export class RDFDataLoader {
    * Load from frontmatter configuration
    */
   async loadFromFrontmatter(frontmatter: any): Promise<RDFDataLoadResult> {
-    const sources = Array.isArray(frontmatter.rdf) ? frontmatter.rdf : [frontmatter.rdf];
+    const sources = Array.isArray(frontmatter.rdf)
+      ? frontmatter.rdf
+      : [frontmatter.rdf];
     const results: TurtleParseResult[] = [];
-    
+
     for (const source of sources) {
       try {
         const result = await this.loadFromSource(source);
@@ -170,29 +199,31 @@ export class RDFDataLoader {
         console.error(`Failed to load source: ${error}`);
       }
     }
-    
+
     // Merge results
     const merged: TurtleParseResult = {
-      triples: results.flatMap(r => r.triples),
-      prefixes: Object.assign({}, ...results.map(r => r.prefixes)),
+      triples: results.flatMap((r) => r.triples),
+      prefixes: Object.assign({}, ...results.map((r) => r.prefixes)),
       stats: {
         tripleCount: results.reduce((sum, r) => sum + r.stats.tripleCount, 0),
-        prefixCount: Object.keys(Object.assign({}, ...results.map(r => r.prefixes))).length,
+        prefixCount: Object.keys(
+          Object.assign({}, ...results.map((r) => r.prefixes))
+        ).length,
         subjectCount: 0,
         predicateCount: 0,
         parseTime: results.reduce((sum, r) => sum + r.stats.parseTime, 0),
-        namedGraphCount: 0
+        namedGraphCount: 0,
       },
-      namedGraphs: []
+      namedGraphs: [],
     };
-    
+
     return {
       ...merged,
       success: true,
-      source: 'frontmatter',
+      source: "frontmatter",
       error: undefined,
       errors: [],
-      data: merged
+      data: merged,
     } as RDFDataLoadResult;
   }
 
@@ -204,29 +235,31 @@ export class RDFDataLoader {
       subjects: {},
       prefixes: data.prefixes,
       triples: data.triples,
-      stats: data.stats
+      stats: data.stats,
     };
-    
+
     // Group triples by subject for easier template access
     for (const triple of data.triples) {
       const subjectUri = triple.subject.value;
       if (!context.subjects[subjectUri]) {
         context.subjects[subjectUri] = {
           uri: subjectUri,
-          properties: {}
+          properties: {},
         };
       }
-      
+
       const predicateUri = triple.predicate.value;
       const simplePredicate = predicateUri.split(/[#/]/).pop() || predicateUri;
-      
+
       if (!context.subjects[subjectUri].properties[simplePredicate]) {
         context.subjects[subjectUri].properties[simplePredicate] = [];
       }
-      
-      context.subjects[subjectUri].properties[simplePredicate].push(triple.object.value);
+
+      context.subjects[subjectUri].properties[simplePredicate].push(
+        triple.object.value
+      );
     }
-    
+
     return context;
   }
 
@@ -235,9 +268,11 @@ export class RDFDataLoader {
    */
   private async loadFromFile(filePath: string): Promise<string> {
     try {
-      return readFileSync(filePath, 'utf-8');
+      return readFileSync(filePath, "utf-8");
     } catch (error) {
-      throw new Error(`Failed to read file ${filePath}: ${(error as Error).message}`);
+      throw new Error(
+        `Failed to read file ${filePath}: ${(error as Error).message}`
+      );
     }
   }
 
@@ -248,8 +283,9 @@ export class RDFDataLoader {
     try {
       const response = await fetch(uri, {
         headers: {
-          'Accept': 'text/turtle, application/rdf+xml, text/n3, application/n-triples, application/ld+json'
-        }
+          Accept:
+            "text/turtle, application/rdf+xml, text/n3, application/n-triples, application/ld+json",
+        },
       });
 
       if (!response.ok) {
@@ -258,7 +294,9 @@ export class RDFDataLoader {
 
       return await response.text();
     } catch (error) {
-      throw new Error(`Failed to fetch URI ${uri}: ${(error as Error).message}`);
+      throw new Error(
+        `Failed to fetch URI ${uri}: ${(error as Error).message}`
+      );
     }
   }
 
@@ -267,20 +305,20 @@ export class RDFDataLoader {
    */
   private generateCacheKey(source: RDFDataSource): string {
     const parts: string[] = [source.type];
-    
+
     switch (source.type) {
-      case 'file':
-        const filePath = source.path || source.source || '';
+      case "file":
+        const filePath = source.path || source.source || "";
         parts.push(filePath);
         break;
-      case 'inline':
+      case "inline":
         // For inline content, hash the content to avoid very long keys
-        const content = source.content || source.source || '';
+        const content = source.content || source.source || "";
         const hash = this.simpleHash(content);
         parts.push(`inline-${hash}`);
         break;
-      case 'uri':
-        const uri = source.uri || source.source || '';
+      case "uri":
+        const uri = source.uri || source.source || "";
         parts.push(uri);
         break;
     }
@@ -291,7 +329,7 @@ export class RDFDataLoader {
       parts.push(`opts-${optionsHash}`);
     }
 
-    return parts.join(':');
+    return parts.join(":");
   }
 
   /**
@@ -301,7 +339,7 @@ export class RDFDataLoader {
     let hash = 0;
     for (let i = 0; i < str.length; i++) {
       const char = str.charCodeAt(i);
-      hash = ((hash << 5) - hash) + char;
+      hash = (hash << 5) - hash + char;
       hash = hash & hash; // Convert to 32bit integer
     }
     return Math.abs(hash).toString(36);
@@ -323,7 +361,7 @@ export class RDFDataLoader {
     this.cache.set(key, {
       data,
       timestamp: Date.now(),
-      ttl: this.options.defaultTTL
+      ttl: this.options.defaultTTL,
     });
   }
 
@@ -391,15 +429,17 @@ export class RDFDataLoader {
       size: this.cache.size,
       maxSize: this.options.maxCacheSize,
       hitCount: 0, // Could be tracked if needed
-      missCount: 0  // Could be tracked if needed
+      missCount: 0, // Could be tracked if needed
     };
   }
 
   /**
    * Load multiple sources concurrently
    */
-  async loadFromSources(sources: RDFDataSource[]): Promise<TurtleParseResult[]> {
-    return Promise.all(sources.map(source => this.loadFromSource(source)));
+  async loadFromSources(
+    sources: RDFDataSource[]
+  ): Promise<TurtleParseResult[]> {
+    return Promise.all(sources.map((source) => this.loadFromSource(source)));
   }
 
   /**
@@ -407,11 +447,16 @@ export class RDFDataLoader {
    */
   async loadAndMerge(sources: RDFDataSource[]): Promise<TurtleParseResult> {
     const results = await this.loadFromSources(sources);
-    
+
     // Merge all results
-    const mergedTriples = results.flatMap(result => result.triples);
-    const mergedPrefixes = Object.assign({}, ...results.map(result => result.prefixes));
-    const mergedNamedGraphs = Array.from(new Set(results.flatMap(result => result.namedGraphs || [])));
+    const mergedTriples = results.flatMap((result) => result.triples);
+    const mergedPrefixes = Object.assign(
+      {},
+      ...results.map((result) => result.prefixes)
+    );
+    const mergedNamedGraphs = Array.from(
+      new Set(results.flatMap((result) => result.namedGraphs || []))
+    );
 
     return {
       triples: mergedTriples,
@@ -421,10 +466,11 @@ export class RDFDataLoader {
         tripleCount: mergedTriples.length,
         namedGraphCount: mergedNamedGraphs.length,
         prefixCount: Object.keys(mergedPrefixes).length,
-        subjectCount: new Set(mergedTriples.map(t => t.subject.value)).size,
-        predicateCount: new Set(mergedTriples.map(t => t.predicate.value)).size,
-        parseTime: 0
-      }
+        subjectCount: new Set(mergedTriples.map((t) => t.subject.value)).size,
+        predicateCount: new Set(mergedTriples.map((t) => t.predicate.value))
+          .size,
+        parseTime: 0,
+      },
     };
   }
 
@@ -440,7 +486,10 @@ export class RDFDataLoader {
 /**
  * Convenience function to load RDF data from a source
  */
-export async function loadRDFData(source: RDFDataSource, options?: RDFDataLoaderOptions): Promise<TurtleParseResult> {
+export async function loadRDFData(
+  source: RDFDataSource,
+  options?: RDFDataLoaderOptions
+): Promise<TurtleParseResult> {
   const loader = new RDFDataLoader(options);
   return loader.loadFromSource(source);
 }
@@ -448,7 +497,10 @@ export async function loadRDFData(source: RDFDataSource, options?: RDFDataLoader
 /**
  * Convenience function to load RDF data from multiple sources
  */
-export async function loadMultipleRDFData(sources: RDFDataSource[], options?: RDFDataLoaderOptions): Promise<TurtleParseResult[]> {
+export async function loadMultipleRDFData(
+  sources: RDFDataSource[],
+  options?: RDFDataLoaderOptions
+): Promise<TurtleParseResult[]> {
   const loader = new RDFDataLoader(options);
   return loader.loadFromSources(sources);
 }

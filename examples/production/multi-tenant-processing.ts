@@ -4,9 +4,9 @@
  * Provides data isolation, resource quotas, and tenant-specific configurations
  */
 
-import { UnjucksGenerator } from '../../src/lib/generator';
-import { RDFDataLoader } from '../../src/lib/rdf-data-loader';
-import { N3 } from 'n3';
+import { UnjucksGenerator } from '../../src/lib/generator.js';
+import { RDFDataLoader } from '../../src/lib/rdf-data-loader.js';
+import * as N3 from 'n3';
 
 // Multi-tenant RDF model
 const multiTenantOntology = `

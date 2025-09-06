@@ -24,6 +24,7 @@ import ora from 'ora';
 import inquirer from 'inquirer';
 import yargs from 'yargs';
 import { hideBin } from 'yargs/helpers';
+import type { UnjucksError } from '../../src/types/unified-types.js';
 
 // Enterprise generation configuration
 interface EnterpriseConfig {
@@ -128,10 +129,11 @@ class EnterpriseGenerator {
       spinner.succeed(chalk.green('Enterprise generation completed successfully!'));
       
       this.printSummary(services);
-    } catch (error) {
-      spinner.fail(chalk.red(`Generation failed: ${error.message}`));
+    } catch (error: unknown) {
+      const errorMsg = error instanceof Error ? error.message : String(error);
+      spinner.fail(chalk.red(`Generation failed: ${errorMsg}`));
       if (this.config.verbose) {
-        console.error(error.stack);
+        console.error(error instanceof Error ? error.stack : 'Unknown error');
       }
       process.exit(1);
     }
@@ -168,8 +170,9 @@ class EnterpriseGenerator {
   private loadOntology(): string {
     try {
       return readFileSync(this.ontologyPath, 'utf-8');
-    } catch (error) {
-      throw new Error(`Failed to load ontology: ${error.message}`);
+    } catch (error: unknown) {
+      const errorMsg = error instanceof Error ? error.message : String(error);
+      throw new Error(`Failed to load ontology: ${errorMsg}`);
     }
   }
 
@@ -208,7 +211,7 @@ class EnterpriseGenerator {
       
       const name = this.extractProperty(serviceBlock, ':serviceName') || serviceName.toLowerCase().replace(/([A-Z])/g, '-$1').replace(/^-/, '');
       const port = parseInt(this.extractProperty(serviceBlock, ':port') || '8080');
-      const database = this.extractProperty(serviceBlock, ':database');
+      const database = this.extractProperty(serviceBlock, ':database') || undefined;
       
       // Extract dependencies, endpoints, events
       const dependencies = this.extractArrayProperty(serviceBlock, ':dependsOn') || [];
@@ -224,8 +227,9 @@ class EnterpriseGenerator {
         endpoints,
         events
       };
-    } catch (error) {
-      console.warn(`Warning: Could not parse service ${serviceName}: ${error.message}`);
+    } catch (error: unknown) {
+      const errorMsg = error instanceof Error ? error.message : String(error);
+      console.warn(`Warning: Could not parse service ${serviceName}: ${errorMsg}`);
       return null;
     }
   }
@@ -485,8 +489,9 @@ jobs:
       } else {
         execSync(unjucksCommand, { stdio: this.config.verbose ? 'inherit' : 'ignore' });
       }
-    } catch (error) {
-      throw new Error(`Failed to generate ${name}: ${error.message}`);
+    } catch (error: unknown) {
+      const errorMsg = error instanceof Error ? error.message : String(error);
+      throw new Error(`Failed to generate ${name}: ${errorMsg}`);
     }
   }
 
@@ -833,7 +838,7 @@ metadata:
 
   private extractProperty(block: string, property: string): string | null {
     const match = block.match(new RegExp(`${property}\\s+"([^"]+)"`));
-    return match ? match[1] : null;
+    return match?.[1] || null;
   }
 
   private extractArrayProperty(block: string, property: string): string[] {
@@ -917,7 +922,7 @@ metadata:
 /**
  * CLI Interface
  */
-const argv = yargs(hideBin(process.argv))
+const yargsConfig = yargs(hideBin(process.argv))
   .command('generate', 'Generate enterprise application', {
     name: {
       describe: 'Project name',
@@ -965,8 +970,7 @@ const argv = yargs(hideBin(process.argv))
       default: false
     }
   })
-  .help()
-  .argv;
+  .help();
 
 /**
  * Interactive mode
@@ -1066,23 +1070,25 @@ async function main(): Promise<void> {
       await runInteractive();
     } else {
       // Command line arguments provided
+      const argv = await yargsConfig.argv;
       const config: EnterpriseConfig = {
-        projectName: argv.name as string,
-        domain: argv.domain as string,
-        services: (argv.services as string).split(',').map(s => s.trim()),
-        complianceRules: (argv.compliance as string).split(',').map(c => c.trim()),
-        deploymentTarget: argv.target as any,
-        outputDir: argv.output as string,
-        dryRun: argv['dry-run'] as boolean,
-        force: argv.force as boolean,
-        verbose: argv.verbose as boolean
+        projectName: (argv.name as string) || 'enterprise-app',
+        domain: (argv.domain as string) || 'enterprise.com',
+        services: ((argv.services as string) || 'user-management,product-catalog').split(',').map(s => s.trim()),
+        complianceRules: ((argv.compliance as string) || 'GDPR,SOX').split(',').map(c => c.trim()),
+        deploymentTarget: (argv.target as any) || 'docker',
+        outputDir: (argv.output as string) || './generated',
+        dryRun: Boolean(argv['dry-run']),
+        force: Boolean(argv.force),
+        verbose: Boolean(argv.verbose)
       };
 
       const generator = new EnterpriseGenerator(config);
       await generator.generateEnterprise();
     }
-  } catch (error) {
-    console.error(chalk.red('Error:'), error.message);
+  } catch (error: unknown) {
+    const errorMsg = error instanceof Error ? error.message : String(error);
+    console.error(chalk.red('Error:'), errorMsg);
     process.exit(1);
   }
 }
@@ -1092,4 +1098,5 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   main().catch(console.error);
 }
 
-export { EnterpriseGenerator, EnterpriseConfig, ServiceDefinition };
+export { EnterpriseGenerator };
+export type { EnterpriseConfig, ServiceDefinition };

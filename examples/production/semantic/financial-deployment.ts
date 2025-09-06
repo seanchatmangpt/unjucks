@@ -4,9 +4,9 @@
  * Handles regulatory compliance, risk management, and financial instrument processing
  */
 
-import { UnjucksGenerator } from '../../../src/lib/generator';
-import { RDFDataLoader } from '../../../src/lib/rdf-data-loader';
-import { N3 } from 'n3';
+import { UnjucksGenerator } from '../../../src/lib/generator.js';
+import { RDFDataLoader } from '../../../src/lib/rdf-data-loader.js';
+import * as N3 from 'n3';
 
 // FIBO-based financial ontology for compliance and deployment
 const fiboFinancialOntology = `

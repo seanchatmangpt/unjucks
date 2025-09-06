@@ -406,6 +406,7 @@ export interface TemplateScanResult {
 export interface PerformanceMetrics {
   memoryUsed: number;
   cpuTime: number;
+  ioOperations?: number;
   cacheHits: number;
   cacheMisses: number;
 }
@@ -463,7 +464,12 @@ export type ValidationErrorType =
   | "unknown-arg"
   | "semantic-violation"
   | "syntax-error"
-  | "constraint-violation";
+  | "constraint-violation"
+  | "semantic_error"
+  | "reference_error"
+  | "type_error"
+  | "performance_concern"
+  | "style_issue";
 
 /**
  * Validation warning types
@@ -473,7 +479,9 @@ export type ValidationWarningType =
   | "unused-arg"
   | "type-mismatch"
   | "performance"
-  | "best-practice";
+  | "best-practice"
+  | "performance_concern"
+  | "style_issue";
 
 /**
  * Validation location
@@ -486,12 +494,17 @@ export interface ValidationLocation {
     start: number;
     end: number;
   };
+  triple?: {
+    subject: string;
+    predicate: string;
+    object: string;
+  };
 }
 
 /**
  * Validation error
  */
-export interface ValidationError {
+export interface ValidationErrorDetail {
   type: ValidationErrorType;
   message: string;
   code: string;
@@ -530,9 +543,26 @@ export interface ValidationSuggestion {
  * Validation metadata
  */
 export interface ValidationMetadata {
+  timestamp?: Date;
   validationTime: number;
   rulesApplied: string[];
   context: Record<string, any>;
+}
+
+/**
+ * Validation statistics
+ */
+export interface ValidationStatistics {
+  totalErrors: number;
+  totalWarnings: number;
+  totalSuggestions: number;
+  validationTime: number;
+  totalTriples: number;
+  rulesExecuted: number;
+  performance: {
+    memoryUsed: number;
+    cpuTime: number;
+  };
 }
 
 /**
@@ -540,12 +570,230 @@ export interface ValidationMetadata {
  */
 export interface ValidationResult {
   valid: boolean;
-  errors: ValidationError[];
+  errors: ValidationErrorDetail[];
   warnings: ValidationWarning[];
   suggestions: ValidationSuggestion[];
   metadata: ValidationMetadata;
+  statistics?: ValidationStatistics;
 }
 
+/**
+ * CLI Command types
+ */
+export interface CLICommand {
+  name: string;
+  description: string;
+  args?: CLICommandArgs;
+  handler: (args: CLICommandArgs) => Promise<CLICommandResult>;
+}
+
+export interface CLICommandArgs {
+  [key: string]: any;
+}
+
+/**
+ * Generate command arguments for citty compatibility
+ */
+export interface GenerateCommandArgs {
+  generator?: string;
+  template?: string;
+  dest?: string;
+  dry?: boolean;
+  force?: boolean;
+  variables?: Record<string, any>;
+  [key: string]: any;
+}
+
+/**
+ * List command arguments for citty compatibility
+ */
+export interface ListCommandArgs {
+  detailed?: boolean;
+  format?: "table" | "json" | "yaml";
+  filter?: string;
+  [key: string]: any;
+}
+
+/**
+ * Help command arguments for citty compatibility
+ */
+export interface HelpCommandArgs {
+  command?: string;
+  generator?: string;
+  detailed?: boolean;
+  [key: string]: any;
+}
+
+/**
+ * Inject command arguments for citty compatibility
+ */
+export interface InjectCommandArgs {
+  file?: string;
+  content?: string;
+  mode?: InjectionMode;
+  before?: string;
+  after?: string;
+  lineAt?: number;
+  force?: boolean;
+  dry?: boolean;
+  [key: string]: any;
+}
+
+export interface CLICommandResult {
+  success: boolean;
+  data?: any;
+  error?: string;
+}
+
+/**
+ * Generator types
+ */
+export interface GeneratorInfo {
+  name: string;
+  description: string;
+  path: string;
+  templates: TemplateInfo[];
+  category?: string;
+  created?: string;
+  modified?: string;
+  usage?: string;
+}
+
+export interface TemplateInfo {
+  name: string;
+  description: string;
+  path: string;
+  variables: TemplateVariable[];
+  tags?: string[];
+  created?: string;
+  modified?: string;
+}
+
+export interface TemplateFile {
+  path: string;
+  content: string;
+}
+
+export interface GenerateOptions {
+  generator: string;
+  template: string;
+  dest: string;
+  variables: Record<string, any>;
+  force?: boolean;
+  dry?: boolean;
+}
+
+export interface GenerationResult {
+  success: boolean;
+  files: GeneratedFile[];
+  errors: string[];
+  warnings: string[];
+}
+
+export interface GeneratedFile {
+  path: string;
+  content: string;
+  action: "skipped" | "created" | "updated" | "injected";
+}
+
+/**
+ * Injection types
+ */
+export interface InjectionOptions {
+  file: string;
+  content: string;
+  mode: InjectionMode;
+  before?: string;
+  after?: string;
+  lineAt?: number;
+  force?: boolean;
+  dry?: boolean;
+}
+
+export interface InjectionResult {
+  success: boolean;
+  action: string;
+  content?: string;
+  error?: string;
+}
+
+export type InjectionMode =
+  | "inject"
+  | "append"
+  | "prepend"
+  | "before"
+  | "after"
+  | "replace";
+
+/**
+ * Frontmatter types
+ */
+export interface FrontmatterConfig {
+  to?: string;
+  inject?: boolean;
+  before?: string;
+  after?: string;
+  append?: boolean;
+  prepend?: boolean;
+  lineAt?: number;
+  skipIf?: string;
+  chmod?: string | number;
+  sh?: string | string[];
+  rdf?: RDFDataSource | RDFDataSource[];
+  semanticValidation?: {
+    enabled: boolean;
+    strictMode?: boolean;
+    ontologies?: string[];
+  };
+  variableEnhancement?: {
+    semanticMapping?: boolean;
+    crossOntologyMapping?: boolean;
+  };
+}
+
+export interface ParsedTemplate {
+  content: string;
+  frontmatter: FrontmatterConfig;
+  hasValidFrontmatter: boolean;
+}
+
+/**
+ * Parser types
+ */
+export interface ParsedArguments {
+  positionals: string[];
+  flags: Record<string, boolean>;
+  variables: Record<string, any>;
+}
+
+export interface ParseContext {
+  generator?: string;
+  template?: string;
+  variables?: TemplateVariable[];
+}
+
+/**
+ * MCP Tool types
+ */
+export interface MCPToolResult {
+  success: boolean;
+  data?: any;
+  error?: string;
+  content?: Array<{ type: string; text: string }>;
+}
+
+/**
+ * Validation Rule types
+ */
+export interface ValidationRule {
+  name: string;
+  priority: number;
+  enabled: boolean;
+  validate: (
+    args: ParsedArguments,
+    context?: ParseContext
+  ) => Promise<ValidationResult>;
+}
 /**
  * Validation rule types
  */
@@ -555,6 +803,9 @@ export type ValidationRuleType =
   | "constraint"
   | "cross-ontology"
   | "performance"
+  | "compliance"
+  | "data-integrity"
+  | "ontology-consistency"
   | "security";
 
 /**
@@ -754,9 +1005,16 @@ export interface UnjucksConfig {
  * Validation configuration
  */
 export interface ValidationConfig {
-  enabled: boolean;
-  strictMode: boolean;
-  rules: ValidationRule[];
+  enabled?: boolean;
+  strictMode?: boolean;
+  maxErrors?: number;
+  timeout?: number;
+  memoryLimit?: number;
+  enablePerformanceMetrics?: boolean;
+  cacheEnabled?: boolean;
+  parallelProcessing?: boolean;
+  validationRules?: ValidationRule[];
+  rules?: ValidationRule[];
   customValidators?: Record<string, ValidationConditionFunction>;
 }
 
@@ -1002,6 +1260,98 @@ export type DeepPartial<T> = {
  * Non-nullable type utility
  */
 export type NonNullable<T> = T extends null | undefined ? never : T;
+
+// ============================================================================
+// VALIDATOR TYPES
+// ============================================================================
+
+/**
+ * Generated validator function type
+ */
+export type ValidatorFunction<T = any> = (
+  value: any,
+  context?: ValidationContext
+) => value is T;
+
+/**
+ * Generated validator configuration
+ */
+export interface ValidatorConfig {
+  name: string;
+  type: ValidationRuleType;
+  schema: any;
+  strict?: boolean;
+  async?: boolean;
+}
+
+/**
+ * Validator factory type
+ */
+export type ValidatorFactory = (
+  config: ValidatorConfig
+) => ValidatorFunction;
+
+/**
+ * Generated validator result
+ */
+export interface GeneratedValidatorResult {
+  isValid: boolean;
+  value?: any;
+  errors: ValidationErrorDetail[];
+  warnings: ValidationWarning[];
+  transformedValue?: any;
+}
+
+/**
+ * Runtime validator interface
+ */
+export interface RuntimeValidator {
+  name: string;
+  validate: ValidatorFunction;
+  config: ValidatorConfig;
+  metadata: {
+    generatedAt: Date;
+    version: string;
+    sourceSchema: any;
+  };
+}
+
+/**
+ * Validator registry interface
+ */
+export interface ValidatorRegistry {
+  register(name: string, validator: RuntimeValidator): void;
+  get(name: string): RuntimeValidator | undefined;
+  list(): string[];
+  unregister(name: string): boolean;
+  clear(): void;
+}
+
+/**
+ * Schema compilation options
+ */
+export interface SchemaCompilationOptions {
+  strict?: boolean;
+  allowUnknownKeywords?: boolean;
+  removeAdditional?: boolean | "all" | "failing";
+  useDefaults?: boolean;
+  coerceTypes?: boolean | "array";
+  allErrors?: boolean;
+}
+
+/**
+ * Generated schema validator
+ */
+export interface GeneratedSchemaValidator {
+  validate: ValidatorFunction;
+  schema: any;
+  compiled: boolean;
+  options: SchemaCompilationOptions;
+  metadata: {
+    compiledAt: Date;
+    fingerprint: string;
+  };
+}
 
 // ============================================================================
 // EXPORTS
