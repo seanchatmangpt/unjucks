@@ -1,0 +1,139 @@
+/**
+ * Generated API Client
+ * 
+ * This file was generated from semantic data using Unjucks.
+ * Do not modify directly - regenerate from the TTL schema.
+ */
+
+{%- set api = data | rdfQuery('SELECT ?api ?name ?version ?baseUrl WHERE { ?api a :RestAPI ; :name ?name ; :version ?version ; :baseUrl ?baseUrl }') | first %}
+{%- set endpoints = data | rdfQuery('SELECT ?endpoint ?method ?path ?description WHERE { ?endpoint a :RestEndpoint ; :method ?method ; :path ?path ; :description ?description }') %}
+{%- set models = data | rdfQuery('SELECT ?model WHERE { ?model a :DataModel }') %}
+
+// API Configuration
+export const API_CONFIG = {
+  name: '{{ api.name }}',
+  version: '{{ api.version }}',
+  baseUrl: '{{ api.baseUrl }}'
+};
+
+// Type Definitions
+{%- for model in models %}
+{%- set modelName = model.model | split('#') | last %}
+{%- set fields = data | rdfQuery('SELECT ?field ?name ?type ?required ?description WHERE { :' + modelName + ' :hasField ?field . ?field :name ?name ; :type ?type ; :required ?required ; :description ?description }') %}
+
+export interface {{ modelName }} {
+{%- for field in fields %}
+  /** {{ field.description }} */
+  {{ field.name }}{{ '?' if not field.required else '' }}: {{ field.type | mapXsdType }};
+{%- endfor %}
+}
+{%- endfor %}
+
+// API Client Class
+export class {{ api.name | replace(' ', '') }}Client {
+  private baseUrl: string;
+  private headers: Record<string, string>;
+
+  constructor(baseUrl?: string, headers: Record<string, string> = {}) {
+    this.baseUrl = baseUrl || API_CONFIG.baseUrl;
+    this.headers = {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+      ...headers
+    };
+  }
+
+  private async request<T>(
+    method: string,
+    path: string,
+    body?: unknown,
+    params?: Record<string, string | number>
+  ): Promise<T> {
+    const url = new URL(path, this.baseUrl);
+    
+    // Add query parameters
+    if (params) {
+      Object.entries(params).forEach(([key, value]) => {
+        url.searchParams.append(key, String(value));
+      });
+    }
+
+    const response = await fetch(url.toString(), {
+      method,
+      headers: this.headers,
+      body: body ? JSON.stringify(body) : undefined
+    });
+
+    if (!response.ok) {
+      throw new Error(`API Error: ${response.status} ${response.statusText}`);
+    }
+
+    return response.json();
+  }
+
+{%- for endpoint in endpoints %}
+{%- set endpointName = endpoint.endpoint | split('#') | last %}
+{%- set methodName = endpointName | camelCase %}
+{%- set pathParams = data | rdfQuery('SELECT ?param ?name WHERE { :' + endpointName + ' :hasPathParameter ?param . ?param :name ?name }') %}
+{%- set queryParams = data | rdfQuery('SELECT ?param ?name ?required WHERE { :' + endpointName + ' :hasParameter ?param . ?param :name ?name ; :required ?required }') %}
+{%- set returnType = data | rdfQuery('SELECT ?returnType WHERE { :' + endpointName + ' :returns ?returnType }') | first %}
+{%- set acceptsType = data | rdfQuery('SELECT ?acceptsType WHERE { :' + endpointName + ' :accepts ?acceptsType }') | first %}
+
+  /**
+   * {{ endpoint.description }}
+   * {{ endpoint.method }} {{ endpoint.path }}
+   */
+  async {{ methodName }}(
+{%- if pathParams.length > 0 %}
+{%- for param in pathParams %}
+    {{ param.name }}: string,
+{%- endfor %}
+{%- endif %}
+{%- if acceptsType %}
+    data: {{ acceptsType.acceptsType | split('#') | last }},
+{%- endif %}
+{%- if queryParams.length > 0 %}
+    params?: {
+{%- for param in queryParams %}
+      {{ param.name }}{{ '?' if not param.required else '' }}: string | number;
+{%- endfor %}
+    }
+{%- endif %}
+  ): Promise<{{ returnType.returnType | split('#') | last if returnType else 'void' }}> {
+    let path = '{{ endpoint.path }}';
+{%- for param in pathParams %}
+    path = path.replace('{{{ param.name }}}', {{ param.name }});
+{%- endfor %}
+
+    return this.request<{{ returnType.returnType | split('#') | last if returnType else 'void' }}>(
+      '{{ endpoint.method }}',
+      path
+{%- if acceptsType %},
+      data
+{%- else %},
+      undefined
+{%- endif %}
+{%- if queryParams.length > 0 %},
+      params
+{%- endif %}
+    );
+  }
+{%- endfor %}
+}
+
+// Export default instance
+export const apiClient = new {{ api.name | replace(' ', '') }}Client();
+
+// Helper function to map XSD types to TypeScript types
+function mapXsdType(xsdType: string): string {
+  const typeMap: Record<string, string> = {
+    'http://www.w3.org/2001/XMLSchema#string': 'string',
+    'http://www.w3.org/2001/XMLSchema#integer': 'number',
+    'http://www.w3.org/2001/XMLSchema#boolean': 'boolean',
+    'http://www.w3.org/2001/XMLSchema#dateTime': 'string', // ISO date string
+    ':ArrayOf': 'Array<any>', // Will be refined based on itemType
+    ':PaginationInfo': 'PaginationInfo'
+  };
+  
+  return typeMap[xsdType] || 'unknown';
+}

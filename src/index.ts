@@ -9,6 +9,7 @@ export * from './lib/dynamic-commands';
 // RDF/Turtle support
 export * from './lib/rdf-filters';
 export * from './lib/turtle-parser';
+export * from './lib/rdf-data-loader';
 export * from './lib/types/turtle-types';
 
 // CLI commands
@@ -21,4 +22,4 @@ export * from './commands/version';
 export * from './mcp';
 
 // Semantic web capabilities
-export * from './mcp/semantic-server.js';
+export * from './lib/semantic-template-engine';

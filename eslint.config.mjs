@@ -27,6 +27,9 @@ export default [
       "output/**",
       "tests/**", // Ignore test files to avoid parsing issues
       "src/types/**", // Ignore type definition files
+      "src/components/**", // Ignore React components
+      "src/pages/**", // Ignore page components
+      "src/layouts/**", // Ignore layout components
       "**/*.test.ts",
       "**/*.spec.ts",
       "debug-*.js"

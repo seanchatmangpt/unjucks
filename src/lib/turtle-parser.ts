@@ -40,6 +40,7 @@ export interface ParseStats {
   subjectCount: number;
   predicateCount: number;
   parseTime: number;
+  namedGraphCount?: number;
 }
 
 /**
@@ -49,6 +50,7 @@ export interface TurtleParseResult {
   triples: ParsedTriple[];
   prefixes: NamespacePrefixes;
   stats: ParseStats;
+  namedGraphs?: string[];
 }
 
 /**
@@ -157,7 +159,8 @@ export class TurtleParser {
       const result: TurtleParseResult = {
         triples,
         prefixes,
-        stats
+        stats,
+        namedGraphs: []
       };
 
       return result;

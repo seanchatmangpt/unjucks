@@ -98,7 +98,7 @@ const createRDFFilters = (store: Store) => ({
 
 // Main demo
 async function runDemo() {
-  console.log('🚀 RDF Template Integration Demo (80/20 Approach)\n');
+  console.log('=� RDF Template Integration Demo (80/20 Approach)\n');
   
   // 1. Sample Turtle data
   const turtleData = `
@@ -125,13 +125,13 @@ async function runDemo() {
   // 2. Load and parse RDF
   const loader = new SimpleRDFLoader();
   const rdfData = await loader.loadTurtle(turtleData);
-  console.log('✅ Loaded RDF data:');
+  console.log(' Loaded RDF data:');
   console.log(`   - ${rdfData.quads.length} triples`);
   console.log(`   - Prefixes:`, Object.keys(rdfData.prefixes || {}));
   
   // 3. Extract template variables
   const variables = loader.extractVariables(rdfData.store);
-  console.log('\n✅ Extracted template variables:');
+  console.log('\n Extracted template variables:');
   console.log(JSON.stringify(variables, null, 2));
   
   // 4. Create Nunjucks environment with RDF filters
@@ -167,15 +167,15 @@ const personNames = {{ 'Person' | rdfQuery('name') | dump }};
   
   // 6. Render template
   const output = env.renderString(template, variables);
-  console.log('\n✅ Generated code from RDF:');
+  console.log('\n Generated code from RDF:');
   console.log(output);
   
   // 7. Save to file
   const outputPath = 'examples/generated-from-rdf.ts';
   await fs.writeFile(outputPath, output);
-  console.log(`\n✅ Saved to ${outputPath}`);
+  console.log(`\n Saved to ${outputPath}`);
   
-  console.log('\n🎉 Demo complete! This shows the core 20% of RDF features that provide 80% of value:');
+  console.log('\n<� Demo complete! This shows the core 20% of RDF features that provide 80% of value:');
   console.log('   1. Load Turtle/RDF data');
   console.log('   2. Extract template variables');
   console.log('   3. Use RDF filters in templates');
