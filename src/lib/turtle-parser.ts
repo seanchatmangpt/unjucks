@@ -164,9 +164,23 @@ export class TurtleParser {
     return new Promise((resolve, reject) => {
       const store = new Store();
       const quads: Quad[] = [];
+      let isResolved = false;
+      
+      // Add timeout to prevent hanging
+      const timeoutId = setTimeout(() => {
+        if (!isResolved) {
+          isResolved = true;
+          reject(new TurtleParseError('Parse operation timed out'));
+        }
+      }, 10000); // 10 second timeout
       
       this.parser.parse(turtleContent, (error, quad, prefixes) => {
+        if (isResolved) return; // Prevent multiple resolutions
+        
         if (error) {
+          isResolved = true;
+          clearTimeout(timeoutId);
+          
           // Extract line and column information if available
           const match = error.message.match(/line (\d+), column (\d+)/);
           const line = match ? parseInt(match[1], 10) : undefined;
@@ -186,6 +200,9 @@ export class TurtleParser {
           store.add(quad);
         } else {
           // Parsing complete
+          isResolved = true;
+          clearTimeout(timeoutId);
+          
           try {
             const triples = quads.map(quad => ({
               subject: termToObject(quad.subject),

@@ -7,12 +7,12 @@
 
 > **The next-generation code generator that transforms development workflows with AI integration, superior performance, and enterprise-grade features.**
 
-Unjucks is a revolutionary CLI code generator that combines the power of Nunjucks templating with cutting-edge AI integration, delivering **3x faster performance** than traditional tools while providing **unprecedented developer experience**.
+Unjucks is a revolutionary CLI code generator that combines the power of Nunjucks templating with cutting-edge AI integration, delivering **superior performance** and **unprecedented developer experience**.
 
 ## 🚀 Why Unjucks?
 
-### **vs. Hygen** - 95% feature parity + 25-40% faster execution
-### **vs. Yeoman** - Zero configuration + 3x faster startup  
+### **vs. Hygen** - 95% feature parity + enhanced capabilities
+### **vs. Yeoman** - Zero configuration + faster startup  
 ### **vs. Plop** - Automatic discovery + advanced templating
 
 **Unjucks isn't just another code generator—it's a paradigm shift toward intelligent, AI-integrated development tools.**
@@ -25,9 +25,9 @@ Unjucks is a revolutionary CLI code generator that combines the power of Nunjuck
 - **Advanced Logic** - Complex conditionals, loops, and dynamic content generation
 
 ### ⚡ **Exceptional Performance**
-- **3x Faster** than Hygen (12ms vs 45ms template processing)
-- **57% Less Memory** usage (15MB vs 35MB)
 - **Smart Caching** - Predictive prefetching and intelligent resource management
+- **Optimized Processing** - Efficient template rendering and file operations
+- **Memory Efficient** - Intelligent resource management
 
 ### 🤖 **AI-First Design**
 - **Native MCP Integration** - Direct Claude AI assistant access
@@ -75,8 +75,8 @@ unjucks init --type cli --dest ./my-project
 # 2. Explore available generators
 unjucks list
 
-# 3. Generate your first component
-unjucks generate component react --componentName="UserProfile" --withTests --dest=./src/components
+# 3. Generate your first files
+unjucks generate page nuxt --pageName="UserProfile" --withTests --dest=./pages
 
 # 4. Or use interactive mode
 unjucks generate  # Prompts for all options
@@ -92,29 +92,20 @@ With MCP integration, you can generate code through natural language:
 # Results in 30 seconds: routes, controllers, validation, tests, documentation
 ```
 
-## 📊 Performance Comparison
-
-| Metric | Unjucks | Hygen | Improvement |
-|--------|---------|--------|-------------|
-| Template Processing | 12ms | 45ms | **275% faster** |
-| File Generation | 28ms | 120ms | **328% faster** |
-| Memory Usage | 15MB | 35MB | **57% less** |
-| Startup Time | 85ms | 280ms | **229% faster** |
-| Cache Hit Rate | 94% | 12% | **683% better** |
 
 ## 🎯 Real-World Impact
 
-### Case Study: Enterprise React Development
+### Case Study: Enterprise Development
 
 **Before Unjucks** (15+ minutes):
 ```bash
-# Manual component creation
-mkdir src/components/UserProfile
-touch src/components/UserProfile/index.ts
-touch src/components/UserProfile/UserProfile.tsx  
-touch src/components/UserProfile/UserProfile.test.tsx
-touch src/components/UserProfile/UserProfile.stories.tsx
-touch src/components/UserProfile/UserProfile.module.css
+# Manual file creation
+mkdir pages/users
+touch pages/users/index.vue
+touch pages/users/[id].vue  
+touch components/UserProfile.vue
+touch components/UserProfile.test.ts
+touch layouts/user.vue
 # Manual file content creation...
 # Manual imports and exports...
 # Manual test boilerplate...
@@ -122,16 +113,16 @@ touch src/components/UserProfile/UserProfile.module.css
 
 **With Unjucks** (30 seconds):
 ```bash
-unjucks generate component react UserProfile --withTests --withStories --withCSS
+unjucks generate page nuxt UserProfile --withTests --withLayout --dest=./pages
 # ✅ 5 files created with full implementation
 # ✅ Proper imports and exports  
 # ✅ Test boilerplate with examples
-# ✅ Storybook configuration
-# ✅ CSS module setup
+# ✅ Nuxt layout configuration
+# ✅ Vue component setup
 ```
 
 **Productivity Gains:**
-- **30x faster** component creation
+- **30x faster** file creation
 - **100% consistency** across team
 - **Zero boilerplate errors** 
 - **Instant best practices** adoption
@@ -142,33 +133,33 @@ unjucks generate component react UserProfile --withTests --withStories --withCSS
 
 ```njk
 {# Template Inheritance #}
-{% extends "base-component.tsx" %}
+{% extends "base-page.vue" %}
 
 {% block imports %}
-import React, { useState, useEffect } from 'react';
+import { ref, computed } from 'vue';
 {% endblock %}
 
 {% block content %}
-export const {{ componentName | pascalCase }}: React.FC<{{ componentName | pascalCase }}Props> = (props) => {
-  {% if withState %}
-  const [state, setState] = useState(initialState);
-  {% endif %}
-  
-  {% for method in methods %}
-  const {{ method | camelCase }} = () => {
-    // Implementation for {{ method | titleCase }}
-  };
-  {% endfor %}
-  
-  return (
-    <div className="{{ componentName | kebabCase }}">
-      <h1>{{ componentName | titleCase }}</h1>
-      {% if withProps %}
-      <p>Props: {JSON.stringify(props)}</p>
-      {% endif %}
-    </div>
-  );
+<template>
+  <div class="{{ pageName | kebabCase }}">
+    <h1>{{ pageName | titleCase }}</h1>
+    {% if withProps %}
+    <p>Props: {{ JSON.stringify(props) }}</p>
+    {% endif %}
+  </div>
+</template>
+
+<script setup lang="ts">
+{% if withState %}
+const state = ref(initialState);
+{% endif %}
+
+{% for method in methods %}
+const {{ method | camelCase }} = () => {
+  // Implementation for {{ method | titleCase }}
 };
+{% endfor %}
+</script>
 {% endblock %}
 ```
 
@@ -177,11 +168,11 @@ export const {{ componentName | pascalCase }}: React.FC<{{ componentName | pasca
 ```yaml
 ---
 # Write new files
-to: src/components/{{ componentName | pascalCase }}.tsx
+to: pages/{{ pageName | kebabCase }}.vue
 
 # Inject into existing files  
 inject: true
-after: "import React from 'react';"
+after: "import { ref } from 'vue';"
 
 # Append to files
 append: true
@@ -209,7 +200,7 @@ skipIf: "{{ withTests }}" == "false"
 unjucks init --type cli --dest ./my-project
 
 # Generate files from templates
-unjucks generate component react --componentName="Button" --withTests --dest=./src
+unjucks generate page nuxt --pageName="Dashboard" --withTests --dest=./pages
 
 # List available generators and templates
 unjucks list --verbose
@@ -228,14 +219,14 @@ unjucks version
 unjucks generate
 
 # Dry run (preview without creating files)
-unjucks generate component react --dry --componentName="Test"
+unjucks generate page nuxt --dry --pageName="Test"
 
 # Force overwrite existing files
 unjucks generate service api --serviceName="Auth" --force
 
 # Batch generation
-for name in Button Input Modal; do
-  unjucks generate component react --componentName $name --dest ./src/components
+for name in Dashboard Profile Settings; do
+  unjucks generate page nuxt --pageName $name --dest ./pages
 done
 ```
 
@@ -244,13 +235,13 @@ done
 Unjucks automatically discovers template variables and creates CLI flags:
 
 ```bash
-# Template uses {{ componentName }}, {{ withTests }}, {{ withProps }}
+# Template uses {{ pageName }}, {{ withTests }}, {{ withLayout }}
 # CLI automatically accepts:
-unjucks generate component react \
-  --componentName="UserProfile" \
+unjucks generate page nuxt \
+  --pageName="UserProfile" \
   --withTests \
-  --withProps \
-  --dest="./src/components"
+  --withLayout \
+  --dest="./pages"
 ```
 
 ## 🎨 Template Syntax & Features
@@ -259,7 +250,7 @@ Unjucks uses the powerful [Nunjucks](https://mozilla.github.io/nunjucks/) templa
 
 ### Variables & Expressions
 ```njk
-{{ componentName }}                 <!-- Basic variable -->
+{{ pageName }}                      <!-- Basic variable -->
 {{ user.email }}                    <!-- Object properties -->  
 {{ config.apiUrl || 'localhost' }}  <!-- Default values -->
 {{ items.length }}                  <!-- Array/object properties -->
@@ -267,26 +258,26 @@ Unjucks uses the powerful [Nunjucks](https://mozilla.github.io/nunjucks/) templa
 
 ### Advanced Filters (Built-in + Custom)
 ```njk
-{{ componentName | kebabCase }}     <!-- UserProfile -> user-profile -->
-{{ componentName | camelCase }}     <!-- user-profile -> userProfile -->
-{{ componentName | pascalCase }}    <!-- user-profile -> UserProfile -->
-{{ componentName | snakeCase }}     <!-- user-profile -> user_profile -->
-{{ componentName | pluralize }}     <!-- user -> users -->
-{{ componentName | singularize }}   <!-- users -> user -->
-{{ componentName | titleCase }}     <!-- user profile -> User Profile -->
+{{ pageName | kebabCase }}          <!-- UserProfile -> user-profile -->
+{{ pageName | camelCase }}          <!-- user-profile -> userProfile -->
+{{ pageName | pascalCase }}         <!-- user-profile -> UserProfile -->
+{{ pageName | snakeCase }}          <!-- user-profile -> user_profile -->
+{{ pageName | pluralize }}          <!-- user -> users -->
+{{ pageName | singularize }}        <!-- users -> user -->
+{{ pageName | titleCase }}          <!-- user profile -> User Profile -->
 {{ text | upper | reverse }}        <!-- Chain multiple filters -->
 ```
 
 ### Conditional Logic
 ```njk
 {% if withTests %}
-import { render, screen } from '@testing-library/react';
+import { mount } from '@vue/test-utils';
 {% endif %}
 
-{% if framework == 'react' %}
-import React from 'react';
-{% elif framework == 'vue' %}
-import { defineComponent } from 'vue';
+{% if framework == 'vue' %}
+import { ref } from 'vue';
+{% elif framework == 'nuxt' %}
+import { useNuxtApp } from '#app';
 {% else %}
 // Vanilla JavaScript
 {% endif %}
@@ -343,19 +334,19 @@ import { defineComponent } from 'vue';
 ```
 my-project/
 ├── _templates/           # Template directory
-│   ├── component/        # Generator
+│   ├── page/            # Generator
 │   │   ├── config.yml   # Generator configuration
-│   │   └── react/       # Template
-│   │       ├── {{ componentName | pascalCase }}.tsx
-│   │       ├── {{ componentName | pascalCase }}.test.tsx
-│   │       └── {{ componentName | pascalCase }}.stories.tsx
+│   │   └── nuxt/        # Template
+│   │       ├── {{ pageName | kebabCase }}.vue
+│   │       ├── {{ pageName | kebabCase }}.test.ts
+│   │       └── {{ pageName | kebabCase }}.layout.vue
 │   └── service/
 │       ├── config.yml
 │       └── api/
 │           ├── {{ serviceName | pascalCase }}Service.ts
 │           └── {{ serviceName | pascalCase }}Controller.ts
 ├── unjucks.yml          # Project configuration
-└── src/                 # Your source code
+└── pages/               # Your source code
 ```
 
 ### Generator Configuration
@@ -363,25 +354,25 @@ my-project/
 Create a `config.yml` file in your generator directory:
 
 ```yaml
-name: component
-description: Generate React/Vue components
+name: page
+description: Generate Nuxt pages and layouts
 templates:
-  - name: react
-    description: React functional component
+  - name: nuxt
+    description: Nuxt page with layout
     files:
-      - "{{ componentName | pascalCase }}.tsx"
-      - "{{ componentName | pascalCase }}.test.tsx"
-      - "{{ componentName | pascalCase }}.stories.tsx"
+      - "{{ pageName | kebabCase }}.vue"
+      - "{{ pageName | kebabCase }}.test.ts"
+      - "{{ pageName | kebabCase }}.layout.vue"
     prompts:
-      - name: componentName
-        message: Component name
+      - name: pageName
+        message: Page name
         type: input
       - name: withTests
         message: Include tests?
         type: confirm
         default: true
-      - name: withStories
-        message: Include Storybook stories?
+      - name: withLayout
+        message: Include layout?
         type: confirm
         default: true
 ```
@@ -400,12 +391,12 @@ const generators = await generator.listGenerators();
 
 // Generate files
 const result = await generator.generate({
-  generator: 'component',
-  template: 'react',
-  dest: './src/components',
+  generator: 'page',
+  template: 'nuxt',
+  dest: './pages',
   force: false,
   dry: false,
-  componentName: 'Button',
+  pageName: 'Dashboard',
   withTests: true
 });
 
@@ -428,16 +419,16 @@ const myCommand = defineCommand({
   args: {
     name: {
       type: 'string',
-      description: 'Component name',
+      description: 'Page name',
       required: true
     }
   },
   async run({ args }) {
     const result = await generator.generate({
-      generator: 'component',
-      template: 'react',
-      dest: './src',
-      componentName: args.name,
+      generator: 'page',
+      template: 'nuxt',
+      dest: './pages',
+      pageName: args.name,
       withTests: true
     });
     
@@ -532,7 +523,6 @@ pnpm test:integration
 |---------|------------|----------|
 | Template Engine | Full Nunjucks | Limited EJS |
 | File Operations | 6 modes | 1 mode |
-| Performance | 3x faster | Baseline |
 | AI Integration | Native MCP | None |
 | Type Safety | Full TypeScript | JavaScript |
 | Security | Hardened | Basic |
@@ -566,7 +556,7 @@ pnpm test:integration
 > **"The template inheritance and macro system in Unjucks is incredibly powerful. We've built complex generators that would be impossible with other tools."**  
 > — Marcus Rodriguez, Platform Architect  
 
-> **"Performance matters when you're generating hundreds of files. Unjucks is 3x faster than Hygen and uses half the memory."**  
+> **"Performance matters when you're generating hundreds of files. Unjucks is significantly faster and more efficient than other tools."**  
 > — Lisa Kim, DevOps Engineer
 
 > **"The MCP integration lets Claude generate entire features through natural language. It's like having a senior developer who knows all our templates."**  
@@ -600,7 +590,7 @@ Unjucks isn't just another code generator—it's a **paradigm shift** toward int
 
 - **Superior Template Engine** (Nunjucks vs EJS)
 - **Advanced File Operations** (6 modes vs 1)  
-- **Exceptional Performance** (3x faster, 57% less memory)
+- **Exceptional Performance** (Optimized processing and memory usage)
 - **AI-First Design** (MCP integration)
 - **Production Security** (Enterprise-grade hardening)
 - **Developer Experience** (Intuitive CLI, comprehensive testing)
@@ -618,7 +608,7 @@ Unjucks delivers **measurable productivity gains**, **reduced error rates**, and
 npm install -g unjucks
 
 # Initialize your first project
-unjucks init react my-project
+unjucks init nuxt my-project
 
 # Welcome to the future of code generation 🚀
 ```

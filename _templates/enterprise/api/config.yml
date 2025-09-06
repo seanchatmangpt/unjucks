@@ -1,0 +1,65 @@
+name: "API Standardization Templates"
+description: "Enterprise-grade API templates with OpenAPI, security, and compliance"
+version: "1.0.0"
+category: "api"
+tags: ["enterprise", "api", "openapi", "security", "microservices"]
+
+variables:
+  - name: "serviceName"
+    type: "string" 
+    required: true
+    description: "Name of the microservice"
+    example: "user-management"
+  
+  - name: "apiVersion"
+    type: "string"
+    required: true
+    description: "API version (semver)"
+    example: "v1.2.0"
+  
+  - name: "feature"
+    type: "string"
+    required: true
+    description: "Feature domain"
+    example: "users"
+  
+  - name: "endpoint"
+    type: "string"
+    required: true
+    description: "Endpoint name"
+    example: "create-user"
+  
+  - name: "method"
+    type: "string"
+    required: true
+    description: "HTTP method"
+    options: ["GET", "POST", "PUT", "PATCH", "DELETE"]
+    example: "POST"
+  
+  - name: "path"
+    type: "string"
+    required: true
+    description: "API path"
+    example: "/users"
+  
+  - name: "responseType"
+    type: "string"
+    required: true
+    description: "Response type"
+    example: "UserResponse"
+  
+  - name: "requiresAuth"
+    type: "boolean"
+    description: "Requires authentication"
+    default: true
+  
+  - name: "complianceLevel"
+    type: "string"
+    description: "Compliance level required"
+    options: ["SOX", "GDPR", "HIPAA", "PCI-DSS"]
+    default: "SOX"
+
+rdfSchemas:
+  - "api-standards.ttl"
+  - "security-policies.ttl"
+  - "compliance-requirements.ttl"

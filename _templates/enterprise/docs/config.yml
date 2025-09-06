@@ -1,0 +1,64 @@
+name: "Enterprise Documentation Templates"
+description: "Automated documentation generation from code annotations and RDF metadata"
+version: "1.0.0"
+category: "documentation"
+tags: ["documentation", "api", "compliance", "enterprise", "openapi", "rdf"]
+
+variables:
+  - name: "serviceName"
+    type: "string"
+    required: true
+    description: "Name of the service"
+    example: "user-management-api"
+  
+  - name: "version"
+    type: "string"
+    required: true
+    description: "Service version"
+    example: "v1.2.0"
+  
+  - name: "complianceLevel"
+    type: "string"
+    required: true
+    description: "Compliance level"
+    options: ["SOX", "GDPR", "HIPAA", "PCI-DSS", "ISO27001"]
+    example: "SOX"
+  
+  - name: "department"
+    type: "string"
+    required: true
+    description: "Owning department"
+    example: "Platform Engineering"
+  
+  - name: "maintainer"
+    type: "string"
+    required: true
+    description: "Primary maintainer"
+    example: "platform-team@company.com"
+  
+  - name: "environment"
+    type: "string"
+    required: true
+    description: "Target environment"
+    options: ["development", "staging", "production"]
+    example: "production"
+  
+  - name: "includeCompliance"
+    type: "boolean"
+    description: "Include compliance documentation"
+    default: true
+  
+  - name: "includeArchitecture"
+    type: "boolean"
+    description: "Include architecture diagrams"
+    default: true
+  
+  - name: "includeRunbooks"
+    type: "boolean"
+    description: "Include operational runbooks"
+    default: true
+
+rdfSchemas:
+  - "service-metadata.ttl"
+  - "api-documentation.ttl"
+  - "compliance-documentation.ttl"

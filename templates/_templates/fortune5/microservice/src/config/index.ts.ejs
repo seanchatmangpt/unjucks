@@ -1,0 +1,165 @@
+---
+to: <%= dest %>/<%= serviceName %>/src/config/index.ts
+---
+import dotenv from 'dotenv';
+
+dotenv.config();
+
+export const config = {
+  // Server configuration
+  port: Number(process.env.PORT) || <%= servicePort %>,
+  environment: process.env.NODE_ENV || 'development',
+  
+  // Service metadata
+  service: {
+    name: '<%= serviceName %>',
+    version: process.env.SERVICE_VERSION || '1.0.0',
+    namespace: process.env.KUBERNETES_NAMESPACE || 'default',
+  },
+
+  // Database configuration
+  database: {
+    <% if (databaseType === 'postgresql') { %>
+    type: 'postgresql' as const,
+    host: process.env.DB_HOST || 'localhost',
+    port: Number(process.env.DB_PORT) || 5432,
+    database: process.env.DB_NAME || '<%= serviceName %>_db',
+    username: process.env.DB_USER || 'postgres',
+    password: process.env.DB_PASSWORD || 'password',
+    ssl: process.env.DB_SSL === 'true',
+    maxConnections: Number(process.env.DB_MAX_CONNECTIONS) || 20,
+    <% } else if (databaseType === 'mongodb') { %>
+    type: 'mongodb' as const,
+    uri: process.env.MONGODB_URI || 'mongodb://localhost:27017/<%= serviceName %>',
+    options: {
+      maxPoolSize: Number(process.env.DB_MAX_CONNECTIONS) || 20,
+      serverSelectionTimeoutMS: 5000,
+      socketTimeoutMS: 45000,
+    },
+    <% } else if (databaseType === 'redis') { %>
+    type: 'redis' as const,
+    host: process.env.REDIS_HOST || 'localhost',
+    port: Number(process.env.REDIS_PORT) || 6379,
+    password: process.env.REDIS_PASSWORD,
+    db: Number(process.env.REDIS_DB) || 0,
+    <% } %>
+  },
+
+  // Authentication configuration
+  auth: {
+    <% if (authProvider === 'jwt') { %>
+    type: 'jwt' as const,
+    secret: process.env.JWT_SECRET || 'your-super-secret-jwt-key-change-in-production',
+    expiresIn: process.env.JWT_EXPIRES_IN || '24h',
+    issuer: process.env.JWT_ISSUER || '<%= serviceName %>',
+    audience: process.env.JWT_AUDIENCE || '<%= serviceName %>-users',
+    <% } else if (authProvider === 'oauth2') { %>
+    type: 'oauth2' as const,
+    clientId: process.env.OAUTH2_CLIENT_ID!,
+    clientSecret: process.env.OAUTH2_CLIENT_SECRET!,
+    authorizationURL: process.env.OAUTH2_AUTH_URL!,
+    tokenURL: process.env.OAUTH2_TOKEN_URL!,
+    callbackURL: process.env.OAUTH2_CALLBACK_URL!,
+    <% } else if (authProvider === 'saml') { %>
+    type: 'saml' as const,
+    entryPoint: process.env.SAML_ENTRY_POINT!,
+    issuer: process.env.SAML_ISSUER!,
+    callbackUrl: process.env.SAML_CALLBACK_URL!,
+    cert: process.env.SAML_CERT!,
+    <% } %>
+  },
+
+  // CORS configuration
+  cors: {
+    allowedOrigins: process.env.CORS_ORIGINS?.split(',') || ['http://localhost:3000'],
+  },
+
+  // Observability configuration
+  observability: {
+    <% if (observabilityStack === 'datadog') { %>
+    datadog: {
+      enabled: process.env.DD_TRACE_ENABLED === 'true',
+      serviceName: '<%= serviceName %>',
+      env: process.env.DD_ENV || process.env.NODE_ENV || 'development',
+      version: process.env.DD_VERSION || '1.0.0',
+      apiKey: process.env.DD_API_KEY,
+    },
+    <% } else if (observabilityStack === 'newrelic') { %>
+    newrelic: {
+      enabled: process.env.NEW_RELIC_ENABLED === 'true',
+      licenseKey: process.env.NEW_RELIC_LICENSE_KEY,
+      appName: '<%= serviceName %>',
+    },
+    <% } else if (observabilityStack === 'prometheus') { %>
+    prometheus: {
+      enabled: process.env.PROMETHEUS_ENABLED !== 'false',
+      port: Number(process.env.PROMETHEUS_PORT) || 9090,
+      path: process.env.PROMETHEUS_PATH || '/metrics',
+    },
+    <% } %>
+    logging: {
+      level: process.env.LOG_LEVEL || 'info',
+      format: process.env.LOG_FORMAT || 'json',
+      destination: process.env.LOG_DESTINATION || 'stdout',
+    },
+  },
+
+  // Compliance configuration
+  compliance: {
+    mode: '<%= complianceMode %>' as const,
+    <% if (complianceMode === 'soc2') { %>
+    auditLog: {
+      enabled: true,
+      destination: process.env.AUDIT_LOG_DESTINATION || 'file',
+      retention: process.env.AUDIT_RETENTION_DAYS || '2555', // 7 years
+    },
+    encryption: {
+      atRest: true,
+      inTransit: true,
+      algorithm: 'AES-256-GCM',
+    },
+    <% } else if (complianceMode === 'hipaa') { %>
+    auditLog: {
+      enabled: true,
+      destination: process.env.AUDIT_LOG_DESTINATION || 'secure-file',
+      retention: process.env.AUDIT_RETENTION_DAYS || '2555', // 7 years
+      encryption: true,
+    },
+    accessControl: {
+      minimumPasswordLength: 12,
+      sessionTimeout: 900, // 15 minutes
+      maxFailedAttempts: 3,
+    },
+    <% } else if (complianceMode === 'pci-dss') { %>
+    auditLog: {
+      enabled: true,
+      destination: process.env.AUDIT_LOG_DESTINATION || 'secure-file',
+      retention: process.env.AUDIT_RETENTION_DAYS || '365', // 1 year minimum
+      realTimeMonitoring: true,
+    },
+    encryption: {
+      atRest: true,
+      inTransit: true,
+      keyRotation: true,
+    },
+    <% } %>
+  },
+
+  // Security configuration
+  security: {
+    rateLimiting: {
+      enabled: process.env.RATE_LIMITING_ENABLED !== 'false',
+      windowMs: Number(process.env.RATE_LIMIT_WINDOW) || 900000, // 15 minutes
+      max: Number(process.env.RATE_LIMIT_MAX) || 100,
+    },
+    encryption: {
+      secretKey: process.env.ENCRYPTION_KEY || 'change-this-32-character-secret-key',
+    },
+  },
+
+  // Health check configuration
+  health: {
+    timeout: Number(process.env.HEALTH_TIMEOUT) || 30000,
+    interval: Number(process.env.HEALTH_INTERVAL) || 30000,
+  },
+};

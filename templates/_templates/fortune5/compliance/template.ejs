@@ -1,0 +1,364 @@
+---
+to: <%= dest %>/<%= serviceName %>/src/middleware/compliance.ts
+---
+import { Request, Response, NextFunction } from 'express';
+import crypto from 'crypto';
+import { auditLogger } from '../utils/audit-logger.js';
+import { dataClassifier } from '../utils/data-classifier.js';
+import { encryptionService } from '../utils/encryption.js';
+
+/**
+ * Compliance middleware for <%= complianceStandard.toUpperCase() %> requirements
+ * Implements automatic compliance controls and audit logging
+ */
+
+interface ComplianceContext {
+  userId?: string;
+  sessionId: string;
+  ipAddress: string;
+  userAgent: string;
+  timestamp: Date;
+  requestId: string;
+  dataClassification: '<%= dataClassification %>';
+}
+
+interface AuditEvent {
+  eventType: 'DATA_ACCESS' | 'DATA_MODIFICATION' | 'AUTH_EVENT' | 'SYSTEM_EVENT';
+  eventId: string;
+  timestamp: Date;
+  userId?: string;
+  sessionId: string;
+  ipAddress: string;
+  userAgent: string;
+  resource: string;
+  action: string;
+  outcome: 'SUCCESS' | 'FAILURE';
+  details: Record<string, any>;
+  <% if (complianceStandard === 'hipaa' || complianceStandard === 'both') { %>
+  phi: boolean; // Protected Health Information indicator
+  <% } %>
+  <% if (complianceStandard === 'soc2' || complianceStandard === 'both') { %>
+  confidentialityLevel: string;
+  integrityCheck: boolean;
+  availabilityImpact: 'LOW' | 'MEDIUM' | 'HIGH';
+  <% } %>
+}
+
+/**
+ * Main compliance middleware - must be applied to all routes handling sensitive data
+ */
+export const complianceMiddleware = (
+  req: Request, 
+  res: Response, 
+  next: NextFunction
+): void => {
+  const context: ComplianceContext = {
+    userId: req.user?.id,
+    sessionId: req.sessionID || crypto.randomUUID(),
+    ipAddress: req.ip || req.connection.remoteAddress || 'unknown',
+    userAgent: req.get('User-Agent') || 'unknown',
+    timestamp: new Date(),
+    requestId: crypto.randomUUID(),
+    dataClassification: '<%= dataClassification %>'
+  };
+
+  // Add context to request for downstream use
+  req.complianceContext = context;
+
+  // COMPLIANCE MIDDLEWARE INJECTION
+  // Additional compliance controls can be injected here
+
+  <% if (complianceStandard === 'hipaa' || complianceStandard === 'both') { %>
+  // HIPAA Security Rule: Access Control (§164.312(a))
+  if (isProtectedHealthInformation(req)) {
+    if (!validateHipaaAccess(req)) {
+      auditFailedAccess(context, 'HIPAA_ACCESS_DENIED', 'Insufficient privileges for PHI access');
+      return res.status(403).json({ 
+        error: 'Access denied',
+        code: 'HIPAA_INSUFFICIENT_PRIVILEGES' 
+      });
+    }
+  }
+
+  // HIPAA Security Rule: Audit Controls (§164.312(b))
+  req.on('finish', () => {
+    if (isProtectedHealthInformation(req)) {
+      auditHipaaAccess(context, req, res);
+    }
+  });
+  <% } %>
+
+  <% if (complianceStandard === 'soc2' || complianceStandard === 'both') { %>
+  // SOC2 Common Criteria: Logical and Physical Access Controls
+  if (!validateSoc2Access(req)) {
+    auditFailedAccess(context, 'SOC2_ACCESS_DENIED', 'Access control validation failed');
+    return res.status(403).json({ 
+      error: 'Access denied',
+      code: 'SOC2_ACCESS_CONTROL_FAILED' 
+    });
+  }
+
+  // SOC2 Common Criteria: System Operations (Monitoring)
+  req.on('finish', () => {
+    auditSoc2Event(context, req, res);
+  });
+  <% } %>
+
+  // Data Classification and Handling
+  const classification = dataClassifier.classify(req);
+  if (classification.level === 'RESTRICTED' && !hasRestrictedDataAccess(req)) {
+    auditFailedAccess(context, 'RESTRICTED_DATA_DENIED', 'Attempted access to restricted data');
+    return res.status(403).json({ 
+      error: 'Access denied',
+      code: 'RESTRICTED_DATA_ACCESS_DENIED' 
+    });
+  }
+
+  // Rate limiting for compliance (prevent data scraping)
+  if (!enforceComplianceRateLimit(req)) {
+    auditFailedAccess(context, 'RATE_LIMIT_EXCEEDED', 'Rate limit exceeded - potential data scraping');
+    return res.status(429).json({ 
+      error: 'Rate limit exceeded',
+      code: 'COMPLIANCE_RATE_LIMIT' 
+    });
+  }
+
+  next();
+};
+
+/**
+ * Data encryption middleware - encrypts sensitive response data
+ */
+export const dataEncryptionMiddleware = (
+  req: Request, 
+  res: Response, 
+  next: NextFunction
+): void => {
+  const originalSend = res.send;
+  
+  res.send = function(data: any) {
+    if (shouldEncryptResponse(req, data)) {
+      const encrypted = encryptionService.encrypt(data, '<%= encryptionLevel %>');
+      auditDataEncryption(req.complianceContext!, req.path, 'RESPONSE_ENCRYPTED');
+      return originalSend.call(this, encrypted);
+    }
+    return originalSend.call(this, data);
+  };
+
+  next();
+};
+
+<% if (complianceStandard === 'hipaa' || complianceStandard === 'both') { %>
+/**
+ * HIPAA-specific functions
+ */
+function isProtectedHealthInformation(req: Request): boolean {
+  // Check if request involves PHI based on path, headers, or body
+  const phiPaths = ['/api/patients', '/api/medical-records', '/api/health-data'];
+  return phiPaths.some(path => req.path.includes(path)) || 
+         req.headers['x-contains-phi'] === 'true';
+}
+
+function validateHipaaAccess(req: Request): boolean {
+  // Implement HIPAA minimum necessary standard
+  const user = req.user;
+  if (!user || !user.roles) return false;
+  
+  // Check if user has appropriate role for PHI access
+  const authorizedRoles = ['healthcare-provider', 'administrator', 'covered-entity'];
+  return user.roles.some((role: string) => authorizedRoles.includes(role));
+}
+
+function auditHipaaAccess(context: ComplianceContext, req: Request, res: Response): void {
+  const auditEvent: AuditEvent = {
+    eventType: 'DATA_ACCESS',
+    eventId: crypto.randomUUID(),
+    timestamp: new Date(),
+    userId: context.userId,
+    sessionId: context.sessionId,
+    ipAddress: context.ipAddress,
+    userAgent: context.userAgent,
+    resource: req.path,
+    action: req.method,
+    outcome: res.statusCode < 400 ? 'SUCCESS' : 'FAILURE',
+    details: {
+      requestBody: sanitizeForAudit(req.body),
+      responseStatus: res.statusCode,
+      contentLength: res.get('Content-Length')
+    },
+    phi: isProtectedHealthInformation(req)
+  };
+
+  auditLogger.logHipaaEvent(auditEvent, <%= auditRetention %>);
+}
+<% } %>
+
+<% if (complianceStandard === 'soc2' || complianceStandard === 'both') { %>
+/**
+ * SOC2-specific functions
+ */
+function validateSoc2Access(req: Request): boolean {
+  // SOC2 Security - Logical Access Controls
+  const user = req.user;
+  if (!user) return false;
+
+  // Check session validity and authentication strength
+  if (!validateSessionSecurity(req)) return false;
+  
+  // Check IP address restrictions for sensitive operations
+  if (isSensitiveOperation(req) && !isFromTrustedNetwork(req)) return false;
+
+  return true;
+}
+
+function auditSoc2Event(context: ComplianceContext, req: Request, res: Response): void {
+  const auditEvent: AuditEvent = {
+    eventType: 'SYSTEM_EVENT',
+    eventId: crypto.randomUUID(),
+    timestamp: new Date(),
+    userId: context.userId,
+    sessionId: context.sessionId,
+    ipAddress: context.ipAddress,
+    userAgent: context.userAgent,
+    resource: req.path,
+    action: req.method,
+    outcome: res.statusCode < 400 ? 'SUCCESS' : 'FAILURE',
+    details: {
+      requestSize: req.get('Content-Length'),
+      responseTime: Date.now() - req.startTime,
+      errorCode: res.statusCode >= 400 ? res.statusCode : null
+    },
+    confidentialityLevel: context.dataClassification,
+    integrityCheck: verifyRequestIntegrity(req),
+    availabilityImpact: assessAvailabilityImpact(req, res)
+  };
+
+  auditLogger.logSoc2Event(auditEvent, <%= auditRetention %>);
+}
+
+function validateSessionSecurity(req: Request): boolean {
+  // Check session timeout, secure flags, etc.
+  const session = req.session;
+  if (!session) return false;
+
+  // Check session timeout (15 minutes for high-security data)
+  const sessionTimeout = <%= dataClassification === 'restricted' ? 900000 : 1800000 %>; // ms
+  if (Date.now() - session.lastAccess > sessionTimeout) return false;
+
+  return true;
+}
+<% } %>
+
+/**
+ * Helper functions
+ */
+function shouldEncryptResponse(req: Request, data: any): boolean {
+  if (req.complianceContext?.dataClassification === 'restricted') return true;
+  <% if (complianceStandard === 'hipaa' || complianceStandard === 'both') { %>
+  if (isProtectedHealthInformation(req)) return true;
+  <% } %>
+  return false;
+}
+
+function auditFailedAccess(
+  context: ComplianceContext, 
+  eventType: string, 
+  reason: string
+): void {
+  auditLogger.logSecurityEvent({
+    eventType: 'AUTH_EVENT',
+    eventId: crypto.randomUUID(),
+    timestamp: new Date(),
+    userId: context.userId,
+    sessionId: context.sessionId,
+    ipAddress: context.ipAddress,
+    userAgent: context.userAgent,
+    resource: 'ACCESS_CONTROL',
+    action: 'DENY',
+    outcome: 'FAILURE',
+    details: { reason, eventType }
+  }, <%= auditRetention %>);
+}
+
+function auditDataEncryption(
+  context: ComplianceContext, 
+  resource: string, 
+  action: string
+): void {
+  auditLogger.logSecurityEvent({
+    eventType: 'DATA_MODIFICATION',
+    eventId: crypto.randomUUID(),
+    timestamp: new Date(),
+    userId: context.userId,
+    sessionId: context.sessionId,
+    ipAddress: context.ipAddress,
+    userAgent: context.userAgent,
+    resource,
+    action,
+    outcome: 'SUCCESS',
+    details: { encryptionLevel: '<%= encryptionLevel %>' }
+  }, <%= auditRetention %>);
+}
+
+function hasRestrictedDataAccess(req: Request): boolean {
+  const user = req.user;
+  return user?.clearanceLevel === 'RESTRICTED' || 
+         user?.roles?.includes('data-steward');
+}
+
+function enforceComplianceRateLimit(req: Request): boolean {
+  // Implement stricter rate limits for compliance
+  // This is a simplified version - use Redis in production
+  const key = `compliance_limit:${req.ip}:${req.complianceContext?.userId}`;
+  // Check rate limit logic here
+  return true; // Placeholder
+}
+
+function sanitizeForAudit(data: any): any {
+  // Remove sensitive data from audit logs while preserving structure
+  if (!data) return data;
+  
+  const sanitized = { ...data };
+  
+  // Remove common sensitive fields
+  const sensitiveFields = ['password', 'ssn', 'creditCard', 'token', 'secret'];
+  sensitiveFields.forEach(field => {
+    if (sanitized[field]) {
+      sanitized[field] = '[REDACTED]';
+    }
+  });
+
+  return sanitized;
+}
+
+function isSensitiveOperation(req: Request): boolean {
+  const sensitivePaths = ['/api/admin', '/api/export', '/api/bulk'];
+  return sensitivePaths.some(path => req.path.includes(path));
+}
+
+function isFromTrustedNetwork(req: Request): boolean {
+  // Check if request comes from trusted IP ranges
+  const trustedNetworks = ['10.0.0.0/8', '192.168.0.0/16', '172.16.0.0/12'];
+  // Implement IP range checking logic
+  return true; // Placeholder
+}
+
+function verifyRequestIntegrity(req: Request): boolean {
+  // Verify request hasn't been tampered with
+  const signature = req.headers['x-request-signature'];
+  if (!signature) return false;
+  
+  // Verify HMAC signature
+  return true; // Placeholder
+}
+
+function assessAvailabilityImpact(req: Request, res: Response): 'LOW' | 'MEDIUM' | 'HIGH' {
+  if (res.statusCode >= 500) return 'HIGH';
+  if (res.statusCode >= 400) return 'MEDIUM';
+  return 'LOW';
+}
+
+// AUDIT HOOKS INJECTION
+// Additional audit hooks can be injected here
+
+export { ComplianceContext, AuditEvent };

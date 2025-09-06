@@ -1,0 +1,65 @@
+---
+to: <%= dest %>/<%= serviceName %>/package.json
+---
+{
+  "name": "<%= serviceName %>",
+  "version": "1.0.0",
+  "description": "Fortune 500 Enterprise Microservice - <%= serviceName %>",
+  "main": "dist/index.js",
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "tsx watch src/index.ts",
+    "test": "vitest",
+    "test:coverage": "vitest --coverage",
+    "test:security": "npm audit --audit-level moderate",
+    "lint": "eslint src/**/*.ts",
+    "lint:fix": "eslint src/**/*.ts --fix",
+    "docker:build": "docker build -t <%= serviceName %>:latest .",
+    "k8s:deploy": "kubectl apply -f k8s/",
+    "compliance:audit": "node scripts/compliance-audit.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "helmet": "^7.1.0",
+    "express-rate-limit": "^7.4.0",
+    "express-validator": "^7.2.0",
+    "winston": "^3.14.2",
+    "prom-client": "^15.1.3",
+    "jaeger-client": "^3.19.0",
+    <% if (databaseType === 'postgresql') { %>
+    "pg": "^8.12.0",
+    "@types/pg": "^8.11.6",
+    <% } else if (databaseType === 'mongodb') { %>
+    "mongodb": "^6.8.0",
+    <% } else if (databaseType === 'redis') { %>
+    "redis": "^4.7.0",
+    <% } %>
+    <% if (authProvider === 'jwt') { %>
+    "jsonwebtoken": "^9.0.2",
+    "@types/jsonwebtoken": "^9.0.6",
+    <% } else if (authProvider === 'oauth2') { %>
+    "passport": "^0.7.0",
+    "passport-oauth2": "^1.8.0",
+    <% } %>
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5"
+  },
+  "devDependencies": {
+    "typescript": "^5.5.4",
+    "tsx": "^4.17.0",
+    "@types/node": "^22.5.0",
+    "@types/express": "^4.17.21",
+    "@types/cors": "^2.8.17",
+    "vitest": "^2.0.5",
+    "eslint": "^9.9.0",
+    "@typescript-eslint/eslint-plugin": "^8.2.0",
+    "@typescript-eslint/parser": "^8.2.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "author": "Enterprise Team",
+  "license": "PROPRIETARY"
+}

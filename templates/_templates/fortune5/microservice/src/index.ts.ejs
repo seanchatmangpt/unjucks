@@ -1,0 +1,107 @@
+---
+to: <%= dest %>/<%= serviceName %>/src/index.ts
+---
+import express from 'express';
+import helmet from 'helmet';
+import cors from 'cors';
+import rateLimit from 'express-rate-limit';
+import { config } from './config/index.js';
+import { setupLogging } from './middleware/logging.js';
+import { setupMetrics } from './middleware/metrics.js';
+import { setupTracing } from './middleware/tracing.js';
+import { setupAuth } from './middleware/auth.js';
+import { setupValidation } from './middleware/validation.js';
+import { errorHandler } from './middleware/error-handler.js';
+import { healthRouter } from './routes/health.js';
+import { apiRouter } from './routes/api.js';
+import { auditLogger } from './utils/audit-logger.js';
+import { gracefulShutdown } from './utils/graceful-shutdown.js';
+
+const app = express();
+
+// Security middleware
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      styleSrc: ["'self'", "'unsafe-inline'"],
+      scriptSrc: ["'self'"],
+      imgSrc: ["'self'", "data:", "https:"],
+      connectSrc: ["'self'"],
+      fontSrc: ["'self'"],
+      objectSrc: ["'none'"],
+      mediaSrc: ["'self'"],
+      frameSrc: ["'none'"],
+    },
+  },
+  crossOriginEmbedderPolicy: false
+}));
+
+// CORS configuration for enterprise environments
+app.use(cors({
+  origin: config.cors.allowedOrigins,
+  credentials: true,
+  optionsSuccessStatus: 200
+}));
+
+// Rate limiting for DDoS protection
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // limit each IP to 100 requests per windowMs
+  message: 'Too many requests from this IP, please try again later.',
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+app.use('/api', limiter);
+
+// Request parsing
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
+// Enterprise middleware stack
+app.use(setupLogging);
+app.use(setupMetrics);
+<% if (observabilityStack === 'datadog' || observabilityStack === 'elastic') { %>
+app.use(setupTracing);
+<% } %>
+app.use(setupAuth);
+app.use(setupValidation);
+
+// Routes
+app.use('/health', healthRouter);
+app.use('/api/v1', apiRouter);
+
+// MIDDLEWARE INJECTION
+// Additional middleware can be injected here
+
+// Error handling
+app.use(errorHandler);
+
+// Start server
+const server = app.listen(config.port, () => {
+  const message = `🚀 <%= serviceName %> microservice started on port ${config.port}`;
+  console.log(message);
+  auditLogger.info('SERVICE_STARTED', {
+    serviceName: '<%= serviceName %>',
+    port: config.port,
+    environment: config.environment,
+    <% if (complianceMode) { %>
+    complianceMode: '<%= complianceMode %>',
+    <% } %>
+    timestamp: new Date().toISOString()
+  });
+});
+
+// Graceful shutdown handling
+gracefulShutdown(server, {
+  timeout: 30000, // 30 seconds
+  signals: ['SIGTERM', 'SIGINT'],
+  finally: () => {
+    auditLogger.info('SERVICE_SHUTDOWN', {
+      serviceName: '<%= serviceName %>',
+      timestamp: new Date().toISOString()
+    });
+  }
+});
+
+export { app };

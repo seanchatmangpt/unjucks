@@ -1,0 +1,65 @@
+name: "CI/CD Pipeline Templates"
+description: "Enterprise CI/CD templates with security scanning and multi-cloud deployment"
+version: "1.0.0"
+category: "cicd"
+tags: ["cicd", "github-actions", "azure-devops", "aws", "security", "enterprise"]
+
+variables:
+  - name: "serviceName"
+    type: "string"
+    required: true
+    description: "Name of the service"
+    example: "user-management-api"
+  
+  - name: "environment"
+    type: "string"
+    required: true
+    description: "Target environment"
+    options: ["development", "staging", "production"]
+    example: "production"
+  
+  - name: "cloudProvider"
+    type: "string"
+    required: true
+    description: "Primary cloud provider"
+    options: ["aws", "azure", "gcp", "hybrid"]
+    example: "aws"
+  
+  - name: "runtime"
+    type: "string"
+    required: true
+    description: "Application runtime"
+    options: ["nodejs", "python", "java", "dotnet", "go"]
+    example: "nodejs"
+  
+  - name: "deploymentStrategy"
+    type: "string"
+    required: true
+    description: "Deployment strategy"
+    options: ["blue-green", "canary", "rolling", "recreate"]
+    example: "blue-green"
+  
+  - name: "securityScanEnabled"
+    type: "boolean"
+    description: "Enable security scanning"
+    default: true
+  
+  - name: "complianceRequired"
+    type: "boolean"
+    description: "Compliance validation required"
+    default: true
+  
+  - name: "multiRegion"
+    type: "boolean"
+    description: "Multi-region deployment"
+    default: false
+  
+  - name: "approvalRequired"
+    type: "boolean"
+    description: "Manual approval required"
+    default: true
+
+rdfSchemas:
+  - "deployment-policies.ttl"
+  - "security-scanners.ttl"
+  - "compliance-gates.ttl"

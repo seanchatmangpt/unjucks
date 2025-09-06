@@ -1,0 +1,61 @@
+name: "Database Migration Templates"
+description: "Enterprise database migration scripts with rollback and dependency management"
+version: "1.0.0"
+category: "database"
+tags: ["database", "migration", "rollback", "enterprise", "sql", "schema"]
+
+variables:
+  - name: "migrationName"
+    type: "string"
+    required: true
+    description: "Migration name"
+    example: "add-user-preferences"
+  
+  - name: "tableName"
+    type: "string"
+    required: true
+    description: "Primary table name"
+    example: "user_preferences"
+  
+  - name: "operation"
+    type: "string"
+    required: true
+    description: "Migration operation type"
+    options: ["create", "alter", "drop", "index", "constraint"]
+    example: "create"
+  
+  - name: "databaseType"
+    type: "string"
+    required: true
+    description: "Database type"
+    options: ["postgresql", "mysql", "oracle", "sqlserver"]
+    example: "postgresql"
+  
+  - name: "environment"
+    type: "string"
+    required: true
+    description: "Target environment"
+    options: ["development", "staging", "production"]
+    example: "production"
+  
+  - name: "requiresDowntime"
+    type: "boolean"
+    description: "Migration requires downtime"
+    default: false
+  
+  - name: "rollbackStrategy"
+    type: "string"
+    description: "Rollback strategy"
+    options: ["automatic", "manual", "snapshot"]
+    default: "automatic"
+  
+  - name: "dataVolume"
+    type: "string"
+    description: "Expected data volume impact"
+    options: ["low", "medium", "high", "critical"]
+    default: "low"
+
+rdfSchemas:
+  - "database-schemas.ttl"
+  - "migration-policies.ttl"
+  - "rollback-procedures.ttl"

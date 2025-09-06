@@ -1,0 +1,60 @@
+name: "Compliance-Ready Service Scaffolding"
+description: "Enterprise service templates with built-in compliance, audit, and security"
+version: "1.0.0"
+category: "compliance"
+tags: ["enterprise", "compliance", "sox", "gdpr", "hipaa", "audit", "security"]
+
+variables:
+  - name: "serviceName"
+    type: "string"
+    required: true
+    description: "Name of the service"
+    example: "payment-processor"
+  
+  - name: "complianceFramework"
+    type: "string"
+    required: true
+    description: "Primary compliance framework"
+    options: ["SOX", "GDPR", "HIPAA", "PCI-DSS", "ISO27001", "SOC2"]
+    example: "SOX"
+  
+  - name: "dataClassification"
+    type: "string"
+    required: true
+    description: "Data classification level"
+    options: ["PUBLIC", "INTERNAL", "CONFIDENTIAL", "RESTRICTED"]
+    example: "CONFIDENTIAL"
+  
+  - name: "auditLevel"
+    type: "string"
+    required: true
+    description: "Audit logging level"
+    options: ["BASIC", "DETAILED", "COMPREHENSIVE"]
+    example: "COMPREHENSIVE"
+  
+  - name: "retentionPeriod"
+    type: "string"
+    required: true
+    description: "Data retention period"
+    example: "7 years"
+  
+  - name: "encryptionRequired"
+    type: "boolean"
+    description: "Require encryption at rest and in transit"
+    default: true
+  
+  - name: "multiRegion"
+    type: "boolean"
+    description: "Multi-region deployment for compliance"
+    default: false
+  
+  - name: "department"
+    type: "string"
+    required: true
+    description: "Owning department"
+    example: "Finance"
+
+rdfSchemas:
+  - "compliance-requirements.ttl"
+  - "audit-policies.ttl"
+  - "data-governance.ttl"
