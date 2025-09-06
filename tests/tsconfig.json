@@ -21,15 +21,15 @@
       "@support/*": ["./support/*"],
       "@helpers/*": ["./helpers/*"]
     },
-    "types": ["node", "vitest", "@cucumber/cucumber"]
+    "types": ["node", "vitest"]
   },
-  "include": [
-    "**/*.ts",
-    "**/*.js",
-    "../features/**/*.feature"
-  ],
+  "include": ["**/*.ts", "**/*.js", "../features/**/*.feature"],
   "exclude": [
     "node_modules",
-    "../dist"
+    "../dist",
+    "fixtures/**/*.js",
+    "**/*.template.*",
+    "**/*.njk",
+    "**/*.ejs"
   ]
 }
