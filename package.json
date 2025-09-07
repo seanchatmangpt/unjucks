@@ -1,6 +1,6 @@
 {
   "name": "@seanchatmangpt/unjucks",
-  "version": "2025.09.07.15.45",
+  "version": "2025.09.07.16.05",
   "type": "module",
   "description": "Nunjucks + Hygen style scaffolding with RDF/Turtle support",
   "main": "./src/cli/index.js",
