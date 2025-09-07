@@ -1,46 +1,5 @@
 import { defineCommand } from "citty";
-import fs from "fs";
-import path from "path";
-import { fileURLToPath } from "url";
-
-// Get current directory for ES modules
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-/**
- * Dynamic version resolution for cross-platform compatibility
- * @returns {string} The version string
- */
-function getVersion() {
-  // First try environment variable (set during build/npm)
-  if (process.env.npm_package_version) {
-    return process.env.npm_package_version;
-  }
-  
-  try {
-    // Try multiple paths to find package.json
-    const possiblePaths = [
-      path.resolve(__dirname, "../../package.json"),
-      path.resolve(process.cwd(), "package.json"),
-      path.resolve(__dirname, "../package.json")
-    ];
-    
-    for (const packagePath of possiblePaths) {
-      try {
-        const packageJson = JSON.parse(fs.readFileSync(packagePath, "utf-8"));
-        if (packageJson.version) {
-          return packageJson.version;
-        }
-      } catch {
-        continue;
-      }
-    }
-    
-    return "1.0.0";
-  } catch (error) {
-    return "1.0.0";
-  }
-}
+import { getVersion, getVersionDetails } from "../lib/version-resolver.js";
 
 /**
  * Version command - Shows version information
@@ -50,6 +9,13 @@ export const versionCommand = defineCommand({
     name: "version",
     description: "Show version information",
   },
+  args: {
+    verbose: {
+      type: "boolean",
+      description: "Show detailed version information",
+      alias: "v",
+    },
+  },
   /**
    * Main execution handler for the version command
    * @param {Object} context - Command context
@@ -57,7 +23,17 @@ export const versionCommand = defineCommand({
    */
   run(context) {
     const { args } = context;
-    const version = getVersion();
-    console.log(version);
+    
+    if (args.verbose) {
+      const details = getVersionDetails();
+      console.log(`Unjucks Version: ${details.version}`);
+      console.log(`Source: ${details.source}`);
+      console.log(`Node.js: ${details.nodeVersion}`);
+      console.log(`Platform: ${details.platform} (${details.arch})`);
+      console.log(`Generated: ${details.timestamp}`);
+    } else {
+      const version = getVersion();
+      console.log(version);
+    }
   },
 });

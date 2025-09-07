@@ -5,7 +5,7 @@ All notable changes to Unjucks will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [2025.09.07] - 2025-01-07
+## [2025.09.07.11.18] - 2025-01-07
 
 ### 🎉 Major Release: Comprehensive Template Filters & Semantic Web Integration
 
@@ -62,7 +62,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Migration guide for filter upgrades
 - Troubleshooting guide for common issues
 
-## [2025.09.06] - 2025-01-06
+## [2025.09.06.17.40] - 2025-01-06
 
 ### TypeScript to JavaScript Migration Complete
 
@@ -85,7 +85,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Template discovery timeouts
 - File injection orchestration
 
-## [2025.09.05] - 2025-01-05
+## [2025.09.05.00.00] - 2025-01-05
 
 ### Initial v2025 Release
 

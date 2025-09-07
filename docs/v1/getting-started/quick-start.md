@@ -13,13 +13,13 @@ Get up and running with Unjucks in 5 minutes. This guide walks through essential
 
 ```bash
 # Option A: Global installation (recommended for CLI usage)
-npm install -g unjucks
+npm install -g @seanchatmangpt/unjucks
 
 # Option B: Use with npx (no installation needed)
-npx unjucks --help
+npx @seanchatmangpt/unjucks --help
 
 # Option C: Local project installation
-npm install --save-dev unjucks
+npm install --save-dev @seanchatmangpt/unjucks
 ```
 
 **Test installation:**

@@ -40,41 +40,8 @@ const helpCommand = defineCommand({
 
 // All other commands are now imported from their respective modules
 
-/**
- * Get package version from package.json (production ready)
- * @returns {string} The version string
- */
-function getVersion() {
-  // Try to read from package.json first
-  try {
-    const fs = require('fs');
-    const path = require('path');
-    
-    // Try different paths to find package.json
-    const possiblePaths = [
-      path.join(__dirname, '../../package.json'),
-      path.join(process.cwd(), 'package.json'),
-      // For global installations
-      path.resolve(__dirname, '../../package.json')
-    ];
-    
-    for (const packagePath of possiblePaths) {
-      if (fs.existsSync(packagePath)) {
-        const packageData = fs.readFileSync(packagePath, 'utf8');
-        const packageJson = JSON.parse(packageData);
-        if (packageJson.version) {
-          return packageJson.version;
-        }
-      }
-    }
-  } catch (error) {
-    // Ignore errors and fall through to fallbacks
-  }
-  
-  // Skip npm environment variable as it may be stale during development
-  // Final fallback - return current version
-  return "2025.09.07.11.18";
-}
+// Import unified version resolver
+import { getVersion } from '../lib/version-resolver.js';
 
 /**
  * Enhanced pre-process arguments to handle comprehensive Hygen-style positional syntax

@@ -1,7 +1,7 @@
-# 🌆 Unjucks v2025.9.7.11.23  
+# 🌆 Unjucks v2025.09.07.15.45  
 
-[![npm version](https://img.shields.io/npm/v/unjucks?color=yellow)](https://npmjs.com/package/unjucks)
-[![npm downloads](https://img.shields.io/npm/dm/unjucks?color=yellow)](https://npm.chart.dev/packageName)
+[![npm version](https://img.shields.io/npm/v/@seanchatmangpt/unjucks?color=yellow)](https://npmjs.com/package/@seanchatmangpt/unjucks)
+[![npm downloads](https://img.shields.io/npm/dm/@seanchatmangpt/unjucks?color=yellow)](https://npmjs.com/package/@seanchatmangpt/unjucks)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![JavaScript](https://img.shields.io/badge/JavaScript-ES2023_Native-brightgreen.svg)](https://www.ecma-international.org/)
 [![Migration](https://img.shields.io/badge/TypeScript→JavaScript-✅_Complete-brightgreen.svg)](docs/migration/CONVERSION_COMPLETE.md)
@@ -302,13 +302,13 @@ to: tests/services/{{ serviceName | pascalCase }}Service.test.ts
 
 ```bash
 # Global installation (recommended)
-npm install -g unjucks
+npm install -g @seanchatmangpt/unjucks
 
 # Or use with npx (no installation needed)  
-npx unjucks --help
+npx @seanchatmangpt/unjucks --help
 
 # Verify installation
-unjucks --version  # Should show v2025.x.x.x.x
+@seanchatmangpt/unjucks --version  # Should show v2025.09.07.11.18
 
 # Note: Unjucks v2025 is 100% JavaScript ES2023 Native
 # ✅ TypeScript to JavaScript migration COMPLETE
@@ -761,8 +761,8 @@ unjucks help microservice node
 ## 🚀 Get Started Today
 
 ```bash
-# Install Unjucks v2025 (JavaScript ES2023 Native)
-npm install -g unjucks
+# Install Unjucks v2025.09.07.11.18 (JavaScript ES2023 Native)
+npm install -g @seanchatmangpt/unjucks
 
 # Initialize enterprise project
 unjucks init --type enterprise my-app

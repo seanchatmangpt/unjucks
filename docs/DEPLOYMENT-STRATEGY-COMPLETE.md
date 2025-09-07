@@ -16,7 +16,7 @@ This document outlines the complete strategy to make Unjucks available as a glob
 ls bin/unjucks.cjs  # No such file or directory
 ```
 
-**Impact**: `npm install -g unjucks` fails immediately
+**Impact**: `npm install -g @seanchatmangpt/unjucks` fails immediately
 **Fix Required**: Create functional CLI entry point
 
 #### **2. Package Configuration Issues**
@@ -67,7 +67,7 @@ runMain().catch((error) => {
   },
   "repository": {
     "type": "git", 
-    "url": "https://github.com/unjucks/unjucks"
+    "url": "https://github.com/seanchatmangpt/unjucks"
   },
   "homepage": "https://unjucks.dev",
   "files": [
@@ -160,7 +160,7 @@ Test Scenarios: [fresh install, upgrade, uninstall]
 ```bash
 # Test 1: Fresh Global Installation
 docker run -it node:18-alpine sh -c "
-  npm install -g unjucks &&
+  npm install -g @seanchatmangpt/unjucks &&
   unjucks --version &&
   unjucks list &&
   unjucks generate --help
@@ -196,7 +196,7 @@ jobs:
       - run: npm ci
       - run: npm run build  
       - run: npm pack
-      - run: npm install -g ./unjucks-*.tgz
+      - run: npm install -g ./@seanchatmangpt-unjucks-*.tgz
       - run: unjucks --version
       - run: unjucks list
 ```
@@ -209,7 +209,7 @@ jobs:
 class Unjucks < Formula
   desc "Semantic-aware scaffolding with RDF/Turtle support"
   homepage "https://unjucks.dev"
-  url "https://registry.npmjs.org/unjucks/-/unjucks-1.0.0.tgz"
+  url "https://registry.npmjs.org/@seanchatmangpt/unjucks/-/unjucks-1.0.0.tgz"
   sha256 "..." # Auto-calculated
   
   depends_on "node"
@@ -272,7 +272,7 @@ jobs:
       
       # Package and test installation  
       - run: npm pack
-      - run: npm install -g ./unjucks-*.tgz
+      - run: npm install -g ./@seanchatmangpt-unjucks-*.tgz
       - run: unjucks --version
       
       # Publish to npm

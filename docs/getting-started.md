@@ -13,7 +13,7 @@ This comprehensive guide covers everything from basic installation to advanced M
 npm install -g @seanchatmangpt/unjucks
 
 # Verify installation
-unjucks --version  # Should show v2025.x.x.x
+unjucks --version  # Should show v2025.09.07.11.18
 ```
 
 ### Method 2: Package Manager Options
@@ -542,8 +542,8 @@ docker build -t unjucks-mcp:latest .
 docker run -p 3001:3001 unjucks-mcp:latest
 
 # 3. Deploy to registry
-docker tag unjucks-mcp:latest your-registry/unjucks-mcp:v2025.x
-docker push your-registry/unjucks-mcp:v2025.x
+docker tag unjucks-mcp:latest your-registry/unjucks-mcp:v2025.09.07.11.18
+docker push your-registry/unjucks-mcp:v2025.09.07.11.18
 ```
 
 ### Method 4: Kubernetes Deployment
@@ -566,7 +566,7 @@ spec:
     spec:
       containers:
       - name: unjucks-mcp
-        image: your-registry/unjucks-mcp:v2025.x
+        image: your-registry/unjucks-mcp:v2025.09.07.11.18
         ports:
         - containerPort: 3001
         env:
@@ -653,7 +653,7 @@ echo "Build me a complete e-commerce platform with user auth, product catalog, s
 import { defineConfig } from 'unjucks/config';
 
 export default defineConfig({
-  version: "2025.x",
+  version: "2025.09.07.11.18",
   generators: "_templates",
   
   // MCP server settings

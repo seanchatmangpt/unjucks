@@ -659,7 +659,7 @@ unjucks marketplace generate healthcare-service \
 - [Compliance Frameworks](https://docs.unjucks.dev/compliance)
 
 #### Community
-- [GitHub Repository](https://github.com/unjucks/unjucks)
+- [GitHub Repository](https://github.com/seanchatmangpt/unjucks)
 - [Discord Community](https://discord.gg/unjucks)
 - [Stack Overflow Tag](https://stackoverflow.com/questions/tagged/unjucks)
 - [Newsletter Subscription](https://newsletter.unjucks.dev)

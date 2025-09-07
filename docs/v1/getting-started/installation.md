@@ -54,7 +54,7 @@ bun add -d unjucks
 **Usage with local installation:**
 ```bash
 # Via npx
-npx unjucks --help
+npx @seanchatmangpt/unjucks --help
 
 # Via package.json scripts
 {
@@ -70,7 +70,7 @@ npx unjucks --help
 Use without installation via npx:
 
 ```bash
-npx unjucks --help
+npx @seanchatmangpt/unjucks --help
 npx unjucks generate command citty --commandName=user --dest=./src
 ```
 

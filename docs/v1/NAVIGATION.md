@@ -173,10 +173,10 @@ docs/v1/
 ## 🔗 External Links
 
 **Project Resources**
-- [GitHub Repository](https://github.com/unjs/unjucks)
-- [npm Package](https://www.npmjs.com/package/unjucks) 
-- [GitHub Issues](https://github.com/unjs/unjucks/issues)
-- [GitHub Discussions](https://github.com/unjs/unjucks/discussions)
+- [GitHub Repository](https://github.com/seanchatmangpt/unjucks)
+- [npm Package](https://www.npmjs.com/package/@seanchatmangpt/unjucks) 
+- [GitHub Issues](https://github.com/seanchatmangpt/unjucks/issues)
+- [GitHub Discussions](https://github.com/seanchatmangpt/unjucks/discussions)
 
 **Related Projects**
 - [Nunjucks](https://mozilla.github.io/nunjucks/) - Template engine

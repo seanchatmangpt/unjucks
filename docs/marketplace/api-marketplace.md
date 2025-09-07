@@ -1463,7 +1463,7 @@ The Unjucks API and Integration Marketplace provides a comprehensive ecosystem f
 This documentation serves as a complete guide for implementing marketplace capabilities, from basic template creation to advanced distribution strategies. The architecture supports scalability, security, and community collaboration while maintaining ease of use for developers at all skill levels.
 
 For additional resources, examples, and community support, visit:
-- GitHub Repository: https://github.com/unjucks/unjucks
+- GitHub Repository: https://github.com/seanchatmangpt/unjucks
 - Documentation: https://docs.unjucks.dev
 - Community Discord: https://discord.gg/unjucks
 - Template Marketplace: https://marketplace.unjucks.dev

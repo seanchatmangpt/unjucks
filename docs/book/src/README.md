@@ -2,10 +2,10 @@
 
 > **Semantic-aware AI agent swarms for intelligent template-driven development**
 
-[![Version](https://img.shields.io/npm/v/unjucks.svg)](https://npmjs.org/package/unjucks)
-[![License](https://img.shields.io/npm/l/unjucks.svg)](https://github.com/unjs/unjucks/blob/main/LICENSE)
-[![Downloads](https://img.shields.io/npm/dm/unjucks.svg)](https://npmjs.org/package/unjucks)
-[![CI](https://img.shields.io/github/workflow/status/unjs/unjucks/ci.svg)](https://github.com/unjs/unjucks/actions)
+[![Version](https://img.shields.io/npm/v/@seanchatmangpt/unjucks.svg)](https://npmjs.org/package/@seanchatmangpt/unjucks)
+[![License](https://img.shields.io/npm/l/@seanchatmangpt/unjucks.svg)](https://github.com/seanchatmangpt/unjucks/blob/main/LICENSE)
+[![Downloads](https://img.shields.io/npm/dm/@seanchatmangpt/unjucks.svg)](https://npmjs.org/package/@seanchatmangpt/unjucks)
+[![CI](https://img.shields.io/github/workflow/status/seanchatmangpt/unjucks/ci.svg)](https://github.com/seanchatmangpt/unjucks/actions)
 
 ## Welcome to the Future of Code Generation 🚀
 
