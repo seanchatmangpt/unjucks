@@ -7,7 +7,7 @@
 
 > **Production-ready enterprise code generation platform with AI integration, semantic web capabilities, and Fortune 500-grade compliance automation.**
 
-Unjucks v1.0 is a **revolutionary semantic-powered code generation platform** that transforms enterprise development workflows through intelligent AI integration, comprehensive RDF/knowledge graph processing, and automated compliance generation.
+Unjucks v1.0 is a **revolutionary semantic-powered code generation platform** that transforms enterprise development workflows through intelligent AI swarm orchestration, comprehensive RDF/knowledge graph processing, workflow automation, and automated compliance generation with advanced MCP capabilities.
 
 ## 🎯 Why Unjucks v1.0?
 
@@ -18,8 +18,11 @@ Unjucks v1.0 is a **revolutionary semantic-powered code generation platform** th
 - **Fortune 500 Compliance** - Automated SOX, GDPR, HIPAA, Basel III compliance
 
 ### **AI-First Architecture** 
-- **Native MCP Integration** - Direct Claude AI assistant access with 5 specialized tools
-- **Swarm Coordination** - Multi-agent orchestration for complex enterprise workflows
+- **Native MCP Integration** - Direct Claude AI assistant access with 40+ specialized tools
+- **Swarm Coordination** - Multi-agent orchestration with hierarchical, mesh, ring, and star topologies
+- **Workflow Automation** - CI/CD-like development workflow management with event-driven processing
+- **Performance Analysis** - Real-time performance monitoring and optimization with benchmarking
+- **GitHub Integration** - Complete repository management, PR automation, and code review swarms
 - **Context-Aware Generation** - AI understands business domains and compliance requirements
 - **Natural Language Templates** - Describe requirements, generate production code
 
@@ -75,12 +78,19 @@ Native Model Context Protocol integration enables AI-driven development:
 ```bash
 # Claude AI can directly access your templates and generate code
 unjucks mcp server
-# → Exposes 5 specialized tools to Claude Code:
+# → Exposes 40+ specialized tools to Claude Code:
 #   • unjucks_generate - AI-driven code generation
 #   • unjucks_list - Template discovery and metadata
 #   • unjucks_help - Intelligent documentation
 #   • unjucks_dry_run - Preview with impact analysis  
 #   • unjucks_inject - Smart file modification
+#   • swarm_init - Initialize AI swarm with various topologies
+#   • swarm_orchestrate - Orchestrate complex multi-agent tasks
+#   • workflow_create - Create automated development workflows
+#   • github_analyze - Analyze repositories and code quality
+#   • perf_benchmark - Run performance benchmarks
+#   • semantic_query - Execute SPARQL queries on RDF data
+#   • ... and 30+ more specialized tools
 ```
 
 **AI Conversation Example:**
@@ -279,6 +289,34 @@ npx unjucks --help
 unjucks --version  # Should show v1.0.x
 ```
 
+### 🤖 Enhanced AI Command Suite
+
+```bash
+# Swarm Orchestration - Multi-agent AI coordination
+unjucks swarm init --topology mesh --agents 5
+unjucks swarm spawn --type researcher --capabilities "semantic,rdf"
+unjucks swarm orchestrate --task "Build complete microservice" --parallel
+
+# Workflow Automation - CI/CD-like development workflows
+unjucks workflow create --name "api-dev" --template fullstack
+unjucks workflow execute --id workflow-api-dev --async
+unjucks workflow status --id workflow-api-dev --metrics
+
+# Performance Analysis - Real-time monitoring and optimization
+unjucks perf benchmark --suite neural
+unjucks perf monitor --interval 5
+
+# GitHub Integration - Repository management and automation
+unjucks github analyze --repo owner/repo --type security
+unjucks github pr --action review --repo owner/repo --number 123
+
+# Enhanced Semantic Processing - Advanced RDF/OWL operations
+unjucks semantic query --sparql "SELECT ?s WHERE { ?s a :Person }" --data ontology.ttl
+unjucks semantic validate --shacl shapes.ttl --data instance.ttl
+unjucks semantic infer --rules inference.n3 --data facts.ttl
+unjucks semantic convert --from turtle --to jsonld --input data.ttl
+```
+
 ### 30-Second Enterprise Setup
 
 ```bash
@@ -326,8 +364,12 @@ unjucks mcp server --port 3001
 ```
 Enterprise Unjucks Platform
 ├── 🧠 AI Integration Layer
-│   ├── MCP Server (5 specialized tools)
+│   ├── MCP Server (40+ specialized tools)
 │   ├── Claude Code integration
+│   ├── Multi-agent swarm orchestration
+│   ├── Workflow automation engine
+│   ├── Performance monitoring system
+│   ├── GitHub integration suite
 │   ├── Natural language processing
 │   └── Context-aware generation
 ├── 🔗 Semantic Processing Engine  
@@ -343,6 +385,11 @@ Enterprise Unjucks Platform
 │   └── Multi-operation file processing
 ├── 🔧 Enterprise CLI
 │   ├── Dynamic command generation
+│   ├── AI swarm orchestration commands
+│   ├── Workflow automation commands
+│   ├── Performance analysis commands
+│   ├── GitHub integration commands
+│   ├── Enhanced semantic commands
 │   ├── Interactive variable prompts
 │   ├── Comprehensive help system
 │   ├── Dry-run and preview modes
@@ -354,6 +401,8 @@ Enterprise Unjucks Platform
 │   └── Audit trail automation
 ├── 🧪 Production Testing
 │   ├── Vitest-Cucumber BDD framework
+│   ├── MCP-triggered test scenarios
+│   ├── User journey validation
 │   ├── 95%+ test coverage
 │   ├── Performance benchmarking
 │   ├── Integration testing
@@ -472,6 +521,20 @@ Feature: Enterprise Semantic Code Generation
     And I should see regulatory reporting components  
     And I should see audit trail logging
     And all generated code should pass compliance validation
+
+  Scenario: Initialize AI Swarm for Development
+    Given I have the unjucks CLI installed
+    When I run "unjucks swarm init --topology mesh --agents 5"
+    Then a swarm should be initialized with 5 agents
+    And the swarm should use mesh topology
+    And MCP tools should be available for coordination
+
+  Scenario: Create and Execute Workflow
+    Given I have initialized a workflow
+    When I run "unjucks workflow create --name api-dev --template fullstack"
+    And I run "unjucks workflow execute --id workflow-api-dev --async"
+    Then the workflow should execute asynchronously
+    And I should be able to monitor progress with status command
     
   Scenario: Generate GDPR Compliant Data Processing
     Given I have personal data ontology
@@ -483,7 +546,9 @@ Feature: Enterprise Semantic Code Generation
 ```
 
 **Test Coverage:**
-- ✅ **76 BDD Scenarios** covering all major use cases
+- ✅ **100+ BDD Scenarios** covering all major use cases including swarm, workflow, and semantic features
+- ✅ **MCP-Triggered Tests** directly invoke Model Context Protocol tools from test scenarios
+- ✅ **User Journey Validation** complete end-to-end workflows from CLI perspective
 - ✅ **95.3% Code Coverage** with comprehensive unit tests  
 - ✅ **Performance Tests** validating enterprise scale requirements
 - ✅ **Integration Tests** with real-world enterprise systems
@@ -496,7 +561,11 @@ Feature: Enterprise Semantic Code Generation
 | Capability | Unjucks v1.0 | Hygen | Yeoman | Plop |
 |------------|-------------|-------|---------|------|
 | **Semantic/RDF Processing** | ✅ Native | ❌ None | ❌ None | ❌ None |
-| **AI Integration** | ✅ MCP Server | ❌ None | ❌ None | ❌ None |
+| **AI Integration** | ✅ 40+ MCP Tools | ❌ None | ❌ None | ❌ None |
+| **Swarm Orchestration** | ✅ Multi-agent | ❌ None | ❌ None | ❌ None |
+| **Workflow Automation** | ✅ Event-driven | ❌ None | ❌ None | ❌ None |
+| **Performance Monitoring** | ✅ Real-time | ❌ None | ❌ None | ❌ None |
+| **GitHub Integration** | ✅ Native | ❌ None | ❌ None | ❌ None |
 | **Template Engine** | ✅ Advanced Nunjucks | ❌ Basic EJS | ❌ Outdated EJS | ❌ Limited Handlebars |
 | **File Operations** | ✅ 6 modes | ❌ 1 mode | ❌ 1 mode | ❌ 3 modes |
 | **Enterprise Compliance** | ✅ Automated | ❌ Manual | ❌ Manual | ❌ Manual |

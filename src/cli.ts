@@ -9,6 +9,13 @@ import { initCommand } from "./commands/init.js";
 import { injectCommand } from "./commands/inject.js";
 import { versionCommand } from "./commands/version.js";
 import { semanticCommand } from "./commands/semantic.js";
+import { migrateCommand } from "./commands/migrate.js";
+
+// Import NEW enhanced commands
+import { swarmCommand } from "./commands/swarm.js";
+import { workflowCommand } from "./commands/workflow.js";
+import { perfCommand } from "./commands/perf.js";
+import { githubCommand } from "./commands/github.js";
 
 // Get package version from package.json (production ready)
 function getVersion(): string {
@@ -33,7 +40,7 @@ const preprocessArgs = () => {
   }
   
   // Don't transform if already using explicit commands
-  if (['generate', 'list', 'init', 'inject', 'version', 'help', 'semantic'].includes(firstArg)) {
+  if (['generate', 'list', 'init', 'inject', 'version', 'help', 'semantic', 'swarm', 'workflow', 'perf', 'github', 'migrate'].includes(firstArg)) {
     return rawArgs;
   }
   
@@ -91,6 +98,11 @@ const main = defineCommand({
     version: versionCommand,
     help: createTemplateHelpCommand(),
     semantic: semanticCommand,
+    swarm: swarmCommand,
+    workflow: workflowCommand,
+    perf: perfCommand,
+    github: githubCommand,
+    migrate: migrateCommand,
   },
   run({ args }: { args: any }) {
     // Handle --version flag
@@ -115,6 +127,11 @@ const main = defineCommand({
       console.log(chalk.gray("  inject    Inject or modify content in existing files"));
       console.log(chalk.gray("  help      Show template variable help"));
       console.log(chalk.gray("  semantic  Generate code from RDF/OWL ontologies with semantic awareness"));
+      console.log(chalk.gray("  swarm     Multi-agent swarm coordination and management"));
+      console.log(chalk.gray("  workflow  Automated development workflow management"));
+      console.log(chalk.gray("  perf      Performance analysis and optimization tools"));
+      console.log(chalk.gray("  github    GitHub integration and repository management"));
+      console.log(chalk.gray("  migrate   Database and project migration utilities"));
       console.log(chalk.gray("  version   Show version information"));
       console.log();
       console.log(chalk.yellow("OPTIONS:"));
@@ -128,7 +145,10 @@ const main = defineCommand({
       console.log(chalk.gray("  unjucks generate component citty      # Explicit syntax"));
       console.log(chalk.gray("  unjucks list                          # List generators"));
       console.log(chalk.gray("  unjucks semantic generate -o schema.ttl --enterprise  # RDF code generation"));
-      console.log(chalk.gray("  unjucks semantic scaffold -o ontology.owl -n MyApp    # Full app scaffolding"));
+      console.log(chalk.gray("  unjucks swarm init --topology mesh    # Initialize agent swarm"));
+      console.log(chalk.gray("  unjucks workflow create --name api-dev # Create development workflow"));
+      console.log(chalk.gray("  unjucks perf benchmark --suite all    # Run performance benchmarks"));
+      console.log(chalk.gray("  unjucks github analyze --repo owner/repo # Analyze repository"));
       return;
     }
 
@@ -147,6 +167,11 @@ const main = defineCommand({
     console.log(chalk.gray("  inject    Inject or modify content in existing files"));
     console.log(chalk.gray("  help      Show template variable help"));
     console.log(chalk.gray("  semantic  Generate code from RDF/OWL ontologies with semantic awareness"));
+    console.log(chalk.gray("  swarm     Multi-agent swarm coordination and management"));
+    console.log(chalk.gray("  workflow  Automated development workflow management"));
+    console.log(chalk.gray("  perf      Performance analysis and optimization tools"));
+    console.log(chalk.gray("  github    GitHub integration and repository management"));
+    console.log(chalk.gray("  migrate   Database and project migration utilities"));
     console.log(chalk.gray("  version   Show version information"));
     console.log();
     console.log(chalk.yellow("Examples:"));
@@ -156,7 +181,10 @@ const main = defineCommand({
     console.log(chalk.gray("  unjucks generate component citty      # Explicit syntax"));
     console.log(chalk.gray("  unjucks list                          # List generators"));
     console.log(chalk.gray("  unjucks semantic generate -o schema.ttl --enterprise  # RDF code generation"));
-    console.log(chalk.gray("  unjucks semantic scaffold -o ontology.owl -n MyApp    # Full app scaffolding"));
+    console.log(chalk.gray("  unjucks swarm init --topology mesh    # Initialize agent swarm"));
+    console.log(chalk.gray("  unjucks workflow create --name api-dev # Create development workflow"));
+    console.log(chalk.gray("  unjucks perf benchmark --suite all    # Run performance benchmarks"));
+    console.log(chalk.gray("  unjucks github analyze --repo owner/repo # Analyze repository"));
     console.log();
     console.log(chalk.gray("Use --help with any command for more information."));
   },

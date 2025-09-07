@@ -116,6 +116,66 @@ export interface InjectCommandArgs extends BaseCommandArgs {
 }
 
 /**
+ * Arguments for the github command
+ */
+export interface GitHubCommandArgs extends BaseCommandArgs {
+  /** Repository to analyze (format: owner/repo) */
+  repository?: string;
+  /** Analysis depth: surface, deep, comprehensive */
+  depth?: 'surface' | 'deep' | 'comprehensive';
+  /** Include repository metrics in analysis */
+  metrics?: boolean;
+  /** Output format: json, yaml, table */
+  format?: 'json' | 'yaml' | 'table';
+  /** Source branch for PR operations */
+  source?: string;
+  /** Target branch for PR operations */
+  target?: string;
+  /** Create PR as draft */
+  draft?: boolean;
+  /** Auto-assign PR/issue based on code ownership */
+  autoAssign?: boolean;
+  /** PR template to use */
+  template?: string;
+  /** Include code quality analysis */
+  codeQuality?: boolean;
+  /** Include security analysis */
+  security?: boolean;
+  /** Include performance analysis */
+  performance?: boolean;
+  /** AI suggestion level: minimal, moderate, comprehensive */
+  suggestionLevel?: 'minimal' | 'moderate' | 'comprehensive';
+  /** Merge strategy: smart, squash, rebase, merge */
+  mergeStrategy?: 'smart' | 'squash' | 'rebase' | 'merge';
+  /** Automatically resolve merge conflicts */
+  resolveConflicts?: boolean;
+  /** Run tests before merge/deployment */
+  runTests?: boolean;
+  /** Update dependencies during merge */
+  updateDeps?: boolean;
+  /** Automatically apply labels based on analysis */
+  autoLabel?: boolean;
+  /** Assign priority levels to issues */
+  prioritize?: boolean;
+  /** Suggest solutions for issues */
+  suggest?: boolean;
+  /** Type of solution: code, documentation, configuration */
+  solutionType?: 'code' | 'documentation' | 'configuration';
+  /** Include tests in generated solutions */
+  tests?: boolean;
+  /** Include documentation in solutions */
+  docs?: boolean;
+  /** Create PR for generated solution */
+  createPR?: boolean;
+  /** Type of workflow: ci-cd, release, security, testing */
+  workflowType?: 'ci-cd' | 'release' | 'security' | 'testing';
+  /** Workflow triggers (comma-separated) */
+  triggers?: string;
+  /** Include deployment in workflow */
+  deploy?: boolean;
+}
+
+/**
  * Available project types for initialization
  */
 export type ProjectType = 
@@ -156,6 +216,31 @@ export type SortDirection = 'asc' | 'desc';
  * Injection modes for inject command
  */
 export type InjectionMode = 'inject' | 'append' | 'prepend' | 'before' | 'after' | 'replace';
+
+/**
+ * GitHub analysis depths
+ */
+export type AnalysisDepth = 'surface' | 'deep' | 'comprehensive';
+
+/**
+ * GitHub suggestion levels
+ */
+export type SuggestionLevel = 'minimal' | 'moderate' | 'comprehensive';
+
+/**
+ * GitHub merge strategies
+ */
+export type MergeStrategy = 'smart' | 'squash' | 'rebase' | 'merge';
+
+/**
+ * GitHub solution types
+ */
+export type SolutionType = 'code' | 'documentation' | 'configuration';
+
+/**
+ * GitHub workflow types
+ */
+export type WorkflowType = 'ci-cd' | 'release' | 'security' | 'testing';
 
 /**
  * Command result interface
@@ -285,6 +370,56 @@ export interface ProjectInitOptions {
     /** Version or branch */
     version?: string;
   };
+}
+
+/**
+ * GitHub repository analysis result
+ */
+export interface GitHubAnalysisResult {
+  /** Repository identifier */
+  repository: string;
+  /** Repository structure analysis */
+  structure: {
+    directories: string[];
+    files: string[];
+    languages: Record<string, number>;
+    frameworks: string[];
+  };
+  /** Repository metrics */
+  metrics?: {
+    complexity: number;
+    maintainability: number;
+    testCoverage: number;
+    documentation: number;
+  };
+  /** Generated insights */
+  insights: string[];
+  /** Recommendations for improvement */
+  recommendations: string[];
+}
+
+/**
+ * GitHub PR review result
+ */
+export interface GitHubPRReviewResult {
+  /** PR number */
+  prNumber: string;
+  /** Review summary */
+  summary: {
+    linesChanged: number;
+    filesModified: number;
+    complexity: string;
+  };
+  /** Code quality analysis */
+  codeQuality?: any;
+  /** Security analysis */
+  security?: any;
+  /** Performance analysis */
+  performance?: any;
+  /** AI-generated suggestions */
+  suggestions: any[];
+  /** Overall PR score */
+  overallScore: number;
 }
 
 /**

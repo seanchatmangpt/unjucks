@@ -3,54 +3,22 @@
 import { defineCommand, runMain as cittyRunMain } from "citty";
 import chalk from "chalk";
 
-// Import the REAL semantic command (not stub) - temporarily disabled for build
-// import { semanticCommand } from '../commands/semantic.js';
+// Import all commands
+import { generateCommand } from '../commands/generate.js';
+import { listCommand } from '../commands/list.js';
+import { injectCommand } from '../commands/inject.js';
+import { initCommand } from '../commands/init.js';
+import { semanticCommand } from '../commands/semantic.js';
+import { migrateCommand } from '../commands/migrate.js';
+import { versionCommand } from '../commands/version.js';
 
-// Enhanced commands have type issues - keeping simple implementations for now
-// Focus on semantic command working first (80/20 approach)
+// Import NEW enhanced commands
+import { swarmCommand } from '../commands/swarm.js';
+import { workflowCommand } from '../commands/workflow.js';
+import { perfCommand } from '../commands/perf.js';
+import { githubCommand } from '../commands/github.js';
 
-// Simple generate command (keeping until enhanced version type issues resolved)
-const generateCommand = defineCommand({
-  meta: {
-    name: "generate",
-    description: "Generate files from templates",
-  },
-  args: {
-    generator: {
-      type: "positional",
-      description: "Generator type (component, api, etc.)",
-      required: false,
-    },
-    template: {
-      type: "positional", 
-      description: "Template name",
-      required: false,
-    },
-    dry: {
-      type: "boolean",
-      description: "Dry run - show what would be generated",
-    },
-  },
-  run({ args }) {
-    const { generator, template, dry } = args;
-    
-    if (!generator || !template) {
-      console.log(chalk.red("❌ Usage: unjucks generate <generator> <template>"));
-      console.log(chalk.gray("Example: unjucks generate component react"));
-      return;
-    }
-    
-    if (dry) {
-      console.log(chalk.blue(`🔍 Dry run for ${generator}/${template}:`));
-      console.log(chalk.gray("  Would generate: src/components/Example.tsx"));
-      console.log(chalk.gray("  Would generate: src/components/Example.test.tsx"));
-    } else {
-      console.log(chalk.green(`✨ Generating ${generator}/${template}...`));
-      console.log(chalk.gray("  Generated: src/components/Example.tsx"));
-      console.log(chalk.gray("  Generated: src/components/Example.test.tsx"));
-    }
-  },
-});
+// All commands now imported from their respective modules
 
 // Template help command - using simple implementation
 const helpCommand = defineCommand({
@@ -66,86 +34,7 @@ const helpCommand = defineCommand({
   },
 });
 
-// Simple list command (keeping until enhanced version type issues resolved)
-const listCommand = defineCommand({
-  meta: {
-    name: "list",
-    description: "List available generators and templates",
-  },
-  args: {
-    generator: {
-      type: "positional",
-      description: "Name of generator to list templates for",
-      required: false,
-    },
-  },
-  run({ args }: { args: any }) {
-    console.log(chalk.blue.bold("📝 Available generators:"));
-    console.log();
-    console.log(chalk.green("  • component") + chalk.gray(" - React/Vue component generator"));
-    console.log(chalk.green("  • api") + chalk.gray(" - API endpoint generator"));
-    console.log(chalk.green("  • service") + chalk.gray(" - Service class generator"));
-    console.log(chalk.green("  • model") + chalk.gray(" - Data model generator"));
-    console.log();
-    if (args.generator) {
-      console.log(chalk.blue.bold(`Templates for ${args.generator}:`));
-      console.log(chalk.green("  • react") + chalk.gray(" - React component template"));
-      console.log(chalk.green("  • vue") + chalk.gray(" - Vue component template"));
-      console.log(chalk.green("  • angular") + chalk.gray(" - Angular component template"));
-    } else {
-      console.log(chalk.gray("Use 'unjucks list <generator>' to see templates for a specific generator"));
-    }
-    console.log();
-    console.log(chalk.gray("Use 'unjucks generate <generator> <template>' to create files"));
-  },
-});
-
-// Simple init command (keeping until enhanced version type issues resolved)
-const initCommand = defineCommand({
-  meta: {
-    name: "init",
-    description: "Initialize a new project with generators",
-  },
-  args: {
-    type: {
-      type: "positional",
-      description: "Type of project to initialize",
-      required: false,
-    },
-    dest: {
-      type: "string",
-      description: "Destination directory for the project",
-      default: ".",
-    },
-  },
-  run({ args }: { args: any }) {
-    console.log(chalk.blue.bold("🚀 Initializing Unjucks project..."));
-    console.log();
-    console.log(chalk.green("✅ Created _templates/ directory"));
-    console.log(chalk.green("✅ Added example generators:"));
-    console.log(chalk.gray("  • _templates/component/"));
-    console.log(chalk.gray("  • _templates/api/"));
-    console.log(chalk.gray("  • _templates/service/"));
-    console.log();
-    console.log(chalk.blue("Next steps:"));
-    console.log(chalk.gray("  1. unjucks list - See available generators"));
-    console.log(chalk.gray("  2. unjucks generate component react MyComponent"));
-    console.log(chalk.gray("  3. Customize templates in _templates/"));
-  },
-});
-
-// Version command stub
-const versionCommand = defineCommand({
-  meta: {
-    name: "version",
-    description: "Show version information",
-  },
-  run() {
-    console.log(`Unjucks CLI v${getVersion()}`);
-    console.log(chalk.gray("A Hygen-style CLI generator for creating templates and scaffolding projects"));
-    console.log(chalk.gray("Semantic-aware scaffolding with RDF/Turtle support"));
-  },
-});
+// All other commands are now imported from their respective modules
 
 // Get package version from package.json (production ready)
 function getVersion(): string {
@@ -177,7 +66,7 @@ const preprocessArgs = () => {
   }
   
   // Don't transform if already using explicit commands
-  if (['generate', 'list', 'init', 'version', 'help', 'semantic'].includes(firstArg)) {
+  if (['generate', 'list', 'inject', 'init', 'version', 'help', 'semantic', 'swarm', 'workflow', 'perf', 'github', 'migrate'].includes(firstArg)) {
     return rawArgs;
   }
   
@@ -232,10 +121,16 @@ const main = defineCommand({
   subCommands: {
     generate: generateCommand,
     list: listCommand,
+    inject: injectCommand,
     init: initCommand,
+    semantic: semanticCommand,
+    swarm: swarmCommand,
+    workflow: workflowCommand,
+    perf: perfCommand,
+    github: githubCommand,
+    migrate: migrateCommand,
     version: versionCommand,
     help: helpCommand,
-    // semantic: semanticCommand, // This is the REAL semantic command - temporarily disabled for build
   },
   run({ args }: { args: any }) {
     // Handle --version flag
@@ -256,10 +151,16 @@ const main = defineCommand({
       console.log(chalk.yellow("COMMANDS:"));
       console.log(chalk.gray("  generate  Generate files from templates"));
       console.log(chalk.gray("  list      List available generators"));
+      console.log(chalk.gray("  inject    Inject code into existing files"));
       console.log(chalk.gray("  init      Initialize a new project"));
-      console.log(chalk.gray("  help      Show template variable help"));
       console.log(chalk.gray("  semantic  Generate code from RDF/OWL ontologies with semantic awareness"));
+      console.log(chalk.gray("  swarm     Multi-agent swarm coordination and management"));
+      console.log(chalk.gray("  workflow  Automated development workflow management"));
+      console.log(chalk.gray("  perf      Performance analysis and optimization tools"));
+      console.log(chalk.gray("  github    GitHub integration and repository management"));
+      console.log(chalk.gray("  migrate   Database and project migration utilities"));
       console.log(chalk.gray("  version   Show version information"));
+      console.log(chalk.gray("  help      Show template variable help"));
       console.log();
       console.log(chalk.yellow("OPTIONS:"));
       console.log(chalk.gray("  --version, -v  Show version information"));
@@ -272,7 +173,10 @@ const main = defineCommand({
       console.log(chalk.gray("  unjucks generate component citty      # Explicit syntax"));
       console.log(chalk.gray("  unjucks list                          # List generators"));
       console.log(chalk.gray("  unjucks semantic generate -o schema.ttl --enterprise  # RDF code generation"));
-      console.log(chalk.gray("  unjucks semantic scaffold -o ontology.owl -n MyApp    # Full app scaffolding"));
+      console.log(chalk.gray("  unjucks swarm init --topology mesh    # Initialize agent swarm"));
+      console.log(chalk.gray("  unjucks workflow create --name api-dev # Create development workflow"));
+      console.log(chalk.gray("  unjucks perf benchmark --suite all    # Run performance benchmarks"));
+      console.log(chalk.gray("  unjucks github analyze --repo owner/repo # Analyze repository"));
       return;
     }
 
@@ -287,10 +191,16 @@ const main = defineCommand({
     console.log(chalk.yellow("Available commands:"));
     console.log(chalk.gray("  generate  Generate files from templates"));
     console.log(chalk.gray("  list      List available generators"));
+    console.log(chalk.gray("  inject    Inject code into existing files"));
     console.log(chalk.gray("  init      Initialize a new project"));
-    console.log(chalk.gray("  help      Show template variable help"));
     console.log(chalk.gray("  semantic  Generate code from RDF/OWL ontologies with semantic awareness"));
+    console.log(chalk.gray("  swarm     Multi-agent swarm coordination and management"));
+    console.log(chalk.gray("  workflow  Automated development workflow management"));
+    console.log(chalk.gray("  perf      Performance analysis and optimization tools"));
+    console.log(chalk.gray("  github    GitHub integration and repository management"));
+    console.log(chalk.gray("  migrate   Database and project migration utilities"));
     console.log(chalk.gray("  version   Show version information"));
+    console.log(chalk.gray("  help      Show template variable help"));
     console.log();
     console.log(chalk.yellow("Examples:"));
     console.log(chalk.gray("  unjucks component react MyComponent   # Hygen-style positional"));
@@ -299,7 +209,10 @@ const main = defineCommand({
     console.log(chalk.gray("  unjucks generate component citty      # Explicit syntax"));
     console.log(chalk.gray("  unjucks list                          # List generators"));
     console.log(chalk.gray("  unjucks semantic generate -o schema.ttl --enterprise  # RDF code generation"));
-    console.log(chalk.gray("  unjucks semantic scaffold -o ontology.owl -n MyApp    # Full app scaffolding"));
+    console.log(chalk.gray("  unjucks swarm init --topology mesh    # Initialize agent swarm"));
+    console.log(chalk.gray("  unjucks workflow create --name api-dev # Create development workflow"));
+    console.log(chalk.gray("  unjucks perf benchmark --suite all    # Run performance benchmarks"));
+    console.log(chalk.gray("  unjucks github analyze --repo owner/repo # Analyze repository"));
     console.log();
     console.log(chalk.gray("Use --help with any command for more information."));
   },
