@@ -14,7 +14,7 @@ import { versionCommand } from '../commands/version.js';
 
 // Import NEW enhanced commands
 import { swarmCommand } from '../commands/swarm.js';
-import { workflowCommand } from '../commands/workflow.js';
+import workflowCommand from '../commands/workflow.js';
 import { perfCommand } from '../commands/perf.js';
 import { githubCommand } from '../commands/github.js';
 

@@ -321,6 +321,50 @@ export function createCommandError(
 }
 
 /**
+ * Validates benchmark arguments
+ */
+export function validateBenchmarkArgs(args: {
+  suite?: string;
+  iterations?: number;
+  output?: string;
+}): ValidationResult {
+  const errors: string[] = [];
+  const warnings: string[] = [];
+
+  // Validate suite type
+  if (args.suite) {
+    const validSuites = ['all', 'wasm', 'swarm', 'agent', 'task', 'neural'];
+    if (!validSuites.includes(args.suite)) {
+      errors.push(`Invalid benchmark suite. Must be one of: ${validSuites.join(', ')}`);
+    }
+  }
+
+  // Validate iterations
+  if (args.iterations !== undefined) {
+    if (!Number.isInteger(args.iterations) || args.iterations < 1 || args.iterations > 1000) {
+      errors.push('Iterations must be a positive integer between 1 and 1000');
+    }
+    if (args.iterations > 100) {
+      warnings.push('High iteration count may take a long time to complete');
+    }
+  }
+
+  // Validate output format
+  if (args.output) {
+    const validFormats = ['json', 'table', 'summary'];
+    if (!validFormats.includes(args.output)) {
+      errors.push(`Invalid output format. Must be one of: ${validFormats.join(', ')}`);
+    }
+  }
+
+  return {
+    valid: errors.length === 0,
+    errors,
+    warnings
+  };
+}
+
+/**
  * Common validation helpers
  */
 export const validators = {
@@ -334,7 +378,8 @@ export const validators = {
   injectionMode: validateInjectionMode,
   lineNumber: validateLineNumber,
   variables: validateTemplateVariables,
-  required: validateRequiredArgs
+  required: validateRequiredArgs,
+  validateBenchmarkArgs: validateBenchmarkArgs
 } as const;
 
 /**

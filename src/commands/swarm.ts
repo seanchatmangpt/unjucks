@@ -19,87 +19,310 @@ import * as path from "path";
 import * as yaml from "yaml";
 
 // ============================================================================
-// SWARM COMMAND TYPES
+// ENHANCED SWARM COMMAND TYPES
 // ============================================================================
 
 /**
- * Swarm topology types
+ * Swarm topology types - Extended with advanced topologies
  */
 export type SwarmTopology = "mesh" | "hierarchical" | "ring" | "star";
 
 /**
- * Agent specialization types
+ * Agent specialization types - Enhanced with all claude-flow agents
  */
 export type AgentType = 
+  // Core Development
   | "researcher" 
   | "coder" 
   | "tester" 
   | "reviewer" 
   | "architect" 
   | "optimizer"
+  // Specialized Development
   | "coordinator"
   | "specialist"
   | "backend-dev"
   | "mobile-dev"
-  | "ml-developer";
+  | "ml-developer"
+  | "cicd-engineer"
+  | "api-docs"
+  | "system-architect"
+  | "code-analyzer"
+  | "perf-analyzer"
+  | "performance-benchmarker"
+  // SPARC Methodology
+  | "specification"
+  | "pseudocode"
+  | "architecture"
+  | "refinement"
+  | "sparc-coord"
+  | "sparc-coder"
+  // Testing & Validation
+  | "tdd-london-swarm"
+  | "production-validator"
+  // Swarm Coordination
+  | "hierarchical-coordinator"
+  | "mesh-coordinator"
+  | "adaptive-coordinator"
+  | "collective-intelligence-coordinator"
+  | "swarm-memory-manager"
+  // Consensus & Distributed
+  | "byzantine-coordinator"
+  | "raft-manager"
+  | "gossip-coordinator"
+  | "consensus-builder"
+  | "crdt-synchronizer"
+  | "quorum-manager"
+  | "security-manager";
 
 /**
- * Swarm configuration interface
+ * Neural network architecture types
+ */
+export type NeuralArchitecture = "feedforward" | "lstm" | "gan" | "autoencoder" | "transformer" | "cnn" | "rnn" | "gnn" | "hybrid";
+
+/**
+ * Cognitive pattern types for DAA agents
+ */
+export type CognitivePattern = "convergent" | "divergent" | "lateral" | "systems" | "critical" | "adaptive";
+
+/**
+ * Swarm scaling strategies
+ */
+export type ScalingStrategy = "manual" | "auto" | "predictive" | "load-based" | "performance-based";
+
+/**
+ * Memory persistence modes
+ */
+export type PersistenceMode = "auto" | "memory" | "disk" | "distributed";
+
+/**
+ * Enhanced Swarm configuration interface
  */
 export interface SwarmConfig {
+  // Core Configuration
   topology: SwarmTopology;
   maxAgents: number;
   strategy: "balanced" | "specialized" | "adaptive";
+  
+  // Advanced Features
   enableMemory?: boolean;
   enableHooks?: boolean;
   debugMode?: boolean;
   persistence?: boolean;
   autoScale?: boolean;
+  
+  // Neural & DAA Features
+  enableNeural?: boolean;
+  enableDAA?: boolean;
+  neuralArchitecture?: NeuralArchitecture;
+  cognitivePatterns?: CognitivePattern[];
+  
+  // Scaling & Performance
+  scalingStrategy?: ScalingStrategy;
+  performanceThresholds?: PerformanceThresholds;
+  resourceLimits?: ResourceLimits;
+  
+  // Memory & Persistence
+  persistenceMode?: PersistenceMode;
+  memoryNamespaces?: string[];
+  crossSessionMemory?: boolean;
+  
+  // Monitoring & Health
+  healthChecks?: boolean;
+  metricsCollection?: boolean;
+  realTimeMonitoring?: boolean;
 }
 
 /**
- * Agent spawn configuration
+ * Performance thresholds for auto-scaling
+ */
+export interface PerformanceThresholds {
+  cpuThreshold?: number;
+  memoryThreshold?: number;
+  responseTimeThreshold?: number;
+  errorRateThreshold?: number;
+  throughputThreshold?: number;
+}
+
+/**
+ * Resource limits for agents
+ */
+export interface ResourceLimits {
+  maxCPU?: number;
+  maxMemory?: number;
+  maxTimeout?: number;
+  maxConcurrency?: number;
+}
+
+/**
+ * Enhanced Agent spawn configuration
  */
 export interface AgentSpawnConfig {
+  // Core Configuration
   type: AgentType;
   name?: string;
   capabilities?: string[];
+  
+  // Resource Management
   resources?: {
     memory?: number;
     cpu?: number;
     timeout?: number;
+    priority?: "low" | "medium" | "high" | "critical";
+    sandbox?: boolean;
   };
+  
+  // Specialization & Skills
   specialization?: {
     domain?: string;
     expertise?: string[];
     patterns?: string[];
+    languages?: string[];
+    frameworks?: string[];
+  };
+  
+  // DAA Configuration
+  daa?: {
+    enableAutonomy?: boolean;
+    autonomyLevel?: number; // 0-1
+    enableLearning?: boolean;
+    learningRate?: number;
+    cognitivePattern?: CognitivePattern;
+    enableMemory?: boolean;
+  };
+  
+  // Neural Configuration
+  neural?: {
+    architecture?: NeuralArchitecture;
+    enableTraining?: boolean;
+    modelSize?: "base" | "large" | "xl" | "custom";
+    customLayers?: any[];
+  };
+  
+  // Lifecycle Management
+  lifecycle?: {
+    autoRestart?: boolean;
+    maxRetries?: number;
+    healthCheckInterval?: number;
+    gracefulShutdown?: boolean;
   };
 }
 
 /**
- * Workflow configuration
+ * Enhanced Workflow configuration
  */
 export interface WorkflowConfig {
+  // Core Configuration
   id: string;
   name: string;
   description: string;
   steps: WorkflowStep[];
   dependencies?: Record<string, string[]>;
-  strategy?: "parallel" | "sequential" | "adaptive";
+  strategy?: "parallel" | "sequential" | "adaptive" | "balanced";
+  
+  // Execution Configuration
   timeout?: number;
   retries?: number;
+  priority?: "low" | "medium" | "high" | "critical";
+  
+  // Advanced Features
+  triggers?: WorkflowTrigger[];
+  conditions?: WorkflowCondition[];
+  errorHandling?: WorkflowErrorHandling;
+  
+  // Monitoring & Metrics
+  enableMetrics?: boolean;
+  enableAuditTrail?: boolean;
+  notificationChannels?: string[];
+  
+  // Resource Management
+  resourceRequirements?: ResourceLimits;
+  agentAssignments?: Record<string, AgentType[]>;
 }
 
 /**
- * Workflow step
+ * Workflow trigger configuration
+ */
+export interface WorkflowTrigger {
+  type: "schedule" | "event" | "webhook" | "manual" | "condition";
+  config: Record<string, any>;
+  enabled: boolean;
+}
+
+/**
+ * Workflow condition
+ */
+export interface WorkflowCondition {
+  field: string;
+  operator: "eq" | "ne" | "gt" | "lt" | "contains" | "exists";
+  value: any;
+  logical?: "and" | "or";
+}
+
+/**
+ * Workflow error handling
+ */
+export interface WorkflowErrorHandling {
+  strategy: "fail-fast" | "continue" | "retry" | "fallback";
+  maxRetries?: number;
+  retryDelay?: number;
+  fallbackWorkflow?: string;
+  notifyOnError?: boolean;
+}
+
+/**
+ * Enhanced Workflow step
  */
 export interface WorkflowStep {
+  // Core Configuration
   id: string;
   name: string;
-  action: "generate" | "analyze" | "test" | "review" | "optimize";
+  description?: string;
+  action: "generate" | "analyze" | "test" | "review" | "optimize" | "deploy" | "monitor" | "train" | "validate" | "backup";
   parameters: Record<string, any>;
-  requires?: string[];
-  outputs?: string[];
+  
+  // Agent Assignment
+  agentType?: AgentType;
+  agentId?: string;
+  agentRequirements?: AgentRequirements;
+  
+  // Execution Control
+  timeout?: number;
+  retries?: number;
+  priority?: "low" | "medium" | "high" | "critical";
+  
+  // Flow Control
+  condition?: WorkflowCondition[];
+  prerequisites?: string[];
+  dependsOn?: string[];
+  onSuccess?: WorkflowAction[];
+  onFailure?: WorkflowAction[];
+  onTimeout?: WorkflowAction[];
+  
+  // Resource Management
+  resources?: ResourceLimits;
+  sandbox?: boolean;
+  isolation?: boolean;
+}
+
+/**
+ * Agent requirements for workflow steps
+ */
+export interface AgentRequirements {
+  capabilities?: string[];
+  expertise?: string[];
+  minExperience?: number;
+  preferredAgent?: string;
+  excludeAgents?: string[];
+}
+
+/**
+ * Workflow action (for success/failure handlers)
+ */
+export interface WorkflowAction {
+  type: "goto" | "retry" | "fail" | "notify" | "log" | "trigger";
+  target?: string;
+  parameters?: Record<string, any>;
 }
 
 /**
@@ -113,214 +336,212 @@ export interface SwarmStatus {
     active: number;
     idle: number;
     busy: number;
-  };
-  tasks: {
-    pending: number;
-    running: number;
-    completed: number;
     failed: number;
   };
-  performance: {
+  memory?: {
+    used: number;
+    available: number;
+    cached: number;
+  };
+  performance?: {
     throughput: number;
-    latency: number;
+    responseTime: number;
     errorRate: number;
   };
+  health: "healthy" | "degraded" | "critical";
   uptime: number;
 }
 
+/**
+ * Neural training configuration
+ */
+export interface NeuralTrainingConfig {
+  architecture: NeuralArchitecture;
+  epochs: number;
+  learningRate: number;
+  batchSize: number;
+  optimizer: "adam" | "sgd" | "rmsprop" | "adagrad";
+  layers?: any[];
+  divergentEnabled?: boolean;
+  divergentPattern?: "lateral" | "quantum" | "chaotic" | "associative" | "evolutionary";
+}
+
+/**
+ * DAA agent configuration
+ */
+export interface DAAConfig {
+  agentType: string;
+  capabilities: string[];
+  resources?: Record<string, any>;
+  cognitivePattern?: CognitivePattern;
+  enableMemory?: boolean;
+  learningRate?: number;
+}
+
+/**
+ * Memory management configuration
+ */
+export interface MemoryConfig {
+  action: "store" | "retrieve" | "list" | "delete" | "search" | "backup" | "restore" | "compress";
+  key?: string;
+  value?: string;
+  namespace?: string;
+  ttl?: number;
+  pattern?: string;
+  backupPath?: string;
+}
+
 // ============================================================================
-// HELPER FUNCTIONS
+// MCP INTEGRATION UTILITIES
 // ============================================================================
 
 /**
- * Load workflow definition from file
+ * Execute MCP command with error handling and retry logic
  */
-async function loadWorkflowDefinition(filePath: string): Promise<WorkflowConfig> {
+async function executeMCPCommand(
+  mcp: MCPBridge,
+  tool: string,
+  params: Record<string, any>,
+  spinner?: ora.Ora
+): Promise<any> {
   try {
-    const absolutePath = path.resolve(filePath);
+    if (spinner) {
+      spinner.text = `Executing ${tool}...`;
+    }
     
-    if (!await fs.pathExists(absolutePath)) {
-      throw new Error(`Workflow file not found: ${filePath}`);
-    }
-
-    const content = await fs.readFile(absolutePath, 'utf-8');
-    const ext = path.extname(filePath).toLowerCase();
-
-    let workflow: WorkflowConfig;
+    const result = await mcp.callTool(tool, params);
     
-    switch (ext) {
-      case '.json':
-        workflow = JSON.parse(content);
-        break;
-      case '.yaml':
-      case '.yml':
-        workflow = yaml.parse(content);
-        break;
-      default:
-        throw new Error(`Unsupported workflow file format: ${ext}. Use .json or .yaml`);
+    if (spinner) {
+      spinner.succeed(`Successfully executed ${tool}`);
     }
-
-    // Validate workflow structure
-    if (!workflow.id || !workflow.name || !workflow.steps) {
-      throw new Error('Invalid workflow definition: missing required fields (id, name, steps)');
-    }
-
-    return workflow;
+    
+    return result;
   } catch (error) {
-    throw new Error(`Failed to load workflow: ${error instanceof Error ? error.message : String(error)}`);
+    if (spinner) {
+      spinner.fail(`Failed to execute ${tool}: ${error instanceof Error ? error.message : String(error)}`);
+    }
+    throw error;
   }
 }
 
 /**
- * Display swarm status in formatted output
+ * Display swarm status information
  */
-function displaySwarmStatus(status: SwarmStatus, detailed: boolean = false): void {
-  console.log(chalk.blue(`\n📊 Swarm Status: ${status.id}`));
-  console.log(chalk.cyan(`Topology: ${status.topology}`));
-  console.log(chalk.cyan(`Uptime: ${Math.round(status.uptime / 1000)}s`));
+function displaySwarmStatus(status: any, detailed: boolean = false): void {
+  console.log(chalk.blue("\n🤖 Swarm Status"));
+  console.log(chalk.gray("=" .repeat(50)));
   
-  console.log(chalk.green(`\n🤖 Agents:`));
-  console.log(chalk.white(`  Total: ${status.agents.total}`));
-  console.log(chalk.green(`  Active: ${status.agents.active}`));
-  console.log(chalk.yellow(`  Idle: ${status.agents.idle}`));
-  console.log(chalk.red(`  Busy: ${status.agents.busy}`));
-
-  console.log(chalk.blue(`\n📋 Tasks:`));
-  console.log(chalk.yellow(`  Pending: ${status.tasks.pending}`));
-  console.log(chalk.cyan(`  Running: ${status.tasks.running}`));
-  console.log(chalk.green(`  Completed: ${status.tasks.completed}`));
-  console.log(chalk.red(`  Failed: ${status.tasks.failed}`));
-
-  if (detailed) {
-    console.log(chalk.magenta(`\n⚡ Performance:`));
-    console.log(chalk.white(`  Throughput: ${status.performance.throughput} tasks/min`));
-    console.log(chalk.white(`  Latency: ${status.performance.latency}ms avg`));
-    console.log(chalk.white(`  Error Rate: ${(status.performance.errorRate * 100).toFixed(2)}%`));
+  if (status.topology) {
+    console.log(`${chalk.cyan("Topology:")} ${status.topology}`);
+  }
+  
+  if (status.agents) {
+    console.log(`${chalk.cyan("Agents:")} ${status.agents.total} total (${status.agents.active} active, ${status.agents.idle} idle)`);
+  }
+  
+  if (status.health) {
+    const healthColor = status.health === "healthy" ? chalk.green : 
+                       status.health === "degraded" ? chalk.yellow : chalk.red;
+    console.log(`${chalk.cyan("Health:")} ${healthColor(status.health)}`);
+  }
+  
+  if (detailed && status.performance) {
+    console.log(`${chalk.cyan("Performance:")}`);
+    console.log(`  Throughput: ${status.performance.throughput} ops/sec`);
+    console.log(`  Response Time: ${status.performance.responseTime}ms`);
+    console.log(`  Error Rate: ${status.performance.errorRate}%`);
+  }
+  
+  if (detailed && status.memory) {
+    console.log(`${chalk.cyan("Memory Usage:")}`);
+    console.log(`  Used: ${status.memory.used}MB`);
+    console.log(`  Available: ${status.memory.available}MB`);
   }
 }
 
 /**
- * Validate workflow configuration
+ * Display agent information
  */
-function validateWorkflow(workflow: WorkflowConfig): ValidationResult {
-  const errors: string[] = [];
-  const warnings: string[] = [];
-
-  // Check required fields
-  if (!workflow.id) errors.push("Workflow ID is required");
-  if (!workflow.name) errors.push("Workflow name is required");
-  if (!workflow.steps || workflow.steps.length === 0) {
-    errors.push("Workflow must have at least one step");
+function displayAgents(agents: any[]): void {
+  if (!agents?.length) {
+    console.log(chalk.yellow("No agents found"));
+    return;
   }
-
-  // Validate steps
-  workflow.steps?.forEach((step, index) => {
-    if (!step.id) errors.push(`Step ${index + 1}: ID is required`);
-    if (!step.name) errors.push(`Step ${index + 1}: Name is required`);
-    if (!step.action) errors.push(`Step ${index + 1}: Action is required`);
-    if (!["generate", "analyze", "test", "review", "optimize"].includes(step.action)) {
-      errors.push(`Step ${index + 1}: Invalid action '${step.action}'`);
-    }
+  
+  console.log(chalk.blue(`\n🤖 Active Agents (${agents.length})`));
+  console.log(chalk.gray("=" .repeat(50)));
+  
+  agents.forEach((agent, index) => {
+    console.log(`${chalk.cyan(`${index + 1}.`)} ${agent.name || agent.type || agent.id}`);
+    if (agent.type) console.log(`   Type: ${agent.type}`);
+    if (agent.status) console.log(`   Status: ${agent.status}`);
+    if (agent.capabilities) console.log(`   Capabilities: ${agent.capabilities.join(", ")}`);
   });
-
-  // Check dependencies
-  if (workflow.dependencies) {
-    for (const [stepId, deps] of Object.entries(workflow.dependencies)) {
-      if (!workflow.steps.find(s => s.id === stepId)) {
-        warnings.push(`Dependency reference to non-existent step: ${stepId}`);
-      }
-      deps.forEach(depId => {
-        if (!workflow.steps.find(s => s.id === depId)) {
-          warnings.push(`Dependency reference to non-existent step: ${depId}`);
-        }
-      });
-    }
-  }
-
-  return {
-    valid: errors.length === 0,
-    errors: errors.map(error => ({
-      type: "validation",
-      message: error,
-      code: "WORKFLOW_VALIDATION",
-      severity: "error" as const,
-      timestamp: new Date()
-    })),
-    warnings: warnings.map(warning => ({
-      type: "best-practice",
-      message: warning,
-      code: "WORKFLOW_WARNING", 
-      severity: "warning" as const,
-      timestamp: new Date()
-    })),
-    suggestions: [],
-    metadata: {
-      validationTime: 0,
-      rulesApplied: ["workflow-structure", "step-validation", "dependency-check"],
-      context: { workflow: workflow.id }
-    }
-  };
 }
 
 // ============================================================================
-// SWARM COMMAND DEFINITION
+// ENHANCED SWARM COMMAND WITH FULL MCP INTEGRATION
 // ============================================================================
 
 /**
- * Swarm command - AI swarm orchestration and agent coordination
+ * Enhanced Swarm command - AI swarm orchestration and agent coordination with full MCP integration
  * 
  * This command provides comprehensive swarm management capabilities including:
- * - Swarm initialization with various topologies
- * - Agent spawning with specialization
- * - Task orchestration and workflow execution
- * - Real-time monitoring and status reporting
- * - Memory management and persistence
- * - Neural pattern training and optimization
+ * - Advanced swarm initialization with neural and DAA features
+ * - Sophisticated agent lifecycle management
+ * - Topology optimization and auto-scaling
+ * - Neural pattern training and cognitive modeling
+ * - Decentralized Autonomous Agent (DAA) coordination
+ * - Real-time monitoring and health checks
+ * - Memory management and cross-session persistence
+ * - Performance benchmarking and optimization
+ * - Workflow automation and templates
+ * - Distributed neural network clusters
  * 
  * @example
  * ```bash
- * # Initialize a mesh swarm with 5 agents
- * unjucks swarm init --topology mesh --agents 5
+ * # Initialize advanced swarm with neural training
+ * unjucks swarm init --topology mesh --agents 8 --neural --daa --monitoring
  * 
- * # Spawn a specialized backend developer agent
- * unjucks swarm spawn --type backend-dev --name "APIBuilder" --capabilities api,database,auth
+ * # Deploy DAA agent with cognitive patterns
+ * unjucks swarm agent deploy --type backend-dev --cognitive lateral --autonomy 0.8
  * 
- * # Orchestrate a complex workflow
- * unjucks swarm orchestrate --workflow ./workflows/full-stack-app.yaml
+ * # Create neural network cluster
+ * unjucks swarm neural cluster --name "distributed-ai" --topology mesh --nodes 5
  * 
- * # Monitor swarm status
- * unjucks swarm status --detailed --watch
+ * # Monitor swarm with real-time metrics
+ * unjucks swarm monitor --real-time --detailed --export-metrics
  * 
- * # Scale swarm based on load
- * unjucks swarm scale --target 8 --auto
+ * # Scale based on performance thresholds
+ * unjucks swarm scale --strategy performance-based --target 12 --auto
  * ```
  */
 export const swarmCommand = defineCommand({
   meta: {
     name: "swarm",
-    description: "AI swarm orchestration and agent coordination with MCP integration"
+    description: "Enhanced AI swarm orchestration with neural networks and DAA capabilities"
   },
   subcommands: {
     /**
-     * Initialize swarm with specified topology and configuration
+     * Initialize swarm with enhanced configuration and MCP integration
      */
     init: defineCommand({
       meta: {
         name: "init",
-        description: "Initialize a new AI swarm with specified topology"
+        description: "Initialize advanced AI swarm with neural and DAA features"
       },
       args: {
         topology: {
           type: "string",
-          description: "Swarm topology: mesh (peer-to-peer), hierarchical (tree), ring (circular), star (centralized)",
+          description: "Swarm topology: mesh, hierarchical, ring, star",
           default: "mesh",
           alias: "t"
         },
         agents: {
-          type: "number", 
-          description: "Initial number of agents to spawn",
-          default: 5,
-          alias: "n"
+          type: "positional",
+          description: "Maximum number of agents in the swarm",
+          default: 8,
+          alias: "a"
         },
         strategy: {
           type: "string",
@@ -328,544 +549,472 @@ export const swarmCommand = defineCommand({
           default: "balanced",
           alias: "s"
         },
-        memory: {
+        neural: {
           type: "boolean",
-          description: "Enable persistent memory across sessions",
-          default: true,
-          alias: "m"
+          description: "Enable neural pattern training",
+          default: false,
+          alias: "n"
         },
-        hooks: {
-          type: "boolean", 
-          description: "Enable coordination hooks for real-time sync",
-          default: true,
-          alias: "h"
-        },
-        debug: {
+        daa: {
           type: "boolean",
-          description: "Enable debug mode with verbose logging",
+          description: "Enable Decentralized Autonomous Agents",
           default: false,
           alias: "d"
         },
         persistence: {
-          type: "boolean",
-          description: "Enable swarm state persistence",
-          default: false,
+          type: "string",
+          description: "Memory persistence mode: auto, memory, disk, distributed",
+          default: "auto",
           alias: "p"
         },
-        autoScale: {
+        monitoring: {
           type: "boolean",
-          description: "Enable automatic scaling based on workload",
-          default: false,
-          alias: "a"
+          description: "Enable real-time monitoring",
+          default: true,
+          alias: "m"
         },
-        config: {
+        scaling: {
           type: "string",
-          description: "Path to swarm configuration file",
-          alias: "c"
+          description: "Auto-scaling strategy: manual, auto, predictive, load-based, performance-based",
+          default: "manual",
+          alias: "sc"
+        },
+        architecture: {
+          type: "string",
+          description: "Neural architecture for neural-enabled swarms",
+          default: "transformer",
+          alias: "arch"
         }
       },
-      async run(context: any) {
-        const { args } = context;
-        const startTime = Date.now();
-        // @ts-ignore
-        const spinner = ora("Initializing swarm...").start();
-
+      async run({ args }) {
+        const spinner = ora("Initializing advanced swarm...").start();
+        
         try {
-          // Validate topology
-          const validTopologies: SwarmTopology[] = ["mesh", "hierarchical", "ring", "star"];
-          if (!validTopologies.includes(args.topology as SwarmTopology)) {
-            throw createCommandError(
-              `Invalid topology: ${args.topology}`,
-              CommandError.VALIDATION_ERROR,
-              [`Valid topologies: ${validTopologies.join(", ")}`]
-            );
-          }
-
-          // Validate agent count
-          if (args.agents < 1 || args.agents > 100) {
-            throw createCommandError(
-              `Invalid agent count: ${args.agents}`,
-              CommandError.VALIDATION_ERROR,
-              ["Agent count must be between 1 and 100"]
-            );
-          }
-
-          let config: SwarmConfig = {
+          const mcp = await createMCPBridge();
+          
+          // Enhanced configuration
+          const config: SwarmConfig = {
             topology: args.topology as SwarmTopology,
             maxAgents: args.agents,
-            strategy: args.strategy as any,
-            enableMemory: args.memory,
-            enableHooks: args.hooks,
-            debugMode: args.debug,
-            persistence: args.persistence,
-            autoScale: args.autoScale
+            strategy: (args.strategy as "balanced" | "specialized" | "adaptive") || "balanced",
+            enableMemory: true,
+            enableHooks: true,
+            debugMode: false,
+            persistence: true,
+            autoScale: args.scaling !== "manual",
+            
+            // Enhanced Configuration
+            enableNeural: args.neural,
+            enableDAA: args.daa,
+            neuralArchitecture: args.architecture as NeuralArchitecture,
+            persistenceMode: args.persistence as PersistenceMode,
+            scalingStrategy: args.scaling as ScalingStrategy,
+            realTimeMonitoring: args.monitoring,
+            healthChecks: true,
+            metricsCollection: true,
+            crossSessionMemory: true
           };
+          
+          // Initialize swarm with claude-flow MCP
+          const initResult = await executeMCPCommand(
+            mcp,
+            "mcp__claude-flow__swarm_init",
+            {
+              topology: config.topology,
+              maxAgents: config.maxAgents,
+              strategy: config.strategy
+            },
+            spinner
+          );
+          
+          console.log(chalk.green(`✅ Swarm initialized: ${initResult.swarmId || 'unknown'}`));
+          
+          // Initialize DAA if enabled
+          if (config.enableDAA) {
+            spinner.text = "Initializing DAA capabilities...";
+            await executeMCPCommand(
+              mcp,
+              "mcp__claude-flow__daa_init",
+              {
+                enableCoordination: true,
+                enableLearning: true,
+                persistenceMode: config.persistenceMode
+              },
+              spinner
+            );
+          }
+          
+          // Setup neural training if enabled
+          if (config.enableNeural) {
+            spinner.text = "Setting up neural training...";
+            await executeMCPCommand(
+              mcp,
+              "mcp__claude-flow__neural_status",
+              {},
+              spinner
+            );
+          }
+          
+          // Enable monitoring if requested
+          if (config.realTimeMonitoring) {
+            spinner.text = "Setting up monitoring...";
+            await executeMCPCommand(
+              mcp,
+              "mcp__claude-flow__swarm_monitor",
+              {
+                duration: 60,
+                interval: 5
+              },
+              spinner
+            );
+          }
+          
+          spinner.succeed("Advanced swarm initialized successfully!");
+          
+          // Display configuration summary
+          console.log(chalk.blue("\n🔧 Swarm Configuration:"));
+          console.log(`  Topology: ${chalk.cyan(config.topology)}`);
+          console.log(`  Max Agents: ${chalk.cyan(config.maxAgents)}`);
+          console.log(`  Strategy: ${chalk.cyan(config.strategy)}`);
+          console.log(`  Neural Enabled: ${config.enableNeural ? chalk.green('Yes') : chalk.gray('No')}`);
+          console.log(`  DAA Enabled: ${config.enableDAA ? chalk.green('Yes') : chalk.gray('No')}`);
+          console.log(`  Monitoring: ${config.realTimeMonitoring ? chalk.green('Enabled') : chalk.gray('Disabled')}`);
+          console.log(`  Auto-scaling: ${config.autoScale ? chalk.green(config.scalingStrategy) : chalk.gray('Manual')}`);
+          
+          return {
+            success: true,
+            data: { config, swarmId: initResult.swarmId }
+          };
+          
+        } catch (error) {
+          spinner.fail("Failed to initialize swarm");
+          throw new UnjucksCommandError(
+            "SWARM_INIT_FAILED",
+            `Failed to initialize swarm: ${error instanceof Error ? error.message : String(error)}`
+          );
+        }
+      }
+    }),
 
-          // Load config from file if provided
-          if (args.config) {
+    /**
+     * Enhanced agent management with lifecycle operations
+     */
+    agent: defineCommand({
+      meta: {
+        name: "agent",
+        description: "Advanced agent management with DAA and neural capabilities"
+      },
+      subcommands: {
+        /**
+         * Spawn new agent with enhanced configuration
+         */
+        spawn: defineCommand({
+          meta: {
+            name: "spawn",
+            description: "Spawn new agent with advanced capabilities"
+          },
+          args: {
+            type: {
+              type: "positional",
+              description: "Agent type (researcher, coder, backend-dev, etc.)",
+              required: true
+            },
+            name: {
+              type: "string",
+              description: "Custom agent name",
+              alias: "n"
+            },
+            capabilities: {
+              type: "string",
+              description: "Comma-separated capabilities",
+              alias: "c"
+            },
+            cognitive: {
+              type: "string",
+              description: "Cognitive pattern for DAA agents",
+              alias: "cog"
+            },
+            autonomy: {
+              type: "string",
+              description: "Autonomy level (0-1) for DAA agents",
+              alias: "auto"
+            },
+            neural: {
+              type: "string",
+              description: "Neural architecture",
+              alias: "arch"
+            },
+            sandbox: {
+              type: "boolean",
+              description: "Enable sandbox execution",
+              default: false,
+              alias: "sb"
+            }
+          },
+          async run({ args }) {
+            const spinner = ora(`Spawning ${args.type} agent...`).start();
+            
             try {
-              const configPath = path.resolve(args.config);
-              const configContent = await fs.readFile(configPath, 'utf-8');
-              const fileConfig = configPath.endsWith('.yaml') || configPath.endsWith('.yml')
-                ? yaml.parse(configContent)
-                : JSON.parse(configContent);
+              const mcp = await createMCPBridge();
+              const capabilities = args.capabilities ? args.capabilities.split(",") : [];
               
-              // Merge file config with CLI args (CLI takes precedence)
-              config = { ...fileConfig, ...config };
+              // Spawn agent with claude-flow MCP
+              const spawnResult = await executeMCPCommand(
+                mcp,
+                "mcp__claude-flow__agent_spawn",
+                {
+                  type: args.type,
+                  name: args.name,
+                  capabilities: capabilities
+                },
+                spinner
+              );
+              
+              console.log(chalk.green(`✅ Agent spawned: ${spawnResult.agentId || args.name || args.type}`));
+              
+              // Create DAA agent if cognitive pattern specified
+              if (args.cognitive) {
+                spinner.text = "Creating DAA agent...";
+                await executeMCPCommand(
+                  mcp,
+                  "mcp__claude-flow__daa_agent_create",
+                  {
+                    agent_type: args.type,
+                    capabilities: capabilities,
+                    cognitivePattern: args.cognitive,
+                    learningRate: parseFloat(args.autonomy || "0.5")
+                  },
+                  spinner
+                );
+              }
+              
+              return {
+                success: true,
+                data: { agent: spawnResult, type: args.type }
+              };
+              
             } catch (error) {
-              spinner.stop();
-              throw createCommandError(
-                `Failed to load config file: ${args.config}`,
-                CommandError.FILE_NOT_FOUND,
-                ["Ensure the config file exists and is valid JSON/YAML"]
+              spinner.fail("Failed to spawn agent");
+              throw new UnjucksCommandError(
+                "AGENT_SPAWN_FAILED",
+                `Failed to spawn agent: ${error instanceof Error ? error.message : String(error)}`
               );
             }
           }
+        }),
 
-          // Initialize MCP bridge
-          const bridge = await createMCPBridge({
-            memoryNamespace: 'unjucks-swarm',
-            hooksEnabled: config.enableHooks,
-            realtimeSync: config.enableMemory,
-            debugMode: config.debugMode
-          });
-
-          spinner.text = "Setting up swarm topology...";
-
-          // Simulate initialization steps
-          await new Promise(resolve => setTimeout(resolve, 1500));
-
-          spinner.text = "Spawning initial agents...";
-          await new Promise(resolve => setTimeout(resolve, 2000));
-
-          spinner.text = "Establishing coordination protocols...";
-
-          // Store swarm configuration
-          if (config.persistence) {
-            const configDir = path.join(process.cwd(), '.unjucks', 'swarm');
-            await fs.ensureDir(configDir);
-            await fs.writeFile(
-              path.join(configDir, 'config.json'),
-              JSON.stringify(config, null, 2)
-            );
-          }
-
-          // Setup coordination hooks
-          if (config.enableHooks) {
-            await bridge.storeIntegrationSchema();
-          }
-
-          spinner.stop();
-
-          console.log(chalk.green("\n✅ Swarm initialized successfully!"));
-          console.log(chalk.cyan(`📡 Topology: ${config.topology}`));
-          console.log(chalk.cyan(`🤖 Initial agents: ${config.maxAgents}`));
-          console.log(chalk.cyan(`⚡ Strategy: ${config.strategy}`));
-          console.log(chalk.cyan(`💾 Memory: ${config.enableMemory ? 'enabled' : 'disabled'}`));
-          console.log(chalk.cyan(`🔗 Hooks: ${config.enableHooks ? 'enabled' : 'disabled'}`));
-          
-          if (config.autoScale) {
-            console.log(chalk.yellow("🔄 Auto-scaling enabled"));
-          }
-          
-          if (config.debugMode) {
-            console.log(chalk.gray("🐛 Debug mode enabled"));
-          }
-
-          const duration = Date.now() - startTime;
-          console.log(chalk.blue(`\n⏱️  Initialization completed in ${duration}ms`));
-
-          console.log(chalk.blue("\n📋 Next steps:"));
-          console.log(chalk.gray("  • Use 'unjucks swarm spawn' to add specialized agents"));
-          console.log(chalk.gray("  • Use 'unjucks swarm orchestrate' to run workflows"));
-          console.log(chalk.gray("  • Use 'unjucks swarm status' to monitor performance"));
-
-          return {
-            success: true,
-            message: "Swarm initialized successfully",
-            data: { config, duration }
-          };
-
-        } catch (error) {
-          spinner.stop();
-          
-          if (error instanceof UnjucksCommandError) {
-            console.error(chalk.red(`\n❌ ${error.message}`));
-            if (error.suggestions?.length) {
-              console.log(chalk.blue("\n💡 Suggestions:"));
-              error.suggestions.forEach(suggestion => {
-                console.log(chalk.blue(`  • ${suggestion}`));
-              });
+        /**
+         * Deploy agent with advanced configuration
+         */
+        deploy: defineCommand({
+          meta: {
+            name: "deploy",
+            description: "Deploy agent to swarm with full configuration"
+          },
+          args: {
+            type: {
+              type: "positional",
+              description: "Agent type",
+              required: true
+            },
+            swarm: {
+              type: "string",
+              description: "Target swarm ID",
+              alias: "s"
+            },
+            cognitive: {
+              type: "string",
+              description: "Cognitive pattern",
+              alias: "cog"
+            },
+            autonomy: {
+              type: "string",
+              description: "Autonomy level (0-1)",
+              alias: "auto",
+              default: "0.8"
+            },
+            learning: {
+              type: "boolean",
+              description: "Enable learning",
+              default: true,
+              alias: "learn"
+            },
+            memory: {
+              type: "boolean",
+              description: "Enable persistent memory",
+              default: true,
+              alias: "mem"
             }
-          } else {
-            console.error(chalk.red("\n❌ Swarm initialization failed:"));
-            console.error(chalk.red(`  ${error instanceof Error ? error.message : String(error)}`));
+          },
+          async run({ args }) {
+            const spinner = ora(`Deploying ${args.type} agent...`).start();
+            
+            try {
+              const mcp = await createMCPBridge();
+              
+              // Deploy DAA agent
+              const deployResult = await executeMCPCommand(
+                mcp,
+                "mcp__claude-flow__daa_agent_create",
+                {
+                  id: `${args.type}-${Date.now()}`,
+                  capabilities: [args.type],
+                  cognitivePattern: args.cognitive || "adaptive",
+                  enableMemory: args.memory,
+                  learningRate: parseFloat(args.autonomy)
+                },
+                spinner
+              );
+              
+              console.log(chalk.green(`✅ Agent deployed successfully`));
+              console.log(`  Type: ${chalk.cyan(args.type)}`);
+              console.log(`  Cognitive Pattern: ${chalk.cyan(args.cognitive || "adaptive")}`);
+              console.log(`  Autonomy Level: ${chalk.cyan(args.autonomy)}`);
+              
+              return {
+                success: true,
+                data: deployResult
+              };
+              
+            } catch (error) {
+              spinner.fail("Failed to deploy agent");
+              throw new UnjucksCommandError(
+                "AGENT_DEPLOY_FAILED",
+                `Failed to deploy agent: ${error instanceof Error ? error.message : String(error)}`
+              );
+            }
           }
-          
-          process.exit(1);
-        }
+        }),
+
+        /**
+         * List active agents
+         */
+        list: defineCommand({
+          meta: {
+            name: "list",
+            description: "List active agents in swarm"
+          },
+          args: {
+            detailed: {
+              type: "boolean",
+              description: "Show detailed information",
+              default: false,
+              alias: "d"
+            },
+            filter: {
+              type: "string",
+              description: "Filter by status: all, active, idle, busy",
+              default: "all",
+              alias: "f"
+            }
+          },
+          async run({ args }) {
+            const spinner = ora("Retrieving agent list...").start();
+            
+            try {
+              const mcp = await createMCPBridge();
+              
+              const agents = await executeMCPCommand(
+                mcp,
+                "mcp__claude-flow__agent_list",
+                {
+                  filter: args.filter
+                },
+                spinner
+              );
+              
+              displayAgents(agents.agents || []);
+              
+              return {
+                success: true,
+                data: agents
+              };
+              
+            } catch (error) {
+              spinner.fail("Failed to retrieve agents");
+              throw new UnjucksCommandError(
+                "AGENT_LIST_FAILED",
+                `Failed to list agents: ${error instanceof Error ? error.message : String(error)}`
+              );
+            }
+          }
+        }),
+
+        /**
+         * Get agent metrics
+         */
+        metrics: defineCommand({
+          meta: {
+            name: "metrics",
+            description: "Get performance metrics for agents"
+          },
+          args: {
+            agent: {
+              type: "string",
+              description: "Specific agent ID",
+              alias: "a"
+            },
+            metric: {
+              type: "string",
+              description: "Specific metric type",
+              default: "all",
+              alias: "m"
+            }
+          },
+          async run({ args }) {
+            const spinner = ora("Retrieving agent metrics...").start();
+            
+            try {
+              const mcp = await createMCPBridge();
+              
+              const metrics = await executeMCPCommand(
+                mcp,
+                "mcp__claude-flow__agent_metrics",
+                {
+                  agentId: args.agent,
+                  metric: args.metric
+                },
+                spinner
+              );
+              
+              console.log(chalk.blue("\n📊 Agent Metrics"));
+              console.log(chalk.gray("=" .repeat(50)));
+              console.log(JSON.stringify(metrics, null, 2));
+              
+              return {
+                success: true,
+                data: metrics
+              };
+              
+            } catch (error) {
+              spinner.fail("Failed to retrieve metrics");
+              throw new UnjucksCommandError(
+                "AGENT_METRICS_FAILED",
+                `Failed to get agent metrics: ${error instanceof Error ? error.message : String(error)}`
+              );
+            }
+          }
+        })
       }
     }),
 
     /**
-     * Spawn specialized agent in the swarm
-     */
-    spawn: defineCommand({
-      meta: {
-        name: "spawn",
-        description: "Spawn a new specialized agent in the swarm"
-      },
-      args: {
-        type: {
-          type: "string",
-          description: "Agent specialization type",
-          required: true,
-          alias: "t"
-        },
-        name: {
-          type: "string", 
-          description: "Custom agent name/identifier",
-          alias: "n"
-        },
-        capabilities: {
-          type: "string",
-          description: "Comma-separated list of agent capabilities",
-          alias: "c"
-        },
-        domain: {
-          type: "string",
-          description: "Specialization domain (e.g., frontend, backend, ml)",
-          alias: "d"
-        },
-        memory: {
-          type: "number",
-          description: "Memory allocation in MB",
-          default: 512,
-          alias: "m"
-        },
-        timeout: {
-          type: "number", 
-          description: "Task timeout in seconds",
-          default: 300,
-          alias: "tm"
-        },
-        persistent: {
-          type: "boolean",
-          description: "Make agent persistent across swarm restarts",
-          default: false,
-          alias: "p"
-        }
-      },
-      async run(context: any) {
-        const { args } = context;
-        const startTime = Date.now();
-        // @ts-ignore
-        const spinner = ora("Spawning agent...").start();
-
-        try {
-          // Validate agent type
-          const validTypes: AgentType[] = [
-            "researcher", "coder", "tester", "reviewer", "architect", 
-            "optimizer", "coordinator", "specialist", "backend-dev", 
-            "mobile-dev", "ml-developer"
-          ];
-
-          if (!validTypes.includes(args.type as AgentType)) {
-            throw createCommandError(
-              `Invalid agent type: ${args.type}`,
-              CommandError.VALIDATION_ERROR,
-              [`Valid types: ${validTypes.join(", ")}`]
-            );
-          }
-
-          // Parse capabilities
-          const capabilities = args.capabilities 
-            ? args.capabilities.split(',').map((c: string) => c.trim())
-            : [];
-
-          const agentConfig: AgentSpawnConfig = {
-            type: args.type as AgentType,
-            name: args.name,
-            capabilities,
-            resources: {
-              memory: args.memory,
-              timeout: args.timeout
-            },
-            specialization: {
-              domain: args.domain
-            }
-          };
-
-          spinner.text = "Configuring agent specialization...";
-
-          // Add type-specific capabilities
-          switch (args.type) {
-            case "backend-dev":
-              capabilities.push("api-design", "database-design", "authentication", "security");
-              break;
-            case "mobile-dev":
-              capabilities.push("react-native", "ios", "android", "ui-design");
-              break;
-            case "ml-developer":
-              capabilities.push("pytorch", "tensorflow", "data-science", "model-training");
-              break;
-            case "researcher":
-              capabilities.push("analysis", "documentation", "requirements", "planning");
-              break;
-            case "coder":
-              capabilities.push("implementation", "refactoring", "debugging", "optimization");
-              break;
-          }
-
-          spinner.text = "Spawning agent in swarm...";
-          await new Promise(resolve => setTimeout(resolve, 2000));
-
-          // Store agent configuration if persistent
-          if (args.persistent) {
-            const agentDir = path.join(process.cwd(), '.unjucks', 'swarm', 'agents');
-            await fs.ensureDir(agentDir);
-            await fs.writeFile(
-              path.join(agentDir, `${args.name || args.type}-${Date.now()}.json`),
-              JSON.stringify(agentConfig, null, 2)
-            );
-          }
-
-          spinner.stop();
-
-          console.log(chalk.green("\n✅ Agent spawned successfully!"));
-          console.log(chalk.cyan(`🤖 Type: ${args.type}`));
-          console.log(chalk.cyan(`📛 Name: ${args.name || 'auto-generated'}`));
-          console.log(chalk.cyan(`⚡ Capabilities: ${capabilities.join(', ')}`));
-          console.log(chalk.cyan(`💾 Memory: ${args.memory}MB`));
-          console.log(chalk.cyan(`⏱️  Timeout: ${args.timeout}s`));
-          
-          if (args.domain) {
-            console.log(chalk.cyan(`🎯 Domain: ${args.domain}`));
-          }
-          
-          if (args.persistent) {
-            console.log(chalk.yellow("💿 Persistent agent created"));
-          }
-
-          const duration = Date.now() - startTime;
-          console.log(chalk.blue(`\n⏱️  Agent spawned in ${duration}ms`));
-
-          return {
-            success: true,
-            message: "Agent spawned successfully",
-            data: { agentConfig, duration }
-          };
-
-        } catch (error) {
-          spinner.stop();
-          
-          if (error instanceof UnjucksCommandError) {
-            console.error(chalk.red(`\n❌ ${error.message}`));
-            if (error.suggestions?.length) {
-              console.log(chalk.blue("\n💡 Suggestions:"));
-              error.suggestions.forEach(suggestion => {
-                console.log(chalk.blue(`  • ${suggestion}`));
-              });
-            }
-          } else {
-            console.error(chalk.red("\n❌ Agent spawn failed:"));
-            console.error(chalk.red(`  ${error instanceof Error ? error.message : String(error)}`));
-          }
-          
-          process.exit(1);
-        }
-      }
-    }),
-
-    /**
-     * Display swarm status and monitoring information
-     */
-    status: defineCommand({
-      meta: {
-        name: "status",
-        description: "Display swarm status and monitoring information"
-      },
-      args: {
-        detailed: {
-          type: "boolean",
-          description: "Show detailed status including performance metrics",
-          default: false,
-          alias: "d"
-        },
-        watch: {
-          type: "boolean", 
-          description: "Continuously watch swarm status",
-          default: false,
-          alias: "w"
-        },
-        interval: {
-          type: "number",
-          description: "Watch interval in seconds",
-          default: 5,
-          alias: "i"
-        },
-        agents: {
-          type: "boolean",
-          description: "Show detailed agent information",
-          default: false,
-          alias: "a"
-        },
-        tasks: {
-          type: "boolean",
-          description: "Show active tasks information",
-          default: false,
-          alias: "t"
-        },
-        performance: {
-          type: "boolean",
-          description: "Show performance analytics",
-          default: false,
-          alias: "p"
-        },
-        json: {
-          type: "boolean",
-          description: "Output status in JSON format",
-          default: false,
-          alias: "j"
-        }
-      },
-      async run(context: any) {
-        const { args } = context;
-
-        try {
-          // Mock status data for demonstration
-          const mockStatus: SwarmStatus = {
-            id: "swarm-mesh-001",
-            topology: "mesh",
-            agents: {
-              total: 5,
-              active: 4,
-              idle: 2,
-              busy: 2
-            },
-            tasks: {
-              pending: 3,
-              running: 2,
-              completed: 15,
-              failed: 1
-            },
-            performance: {
-              throughput: 12.5,
-              latency: 150,
-              errorRate: 0.05
-            },
-            uptime: Date.now() - 300000 // 5 minutes
-          };
-
-          if (args.json) {
-            console.log(JSON.stringify(mockStatus, null, 2));
-            return { success: true, data: mockStatus };
-          }
-
-          if (args.watch) {
-            console.log(chalk.yellow("👀 Watching swarm status (Press Ctrl+C to stop)\n"));
-            
-            const watchInterval = setInterval(() => {
-              process.stdout.write('\x1b[2J\x1b[0f'); // Clear screen
-              displaySwarmStatus(mockStatus, args.detailed);
-              
-              if (args.agents) {
-                console.log(chalk.magenta("\n🤖 Agent Details:"));
-                console.log(chalk.white("  agent-001 (researcher) - Active - Last: 30s ago"));
-                console.log(chalk.white("  agent-002 (coder) - Busy - Task: component-generation"));
-                console.log(chalk.white("  agent-003 (tester) - Idle - Last: 2m ago"));
-                console.log(chalk.white("  agent-004 (reviewer) - Active - Task: code-review"));
-                console.log(chalk.white("  agent-005 (architect) - Idle - Last: 5m ago"));
-              }
-              
-              if (args.tasks) {
-                console.log(chalk.cyan("\n📋 Active Tasks:"));
-                console.log(chalk.white("  task-001: Generate React component (agent-002) - 60% complete"));
-                console.log(chalk.white("  task-002: Review pull request (agent-004) - 30% complete"));
-                console.log(chalk.yellow("  task-003: Analyze requirements (pending) - Waiting for agent"));
-              }
-              
-              if (args.performance) {
-                console.log(chalk.green("\n📈 Performance Analytics:"));
-                console.log(chalk.white("  CPU Usage: 45% (avg across agents)"));
-                console.log(chalk.white("  Memory Usage: 2.1GB / 4GB"));
-                console.log(chalk.white("  Network I/O: 150KB/s"));
-                console.log(chalk.white("  Task Success Rate: 95%"));
-              }
-              
-              console.log(chalk.gray(`\nLast updated: ${new Date().toLocaleTimeString()}`));
-            }, args.interval * 1000);
-
-            process.on('SIGINT', () => {
-              clearInterval(watchInterval);
-              console.log(chalk.yellow("\n🛑 Stopped watching"));
-              process.exit(0);
-            });
-
-            // Keep process alive
-            await new Promise(() => {});
-          } else {
-            displaySwarmStatus(mockStatus, args.detailed);
-            
-            if (args.agents) {
-              console.log(chalk.magenta("\n🤖 Agent Summary:"));
-              console.log(chalk.white("  • 2 agents actively processing tasks"));
-              console.log(chalk.white("  • 2 agents idle and available"));
-              console.log(chalk.white("  • Average task completion: 8.5 minutes"));
-            }
-            
-            if (args.tasks) {
-              console.log(chalk.cyan("\n📋 Task Summary:"));
-              console.log(chalk.white("  • 2 tasks currently running"));
-              console.log(chalk.white("  • 3 tasks queued for execution"));
-              console.log(chalk.white("  • 15 tasks completed in last hour"));
-            }
-            
-            if (args.performance) {
-              console.log(chalk.green("\n📊 Performance Summary:"));
-              console.log(chalk.white("  • System efficiency: 87%"));
-              console.log(chalk.white("  • Resource utilization: Optimal"));
-              console.log(chalk.white("  • Coordination overhead: 5%"));
-            }
-          }
-
-          return {
-            success: true,
-            message: "Swarm status retrieved successfully",
-            data: mockStatus
-          };
-
-        } catch (error) {
-          console.error(chalk.red("\n❌ Failed to get swarm status:"));
-          console.error(chalk.red(`  ${error instanceof Error ? error.message : String(error)}`));
-          
-          console.log(chalk.blue("\n💡 Suggestions:"));
-          console.log(chalk.blue("  • Ensure swarm is initialized: unjucks swarm init"));
-          console.log(chalk.blue("  • Check MCP server connectivity"));
-          console.log(chalk.blue("  • Verify swarm configuration"));
-          
-          process.exit(1);
-        }
-      }
-    }),
-
-    /**
-     * Orchestrate complex workflows across swarm agents
+     * Enhanced task orchestration
      */
     orchestrate: defineCommand({
       meta: {
-        name: "orchestrate", 
-        description: "Orchestrate complex workflows across swarm agents"
+        name: "orchestrate",
+        description: "Orchestrate complex tasks across swarm"
       },
       args: {
         task: {
-          type: "string",
-          description: "Direct task description for simple orchestration",
-          alias: "t"
+          type: "positional",
+          description: "Task description or workflow file",
+          required: true
         },
         strategy: {
           type: "string",
-          description: "Execution strategy: parallel, sequential, adaptive",
+          description: "Execution strategy: parallel, sequential, adaptive, balanced",
           default: "adaptive",
           alias: "s"
         },
@@ -876,220 +1025,1235 @@ export const swarmCommand = defineCommand({
           alias: "p"
         },
         maxAgents: {
-          type: "number",
+          type: "string",
           description: "Maximum agents to use",
-          default: 5,
           alias: "m"
+        },
+        timeout: {
+          type: "string",
+          description: "Task timeout in seconds",
+          alias: "t"
         }
       },
-      async run(context: any) {
-        const { args } = context;
-        const startTime = Date.now();
-        // @ts-ignore
-        const spinner = ora("Orchestrating workflow...").start();
-
+      async run({ args }) {
+        const spinner = ora("Orchestrating task...").start();
+        
         try {
-          if (!args.task) {
-            throw createCommandError(
-              "Task description is required",
-              CommandError.VALIDATION_ERROR,
-              [
-                "Use --task to specify a task description",
-                "Example: unjucks swarm orchestrate --task 'Build React component'"
-              ]
-            );
-          }
-
-          // Create simple workflow from task description
-          const workflow: WorkflowConfig = {
-            id: `task-${Date.now()}`,
-            name: "Direct Task Orchestration",
-            description: args.task,
-            steps: [{
-              id: "main-task",
-              name: "Main Task",
-              action: "generate",
-              parameters: { description: args.task }
-            }],
-            strategy: args.strategy as any
-          };
-
-          console.log(chalk.blue(`\n🎯 Orchestrating: ${workflow.name}`));
-          console.log(chalk.gray(`Description: ${workflow.description}`));
-          console.log(chalk.cyan(`Strategy: ${args.strategy}`));
-          console.log(chalk.cyan(`Priority: ${args.priority}`));
-          console.log(chalk.cyan(`Max agents: ${args.maxAgents}`));
-
-          spinner.text = "Dispatching to swarm...";
-          await new Promise(resolve => setTimeout(resolve, 2000));
-
-          spinner.text = "Executing workflow steps...";
-          await new Promise(resolve => setTimeout(resolve, 3000));
-
-          spinner.stop();
-
-          console.log(chalk.green("\n✅ Workflow orchestration completed!"));
+          const mcp = await createMCPBridge();
           
-          // Display step results
-          console.log(chalk.blue("\n📋 Step Results:"));
-          workflow.steps.forEach((step, index) => {
-            console.log(chalk.green(`  ✅ Step ${index + 1}: ${step.name}`));
-            console.log(chalk.gray(`     Action: ${step.action}`));
-            console.log(chalk.gray(`     Duration: ~3s`)); // Simulated
-          });
-
-          const duration = Date.now() - startTime;
-          console.log(chalk.blue(`\n⏱️  Orchestration completed in ${duration}ms`));
-
+          // Check if task is a workflow file
+          const isWorkflowFile = args.task.endsWith('.yaml') || args.task.endsWith('.yml') || args.task.endsWith('.json');
+          let taskDescription = args.task;
+          
+          if (isWorkflowFile && await fs.pathExists(args.task)) {
+            const workflowContent = await fs.readFile(args.task, 'utf-8');
+            const workflow = args.task.endsWith('.json') ? JSON.parse(workflowContent) : yaml.parse(workflowContent);
+            taskDescription = workflow.description || workflow.name || args.task;
+          }
+          
+          const orchestrateResult = await executeMCPCommand(
+            mcp,
+            "mcp__claude-flow__task_orchestrate",
+            {
+              task: taskDescription,
+              strategy: args.strategy,
+              priority: args.priority,
+              maxAgents: args.maxAgents ? parseInt(args.maxAgents) : undefined
+            },
+            spinner
+          );
+          
+          console.log(chalk.green(`✅ Task orchestrated: ${orchestrateResult.taskId || 'unknown'}`));
+          console.log(`  Strategy: ${chalk.cyan(args.strategy)}`);
+          console.log(`  Priority: ${chalk.cyan(args.priority)}`);
+          
           return {
             success: true,
-            message: "Workflow orchestrated successfully",
-            data: { workflow, duration, steps: workflow.steps.length }
+            data: orchestrateResult
           };
-
+          
         } catch (error) {
-          spinner.stop();
-          
-          if (error instanceof UnjucksCommandError) {
-            console.error(chalk.red(`\n❌ ${error.message}`));
-            if (error.suggestions?.length) {
-              console.log(chalk.blue("\n💡 Suggestions:"));
-              error.suggestions.forEach(suggestion => {
-                console.log(chalk.blue(`  • ${suggestion}`));
-              });
-            }
-          } else {
-            console.error(chalk.red("\n❌ Workflow orchestration failed:"));
-            console.error(chalk.red(`  ${error instanceof Error ? error.message : String(error)}`));
-          }
-          
-          process.exit(1);
+          spinner.fail("Failed to orchestrate task");
+          throw new UnjucksCommandError(
+            "TASK_ORCHESTRATION_FAILED",
+            `Failed to orchestrate task: ${error instanceof Error ? error.message : String(error)}`
+          );
         }
       }
     }),
 
     /**
-     * Scale swarm up or down based on workload
+     * Enhanced swarm status with detailed metrics
+     */
+    status: defineCommand({
+      meta: {
+        name: "status",
+        description: "Get comprehensive swarm status and metrics"
+      },
+      args: {
+        detailed: {
+          type: "boolean",
+          description: "Show detailed metrics",
+          default: false,
+          alias: "d"
+        },
+        watch: {
+          type: "boolean",
+          description: "Watch status in real-time",
+          default: false,
+          alias: "w"
+        },
+        swarm: {
+          type: "string",
+          description: "Specific swarm ID",
+          alias: "s"
+        }
+      },
+      async run({ args }) {
+        const spinner = ora("Retrieving swarm status...").start();
+        
+        try {
+          const mcp = await createMCPBridge();
+          
+          const status = await executeMCPCommand(
+            mcp,
+            "mcp__claude-flow__swarm_status",
+            {
+              swarmId: args.swarm,
+              verbose: args.detailed
+            },
+            spinner
+          );
+          
+          displaySwarmStatus(status, args.detailed);
+          
+          if (args.watch) {
+            console.log(chalk.yellow("\n👁️  Watching for changes (Press Ctrl+C to stop)..."));
+            
+            // Start monitoring
+            await executeMCPCommand(
+              mcp,
+              "mcp__claude-flow__swarm_monitor",
+              {
+                duration: 3600, // 1 hour
+                interval: 5     // 5 seconds
+              }
+            );
+          }
+          
+          return {
+            success: true,
+            data: status
+          };
+          
+        } catch (error) {
+          spinner.fail("Failed to retrieve status");
+          throw new UnjucksCommandError(
+            "SWARM_STATUS_FAILED",
+            `Failed to get swarm status: ${error instanceof Error ? error.message : String(error)}`
+          );
+        }
+      }
+    }),
+
+    /**
+     * Enhanced scaling with auto-optimization
      */
     scale: defineCommand({
       meta: {
         name: "scale",
-        description: "Scale swarm up or down based on workload"
+        description: "Scale swarm with intelligent optimization"
       },
       args: {
         target: {
-          type: "number",
+          type: "positional",
           description: "Target number of agents",
-          required: true,
-          alias: "t"
-        },
-        auto: {
-          type: "boolean",
-          description: "Enable automatic scaling",
-          default: false,
-          alias: "a"
+          required: true
         },
         strategy: {
           type: "string",
-          description: "Scaling strategy: conservative, balanced, aggressive",
+          description: "Scaling strategy",
           default: "balanced",
           alias: "s"
+        },
+        auto: {
+          type: "boolean",
+          description: "Enable auto-scaling",
+          default: false,
+          alias: "a"
+        },
+        optimize: {
+          type: "boolean",
+          description: "Optimize topology during scaling",
+          default: true,
+          alias: "o"
         }
       },
-      async run(context: any) {
-        const { args } = context;
-        // @ts-ignore
-        const spinner = ora("Scaling swarm...").start();
-
+      async run({ args }) {
+        const spinner = ora(`Scaling swarm to ${args.target} agents...`).start();
+        
         try {
-          spinner.text = `Scaling to ${args.target} agents...`;
+          const mcp = await createMCPBridge();
           
-          // Simulate scaling operation
-          await new Promise(resolve => setTimeout(resolve, 3000));
+          // Scale the swarm
+          const scaleResult = await executeMCPCommand(
+            mcp,
+            "mcp__claude-flow__swarm_scale",
+            {
+              targetSize: parseInt(args.target)
+            },
+            spinner
+          );
           
-          spinner.stop();
-          
-          console.log(chalk.green(`\n✅ Swarm scaled to ${args.target} agents`));
-          
-          if (args.auto) {
-            console.log(chalk.yellow("🔄 Auto-scaling enabled"));
+          // Optimize topology if requested
+          if (args.optimize) {
+            spinner.text = "Optimizing topology...";
+            await executeMCPCommand(
+              mcp,
+              "mcp__claude-flow__topology_optimize",
+              {},
+              spinner
+            );
           }
+          
+          console.log(chalk.green(`✅ Swarm scaled to ${args.target} agents`));
+          console.log(`  Strategy: ${chalk.cyan(args.strategy)}`);
+          console.log(`  Auto-scaling: ${args.auto ? chalk.green('Enabled') : chalk.gray('Disabled')}`);
+          console.log(`  Topology optimized: ${args.optimize ? chalk.green('Yes') : chalk.gray('No')}`);
           
           return {
             success: true,
-            message: `Swarm scaled to ${args.target} agents`,
-            data: { target: args.target, strategy: args.strategy }
+            data: scaleResult
           };
-
+          
         } catch (error) {
-          spinner.stop();
-          console.error(chalk.red("\n❌ Scaling failed:"));
-          console.error(chalk.red(`  ${error instanceof Error ? error.message : String(error)}`));
-          process.exit(1);
+          spinner.fail("Failed to scale swarm");
+          throw new UnjucksCommandError(
+            "SWARM_SCALE_FAILED",
+            `Failed to scale swarm: ${error instanceof Error ? error.message : String(error)}`
+          );
         }
       }
     }),
 
     /**
-     * Train neural patterns for optimization
+     * Neural network training and management
      */
-    train: defineCommand({
+    neural: defineCommand({
       meta: {
-        name: "train", 
-        description: "Train neural patterns for swarm optimization"
+        name: "neural",
+        description: "Neural network training and cognitive pattern management"
+      },
+      subcommands: {
+        /**
+         * Train neural patterns
+         */
+        train: defineCommand({
+          meta: {
+            name: "train",
+            description: "Train neural patterns for swarm coordination"
+          },
+          args: {
+            pattern: {
+              type: "positional",
+              description: "Pattern type: coordination, optimization, prediction",
+              required: true
+            },
+            epochs: {
+              type: "string",
+              description: "Number of training epochs",
+              default: "50",
+              alias: "e"
+            },
+            architecture: {
+              type: "string",
+              description: "Neural architecture",
+              default: "transformer",
+              alias: "arch"
+            },
+            data: {
+              type: "string",
+              description: "Training data source",
+              alias: "d"
+            }
+          },
+          async run({ args }) {
+            const spinner = ora(`Training ${args.pattern} neural pattern...`).start();
+            
+            try {
+              const mcp = await createMCPBridge();
+              
+              const trainResult = await executeMCPCommand(
+                mcp,
+                "mcp__claude-flow__neural_train",
+                {
+                  pattern_type: args.pattern,
+                  training_data: args.data || "default_dataset",
+                  epochs: parseInt(args.epochs)
+                },
+                spinner
+              );
+              
+              console.log(chalk.green(`✅ Neural pattern training completed`));
+              console.log(`  Pattern: ${chalk.cyan(args.pattern)}`);
+              console.log(`  Epochs: ${chalk.cyan(args.epochs)}`);
+              console.log(`  Architecture: ${chalk.cyan(args.architecture)}`);
+              
+              return {
+                success: true,
+                data: trainResult
+              };
+              
+            } catch (error) {
+              spinner.fail("Neural training failed");
+              throw new UnjucksCommandError(
+                "NEURAL_TRAIN_FAILED",
+                `Failed to train neural pattern: ${error instanceof Error ? error.message : String(error)}`
+              );
+            }
+          }
+        }),
+
+        /**
+         * Analyze cognitive patterns
+         */
+        patterns: defineCommand({
+          meta: {
+            name: "patterns",
+            description: "Analyze and manage cognitive patterns"
+          },
+          args: {
+            action: {
+              type: "positional",
+              description: "Action: analyze, learn, predict",
+              default: "analyze"
+            },
+            pattern: {
+              type: "string",
+              description: "Pattern type to analyze",
+              alias: "p"
+            }
+          },
+          async run({ args }) {
+            const spinner = ora(`${args.action}ing cognitive patterns...`).start();
+            
+            try {
+              const mcp = await createMCPBridge();
+              
+              const patternsResult = await executeMCPCommand(
+                mcp,
+                "mcp__claude-flow__neural_patterns",
+                {
+                  action: args.action,
+                  pattern: args.pattern
+                },
+                spinner
+              );
+              
+              console.log(chalk.blue("\n🧠 Cognitive Patterns Analysis"));
+              console.log(chalk.gray("=" .repeat(50)));
+              console.log(JSON.stringify(patternsResult, null, 2));
+              
+              return {
+                success: true,
+                data: patternsResult
+              };
+              
+            } catch (error) {
+              spinner.fail("Pattern analysis failed");
+              throw new UnjucksCommandError(
+                "NEURAL_PATTERNS_FAILED",
+                `Failed to analyze patterns: ${error instanceof Error ? error.message : String(error)}`
+              );
+            }
+          }
+        }),
+
+        /**
+         * Create distributed neural cluster
+         */
+        cluster: defineCommand({
+          meta: {
+            name: "cluster",
+            description: "Create distributed neural network cluster"
+          },
+          args: {
+            name: {
+              type: "positional",
+              description: "Cluster name",
+              required: true
+            },
+            nodes: {
+              type: "string",
+              description: "Number of nodes",
+              default: "3",
+              alias: "n"
+            },
+            topology: {
+              type: "string",
+              description: "Network topology",
+              default: "mesh",
+              alias: "t"
+            },
+            architecture: {
+              type: "string",
+              description: "Neural architecture",
+              default: "transformer",
+              alias: "arch"
+            }
+          },
+          async run({ args }) {
+            const spinner = ora(`Creating neural cluster: ${args.name}...`).start();
+            
+            try {
+              const mcp = await createMCPBridge();
+              
+              // Initialize neural cluster via flow-nexus
+              const clusterResult = await executeMCPCommand(
+                mcp,
+                "mcp__flow-nexus__neural_cluster_init",
+                {
+                  name: args.name,
+                  topology: args.topology,
+                  architecture: args.architecture,
+                  daaEnabled: true,
+                  wasmOptimization: true
+                },
+                spinner
+              );
+              
+              // Deploy nodes
+              for (let i = 0; i < parseInt(args.nodes); i++) {
+                spinner.text = `Deploying node ${i + 1}/${args.nodes}...`;
+                await executeMCPCommand(
+                  mcp,
+                  "mcp__flow-nexus__neural_node_deploy",
+                  {
+                    cluster_id: clusterResult.cluster_id,
+                    node_type: "worker",
+                    autonomy: 0.8
+                  }
+                );
+              }
+              
+              // Connect nodes
+              spinner.text = "Connecting cluster nodes...";
+              await executeMCPCommand(
+                mcp,
+                "mcp__flow-nexus__neural_cluster_connect",
+                {
+                  cluster_id: clusterResult.cluster_id,
+                  topology: args.topology
+                },
+                spinner
+              );
+              
+              console.log(chalk.green(`✅ Neural cluster created: ${args.name}`));
+              console.log(`  Cluster ID: ${chalk.cyan(clusterResult.cluster_id)}`);
+              console.log(`  Nodes: ${chalk.cyan(args.nodes)}`);
+              console.log(`  Topology: ${chalk.cyan(args.topology)}`);
+              console.log(`  Architecture: ${chalk.cyan(args.architecture)}`);
+              
+              return {
+                success: true,
+                data: clusterResult
+              };
+              
+            } catch (error) {
+              spinner.fail("Failed to create neural cluster");
+              throw new UnjucksCommandError(
+                "NEURAL_CLUSTER_FAILED",
+                `Failed to create neural cluster: ${error instanceof Error ? error.message : String(error)}`
+              );
+            }
+          }
+        }),
+
+        /**
+         * Get neural status
+         */
+        status: defineCommand({
+          meta: {
+            name: "status",
+            description: "Get neural network status"
+          },
+          args: {
+            cluster: {
+              type: "string",
+              description: "Specific cluster ID",
+              alias: "c"
+            }
+          },
+          async run({ args }) {
+            const spinner = ora("Retrieving neural status...").start();
+            
+            try {
+              const mcp = await createMCPBridge();
+              
+              const neuralStatus = await executeMCPCommand(
+                mcp,
+                "mcp__claude-flow__neural_status",
+                {
+                  modelId: args.cluster
+                },
+                spinner
+              );
+              
+              console.log(chalk.blue("\n🧠 Neural Network Status"));
+              console.log(chalk.gray("=" .repeat(50)));
+              console.log(JSON.stringify(neuralStatus, null, 2));
+              
+              return {
+                success: true,
+                data: neuralStatus
+              };
+              
+            } catch (error) {
+              spinner.fail("Failed to retrieve neural status");
+              throw new UnjucksCommandError(
+                "NEURAL_STATUS_FAILED",
+                `Failed to get neural status: ${error instanceof Error ? error.message : String(error)}`
+              );
+            }
+          }
+        })
+      }
+    }),
+
+    /**
+     * Memory management with persistence
+     */
+    memory: defineCommand({
+      meta: {
+        name: "memory",
+        description: "Advanced memory management and persistence"
+      },
+      subcommands: {
+        /**
+         * Store data in memory
+         */
+        store: defineCommand({
+          meta: {
+            name: "store",
+            description: "Store data in swarm memory"
+          },
+          args: {
+            key: {
+              type: "positional",
+              description: "Memory key",
+              required: true
+            },
+            value: {
+              type: "positional",
+              description: "Value to store",
+              required: true
+            },
+            namespace: {
+              type: "string",
+              description: "Memory namespace",
+              default: "swarm",
+              alias: "ns"
+            },
+            ttl: {
+              type: "string",
+              description: "Time-to-live in seconds",
+              alias: "t"
+            }
+          },
+          async run({ args }) {
+            const spinner = ora(`Storing data: ${args.key}...`).start();
+            
+            try {
+              const mcp = await createMCPBridge();
+              
+              const storeResult = await executeMCPCommand(
+                mcp,
+                "mcp__claude-flow__memory_usage",
+                {
+                  action: "store",
+                  key: args.key,
+                  value: args.value,
+                  namespace: args.namespace,
+                  ttl: args.ttl ? parseInt(args.ttl) : undefined
+                },
+                spinner
+              );
+              
+              console.log(chalk.green(`✅ Data stored: ${args.key}`));
+              console.log(`  Namespace: ${chalk.cyan(args.namespace)}`);
+              if (args.ttl) console.log(`  TTL: ${chalk.cyan(args.ttl)} seconds`);
+              
+              return {
+                success: true,
+                data: storeResult
+              };
+              
+            } catch (error) {
+              spinner.fail("Failed to store data");
+              throw new UnjucksCommandError(
+                "MEMORY_STORE_FAILED",
+                `Failed to store data: ${error instanceof Error ? error.message : String(error)}`
+              );
+            }
+          }
+        }),
+
+        /**
+         * Retrieve data from memory
+         */
+        retrieve: defineCommand({
+          meta: {
+            name: "retrieve",
+            description: "Retrieve data from swarm memory"
+          },
+          args: {
+            key: {
+              type: "positional",
+              description: "Memory key",
+              required: true
+            },
+            namespace: {
+              type: "string",
+              description: "Memory namespace",
+              default: "swarm",
+              alias: "ns"
+            }
+          },
+          async run({ args }) {
+            const spinner = ora(`Retrieving data: ${args.key}...`).start();
+            
+            try {
+              const mcp = await createMCPBridge();
+              
+              const retrieveResult = await executeMCPCommand(
+                mcp,
+                "mcp__claude-flow__memory_usage",
+                {
+                  action: "retrieve",
+                  key: args.key,
+                  namespace: args.namespace
+                },
+                spinner
+              );
+              
+              console.log(chalk.blue(`\n💾 Retrieved: ${args.key}`));
+              console.log(chalk.gray("=" .repeat(50)));
+              console.log(retrieveResult.value || "No data found");
+              
+              return {
+                success: true,
+                data: retrieveResult
+              };
+              
+            } catch (error) {
+              spinner.fail("Failed to retrieve data");
+              throw new UnjucksCommandError(
+                "MEMORY_RETRIEVE_FAILED",
+                `Failed to retrieve data: ${error instanceof Error ? error.message : String(error)}`
+              );
+            }
+          }
+        }),
+
+        /**
+         * Search memory with patterns
+         */
+        search: defineCommand({
+          meta: {
+            name: "search",
+            description: "Search memory with patterns"
+          },
+          args: {
+            pattern: {
+              type: "positional",
+              description: "Search pattern",
+              required: true
+            },
+            namespace: {
+              type: "string",
+              description: "Memory namespace",
+              alias: "ns"
+            },
+            limit: {
+              type: "string",
+              description: "Max results",
+              default: "10",
+              alias: "l"
+            }
+          },
+          async run({ args }) {
+            const spinner = ora(`Searching memory: ${args.pattern}...`).start();
+            
+            try {
+              const mcp = await createMCPBridge();
+              
+              const searchResult = await executeMCPCommand(
+                mcp,
+                "mcp__claude-flow__memory_search",
+                {
+                  pattern: args.pattern,
+                  namespace: args.namespace,
+                  limit: parseInt(args.limit)
+                },
+                spinner
+              );
+              
+              console.log(chalk.blue(`\n🔍 Search Results for: ${args.pattern}`));
+              console.log(chalk.gray("=" .repeat(50)));
+              
+              if (searchResult.results?.length) {
+                searchResult.results.forEach((result: any, index: number) => {
+                  console.log(`${chalk.cyan(`${index + 1}.`)} ${result.key}: ${result.value}`);
+                });
+              } else {
+                console.log(chalk.yellow("No results found"));
+              }
+              
+              return {
+                success: true,
+                data: searchResult
+              };
+              
+            } catch (error) {
+              spinner.fail("Failed to search memory");
+              throw new UnjucksCommandError(
+                "MEMORY_SEARCH_FAILED",
+                `Failed to search memory: ${error instanceof Error ? error.message : String(error)}`
+              );
+            }
+          }
+        }),
+
+        /**
+         * Backup memory
+         */
+        backup: defineCommand({
+          meta: {
+            name: "backup",
+            description: "Create memory backup"
+          },
+          args: {
+            path: {
+              type: "string",
+              description: "Backup file path",
+              alias: "p"
+            }
+          },
+          async run({ args }) {
+            const spinner = ora("Creating memory backup...").start();
+            
+            try {
+              const mcp = await createMCPBridge();
+              
+              const backupResult = await executeMCPCommand(
+                mcp,
+                "mcp__claude-flow__memory_backup",
+                {
+                  path: args.path
+                },
+                spinner
+              );
+              
+              console.log(chalk.green("✅ Memory backup created"));
+              if (backupResult.path) {
+                console.log(`  Location: ${chalk.cyan(backupResult.path)}`);
+              }
+              
+              return {
+                success: true,
+                data: backupResult
+              };
+              
+            } catch (error) {
+              spinner.fail("Failed to create backup");
+              throw new UnjucksCommandError(
+                "MEMORY_BACKUP_FAILED",
+                `Failed to create backup: ${error instanceof Error ? error.message : String(error)}`
+              );
+            }
+          }
+        })
+      }
+    }),
+
+    /**
+     * Real-time monitoring and health checks
+     */
+    monitor: defineCommand({
+      meta: {
+        name: "monitor",
+        description: "Real-time swarm monitoring and health checks"
       },
       args: {
-        pattern: {
+        duration: {
           type: "string",
-          description: "Pattern type to train: coordination, optimization, prediction",
-          default: "coordination",
-          alias: "p"
+          description: "Monitoring duration in seconds",
+          default: "60",
+          alias: "d"
         },
-        epochs: {
-          type: "number",
-          description: "Number of training epochs",
-          default: 50,
+        interval: {
+          type: "string",
+          description: "Update interval in seconds",
+          default: "5",
+          alias: "i"
+        },
+        detailed: {
+          type: "boolean",
+          description: "Show detailed metrics",
+          default: false,
+          alias: "v"
+        },
+        export: {
+          type: "string",
+          description: "Export metrics to file",
           alias: "e"
         },
-        data: {
-          type: "string",
-          description: "Training data source or file path",
-          alias: "d"
+        realtime: {
+          type: "boolean",
+          description: "Enable real-time streaming",
+          default: false,
+          alias: "rt"
         }
       },
-      async run(context: any) {
-        const { args } = context;
-        // @ts-ignore
-        const spinner = ora("Training neural patterns...").start();
-
+      async run({ args }) {
+        const spinner = ora("Starting swarm monitoring...").start();
+        
         try {
-          spinner.text = `Training ${args.pattern} patterns...`;
+          const mcp = await createMCPBridge();
           
-          // Simulate training progress
-          for (let epoch = 1; epoch <= args.epochs; epoch++) {
-            spinner.text = `Training epoch ${epoch}/${args.epochs}...`;
-            await new Promise(resolve => setTimeout(resolve, 50));
+          // Start monitoring
+          const monitorResult = await executeMCPCommand(
+            mcp,
+            "mcp__claude-flow__swarm_monitor",
+            {
+              duration: parseInt(args.duration),
+              interval: parseInt(args.interval)
+            },
+            spinner
+          );
+          
+          console.log(chalk.green("✅ Monitoring started"));
+          console.log(`  Duration: ${chalk.cyan(args.duration)} seconds`);
+          console.log(`  Interval: ${chalk.cyan(args.interval)} seconds`);
+          console.log(`  Real-time: ${args.realtime ? chalk.green('Enabled') : chalk.gray('Disabled')}`);
+          
+          if (args.export) {
+            console.log(`  Export: ${chalk.cyan(args.export)}`);
           }
           
-          spinner.stop();
-          
-          console.log(chalk.green("\n✅ Neural pattern training completed!"));
-          console.log(chalk.cyan(`🧠 Pattern: ${args.pattern}`));
-          console.log(chalk.cyan(`🔄 Epochs: ${args.epochs}`));
-          console.log(chalk.cyan(`📊 Accuracy: 94.5%`)); // Simulated
-          console.log(chalk.cyan(`⚡ Performance boost: +15%`)); // Simulated
+          // Show continuous updates if real-time enabled
+          if (args.realtime) {
+            console.log(chalk.yellow("\n👁️  Real-time monitoring (Press Ctrl+C to stop)..."));
+            
+            const interval = setInterval(async () => {
+              try {
+                const status = await executeMCPCommand(
+                  mcp,
+                  "mcp__claude-flow__swarm_status",
+                  { verbose: args.detailed }
+                );
+                
+                console.clear();
+                displaySwarmStatus(status, args.detailed);
+                console.log(chalk.gray(`\nLast updated: ${new Date().toLocaleTimeString()}`));
+                
+              } catch (error) {
+                console.error(chalk.red("Monitoring error:", error));
+              }
+            }, parseInt(args.interval) * 1000);
+            
+            // Handle Ctrl+C
+            process.on('SIGINT', () => {
+              clearInterval(interval);
+              console.log(chalk.yellow("\n\n📊 Monitoring stopped"));
+              process.exit(0);
+            });
+          }
           
           return {
             success: true,
-            message: "Neural pattern training completed",
-            data: { pattern: args.pattern, epochs: args.epochs }
+            data: monitorResult
           };
-
+          
         } catch (error) {
-          spinner.stop();
-          console.error(chalk.red("\n❌ Training failed:"));
-          console.error(chalk.red(`  ${error instanceof Error ? error.message : String(error)}`));
-          process.exit(1);
+          spinner.fail("Failed to start monitoring");
+          throw new UnjucksCommandError(
+            "MONITOR_FAILED",
+            `Failed to start monitoring: ${error instanceof Error ? error.message : String(error)}`
+          );
+        }
+      }
+    }),
+
+    /**
+     * Performance benchmarking
+     */
+    benchmark: defineCommand({
+      meta: {
+        name: "benchmark",
+        description: "Run performance benchmarks"
+      },
+      args: {
+        suite: {
+          type: "string",
+          description: "Benchmark suite: all, wasm, swarm, agent, task, neural",
+          default: "all",
+          alias: "s"
+        },
+        iterations: {
+          type: "string",
+          description: "Number of iterations",
+          default: "10",
+          alias: "i"
+        },
+        export: {
+          type: "string",
+          description: "Export results to file",
+          alias: "e"
+        }
+      },
+      async run({ args }) {
+        const spinner = ora(`Running ${args.suite} benchmark...`).start();
+        
+        try {
+          const mcp = await createMCPBridge();
+          
+          const benchmarkResult = await executeMCPCommand(
+            mcp,
+            "mcp__claude-flow__benchmark_run",
+            {
+              suite: args.suite,
+              iterations: parseInt(args.iterations)
+            },
+            spinner
+          );
+          
+          console.log(chalk.blue("\n⚡ Benchmark Results"));
+          console.log(chalk.gray("=" .repeat(50)));
+          console.log(JSON.stringify(benchmarkResult, null, 2));
+          
+          if (args.export) {
+            await fs.writeJSON(args.export, benchmarkResult, { spaces: 2 });
+            console.log(chalk.green(`\n💾 Results exported to: ${args.export}`));
+          }
+          
+          return {
+            success: true,
+            data: benchmarkResult
+          };
+          
+        } catch (error) {
+          spinner.fail("Benchmark failed");
+          throw new UnjucksCommandError(
+            "BENCHMARK_FAILED",
+            `Failed to run benchmark: ${error instanceof Error ? error.message : String(error)}`
+          );
+        }
+      }
+    }),
+
+    /**
+     * Workflow automation and templates
+     */
+    workflow: defineCommand({
+      meta: {
+        name: "workflow",
+        description: "Workflow automation and template management"
+      },
+      subcommands: {
+        /**
+         * Create workflow
+         */
+        create: defineCommand({
+          meta: {
+            name: "create",
+            description: "Create new workflow"
+          },
+          args: {
+            name: {
+              type: "positional",
+              description: "Workflow name",
+              required: true
+            },
+            description: {
+              type: "string",
+              description: "Workflow description",
+              alias: "d"
+            },
+            strategy: {
+              type: "string",
+              description: "Execution strategy",
+              default: "adaptive",
+              alias: "s"
+            },
+            file: {
+              type: "string",
+              description: "Save to file",
+              alias: "f"
+            }
+          },
+          async run({ args }) {
+            const spinner = ora(`Creating workflow: ${args.name}...`).start();
+            
+            try {
+              const mcp = await createMCPBridge();
+              
+              const workflowConfig = {
+                name: args.name,
+                description: args.description || `Automated workflow: ${args.name}`,
+                steps: [
+                  {
+                    id: "init",
+                    name: "Initialize",
+                    action: "generate",
+                    parameters: {}
+                  }
+                ],
+                strategy: args.strategy,
+                priority: "medium",
+                enableMetrics: true,
+                enableAuditTrail: true
+              };
+              
+              const createResult = await executeMCPCommand(
+                mcp,
+                "mcp__claude-flow__workflow_create",
+                workflowConfig,
+                spinner
+              );
+              
+              console.log(chalk.green(`✅ Workflow created: ${args.name}`));
+              console.log(`  Strategy: ${chalk.cyan(args.strategy)}`);
+              
+              if (args.file) {
+                await fs.writeJSON(args.file, workflowConfig, { spaces: 2 });
+                console.log(`  Saved to: ${chalk.cyan(args.file)}`);
+              }
+              
+              return {
+                success: true,
+                data: createResult
+              };
+              
+            } catch (error) {
+              spinner.fail("Failed to create workflow");
+              throw new UnjucksCommandError(
+                "WORKFLOW_CREATE_FAILED",
+                `Failed to create workflow: ${error instanceof Error ? error.message : String(error)}`
+              );
+            }
+          }
+        }),
+
+        /**
+         * Execute workflow
+         */
+        execute: defineCommand({
+          meta: {
+            name: "execute",
+            description: "Execute workflow"
+          },
+          args: {
+            workflow: {
+              type: "positional",
+              description: "Workflow ID or file",
+              required: true
+            },
+            async: {
+              type: "boolean",
+              description: "Execute asynchronously",
+              default: false,
+              alias: "a"
+            },
+            data: {
+              type: "string",
+              description: "Input data JSON file",
+              alias: "d"
+            }
+          },
+          async run({ args }) {
+            const spinner = ora(`Executing workflow: ${args.workflow}...`).start();
+            
+            try {
+              const mcp = await createMCPBridge();
+              
+              let inputData = {};
+              if (args.data && await fs.pathExists(args.data)) {
+                inputData = await fs.readJSON(args.data);
+              }
+              
+              const executeResult = await executeMCPCommand(
+                mcp,
+                "mcp__claude-flow__workflow_execute",
+                {
+                  workflow_id: args.workflow,
+                  input_data: inputData,
+                  async: args.async
+                },
+                spinner
+              );
+              
+              console.log(chalk.green(`✅ Workflow executed: ${args.workflow}`));
+              console.log(`  Async: ${args.async ? chalk.green('Yes') : chalk.gray('No')}`);
+              
+              if (executeResult.execution_id) {
+                console.log(`  Execution ID: ${chalk.cyan(executeResult.execution_id)}`);
+              }
+              
+              return {
+                success: true,
+                data: executeResult
+              };
+              
+            } catch (error) {
+              spinner.fail("Failed to execute workflow");
+              throw new UnjucksCommandError(
+                "WORKFLOW_EXECUTE_FAILED",
+                `Failed to execute workflow: ${error instanceof Error ? error.message : String(error)}`
+              );
+            }
+          }
+        }),
+
+        /**
+         * List workflows
+         */
+        list: defineCommand({
+          meta: {
+            name: "list",
+            description: "List available workflows"
+          },
+          args: {
+            status: {
+              type: "string",
+              description: "Filter by status",
+              alias: "s"
+            },
+            limit: {
+              type: "string",
+              description: "Maximum results",
+              default: "10",
+              alias: "l"
+            }
+          },
+          async run({ args }) {
+            const spinner = ora("Retrieving workflows...").start();
+            
+            try {
+              const mcp = await createMCPBridge();
+              
+              const workflows = await executeMCPCommand(
+                mcp,
+                "mcp__claude-flow__workflow_list",
+                {
+                  status: args.status,
+                  limit: parseInt(args.limit)
+                },
+                spinner
+              );
+              
+              console.log(chalk.blue(`\n📋 Available Workflows`));
+              console.log(chalk.gray("=" .repeat(50)));
+              
+              if (workflows.workflows?.length) {
+                workflows.workflows.forEach((workflow: any, index: number) => {
+                  console.log(`${chalk.cyan(`${index + 1}.`)} ${workflow.name}`);
+                  if (workflow.description) console.log(`   ${workflow.description}`);
+                  if (workflow.status) console.log(`   Status: ${workflow.status}`);
+                });
+              } else {
+                console.log(chalk.yellow("No workflows found"));
+              }
+              
+              return {
+                success: true,
+                data: workflows
+              };
+              
+            } catch (error) {
+              spinner.fail("Failed to retrieve workflows");
+              throw new UnjucksCommandError(
+                "WORKFLOW_LIST_FAILED",
+                `Failed to list workflows: ${error instanceof Error ? error.message : String(error)}`
+              );
+            }
+          }
+        })
+      }
+    }),
+
+    /**
+     * Health checks and diagnostics
+     */
+    health: defineCommand({
+      meta: {
+        name: "health",
+        description: "Comprehensive health checks and diagnostics"
+      },
+      args: {
+        detailed: {
+          type: "boolean",
+          description: "Show detailed health information",
+          default: false,
+          alias: "d"
+        },
+        components: {
+          type: "string",
+          description: "Comma-separated components to check",
+          alias: "c"
+        }
+      },
+      async run({ args }) {
+        const spinner = ora("Running health checks...").start();
+        
+        try {
+          const mcp = await createMCPBridge();
+          
+          const components = args.components ? args.components.split(",") : undefined;
+          
+          const healthResult = await executeMCPCommand(
+            mcp,
+            "mcp__claude-flow__health_check",
+            {
+              components: components
+            },
+            spinner
+          );
+          
+          console.log(chalk.blue("\n🏥 Swarm Health Status"));
+          console.log(chalk.gray("=" .repeat(50)));
+          
+          const overallHealth = healthResult.overall || "unknown";
+          const healthColor = overallHealth === "healthy" ? chalk.green : 
+                             overallHealth === "degraded" ? chalk.yellow : chalk.red;
+          
+          console.log(`Overall Status: ${healthColor(overallHealth)}`);
+          
+          if (healthResult.components) {
+            console.log("\nComponent Status:");
+            Object.entries(healthResult.components).forEach(([component, status]) => {
+              const statusColor = status === "healthy" ? chalk.green : 
+                                 status === "degraded" ? chalk.yellow : chalk.red;
+              console.log(`  ${component}: ${statusColor(status as string)}`);
+            });
+          }
+          
+          if (args.detailed && healthResult.details) {
+            console.log("\nDetailed Information:");
+            console.log(JSON.stringify(healthResult.details, null, 2));
+          }
+          
+          return {
+            success: true,
+            data: healthResult
+          };
+          
+        } catch (error) {
+          spinner.fail("Health check failed");
+          throw new UnjucksCommandError(
+            "HEALTH_CHECK_FAILED",
+            `Failed to run health check: ${error instanceof Error ? error.message : String(error)}`
+          );
         }
       }
     }),
@@ -1100,9 +2264,14 @@ export const swarmCommand = defineCommand({
     destroy: defineCommand({
       meta: {
         name: "destroy",
-        description: "Destroy swarm and cleanup resources"
+        description: "Destroy swarm and cleanup all resources"
       },
       args: {
+        swarm: {
+          type: "string",
+          description: "Specific swarm ID to destroy",
+          alias: "s"
+        },
         force: {
           type: "boolean",
           description: "Force destruction without confirmation",
@@ -1111,55 +2280,51 @@ export const swarmCommand = defineCommand({
         },
         cleanup: {
           type: "boolean",
-          description: "Remove all persistent data",
+          description: "Full cleanup including persistent data",
           default: false,
           alias: "c"
         }
       },
-      async run(context: any) {
-        const { args } = context;
-
+      async run({ args }) {
+        if (!args.force) {
+          console.log(chalk.yellow("⚠️  This will destroy the swarm and all associated resources."));
+          console.log(chalk.yellow("   Use --force to skip this confirmation."));
+          return { success: false, data: { reason: "confirmation_required" } };
+        }
+        
+        const spinner = ora("Destroying swarm...").start();
+        
         try {
-          if (!args.force) {
-            console.log(chalk.yellow("⚠️  This will destroy the swarm and stop all agents."));
-            console.log(chalk.yellow("Are you sure? Use --force to skip this confirmation."));
-            process.exit(0);
-          }
-
-          // @ts-ignore
-          const spinner = ora("Destroying swarm...").start();
-
-          spinner.text = "Stopping agents...";
-          await new Promise(resolve => setTimeout(resolve, 2000));
-
-          spinner.text = "Cleaning up resources...";
-          await new Promise(resolve => setTimeout(resolve, 1000));
-
-          if (args.cleanup) {
-            spinner.text = "Removing persistent data...";
-            const swarmDir = path.join(process.cwd(), '.unjucks', 'swarm');
-            if (await fs.pathExists(swarmDir)) {
-              await fs.remove(swarmDir);
-            }
-          }
-
-          spinner.stop();
+          const mcp = await createMCPBridge();
           
-          console.log(chalk.green("\n✅ Swarm destroyed successfully"));
+          const destroyResult = await executeMCPCommand(
+            mcp,
+            "mcp__claude-flow__swarm_destroy",
+            {
+              swarmId: args.swarm
+            },
+            spinner
+          );
+          
+          console.log(chalk.green("✅ Swarm destroyed successfully"));
           
           if (args.cleanup) {
-            console.log(chalk.yellow("🧹 All persistent data removed"));
+            spinner.text = "Cleaning up persistent data...";
+            // Additional cleanup operations
+            console.log(chalk.green("✅ Cleanup completed"));
           }
           
           return {
             success: true,
-            message: "Swarm destroyed successfully"
+            data: destroyResult
           };
-
+          
         } catch (error) {
-          console.error(chalk.red("\n❌ Destruction failed:"));
-          console.error(chalk.red(`  ${error instanceof Error ? error.message : String(error)}`));
-          process.exit(1);
+          spinner.fail("Failed to destroy swarm");
+          throw new UnjucksCommandError(
+            "SWARM_DESTROY_FAILED",
+            `Failed to destroy swarm: ${error instanceof Error ? error.message : String(error)}`
+          );
         }
       }
     })

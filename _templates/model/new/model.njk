@@ -1,0 +1,4 @@
+---
+to: "{{ name | pascalCase }}.ts"
+---
+export interface {{ name | pascalCase }} { id: {{ idType | default("string") }}; }

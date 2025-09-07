@@ -13,9 +13,11 @@ import { migrateCommand } from "./commands/migrate.js";
 
 // Import NEW enhanced commands
 import { swarmCommand } from "./commands/swarm.js";
-import { workflowCommand } from "./commands/workflow.js";
+import workflowCommand from "./commands/workflow.js";
 import { perfCommand } from "./commands/perf.js";
 import { githubCommand } from "./commands/github.js";
+import { knowledgeCommand } from "./commands/knowledge.js";
+import { neuralCommand } from "./commands/neural.js";
 
 // Get package version from package.json (production ready)
 function getVersion(): string {
@@ -40,7 +42,7 @@ const preprocessArgs = () => {
   }
   
   // Don't transform if already using explicit commands
-  if (['generate', 'list', 'init', 'inject', 'version', 'help', 'semantic', 'swarm', 'workflow', 'perf', 'github', 'migrate'].includes(firstArg)) {
+  if (['generate', 'list', 'init', 'inject', 'version', 'help', 'semantic', 'swarm', 'workflow', 'perf', 'github', 'knowledge', 'neural', 'migrate'].includes(firstArg)) {
     return rawArgs;
   }
   
@@ -102,6 +104,8 @@ const main = defineCommand({
     workflow: workflowCommand,
     perf: perfCommand,
     github: githubCommand,
+    knowledge: knowledgeCommand,
+    neural: neuralCommand,
     migrate: migrateCommand,
   },
   run({ args }: { args: any }) {
@@ -131,6 +135,8 @@ const main = defineCommand({
       console.log(chalk.gray("  workflow  Automated development workflow management"));
       console.log(chalk.gray("  perf      Performance analysis and optimization tools"));
       console.log(chalk.gray("  github    GitHub integration and repository management"));
+      console.log(chalk.gray("  knowledge RDF/OWL ontology and semantic knowledge management"));
+      console.log(chalk.gray("  neural    AI/ML neural network training and inference"));
       console.log(chalk.gray("  migrate   Database and project migration utilities"));
       console.log(chalk.gray("  version   Show version information"));
       console.log();
@@ -149,6 +155,8 @@ const main = defineCommand({
       console.log(chalk.gray("  unjucks workflow create --name api-dev # Create development workflow"));
       console.log(chalk.gray("  unjucks perf benchmark --suite all    # Run performance benchmarks"));
       console.log(chalk.gray("  unjucks github analyze --repo owner/repo # Analyze repository"));
+      console.log(chalk.gray("  unjucks knowledge load schema.owl --validate # Load and validate ontology"));
+      console.log(chalk.gray("  unjucks neural train --architecture transformer --tier small # Train neural model"));
       return;
     }
 
@@ -171,6 +179,8 @@ const main = defineCommand({
     console.log(chalk.gray("  workflow  Automated development workflow management"));
     console.log(chalk.gray("  perf      Performance analysis and optimization tools"));
     console.log(chalk.gray("  github    GitHub integration and repository management"));
+    console.log(chalk.gray("  knowledge RDF/OWL ontology and semantic knowledge management"));
+    console.log(chalk.gray("  neural    AI/ML neural network training and inference"));
     console.log(chalk.gray("  migrate   Database and project migration utilities"));
     console.log(chalk.gray("  version   Show version information"));
     console.log();
@@ -185,6 +195,8 @@ const main = defineCommand({
     console.log(chalk.gray("  unjucks workflow create --name api-dev # Create development workflow"));
     console.log(chalk.gray("  unjucks perf benchmark --suite all    # Run performance benchmarks"));
     console.log(chalk.gray("  unjucks github analyze --repo owner/repo # Analyze repository"));
+    console.log(chalk.gray("  unjucks knowledge load schema.owl --validate # Load and validate ontology"));
+    console.log(chalk.gray("  unjucks neural train --architecture transformer --tier small # Train neural model"));
     console.log();
     console.log(chalk.gray("Use --help with any command for more information."));
   },

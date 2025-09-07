@@ -1,0 +1,22 @@
+---
+to: "{{ dest }}/{{ name | pascalCase }}.tsx"
+---
+import React from 'react';
+
+interface {{ name | pascalCase }}Props {
+  className?: string;
+  children?: React.ReactNode;
+}
+
+export const {{ name | pascalCase }}: React.FC<{{ name | pascalCase }}Props> = ({
+  className,
+  children
+}) => {
+  return (
+    <div className={className}>
+      {children}
+    </div>
+  );
+};
+
+export default {{ name | pascalCase }};

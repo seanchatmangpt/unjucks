@@ -342,7 +342,7 @@ export const listCommand = defineCommand({
             path: `_templates/${args.generator}`,
             templates: templates.map((t) => ({
               name: t.name,
-              description: t.description,
+              description: t.description || 'No description available',
               path: (t as any).path || `_templates/${args.generator}/${t.name}`,
               variables: (t as any).variables || [],
               outputs: t.files || [],
@@ -379,12 +379,12 @@ export const listCommand = defineCommand({
             const templates = await generator.listTemplates(gen.name);
             return {
               name: gen.name,
-              description: gen.description,
+              description: gen.description || 'No description available',
               category: (gen as any).category || "uncategorized",
               path: (gen as any).path || `_templates/${gen.name}`,
               templates: templates.map((t) => ({
                 name: t.name,
-                description: t.description,
+                description: t.description || 'No description available',
                 path: (t as any).path || `_templates/${gen.name}/${t.name}`,
                 variables: (t as any).variables || [],
                 outputs: t.files || [],

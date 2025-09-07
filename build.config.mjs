@@ -1,4 +1,4 @@
-import { defineBuildConfig } from "obuild/config";
+import { defineBuildConfig } from "unbuild";
 
 export default defineBuildConfig({
   entries: ["./src/index.ts", "./src/cli.ts", "./src/mcp-server.ts"],

@@ -2,7 +2,9 @@
  * Utility functions for the Unjucks MCP server
  */
 
-import { MCPError, MCPErrorCode, MCPResponse, ToolResult } from './types.js';
+import { MCPError, MCPResponse, ToolResult } from './types.js';
+export { MCPErrorCode } from './types.js';
+import { MCPErrorCode } from './types.js';
 import path from 'node:path';
 import fs from 'fs-extra';
 

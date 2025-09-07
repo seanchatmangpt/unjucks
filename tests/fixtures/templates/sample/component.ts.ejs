@@ -1,0 +1,65 @@
+---
+to: <%= h.changeCase.camel(name) %>.ts
+variables:
+  - name: Component name
+  - type: Component type (class|interface|function)
+  - withTests: Generate test files
+inject: false
+skipIf: false
+---
+<% if (type === 'interface') { %>
+export interface <%= h.changeCase.pascal(name) %> {
+  id: string;
+  name: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export type <%= h.changeCase.pascal(name) %>Create = Omit<<%= h.changeCase.pascal(name) %>, 'id' | 'createdAt' | 'updatedAt'>;
+export type <%= h.changeCase.pascal(name) %>Update = Partial<<%= h.changeCase.pascal(name) %>Create>;
+<% } else if (type === 'class') { %>
+export class <%= h.changeCase.pascal(name) %> {
+  constructor(
+    public id: string,
+    public name: string,
+    public createdAt: Date = new Date(),
+    public updatedAt: Date = new Date()
+  ) {}
+
+  update(data: Partial<Pick<<%= h.changeCase.pascal(name) %>, 'name'>>) {
+    Object.assign(this, data);
+    this.updatedAt = new Date();
+  }
+
+  toJSON() {
+    return {
+      id: this.id,
+      name: this.name,
+      createdAt: this.createdAt,
+      updatedAt: this.updatedAt
+    };
+  }
+}
+<% } else { %>
+export type <%= h.changeCase.pascal(name) %>Props = {
+  id: string;
+  name: string;
+  createdAt?: Date;
+  updatedAt?: Date;
+};
+
+export const create<%= h.changeCase.pascal(name) %> = (props: Omit<<%= h.changeCase.pascal(name) %>Props, 'createdAt' | 'updatedAt'>): <%= h.changeCase.pascal(name) %>Props => ({
+  ...props,
+  createdAt: new Date(),
+  updatedAt: new Date()
+});
+
+export const update<%= h.changeCase.pascal(name) %> = (
+  <%= h.changeCase.camel(name) %>: <%= h.changeCase.pascal(name) %>Props, 
+  updates: Partial<Pick<<%= h.changeCase.pascal(name) %>Props, 'name'>>
+): <%= h.changeCase.pascal(name) %>Props => ({
+  ...<%= h.changeCase.camel(name) %>,
+  ...updates,
+  updatedAt: new Date()
+});
+<% } %>

@@ -1107,4 +1107,3 @@ export class MCPSecurityTester {
   }
 }
 
-export { MCPTestDataFactory, MCPPerformanceProfiler, MCPTestEnvironment, MCPSecurityTester };
