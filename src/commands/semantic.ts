@@ -13,6 +13,8 @@ import { unjucksSemanticValidate } from '../mcp/tools/unjucks-semantic-validate.
 import { unjucksReasoningApply } from '../mcp/tools/unjucks-reasoning-apply.js';
 import { unjucksKnowledgeQuery } from '../mcp/tools/unjucks-knowledge-query.js';
 import type { MCPRequest } from '../mcp/types.js';
+import { handleError, ValidationError, ErrorCategory, ActionableError } from '../lib/actionable-error.js';
+import { ErrorRecovery } from '../lib/error-recovery.js';
 
 // Ontology mapping interfaces
 interface OntologyMapping {
@@ -162,9 +164,8 @@ export const semanticCommand = defineCommand({
             await watchForChanges(config, orchestrator);
           }
 
-        } catch (error: any) {
-          consola.error('Semantic generation failed:', error);
-          process.exit(1);
+        } catch (error: any) {consola.error("Semantic operation failed", error);
+handleError(error instanceof Error ? error : new Error(String(error)));
         }
       }
     }),
@@ -223,9 +224,8 @@ export const semanticCommand = defineCommand({
             consola.success('Generated validation helpers');
           }
 
-        } catch (error: any) {
-          consola.error('Type generation failed:', error);
-          process.exit(1);
+        } catch (error: any) {consola.error("Semantic operation failed", error);
+handleError(error instanceof Error ? error : new Error(String(error)));
         }
       }
     }),
@@ -297,9 +297,8 @@ export const semanticCommand = defineCommand({
           consola.log(`  npm install`);
           consola.log(`  npm run dev`);
 
-        } catch (error: any) {
-          consola.error('Scaffolding failed:', error);
-          process.exit(1);
+        } catch (error: any) {consola.error("Semantic operation failed", error);
+handleError(error instanceof Error ? error : new Error(String(error)));
         }
       }
     }),
@@ -366,12 +365,14 @@ export const semanticCommand = defineCommand({
             }
           };
 
-          const response = await unjucksSemanticValidate.execute(request);
-
-          if (response.error) {
-            consola.error('Validation failed:', response.error.message);
-            process.exit(1);
-          }
+          const response = await unjucksSemanticValidate.execute(request);if (response.error) {
+  consola.error("Operation failed", response.error.message);
+handleError(new ActionableError({
+    message: response.error.message,
+    solution: "Check the operation configuration and try again",
+    category: ErrorCategory.VALIDATION_ERROR
+  }));
+}
 
           const result = response.result;
           consola.success(`Validation completed - Score: ${result.validation.score || 'N/A'}`);
@@ -386,9 +387,8 @@ export const semanticCommand = defineCommand({
             console.log(JSON.stringify(result.validation, null, 2));
           }
 
-        } catch (error: any) {
-          consola.error('Validation failed:', error);
-          process.exit(1);
+        } catch (error: any) {consola.error("Semantic operation failed", error);
+handleError(error instanceof Error ? error : new Error(String(error)));
         }
       }
     }),
@@ -458,12 +458,14 @@ export const semanticCommand = defineCommand({
             }
           };
 
-          const response = await unjucksReasoningApply.execute(request);
-
-          if (response.error) {
-            consola.error('Reasoning failed:', response.error.message);
-            process.exit(1);
-          }
+          const response = await unjucksReasoningApply.execute(request);if (response.error) {
+  consola.error("Operation failed", response.error.message);
+handleError(new ActionableError({
+    message: response.error.message,
+    solution: "Check the operation configuration and try again",
+    category: ErrorCategory.VALIDATION_ERROR
+  }));
+}
 
           const result = response.result;
           consola.success(`Reasoning completed - ${result.inferences?.length || 0} inferences derived`);
@@ -484,9 +486,8 @@ export const semanticCommand = defineCommand({
             console.log(JSON.stringify(result.enhancedContext, null, 2));
           }
 
-        } catch (error: any) {
-          consola.error('Reasoning failed:', error);
-          process.exit(1);
+        } catch (error: any) {consola.error("Semantic operation failed", error);
+handleError(error instanceof Error ? error : new Error(String(error)));
         }
       }
     }),
@@ -535,8 +536,12 @@ export const semanticCommand = defineCommand({
         const { args } = context;
         try {
           if (!args.sparql && !args.pattern) {
-            consola.error('Either --sparql or --pattern must be provided');
-            process.exit(1);
+consola.error("Either --sparql or --pattern must be provided");
+handleError(new ActionableError({
+  message: "Command validation failed",
+  solution: "Check the error details and fix the underlying issue",
+  category: ErrorCategory.RUNTIME_ERROR
+}));
           }
 
           consola.start('Executing knowledge query...');
@@ -573,12 +578,14 @@ export const semanticCommand = defineCommand({
             }
           };
 
-          const response = await unjucksKnowledgeQuery.execute(request);
-
-          if (response.error) {
-            consola.error('Query failed:', response.error.message);
-            process.exit(1);
-          }
+          const response = await unjucksKnowledgeQuery.execute(request);if (response.error) {
+  consola.error("Operation failed", response.error.message);
+handleError(new ActionableError({
+    message: response.error.message,
+    solution: "Check the operation configuration and try again",
+    category: ErrorCategory.VALIDATION_ERROR
+  }));
+}
 
           const result = response.result;
           consola.success(`Query completed - ${result.resultCount} results found`);
@@ -598,9 +605,8 @@ export const semanticCommand = defineCommand({
             });
           }
 
-        } catch (error: any) {
-          consola.error('Query failed:', error);
-          process.exit(1);
+        } catch (error: any) {consola.error("Semantic operation failed", error);
+handleError(error instanceof Error ? error : new Error(String(error)));
         }
       }
     }),
@@ -701,9 +707,8 @@ export const semanticCommand = defineCommand({
             }
           }
 
-        } catch (error: any) {
-          consola.error('Conversion failed:', error);
-          process.exit(1);
+        } catch (error: any) {consola.error("Semantic operation failed", error);
+handleError(error instanceof Error ? error : new Error(String(error)));
         }
       }
     }),
@@ -865,9 +870,8 @@ export const semanticCommand = defineCommand({
             JSON.stringify(summary, null, 2)
           );
 
-        } catch (error: any) {
-          consola.error('Workflow orchestration failed:', error);
-          process.exit(1);
+        } catch (error: any) {consola.error("Semantic operation failed", error);
+handleError(error instanceof Error ? error : new Error(String(error)));
         }
       }
     }),
@@ -992,9 +996,8 @@ export const semanticCommand = defineCommand({
             // Periodic health check
           }, Number(args.interval) * 1000);
 
-        } catch (error: any) {
-          consola.error('Monitor setup failed:', error);
-          process.exit(1);
+        } catch (error: any) {consola.error("Semantic operation failed", error);
+handleError(error instanceof Error ? error : new Error(String(error)));
         }
       }
     }),
@@ -1055,8 +1058,12 @@ export const semanticCommand = defineCommand({
           }
 
           if (testFiles.length === 0) {
-            consola.error('No test files found in dataset');
-            process.exit(1);
+consola.error("No test files found in dataset");
+handleError(new ActionableError({
+  message: "Command validation failed",
+  solution: "Check the error details and fix the underlying issue",
+  category: ErrorCategory.RUNTIME_ERROR
+}));
           }
 
           consola.info(`Found ${testFiles.length} test files`);
@@ -1111,8 +1118,12 @@ export const semanticCommand = defineCommand({
           const executionTimes = successfulResults.map(r => r.executionTime);
           
           if (executionTimes.length === 0) {
-            consola.error('No successful benchmark iterations');
-            process.exit(1);
+consola.error("No successful benchmark iterations");
+handleError(new ActionableError({
+  message: "Command validation failed",
+  solution: "Check the error details and fix the underlying issue",
+  category: ErrorCategory.RUNTIME_ERROR
+}));
           }
 
           const stats_calc = {
@@ -1156,9 +1167,8 @@ export const semanticCommand = defineCommand({
             consola.success(`Detailed results saved to: ${args.output}`);
           }
 
-        } catch (error: any) {
-          consola.error('Benchmark failed:', error);
-          process.exit(1);
+        } catch (error: any) {consola.error("Semantic operation failed", error);
+handleError(error instanceof Error ? error : new Error(String(error)));
         }
       }
     }),
@@ -1255,9 +1265,8 @@ export const semanticCommand = defineCommand({
             `Threshold: ${args.threshold}`
           );
 
-        } catch (error: any) {
-          consola.error('Ontology mapping failed:', error);
-          process.exit(1);
+        } catch (error: any) {consola.error("Semantic operation failed", error);
+handleError(error instanceof Error ? error : new Error(String(error)));
         }
       }
     }),
@@ -1324,12 +1333,14 @@ export const semanticCommand = defineCommand({
             }
           };
 
-          const response = await executeSemanticMCPTool('rdf_import', request);
-          
-          if (response.error) {
-            consola.error('Import failed:', response.error.message);
-            process.exit(1);
-          }
+          const response = await executeSemanticMCPTool('rdf_import', request);if (response.error) {
+  consola.error("Operation failed", response.error.message);
+handleError(new ActionableError({
+    message: response.error.message,
+    solution: "Check the operation configuration and try again",
+    category: ErrorCategory.VALIDATION_ERROR
+  }));
+}
 
           const result = response.result;
           consola.success(`Imported ${result.triplesCount} triples from ${args.source}`);
@@ -1343,9 +1354,8 @@ export const semanticCommand = defineCommand({
 
           consola.info(`Data saved to: ${args.output}`);
 
-        } catch (error: any) {
-          consola.error('Import failed:', error);
-          process.exit(1);
+        } catch (error: any) {consola.error("Semantic operation failed", error);
+handleError(error instanceof Error ? error : new Error(String(error)));
         }
       }
     }),
@@ -1410,12 +1420,14 @@ export const semanticCommand = defineCommand({
             }
           };
 
-          const response = await executeSemanticMCPTool('rdf_export', request);
-          
-          if (response.error) {
-            consola.error('Export failed:', response.error.message);
-            process.exit(1);
-          }
+          const response = await executeSemanticMCPTool('rdf_export', request);if (response.error) {
+  consola.error("Operation failed", response.error.message);
+handleError(new ActionableError({
+    message: response.error.message,
+    solution: "Check the operation configuration and try again",
+    category: ErrorCategory.VALIDATION_ERROR
+  }));
+}
 
           const result = response.result;
           consola.success(`Exported ${result.triplesCount} triples in ${result.format} format`);
@@ -1427,9 +1439,8 @@ export const semanticCommand = defineCommand({
             });
           }
 
-        } catch (error: any) {
-          consola.error('Export failed:', error);
-          process.exit(1);
+        } catch (error: any) {consola.error("Semantic operation failed", error);
+handleError(error instanceof Error ? error : new Error(String(error)));
         }
       }
     }),
@@ -1483,19 +1494,20 @@ export const semanticCommand = defineCommand({
             }
           };
 
-          const response = await executeSemanticMCPTool('rdf_merge', request);
-          
-          if (response.error) {
-            consola.error('Merge failed:', response.error.message);
-            process.exit(1);
-          }
+          const response = await executeSemanticMCPTool('rdf_merge', request);if (response.error) {
+  consola.error("Operation failed", response.error.message);
+handleError(new ActionableError({
+    message: response.error.message,
+    solution: "Check the operation configuration and try again",
+    category: ErrorCategory.VALIDATION_ERROR
+  }));
+}
 
           const result = response.result;
           consola.success(`Merged ${result.inputTriples} triples into ${result.outputTriples} unique triples`);
 
-        } catch (error: any) {
-          consola.error('Merge failed:', error);
-          process.exit(1);
+        } catch (error: any) {consola.error("Semantic operation failed", error);
+handleError(error instanceof Error ? error : new Error(String(error)));
         }
       }
     }),
@@ -1541,12 +1553,14 @@ export const semanticCommand = defineCommand({
             }
           };
 
-          const response = await executeSemanticMCPTool('rdf_diff', request);
-          
-          if (response.error) {
-            consola.error('Diff failed:', response.error.message);
-            process.exit(1);
-          }
+          const response = await executeSemanticMCPTool('rdf_diff', request);if (response.error) {
+  consola.error("Operation failed", response.error.message);
+handleError(new ActionableError({
+    message: response.error.message,
+    solution: "Check the operation configuration and try again",
+    category: ErrorCategory.VALIDATION_ERROR
+  }));
+}
 
           const result = response.result;
           
@@ -1556,9 +1570,8 @@ export const semanticCommand = defineCommand({
             `Similarity: ${(result.similarity * 100).toFixed(1)}%`
           );
 
-        } catch (error: any) {
-          consola.error('Diff failed:', error);
-          process.exit(1);
+        } catch (error: any) {consola.error("Semantic operation failed", error);
+handleError(error instanceof Error ? error : new Error(String(error)));
         }
       }
     }),
@@ -1604,19 +1617,20 @@ export const semanticCommand = defineCommand({
             }
           };
 
-          const response = await executeSemanticMCPTool('ontology_create', request);
-          
-          if (response.error) {
-            consola.error('Ontology creation failed:', response.error.message);
-            process.exit(1);
-          }
+          const response = await executeSemanticMCPTool('ontology_create', request);if (response.error) {
+  consola.error("Operation failed", response.error.message);
+handleError(new ActionableError({
+    message: response.error.message,
+    solution: "Check the operation configuration and try again",
+    category: ErrorCategory.VALIDATION_ERROR
+  }));
+}
 
           const result = response.result;
           consola.success(`Created ontology with ${result.classesCount} classes and ${result.propertiesCount} properties`);
 
-        } catch (error: any) {
-          consola.error('Ontology creation failed:', error);
-          process.exit(1);
+        } catch (error: any) {consola.error("Semantic operation failed", error);
+handleError(error instanceof Error ? error : new Error(String(error)));
         }
       }
     }),
@@ -1663,19 +1677,20 @@ export const semanticCommand = defineCommand({
             }
           };
 
-          const response = await executeSemanticMCPTool('reasoning_infer', request);
-          
-          if (response.error) {
-            consola.error('Inference failed:', response.error.message);
-            process.exit(1);
-          }
+          const response = await executeSemanticMCPTool('reasoning_infer', request);if (response.error) {
+  consola.error("Operation failed", response.error.message);
+handleError(new ActionableError({
+    message: response.error.message,
+    solution: "Check the operation configuration and try again",
+    category: ErrorCategory.VALIDATION_ERROR
+  }));
+}
 
           const result = response.result;
           consola.success(`Generated ${result.inferredTriples} new inferences`);
 
-        } catch (error: any) {
-          consola.error('Inference failed:', error);
-          process.exit(1);
+        } catch (error: any) {consola.error("Semantic operation failed", error);
+handleError(error instanceof Error ? error : new Error(String(error)));
         }
       }
     }),
@@ -1714,18 +1729,19 @@ export const semanticCommand = defineCommand({
             }
           };
 
-          const response = await executeSemanticMCPTool('federation_setup', request);
-          
-          if (response.error) {
-            consola.error('Federation setup failed:', response.error.message);
-            process.exit(1);
-          }
+          const response = await executeSemanticMCPTool('federation_setup', request);if (response.error) {
+  consola.error("Operation failed", response.error.message);
+handleError(new ActionableError({
+    message: response.error.message,
+    solution: "Check the operation configuration and try again",
+    category: ErrorCategory.VALIDATION_ERROR
+  }));
+}
 
           consola.success(`Federation server started on port ${args.port}`);
 
-        } catch (error: any) {
-          consola.error('Federation setup failed:', error);
-          process.exit(1);
+        } catch (error: any) {consola.error("Semantic operation failed", error);
+handleError(error instanceof Error ? error : new Error(String(error)));
         }
       }
     }),
@@ -1772,19 +1788,20 @@ export const semanticCommand = defineCommand({
             }
           };
 
-          const response = await executeSemanticMCPTool('analytics', request);
-          
-          if (response.error) {
-            consola.error('Analytics failed:', response.error.message);
-            process.exit(1);
-          }
+          const response = await executeSemanticMCPTool('analytics', request);if (response.error) {
+  consola.error("Operation failed", response.error.message);
+handleError(new ActionableError({
+    message: response.error.message,
+    solution: "Check the operation configuration and try again",
+    category: ErrorCategory.VALIDATION_ERROR
+  }));
+}
 
           const result = response.result;
           consola.success(`Analytics completed - processed ${result.recordsProcessed} records`);
 
-        } catch (error: any) {
-          consola.error('Analytics failed:', error);
-          process.exit(1);
+        } catch (error: any) {consola.error("Semantic operation failed", error);
+handleError(error instanceof Error ? error : new Error(String(error)));
         }
       }
     }),
@@ -1881,9 +1898,8 @@ export const semanticCommand = defineCommand({
           const summary = generatePerformanceSummary(performanceResults);
           consola.box('Performance Summary', summary);
 
-        } catch (error: any) {
-          consola.error('Performance analysis failed:', error);
-          process.exit(1);
+        } catch (error: any) {consola.error("Semantic operation failed", error);
+handleError(error instanceof Error ? error : new Error(String(error)));
         }
       }
     })

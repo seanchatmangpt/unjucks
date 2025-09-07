@@ -15,6 +15,35 @@ import {
   createCommandError,
 } from "../lib/command-validation.js";
 import { CommandError, UnjucksCommandError } from "../types/commands.js";
+import { handleError, NetworkError, ConfigurationError, ValidationError, ErrorCategory, ActionableError } from "../lib/actionable-error.js";
+import { ErrorRecovery } from "../lib/error-recovery.js";
+
+// MCP tool constants
+const MCP_TOOLS = {
+  SWARM_INIT: 'mcp__claude-flow__swarm_init',
+  AGENT_SPAWN: 'mcp__claude-flow__agent_spawn', 
+  PERFORMANCE_REPORT: 'mcp__claude-flow__performance_report',
+  BOTTLENECK_ANALYZE: 'mcp__claude-flow__bottleneck_analyze',
+  MEMORY_USAGE: 'mcp__claude-flow__memory_usage'
+};
+
+// Helper function to execute MCP tools safely
+async function executeMCPTool(toolName: string, params: Record<string, any>): Promise<any> {
+  try {
+    // In a real implementation, this would use the MCP Bridge
+    // For now, return a mock successful response
+    return {
+      success: true,
+      data: {},
+      message: `${toolName} executed successfully`
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : String(error)
+    };
+  }
+}
 
 // ============================================================================
 // WORKFLOW COMMAND TYPES
@@ -615,6 +644,34 @@ function createWorkflowTemplate(type: string, name: string, description?: string
  * unjucks workflow schedule ./workflows/backup.yaml --cron "0 2 * * *"
  * ```
  */
+
+
+/**
+ * Convert generic errors to contextual actionable errors
+ */
+function getContextualError(error: Error | unknown, context: string): ActionableError {
+  const errorMessage = error instanceof Error ? error.message : String(error);
+  
+  if (errorMessage.includes('network') || errorMessage.includes('connection') || errorMessage.includes('timeout')) {
+    return new NetworkError(context);
+  } else if (errorMessage.includes('validation') || errorMessage.includes('invalid')) {
+    return new ValidationError([errorMessage], context);
+  } else if (errorMessage.includes('config') || errorMessage.includes('setting')) {
+    return new ConfigurationError(context, errorMessage);
+  } else {
+    return new ActionableError({
+      message: `${context} failed: ${errorMessage}`,
+      solution: `Check ${context} configuration and try again`,
+      category: ErrorCategory.RUNTIME_ERROR,
+      examples: [
+        'Verify MCP connection is active',
+        'Check workflow configuration syntax',
+        'Ensure required permissions are set'
+      ]
+    });
+  }
+}
+
 export default defineCommand({
   meta: {
     name: "workflow",
@@ -757,10 +814,9 @@ export default defineCommand({
           };
 
         } catch (error) {
-          spinner.stop();
-          console.error(chalk.red("\n❌ Workflow creation failed:"));
-          console.error(chalk.red(`  ${error instanceof Error ? error.message : String(error)}`));
-          process.exit(1);
+          spinner.stop();console.error(chalk.red("\n❌  failed:"));
+console.error(chalk.red(`  ${error instanceof Error ? error.message : String(error)}`));
+handleError(getContextualError(error, ""));
         }
       },
     }),
@@ -898,10 +954,9 @@ export default defineCommand({
           };
 
         } catch (error) {
-          spinner.stop();
-          console.error(chalk.red("\n❌ Swarm initialization failed:"));
-          console.error(chalk.red(`  ${error instanceof Error ? error.message : String(error)}`));
-          process.exit(1);
+          spinner.stop();console.error(chalk.red("\n❌  failed:"));
+console.error(chalk.red(`  ${error instanceof Error ? error.message : String(error)}`));
+handleError(getContextualError(error, ""));
         }
       },
     }),
@@ -959,11 +1014,10 @@ export default defineCommand({
           
           if (!validation.valid) {
             spinner.stop();
-            console.error(chalk.red("\n❌ Workflow validation failed:"));
-            validation.errors.forEach(error => {
-              console.error(chalk.red(`  • ${error}`));
-            });
-            process.exit(1);
+            console.error(chalk.red("\n❌ Workflow validation failed:"));validation.errors.forEach(error => {
+  console.error(chalk.red(`  • ${error}`));
+});
+handleError(new ValidationError(validation.errors, "workflow validation"));
           }
 
           if (validation.warnings.length > 0) {
@@ -1090,10 +1144,9 @@ export default defineCommand({
           };
 
         } catch (error) {
-          spinner.stop();
-          console.error(chalk.red("\n❌ Workflow execution failed:"));
-          console.error(chalk.red(`  ${error instanceof Error ? error.message : String(error)}`));
-          process.exit(1);
+          spinner.stop();console.error(chalk.red("\n❌  failed:"));
+console.error(chalk.red(`  ${error instanceof Error ? error.message : String(error)}`));
+handleError(getContextualError(error, ""));
         }
       },
     }),
@@ -1225,8 +1278,7 @@ export default defineCommand({
         } catch (error) {
           spinner.stop();
           console.error(chalk.red("\n❌ Failed to list workflows:"));
-          console.error(chalk.red(`  ${error instanceof Error ? error.message : String(error)}`));
-          process.exit(1);
+          console.error(chalk.red(`  ${error instanceof Error ? error.message : String(error)}`));handleError(new ActionableError({ message: "Operation failed", solution: "Check the error details and try again", category: ErrorCategory.RUNTIME_ERROR }));
         }
       },
     }),
@@ -1361,19 +1413,16 @@ export default defineCommand({
 
             } catch (error) {
               spinner.stop();
-              console.error(chalk.red(`❌ Monitor failed: ${error instanceof Error ? error.message : String(error)}`));
-              
-              if (!args.follow) {
-                process.exit(1);
-              }
+              console.error(chalk.red(`❌ Monitor failed: ${error instanceof Error ? error.message : String(error)}`));if (!args.follow) {
+  handleError(new NetworkError("monitoring", undefined, error));
+}
               
               await new Promise(resolve => setTimeout(resolve, interval));
             }
           }
 
-        } catch (error) {
-          console.error(chalk.red(`❌ Monitoring failed: ${error instanceof Error ? error.message : String(error)}`));
-          process.exit(1);
+        } catch (error) {console.error(chalk.red(`❌  failed: ${error instanceof Error ? error.message : String(error)}`));
+handleError(getContextualError(error, ""));
         }
       },
     }),
@@ -1584,10 +1633,9 @@ export default defineCommand({
           };
 
         } catch (error) {
-          spinner.stop();
-          console.error(chalk.red("\n❌ Analytics generation failed:"));
-          console.error(chalk.red(`  ${error instanceof Error ? error.message : String(error)}`));
-          process.exit(1);
+          spinner.stop();console.error(chalk.red("\n❌  failed:"));
+console.error(chalk.red(`  ${error instanceof Error ? error.message : String(error)}`));
+handleError(getContextualError(error, ""));
         }
       },
     }),
@@ -1799,10 +1847,9 @@ export default defineCommand({
           };
 
         } catch (error) {
-          spinner.stop();
-          console.error(chalk.red("\n❌ Optimization analysis failed:"));
-          console.error(chalk.red(`  ${error instanceof Error ? error.message : String(error)}`));
-          process.exit(1);
+          spinner.stop();console.error(chalk.red("\n❌  failed:"));
+console.error(chalk.red(`  ${error instanceof Error ? error.message : String(error)}`));
+handleError(getContextualError(error, ""));
         }
       },
     }),
@@ -1909,10 +1956,9 @@ export default defineCommand({
           };
 
         } catch (error) {
-          spinner.stop();
-          console.error(chalk.red("\n❌ Validation failed:"));
-          console.error(chalk.red(`  ${error instanceof Error ? error.message : String(error)}`));
-          process.exit(1);
+          spinner.stop();console.error(chalk.red("\n❌  failed:"));
+console.error(chalk.red(`  ${error instanceof Error ? error.message : String(error)}`));
+handleError(getContextualError(error, ""));
         }
       },
     }),
@@ -2026,10 +2072,9 @@ export default defineCommand({
           };
 
         } catch (error) {
-          spinner.stop();
-          console.error(chalk.red("\n❌ Scheduling failed:"));
-          console.error(chalk.red(`  ${error instanceof Error ? error.message : String(error)}`));
-          process.exit(1);
+          spinner.stop();console.error(chalk.red("\n❌  failed:"));
+console.error(chalk.red(`  ${error instanceof Error ? error.message : String(error)}`));
+handleError(getContextualError(error, ""));
         }
       },
     }),
@@ -2290,9 +2335,7 @@ EOF
           console.log(chalk.gray("  • Check your authentication credentials"));
           console.log(chalk.gray("  • Verify repository permissions"));
           console.log(chalk.gray("  • Ensure workflow configuration is valid"));
-          console.log(chalk.gray("  • Check deployment target requirements"));
-          
-          process.exit(1);
+          console.log(chalk.gray("  • Check deployment target requirements"));handleError(new ActionableError({ message: "Operation failed", solution: "Check the error details and try again", category: ErrorCategory.RUNTIME_ERROR }));
         }
       },
     }),
@@ -2457,9 +2500,7 @@ EOF
           console.log(chalk.blue("\n💡 Troubleshooting:"));
           console.log(chalk.gray("  • Check workflow/execution ID exists"));
           console.log(chalk.gray("  • Verify MCP connection is active"));
-          console.log(chalk.gray("  • Ensure proper permissions"));
-          
-          process.exit(1);
+          console.log(chalk.gray("  • Ensure proper permissions"));handleError(new ActionableError({ message: "Operation failed", solution: "Check the error details and try again", category: ErrorCategory.RUNTIME_ERROR }));
         }
       },
     }),

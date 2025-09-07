@@ -22,6 +22,7 @@ import {
   createCommandError,
 } from "../lib/command-validation.js";
 import { CommandError, UnjucksCommandError } from "../types/commands.js";
+import { handleError, ConfigurationError, ValidationError, ErrorCategory, ActionableError } from "../lib/actionable-error.js";
 
 // ============================================================================
 // KNOWLEDGE COMMAND TYPES
@@ -710,8 +711,7 @@ export const knowledgeCommand = defineCommand({
         } catch (error) {
           spinner.stop();
           console.error(chalk.red("\n❌ Ontology loading failed:"));
-          console.error(chalk.red(`  ${error instanceof Error ? error.message : String(error)}`));
-          process.exit(1);
+          console.error(chalk.red(`  ${error instanceof Error ? error.message : String(error)}`));handleError(new ActionableError({ message: "Operation failed", solution: "Check the error details and try again", category: ErrorCategory.RUNTIME_ERROR }));
         }
       },
     }),
@@ -840,8 +840,7 @@ export const knowledgeCommand = defineCommand({
         } catch (error) {
           spinner.stop();
           console.error(chalk.red("\n❌ Query execution failed:"));
-          console.error(chalk.red(`  ${error instanceof Error ? error.message : String(error)}`));
-          process.exit(1);
+          console.error(chalk.red(`  ${error instanceof Error ? error.message : String(error)}`));handleError(new ActionableError({ message: "Operation failed", solution: "Check the error details and try again", category: ErrorCategory.RUNTIME_ERROR }));
         }
       },
     }),
@@ -997,8 +996,7 @@ export const knowledgeCommand = defineCommand({
         } catch (error) {
           spinner.stop();
           console.error(chalk.red("\n❌ Validation failed:"));
-          console.error(chalk.red(`  ${error instanceof Error ? error.message : String(error)}`));
-          process.exit(1);
+          console.error(chalk.red(`  ${error instanceof Error ? error.message : String(error)}`));handleError(new ActionableError({ message: "Operation failed", solution: "Check the error details and try again", category: ErrorCategory.RUNTIME_ERROR }));
         }
       },
     }),
@@ -1114,8 +1112,7 @@ export const knowledgeCommand = defineCommand({
         } catch (error) {
           spinner.stop();
           console.error(chalk.red("\n❌ Reasoning failed:"));
-          console.error(chalk.red(`  ${error instanceof Error ? error.message : String(error)}`));
-          process.exit(1);
+          console.error(chalk.red(`  ${error instanceof Error ? error.message : String(error)}`));handleError(new ActionableError({ message: "Operation failed", solution: "Check the error details and try again", category: ErrorCategory.RUNTIME_ERROR }));
         }
       },
     }),
@@ -1245,8 +1242,7 @@ export const knowledgeCommand = defineCommand({
         } catch (error) {
           spinner.stop();
           console.error(chalk.red("\n❌ Statistics gathering failed:"));
-          console.error(chalk.red(`  ${error instanceof Error ? error.message : String(error)}`));
-          process.exit(1);
+          console.error(chalk.red(`  ${error instanceof Error ? error.message : String(error)}`));handleError(new ActionableError({ message: "Operation failed", solution: "Check the error details and try again", category: ErrorCategory.RUNTIME_ERROR }));
         }
       },
     }),
@@ -1339,8 +1335,7 @@ export const knowledgeCommand = defineCommand({
         } catch (error) {
           spinner.stop();
           console.error(chalk.red("\n❌ Export failed:"));
-          console.error(chalk.red(`  ${error instanceof Error ? error.message : String(error)}`));
-          process.exit(1);
+          console.error(chalk.red(`  ${error instanceof Error ? error.message : String(error)}`));handleError(new ActionableError({ message: "Operation failed", solution: "Check the error details and try again", category: ErrorCategory.RUNTIME_ERROR }));
         }
       },
     }),

@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * SHACL Validator - Validates RDF/TTL data against SHACL shapes
  * Production-ready SHACL validation with comprehensive constraint checking

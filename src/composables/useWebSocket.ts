@@ -1,4 +1,3 @@
-// @ts-nocheck
 interface WebSocketMessage {
   type: string
   payload: any

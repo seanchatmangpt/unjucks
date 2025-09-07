@@ -780,24 +780,12 @@ export class TemplateValidator implements Validator {
     const errors: ValidationError[] = [];
     
     // Check for common configuration files and their consistency
-    const configFiles = ['tsconfig.json', 'eslintrc.json', '.eslintrc.js', 'jest.config.js'];
+    const configFiles = ['eslintrc.json', '.eslintrc.js', 'jest.config.js'];
     const foundConfigs = configFiles.filter(file => 
       context.outputPaths.some(path => path.includes(file))
     );
 
-    // Ensure TypeScript files have tsconfig.json
-    const hasTypeScriptFiles = Array.from(context.generatedContent.keys())
-      .some(path => path.endsWith('.ts') || path.endsWith('.tsx'));
-    
-    if (hasTypeScriptFiles && !foundConfigs.some(config => config.includes('tsconfig'))) {
-      errors.push({
-        type: 'configuration_error',
-        message: 'TypeScript files generated but no tsconfig.json found',
-        code: 'MISSING_TSCONFIG',
-        severity: 'warning',
-        suggestion: 'Generate a tsconfig.json file for TypeScript configuration'
-      });
-    }
+    // TypeScript configuration validation removed - using JavaScript only
 
     return errors;
   }

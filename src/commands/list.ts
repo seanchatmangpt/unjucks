@@ -12,7 +12,6 @@ import type {
   GeneratorInfo as CommandGeneratorInfo,
 } from "../types/commands.js";
 import { CommandError, UnjucksCommandError } from "../types/commands.js";
-// @ts-ignore
 import Table from "cli-table3";
 import * as yaml from "yaml";
 import type {
@@ -100,7 +99,6 @@ function outputTableFormat(
     const gen = generators[0];
     if (!gen) return;
 
-    // @ts-ignore - CLI table import issue
     const table = new Table({
       head: args.detailed
         ? ["Template", "Description", "Variables", "Outputs"]
@@ -142,7 +140,6 @@ function outputTableFormat(
     }
   } else {
     // Generator listing mode
-    // @ts-ignore - CLI table import issue
     const table = new Table({
       head: args.detailed
         ? ["Generator", "Description", "Templates", "Category", "Usage"]
@@ -517,7 +514,14 @@ export const listCommand = defineCommand({
         console.log(chalk.blue("  • Run with --verbose for more details"));
       }
 
-      process.exit(1);
+      // Use error recovery instead of abrupt exit
+      const { errorRecovery } = await import("../lib/error-recovery.js");
+      errorRecovery.handleError({
+        command: "list",
+        args: Object.keys(args),
+        error: error,
+        context: "list"
+      }, { verbose: args.verbose, showSuggestions: true, showNextSteps: true });
     }
   },
 });

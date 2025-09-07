@@ -6,7 +6,6 @@ templates:
     files:
       - "cli.ts"
       - "package.json"
-      - "tsconfig.json"
     prompts:
       - name: cliName
         message: "CLI application name:"

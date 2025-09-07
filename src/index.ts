@@ -1,4 +1,4 @@
-// @ts-nocheck// Main entry point - Unjucks generator library
+// Main entry point - Unjucks generator library
 export * from './lib/generator';
 export * from './lib/template-scanner';
 export * from './lib/file-injector';
@@ -9,7 +9,7 @@ export * from './lib/dynamic-commands';
 // RDF/Turtle support
 export * from './lib/rdf-filters';
 export * from './lib/turtle-parser';
-// @ts-ignore - RDF export type issue
+ - RDF export type issue
 export {
   RDFDataLoader,
   loadRDFData,
@@ -20,6 +20,9 @@ export * from './lib/types/turtle-types';
 
 // CLI commands
 export * from './commands/generate';
+export * from './commands/new';
+export * from './commands/preview';
+export * from './commands/help';
 export * from './commands/list';
 export * from './commands/init';
 export * from './commands/version';

@@ -174,7 +174,6 @@ export const generateCommand = defineCommand({
   async run(context: any) {
     const { args } = context;
     const startTime = Date.now();
-    // @ts-ignore - Dynamic import compatibility issue
     const spinner = ora();
 
     try {
@@ -516,7 +515,14 @@ export const generateCommand = defineCommand({
         );
       }
 
-      process.exit(1);
+      // Use error recovery instead of abrupt exit
+      const { errorRecovery } = await import("../lib/error-recovery.js");
+      errorRecovery.handleError({
+        command: "generate",
+        args: Object.keys(args),
+        error: error,
+        context: "generate"
+      }, { verbose: args.verbose, showSuggestions: true, showNextSteps: true });
     }
   },
 });

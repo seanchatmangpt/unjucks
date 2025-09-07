@@ -145,7 +145,6 @@ export const injectCommand = defineCommand({
   async run(context: any) {
     const { args } = context;
     const startTime = Date.now();
-    // @ts-ignore - Dynamic import compatibility issue
     const spinner = ora();
 
     try {
@@ -424,9 +423,7 @@ export const injectCommand = defineCommand({
           chalk.blue("  • Use --dry to preview changes before applying")
         );
         console.log(chalk.blue("  • Run with --verbose for more details"));
-      }
-
-      process.exit(1);
+      }handleError(new ActionableError({ message: "Operation failed", solution: "Check the error details and try again", category: ErrorCategory.RUNTIME_ERROR }));
     }
   },
 });

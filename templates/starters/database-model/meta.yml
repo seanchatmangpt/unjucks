@@ -1,0 +1,59 @@
+name: "Database Model"
+description: "Database model with migrations and TypeScript interfaces"
+category: "starter"
+complexity: "intermediate"
+tags: ["database", "model", "typescript", "migration", "schema"]
+author: "Unjucks Team"
+version: "1.0.0"
+
+variables:
+  - name: modelName
+    type: string
+    description: "Name of the model (PascalCase)"
+    required: true
+    pattern: "^[A-Z][a-zA-Z0-9]*$"
+  
+  - name: tableName
+    type: string
+    description: "Database table name (plural, snake_case)"
+    required: true
+    pattern: "^[a-z_][a-z0-9_]*$"
+    
+  - name: databaseType
+    type: string
+    description: "Database type"
+    default: "postgresql"
+    choices: ["postgresql", "mysql", "sqlite", "mongodb"]
+  
+  - name: withTimestamps
+    type: boolean
+    description: "Include created_at and updated_at fields"
+    default: true
+    
+  - name: withSoftDelete
+    type: boolean
+    description: "Include soft delete functionality"
+    default: false
+    
+  - name: fields
+    type: array
+    description: "Model fields definition"
+    default: [
+      { "name": "name", "type": "string", "required": true },
+      { "name": "email", "type": "string", "unique": true },
+      { "name": "active", "type": "boolean", "default": true }
+    ]
+
+examples:
+  - "unjucks generate database-model User --tableName users --withTimestamps"
+  - "unjucks generate database-model Product --databaseType mongodb --withSoftDelete"
+  - "unjucks generate database-model Order --fields name:string,total:number,status:enum"
+
+usage: |
+  This template creates a complete database model with:
+  - TypeScript interface definitions
+  - Database migration files
+  - Model class with CRUD operations
+  - Validation schemas
+  - Index definitions
+  - Relationship mappings

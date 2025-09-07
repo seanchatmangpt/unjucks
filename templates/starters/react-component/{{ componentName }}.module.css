@@ -1,0 +1,41 @@
+---
+to: {{ componentName }}.module.css
+skipIf: "{{ cssModule === false }}"
+---
+.{{ componentName | camelCase }} {
+  /* Base styles for {{ componentName }} */
+  display: block;
+  padding: 1rem;
+  border: 1px solid #e2e2e2;
+  border-radius: 4px;
+  background-color: #ffffff;
+  font-family: inherit;
+  font-size: 1rem;
+  line-height: 1.4;
+  color: #333333;
+  transition: all 0.2s ease-in-out;
+}
+
+.{{ componentName | camelCase }}:hover {
+  border-color: #0066cc;
+  box-shadow: 0 2px 4px rgba(0, 102, 204, 0.1);
+}
+
+.{{ componentName | camelCase }}:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  background-color: #f5f5f5;
+}
+
+.{{ componentName | camelCase }}:disabled:hover {
+  border-color: #e2e2e2;
+  box-shadow: none;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .{{ componentName | camelCase }} {
+    padding: 0.75rem;
+    font-size: 0.9rem;
+  }
+}

@@ -4,6 +4,9 @@ import { defineCommand, runMain } from "citty";
 import chalk from "chalk";
 import { createDynamicGenerateCommand, createTemplateHelpCommand } from "./lib/dynamic-commands.js";
 import { generateCommand } from "./commands/generate.js";
+import { newCommand } from "./commands/new.js";
+import { previewCommand } from "./commands/preview.js";
+import { helpCommand } from "./commands/help.js";
 import { listCommand } from "./commands/list.js";
 import { initCommand } from "./commands/init.js";
 import { injectCommand } from "./commands/inject.js";
@@ -42,7 +45,7 @@ const preprocessArgs = () => {
   }
   
   // Don't transform if already using explicit commands
-  if (['generate', 'list', 'init', 'inject', 'version', 'help', 'semantic', 'swarm', 'workflow', 'perf', 'github', 'knowledge', 'neural', 'migrate'].includes(firstArg)) {
+  if (['generate', 'new', 'preview', 'list', 'init', 'inject', 'version', 'help', 'semantic', 'swarm', 'workflow', 'perf', 'github', 'knowledge', 'neural', 'migrate'].includes(firstArg)) {
     return rawArgs;
   }
   
@@ -93,12 +96,21 @@ const main = defineCommand({
     }
   },
   subCommands: {
-    generate: generateCommand, // Use the enhanced generate command
+    // PRIMARY UNIFIED COMMANDS
+    new: newCommand,        // Primary command - clear intent
+    preview: previewCommand, // Safe exploration
+    help: helpCommand,      // Context-sensitive help
+    
+    // SECONDARY COMMANDS
     list: listCommand,
     init: initCommand,
     inject: injectCommand,
     version: versionCommand,
-    help: createTemplateHelpCommand(),
+    
+    // LEGACY SUPPORT
+    generate: generateCommand, // Legacy command with deprecation warnings
+    
+    // ADVANCED FEATURES
     semantic: semanticCommand,
     swarm: swarmCommand,
     workflow: workflowCommand,

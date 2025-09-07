@@ -1,0 +1,205 @@
+{
+  "name": "unjucks-vscode",
+  "displayName": "Unjucks Template Generator",
+  "description": "AI-native semantic template generation with MCP agent coordination",
+  "version": "1.0.0",
+  "publisher": "unjucks",
+  "engines": {
+    "vscode": "^1.74.0"
+  },
+  "categories": [
+    "Other",
+    "Snippets",
+    "Programming Languages"
+  ],
+  "keywords": [
+    "templates",
+    "code-generation",
+    "ai",
+    "mcp",
+    "nunjucks",
+    "scaffolding"
+  ],
+  "icon": "media/icon.png",
+  "galleryBanner": {
+    "color": "#1e1e1e",
+    "theme": "dark"
+  },
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "unjucks.generateTemplate",
+        "title": "Generate Template",
+        "category": "Unjucks",
+        "icon": "$(add)"
+      },
+      {
+        "command": "unjucks.previewTemplate",
+        "title": "Preview Template",
+        "category": "Unjucks",
+        "icon": "$(preview)"
+      },
+      {
+        "command": "unjucks.refreshTemplates",
+        "title": "Refresh Templates",
+        "category": "Unjucks",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "unjucks.openMarketplace",
+        "title": "Browse Template Marketplace",
+        "category": "Unjucks",
+        "icon": "$(extensions)"
+      },
+      {
+        "command": "unjucks.startSwarm",
+        "title": "Start AI Swarm Generation",
+        "category": "Unjucks",
+        "icon": "$(organization)"
+      },
+      {
+        "command": "unjucks.validateCompliance",
+        "title": "Validate Compliance",
+        "category": "Unjucks",
+        "icon": "$(verified)"
+      }
+    ],
+    "views": {
+      "explorer": [
+        {
+          "id": "unjucksTemplates",
+          "name": "Unjucks Templates",
+          "when": "unjucks:enabled",
+          "icon": "$(file-code)"
+        },
+        {
+          "id": "unjucksSwarm",
+          "name": "AI Swarm Status",
+          "when": "unjucks:swarmActive",
+          "icon": "$(organization)"
+        }
+      ]
+    },
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "unjucks",
+          "title": "Unjucks",
+          "icon": "$(file-code)"
+        }
+      ]
+    },
+    "menus": {
+      "view/title": [
+        {
+          "command": "unjucks.refreshTemplates",
+          "when": "view == unjucksTemplates",
+          "group": "navigation"
+        },
+        {
+          "command": "unjucks.openMarketplace",
+          "when": "view == unjucksTemplates",
+          "group": "navigation"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "unjucks.generateTemplate",
+          "when": "view == unjucksTemplates && viewItem == template",
+          "group": "inline"
+        },
+        {
+          "command": "unjucks.previewTemplate",
+          "when": "view == unjucksTemplates && viewItem == template",
+          "group": "inline"
+        }
+      ],
+      "explorer/context": [
+        {
+          "command": "unjucks.generateTemplate",
+          "group": "unjucks",
+          "when": "explorerResourceIsFolder"
+        }
+      ],
+      "editor/context": [
+        {
+          "command": "unjucks.generateTemplate",
+          "group": "unjucks"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "Unjucks",
+      "properties": {
+        "unjucks.templatesPath": {
+          "type": "string",
+          "default": "_templates",
+          "description": "Path to templates directory relative to workspace root"
+        },
+        "unjucks.mcpEnabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable MCP agent coordination for AI-powered generation"
+        },
+        "unjucks.aiSuggestions": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable AI-powered template suggestions based on project context"
+        },
+        "unjucks.complianceChecking": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable real-time compliance validation"
+        },
+        "unjucks.previewEnabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable live template preview"
+        },
+        "unjucks.swarmMaxAgents": {
+          "type": "number",
+          "default": 5,
+          "minimum": 1,
+          "maximum": 20,
+          "description": "Maximum number of agents in swarm coordination"
+        }
+      }
+    },
+    "languages": [
+      {
+        "id": "unjucks-template",
+        "aliases": ["Unjucks Template", "njk"],
+        "extensions": [".njk", ".nunjucks"],
+        "configuration": "./syntaxes/language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "unjucks-template",
+        "scopeName": "text.html.nunjucks",
+        "path": "./syntaxes/nunjucks.tmLanguage.json"
+      }
+    ]
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.74.0",
+    "@types/node": "16.x",
+    "typescript": "^4.9.4"
+  },
+  "dependencies": {
+    "axios": "^1.6.0",
+    "chokidar": "^3.5.3",
+    "nunjucks": "^3.2.4",
+    "yaml": "^2.3.4",
+    "semver": "^7.5.4"
+  }
+}

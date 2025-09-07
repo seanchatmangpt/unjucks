@@ -29,40 +29,46 @@ process.on('unhandledRejection', (reason) => {
   process.exit(1);
 });
 
-// Check if dist directory exists
+// Check if source CLI exists
 const path = require('path');
 const fs = require('fs');
-const distPath = path.join(__dirname, '../dist/index.cjs');
+const cliPath = path.join(__dirname, '../src/cli/index.js');
 
-if (!fs.existsSync(distPath)) {
-  console.error('❌ Unjucks CLI not properly built');
-  console.error('   Missing compiled files. Please reinstall:');
+if (!fs.existsSync(cliPath)) {
+  console.error('❌ Unjucks CLI source not found');
+  console.error('   Missing CLI files. Please reinstall:');
   console.error('   npm uninstall -g unjucks && npm install -g unjucks@latest');
   process.exit(1);
 }
 
-// Import and run the CLI application
+// Import and run the CLI application directly from source
 try {
-  const { runMain } = require('../dist/index.cjs');
+  // Import using dynamic import to support ES modules
+  (async () => {
+    const { runMain } = await import('../src/cli/index.js');
   
-  // Run with proper error handling
-  runMain().catch((error) => {
-    if (error.code === 'ENOENT') {
-      console.error('❌ Command not found or file missing');
-      console.error('   Check that all required files are present');
-    } else if (error.message.includes('permission')) {
-      console.error('❌ Permission denied');  
-      console.error('   Try running with appropriate permissions');
-    } else {
-      console.error('❌ Error:', error.message);
-    }
-    
-    // Show help information for common issues
-    if (process.argv.length === 2) {
-      console.error('\n💡 Try: unjucks --help');
-      console.error('   Or: unjucks list');
-    }
-    
+    // Run with proper error handling
+    runMain().catch((error) => {
+      if (error.code === 'ENOENT') {
+        console.error('❌ Command not found or file missing');
+        console.error('   Check that all required files are present');
+      } else if (error.message.includes('permission')) {
+        console.error('❌ Permission denied');  
+        console.error('   Try running with appropriate permissions');
+      } else {
+        console.error('❌ Error:', error.message);
+      }
+      
+      // Show help information for common issues
+      if (process.argv.length === 2) {
+        console.error('\n💡 Try: unjucks --help');
+        console.error('   Or: unjucks list');
+      }
+      
+      process.exit(1);
+    });
+  })().catch((error) => {
+    console.error('❌ Failed to import CLI module:', error.message);
     process.exit(1);
   });
   

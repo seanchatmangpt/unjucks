@@ -1,0 +1,63 @@
+name: "Documentation"
+description: "Complete documentation template with README, API docs, and guides"
+category: "starter"
+complexity: "beginner"
+tags: ["documentation", "readme", "markdown", "api", "guides"]
+author: "Unjucks Team"
+version: "1.0.0"
+
+variables:
+  - name: projectName
+    type: string
+    description: "Name of the project"
+    required: true
+    
+  - name: description
+    type: string
+    description: "Project description"
+    required: true
+    
+  - name: author
+    type: string
+    description: "Author name"
+    default: "Developer"
+    
+  - name: repository
+    type: string
+    description: "Repository URL"
+    required: false
+    
+  - name: withApi
+    type: boolean
+    description: "Include API documentation"
+    default: true
+    
+  - name: withGuides
+    type: boolean
+    description: "Include user guides"
+    default: true
+    
+  - name: withContributing
+    type: boolean
+    description: "Include contributing guidelines"
+    default: true
+    
+  - name: license
+    type: string
+    description: "License type"
+    default: "MIT"
+    choices: ["MIT", "Apache-2.0", "GPL-3.0", "BSD-3-Clause", "ISC"]
+
+examples:
+  - "unjucks generate documentation MyProject --withApi --withGuides"
+  - "unjucks generate documentation 'My API' --author 'Jane Doe' --license Apache-2.0"
+  - "unjucks generate documentation MyLib --repository https://github.com/user/repo"
+
+usage: |
+  This template creates comprehensive project documentation:
+  - README.md with project overview
+  - API documentation with endpoints
+  - User guides and tutorials
+  - Contributing guidelines
+  - Installation instructions
+  - Usage examples

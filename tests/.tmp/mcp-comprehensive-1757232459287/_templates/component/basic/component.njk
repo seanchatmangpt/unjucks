@@ -1,0 +1,12 @@
+---
+to: "{{ dest }}/{{ name | pascalCase }}.jsx"
+---
+import React from 'react';
+
+export const {{ name | pascalCase }} = () => {
+  return (
+    <div>
+      <h1>{{ name | pascalCase }}</h1>
+    </div>
+  );
+};

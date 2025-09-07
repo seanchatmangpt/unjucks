@@ -1,0 +1,62 @@
+name: "API Endpoint"
+description: "RESTful API endpoint with Express.js and TypeScript"
+category: "starter"
+complexity: "beginner"
+tags: ["api", "express", "typescript", "backend", "rest"]
+author: "Unjucks Team"
+version: "1.0.0"
+
+variables:
+  - name: endpointName
+    type: string
+    description: "Name of the API endpoint (camelCase)"
+    required: true
+    pattern: "^[a-z][a-zA-Z0-9]*$"
+  
+  - name: resourceName
+    type: string
+    description: "Resource name (plural, lowercase)"
+    required: true
+    pattern: "^[a-z][a-z0-9]*$"
+    
+  - name: methods
+    type: array
+    description: "HTTP methods to implement"
+    default: ["GET", "POST", "PUT", "DELETE"]
+    choices: ["GET", "POST", "PUT", "PATCH", "DELETE"]
+  
+  - name: withValidation
+    type: boolean
+    description: "Include request validation middleware"
+    default: true
+    
+  - name: withAuth
+    type: boolean
+    description: "Include authentication middleware"
+    default: true
+    
+  - name: withDatabase
+    type: boolean
+    description: "Include database integration"
+    default: true
+    
+  - name: databaseType
+    type: string
+    description: "Database type"
+    default: "postgresql"
+    choices: ["postgresql", "mysql", "mongodb", "sqlite"]
+
+examples:
+  - "unjucks generate api-endpoint users --methods GET,POST,PUT,DELETE"
+  - "unjucks generate api-endpoint products --withAuth --withValidation"
+  - "unjucks generate api-endpoint orders --databaseType mongodb"
+
+usage: |
+  This template creates a complete REST API endpoint with:
+  - Express.js route handlers
+  - TypeScript interfaces
+  - Request validation schemas
+  - Authentication middleware
+  - Database integration
+  - Error handling
+  - Unit tests

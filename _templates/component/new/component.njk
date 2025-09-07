@@ -1,8 +1,4 @@
 ---
-to: "src/components/{{ name | pascalCase }}.tsx"
+to: "{{ name }}.tsx"
 ---
-import React from 'react';
-
-export const {{ name | pascalCase }} = () => {
-  return <div>{{ name }}</div>;
-};
+export const {{ name }} = () => <div/>;

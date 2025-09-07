@@ -1,4 +1,3 @@
-// @ts-nocheckimport type { CollaborationSession, CollaborationParticipant } from '~/types'
 
 export const useRealTime = () => {
   const config = useRuntimeConfig()

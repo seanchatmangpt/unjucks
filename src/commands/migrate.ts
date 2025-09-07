@@ -211,8 +211,7 @@ export const migrateCommand = defineCommand({
 
       // Exit with appropriate code based on success rate
       if (compatibilityRate < 95) {
-        console.log(chalk.yellow(`⚠️ Warning: Compatibility rate ${compatibilityRate}% is below 95%`));
-        process.exit(1);
+        console.log(chalk.yellow(`⚠️ Warning: Compatibility rate ${compatibilityRate}% is below 95%`));handleError(new ActionableError({ message: "Operation failed", solution: "Check the error details and try again", category: ErrorCategory.RUNTIME_ERROR }));
       }
 
     } catch (error: any) {
@@ -221,9 +220,7 @@ export const migrateCommand = defineCommand({
       
       if (args.verbose && error.stack) {
         console.error(chalk.gray(error.stack));
-      }
-      
-      process.exit(1);
+      }handleError(new ActionableError({ message: "Operation failed", solution: "Check the error details and try again", category: ErrorCategory.RUNTIME_ERROR }));
     }
   },
 });

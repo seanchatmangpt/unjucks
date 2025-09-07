@@ -1,4 +1,3 @@
-// @ts-nocheck// Main Ollama API composable for Nuxt 3
 import { ref, unref } from 'vue'
 import type {
   GenerateRequest,

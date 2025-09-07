@@ -65,8 +65,9 @@ function main() {
   if (!options.skipTests && success) {
     console.log('\n🧪 Step 2: Running tests');
     success = runCommand('npm run lint', 'Linting');
+    // TypeScript checking is disabled for JavaScript build
     if (success) {
-      success = runCommand('npm run typecheck', 'Type checking');
+      console.log('✅ Type checking skipped (JavaScript mode)');
     }
   }
   

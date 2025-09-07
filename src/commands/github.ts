@@ -620,8 +620,7 @@ export const githubCommand = defineCommand({
           }
 
         } catch (error) {
-          spinner.error(`Analysis failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
-          process.exit(1);
+          spinner.error(`Analysis failed: ${error instanceof Error ? error.message : 'Unknown error'}`);handleError(new ActionableError({ message: "Operation failed", solution: "Check the error details and try again", category: ErrorCategory.RUNTIME_ERROR }));
         }
       },
     }),
@@ -815,8 +814,7 @@ export const githubCommand = defineCommand({
           spinner.success('PR operation completed');
 
         } catch (error) {
-          spinner.error(`PR operation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
-          process.exit(1);
+          spinner.error(`PR operation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);handleError(new ActionableError({ message: "Operation failed", solution: "Check the error details and try again", category: ErrorCategory.RUNTIME_ERROR }));
         }
       },
     }),
@@ -997,8 +995,7 @@ export const githubCommand = defineCommand({
           spinner.success('Issue operation completed');
 
         } catch (error) {
-          spinner.error(`Issue operation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
-          process.exit(1);
+          spinner.error(`Issue operation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);handleError(new ActionableError({ message: "Operation failed", solution: "Check the error details and try again", category: ErrorCategory.RUNTIME_ERROR }));
         }
       },
     }),
@@ -1125,8 +1122,7 @@ export const githubCommand = defineCommand({
           spinner.success('Release operation completed');
 
         } catch (error) {
-          spinner.error(`Release operation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
-          process.exit(1);
+          spinner.error(`Release operation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);handleError(new ActionableError({ message: "Operation failed", solution: "Check the error details and try again", category: ErrorCategory.RUNTIME_ERROR }));
         }
       },
     }),
@@ -1252,8 +1248,7 @@ export const githubCommand = defineCommand({
           spinner.success('Synchronization completed');
 
         } catch (error) {
-          spinner.error(`Sync failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
-          process.exit(1);
+          spinner.error(`Sync failed: ${error instanceof Error ? error.message : 'Unknown error'}`);handleError(new ActionableError({ message: "Operation failed", solution: "Check the error details and try again", category: ErrorCategory.RUNTIME_ERROR }));
         }
       },
     }),
@@ -1427,8 +1422,7 @@ export const githubCommand = defineCommand({
           spinner.success('Workflow operation completed');
 
         } catch (error) {
-          spinner.error(`Workflow operation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
-          process.exit(1);
+          spinner.error(`Workflow operation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);handleError(new ActionableError({ message: "Operation failed", solution: "Check the error details and try again", category: ErrorCategory.RUNTIME_ERROR }));
         }
       },
     }),
@@ -1538,8 +1532,7 @@ export const githubCommand = defineCommand({
           }
 
         } catch (error) {
-          spinner.error(`Statistics gathering failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
-          process.exit(1);
+          spinner.error(`Statistics gathering failed: ${error instanceof Error ? error.message : 'Unknown error'}`);handleError(new ActionableError({ message: "Operation failed", solution: "Check the error details and try again", category: ErrorCategory.RUNTIME_ERROR }));
         }
       },
     }),

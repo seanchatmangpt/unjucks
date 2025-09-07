@@ -60,3 +60,28 @@ test-workspace/
 *-workspace/
 temp-*/
 tmp-*/
+
+# Conservative test data patterns (only clearly identifiable test data)
+test-cli-*/
+test-mcp-*/
+test-*/
+**/test-*/
+**/temp-*/
+**/tmp-*/
+
+# Test artifacts and generated content
+**/test-artifacts/
+**/test-output/
+**/test-results/
+**/test-logs/
+**/test-cache/
+**/test-temp/
+
+# Performance test data
+**/perf-test-*/
+**/benchmark-*/
+**/load-test-*/
+
+# Integration test workspaces
+**/integration-test-*/
+**/e2e-test-*/

@@ -5,6 +5,7 @@ import { promptForProjectType } from "../lib/prompts.js";
 import { validators, displayValidationResults, createCommandError } from "../lib/command-validation.js";
 import type { InitCommandArgs, CommandResult, ProjectType } from "../types/commands.js";
 import { CommandError, UnjucksCommandError } from "../types/commands.js";
+import { handleError, ConfigurationError, ErrorCategory } from "../lib/actionable-error.js";
 import * as ora from "ora";
 import * as fs from "fs-extra";
 import * as path from "node:path";
@@ -205,7 +206,6 @@ export const initCommand = defineCommand({
   async run(context: any) {
     const { args } = context;
     const startTime = Date.now();
-    // @ts-ignore - Dynamic import compatibility issue
     const spinner = ora();
     
     try {
@@ -438,9 +438,7 @@ export const initCommand = defineCommand({
         console.log(chalk.blue('  • Ensure Git is installed for git initialization'));
         console.log(chalk.blue('  • Verify npm/yarn/pnpm is available for dependency installation'));
         console.log(chalk.blue('  • Run with --verbose for more details'));
-      }
-      
-      process.exit(1);
+      }handleError(new ActionableError({ message: "Operation failed", solution: "Check the error details and try again", category: ErrorCategory.RUNTIME_ERROR }));
     }
   },
 });

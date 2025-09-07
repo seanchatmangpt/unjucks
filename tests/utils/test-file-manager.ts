@@ -145,7 +145,7 @@ ${options.content}`;
       exclude: ['node_modules', 'dist', 'tests']
     };
 
-    return this.createFile('tsconfig.json', JSON.stringify(tsConfig, null, 2));
+    return this.createFile('jsconfig.json', JSON.stringify(tsConfig, null, 2));
   }
 
   generateVitestConfig(): string {

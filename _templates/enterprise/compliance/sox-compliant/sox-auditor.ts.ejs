@@ -1,0 +1,395 @@
+---
+to: "{{ componentName | paramCase }}/src/compliance/SOXAuditor.ts"
+inject: false
+---
+import { createHash } from 'crypto';
+import { writeFile, appendFile } from 'fs/promises';
+import { join } from 'path';
+
+export interface SOXAuditEvent {
+  eventId: string;
+  timestamp: Date;
+  userId: string;
+  action: string;
+  resource: string;
+  beforeState?: any;
+  afterState?: any;
+  ipAddress: string;
+  userAgent: string;
+  sessionId: string;
+  dataClassification: '{{ dataClassification }}';
+  accessLevel: '{{ accessLevel }}';
+  success: boolean;
+  riskLevel: 'low' | 'medium' | 'high' | 'critical';
+}
+
+export interface SOXComplianceConfig {
+  component: string;
+  retentionPeriod: number; // {{ retentionPeriod }} years for SOX
+  auditLevel: '{{ auditLevel }}';
+  encryptionEnabled: boolean;
+  realTimeMonitoring: boolean;
+  automaticReporting: boolean;
+}
+
+export class SOXAuditor {
+  private config: SOXComplianceConfig;
+  private auditLog: SOXAuditEvent[] = [];
+  private integrityHashes: Map<string, string> = new Map();
+
+  constructor(config: SOXComplianceConfig) {
+    this.config = {
+      component: '{{ componentName }}',
+      retentionPeriod: {{ retentionPeriod }},
+      auditLevel: '{{ auditLevel }}',
+      encryptionEnabled: true,
+      realTimeMonitoring: true,
+      automaticReporting: true,
+      ...config
+    };
+  }
+
+  /**
+   * Log a SOX-compliant audit event
+   * Required for all financial data access and modifications
+   */
+  public async logAuditEvent(event: Partial<SOXAuditEvent>): Promise<string> {
+    const auditEvent: SOXAuditEvent = {
+      eventId: this.generateEventId(),
+      timestamp: new Date(),
+      userId: event.userId || 'system',
+      action: event.action || 'unknown',
+      resource: event.resource || 'unknown',
+      beforeState: event.beforeState,
+      afterState: event.afterState,
+      ipAddress: event.ipAddress || '0.0.0.0',
+      userAgent: event.userAgent || 'system',
+      sessionId: event.sessionId || 'no-session',
+      dataClassification: '{{ dataClassification }}',
+      accessLevel: '{{ accessLevel }}',
+      success: event.success ?? true,
+      riskLevel: this.calculateRiskLevel(event)
+    };
+
+    // Store in memory (for immediate access)
+    this.auditLog.push(auditEvent);
+
+    // Persist to secure audit log
+    await this.persistAuditEvent(auditEvent);
+
+    // Real-time monitoring for high-risk events
+    if (auditEvent.riskLevel === 'high' || auditEvent.riskLevel === 'critical') {
+      await this.triggerRealTimeAlert(auditEvent);
+    }
+
+    // Data integrity verification
+    await this.updateIntegrityHash(auditEvent);
+
+    return auditEvent.eventId;
+  }
+
+  /**
+   * Log financial data access (SOX Section 302 compliance)
+   */
+  public async logFinancialDataAccess(params: {
+    userId: string;
+    resource: string;
+    action: 'read' | 'write' | 'delete';
+    dataType: 'revenue' | 'expenses' | 'assets' | 'liabilities' | 'equity';
+    amount?: number;
+    ipAddress: string;
+    sessionId: string;
+  }): Promise<string> {
+    return this.logAuditEvent({
+      ...params,
+      riskLevel: params.action === 'delete' ? 'critical' : 'high'
+    });
+  }
+
+  /**
+   * Log system changes (SOX Section 404 compliance)
+   */
+  public async logSystemChange(params: {
+    userId: string;
+    changeType: 'configuration' | 'code' | 'database' | 'access-control';
+    resource: string;
+    beforeState: any;
+    afterState: any;
+    approvedBy?: string;
+    changeTicket?: string;
+    ipAddress: string;
+  }): Promise<string> {
+    return this.logAuditEvent({
+      ...params,
+      action: 'system-change',
+      riskLevel: 'high'
+    });
+  }
+
+  /**
+   * Log access control changes (segregation of duties)
+   */
+  public async logAccessControlChange(params: {
+    userId: string;
+    targetUserId: string;
+    action: 'grant' | 'revoke' | 'modify';
+    permissions: string[];
+    approvedBy: string;
+    justification: string;
+    ipAddress: string;
+  }): Promise<string> {
+    return this.logAuditEvent({
+      ...params,
+      resource: 'access-control',
+      action: `permission-${params.action}`,
+      afterState: {
+        targetUserId: params.targetUserId,
+        permissions: params.permissions,
+        approvedBy: params.approvedBy,
+        justification: params.justification
+      },
+      riskLevel: 'critical'
+    });
+  }
+
+  /**
+   * Generate SOX compliance report
+   */
+  public async generateComplianceReport(
+    startDate: Date,
+    endDate: Date
+  ): Promise<SOXComplianceReport> {
+    const events = this.auditLog.filter(
+      event => event.timestamp >= startDate && event.timestamp <= endDate
+    );
+
+    const report: SOXComplianceReport = {
+      reportId: this.generateEventId(),
+      generatedAt: new Date(),
+      period: { startDate, endDate },
+      component: this.config.component,
+      totalEvents: events.length,
+      eventsByRisk: {
+        low: events.filter(e => e.riskLevel === 'low').length,
+        medium: events.filter(e => e.riskLevel === 'medium').length,
+        high: events.filter(e => e.riskLevel === 'high').length,
+        critical: events.filter(e => e.riskLevel === 'critical').length
+      },
+      eventsByAction: this.groupEventsByAction(events),
+      failedEvents: events.filter(e => !e.success),
+      dataIntegrity: {
+        verified: await this.verifyDataIntegrity(),
+        lastVerification: new Date(),
+        hashMismatches: 0
+      },
+      complianceStatus: this.assessComplianceStatus(events),
+      recommendations: this.generateRecommendations(events)
+    };
+
+    // Persist report
+    await this.persistComplianceReport(report);
+
+    return report;
+  }
+
+  /**
+   * Verify data integrity (SOX requirement)
+   */
+  public async verifyDataIntegrity(): Promise<boolean> {
+    try {
+      const currentHash = this.calculateAuditLogHash();
+      const storedHash = this.integrityHashes.get('audit-log');
+      
+      if (!storedHash) {
+        this.integrityHashes.set('audit-log', currentHash);
+        return true;
+      }
+      
+      return currentHash === storedHash;
+    } catch (error) {
+      await this.logAuditEvent({
+        action: 'integrity-check-failed',
+        resource: 'audit-log',
+        success: false,
+        riskLevel: 'critical'
+      });
+      return false;
+    }
+  }
+
+  /**
+   * Search audit log for compliance investigations
+   */
+  public searchAuditLog(criteria: {
+    userId?: string;
+    action?: string;
+    resource?: string;
+    startDate?: Date;
+    endDate?: Date;
+    riskLevel?: string;
+  }): SOXAuditEvent[] {
+    return this.auditLog.filter(event => {
+      if (criteria.userId && event.userId !== criteria.userId) return false;
+      if (criteria.action && event.action !== criteria.action) return false;
+      if (criteria.resource && !event.resource.includes(criteria.resource)) return false;
+      if (criteria.startDate && event.timestamp < criteria.startDate) return false;
+      if (criteria.endDate && event.timestamp > criteria.endDate) return false;
+      if (criteria.riskLevel && event.riskLevel !== criteria.riskLevel) return false;
+      return true;
+    });
+  }
+
+  /**
+   * Export audit data for external compliance tools
+   */
+  public async exportAuditData(
+    format: 'json' | 'csv' | 'xml',
+    startDate?: Date,
+    endDate?: Date
+  ): Promise<string> {
+    const events = startDate && endDate 
+      ? this.auditLog.filter(e => e.timestamp >= startDate && e.timestamp <= endDate)
+      : this.auditLog;
+
+    switch (format) {
+      case 'json':
+        return JSON.stringify(events, null, 2);
+      case 'csv':
+        return this.convertToCSV(events);
+      case 'xml':
+        return this.convertToXML(events);
+      default:
+        throw new Error(`Unsupported format: ${format}`);
+    }
+  }
+
+  private calculateRiskLevel(event: Partial<SOXAuditEvent>): 'low' | 'medium' | 'high' | 'critical' {
+    <% if (dataClassification === 'financial') { -%>
+    // Financial data access is always high risk
+    if (event.action?.includes('delete')) return 'critical';
+    if (event.action?.includes('write') || event.action?.includes('modify')) return 'high';
+    if (event.action?.includes('access-control')) return 'critical';
+    return 'medium';
+    <% } else { -%>
+    if (event.action?.includes('delete')) return 'high';
+    if (event.action?.includes('write')) return 'medium';
+    return 'low';
+    <% } -%>
+  }
+
+  private async persistAuditEvent(event: SOXAuditEvent): Promise<void> {
+    const logPath = join(process.cwd(), 'logs', 'sox-audit.log');
+    const logEntry = JSON.stringify(event) + '\n';
+    
+    await appendFile(logPath, logEntry, 'utf8');
+  }
+
+  private async triggerRealTimeAlert(event: SOXAuditEvent): Promise<void> {
+    if (!this.config.realTimeMonitoring) return;
+
+    // Implementation for real-time alerting
+    console.warn(`SOX ALERT - ${event.riskLevel.toUpperCase()}: ${event.action} on ${event.resource} by ${event.userId}`);
+    
+    // In production: send to monitoring system, SIEM, etc.
+  }
+
+  private async updateIntegrityHash(event: SOXAuditEvent): Promise<void> {
+    const hash = this.calculateAuditLogHash();
+    this.integrityHashes.set('audit-log', hash);
+  }
+
+  private calculateAuditLogHash(): string {
+    const logData = JSON.stringify(this.auditLog.sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime()));
+    return createHash('sha256').update(logData).digest('hex');
+  }
+
+  private generateEventId(): string {
+    return `SOX-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+  }
+
+  private groupEventsByAction(events: SOXAuditEvent[]): Record<string, number> {
+    return events.reduce((acc, event) => {
+      acc[event.action] = (acc[event.action] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>);
+  }
+
+  private assessComplianceStatus(events: SOXAuditEvent[]): 'compliant' | 'non-compliant' | 'at-risk' {
+    const criticalEvents = events.filter(e => e.riskLevel === 'critical' && !e.success);
+    const failureRate = events.length > 0 ? criticalEvents.length / events.length : 0;
+    
+    if (failureRate > 0.05) return 'non-compliant'; // >5% critical failures
+    if (failureRate > 0.02) return 'at-risk'; // >2% critical failures
+    return 'compliant';
+  }
+
+  private generateRecommendations(events: SOXAuditEvent[]): string[] {
+    const recommendations: string[] = [];
+    
+    const highRiskEvents = events.filter(e => e.riskLevel === 'high' || e.riskLevel === 'critical');
+    if (highRiskEvents.length > events.length * 0.1) {
+      recommendations.push('Consider implementing additional access controls due to high number of high-risk events');
+    }
+    
+    const failedEvents = events.filter(e => !e.success);
+    if (failedEvents.length > 0) {
+      recommendations.push('Investigate and resolve failed audit events');
+    }
+    
+    return recommendations;
+  }
+
+  private async persistComplianceReport(report: SOXComplianceReport): Promise<void> {
+    const reportPath = join(process.cwd(), 'reports', `sox-compliance-${report.reportId}.json`);
+    await writeFile(reportPath, JSON.stringify(report, null, 2));
+  }
+
+  private convertToCSV(events: SOXAuditEvent[]): string {
+    const headers = ['eventId', 'timestamp', 'userId', 'action', 'resource', 'success', 'riskLevel'];
+    const rows = events.map(event => 
+      headers.map(header => event[header as keyof SOXAuditEvent]).join(',')
+    );
+    return [headers.join(','), ...rows].join('\n');
+  }
+
+  private convertToXML(events: SOXAuditEvent[]): string {
+    const xmlEvents = events.map(event => 
+      `<event id="${event.eventId}">
+        <timestamp>${event.timestamp.toISOString()}</timestamp>
+        <userId>${event.userId}</userId>
+        <action>${event.action}</action>
+        <resource>${event.resource}</resource>
+        <success>${event.success}</success>
+        <riskLevel>${event.riskLevel}</riskLevel>
+      </event>`
+    ).join('\n');
+    
+    return `<?xml version="1.0" encoding="UTF-8"?>
+<soxAuditLog component="{{ componentName }}">
+${xmlEvents}
+</soxAuditLog>`;
+  }
+}
+
+export interface SOXComplianceReport {
+  reportId: string;
+  generatedAt: Date;
+  period: { startDate: Date; endDate: Date };
+  component: string;
+  totalEvents: number;
+  eventsByRisk: {
+    low: number;
+    medium: number;
+    high: number;
+    critical: number;
+  };
+  eventsByAction: Record<string, number>;
+  failedEvents: SOXAuditEvent[];
+  dataIntegrity: {
+    verified: boolean;
+    lastVerification: Date;
+    hashMismatches: number;
+  };
+  complianceStatus: 'compliant' | 'non-compliant' | 'at-risk';
+  recommendations: string[];
+}

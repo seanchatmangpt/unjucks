@@ -1,0 +1,23 @@
+---
+to: "mcp-integration/{{ swarmName | paramCase }}-orchestration.ts"
+inject: false
+---
+What enterprise swarm orchestration do you need?
+
+Required variables:
+- swarmName: Name of your swarm (e.g., "platform-engineering")
+- topology: Swarm topology (hierarchical, mesh, ring, star)
+- maxAgents: Maximum number of agents (12 for enterprise)
+- agentTypes: Comma-separated agent types (coder,reviewer,tester,security,compliance)
+- governance: Governance level (basic, enterprise, sox-compliant)
+- monitoring: Enable enterprise monitoring (true/false)
+- compliance: Compliance standard (sox, gdpr, hipaa, none)
+
+Enterprise MCP Features:
+- 12-agent swarm orchestration
+- Compliance-aware AI agents
+- Enterprise governance rules
+- Audit trail automation
+- Real-time monitoring
+- Multi-environment support
+- Fortune 1000 security patterns
