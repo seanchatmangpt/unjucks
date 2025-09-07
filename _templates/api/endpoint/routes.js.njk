@@ -1,0 +1,365 @@
+---
+to: src/routes/{{ endpointName | kebabCase }}.js
+---
+const express = require('express');
+{% if withRateLimit %}const rateLimit = require('express-rate-limit');{% endif %}
+{% if withAuth %}const { authMiddleware } = require('../middleware/auth');{% endif %}
+{% if withRBAC %}const { rbacMiddleware } = require('../middleware/rbac');{% endif %}
+const { {{ endpointName | pascalCase }}Controller } = require('../controllers/{{ endpointName | pascalCase }}Controller');
+const { asyncHandler } = require('../utils/async-handler');
+const logger = require('../utils/logger');
+
+const router = express.Router();
+const controller = new {{ endpointName | pascalCase }}Controller();
+
+{% if withRateLimit %}
+// Rate limiting configuration
+const createRateLimit = (windowMs, max, message) => rateLimit({
+  windowMs,
+  max,
+  message: { error: message },
+  standardHeaders: true,
+  legacyHeaders: false,
+  handler: (req, res) => {
+    logger.warn('Rate limit exceeded', {
+      ip: req.ip,
+      endpoint: req.path,
+      method: req.method
+    });
+    res.status(429).json({ error: message });
+  }
+});
+
+// Different rate limits for different operations
+const listRateLimit = createRateLimit(15 * 60 * 1000, 100, 'Too many list requests'); // 100 per 15min
+const createRateLimit = createRateLimit(15 * 60 * 1000, 10, 'Too many create requests'); // 10 per 15min
+const updateRateLimit = createRateLimit(15 * 60 * 1000, 20, 'Too many update requests'); // 20 per 15min
+const deleteRateLimit = createRateLimit(15 * 60 * 1000, 5, 'Too many delete requests'); // 5 per 15min
+{% endif %}
+
+{% if withAuth %}
+// Apply authentication to all routes
+router.use(authMiddleware);
+{% endif %}
+
+// Request logging middleware
+router.use((req, res, next) => {
+  logger.info(`{{ endpointName | title }} API request`, {
+    method: req.method,
+    path: req.path,
+    {% if withAuth %}userId: req.user?.id,{% endif %}
+    ip: req.ip,
+    userAgent: req.get('User-Agent')
+  });
+  next();
+});
+
+{% if 'OPTIONS' in methods %}
+/**
+ * @swagger
+ * /api/{{ apiVersion }}/{{ resourceName }}:
+ *   options:
+ *     summary: Get allowed methods
+ *     description: Returns allowed HTTP methods for this endpoint
+ *     tags: [{{ resourceName | title }}]
+ *     responses:
+ *       200:
+ *         description: Success
+ *         headers:
+ *           Allow:
+ *             description: Allowed HTTP methods
+ *             schema:
+ *               type: string
+ */
+router.options('/', asyncHandler(controller.options.bind(controller)));
+router.options('/:id', asyncHandler(controller.options.bind(controller)));
+{% endif %}
+
+{% if 'GET' in methods %}
+/**
+ * @swagger
+ * /api/{{ apiVersion }}/{{ resourceName }}:
+ *   get:
+ *     summary: List {{ resourceName }}
+ *     description: Get paginated list of {{ resourceName }}
+ *     tags: [{{ resourceName | title }}]
+ *     {% if withAuth %}security:
+ *       - bearerAuth: []{% endif %}
+ *     responses:
+ *       200:
+ *         description: Success
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/{{ resourceName | title | singular }}'
+ *                 {% if withPagination %}pagination:
+ *                   $ref: '#/components/schemas/Pagination'{% endif %}
+ */
+router.get('/', 
+  {% if withRateLimit %}listRateLimit,{% endif %}
+  {% if withRBAC %}rbacMiddleware('{{ resourceName }}:read'),{% endif %}
+  asyncHandler(controller.list.bind(controller))
+);
+
+/**
+ * @swagger
+ * /api/{{ apiVersion }}/{{ resourceName }}/{id}:
+ *   get:
+ *     summary: Get {{ resourceName | singular }} by ID
+ *     description: Retrieve a specific {{ resourceName | singular }} by its ID
+ *     tags: [{{ resourceName | title }}]
+ *     {% if withAuth %}security:
+ *       - bearerAuth: []{% endif %}
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         required: true
+ *         description: {{ resourceName | title | singular }} ID
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *     responses:
+ *       200:
+ *         description: Success
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   $ref: '#/components/schemas/{{ resourceName | title | singular }}'
+ *       404:
+ *         description: {{ resourceName | title | singular }} not found
+ */
+router.get('/:id', 
+  {% if withRateLimit %}listRateLimit,{% endif %}
+  {% if withRBAC %}rbacMiddleware('{{ resourceName }}:read'),{% endif %}
+  asyncHandler(controller.show.bind(controller))
+);
+{% endif %}
+
+{% if 'HEAD' in methods %}
+/**
+ * @swagger
+ * /api/{{ apiVersion }}/{{ resourceName }}/{id}:
+ *   head:
+ *     summary: Check if {{ resourceName | singular }} exists
+ *     description: Check if a {{ resourceName | singular }} exists without returning the full resource
+ *     tags: [{{ resourceName | title }}]
+ *     {% if withAuth %}security:
+ *       - bearerAuth: []{% endif %}
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         required: true
+ *         description: {{ resourceName | title | singular }} ID
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *     responses:
+ *       200:
+ *         description: {{ resourceName | title | singular }} exists
+ *       404:
+ *         description: {{ resourceName | title | singular }} not found
+ */
+router.head('/:id',
+  {% if withRBAC %}rbacMiddleware('{{ resourceName }}:read'),{% endif %}
+  asyncHandler(controller.head.bind(controller))
+);
+{% endif %}
+
+{% if 'POST' in methods %}
+/**
+ * @swagger
+ * /api/{{ apiVersion }}/{{ resourceName }}:
+ *   post:
+ *     summary: Create new {{ resourceName | singular }}
+ *     description: Create a new {{ resourceName | singular }}
+ *     tags: [{{ resourceName | title }}]
+ *     {% if withAuth %}security:
+ *       - bearerAuth: []{% endif %}
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/Create{{ resourceName | title | singular }}'
+ *     responses:
+ *       201:
+ *         description: Created successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   $ref: '#/components/schemas/{{ resourceName | title | singular }}'
+ *       400:
+ *         description: Validation error
+ *       {% if withAuth %}401:
+ *         description: Unauthorized{% endif %}
+ *       {% if withRBAC %}403:
+ *         description: Forbidden{% endif %}
+ */
+router.post('/', 
+  {% if withRateLimit %}createRateLimit,{% endif %}
+  {% if withRBAC %}rbacMiddleware('{{ resourceName }}:create'),{% endif %}
+  asyncHandler(controller.create.bind(controller))
+);
+{% endif %}
+
+{% if 'PUT' in methods %}
+/**
+ * @swagger
+ * /api/{{ apiVersion }}/{{ resourceName }}/{id}:
+ *   put:
+ *     summary: Update {{ resourceName | singular }}
+ *     description: Update an existing {{ resourceName | singular }}
+ *     tags: [{{ resourceName | title }}]
+ *     {% if withAuth %}security:
+ *       - bearerAuth: []{% endif %}
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         required: true
+ *         description: {{ resourceName | title | singular }} ID
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/Update{{ resourceName | title | singular }}'
+ *     responses:
+ *       200:
+ *         description: Updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   $ref: '#/components/schemas/{{ resourceName | title | singular }}'
+ *       400:
+ *         description: Validation error
+ *       404:
+ *         description: {{ resourceName | title | singular }} not found
+ *       {% if withAuth %}401:
+ *         description: Unauthorized{% endif %}
+ *       {% if withRBAC %}403:
+ *         description: Forbidden{% endif %}
+ */
+router.put('/:id', 
+  {% if withRateLimit %}updateRateLimit,{% endif %}
+  {% if withRBAC %}rbacMiddleware('{{ resourceName }}:update'),{% endif %}
+  asyncHandler(controller.update.bind(controller))
+);
+{% endif %}
+
+{% if 'PATCH' in methods %}
+/**
+ * @swagger
+ * /api/{{ apiVersion }}/{{ resourceName }}/{id}:
+ *   patch:
+ *     summary: Partially update {{ resourceName | singular }}
+ *     description: Partially update an existing {{ resourceName | singular }}
+ *     tags: [{{ resourceName | title }}]
+ *     {% if withAuth %}security:
+ *       - bearerAuth: []{% endif %}
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         required: true
+ *         description: {{ resourceName | title | singular }} ID
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/Update{{ resourceName | title | singular }}'
+ *     responses:
+ *       200:
+ *         description: Updated successfully
+ *       400:
+ *         description: Validation error
+ *       404:
+ *         description: {{ resourceName | title | singular }} not found
+ */
+router.patch('/:id', 
+  {% if withRateLimit %}updateRateLimit,{% endif %}
+  {% if withRBAC %}rbacMiddleware('{{ resourceName }}:update'),{% endif %}
+  asyncHandler(controller.update.bind(controller))
+);
+{% endif %}
+
+{% if 'DELETE' in methods %}
+/**
+ * @swagger
+ * /api/{{ apiVersion }}/{{ resourceName }}/{id}:
+ *   delete:
+ *     summary: Delete {{ resourceName | singular }}
+ *     description: Delete an existing {{ resourceName | singular }}
+ *     tags: [{{ resourceName | title }}]
+ *     {% if withAuth %}security:
+ *       - bearerAuth: []{% endif %}
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         required: true
+ *         description: {{ resourceName | title | singular }} ID
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *     responses:
+ *       204:
+ *         description: Deleted successfully
+ *       404:
+ *         description: {{ resourceName | title | singular }} not found
+ *       {% if withAuth %}401:
+ *         description: Unauthorized{% endif %}
+ *       {% if withRBAC %}403:
+ *         description: Forbidden{% endif %}
+ */
+router.delete('/:id', 
+  {% if withRateLimit %}deleteRateLimit,{% endif %}
+  {% if withRBAC %}rbacMiddleware('{{ resourceName }}:delete'),{% endif %}
+  asyncHandler(controller.delete.bind(controller))
+);
+{% endif %}
+
+// Error handling middleware specific to this route
+router.use((error, req, res, next) => {
+  logger.error(`{{ endpointName | title }} API error`, {
+    error: error.message,
+    stack: error.stack,
+    method: req.method,
+    path: req.path,
+    {% if withAuth %}userId: req.user?.id,{% endif %}
+    ip: req.ip
+  });
+  next(error);
+});
+
+module.exports = router;

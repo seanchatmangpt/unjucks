@@ -1,0 +1,395 @@
+---
+to: src/controllers/{{ endpointName | pascalCase }}Controller.js
+---
+const Joi = require('joi');
+{% if withCaching %}const redis = require('../utils/redis');{% endif %}
+const logger = require('../utils/logger');
+{% if withAuditLog %}const auditLogger = require('../utils/audit-logger');{% endif %}
+const { {{ resourceName | pascalCase }}Service } = require('../services/{{ resourceName | pascalCase }}Service');
+const { ApiResponse } = require('../utils/api-response');
+const { ApiError } = require('../utils/api-error');
+const { validateRequest } = require('../middleware/validation');
+
+/**
+ * {{ resourceName | title }} API Controller
+ * Handles {{ resourceName }} resource operations with enterprise-grade features
+ * 
+ * @class {{ endpointName | pascalCase }}Controller
+ */
+class {{ endpointName | pascalCase }}Controller {
+  constructor() {
+    this.service = new {{ resourceName | pascalCase }}Service();
+    {% if withCaching %}this.cachePrefix = '{{ resourceName }}:';{% endif %}
+    this.setupValidationSchemas();
+  }
+
+  /**
+   * Setup Joi validation schemas
+   * @private
+   */
+  setupValidationSchemas() {
+    this.schemas = {
+      {% if 'GET' in methods %}
+      list: Joi.object({
+        {% if withPagination %}
+        page: Joi.number().integer().min(1).default(1),
+        limit: Joi.number().integer().min(1).max(100).default(10),
+        {% endif %}
+        {% if withFiltering %}
+        sort: Joi.string().valid('created_at', 'updated_at', 'name').default('created_at'),
+        order: Joi.string().valid('asc', 'desc').default('desc'),
+        search: Joi.string().max(255).optional(),
+        status: Joi.string().valid('active', 'inactive', 'pending').optional(),
+        {% endif %}
+      }),
+      
+      show: Joi.object({
+        id: Joi.string().uuid().required()
+      }),
+      {% endif %}
+      
+      {% if 'POST' in methods %}
+      create: Joi.object({
+        // Add specific fields for {{ resourceName }} creation
+        name: Joi.string().min(2).max(255).required(),
+        description: Joi.string().max(1000).optional(),
+        status: Joi.string().valid('active', 'inactive').default('active'),
+        metadata: Joi.object().optional(),
+        // Add more fields as needed for your resource
+      }),
+      {% endif %}
+      
+      {% if 'PUT' in methods or 'PATCH' in methods %}
+      update: Joi.object({
+        name: Joi.string().min(2).max(255).optional(),
+        description: Joi.string().max(1000).optional(),
+        status: Joi.string().valid('active', 'inactive').optional(),
+        metadata: Joi.object().optional(),
+        // Add more fields as needed for your resource
+      }),
+      {% endif %}
+    };
+  }
+
+  {% if 'GET' in methods %}
+  /**
+   * Get all {{ resourceName }} with pagination and filtering
+   * 
+   * @swagger
+   * /api/{{ apiVersion }}/{{ resourceName }}:
+   *   get:
+   *     summary: List {{ resourceName }}
+   *     description: Get paginated list of {{ resourceName }} with optional filtering
+   *     tags: [{{ resourceName | title }}]
+   *     {% if withAuth %}security:
+   *       - bearerAuth: []{% endif %}
+   *     parameters:
+   *       {% if withPagination %}- name: page
+   *         in: query
+   *         schema:
+   *           type: integer
+   *           minimum: 1
+   *           default: 1
+   *       - name: limit
+   *         in: query
+   *         schema:
+   *           type: integer
+   *           minimum: 1
+   *           maximum: 100
+   *           default: 10{% endif %}
+   *       {% if withFiltering %}- name: search
+   *         in: query
+   *         schema:
+   *           type: string
+   *       - name: sort
+   *         in: query
+   *         schema:
+   *           type: string
+   *           enum: [created_at, updated_at, name]{% endif %}
+   *     responses:
+   *       200:
+   *         description: Success
+   *         content:
+   *           application/json:
+   *             schema:
+   *               $ref: '#/components/schemas/{{ resourceName | title }}List'
+   */
+  async list(req, res, next) {
+    try {
+      {% if withAuditLog %}
+      auditLogger.logAction(req.user?.id, 'LIST', '{{ resourceName }}', {
+        query: req.query,
+        ip: req.ip
+      });
+      {% endif %}
+
+      const { error, value } = this.schemas.list.validate(req.query);
+      if (error) {
+        throw new ApiError(400, 'Validation Error', error.details);
+      }
+
+      {% if withCaching %}
+      // Check cache first
+      const cacheKey = `${this.cachePrefix}list:${JSON.stringify(value)}`;
+      const cached = await redis.get(cacheKey);
+      if (cached) {
+        logger.debug('Cache hit for {{ resourceName }} list');
+        return res.json(ApiResponse.success(JSON.parse(cached)));
+      }
+      {% endif %}
+
+      const result = await this.service.findMany(value);
+
+      {% if withCaching %}
+      // Cache the result for 5 minutes
+      await redis.setex(cacheKey, 300, JSON.stringify(result));
+      {% endif %}
+
+      res.json(ApiResponse.success(result, '{{ resourceName | title }} retrieved successfully'));
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * Get single {{ resourceName | singular }} by ID
+   */
+  async show(req, res, next) {
+    try {
+      {% if withAuditLog %}
+      auditLogger.logAction(req.user?.id, 'READ', '{{ resourceName }}', {
+        resourceId: req.params.id,
+        ip: req.ip
+      });
+      {% endif %}
+
+      const { error, value } = this.schemas.show.validate(req.params);
+      if (error) {
+        throw new ApiError(400, 'Validation Error', error.details);
+      }
+
+      {% if withCaching %}
+      const cacheKey = `${this.cachePrefix}${value.id}`;
+      const cached = await redis.get(cacheKey);
+      if (cached) {
+        logger.debug(`Cache hit for {{ resourceName }} ${value.id}`);
+        return res.json(ApiResponse.success(JSON.parse(cached)));
+      }
+      {% endif %}
+
+      const result = await this.service.findById(value.id);
+      if (!result) {
+        throw new ApiError(404, '{{ resourceName | title | singular }} not found');
+      }
+
+      {% if withCaching %}
+      await redis.setex(cacheKey, 300, JSON.stringify(result));
+      {% endif %}
+
+      res.json(ApiResponse.success(result, '{{ resourceName | title | singular }} retrieved successfully'));
+    } catch (error) {
+      next(error);
+    }
+  }
+  {% endif %}
+
+  {% if 'POST' in methods %}
+  /**
+   * Create new {{ resourceName | singular }}
+   * 
+   * @swagger
+   * /api/{{ apiVersion }}/{{ resourceName }}:
+   *   post:
+   *     summary: Create {{ resourceName | singular }}
+   *     description: Create a new {{ resourceName | singular }}
+   *     tags: [{{ resourceName | title }}]
+   *     {% if withAuth %}security:
+   *       - bearerAuth: []{% endif %}
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             $ref: '#/components/schemas/Create{{ resourceName | title | singular }}'
+   *     responses:
+   *       201:
+   *         description: Created successfully
+   *       400:
+   *         description: Validation error
+   *       {% if withAuth %}401:
+   *         description: Unauthorized{% endif %}
+   */
+  async create(req, res, next) {
+    try {
+      {% if withAuditLog %}
+      auditLogger.logAction(req.user?.id, 'CREATE', '{{ resourceName }}', {
+        data: req.body,
+        ip: req.ip
+      });
+      {% endif %}
+
+      const { error, value } = this.schemas.create.validate(req.body);
+      if (error) {
+        throw new ApiError(400, 'Validation Error', error.details);
+      }
+
+      // Add user context if authenticated
+      {% if withAuth %}
+      const createData = {
+        ...value,
+        created_by: req.user?.id,
+        tenant_id: req.user?.tenant_id
+      };
+      {% else %}
+      const createData = value;
+      {% endif %}
+
+      const result = await this.service.create(createData);
+
+      {% if withCaching %}
+      // Invalidate list cache
+      const pattern = `${this.cachePrefix}list:*`;
+      await redis.deletePattern(pattern);
+      {% endif %}
+
+      logger.info(`{{ resourceName | title | singular }} created`, { id: result.id {% if withAuth %}, userId: req.user?.id{% endif %} });
+
+      res.status(201).json(ApiResponse.success(result, '{{ resourceName | title | singular }} created successfully'));
+    } catch (error) {
+      next(error);
+    }
+  }
+  {% endif %}
+
+  {% if 'PUT' in methods %}
+  /**
+   * Update existing {{ resourceName | singular }}
+   */
+  async update(req, res, next) {
+    try {
+      {% if withAuditLog %}
+      auditLogger.logAction(req.user?.id, 'UPDATE', '{{ resourceName }}', {
+        resourceId: req.params.id,
+        data: req.body,
+        ip: req.ip
+      });
+      {% endif %}
+
+      const { error: idError, value: idValue } = this.schemas.show.validate(req.params);
+      if (idError) {
+        throw new ApiError(400, 'Invalid ID format', idError.details);
+      }
+
+      const { error, value } = this.schemas.update.validate(req.body);
+      if (error) {
+        throw new ApiError(400, 'Validation Error', error.details);
+      }
+
+      // Check if resource exists
+      const existing = await this.service.findById(idValue.id);
+      if (!existing) {
+        throw new ApiError(404, '{{ resourceName | title | singular }} not found');
+      }
+
+      // Add update metadata
+      const updateData = {
+        ...value,
+        {% if withAuth %}updated_by: req.user?.id,{% endif %}
+        updated_at: new Date()
+      };
+
+      const result = await this.service.update(idValue.id, updateData);
+
+      {% if withCaching %}
+      // Clear cache for this resource and list cache
+      await redis.del(`${this.cachePrefix}${idValue.id}`);
+      const pattern = `${this.cachePrefix}list:*`;
+      await redis.deletePattern(pattern);
+      {% endif %}
+
+      logger.info(`{{ resourceName | title | singular }} updated`, { id: idValue.id {% if withAuth %}, userId: req.user?.id{% endif %} });
+
+      res.json(ApiResponse.success(result, '{{ resourceName | title | singular }} updated successfully'));
+    } catch (error) {
+      next(error);
+    }
+  }
+  {% endif %}
+
+  {% if 'DELETE' in methods %}
+  /**
+   * Delete {{ resourceName | singular }}
+   */
+  async delete(req, res, next) {
+    try {
+      {% if withAuditLog %}
+      auditLogger.logAction(req.user?.id, 'DELETE', '{{ resourceName }}', {
+        resourceId: req.params.id,
+        ip: req.ip
+      });
+      {% endif %}
+
+      const { error, value } = this.schemas.show.validate(req.params);
+      if (error) {
+        throw new ApiError(400, 'Invalid ID format', error.details);
+      }
+
+      // Check if resource exists
+      const existing = await this.service.findById(value.id);
+      if (!existing) {
+        throw new ApiError(404, '{{ resourceName | title | singular }} not found');
+      }
+
+      await this.service.delete(value.id);
+
+      {% if withCaching %}
+      // Clear cache
+      await redis.del(`${this.cachePrefix}${value.id}`);
+      const pattern = `${this.cachePrefix}list:*`;
+      await redis.deletePattern(pattern);
+      {% endif %}
+
+      logger.info(`{{ resourceName | title | singular }} deleted`, { id: value.id {% if withAuth %}, userId: req.user?.id{% endif %} });
+
+      res.status(204).send();
+    } catch (error) {
+      next(error);
+    }
+  }
+  {% endif %}
+
+  {% if 'HEAD' in methods %}
+  /**
+   * Check if {{ resourceName | singular }} exists
+   */
+  async head(req, res, next) {
+    try {
+      const { error, value } = this.schemas.show.validate(req.params);
+      if (error) {
+        return res.status(400).end();
+      }
+
+      const exists = await this.service.exists(value.id);
+      res.status(exists ? 200 : 404).end();
+    } catch (error) {
+      res.status(500).end();
+    }
+  }
+  {% endif %}
+
+  {% if 'OPTIONS' in methods %}
+  /**
+   * Get allowed methods for this endpoint
+   */
+  async options(req, res) {
+    res.set({
+      'Allow': '{{ methods | join(", ") }}',
+      'Access-Control-Allow-Methods': '{{ methods | join(", ") }}',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization'
+    });
+    res.status(200).end();
+  }
+  {% endif %}
+}
+
+module.exports = { {{ endpointName | pascalCase }}Controller };

@@ -1,0 +1,17 @@
+---
+to: src/components/{{ name }}.js
+---
+/**
+ * {{ name }} component
+ */
+export class {{ name }} {
+  constructor() {
+    this.name = '{{ name }}';
+  }
+
+  render() {
+    return `<div class="{{ name | lower }}">${this.name}</div>`;
+  }
+}
+
+export default {{ name }};

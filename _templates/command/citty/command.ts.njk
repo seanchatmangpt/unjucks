@@ -1,0 +1,39 @@
+---
+to: src/{{ commandName | pascalCase }}.ts
+---
+import { defineCommand } from "citty";
+
+export const {{ commandName | pascalCase }}Command = defineCommand({
+  meta: {
+    name: "{{ commandName | kebabCase }}",
+    version: "1.0.0",
+    description: "{{ commandName | pascalCase }} Command{% if description %} - {{ description }}{% endif %}",
+  },
+  args: {
+    // Add your command arguments here
+    input: {
+      type: "positional",
+      description: "Input parameter",
+      required: false,
+    },
+    verbose: {
+      type: "boolean",
+      description: "Enable verbose output",
+      default: false,
+    },
+  },
+  async run({ args }) {
+    if (args.verbose) {
+      console.log(`Running {{ commandName | pascalCase }} Command...`);
+    }
+    
+    // Implement your command logic here
+    console.log(`{{ commandName | pascalCase }} command executed successfully!`);
+    
+    if (args.input) {
+      console.log(`Input: ${args.input}`);
+    }
+  },
+});
+
+export default {{ commandName | pascalCase }}Command;

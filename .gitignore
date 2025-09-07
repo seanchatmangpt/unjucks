@@ -1,12 +1,20 @@
+# JavaScript-based project - no TypeScript build artifacts needed
 node_modules
 coverage
 dist
+build
+lib
 .vscode
 .DS_Store
 .eslintcache
 *.log*
 *.env*
 .lh/
+
+# TypeScript artifacts (not needed for JS-only project)
+*.d.ts
+*.tsbuildinfo
+tsconfig*.json
 
 # Claude Flow generated files - EMERGENCY MEMORY PROTECTION
 .claude/settings.local.json

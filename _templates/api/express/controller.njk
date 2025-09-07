@@ -1,0 +1,317 @@
+---
+to: src/controllers/{{ entityName | pascalCase }}Controller.ts
+---
+import { Request, Response, NextFunction } from 'express';
+{% if withDatabase %}import { {{ entityName | pascalCase }} } from '../models/{{ entityName | pascalCase }}';{% endif %}
+{% if withValidation %}import { validate{{ entityName | pascalCase }} } from '../validators/{{ entityName | camelCase }}Validator';{% endif %}
+{% if withAuth %}import { AuthenticatedRequest } from '../types/auth';{% endif %}
+import { ApiResponse } from '../types/api';
+{% if withLogging %}import { logger } from '../utils/logger';{% endif %}
+
+/**
+ * {{ entityName | pascalCase }} Controller
+ * 
+ * Handles CRUD operations for {{ entityName | lower }} entities
+ */
+export class {{ entityName | pascalCase }}Controller {
+  
+  /**
+   * Get all {{ entityName | lower }}s
+   * 
+   * @route GET /api/{{ entityName | kebabCase }}s
+   */
+  static async getAll(
+    req: {% if withAuth %}AuthenticatedRequest{% else %}Request{% endif %}, 
+    res: Response<ApiResponse<{{ entityName | pascalCase }}[]>>, 
+    next: NextFunction
+  ): Promise<void> {
+    try {
+      {% if withLogging %}logger.info('Fetching all {{ entityName | lower }}s');{% endif %}
+      
+      {% if withDatabase -%}
+      const {{ entityName | camelCase }}s = await {{ entityName | pascalCase }}.findAll({
+        {% if withPagination -%}
+        limit: parseInt(req.query.limit as string) || 10,
+        offset: parseInt(req.query.offset as string) || 0,
+        {% endif -%}
+        {% if withAuth -%}
+        where: {
+          userId: req.user.id
+        }
+        {% endif -%}
+      });
+      {% else -%}
+      // Mock data - replace with actual database integration
+      const {{ entityName | camelCase }}s = [
+        {
+          id: '1',
+          {% for field in fields -%}
+          {{ field.name }}: {{ field.mockValue }},
+          {% endfor -%}
+          createdAt: new Date(),
+          updatedAt: new Date()
+        }
+      ];
+      {% endif -%}
+
+      res.status(200).json({
+        success: true,
+        data: {{ entityName | camelCase }}s,
+        message: '{{ entityName | pascalCase }}s retrieved successfully',
+        {% if withPagination -%}
+        pagination: {
+          total: {{ entityName | camelCase }}s.length,
+          limit: parseInt(req.query.limit as string) || 10,
+          offset: parseInt(req.query.offset as string) || 0
+        }
+        {% endif -%}
+      });
+      
+    } catch (error) {
+      {% if withLogging %}logger.error('Error fetching {{ entityName | lower }}s:', error);{% endif %}
+      next(error);
+    }
+  }
+
+  /**
+   * Get {{ entityName | lower }} by ID
+   * 
+   * @route GET /api/{{ entityName | kebabCase }}s/:id
+   */
+  static async getById(
+    req: {% if withAuth %}AuthenticatedRequest{% else %}Request{% endif %}, 
+    res: Response<ApiResponse<{{ entityName | pascalCase }}>>, 
+    next: NextFunction
+  ): Promise<void> {
+    try {
+      const { id } = req.params;
+      
+      {% if withLogging %}logger.info(`Fetching {{ entityName | lower }} with ID: ${id}`);{% endif %}
+      
+      {% if withDatabase -%}
+      const {{ entityName | camelCase }} = await {{ entityName | pascalCase }}.findOne({
+        where: { 
+          id{% if withAuth %},
+          userId: req.user.id{% endif %}
+        }
+      });
+      
+      if (!{{ entityName | camelCase }}) {
+        return res.status(404).json({
+          success: false,
+          message: '{{ entityName | pascalCase }} not found'
+        });
+      }
+      {% else -%}
+      // Mock data - replace with actual database integration
+      if (id !== '1') {
+        return res.status(404).json({
+          success: false,
+          message: '{{ entityName | pascalCase }} not found'
+        });
+      }
+      
+      const {{ entityName | camelCase }} = {
+        id,
+        {% for field in fields -%}
+        {{ field.name }}: {{ field.mockValue }},
+        {% endfor -%}
+        createdAt: new Date(),
+        updatedAt: new Date()
+      };
+      {% endif -%}
+
+      res.status(200).json({
+        success: true,
+        data: {{ entityName | camelCase }},
+        message: '{{ entityName | pascalCase }} retrieved successfully'
+      });
+      
+    } catch (error) {
+      {% if withLogging %}logger.error(`Error fetching {{ entityName | lower }} ${req.params.id}:`, error);{% endif %}
+      next(error);
+    }
+  }
+
+  /**
+   * Create new {{ entityName | lower }}
+   * 
+   * @route POST /api/{{ entityName | kebabCase }}s
+   */
+  static async create(
+    req: {% if withAuth %}AuthenticatedRequest{% else %}Request{% endif %}, 
+    res: Response<ApiResponse<{{ entityName | pascalCase }}>>, 
+    next: NextFunction
+  ): Promise<void> {
+    try {
+      {% if withValidation -%}
+      const validationError = validate{{ entityName | pascalCase }}(req.body);
+      if (validationError) {
+        return res.status(400).json({
+          success: false,
+          message: 'Validation error',
+          errors: validationError
+        });
+      }
+      {% endif -%}
+      
+      {% if withLogging %}logger.info('Creating new {{ entityName | lower }}');{% endif %}
+      
+      {% if withDatabase -%}
+      const {{ entityName | camelCase }}Data = {
+        ...req.body,
+        {% if withAuth %}userId: req.user.id{% endif %}
+      };
+      
+      const {{ entityName | camelCase }} = await {{ entityName | pascalCase }}.create({{ entityName | camelCase }}Data);
+      {% else -%}
+      // Mock creation - replace with actual database integration
+      const {{ entityName | camelCase }} = {
+        id: Math.random().toString(36).substr(2, 9),
+        ...req.body,
+        {% if withAuth %}userId: req.user.id,{% endif %}
+        createdAt: new Date(),
+        updatedAt: new Date()
+      };
+      {% endif -%}
+
+      res.status(201).json({
+        success: true,
+        data: {{ entityName | camelCase }},
+        message: '{{ entityName | pascalCase }} created successfully'
+      });
+      
+    } catch (error) {
+      {% if withLogging %}logger.error('Error creating {{ entityName | lower }}:', error);{% endif %}
+      next(error);
+    }
+  }
+
+  /**
+   * Update {{ entityName | lower }}
+   * 
+   * @route PUT /api/{{ entityName | kebabCase }}s/:id
+   */
+  static async update(
+    req: {% if withAuth %}AuthenticatedRequest{% else %}Request{% endif %}, 
+    res: Response<ApiResponse<{{ entityName | pascalCase }}>>, 
+    next: NextFunction
+  ): Promise<void> {
+    try {
+      const { id } = req.params;
+      
+      {% if withValidation -%}
+      const validationError = validate{{ entityName | pascalCase }}(req.body, false); // partial update
+      if (validationError) {
+        return res.status(400).json({
+          success: false,
+          message: 'Validation error',
+          errors: validationError
+        });
+      }
+      {% endif -%}
+      
+      {% if withLogging %}logger.info(`Updating {{ entityName | lower }} with ID: ${id}`);{% endif %}
+      
+      {% if withDatabase -%}
+      const [updatedRowsCount] = await {{ entityName | pascalCase }}.update(req.body, {
+        where: { 
+          id{% if withAuth %},
+          userId: req.user.id{% endif %}
+        }
+      });
+      
+      if (updatedRowsCount === 0) {
+        return res.status(404).json({
+          success: false,
+          message: '{{ entityName | pascalCase }} not found or access denied'
+        });
+      }
+      
+      const {{ entityName | camelCase }} = await {{ entityName | pascalCase }}.findOne({
+        where: { 
+          id{% if withAuth %},
+          userId: req.user.id{% endif %}
+        }
+      });
+      {% else -%}
+      // Mock update - replace with actual database integration
+      if (id !== '1') {
+        return res.status(404).json({
+          success: false,
+          message: '{{ entityName | pascalCase }} not found'
+        });
+      }
+      
+      const {{ entityName | camelCase }} = {
+        id,
+        ...req.body,
+        {% if withAuth %}userId: req.user.id,{% endif %}
+        createdAt: new Date(Date.now() - 86400000), // 1 day ago
+        updatedAt: new Date()
+      };
+      {% endif -%}
+
+      res.status(200).json({
+        success: true,
+        data: {{ entityName | camelCase }},
+        message: '{{ entityName | pascalCase }} updated successfully'
+      });
+      
+    } catch (error) {
+      {% if withLogging %}logger.error(`Error updating {{ entityName | lower }} ${req.params.id}:`, error);{% endif %}
+      next(error);
+    }
+  }
+
+  /**
+   * Delete {{ entityName | lower }}
+   * 
+   * @route DELETE /api/{{ entityName | kebabCase }}s/:id
+   */
+  static async delete(
+    req: {% if withAuth %}AuthenticatedRequest{% else %}Request{% endif %}, 
+    res: Response<ApiResponse<null>>, 
+    next: NextFunction
+  ): Promise<void> {
+    try {
+      const { id } = req.params;
+      
+      {% if withLogging %}logger.info(`Deleting {{ entityName | lower }} with ID: ${id}`);{% endif %}
+      
+      {% if withDatabase -%}
+      const deletedRowsCount = await {{ entityName | pascalCase }}.destroy({
+        where: { 
+          id{% if withAuth %},
+          userId: req.user.id{% endif %}
+        }
+      });
+      
+      if (deletedRowsCount === 0) {
+        return res.status(404).json({
+          success: false,
+          message: '{{ entityName | pascalCase }} not found or access denied'
+        });
+      }
+      {% else -%}
+      // Mock delete - replace with actual database integration
+      if (id !== '1') {
+        return res.status(404).json({
+          success: false,
+          message: '{{ entityName | pascalCase }} not found'
+        });
+      }
+      {% endif -%}
+
+      res.status(200).json({
+        success: true,
+        data: null,
+        message: '{{ entityName | pascalCase }} deleted successfully'
+      });
+      
+    } catch (error) {
+      {% if withLogging %}logger.error(`Error deleting {{ entityName | lower }} ${req.params.id}:`, error);{% endif %}
+      next(error);
+    }
+  }
+}

@@ -1,0 +1,222 @@
+---
+to: src/migrations/{{ timestamp }}-create-{{ modelName | kebabCase }}.ts
+---
+import { QueryInterface, DataTypes } from 'sequelize';
+
+/**
+ * Migration: Create {{ modelName | pascalCase }} table
+ * 
+ * Generated on: {{ new Date().toISOString() }}
+ * Description: {{ description || "Create table for " + modelName + " entities" }}
+ */
+
+export async function up(queryInterface: QueryInterface): Promise<void> {
+  await queryInterface.createTable('{{ tableName || (modelName | snakeCase) }}s', {
+    id: {
+      type: DataTypes.UUID,
+      defaultValue: DataTypes.UUIDV4,
+      primaryKey: true,
+      allowNull: false,
+      comment: 'Primary key for {{ modelName | lower }}'
+    },
+    
+    {% for field in fields -%}
+    {{ field.name | snakeCase }}: {
+      type: {% if field.sequelizeType %}DataTypes.{{ field.sequelizeType }}{% else %}{% if field.type === 'string' %}DataTypes.STRING{% elif field.type === 'number' %}DataTypes.{% if field.integer %}INTEGER{% else %}FLOAT{% endif %}{% elif field.type === 'boolean' %}DataTypes.BOOLEAN{% elif field.type === 'date' %}DataTypes.DATE{% elif field.type === 'text' %}DataTypes.TEXT{% elif field.type === 'json' %}DataTypes.JSONB{% else %}DataTypes.STRING{% endif %}{% endif %}{% if field.length %}({{ field.length }}){% endif %},
+      allowNull: {% if field.required %}false{% else %}true{% endif %},
+      {% if field.unique %}unique: true,{% endif %}
+      {% if field.defaultValue %}defaultValue: {% if field.type === 'string' %}'{{ field.defaultValue }}'{% else %}{{ field.defaultValue }}{% endif %},{% endif %}
+      {% if field.references -%}
+      references: {
+        model: '{{ field.references.model }}',
+        key: '{{ field.references.key || "id" }}'
+      },
+      onUpdate: '{{ field.references.onUpdate || "CASCADE" }}',
+      onDelete: '{{ field.references.onDelete || "SET NULL" }}',
+      {% endif -%}
+      {% if field.comment %}comment: '{{ field.comment }}'{% endif %}
+    },
+    
+    {% endfor -%}
+    
+    {% if withTimestamps -%}
+    created_at: {
+      type: DataTypes.DATE,
+      allowNull: false,
+      defaultValue: DataTypes.NOW,
+      comment: 'Record creation timestamp'
+    },
+    
+    updated_at: {
+      type: DataTypes.DATE,
+      allowNull: false,
+      defaultValue: DataTypes.NOW,
+      comment: 'Record last update timestamp'
+    }{% if withSoftDeletes %},
+    
+    deleted_at: {
+      type: DataTypes.DATE,
+      allowNull: true,
+      comment: 'Record deletion timestamp (soft delete)'
+    }{% endif %}
+    {% endif -%}
+  }, {
+    comment: '{{ comment || "Table for " + modelName + " entities" }}',
+    {% if charset %}charset: '{{ charset }}',{% endif %}
+    {% if collate %}collate: '{{ collate }}',{% endif %}
+  });
+
+  {% if indexes -%}
+  // Create indexes
+  {% for index in indexes -%}
+  await queryInterface.addIndex('{{ tableName || (modelName | snakeCase) }}s', {
+    fields: [{{ index.fields | map("snakeCase") | map("quote") | join(", ") }}],
+    {% if index.unique %}unique: true,{% endif %}
+    {% if index.name %}name: '{{ index.name }}',{% endif %}
+    {% if index.where %}where: {{ index.where | dump }},{% endif %}
+    {% if index.type %}type: '{{ index.type }}',{% endif %}
+    comment: '{{ index.comment || "Index for " + index.fields.join(", ") }}'
+  });
+  
+  {% endfor -%}
+  {% endif -%}
+
+  {% if foreignKeys -%}
+  // Add foreign key constraints
+  {% for fk in foreignKeys -%}
+  await queryInterface.addConstraint('{{ tableName || (modelName | snakeCase) }}s', {
+    fields: ['{{ fk.field | snakeCase }}'],
+    type: 'foreign key',
+    name: '{{ fk.name || "fk_" + modelName + "_" + fk.field }}',
+    references: {
+      table: '{{ fk.references.table }}',
+      field: '{{ fk.references.field || "id" }}'
+    },
+    onUpdate: '{{ fk.onUpdate || "CASCADE" }}',
+    onDelete: '{{ fk.onDelete || "CASCADE" }}'
+  });
+  
+  {% endfor -%}
+  {% endif -%}
+
+  {% if customConstraints -%}
+  // Add custom constraints
+  {% for constraint in customConstraints -%}
+  await queryInterface.addConstraint('{{ tableName || (modelName | snakeCase) }}s', {
+    fields: [{{ constraint.fields | map("snakeCase") | map("quote") | join(", ") }}],
+    type: '{{ constraint.type }}',
+    name: '{{ constraint.name }}',
+    {% if constraint.where %}where: {{ constraint.where | dump }}{% endif %}
+  });
+  
+  {% endfor -%}
+  {% endif -%}
+
+  {% if triggers -%}
+  // Create triggers (database-specific)
+  {% for trigger in triggers -%}
+  // {{ trigger.comment || "Custom trigger: " + trigger.name }}
+  await queryInterface.sequelize.query(`{{ trigger.sql }}`);
+  
+  {% endfor -%}
+  {% endif -%}
+}
+
+export async function down(queryInterface: QueryInterface): Promise<void> {
+  {% if triggers -%}
+  // Drop triggers first
+  {% for trigger in triggers -%}
+  try {
+    await queryInterface.sequelize.query(`DROP TRIGGER IF EXISTS {{ trigger.name }};`);
+  } catch (error) {
+    console.warn('Failed to drop trigger {{ trigger.name }}:', error.message);
+  }
+  
+  {% endfor -%}
+  {% endif -%}
+
+  {% if customConstraints -%}
+  // Remove custom constraints
+  {% for constraint in customConstraints -%}
+  try {
+    await queryInterface.removeConstraint('{{ tableName || (modelName | snakeCase) }}s', '{{ constraint.name }}');
+  } catch (error) {
+    console.warn('Failed to remove constraint {{ constraint.name }}:', error.message);
+  }
+  
+  {% endfor -%}
+  {% endif -%}
+
+  {% if foreignKeys -%}
+  // Remove foreign key constraints
+  {% for fk in foreignKeys -%}
+  try {
+    await queryInterface.removeConstraint('{{ tableName || (modelName | snakeCase) }}s', '{{ fk.name || "fk_" + modelName + "_" + fk.field }}');
+  } catch (error) {
+    console.warn('Failed to remove foreign key {{ fk.name }}:', error.message);
+  }
+  
+  {% endfor -%}
+  {% endif -%}
+
+  {% if indexes -%}
+  // Remove indexes
+  {% for index in indexes -%}
+  try {
+    await queryInterface.removeIndex('{{ tableName || (modelName | snakeCase) }}s', '{{ index.name || index.fields.join("_") + "_index" }}');
+  } catch (error) {
+    console.warn('Failed to remove index {{ index.name }}:', error.message);
+  }
+  
+  {% endfor -%}
+  {% endif -%}
+
+  // Drop the table
+  await queryInterface.dropTable('{{ tableName || (modelName | snakeCase) }}s');
+}
+
+/**
+ * Migration metadata
+ */
+export const migrationInfo = {
+  name: 'create-{{ modelName | kebabCase }}',
+  timestamp: '{{ timestamp }}',
+  description: '{{ description || "Create " + modelName + " table with all fields and constraints" }}',
+  author: '{{ author || "Generated by Unjucks" }}',
+  version: '{{ version || "1.0.0" }}',
+  
+  // Tables affected by this migration
+  tables: {
+    created: ['{{ tableName || (modelName | snakeCase) }}s'],
+    modified: [],
+    dropped: []
+  },
+  
+  // Dependencies
+  dependencies: [
+    {% for dep in dependencies -%}
+    '{{ dep }}',
+    {% endfor -%}
+  ],
+  
+  // Rollback safety
+  safeToRollback: {{ safeToRollback || true }},
+  
+  // Data migration required
+  requiresDataMigration: {{ requiresDataMigration || false }},
+  
+  {% if seedData -%}
+  // Seed data (optional)
+  seedData: {{ seedData | dump }},
+  {% endif -%}
+  
+  // Performance considerations
+  estimatedExecutionTime: '{{ estimatedTime || "< 1 minute" }}',
+  
+  // Indexes that may need rebuilding
+  indexesToRebuild: [
+    {% for index in indexesToRebuild -%}
+    '{{ index }}',
+    {% endfor -%}
+  ]
+};

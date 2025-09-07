@@ -2,11 +2,11 @@ module.exports = {
   default: {
     paths: ["features/**/*.feature"],
     import: [
-      "tests/support/**/*.ts",
-      "tests/step-definitions/**/*.ts"
+      "tests/support/**/*.js",
+      "tests/step-definitions/**/*.js"
     ],
     require: ["tsx/cjs"],
-    worldClass: "./tests/support/world.ts:UnjucksWorld",
+    worldClass: "./tests/support/world.js:UnjucksWorld",
     worldParameters: {
       baseUrl: process.env.BASE_URL || "http://localhost:3000",
       timeout: 30_000,
@@ -41,8 +41,8 @@ module.exports = {
   smoke: {
     paths: ["features/**/*.feature"],
     import: [
-      "tests/support/**/*.ts",
-      "tests/step-definitions/**/*.ts"
+      "tests/support/**/*.js",
+      "tests/step-definitions/**/*.js"
     ],
     requireModule: ["tsx/esm"],
     format: ["progress-bar"],
@@ -69,8 +69,8 @@ module.exports = {
   integration: {
     paths: ["features/**/*.feature"],
     import: [
-      "tests/support/**/*.ts",
-      "tests/step-definitions/**/*.ts"
+      "tests/support/**/*.js",
+      "tests/step-definitions/**/*.js"
     ],
     requireModule: ["tsx/esm"],
     format: ["progress-bar"],
@@ -83,8 +83,8 @@ module.exports = {
   comprehensive: {
     paths: ["features/**/*.feature"],
     import: [
-      "tests/support/**/*.ts",
-      "tests/step-definitions/**/*.ts"
+      "tests/support/**/*.js",
+      "tests/step-definitions/**/*.js"
     ],
     requireModule: ["tsx/esm"],
     // Full comprehensive reporting suite

@@ -11,10 +11,10 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-// Import our RDF implementations from TypeScript source
-import { TurtleParser, TurtleUtils } from '../src/lib/turtle-parser.ts';
-import { RDFDataLoader } from '../src/lib/rdf-data-loader.ts';
-import { RDFFilters } from '../src/lib/rdf-filters.ts';
+// Import our RDF implementations from JavaScript source
+import { TurtleParser, TurtleUtils } from '../src/lib/turtle-parser.js';
+import { RDFDataLoader } from '../src/lib/rdf-data-loader.js';
+import { RDFFilters } from '../src/lib/rdf-filters.js';
 
 async function demonstrateRDFImplementation() {
   console.log('🔍 Testing Unjucks RDF/Turtle Implementation\n');

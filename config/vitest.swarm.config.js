@@ -12,7 +12,8 @@ export default defineConfig({
     exclude: [
       'node_modules/**/*',
       'dist/**/*',
-      '**/*.d.ts'
+      'build/**/*',
+      'lib/**/*'
     ],
     testTimeout: 30000, // 30 second timeout for swarm operations
     hookTimeout: 10000, // 10 second timeout for setup/teardown
@@ -34,7 +35,8 @@ export default defineConfig({
       exclude: [
         'tests/**/*',
         'dist/**/*',
-        '**/*.d.ts',
+        'build/**/*',
+        'lib/**/*',
         '**/*.config.*'
       ],
       thresholds: {
@@ -74,7 +76,7 @@ export default defineConfig({
     alias: {
       '@': resolve(process.cwd(), 'src'), // Changed from __dirname
       '~': resolve(process.cwd(), '.'), // Changed from __dirname
-      '#imports': resolve(process.cwd(), '.nuxt/imports.d.ts') // Changed from __dirname
+      '#imports': resolve(process.cwd(), 'src/types/imports.js')
     }
   },
   define: {

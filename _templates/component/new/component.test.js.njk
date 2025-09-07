@@ -1,0 +1,23 @@
+---
+to: src/components/{{ name }}.test.js
+---
+import { {{ name }} } from './{{ name }}.js';
+
+describe('{{ name }}', () => {
+  let component;
+
+  beforeEach(() => {
+    component = new {{ name }}();
+  });
+
+  test('should create instance', () => {
+    expect(component).toBeInstanceOf({{ name }});
+    expect(component.name).toBe('{{ name }}');
+  });
+
+  test('should render correctly', () => {
+    const result = component.render();
+    expect(result).toContain('{{ name | lower }}');
+    expect(result).toContain('{{ name }}');
+  });
+});

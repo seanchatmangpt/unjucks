@@ -2,7 +2,7 @@ module.exports = {
   default: {
     paths: ["features/smoke/basic-cli.feature"],
     import: [
-      "tests/step-definitions/basic-cli.steps.ts"
+      "tests/step-definitions/basic-cli.steps.js"
     ],
     requireModule: ["tsx/esm"],
     format: ["progress-bar"],

@@ -1,0 +1,400 @@
+---
+to: tests/integration/{{ testName | kebabCase }}.integration.test.ts
+---
+import { describe, it, expect, beforeAll, afterAll, beforeEach, afterEach } from 'vitest';
+{% if withDatabase %}import { setupTestDatabase, teardownTestDatabase } from '../../helpers/databaseHelpers';{% endif %}
+{% if withApi %}import { startTestServer, stopTestServer } from '../../helpers/serverHelpers';{% endif %}
+{% if withRedis %}import { setupRedisTest, teardownRedisTest } from '../../helpers/redisHelpers';{% endif %}
+{% for importItem in imports -%}
+import { {{ importItem.exports.join(', ') }} } from '{{ importItem.from }}';
+{% endfor -%}
+
+/**
+ * Integration Tests: {{ testName | pascalCase }}
+ * 
+ * {{ description || "End-to-end integration tests for " + testName }}
+ * 
+ * Test Scope:
+ * - 🔗 Component Integration
+ * - 📊 Database Operations
+ * - 🌐 API Endpoints
+ * - 🔄 External Services
+ {% if withAuth %} * - 🔐 Authentication & Authorization{% endif %}
+ {% if withCache %} * - 💾 Caching Mechanisms{% endif %}
+ {% if withQueue %} * - 📬 Message Queues{% endif %}
+ */
+
+describe('{{ testName | pascalCase }} Integration Tests', () => {
+  {% if withGlobalSetup -%}
+  // Global test setup
+  let testContext: {
+    {% if withDatabase %}database?: any;{% endif %}
+    {% if withApi %}server?: any;{% endif %}
+    {% if withRedis %}redis?: any;{% endif %}
+    {% if withAuth %}authToken?: string;{% endif %}
+    [key: string]: any;
+  } = {};
+
+  beforeAll(async () => {
+    {% if withDatabase -%}
+    // Setup test database
+    testContext.database = await setupTestDatabase({
+      database: '{{ testDatabase || testName + "_test" }}',
+      migrate: true,
+      seed: {{ withSeedData || false }}
+    });
+    {% endif -%}
+
+    {% if withApi -%}
+    // Start test server
+    testContext.server = await startTestServer({
+      port: {{ testPort || 3001 }},
+      environment: 'test',
+      database: testContext.database
+    });
+    {% endif -%}
+
+    {% if withRedis -%}
+    // Setup Redis for testing
+    testContext.redis = await setupRedisTest({
+      port: {{ redisPort || 6380 }},
+      database: 15 // Use test database
+    });
+    {% endif -%}
+
+    {% if withAuth -%}
+    // Setup authentication
+    testContext.authToken = await setupTestAuth({
+      user: {
+        id: 'test-user-id',
+        email: 'test@example.com',
+        roles: ['user']
+      }
+    });
+    {% endif -%}
+  }, {{ setupTimeout || 30000 }});
+
+  afterAll(async () => {
+    {% if withRedis -%}
+    // Cleanup Redis
+    if (testContext.redis) {
+      await teardownRedisTest(testContext.redis);
+    }
+    {% endif -%}
+
+    {% if withApi -%}
+    // Stop test server
+    if (testContext.server) {
+      await stopTestServer(testContext.server);
+    }
+    {% endif -%}
+
+    {% if withDatabase -%}
+    // Cleanup test database
+    if (testContext.database) {
+      await teardownTestDatabase(testContext.database);
+    }
+    {% endif -%}
+  }, {{ teardownTimeout || 30000 }});
+  {% endif -%}
+
+  beforeEach(async () => {
+    {% if withDatabase -%}
+    // Clean database state before each test
+    await testContext.database.truncateAllTables();
+    {% endif -%}
+
+    {% if withRedis -%}
+    // Clear Redis cache
+    await testContext.redis.flushdb();
+    {% endif -%}
+
+    {% if withTestData -%}
+    // Setup fresh test data
+    await seedTestData(testContext);
+    {% endif -%}
+  });
+
+  afterEach(async () => {
+    {% if withCleanup -%}
+    // Cleanup after each test
+    await cleanupTestData(testContext);
+    {% endif -%}
+  });
+
+  {% for testSuite in testSuites -%}
+  describe('{{ testSuite.name }}', () => {
+    {% for test in testSuite.tests -%}
+    it('{{ test.description }}', async () => {
+      {% if test.skip -%}
+      // Test skipped: {{ test.skipReason }}
+      return;
+      {% endif -%}
+
+      // Arrange
+      {% if test.setup -%}
+      {{ test.setup }}
+      {% endif -%}
+
+      {% if test.testData -%}
+      const testData = {{ test.testData | dump }};
+      {% endif -%}
+
+      // Act
+      {% if test.api -%}
+      const response = await fetch(`http://localhost:{{ testPort || 3001 }}{{ test.api.endpoint }}`, {
+        method: '{{ test.api.method || "GET" }}',
+        headers: {
+          'Content-Type': 'application/json',
+          {% if withAuth %}'Authorization': `Bearer ${testContext.authToken}`,{% endif %}
+          ...{{ test.api.headers || {} }}
+        },
+        {% if test.api.body -%}
+        body: JSON.stringify({{ test.api.body }})
+        {% endif -%}
+      });
+
+      const result = await response.json();
+      {% elif test.database -%}
+      const result = await {{ test.database.operation }};
+      {% elif test.service -%}
+      const result = await {{ test.service.call }};
+      {% else -%}
+      const result = await {{ test.execution }};
+      {% endif -%}
+
+      // Assert
+      {% for assertion in test.assertions -%}
+      expect({{ assertion.actual }}).{{ assertion.matcher }}({{ assertion.expected }});
+      {% endfor -%}
+
+      {% if test.api -%}
+      // API specific assertions
+      expect(response.status).toBe({{ test.expectedStatus || 200 }});
+      {% if test.responseSchema -%}
+      expect(result).toMatchSchema({{ test.responseSchema }});
+      {% endif -%}
+      {% endif -%}
+
+      {% if test.database -%}
+      // Database specific assertions
+      {% for dbAssertion in test.databaseAssertions -%}
+      const {{ dbAssertion.name }} = await testContext.database.query('{{ dbAssertion.query }}');
+      expect({{ dbAssertion.name }}).{{ dbAssertion.matcher }}({{ dbAssertion.expected }});
+      {% endfor -%}
+      {% endif -%}
+
+      {% if test.sideEffects -%}
+      // Verify side effects
+      {% for effect in test.sideEffects -%}
+      {{ effect.verification }}
+      {% endfor -%}
+      {% endif -%}
+    });
+    {% endfor -%}
+  });
+  {% endfor -%}
+
+  {% if withWorkflowTests -%}
+  describe('End-to-End Workflows', () => {
+    {% for workflow in workflows -%}
+    it('{{ workflow.description }}', async () => {
+      // Multi-step workflow test
+      {% for step in workflow.steps -%}
+      
+      // Step {{ loop.index }}: {{ step.description }}
+      {% if step.api -%}
+      const step{{ loop.index }}Response = await fetch(`http://localhost:{{ testPort || 3001 }}{{ step.api.endpoint }}`, {
+        method: '{{ step.api.method }}',
+        headers: {
+          'Content-Type': 'application/json',
+          {% if withAuth %}'Authorization': `Bearer ${testContext.authToken}`,{% endif %}
+        },
+        {% if step.api.body -%}
+        body: JSON.stringify({{ step.api.body }})
+        {% endif -%}
+      });
+      
+      const step{{ loop.index }}Result = await step{{ loop.index }}Response.json();
+      expect(step{{ loop.index }}Response.status).toBe({{ step.expectedStatus }});
+      {% endif -%}
+
+      {% for assertion in step.assertions -%}
+      expect({{ assertion.actual }}).{{ assertion.matcher }}({{ assertion.expected }});
+      {% endfor -%}
+      {% endfor -%}
+
+      // Final workflow assertions
+      {% for assertion in workflow.finalAssertions -%}
+      expect({{ assertion.actual }}).{{ assertion.matcher }}({{ assertion.expected }});
+      {% endfor -%}
+    });
+    {% endfor -%}
+  });
+  {% endif -%}
+
+  {% if withPerformanceTests -%}
+  describe('Performance & Load Tests', () => {
+    it('should handle concurrent requests', async () => {
+      const concurrentRequests = {{ concurrentRequests || 10 }};
+      const requests = Array.from({ length: concurrentRequests }, async (_, index) => {
+        return fetch(`http://localhost:{{ testPort || 3001 }}{{ performanceEndpoint }}`, {
+          method: 'GET',
+          headers: {
+            {% if withAuth %}'Authorization': `Bearer ${testContext.authToken}`,{% endif %}
+          }
+        });
+      });
+
+      const responses = await Promise.all(requests);
+      
+      // All requests should succeed
+      responses.forEach((response, index) => {
+        expect(response.status).toBe(200);
+      });
+
+      // Response time should be reasonable
+      const totalTime = Date.now() - startTime;
+      expect(totalTime).toBeLessThan({{ maxResponseTime || 5000 }});
+    });
+
+    {% if withLoadTest -%}
+    it('should maintain performance under load', async () => {
+      const loadTestDuration = {{ loadTestDuration || 10000 }}; // 10 seconds
+      const requestInterval = {{ requestInterval || 100 }}; // 100ms between requests
+      const startTime = Date.now();
+      const responses: Response[] = [];
+
+      while (Date.now() - startTime < loadTestDuration) {
+        const response = await fetch(`http://localhost:{{ testPort || 3001 }}{{ loadTestEndpoint }}`, {
+          method: 'GET',
+          headers: {
+            {% if withAuth %}'Authorization': `Bearer ${testContext.authToken}`,{% endif %}
+          }
+        });
+        
+        responses.push(response);
+        await new Promise(resolve => setTimeout(resolve, requestInterval));
+      }
+
+      // Calculate success rate
+      const successfulResponses = responses.filter(r => r.status === 200);
+      const successRate = successfulResponses.length / responses.length;
+      
+      expect(successRate).toBeGreaterThan({{ minSuccessRate || 0.95 }}); // 95% success rate
+      expect(responses.length).toBeGreaterThan(0);
+    });
+    {% endif -%}
+  });
+  {% endif -%}
+
+  {% if withSecurityTests -%}
+  describe('Security Tests', () => {
+    {% if withAuth -%}
+    it('should require authentication for protected endpoints', async () => {
+      const response = await fetch(`http://localhost:{{ testPort || 3001 }}{{ protectedEndpoint }}`, {
+        method: 'GET'
+        // No authorization header
+      });
+
+      expect(response.status).toBe(401);
+    });
+
+    it('should reject invalid tokens', async () => {
+      const response = await fetch(`http://localhost:{{ testPort || 3001 }}{{ protectedEndpoint }}`, {
+        method: 'GET',
+        headers: {
+          'Authorization': 'Bearer invalid-token'
+        }
+      });
+
+      expect(response.status).toBe(401);
+    });
+    {% endif -%}
+
+    {% for securityTest in securityTests -%}
+    it('{{ securityTest.description }}', async () => {
+      {{ securityTest.implementation }}
+    });
+    {% endfor -%}
+  });
+  {% endif -%}
+
+  {% if withErrorHandling -%}
+  describe('Error Handling & Resilience', () => {
+    {% if withDatabase -%}
+    it('should handle database connection failures gracefully', async () => {
+      // Simulate database failure
+      await testContext.database.disconnect();
+
+      const response = await fetch(`http://localhost:{{ testPort || 3001 }}{{ databaseEndpoint }}`, {
+        method: 'GET',
+        headers: {
+          {% if withAuth %}'Authorization': `Bearer ${testContext.authToken}`,{% endif %}
+        }
+      });
+
+      expect(response.status).toBe(503); // Service Unavailable
+      
+      // Restore database connection
+      await testContext.database.reconnect();
+    });
+    {% endif -%}
+
+    {% for errorTest in errorHandlingTests -%}
+    it('{{ errorTest.description }}', async () => {
+      {{ errorTest.implementation }}
+    });
+    {% endfor -%}
+  });
+  {% endif -%}
+
+  {% if withCustomScenarios -%}
+  {% for scenario in customScenarios -%}
+  describe('{{ scenario.name }}', () => {
+    {% for test in scenario.tests -%}
+    it('{{ test.description }}', async () => {
+      {{ test.implementation }}
+    });
+    {% endfor -%}
+  });
+  {% endfor -%}
+  {% endif -%}
+});
+
+{% if helperFunctions -%}
+/**
+ * Helper functions for integration tests
+ */
+
+{% for helper in helperFunctions -%}
+/**
+ * {{ helper.description }}
+ */
+async function {{ helper.name }}({{ helper.params }}) {
+  {{ helper.implementation }}
+}
+
+{% endfor -%}
+{% endif -%}
+
+/**
+ * Test data setup and cleanup functions
+ */
+async function seedTestData(context: any): Promise<void> {
+  {% if seedDataOperations -%}
+  {% for operation in seedDataOperations -%}
+  // {{ operation.description }}
+  {{ operation.code }}
+  {% endfor -%}
+  {% endif -%}
+}
+
+async function cleanupTestData(context: any): Promise<void> {
+  {% if cleanupOperations -%}
+  {% for operation in cleanupOperations -%}
+  // {{ operation.description }}
+  {{ operation.code }}
+  {% endfor -%}
+  {% endif -%}
+}

@@ -27,12 +27,12 @@ export class {{ apiName }}Service {
     this.setupRoutes();
   }
   
-  private setupRoutes(): void {
+  private setupRoutes() {
     // Routes generated from semantic model
     this.app.get('{{ $rdf.subjects[apiName + "API"].properties["http://example.org/api#basePath"][0].value }}', this.handleList);
   }
   
-  private handleList = (req: express.Request, res: express.Response): void => {
+  private handleList = (req: express.Request, res: express.Response) => {
     // Implementation with semantic compliance
     res.json({ message: 'List {{ apiName | lower }} items' });
   };

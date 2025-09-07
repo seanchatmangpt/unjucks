@@ -1,0 +1,177 @@
+---
+to: src/controllers/{{ entityName | pascalCase }}Controller.ts
+---
+import { Request, Response, NextFunction } from 'express';
+{% if withDatabase %}
+// TODO: Import your database model
+// import { {{ entityName | pascalCase }} } from '../models/{{ entityName | pascalCase }}';
+{% endif %}
+
+/**
+ * {{ entityName | pascalCase }} Controller
+ * 
+ * Handles CRUD operations for {{ entityName | lower }} entities
+ */
+export class {{ entityName | pascalCase }}Controller {
+  
+  /**
+   * Get all {{ entityName | lower }}s
+   * @route GET /api/{{ entityName | kebabCase }}s
+   */
+  static async getAll(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      {% if withLogging %}console.log('Fetching all {{ entityName | lower }}s');{% endif %}
+      
+      // Mock data - replace with actual database query
+      const {{ entityName | camelCase }}s = [
+        {
+          id: '1',
+          name: 'Sample {{ entityName }}',
+          createdAt: new Date(),
+          updatedAt: new Date()
+        }
+      ];
+
+      res.status(200).json({
+        success: true,
+        data: {{ entityName | camelCase }}s,
+        message: '{{ entityName | pascalCase }}s retrieved successfully'
+      });
+      
+    } catch (error) {
+      {% if withLogging %}console.error('Error fetching {{ entityName | lower }}s:', error);{% endif %}
+      next(error);
+    }
+  }
+
+  /**
+   * Get {{ entityName | lower }} by ID
+   * @route GET /api/{{ entityName | kebabCase }}s/:id
+   */
+  static async getById(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const { id } = req.params;
+      {% if withLogging %}console.log(`Fetching {{ entityName | lower }} with ID: ${id}`);{% endif %}
+      
+      // Mock data - replace with actual database query
+      if (id !== '1') {
+        return res.status(404).json({
+          success: false,
+          message: '{{ entityName | pascalCase }} not found'
+        });
+      }
+      
+      const {{ entityName | camelCase }} = {
+        id,
+        name: 'Sample {{ entityName }}',
+        createdAt: new Date(),
+        updatedAt: new Date()
+      };
+
+      res.status(200).json({
+        success: true,
+        data: {{ entityName | camelCase }},
+        message: '{{ entityName | pascalCase }} retrieved successfully'
+      });
+      
+    } catch (error) {
+      {% if withLogging %}console.error(`Error fetching {{ entityName | lower }} ${req.params.id}:`, error);{% endif %}
+      next(error);
+    }
+  }
+
+  /**
+   * Create new {{ entityName | lower }}
+   * @route POST /api/{{ entityName | kebabCase }}s
+   */
+  static async create(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      {% if withLogging %}console.log('Creating new {{ entityName | lower }}');{% endif %}
+      
+      // Mock creation - replace with actual database operation
+      const {{ entityName | camelCase }} = {
+        id: Math.random().toString(36).substr(2, 9),
+        ...req.body,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      };
+
+      res.status(201).json({
+        success: true,
+        data: {{ entityName | camelCase }},
+        message: '{{ entityName | pascalCase }} created successfully'
+      });
+      
+    } catch (error) {
+      {% if withLogging %}console.error('Error creating {{ entityName | lower }}:', error);{% endif %}
+      next(error);
+    }
+  }
+
+  /**
+   * Update {{ entityName | lower }}
+   * @route PUT /api/{{ entityName | kebabCase }}s/:id
+   */
+  static async update(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const { id } = req.params;
+      {% if withLogging %}console.log(`Updating {{ entityName | lower }} with ID: ${id}`);{% endif %}
+      
+      // Mock update - replace with actual database operation
+      if (id !== '1') {
+        return res.status(404).json({
+          success: false,
+          message: '{{ entityName | pascalCase }} not found'
+        });
+      }
+      
+      const {{ entityName | camelCase }} = {
+        id,
+        ...req.body,
+        createdAt: new Date(Date.now() - 86400000), // 1 day ago
+        updatedAt: new Date()
+      };
+
+      res.status(200).json({
+        success: true,
+        data: {{ entityName | camelCase }},
+        message: '{{ entityName | pascalCase }} updated successfully'
+      });
+      
+    } catch (error) {
+      {% if withLogging %}console.error(`Error updating {{ entityName | lower }} ${req.params.id}:`, error);{% endif %}
+      next(error);
+    }
+  }
+
+  /**
+   * Delete {{ entityName | lower }}
+   * @route DELETE /api/{{ entityName | kebabCase }}s/:id
+   */
+  static async delete(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const { id } = req.params;
+      {% if withLogging %}console.log(`Deleting {{ entityName | lower }} with ID: ${id}`);{% endif %}
+      
+      // Mock delete - replace with actual database operation
+      if (id !== '1') {
+        return res.status(404).json({
+          success: false,
+          message: '{{ entityName | pascalCase }} not found'
+        });
+      }
+
+      res.status(200).json({
+        success: true,
+        data: null,
+        message: '{{ entityName | pascalCase }} deleted successfully'
+      });
+      
+    } catch (error) {
+      {% if withLogging %}console.error(`Error deleting {{ entityName | lower }} ${req.params.id}:`, error);{% endif %}
+      next(error);
+    }
+  }
+}
+
+export default {{ entityName | pascalCase }}Controller;

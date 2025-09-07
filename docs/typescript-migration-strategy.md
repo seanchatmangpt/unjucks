@@ -1,8 +1,14 @@
-# TypeScript Strict Mode Migration Strategy
+# ⚠️ DEPRECATED: TypeScript Strict Mode Migration Strategy
 
-## Overview
+> **STATUS: SUPERSEDED BY JAVASCRIPT MIGRATION**  
+> This document has been superseded by the successful TypeScript → JavaScript migration.  
+> See: [MIGRATION_TO_JS.md](MIGRATION_TO_JS.md) for current status.
 
-This document outlines the comprehensive strategy for migrating the Unjucks project from its current state with 5,973 TypeScript errors to a fully strict TypeScript configuration with zero errors.
+## Historical Overview
+
+This document outlined the comprehensive strategy for migrating the Unjucks project from its current state with 5,973 TypeScript errors to a fully strict TypeScript configuration with zero errors.
+
+**Decision Update (September 2025):** Instead of fixing TypeScript issues, the project migrated to JavaScript ES2023 for improved performance and simplified development workflow.
 
 ## Current State Analysis
 

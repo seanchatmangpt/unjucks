@@ -1,0 +1,660 @@
+/**
+ * Unjucks MCP Tool Integration Tests
+ * Tests the unjucks_generate MCP tool and other unjucks-specific MCP functionality
+ */
+
+import { describe, it, expect, beforeAll, afterAll, beforeEach } from 'vitest'
+import { spawn, type ChildProcess } from 'node:child_process'
+import { setTimeout } from 'node:timers/promises'
+import { writeFile, mkdir, rm, readFile, stat } from 'node:fs/promises'
+import { join } from 'node:path'
+import { existsSync } from 'node:fs'
+// import type { McpRequest, McpResponse } from '../types/mcp-protocol.js'
+
+class UnjucksMcpServer implements UnjucksMcpInterface { private process }>()
+
+  async initialize() { return new Promise((resolve, reject) => {
+      this.process = spawn('npx', ['claude-flow@alpha', 'mcp', 'start'], {
+        stdio }
+      })
+
+      this.process.stderr?.on('data', (data) => {
+        const error = data.toString()
+        if (error.includes('FATAL') || error.includes('Cannot load unjucks tools')) {
+          reject(new Error(`Unjucks MCP server failed))
+        }
+      })
+
+      this.process.on('error', reject)
+
+      setTimeout(() => {
+        reject(new Error('Unjucks MCP server initialization timeout'))
+      }, 25000)
+    })
+  }
+
+  private setupMessageHandling() {
+    if (!this.process?.stdout) return
+
+    let responseBuffer = ''
+    this.process.stdout.on('data', (data) => {
+      responseBuffer += data.toString()
+      
+      const lines = responseBuffer.split('\n')
+      responseBuffer = lines.pop() || ''
+      
+      for (const line of lines) {
+        if (line.trim()) {
+          try {
+            const response = JSON.parse(line)
+            if (response.id && this.pendingRequests.has(response.id)) {
+              const { resolve, reject } = this.pendingRequests.get(response.id)!
+              this.pendingRequests.delete(response.id)
+              
+              if (response.error) {
+                reject(new Error(response.error.message))
+              } else {
+                resolve(response)
+              }
+            }
+          } catch (parseError) {
+            // Ignore non-JSON output
+          }
+        }
+      }
+    })
+  }
+
+  async send(request) {
+    return new Promise((resolve, reject) => {
+      if (!this.process?.stdin) {
+        reject(new Error('Unjucks MCP server not available'))
+        return
+      }
+
+      const id = ++this.messageId
+      const message = { ...request, id }
+      
+      this.pendingRequests.set(id, { resolve, reject })
+      
+      const jsonMessage = JSON.stringify(message) + '\n'
+      this.process.stdin.write(jsonMessage)
+
+      setTimeout(() => {
+        if (this.pendingRequests.has(id)) {
+          this.pendingRequests.delete(id)
+          reject(new Error(`Unjucks MCP request timeout))
+        }
+      }, 30000)
+    })
+  }
+
+  isConnected() {
+    return this.process !== null && !this.process.killed
+  }
+
+  async close() {
+    if (this.process) {
+      return new Promise((resolve) => {
+        this.process!.on('close', () => resolve())
+        this.process!.kill('SIGTERM')
+        
+        setTimeout(() => {
+          if (this.process && !this.process.killed) {
+            this.process.kill('SIGKILL')
+          }
+          resolve()
+        }, 5000)
+      })
+    }
+  }
+}
+
+describe('Unjucks MCP Tool Integration', () => {
+  let mcpServer
+  let testTempDir => { // Set up test directories
+    testTempDir = join(process.cwd(), 'tests', 'temp', 'mcp-unjucks-test')
+    testTemplatesDir = join(testTempDir, 'templates')
+    
+    await mkdir(testTempDir, { recursive })
+    await mkdir(testTemplatesDir, { recursive })
+
+    // Create test templates
+    await createTestTemplates(testTemplatesDir)
+
+    mcpServer = new UnjucksMcpServer()
+    await mcpServer.initialize()
+  }, 60000)
+
+  afterAll(async () => {
+    if (mcpServer) {
+      await mcpServer.close()
+    }
+    if (existsSync(testTempDir)) { await rm(testTempDir, { recursive: true, force })
+    }
+  })
+
+  beforeEach(async () => { // Clean up any generated files from previous tests
+    const outputDir = join(testTempDir, 'output')
+    if (existsSync(outputDir)) {
+      await rm(outputDir, { recursive })
+    }
+    await mkdir(outputDir, { recursive })
+  })
+
+  describe('MCP Tool Discovery', () => { it('should list unjucks-specific MCP tools', async () => {
+      const response = await mcpServer.send({
+        jsonrpc }
+      }
+    })
+
+    it('should provide proper tool schemas for unjucks tools', async () => { const response = await mcpServer.send({
+        jsonrpc }
+    })
+  })
+
+  describe('Unjucks Generate Tool', () => { it('should generate files using basic template', async () => {
+      const response = await mcpServer.send({
+        jsonrpc }
+          }
+        }
+      })
+
+      expect(response.error).toBeUndefined()
+      expect(response.result).toBeDefined()
+      expect(response.result.content).toBeDefined()
+
+      const result = JSON.parse(response.result.content[1].text) // Second content item has JSON
+      expect(result.success).toBe(true)
+      expect(result.result.files).toHaveLength(1)
+      expect(result.result.files[0].action).toBe('created')
+
+      // Verify file was actually created
+      const generatedFile = join(testTempDir, 'output', 'TestClass.js')
+      expect(existsSync(generatedFile)).toBe(true)
+
+      const fileContent = await readFile(generatedFile, 'utf-8')
+      expect(fileContent).toContain('TestClass')
+      expect(fileContent).toContain('A test class generated via MCP')
+    })
+
+    it('should handle dry run mode', async () => { const response = await mcpServer.send({
+        jsonrpc }
+          }
+        }
+      })
+
+      expect(response.error).toBeUndefined()
+      expect(response.result).toBeDefined()
+
+      const result = JSON.parse(response.result.content[1].text)
+      expect(result.success).toBe(true)
+      expect(result.operation).toBe('dry-run')
+      expect(result.result.files).toHaveLength(1)
+
+      // File should not exist in dry run
+      const wouldBeGeneratedFile = join(testTempDir, 'output', 'DryRunTest.js')
+      expect(existsSync(wouldBeGeneratedFile)).toBe(false)
+
+      // But content should be in the response for review
+      expect(result.result.files[0].content).toBeDefined()
+      expect(result.result.files[0].content).toContain('DryRunTest')
+    })
+
+    it('should handle force overwrite mode', async () => { const outputPath = join(testTempDir, 'output', 'ForceTest.js')
+      
+      // Create initial file
+      await writeFile(outputPath, 'Original content')
+      const originalStat = await stat(outputPath)
+
+      // Wait a bit to ensure timestamp difference
+      await delay(100)
+
+      const response = await mcpServer.send({
+        jsonrpc }
+          }
+        }
+      })
+
+      expect(response.error).toBeUndefined()
+
+      const result = JSON.parse(response.result.content[1].text)
+      expect(result.success).toBe(true)
+
+      // File should be overwritten
+      const newContent = await readFile(outputPath, 'utf-8')
+      expect(newContent).toContain('ForceTest')
+      expect(newContent).toContain('This should overwrite the existing file')
+      expect(newContent).not.toContain('Original content')
+
+      // Check timestamp changed
+      const newStat = await stat(outputPath)
+      expect(newStat.mtime.getTime()).toBeGreaterThan(originalStat.mtime.getTime())
+    })
+
+    it('should generate multiple files from template', async () => { const response = await mcpServer.send({
+        jsonrpc }
+          }
+        }
+      })
+
+      expect(response.error).toBeUndefined()
+
+      const result = JSON.parse(response.result.content[1].text)
+      expect(result.success).toBe(true)
+      expect(result.result.files.length).toBeGreaterThan(1)
+
+      // Verify multiple files were created
+      const expectedFiles = [
+        'TestModule.js',
+        'TestModule.test.js',
+        'TestModule.md'
+      ]
+
+      for (const expectedFile of expectedFiles) {
+        const filePath = join(testTempDir, 'output', expectedFile)
+        expect(existsSync(filePath)).toBe(true)
+        
+        const content = await readFile(filePath, 'utf-8')
+        expect(content).toContain('TestModule')
+      }
+    })
+
+    it('should handle file injection mode', async () => {
+      // Create existing file to inject into
+      const targetFile = join(testTempDir, 'output', 'existing.js')
+      await writeFile(targetFile, `// Existing file
+class ExistingClass {
+  // INJECT_METHODS_HERE
+}`)
+
+      const response = await mcpServer.send({ jsonrpc }
+          }
+        }
+      })
+
+      expect(response.error).toBeUndefined()
+
+      const result = JSON.parse(response.result.content[1].text)
+      expect(result.success).toBe(true)
+      
+      const injectionResult = result.result.files.find((f) => f.action === 'injected')
+      expect(injectionResult).toBeDefined()
+
+      // Verify injection occurred
+      const updatedContent = await readFile(targetFile, 'utf-8')
+      expect(updatedContent).toContain('newMethod')
+      expect(updatedContent).toContain('string')
+      expect(updatedContent).toContain('ExistingClass') // Original content preserved
+    })
+  })
+
+  describe('Unjucks List Tool', () => { it('should list available generators and templates', async () => {
+      const response = await mcpServer.send({
+        jsonrpc })
+
+    it('should provide detailed generator information', async () => { const response = await mcpServer.send({
+        jsonrpc }
+        }
+      }
+    })
+  })
+
+  describe('Unjucks Help Tool', () => { it('should provide help for generators and templates', async () => {
+      const response = await mcpServer.send({
+        jsonrpc })
+
+    it('should provide general help when no specific generator/template', async () => { const response = await mcpServer.send({
+        jsonrpc })
+  })
+
+  describe('Error Handling', () => { it('should handle nonexistent generator', async () => {
+      const response = await mcpServer.send({
+        jsonrpc }
+          }
+        }
+      })
+
+      expect(response.error).toBeUndefined()
+      expect(response.result).toBeDefined()
+
+      const result = JSON.parse(response.result.content[1].text)
+      expect(result.success).toBe(false)
+      expect(result.result || result.message).toMatch(/generator.*not.*found/i)
+    })
+
+    it('should handle nonexistent template', async () => { const response = await mcpServer.send({
+        jsonrpc }
+          }
+        }
+      })
+
+      expect(response.error).toBeUndefined()
+
+      const result = JSON.parse(response.result.content[1].text)
+      expect(result.success).toBe(false)
+      expect(result.result || result.message).toMatch(/template.*not.*found/i)
+    })
+
+    it('should handle invalid destination path', async () => { const response = await mcpServer.send({
+        jsonrpc })
+
+    it('should validate required parameters', async () => { const response = await mcpServer.send({
+        jsonrpc }
+        }
+      })
+
+      expect(response.error).toBeDefined()
+      expect(response.error?.message).toMatch(/invalid.*parameter|missing.*required/i)
+    })
+  })
+
+  describe('Advanced Features', () => { it('should handle complex variable substitution', async () => {
+      const complexVariables = {
+        className },
+          { name },
+          { name }
+        ],
+        methods: [
+          { name },
+          { name }
+        ],
+        imports: ['express', 'lodash'],
+        config: { typescript,
+          validation }
+      }
+
+      const response = await mcpServer.send({ jsonrpc }
+        }
+      })
+
+      if (!response.error && response.result) {
+        const result = JSON.parse(response.result.content[1].text)
+        expect(result.success).toBe(true)
+
+        const generatedFile = join(testTempDir, 'output', 'AdvancedClass.ts')
+        if (existsSync(generatedFile)) {
+          const content = await readFile(generatedFile, 'utf-8')
+          
+          expect(content).toContain('AdvancedClass')
+          expect(content).toContain('getId')
+          expect(content).toContain('getName')
+          expect(content).toContain('express')
+          expect(content).toContain('lodash')
+        }
+      }
+    })
+
+    it('should handle template inheritance and includes', async () => { const response = await mcpServer.send({
+        jsonrpc }
+          }
+        }
+      })
+
+      if (!response.error && response.result) {
+        const result = JSON.parse(response.result.content[1].text)
+        expect(result.success).toBe(true)
+
+        const generatedFile = join(testTempDir, 'output', 'InheritedModule.js')
+        if (existsSync(generatedFile)) {
+          const content = await readFile(generatedFile, 'utf-8')
+          
+          // Should contain content from base template
+          expect(content).toContain('BaseComponent')
+          expect(content).toContain('InheritedModule')
+        }
+      }
+    })
+
+    it('should provide generation metadata and statistics', async () => { const response = await mcpServer.send({
+        jsonrpc }
+          }
+        }
+      })
+
+      expect(response.error).toBeUndefined()
+
+      const result = JSON.parse(response.result.content[1].text)
+      expect(result.success).toBe(true)
+      expect(result.metadata).toBeDefined()
+
+      const metadata = result.metadata
+      expect(metadata.generator).toBe('test-generator')
+      expect(metadata.template).toBe('multi-file')
+      expect(metadata.variables).toBeDefined()
+      expect(metadata.performance).toBeDefined()
+      expect(metadata.performance.duration).toBeGreaterThan(0)
+      expect(metadata.performance.filesProcessed).toBeGreaterThan(0)
+      expect(metadata.timestamp).toBeDefined()
+    })
+
+    it('should handle file conflict resolution without force flag', async () => { const targetPath = join(testTempDir, 'output', 'ConflictTest.js')
+      
+      // Create existing file
+      await writeFile(targetPath, 'Existing content')
+
+      const response = await mcpServer.send({
+        jsonrpc }
+          }
+        }
+      })
+
+      expect(response.error).toBeUndefined()
+
+      const result = JSON.parse(response.result.content[1].text)
+      
+      if (result.result.files.length > 0) {
+        const fileResult = result.result.files[0]
+        
+        if (fileResult.action === 'skipped') {
+          // File was skipped due to conflict
+          expect(fileResult.action).toBe('skipped')
+          
+          // Original content should remain
+          const content = await readFile(targetPath, 'utf-8')
+          expect(content).toBe('Existing content')
+        } else {
+          // Some implementations might still overwrite or handle differently
+          expect(['created', 'updated']).toContain(fileResult.action)
+        }
+      }
+    })
+  })
+})
+
+/**
+ * Helper function to create test templates for MCP testing
+ */
+async function createTestTemplates(templatesDir) { const generatorDir = join(templatesDir, 'test-generator')
+  await mkdir(generatorDir, { recursive })
+
+  // Simple file template
+  const simpleFileDir = join(generatorDir, 'simple-file')
+  await mkdir(simpleFileDir, { recursive })
+
+  await writeFile(join(simpleFileDir, 'index.js.ejs'), `---
+to: <%= fileName %>.js
+---
+/**
+ * <%= description %>
+ * Generated on: <%= new Date().toISOString() %>
+ */
+
+class <%= fileName %> {
+  constructor() {
+    this.description = '<%= description %>';
+    this.createdAt = new Date();
+  }
+
+  getDescription() {
+    return this.description;
+  }
+
+  toString() { return \`<%= fileName %> }\`;
+  }
+}
+
+module.exports = <%= fileName %>;
+`)
+
+  // Multi-file template
+  const multiFileDir = join(generatorDir, 'multi-file')
+  await mkdir(multiFileDir, { recursive })
+
+  await writeFile(join(multiFileDir, 'module.js.ejs'), `---
+to: <%= moduleName %>.js
+---
+/**
+ * <%= moduleName %> Module
+ */
+
+class <%= moduleName %> {
+  constructor() {
+    this.name = '<%= moduleName %>';
+  }
+}
+
+module.exports = <%= moduleName %>;
+`)
+
+  await writeFile(join(multiFileDir, 'test.js.ejs'), `---
+to: <%= moduleName %>.test.js
+skipIf: <%= !includeTests %>
+---
+const <%= moduleName %> = require('./<%= moduleName %>');
+
+describe('<%= moduleName %>', () => {
+  it('should create instance', () => {
+    const instance = new <%= moduleName %>();
+    expect(instance).toBeDefined();
+    expect(instance.name).toBe('<%= moduleName %>');
+  });
+});
+`)
+
+  await writeFile(join(multiFileDir, 'doc.md.ejs'), `---
+to: <%= moduleName %>.md
+skipIf: <%= !includeDoc %>
+---
+# <%= moduleName %>
+
+This is the documentation for <%= moduleName %> module.
+
+## Usage
+
+\`\`\`javascript
+const <%= moduleName %> = require('./<%= moduleName %>');
+const instance = new <%= moduleName %>();
+\`\`\`
+
+## API
+
+- Constructor: Creates a new <%= moduleName %> instance
+- name: Returns the module name
+`)
+
+  // Injection template
+  const injectionDir = join(generatorDir, 'injection')
+  await mkdir(injectionDir, { recursive })
+
+  await writeFile(join(injectionDir, 'method.js.ejs'), `---
+to: existing.js
+inject: true
+before: "// INJECT_METHODS_HERE"
+---
+
+  /**
+   * Generated method: <%= methodName %>
+   * @returns {<%= returnType %>} The return value
+   */
+  <%= methodName %>() {
+    // Implementation here
+    return <% if (returnType === 'string') { %>'result'<% } else { %>null<% } %>;
+  }
+`)
+
+  // Complex template with advanced features
+  const complexDir = join(generatorDir, 'complex-template')
+  await mkdir(complexDir, { recursive })
+
+  await writeFile(join(complexDir, 'class.ts.ejs'), `---
+to: <%= className %>.ts
+---
+<% if (imports && imports.length > 0) { -%>
+<% imports.forEach(imp => { -%>
+import * as <%= imp.replace(/[^a-zA-Z0-9]/g, '') %> from '<%= imp %>';
+<% }); -%>
+<% } -%>
+
+/**
+ * <%= className %> class
+<% if (config.typescript) { -%> * TypeScript enabled<% } -%>
+<% if (config.validation) { -%> * Validation enabled<% } -%>
+ */
+export class <%= className %> { <% if (properties && properties.length > 0) { -%>
+  // Properties
+<% properties.forEach(prop => { -%>
+  <% if (config.typescript) { -%>private _<%= prop.name %> } -%>;<% } else { -%>private _<%= prop.name %>;<% } %>
+<% }); -%>
+<% } -%>
+
+  constructor(<% if (properties) { -%><% properties.filter(p => p.required).forEach((prop, idx) => { -%><% if (idx > 0) { %>, <% } %><%= prop.name %>: <%= config.typescript ? prop.type : 'any' %><% }); -%><% } -%>) {
+<% if (properties) { -%>
+<% properties.filter(p => p.required).forEach(prop => { -%>
+    this._<%= prop.name %> = <%= prop.name %>;
+<% }); -%>
+<% } -%>
+  }
+
+<% if (methods && methods.length > 0) { -%>
+  // Methods
+<% methods.forEach(method => { -%>
+  <%= method.name %>()<% if (config.typescript) { -%> } -%> {
+    // Implementation for <%= method.name %>
+<% if (method.returnType === 'string') { -%>
+    return '<%= method.name %> result';
+<% } else if (method.returnType === 'number') { -%>
+    return 0;
+<% } else { -%>
+    return null;
+<% } -%>
+  }
+
+<% }); -%>
+<% } -%>
+}
+`)
+
+  // Inherited template (uses base template)
+  const inheritedDir = join(generatorDir, 'inherited-template')
+  await mkdir(inheritedDir, { recursive })
+
+  await writeFile(join(generatorDir, '_base.js.ejs'), `/**
+ * Base template content
+ * Module: <%= moduleName %>
+ */
+
+// Base imports and setup
+const config = require('./config');
+
+`)
+
+  await writeFile(join(inheritedDir, 'module.js.ejs'), `---
+to: <%= moduleName %>.js
+---
+<%- include('../_base.js.ejs') %>
+
+class <%= moduleName %> extends <%= baseClass %> {
+  constructor() {
+    super();
+    this.moduleName = '<%= moduleName %>';
+  }
+
+  getModuleName() {
+    return this.moduleName;
+  }
+}
+
+module.exports = <%= moduleName %>;
+`)
+}

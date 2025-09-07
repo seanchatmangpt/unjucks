@@ -1,0 +1,444 @@
+import { describe, it, expect, beforeEach, afterEach } from "vitest";
+import * from "fast-check";
+import fs from "fs-extra";
+import path from "node:path";
+import yaml from "yaml";
+import { FrontmatterParser, FrontmatterConfig, ParsedTemplate } from "../../../src/lib/frontmatter-parser.js";
+import { TemplateScanner, TemplateVariable } from "../../../src/lib/template-scanner.js";
+
+describe("Frontmatter Parser Property Tests", () => {
+  let frontmatterParser;
+
+  beforeEach(() => {
+    frontmatterParser = new FrontmatterParser();
+  });
+
+  describe("YAML Parsing Reliability", () => { it("should parse valid YAML frontmatter consistently", async () => {
+      await fc.assert(
+        fc.property(
+          fc.record({
+            to }),
+          ({ to, inject, append, prepend, lineAt, chmod, skipIf, content }) => {
+            const frontmatter = { to, inject, append, prepend, lineAt, chmod, skipIf };
+            const yamlFrontmatter = yaml.stringify(frontmatter);
+            const templateContent = `---\n${yamlFrontmatter}---\n${content}`;
+
+            const parsed = frontmatterParser.parse(templateContent);
+
+            // Property: Valid YAML should parse successfully
+            expect(parsed.hasValidFrontmatter).toBe(true);
+            expect(parsed.content).toBe(content);
+            expect(parsed.frontmatter).toBeDefined();
+
+            // Property: All properties should be preserved
+            expect(parsed.frontmatter.to).toBe(to);
+            expect(parsed.frontmatter.inject).toBe(inject);
+            expect(parsed.frontmatter.append).toBe(append);
+            expect(parsed.frontmatter.prepend).toBe(prepend);
+            expect(parsed.frontmatter.lineAt).toBe(lineAt);
+            expect(parsed.frontmatter.chmod).toBe(chmod);
+            expect(parsed.frontmatter.skipIf).toBe(skipIf);
+
+            // Property: Parsing should be deterministic
+            const parsed2 = frontmatterParser.parse(templateContent);
+            expect(parsed2).toEqual(parsed);
+          }
+        ),
+        { numRuns }
+      );
+    });
+
+    it("should handle malformed YAML gracefully", async () => { await fc.assert(
+        fc.property(
+          fc.record({
+            invalidYaml),
+              fc.constant("key),
+              fc.constant("unquoted }),
+          ({ invalidYaml, content }) => {
+            const templateContent = `---\n${invalidYaml}\n---\n${content}`;
+
+            const parsed = frontmatterParser.parse(templateContent);
+
+            // Property: Invalid YAML should be handled gracefully
+            expect(parsed.hasValidFrontmatter).toBe(false);
+            expect(parsed.content).toBe(templateContent); // Falls back to full content
+            expect(parsed.frontmatter).toEqual({});
+
+            // Property: Should not throw errors
+            expect(() => frontmatterParser.parse(templateContent)).not.toThrow();
+          }
+        ),
+        { numRuns }
+      );
+    });
+
+    it("should handle missing frontmatter correctly", async () => { await fc.assert(
+        fc.property(
+          fc.string({ minLength });
+          }
+        ),
+        { numRuns }
+      );
+    });
+  });
+
+  describe("Frontmatter Validation", () => { it("should validate frontmatter configuration correctly", async () => {
+      await fc.assert(
+        fc.property(
+          fc.record({
+            inject),
+            append }$/),
+              fc.stringMatching(/^[0-9a-f]{1,8}$/), // Invalid format
+              fc.nat({ max),
+              fc.nat({ min }),
+          ({ inject, append, prepend, lineAt, before, after, chmod }) => {
+            const frontmatter = { inject, append, prepend, lineAt, before, after, chmod };
+
+            const validation = frontmatterParser.validate(frontmatter);
+
+            // Property: Validation should always return an object with valid and errors
+            expect(typeof validation.valid).toBe("boolean");
+            expect(Array.isArray(validation.errors)).toBe(true);
+
+            // Property: Multiple injection modes should be invalid
+            const injectionModeCount = [inject, append, prepend, lineAt !== undefined].filter(Boolean).length;
+            if (injectionModeCount > 1) {
+              expect(validation.valid).toBe(false);
+              expect(validation.errors.some(error => error.includes("Only one injection mode"))).toBe(true);
+            }
+
+            // Property: before/after require inject: true
+            if ((before || after) && !inject) {
+              expect(validation.valid).toBe(false);
+              expect(validation.errors.some(error => error.includes("before/after requires inject"))).toBe(true);
+            }
+
+            // Property: lineAt must be positive
+            if (lineAt !== undefined && lineAt < 1) {
+              expect(validation.valid).toBe(false);
+              expect(validation.errors.some(error => error.includes("lineAt must be a positive number"))).toBe(true);
+            }
+
+            // Property: chmod validation
+            if (chmod !== undefined) {
+              if (typeof chmod === "string" && !/^[0-7]{3,4}$/.test(chmod)) {
+                expect(validation.valid).toBe(false);
+                expect(validation.errors.some(error => error.includes("chmod string must be octal"))).toBe(true);
+              } else if (typeof chmod === "number" && (chmod < 0 || chmod > 0o777)) {
+                expect(validation.valid).toBe(false);
+                expect(validation.errors.some(error => error.includes("chmod number must be between"))).toBe(true);
+              }
+            }
+          }
+        ),
+        { numRuns }
+      );
+    });
+  });
+
+  describe("SkipIf Condition Evaluation", () => { it("should evaluate skipIf conditions correctly", async () => {
+      await fc.assert(
+        fc.property(
+          fc.record({
+            variables),
+              fc.oneof(fc.string(), fc.boolean(), fc.nat({ max)),
+              { minKeys }
+            ),
+            skipCondition: fc.oneof(
+              fc.stringMatching(/^[a-zA-Z][a-zA-Z0-9_]*$/), // Simple variable check
+              fc.stringMatching(/^![a-zA-Z][a-zA-Z0-9_]*$/), // Negation
+              fc.stringMatching(/^[a-zA-Z][a-zA-Z0-9_]*==.+$/), // Equality
+              fc.stringMatching(/^[a-zA-Z][a-zA-Z0-9_]*!=.+$/) // Inequality
+            )
+          }),
+          ({ variables, skipCondition }) => { const frontmatter = { skipIf };
+
+            const shouldSkip = frontmatterParser.shouldSkip(frontmatter, variables);
+
+            // Property: Should always return a boolean
+            expect(typeof shouldSkip).toBe("boolean");
+
+            // Test specific condition types
+            if (!skipCondition.includes("==") && !skipCondition.includes("!=")) {
+              if (skipCondition.startsWith("!")) {
+                const varName = skipCondition.slice(1);
+                const expectedSkip = !variables[varName];
+                expect(shouldSkip).toBe(expectedSkip);
+              } else {
+                const expectedSkip = Boolean(variables[skipCondition]);
+                expect(shouldSkip).toBe(expectedSkip);
+              }
+            }
+
+            // Property: Evaluation should be deterministic
+            const shouldSkip2 = frontmatterParser.shouldSkip(frontmatter, variables);
+            expect(shouldSkip).toBe(shouldSkip2);
+          }
+        ),
+        { numRuns }
+      );
+    });
+  });
+
+  describe("Operation Mode Detection", () => {
+    it("should determine operation modes correctly", async () => {
+      await fc.assert(
+        fc.property(
+          fc.oneof(
+            fc.record({ append) }),
+            fc.record({ prepend) }),
+            fc.record({ inject) }),
+            fc.record({ inject), before }),
+            fc.record({ inject), after }),
+            fc.record({ lineAt }),
+            fc.record({}) // Default write mode
+          ),
+          (frontmatter) => { const operationMode = frontmatterParser.getOperationMode(frontmatter);
+
+            // Property } else if (frontmatter.append) {
+              expect(operationMode.mode).toBe("append");
+            } else if (frontmatter.prepend) {
+              expect(operationMode.mode).toBe("prepend");
+            } else if (frontmatter.inject) {
+              expect(operationMode.mode).toBe("inject");
+              if (frontmatter.before) {
+                expect(operationMode.target).toBe(frontmatter.before);
+              } else if (frontmatter.after) {
+                expect(operationMode.target).toBe(frontmatter.after);
+              }
+            } else {
+              expect(operationMode.mode).toBe("write");
+            }
+          }
+        ),
+        { numRuns }
+      );
+    });
+  });
+});
+
+describe("Template Scanner Property Tests", () => {
+  let tmpDir => {
+    tmpDir = path.join(process.cwd(), "test-bzyH4B", `scanner-prop-${Date.now()}`);
+    await fs.ensureDir(tmpDir);
+    templateScanner = new TemplateScanner();
+  });
+
+  afterEach(async () => {
+    await fs.remove(tmpDir);
+  });
+
+  describe("Variable Detection Accuracy", () => { it("should detect all Nunjucks variables consistently", async () => {
+      await fc.assert(
+        fc.asyncProperty(
+          fc.array(
+            fc.stringMatching(/^[a-zA-Z][a-zA-Z0-9_]*$/),
+            { minLength }
+          ),
+          async (variables) => { const templatePath = path.join(tmpDir, "test-template");
+            await fs.ensureDir(templatePath);
+
+            // Create template content with various Nunjucks syntax
+            const templateContent = variables
+              .map((variable, index) => {
+                switch (index % 4) {
+                  case 0 } }}`;
+                  case 1:
+                    return `{{ ${variable} | capitalize }}`;
+                  case 2:
+                    return `{% if ${variable} %}content{% endif %}`;
+                  case 3:
+                    return `{% for item in ${variable} %}{{ item }}{% endfor %}`;
+                  default:
+                    return `{{ ${variable} }}`;
+                }
+              })
+              .join("\n");
+
+            const templateFile = path.join(templatePath, "test.njk");
+            await fs.writeFile(templateFile, templateContent, "utf-8");
+
+            const result = await templateScanner.scanTemplate(templatePath);
+
+            // Property: All inserted variables should be detected
+            for (const variable of variables) {
+              expect(result.variables.some(v => v.name === variable)).toBe(true);
+            }
+
+            // Property: No duplicate variables
+            const variableNames = result.variables.map(v => v.name);
+            expect(new Set(variableNames).size).toBe(variableNames.length);
+
+            // Property: Variables should have valid types
+            for (const scannedVar of result.variables) {
+              expect(["string", "boolean", "number"]).toContain(scannedVar.type);
+              expect(typeof scannedVar.required).toBe("boolean");
+            }
+          }
+        ),
+        { numRuns }
+      );
+    });
+
+    it("should infer variable types correctly", async () => { await fc.assert(
+        fc.property(
+          fc.record({
+            booleanVars),
+                fc.constant("hasPermission"),
+                fc.constant("canDelete"),
+                fc.constant("shouldRender"),
+                fc.constant("withTests"),
+                fc.constant("enableFeature")
+              ),
+              { maxLength }
+            ),
+            numberVars: fc.array(
+              fc.oneof(
+                fc.constant("count"),
+                fc.constant("index"),
+                fc.constant("itemId"),
+                fc.constant("portNumber"),
+                fc.constant("maxSize")
+              ),
+              { maxLength }
+            ),
+            stringVars: fc.array(
+              fc.oneof(
+                fc.constant("username"),
+                fc.constant("description"),
+                fc.constant("title"),
+                fc.constant("content")
+              ),
+              { maxLength }
+            )
+          }),
+          ({ booleanVars, numberVars, stringVars }) => { // Property }];
+              const inferredType = templateScanner["inferVariableType"](varName);
+              expect(inferredType).toBe("boolean");
+            }
+
+            // Property: Number patterns should be inferred
+            for (const varName of numberVars) {
+              const inferredType = templateScanner["inferVariableType"](varName);
+              expect(inferredType).toBe("number");
+            }
+
+            // Property: String patterns should be inferred
+            for (const varName of stringVars) {
+              const inferredType = templateScanner["inferVariableType"](varName);
+              expect(inferredType).toBe("string");
+            }
+          }
+        ),
+        { numRuns }
+      );
+    });
+
+    it("should generate consistent CLI arguments from variables", async () => { await fc.assert(
+        fc.property(
+          fc.array(
+            fc.record({
+              name),
+              type }),
+            { minLength }
+          ),
+          (templateVariables) => { const cliArgs = templateScanner.generateCliArgs(templateVariables);
+
+            // Property } else {
+                expect(cliArgs[variable.name].type).toBe("string");
+              }
+            }
+
+            // Property: Generated CLI args should be consistent
+            const cliArgs2 = templateScanner.generateCliArgs(templateVariables);
+            expect(cliArgs).toEqual(cliArgs2);
+          }
+        ),
+        { numRuns }
+      );
+    });
+  });
+
+  describe("Argument Conversion", () => { it("should convert CLI arguments to variables correctly", async () => {
+      await fc.assert(
+        fc.property(
+          fc.array(
+            fc.record({
+              name),
+              type }),
+            { minLength }
+          ),
+          (testCases) => { const templateVariables = testCases.map(tc => ({
+              name };
+            testCases.forEach(tc => {
+              cliArgs[tc.name] = tc.value;
+            });
+
+            const convertedVars = templateScanner.convertArgsToVariables(cliArgs, templateVariables);
+
+            // Property: All provided arguments should be converted
+            expect(Object.keys(convertedVars).length).toBeLessThanOrEqual(testCases.length);
+
+            for (const testCase of testCases) { if (cliArgs[testCase.name] !== undefined) {
+                expect(convertedVars[testCase.name]).toBeDefined();
+
+                // Property }
+              }
+            }
+          }
+        ),
+        { numRuns }
+      );
+    });
+  });
+
+  describe("Template Directory Scanning", () => { it("should scan template directories recursively and consistently", async () => {
+      await fc.assert(
+        fc.asyncProperty(
+          fc.array(
+            fc.record({
+              fileName)$/),
+              variables }
+              ),
+              nested: fc.boolean()
+            }),
+            { minLength }
+          ),
+          async (templateFiles) => { const templatePath = path.join(tmpDir, "generator", "template");
+            await fs.ensureDir(templatePath);
+
+            // Create template files
+            for (const file of templateFiles) {
+              const filePath = file.nested 
+                ? path.join(templatePath, "nested", file.fileName)
+                 } }}`)
+                .join(" ") + " template content";
+              
+              await fs.writeFile(filePath, content, "utf-8");
+            }
+
+            const result1 = await templateScanner.scanTemplate(templatePath);
+            const result2 = await templateScanner.scanTemplate(templatePath);
+
+            // Property: Scanning should be consistent
+            expect(result1.variables.length).toBe(result2.variables.length);
+            
+            const vars1 = result1.variables.map(v => v.name).sort();
+            const vars2 = result2.variables.map(v => v.name).sort();
+            expect(vars1).toEqual(vars2);
+
+            // Property: All variables from all files should be found
+            const allExpectedVars = new Set(
+              templateFiles.flatMap(file => file.variables)
+            );
+            
+            for (const expectedVar of allExpectedVars) {
+              expect(result1.variables.some(v => v.name === expectedVar)).toBe(true);
+            }
+          }
+        ),
+        { numRuns }
+      );
+    });
+  });
+});

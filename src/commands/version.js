@@ -1,4 +1,11 @@
 import { defineCommand } from "citty";
+import fs from "fs";
+import path from "path";
+import { fileURLToPath } from "url";
+
+// Get current directory for ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 /**
  * Dynamic version resolution for cross-platform compatibility
@@ -11,10 +18,6 @@ function getVersion() {
   }
   
   try {
-    // Use require for compatibility with bundled code
-    const fs = require("fs");
-    const path = require("path");
-    
     // Try multiple paths to find package.json
     const possiblePaths = [
       path.resolve(__dirname, "../../package.json"),
@@ -33,9 +36,9 @@ function getVersion() {
       }
     }
     
-    return "0.0.0";
+    return "1.0.0";
   } catch (error) {
-    return "0.0.0";
+    return "1.0.0";
   }
 }
 

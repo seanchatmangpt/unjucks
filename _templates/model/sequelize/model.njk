@@ -1,0 +1,327 @@
+---
+to: src/models/{{ modelName | pascalCase }}.ts
+---
+import { DataTypes, Model, Sequelize, Optional } from 'sequelize';
+{% if withAssociations %}import { {{ associatedModels | join(', ') }} } from './index';{% endif %}
+
+/**
+ * {{ modelName | pascalCase }} model attributes interface
+ */
+export interface {{ modelName | pascalCase }}Attributes {
+  id: string;
+  {% for field in fields -%}
+  {{ field.name }}: {{ field.tsType }};
+  {% endfor -%}
+  createdAt: Date;
+  updatedAt: Date;
+  {% if withSoftDeletes %}deletedAt?: Date;{% endif %}
+}
+
+/**
+ * Optional attributes for {{ modelName | pascalCase }} creation
+ */
+export interface {{ modelName | pascalCase }}CreationAttributes extends Optional<{{ modelName | pascalCase }}Attributes, 'id' | 'createdAt' | 'updatedAt'{% if withSoftDeletes %} | 'deletedAt'{% endif %}> {}
+
+/**
+ * {{ modelName | pascalCase }} Sequelize Model
+ * 
+ * {{ description || "Database model for " + modelName + " entities" }}
+ */
+export class {{ modelName | pascalCase }} extends Model<{{ modelName | pascalCase }}Attributes, {{ modelName | pascalCase }}CreationAttributes> implements {{ modelName | pascalCase }}Attributes {
+  public id!: string;
+  {% for field in fields -%}
+  public {{ field.name }}!: {{ field.tsType }};
+  {% endfor -%}
+  public readonly createdAt!: Date;
+  public readonly updatedAt!: Date;
+  {% if withSoftDeletes %}public readonly deletedAt!: Date;{% endif %}
+
+  {% if withAssociations -%}
+  // Associations (populated by Sequelize)
+  {% for association in associations -%}
+  public {{ association.name }}?: {{ association.model }};
+  {% endfor -%}
+  
+  // Association helper methods
+  {% for association in associations -%}
+  {% if association.type === 'belongsTo' -%}
+  public get{{ association.name | pascalCase }}!: () => Promise<{{ association.model }}>;
+  public set{{ association.name | pascalCase }}!: ({{ association.name }}: {{ association.model }}) => Promise<void>;
+  public create{{ association.name | pascalCase }}!: (values?: Partial<{{ association.model }}Attributes>) => Promise<{{ association.model }}>;
+  {% elif association.type === 'hasMany' -%}
+  public get{{ association.name | pascalCase }}!: () => Promise<{{ association.model }}[]>;
+  public add{{ association.name | singular | pascalCase }}!: ({{ association.name | singular }}: {{ association.model }}) => Promise<void>;
+  public remove{{ association.name | singular | pascalCase }}!: ({{ association.name | singular }}: {{ association.model }}) => Promise<void>;
+  public has{{ association.name | singular | pascalCase }}!: ({{ association.name | singular }}: {{ association.model }}) => Promise<boolean>;
+  public count{{ association.name | pascalCase }}!: () => Promise<number>;
+  public create{{ association.name | singular | pascalCase }}!: (values?: Partial<{{ association.model }}Attributes>) => Promise<{{ association.model }}>;
+  {% elif association.type === 'hasOne' -%}
+  public get{{ association.name | pascalCase }}!: () => Promise<{{ association.model }}>;
+  public set{{ association.name | pascalCase }}!: ({{ association.name }}: {{ association.model }}) => Promise<void>;
+  public create{{ association.name | pascalCase }}!: (values?: Partial<{{ association.model }}Attributes>) => Promise<{{ association.model }}>;
+  {% endif -%}
+  {% endfor -%}
+  {% endif -%}
+
+  /**
+   * Initialize the {{ modelName | pascalCase }} model
+   * @param sequelize - Sequelize instance
+   * @returns The initialized {{ modelName | pascalCase }} model
+   */
+  static initModel(sequelize: Sequelize): typeof {{ modelName | pascalCase }} {
+    {{ modelName | pascalCase }}.init(
+      {
+        id: {
+          type: DataTypes.UUID,
+          defaultValue: DataTypes.UUIDV4,
+          primaryKey: true,
+          allowNull: false,
+          comment: 'Primary key for {{ modelName | lower }}'
+        },
+        {% for field in fields -%}
+        {{ field.name }}: {
+          type: {% if field.sequelizeType %}DataTypes.{{ field.sequelizeType }}{% else %}{% if field.type === 'string' %}DataTypes.STRING{% elif field.type === 'number' %}DataTypes.{% if field.integer %}INTEGER{% else %}FLOAT{% endif %}{% elif field.type === 'boolean' %}DataTypes.BOOLEAN{% elif field.type === 'date' %}DataTypes.DATE{% elif field.type === 'text' %}DataTypes.TEXT{% elif field.type === 'json' %}DataTypes.JSONB{% else %}DataTypes.STRING{% endif %}{% endif %}{% if field.length %}({{ field.length }}){% endif %},
+          allowNull: {% if field.required %}false{% else %}true{% endif %},
+          {% if field.unique %}unique: true,{% endif %}
+          {% if field.defaultValue %}defaultValue: {% if field.type === 'string' %}'{{ field.defaultValue }}'{% else %}{{ field.defaultValue }}{% endif %},{% endif %}
+          {% if field.validate -%}
+          validate: {
+            {% for validation in field.validate -%}
+            {{ validation.rule }}: {{ validation.value }},
+            {% endfor -%}
+          },
+          {% endif -%}
+          {% if field.comment %}comment: '{{ field.comment }}'{% endif %}
+        },
+        {% endfor -%}
+        {% if withTimestamps -%}
+        createdAt: {
+          type: DataTypes.DATE,
+          allowNull: false,
+          defaultValue: DataTypes.NOW,
+          comment: 'Record creation timestamp'
+        },
+        updatedAt: {
+          type: DataTypes.DATE,
+          allowNull: false,
+          defaultValue: DataTypes.NOW,
+          comment: 'Record last update timestamp'
+        }{% if withSoftDeletes %},
+        deletedAt: {
+          type: DataTypes.DATE,
+          allowNull: true,
+          comment: 'Record deletion timestamp (soft delete)'
+        }{% endif %}
+        {% endif -%}
+      },
+      {
+        sequelize,
+        modelName: '{{ modelName | pascalCase }}',
+        tableName: '{{ tableName || (modelName | snakeCase) }}s',
+        {% if withTimestamps -%}
+        timestamps: true,
+        {% endif -%}
+        {% if withSoftDeletes -%}
+        paranoid: true,
+        {% endif -%}
+        {% if withVersioning -%}
+        version: true,
+        {% endif -%}
+        underscored: {{ underscored || true }},
+        {% if indexes -%}
+        indexes: [
+          {% for index in indexes -%}
+          {
+            name: '{{ index.name }}',
+            {% if index.unique %}unique: true,{% endif %}
+            fields: [{{ index.fields | map("quote") | join(", ") }}]{% if index.where %},
+            where: {{ index.where | dump }}{% endif %}
+          }{% if not loop.last %},{% endif %}
+          {% endfor -%}
+        ],
+        {% endif -%}
+        comment: '{{ comment || "Table for " + modelName + " entities" }}',
+        {% if hooks -%}
+        hooks: {
+          {% for hook in hooks -%}
+          {{ hook.type }}: {{ hook.function }},
+          {% endfor -%}
+        },
+        {% endif -%}
+        defaultScope: {
+          {% if withSoftDeletes %}where: { deletedAt: null },{% endif %}
+          {% if defaultOrder %}order: [{{ defaultOrder }}]{% endif %}
+        },
+        scopes: {
+          {% if withSoftDeletes -%}
+          withDeleted: {
+            where: {}
+          },
+          onlyDeleted: {
+            where: {
+              deletedAt: {
+                [Op.ne]: null
+              }
+            }
+          },
+          {% endif -%}
+          {% if customScopes -%}
+          {% for scope in customScopes -%}
+          {{ scope.name }}: {{ scope.definition }},
+          {% endfor -%}
+          {% endif -%}
+        }
+      }
+    );
+
+    return {{ modelName | pascalCase }};
+  }
+
+  /**
+   * Define associations for the {{ modelName | pascalCase }} model
+   * @param models - Object containing all models
+   */
+  static associate(models: any): void {
+    {% if associations -%}
+    {% for association in associations -%}
+    // {{ association.comment || association.type + " association with " + association.model }}
+    {{ modelName | pascalCase }}.{{ association.type }}(models.{{ association.model }}, {
+      foreignKey: '{{ association.foreignKey }}',
+      {% if association.as %}as: '{{ association.as }}',{% endif %}
+      {% if association.onDelete %}onDelete: '{{ association.onDelete }}',{% endif %}
+      {% if association.onUpdate %}onUpdate: '{{ association.onUpdate }}',{% endif %}
+      {% if association.constraints !== undefined %}constraints: {{ association.constraints }},{% endif %}
+      {% if association.through %}through: '{{ association.through }}',{% endif %}
+      {% if association.otherKey %}otherKey: '{{ association.otherKey }}',{% endif %}
+    });
+    {% endfor -%}
+    {% endif -%}
+  }
+
+  /**
+   * Custom instance methods
+   */
+  
+  /**
+   * Convert model instance to JSON with selected fields
+   * @param options - Fields to include/exclude
+   * @returns Sanitized object
+   */
+  public toSafeJSON(options: { include?: string[]; exclude?: string[] } = {}): any {
+    const values = this.toJSON();
+    const { include, exclude = ['deletedAt'] } = options;
+    
+    if (include) {
+      const filtered: any = {};
+      include.forEach(field => {
+        if (values[field] !== undefined) {
+          filtered[field] = values[field];
+        }
+      });
+      return filtered;
+    }
+    
+    if (exclude) {
+      exclude.forEach(field => {
+        delete values[field];
+      });
+    }
+    
+    return values;
+  }
+
+  {% if customMethods -%}
+  {% for method in customMethods -%}
+  /**
+   * {{ method.description || method.name }}
+   */
+  {{ method.code }}
+  {% endfor -%}
+  {% endif -%}
+
+  /**
+   * Static helper methods
+   */
+  
+  /**
+   * Find {{ modelName | lower }} by criteria with error handling
+   * @param criteria - Search criteria
+   * @returns {{ modelName | pascalCase }} instance or null
+   */
+  static async findByCriteria(criteria: Partial<{{ modelName | pascalCase }}Attributes>): Promise<{{ modelName | pascalCase }} | null> {
+    try {
+      return await {{ modelName | pascalCase }}.findOne({ 
+        where: criteria,
+        {% if withAssociations -%}
+        include: [
+          {% for association in associations -%}
+          { model: {{ association.model }}{% if association.as %}, as: '{{ association.as }}'{% endif %} },
+          {% endfor -%}
+        ]
+        {% endif -%}
+      });
+    } catch (error) {
+      console.error(`Error finding {{ modelName | lower }} by criteria:`, error);
+      throw error;
+    }
+  }
+
+  /**
+   * Create {{ modelName | lower }} with validation
+   * @param data - {{ modelName | pascalCase }} data
+   * @returns Created {{ modelName | pascalCase }} instance
+   */
+  static async createSafe(data: {{ modelName | pascalCase }}CreationAttributes): Promise<{{ modelName | pascalCase }}> {
+    try {
+      return await {{ modelName | pascalCase }}.create(data);
+    } catch (error) {
+      console.error(`Error creating {{ modelName | lower }}:`, error);
+      throw error;
+    }
+  }
+
+  {% if withPagination -%}
+  /**
+   * Paginated search
+   * @param options - Search and pagination options
+   * @returns Paginated results
+   */
+  static async findPaginated(options: {
+    where?: any;
+    limit?: number;
+    offset?: number;
+    order?: any[];
+    include?: any[];
+  } = {}): Promise<{ rows: {{ modelName | pascalCase }}[]; count: number; total: number }> {
+    const {
+      where = {},
+      limit = 10,
+      offset = 0,
+      order = [['createdAt', 'DESC']],
+      include = []
+    } = options;
+
+    try {
+      const result = await {{ modelName | pascalCase }}.findAndCountAll({
+        where,
+        limit,
+        offset,
+        order,
+        include,
+        distinct: true
+      });
+
+      return {
+        rows: result.rows,
+        count: result.rows.length,
+        total: result.count
+      };
+    } catch (error) {
+      console.error(`Error in paginated search for {{ modelName | lower }}:`, error);
+      throw error;
+    }
+  }
+  {% endif -%}
+}
+
+export default {{ modelName | pascalCase }};

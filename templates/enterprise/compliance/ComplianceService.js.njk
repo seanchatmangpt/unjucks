@@ -1,0 +1,696 @@
+---
+to: src/services/{{ serviceName }}ComplianceService.js
+---
+const crypto = require('crypto');
+const { EventEmitter } = require('events');
+const logger = require('../utils/logger');
+const { AuditLogger } = require('../utils/audit-logger');
+{% if withDataEncryption %}const { EncryptionService } = require('./EncryptionService');{% endif %}
+{% if withConsentManagement %}const { ConsentService } = require('./ConsentService');{% endif %}
+const { ComplianceError } = require('../utils/compliance-error');
+
+/**
+ * {{ serviceName }} Compliance Service
+ * 
+ * Implements {{ complianceFramework | upper }} compliance with additional frameworks:
+ * {% for framework in additionalFrameworks %}* {{ framework | upper }}
+ * {% endfor %}
+ * 
+ * Key Features:
+ * {% if withAuditTrail %}* Comprehensive audit trail logging{% endif %}
+ * {% if withDataRetention %}* Automated data retention policies{% endif %}
+ * {% if withConsentManagement %}* Consent management and tracking{% endif %}
+ * {% if withAccessControls %}* Role-based access controls{% endif %}
+ * {% if withDataEncryption %}* Data encryption at rest and in transit{% endif %}
+ * {% if withIncidentResponse %}* Automated incident response workflows{% endif %}
+ * {% if withReporting %}* Compliance reporting and dashboards{% endif %}
+ * {% if withRiskAssessment %}* Automated risk assessment tools{% endif %}
+ * 
+ * @class {{ serviceName }}ComplianceService
+ * @extends {EventEmitter}
+ */
+class {{ serviceName }}ComplianceService extends EventEmitter {
+  constructor(config = {}) {
+    super();
+    
+    this.config = {
+      complianceFramework: '{{ complianceFramework }}',
+      additionalFrameworks: {{ additionalFrameworks | dump }},
+      retentionPeriodDays: {{ retentionPeriodDays }},
+      encryptionAlgorithm: '{{ encryptionAlgorithm }}',
+      organizationName: '{{ organizationName }}',
+      dataProtectionOfficer: '{{ dataProtectionOfficer }}',
+      jurisdictions: {{ jurisdictions | dump }},
+      ...config
+    };
+
+    {% if withAuditTrail %}
+    this.auditLogger = new AuditLogger({
+      service: '{{ serviceName }}',
+      framework: this.config.complianceFramework
+    });
+    {% endif %}
+
+    {% if withDataEncryption %}
+    this.encryptionService = new EncryptionService({
+      algorithm: this.config.encryptionAlgorithm
+    });
+    {% endif %}
+
+    {% if withConsentManagement %}
+    this.consentService = new ConsentService({
+      frameworks: [this.config.complianceFramework, ...this.config.additionalFrameworks]
+    });
+    {% endif %}
+
+    this.complianceRules = this.initializeComplianceRules();
+    this.setupEventHandlers();
+  }
+
+  /**
+   * Initialize compliance rules based on selected frameworks
+   * @private
+   * @return {Object}
+   */
+  initializeComplianceRules() {
+    const rules = {};
+
+    // {{ complianceFramework | upper }} Rules
+    {% if complianceFramework === 'gdpr' %}
+    rules.gdpr = {
+      dataRetention: {{ retentionPeriodDays }}, // days
+      consentRequired: true,
+      rightToErasure: true,
+      dataPortability: true,
+      breachNotificationHours: 72,
+      supervisoryAuthority: this.getSupervisoryAuthority(),
+      lawfulBases: ['consent', 'contract', 'legal_obligation', 'vital_interests', 'public_task', 'legitimate_interests'],
+      minimumAge: 16,
+      dpoRequired: true
+    };
+    {% elif complianceFramework === 'sox' %}
+    rules.sox = {
+      dataRetention: 2555, // 7 years for financial records
+      auditTrailRequired: true,
+      changeManagement: true,
+      accessControls: true,
+      financialReportingControls: true,
+      executiveCertification: true,
+      internalControls: true,
+      externalAuditorIndependence: true
+    };
+    {% elif complianceFramework === 'hipaa' %}
+    rules.hipaa = {
+      dataRetention: 2190, // 6 years minimum
+      phi: true, // Protected Health Information
+      minimumNecessary: true,
+      accessLogging: true,
+      encryption: 'AES-256',
+      businessAssociateAgreements: true,
+      breachNotificationDays: 60,
+      patientRights: ['access', 'amendment', 'accounting', 'restriction', 'confidential_communication']
+    };
+    {% elif complianceFramework === 'pci-dss' %}
+    rules.pciDss = {
+      cardDataEncryption: true,
+      accessLogging: true,
+      networkSecurity: true,
+      regularTesting: true,
+      informationSecurity: true,
+      vulnerabilityManagement: true,
+      strongAccessControls: true,
+      cardDataRetention: 'minimize',
+      tokenization: true,
+      encryptionInTransit: true
+    };
+    {% endif %}
+
+    // Additional framework rules
+    {% for framework in additionalFrameworks %}
+    {% if framework === 'iso27001' %}
+    rules.iso27001 = {
+      informationSecurityManagement: true,
+      riskAssessment: true,
+      securityControls: true,
+      continuousImprovement: true,
+      documentationRequired: true,
+      employeeTraining: true
+    };
+    {% elif framework === 'basel3' %}
+    rules.basel3 = {
+      capitalRequirements: true,
+      riskManagement: true,
+      liquidityRisk: true,
+      leverageRatio: true,
+      systemicRisk: true,
+      stressTesting: true
+    };
+    {% elif framework === 'ccpa' %}
+    rules.ccpa = {
+      rightToKnow: true,
+      rightToDelete: true,
+      rightToOptOut: true,
+      nonDiscrimination: true,
+      dataMinimization: true,
+      consumerRights: true
+    };
+    {% endif %}
+    {% endfor %}
+
+    return rules;
+  }
+
+  /**
+   * Setup event handlers for compliance monitoring
+   * @private
+   */
+  setupEventHandlers() {
+    {% if withIncidentResponse %}
+    // Incident response automation
+    this.on('data_breach', this.handleDataBreach.bind(this));
+    this.on('access_violation', this.handleAccessViolation.bind(this));
+    this.on('compliance_violation', this.handleComplianceViolation.bind(this));
+    {% endif %}
+
+    {% if withDataRetention %}
+    // Data retention automation
+    this.on('retention_check', this.performRetentionCheck.bind(this));
+    {% endif %}
+
+    {% if withReporting %}
+    // Compliance reporting
+    this.on('compliance_report', this.generateComplianceReport.bind(this));
+    {% endif %}
+  }
+
+  {% if withAuditTrail %}
+  /**
+   * Log audit event for compliance tracking
+   * @param {string} action - Action performed
+   * @param {string} resource - Resource affected
+   * @param {Object} context - Additional context
+   * @return {Promise<void>}
+   */
+  async logAuditEvent(action, resource, context = {}) {
+    try {
+      const auditEvent = {
+        timestamp: new Date().toISOString(),
+        service: '{{ serviceName }}',
+        action,
+        resource,
+        userId: context.userId,
+        sessionId: context.sessionId,
+        ipAddress: context.ipAddress,
+        userAgent: context.userAgent,
+        complianceFramework: this.config.complianceFramework,
+        jurisdiction: context.jurisdiction || this.config.jurisdictions[0],
+        dataClassification: context.dataClassification || 'internal',
+        ...context
+      };
+
+      await this.auditLogger.log(auditEvent);
+
+      // Emit for real-time monitoring
+      this.emit('audit_logged', auditEvent);
+
+    } catch (error) {
+      logger.error('Failed to log audit event', { error: error.message, action, resource });
+      throw new ComplianceError('AUDIT_LOG_FAILED', 'Failed to log compliance audit event');
+    }
+  }
+  {% endif %}
+
+  {% if withConsentManagement %}
+  /**
+   * Validate consent for data processing
+   * @param {string} userId - User ID
+   * @param {string} purpose - Processing purpose
+   * @param {Object} context - Additional context
+   * @return {Promise<boolean>}
+   */
+  async validateConsent(userId, purpose, context = {}) {
+    try {
+      const consentValid = await this.consentService.validateConsent(userId, purpose);
+      
+      await this.logAuditEvent('CONSENT_CHECK', `user:${userId}`, {
+        purpose,
+        valid: consentValid,
+        ...context
+      });
+
+      return consentValid;
+    } catch (error) {
+      logger.error('Consent validation failed', { error: error.message, userId, purpose });
+      throw new ComplianceError('CONSENT_VALIDATION_FAILED', 'Failed to validate user consent');
+    }
+  }
+
+  /**
+   * Record consent withdrawal
+   * @param {string} userId - User ID
+   * @param {string} purpose - Processing purpose
+   * @param {Object} context - Additional context
+   * @return {Promise<void>}
+   */
+  async recordConsentWithdrawal(userId, purpose, context = {}) {
+    try {
+      await this.consentService.withdrawConsent(userId, purpose);
+      
+      await this.logAuditEvent('CONSENT_WITHDRAWN', `user:${userId}`, {
+        purpose,
+        ...context
+      });
+
+      // Trigger data retention check for withdrawn consent
+      this.emit('consent_withdrawn', { userId, purpose });
+
+    } catch (error) {
+      logger.error('Failed to record consent withdrawal', { error: error.message, userId, purpose });
+      throw new ComplianceError('CONSENT_WITHDRAWAL_FAILED', 'Failed to record consent withdrawal');
+    }
+  }
+  {% endif %}
+
+  {% if withDataEncryption %}
+  /**
+   * Encrypt sensitive data according to compliance requirements
+   * @param {any} data - Data to encrypt
+   * @param {Object} context - Encryption context
+   * @return {Promise<Object>}
+   */
+  async encryptData(data, context = {}) {
+    try {
+      const encrypted = await this.encryptionService.encrypt(data, {
+        algorithm: this.config.encryptionAlgorithm,
+        keyRotation: true,
+        ...context
+      });
+
+      await this.logAuditEvent('DATA_ENCRYPTED', 'sensitive_data', {
+        dataType: context.dataType,
+        classification: context.classification || 'confidential'
+      });
+
+      return encrypted;
+    } catch (error) {
+      logger.error('Data encryption failed', { error: error.message, dataType: context.dataType });
+      throw new ComplianceError('ENCRYPTION_FAILED', 'Failed to encrypt sensitive data');
+    }
+  }
+
+  /**
+   * Decrypt sensitive data with audit logging
+   * @param {Object} encryptedData - Encrypted data object
+   * @param {Object} context - Decryption context
+   * @return {Promise<any>}
+   */
+  async decryptData(encryptedData, context = {}) {
+    try {
+      const decrypted = await this.encryptionService.decrypt(encryptedData);
+
+      await this.logAuditEvent('DATA_DECRYPTED', 'sensitive_data', {
+        dataType: context.dataType,
+        purpose: context.purpose,
+        userId: context.userId
+      });
+
+      return decrypted;
+    } catch (error) {
+      logger.error('Data decryption failed', { error: error.message });
+      throw new ComplianceError('DECRYPTION_FAILED', 'Failed to decrypt sensitive data');
+    }
+  }
+  {% endif %}
+
+  {% if withAccessControls %}
+  /**
+   * Validate access controls according to compliance requirements
+   * @param {Object} user - User object
+   * @param {string} resource - Resource being accessed
+   * @param {string} action - Action being performed
+   * @param {Object} context - Access context
+   * @return {Promise<boolean>}
+   */
+  async validateAccess(user, resource, action, context = {}) {
+    try {
+      // Check basic authentication
+      if (!user || !user.id) {
+        await this.logAuditEvent('ACCESS_DENIED', resource, {
+          reason: 'unauthenticated',
+          action,
+          ...context
+        });
+        return false;
+      }
+
+      // Apply principle of least privilege
+      const hasPermission = await this.checkPermission(user, resource, action);
+      
+      // Check compliance-specific access rules
+      const complianceCheck = await this.checkComplianceAccess(user, resource, action, context);
+
+      const accessGranted = hasPermission && complianceCheck;
+
+      await this.logAuditEvent(accessGranted ? 'ACCESS_GRANTED' : 'ACCESS_DENIED', resource, {
+        userId: user.id,
+        action,
+        hasPermission,
+        complianceCheck,
+        ...context
+      });
+
+      return accessGranted;
+    } catch (error) {
+      logger.error('Access validation failed', { error: error.message, userId: user?.id, resource, action });
+      throw new ComplianceError('ACCESS_VALIDATION_FAILED', 'Failed to validate access controls');
+    }
+  }
+
+  /**
+   * Check compliance-specific access rules
+   * @private
+   * @param {Object} user - User object
+   * @param {string} resource - Resource being accessed
+   * @param {string} action - Action being performed
+   * @param {Object} context - Access context
+   * @return {Promise<boolean>}
+   */
+  async checkComplianceAccess(user, resource, action, context = {}) {
+    const rules = this.complianceRules[this.config.complianceFramework];
+    
+    // {{ complianceFramework | upper }}-specific access controls
+    {% if complianceFramework === 'hipaa' %}
+    // HIPAA minimum necessary rule
+    if (rules.minimumNecessary) {
+      return this.checkMinimumNecessary(user, resource, action, context);
+    }
+    {% elif complianceFramework === 'sox' %}
+    // SOX segregation of duties
+    if (rules.accessControls) {
+      return this.checkSegregationOfDuties(user, resource, action);
+    }
+    {% elif complianceFramework === 'pci-dss' %}
+    // PCI-DSS strong access controls
+    if (rules.strongAccessControls) {
+      return this.checkPCIAccessControls(user, resource, action);
+    }
+    {% endif %}
+
+    return true;
+  }
+  {% endif %}
+
+  {% if withDataRetention %}
+  /**
+   * Perform data retention check and cleanup
+   * @param {Object} criteria - Retention criteria
+   * @return {Promise<Object>}
+   */
+  async performRetentionCheck(criteria = {}) {
+    try {
+      const retentionPeriod = criteria.retentionPeriod || this.config.retentionPeriodDays;
+      const cutoffDate = new Date();
+      cutoffDate.setDate(cutoffDate.getDate() - retentionPeriod);
+
+      // Find data eligible for deletion
+      const eligibleData = await this.findDataForRetention(cutoffDate, criteria);
+
+      const results = {
+        checked: eligibleData.length,
+        deleted: 0,
+        errors: []
+      };
+
+      for (const dataItem of eligibleData) {
+        try {
+          // Check if data can be deleted (no legal holds, etc.)
+          const canDelete = await this.canDeleteData(dataItem);
+          
+          if (canDelete) {
+            await this.deleteDataForRetention(dataItem);
+            results.deleted++;
+            
+            await this.logAuditEvent('DATA_DELETED_RETENTION', `${dataItem.type}:${dataItem.id}`, {
+              retentionPeriod,
+              cutoffDate: cutoffDate.toISOString(),
+              reason: 'automatic_retention_policy'
+            });
+          }
+        } catch (error) {
+          results.errors.push({
+            dataItem: dataItem.id,
+            error: error.message
+          });
+          logger.error('Data retention deletion failed', { error: error.message, dataItem: dataItem.id });
+        }
+      }
+
+      await this.logAuditEvent('RETENTION_CHECK_COMPLETED', 'data_retention', {
+        results,
+        retentionPeriod,
+        cutoffDate: cutoffDate.toISOString()
+      });
+
+      return results;
+    } catch (error) {
+      logger.error('Data retention check failed', { error: error.message });
+      throw new ComplianceError('RETENTION_CHECK_FAILED', 'Failed to perform data retention check');
+    }
+  }
+  {% endif %}
+
+  {% if withIncidentResponse %}
+  /**
+   * Handle data breach incident
+   * @param {Object} incident - Incident details
+   * @return {Promise<void>}
+   */
+  async handleDataBreach(incident) {
+    try {
+      const response = {
+        incidentId: crypto.randomUUID(),
+        timestamp: new Date().toISOString(),
+        severity: incident.severity || 'high',
+        affectedRecords: incident.affectedRecords || 0,
+        dataTypes: incident.dataTypes || [],
+        ...incident
+      };
+
+      // Immediate containment
+      if (incident.containmentRequired) {
+        await this.containBreach(response);
+      }
+
+      // Notification requirements
+      await this.processBreachNotifications(response);
+
+      // Document incident
+      await this.logAuditEvent('DATA_BREACH_REPORTED', `incident:${response.incidentId}`, {
+        ...response,
+        action: 'incident_response_initiated'
+      });
+
+      // Trigger regulatory reporting if required
+      if (this.requiresRegulatoryReporting(response)) {
+        this.emit('regulatory_reporting_required', response);
+      }
+
+    } catch (error) {
+      logger.error('Data breach handling failed', { error: error.message, incident });
+      throw new ComplianceError('INCIDENT_RESPONSE_FAILED', 'Failed to handle data breach incident');
+    }
+  }
+
+  /**
+   * Process breach notification requirements
+   * @private
+   * @param {Object} incident - Incident details
+   * @return {Promise<void>}
+   */
+  async processBreachNotifications(incident) {
+    const notifications = [];
+
+    // {{ complianceFramework | upper }} notifications
+    {% if complianceFramework === 'gdpr' %}
+    // GDPR 72-hour notification to supervisory authority
+    if (incident.severity === 'high' && incident.affectedRecords > 0) {
+      notifications.push({
+        type: 'supervisory_authority',
+        deadline: new Date(Date.now() + 72 * 60 * 60 * 1000), // 72 hours
+        recipient: this.getSupervisoryAuthority()
+      });
+      
+      // Individual notifications if high risk
+      if (incident.highRiskToDataSubjects) {
+        notifications.push({
+          type: 'data_subjects',
+          deadline: new Date(Date.now() + 72 * 60 * 60 * 1000),
+          recipients: incident.affectedDataSubjects
+        });
+      }
+    }
+    {% elif complianceFramework === 'hipaa' %}
+    // HIPAA breach notifications
+    notifications.push({
+      type: 'hhs_secretary',
+      deadline: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000), // 60 days
+      recipient: 'HHS Secretary'
+    });
+    
+    notifications.push({
+      type: 'affected_individuals',
+      deadline: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000), // 60 days
+      recipients: incident.affectedIndividuals
+    });
+    {% endif %}
+
+    // Process each notification
+    for (const notification of notifications) {
+      await this.scheduleNotification(notification, incident);
+    }
+  }
+  {% endif %}
+
+  {% if withReporting %}
+  /**
+   * Generate compliance report
+   * @param {Object} params - Report parameters
+   * @return {Promise<Object>}
+   */
+  async generateComplianceReport(params = {}) {
+    try {
+      const report = {
+        id: crypto.randomUUID(),
+        timestamp: new Date().toISOString(),
+        framework: this.config.complianceFramework,
+        period: params.period || 'monthly',
+        organization: this.config.organizationName,
+        jurisdiction: params.jurisdiction || this.config.jurisdictions[0]
+      };
+
+      // Collect compliance metrics
+      report.metrics = await this.collectComplianceMetrics(params);
+      
+      // Assess compliance status
+      report.status = await this.assessComplianceStatus();
+      
+      // Identify risks and recommendations
+      report.risks = await this.identifyComplianceRisks();
+      report.recommendations = await this.generateRecommendations(report.risks);
+
+      await this.logAuditEvent('COMPLIANCE_REPORT_GENERATED', `report:${report.id}`, {
+        framework: report.framework,
+        period: report.period
+      });
+
+      return report;
+    } catch (error) {
+      logger.error('Compliance report generation failed', { error: error.message, params });
+      throw new ComplianceError('REPORT_GENERATION_FAILED', 'Failed to generate compliance report');
+    }
+  }
+  {% endif %}
+
+  {% if withRiskAssessment %}
+  /**
+   * Perform automated risk assessment
+   * @param {Object} scope - Assessment scope
+   * @return {Promise<Object>}
+   */
+  async performRiskAssessment(scope = {}) {
+    try {
+      const assessment = {
+        id: crypto.randomUUID(),
+        timestamp: new Date().toISOString(),
+        scope: scope.components || ['data', 'access', 'processes', 'technology'],
+        framework: this.config.complianceFramework
+      };
+
+      // Assess different risk categories
+      assessment.risks = {
+        data: await this.assessDataRisks(),
+        access: await this.assessAccessRisks(),
+        processes: await this.assessProcessRisks(),
+        technology: await this.assessTechnologyRisks()
+      };
+
+      // Calculate overall risk score
+      assessment.overallRisk = this.calculateRiskScore(assessment.risks);
+      
+      // Generate mitigation recommendations
+      assessment.mitigations = await this.generateMitigationStrategies(assessment.risks);
+
+      await this.logAuditEvent('RISK_ASSESSMENT_COMPLETED', `assessment:${assessment.id}`, {
+        framework: assessment.framework,
+        overallRisk: assessment.overallRisk
+      });
+
+      return assessment;
+    } catch (error) {
+      logger.error('Risk assessment failed', { error: error.message, scope });
+      throw new ComplianceError('RISK_ASSESSMENT_FAILED', 'Failed to perform automated risk assessment');
+    }
+  }
+  {% endif %}
+
+  /**
+   * Get supervisory authority based on jurisdiction
+   * @private
+   * @return {string}
+   */
+  getSupervisoryAuthority() {
+    const jurisdiction = this.config.jurisdictions[0];
+    const authorities = {
+      'US': 'FTC',
+      'EU': 'EDPB',
+      'UK': 'ICO',
+      'CA': 'OPC',
+      'AU': 'OAIC'
+    };
+    
+    return authorities[jurisdiction] || 'Local Data Protection Authority';
+  }
+
+  /**
+   * Initialize compliance framework
+   * @return {Promise<void>}
+   */
+  async initialize() {
+    try {
+      logger.info(`Initializing {{ serviceName }} Compliance Service`, {
+        framework: this.config.complianceFramework,
+        additionalFrameworks: this.config.additionalFrameworks,
+        organization: this.config.organizationName
+      });
+
+      // Validate configuration
+      await this.validateConfiguration();
+
+      // Initialize framework-specific components
+      await this.initializeFrameworkComponents();
+
+      {% if withDataRetention %}
+      // Schedule data retention checks
+      await this.scheduleRetentionChecks();
+      {% endif %}
+
+      {% if withReporting %}
+      // Schedule compliance reporting
+      await this.scheduleComplianceReporting();
+      {% endif %}
+
+      this.emit('compliance_initialized', {
+        framework: this.config.complianceFramework,
+        timestamp: new Date().toISOString()
+      });
+
+      logger.info('{{ serviceName }} Compliance Service initialized successfully');
+
+    } catch (error) {
+      logger.error('Failed to initialize compliance service', { error: error.message });
+      throw new ComplianceError('INITIALIZATION_FAILED', 'Failed to initialize compliance service');
+    }
+  }
+}
+
+module.exports = { {{ serviceName }}ComplianceService };

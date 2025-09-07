@@ -1,0 +1,307 @@
+---
+to: src/routes/{{ entityName | camelCase }}Routes.ts
+---
+import { Router } from 'express';
+import { {{ entityName | pascalCase }}Controller } from '../controllers/{{ entityName | pascalCase }}Controller';
+{% if withAuth %}import { authenticateToken } from '../middleware/auth';{% endif %}
+{% if withValidation %}import { validate{{ entityName | pascalCase }}Input } from '../middleware/validation';{% endif %}
+{% if withRateLimit %}import { {{ entityName | camelCase }}RateLimit } from '../middleware/rateLimit';{% endif %}
+
+const router = Router();
+
+/**
+ * {{ entityName | pascalCase }} Routes
+ * 
+ * All routes for managing {{ entityName | lower }} entities
+ */
+
+{% if withAuth -%}
+// Apply authentication to all routes
+router.use(authenticateToken);
+{% endif -%}
+
+{% if withRateLimit -%}
+// Apply rate limiting
+router.use({{ entityName | camelCase }}RateLimit);
+{% endif -%}
+
+/**
+ * @swagger
+ * components:
+ *   schemas:
+ *     {{ entityName | pascalCase }}:
+ *       type: object
+ *       required:
+ *         {% for field in fields -%}
+ *         {% if field.required %}- {{ field.name }}
+ *         {% endif -%}
+ *         {% endfor -%}
+ *       properties:
+ *         id:
+ *           type: string
+ *           description: Unique identifier
+ *         {% for field in fields -%}
+ *         {{ field.name }}:
+ *           type: {{ field.swaggerType || field.type }}
+ *           description: {{ field.description || field.name }}
+ *           {% if field.example %}example: {{ field.example }}
+ *           {% endif -%}
+ *         {% endfor -%}
+ *         createdAt:
+ *           type: string
+ *           format: date-time
+ *           description: Creation timestamp
+ *         updatedAt:
+ *           type: string
+ *           format: date-time
+ *           description: Last update timestamp
+ */
+
+/**
+ * @swagger
+ * /api/{{ entityName | kebabCase }}s:
+ *   get:
+ *     summary: Get all {{ entityName | lower }}s
+ *     tags: [{{ entityName | pascalCase }}]
+ *     {% if withAuth %}security:
+ *       - bearerAuth: []
+ *     {% endif -%}
+ *     {% if withPagination -%}
+ *     parameters:
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 10
+ *         description: Number of items to return
+ *       - in: query
+ *         name: offset
+ *         schema:
+ *           type: integer
+ *           default: 0
+ *         description: Number of items to skip
+ *     {% endif -%}
+ *     responses:
+ *       200:
+ *         description: List of {{ entityName | lower }}s retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/{{ entityName | pascalCase }}'
+ *                 message:
+ *                   type: string
+ *                   example: {{ entityName | pascalCase }}s retrieved successfully
+ *       {% if withAuth %}401:
+ *         description: Unauthorized
+ *       {% endif -%}
+ *       500:
+ *         description: Internal server error
+ */
+router.get('/', {{ entityName | pascalCase }}Controller.getAll);
+
+/**
+ * @swagger
+ * /api/{{ entityName | kebabCase }}s/{id}:
+ *   get:
+ *     summary: Get {{ entityName | lower }} by ID
+ *     tags: [{{ entityName | pascalCase }}]
+ *     {% if withAuth %}security:
+ *       - bearerAuth: []
+ *     {% endif -%}
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: {{ entityName | pascalCase }} ID
+ *     responses:
+ *       200:
+ *         description: {{ entityName | pascalCase }} retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   $ref: '#/components/schemas/{{ entityName | pascalCase }}'
+ *                 message:
+ *                   type: string
+ *                   example: {{ entityName | pascalCase }} retrieved successfully
+ *       404:
+ *         description: {{ entityName | pascalCase }} not found
+ *       {% if withAuth %}401:
+ *         description: Unauthorized
+ *       {% endif -%}
+ *       500:
+ *         description: Internal server error
+ */
+router.get('/:id', {{ entityName | pascalCase }}Controller.getById);
+
+/**
+ * @swagger
+ * /api/{{ entityName | kebabCase }}s:
+ *   post:
+ *     summary: Create new {{ entityName | lower }}
+ *     tags: [{{ entityName | pascalCase }}]
+ *     {% if withAuth %}security:
+ *       - bearerAuth: []
+ *     {% endif -%}
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               {% for field in fields -%}
+ *               {% if field.required %}- {{ field.name }}
+ *               {% endif -%}
+ *               {% endfor -%}
+ *             properties:
+ *               {% for field in fields -%}
+ *               {{ field.name }}:
+ *                 type: {{ field.swaggerType || field.type }}
+ *                 description: {{ field.description || field.name }}
+ *                 {% if field.example %}example: {{ field.example }}
+ *                 {% endif -%}
+ *               {% endfor -%}
+ *     responses:
+ *       201:
+ *         description: {{ entityName | pascalCase }} created successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   $ref: '#/components/schemas/{{ entityName | pascalCase }}'
+ *                 message:
+ *                   type: string
+ *                   example: {{ entityName | pascalCase }} created successfully
+ *       400:
+ *         description: Bad request - validation error
+ *       {% if withAuth %}401:
+ *         description: Unauthorized
+ *       {% endif -%}
+ *       500:
+ *         description: Internal server error
+ */
+router.post('/', {% if withValidation %}validate{{ entityName | pascalCase }}Input, {% endif %}{{ entityName | pascalCase }}Controller.create);
+
+/**
+ * @swagger
+ * /api/{{ entityName | kebabCase }}s/{id}:
+ *   put:
+ *     summary: Update {{ entityName | lower }}
+ *     tags: [{{ entityName | pascalCase }}]
+ *     {% if withAuth %}security:
+ *       - bearerAuth: []
+ *     {% endif -%}
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: {{ entityName | pascalCase }} ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               {% for field in fields -%}
+ *               {{ field.name }}:
+ *                 type: {{ field.swaggerType || field.type }}
+ *                 description: {{ field.description || field.name }}
+ *                 {% if field.example %}example: {{ field.example }}
+ *                 {% endif -%}
+ *               {% endfor -%}
+ *     responses:
+ *       200:
+ *         description: {{ entityName | pascalCase }} updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   $ref: '#/components/schemas/{{ entityName | pascalCase }}'
+ *                 message:
+ *                   type: string
+ *                   example: {{ entityName | pascalCase }} updated successfully
+ *       400:
+ *         description: Bad request - validation error
+ *       404:
+ *         description: {{ entityName | pascalCase }} not found
+ *       {% if withAuth %}401:
+ *         description: Unauthorized
+ *       {% endif -%}
+ *       500:
+ *         description: Internal server error
+ */
+router.put('/:id', {% if withValidation %}validate{{ entityName | pascalCase }}Input, {% endif %}{{ entityName | pascalCase }}Controller.update);
+
+/**
+ * @swagger
+ * /api/{{ entityName | kebabCase }}s/{id}:
+ *   delete:
+ *     summary: Delete {{ entityName | lower }}
+ *     tags: [{{ entityName | pascalCase }}]
+ *     {% if withAuth %}security:
+ *       - bearerAuth: []
+ *     {% endif -%}
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: {{ entityName | pascalCase }} ID
+ *     responses:
+ *       200:
+ *         description: {{ entityName | pascalCase }} deleted successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: null
+ *                   example: null
+ *                 message:
+ *                   type: string
+ *                   example: {{ entityName | pascalCase }} deleted successfully
+ *       404:
+ *         description: {{ entityName | pascalCase }} not found
+ *       {% if withAuth %}401:
+ *         description: Unauthorized
+ *       {% endif -%}
+ *       500:
+ *         description: Internal server error
+ */
+router.delete('/:id', {{ entityName | pascalCase }}Controller.delete);
+
+export default router;

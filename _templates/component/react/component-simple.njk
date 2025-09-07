@@ -1,0 +1,65 @@
+---
+to: src/components/{{ componentName | pascalCase }}/{{ componentName | pascalCase }}.tsx
+---
+import React{% if withState %}, { useState, useEffect }{% endif %} from 'react';
+{% if withStyles %}import styles from './{{ componentName | pascalCase }}.module.css';{% endif %}
+
+{% if withProps %}
+interface {{ componentName | pascalCase }}Props {
+  title?: string;
+  description?: string;
+  className?: string;
+  children?: React.ReactNode;
+}
+{% endif %}
+
+/**
+ * {{ componentName | pascalCase }} Component
+ * 
+ * @param props - Component properties
+ * @returns JSX element
+ */
+export const {{ componentName | pascalCase }}: React.FC{% if withProps %}<{{ componentName | pascalCase }}Props>{% endif %} = ({% if withProps %}{
+  title = '{{ componentName | pascalCase }}',
+  description,
+  className,
+  children,
+  ...props
+}{% endif %}) => {
+  {% if withState %}
+  const [isVisible, setIsVisible] = useState<boolean>(true);
+  {% endif %}
+
+  {% if withEffect %}
+  useEffect(() => {
+    console.log('{{ componentName | pascalCase }} mounted');
+    return () => console.log('{{ componentName | pascalCase }} unmounted');
+  }, []);
+  {% endif %}
+
+  return (
+    <div 
+      className={{% if withStyles %}className ? `${styles.{{ componentName | camelCase }}} ${className}` : styles.{{ componentName | camelCase }}{% else %}className{% endif %}}
+      {% if withTestId %}data-testid="{{ componentName | kebabCase }}"{% endif %}
+      {...props}
+    >
+      <h2>{{ componentName | pascalCase }}</h2>
+      {% if withProps %}
+      {description && <p>{description}</p>}
+      {% endif %}
+      
+      {% if withState %}
+      {isVisible && (
+        <div>
+          <p>Component is visible</p>
+          <button onClick={() => setIsVisible(false)}>Hide</button>
+        </div>
+      )}
+      {% endif %}
+      
+      {children}
+    </div>
+  );
+};
+
+export default {{ componentName | pascalCase }};

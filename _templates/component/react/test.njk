@@ -1,0 +1,176 @@
+---
+to: src/components/{{ componentName | pascalCase }}/{{ componentName | pascalCase }}.test.tsx
+---
+{% if withTests %}
+import React from 'react';
+import { render, screen, fireEvent } from '@testing-library/react';
+import { vi } from 'vitest';
+import { {{ componentName | pascalCase }} } from './{{ componentName | pascalCase }}';
+
+describe('{{ componentName | pascalCase }}', () => {
+  const defaultProps = {
+    {% for prop in properties -%}
+    {% if prop.type === 'string' -%}
+    {{ prop.name }}: '{{ prop.testValue or ("test-" + prop.name) }}',
+    {% elif prop.type === 'number' -%}
+    {{ prop.name }}: {{ prop.testValue or 42 }},
+    {% elif prop.type === 'boolean' -%}
+    {{ prop.name }}: {{ prop.testValue or true }},
+    {% endif -%}
+    {% endfor -%}
+  };
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  describe('Rendering', () => {
+    it('renders component with correct structure', () => {
+      render(<{{ componentName | pascalCase }} {...defaultProps} />);
+      
+      {% if withTestId -%}
+      const component = screen.getByTestId('{{ componentName | kebabCase }}');
+      expect(component).toBeInTheDocument();
+      {% endif -%}
+      
+      const heading = screen.getByRole('heading', { level: 2 });
+      expect(heading).toHaveTextContent('{{ componentName | pascalCase }}');
+    });
+
+    {% if description -%}
+    it('displays description when provided', () => {
+      render(<{{ componentName | pascalCase }} {...defaultProps} />);
+      
+      expect(screen.getByText('{{ description }}')).toBeInTheDocument();
+    });
+    {% endif -%}
+
+    {% for prop in properties -%}
+    it('displays {{ prop.name }} prop correctly', () => {
+      render(<{{ componentName | pascalCase }} {...defaultProps} />);
+      
+      {% if prop.type === 'string' -%}
+      expect(screen.getByText(defaultProps.{{ prop.name }})).toBeInTheDocument();
+      {% elif prop.type === 'number' -%}
+      expect(screen.getByText(defaultProps.{{ prop.name }}.toString())).toBeInTheDocument();
+      {% elif prop.type === 'boolean' -%}
+      const expectedText = defaultProps.{{ prop.name }} ? 'Yes' : 'No';
+      expect(screen.getByText(expectedText)).toBeInTheDocument();
+      {% endif -%}
+    });
+    {% endfor -%}
+
+    it('applies custom className correctly', () => {
+      const customClass = 'custom-test-class';
+      render(<{{ componentName | pascalCase }} {...defaultProps} className={customClass} />);
+      
+      {% if withTestId -%}
+      const component = screen.getByTestId('{{ componentName | kebabCase }}');
+      expect(component).toHaveClass(customClass);
+      {% endif -%}
+    });
+
+    it('renders children when provided', () => {
+      const childContent = 'Test child content';
+      render(
+        <{{ componentName | pascalCase }} {...defaultProps}>
+          <div>{childContent}</div>
+        </{{ componentName | pascalCase }}>
+      );
+      
+      expect(screen.getByText(childContent)).toBeInTheDocument();
+    });
+  });
+
+  {% if withState -%}
+  describe('State Management', () => {
+    it('handles loading state correctly', () => {
+      render(<{{ componentName | pascalCase }} {...defaultProps} />);
+      
+      // Initially not loading
+      expect(screen.queryByText('Loading...')).not.toBeInTheDocument();
+    });
+
+    it('handles error state correctly', () => {
+      render(<{{ componentName | pascalCase }} {...defaultProps} />);
+      
+      // Initially no error
+      expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+    });
+  });
+  {% endif -%}
+
+  {% if withHandlers -%}
+  describe('Event Handlers', () => {
+    it('handles click events correctly', () => {
+      const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+      
+      render(<{{ componentName | pascalCase }} {...defaultProps} />);
+      
+      {% if withTestId -%}
+      const component = screen.getByTestId('{{ componentName | kebabCase }}');
+      fireEvent.click(component);
+      
+      expect(consoleSpy).toHaveBeenCalledWith('{{ componentName | pascalCase }} clicked');
+      {% endif -%}
+      
+      consoleSpy.mockRestore();
+    });
+  });
+  {% endif -%}
+
+  describe('Accessibility', () => {
+    it('has proper ARIA attributes', () => {
+      render(<{{ componentName | pascalCase }} {...defaultProps} />);
+      
+      {% if withTestId -%}
+      const component = screen.getByTestId('{{ componentName | kebabCase }}');
+      expect(component).toBeInTheDocument();
+      {% endif -%}
+    });
+
+    it('supports keyboard navigation', () => {
+      render(<{{ componentName | pascalCase }} {...defaultProps} />);
+      
+      {% if withTestId -%}
+      const component = screen.getByTestId('{{ componentName | kebabCase }}');
+      
+      // Test tab navigation
+      component.focus();
+      expect(document.activeElement).toBe(component);
+      {% endif -%}
+    });
+  });
+
+  describe('Props Validation', () => {
+    {% for prop in properties -%}
+    {% if prop.required -%}
+    it('handles missing required {{ prop.name }} prop', () => {
+      const propsWithout{{ prop.name | pascalCase }} = { ...defaultProps };
+      delete propsWithout{{ prop.name | pascalCase }}.{{ prop.name }};
+      
+      // This should be handled by TypeScript, but we can still test runtime behavior
+      render(<{{ componentName | pascalCase }} {...propsWithout{{ prop.name | pascalCase }}} />);
+      
+      // Component should still render but may show default or error state
+      {% if withTestId -%}
+      expect(screen.getByTestId('{{ componentName | kebabCase }}')).toBeInTheDocument();
+      {% endif -%}
+    });
+    {% endif -%}
+    {% endfor -%}
+
+    it('handles invalid props gracefully', () => {
+      const invalidProps = {
+        ...defaultProps,
+        // Add some invalid props
+        invalidProp: 'should be ignored'
+      };
+      
+      expect(() => {
+        render(<{{ componentName | pascalCase }} {...invalidProps} />);
+      }).not.toThrow();
+    });
+  });
+});
+{% endif %}

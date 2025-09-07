@@ -1,8 +1,10 @@
 import { defineCommand } from "citty";
 import chalk from "chalk";
+import fs from 'fs-extra';
+import path from 'node:path';
 
 /**
- * Help command - Show template variable help
+ * Help command - Show template variable help with dynamic template scanning
  */
 export const helpCommand = defineCommand({
   meta: {
@@ -29,6 +31,7 @@ export const helpCommand = defineCommand({
   },
   async run(context) {
     const { args } = context;
+    const templatesDir = '_templates';
 
     try {
       if (!args.generator) {
@@ -44,9 +47,19 @@ export const helpCommand = defineCommand({
         console.log(chalk.gray("  unjucks help component                 # Help for component generator"));
         console.log(chalk.gray("  unjucks help component react           # Help for React component template"));
         console.log();
+        
+        // Dynamically scan for available generators
+        const availableGenerators = await this.scanGenerators(templatesDir);
+        
         console.log(chalk.yellow("AVAILABLE GENERATORS:"));
-        console.log(chalk.gray("  component - React/Vue component generator"));
-        console.log(chalk.gray("  api       - API endpoint generator"));
+        if (availableGenerators.length === 0) {
+          console.log(chalk.gray("  No generators found in _templates directory"));
+          console.log(chalk.blue("  Run 'unjucks init' to create sample templates"));
+        } else {
+          for (const generator of availableGenerators) {
+            console.log(chalk.gray(`  ${generator.name.padEnd(12)} - ${generator.description}`));
+          }
+        }
         console.log();
         console.log(chalk.blue("Use 'unjucks list' to see all available generators and templates"));
         return { success: true, message: "Help displayed", files: [] };
@@ -56,29 +69,20 @@ export const helpCommand = defineCommand({
         console.log(chalk.blue.bold(`🆘 Help for Generator: ${args.generator}`));
         console.log();
         
-        switch (args.generator) {
-          case "component":
-            console.log(chalk.yellow("DESCRIPTION:"));
-            console.log(chalk.gray("  Generates UI components for various frameworks"));
-            console.log();
-            console.log(chalk.yellow("AVAILABLE TEMPLATES:"));
-            console.log(chalk.gray("  react     - React functional component with TypeScript"));
-            console.log(chalk.gray("  vue       - Vue 3 composition API component"));
-            console.log(chalk.gray("  svelte    - Svelte component"));
-            break;
-            
-          case "api":
-            console.log(chalk.yellow("DESCRIPTION:"));
-            console.log(chalk.gray("  Generates API endpoints and routes"));
-            console.log();
-            console.log(chalk.yellow("AVAILABLE TEMPLATES:"));
-            console.log(chalk.gray("  express   - Express.js router and controller"));
-            console.log(chalk.gray("  fastify   - Fastify plugin and routes"));
-            break;
-            
-          default:
-            console.log(chalk.yellow(`No specific help available for generator: ${args.generator}`));
-            console.log(chalk.gray("Use 'unjucks list' to see available generators"));
+        // Dynamically scan templates for this generator
+        const templates = await this.scanTemplates(templatesDir, args.generator);
+        
+        if (templates.length === 0) {
+          console.log(chalk.yellow(`No templates found for generator: ${args.generator}`));
+          console.log(chalk.gray("Check that _templates/${args.generator} directory exists"));
+        } else {
+          console.log(chalk.yellow("DESCRIPTION:"));
+          console.log(chalk.gray(`  Generates files using ${args.generator} templates`));
+          console.log();
+          console.log(chalk.yellow("AVAILABLE TEMPLATES:"));
+          for (const template of templates) {
+            console.log(chalk.gray(`  ${template.name.padEnd(12)} - ${template.description}`));
+          }
         }
         
         console.log();
@@ -190,4 +194,126 @@ export const helpCommand = defineCommand({
       return { success: false, message: "Help command failed", error: error.message };
     }
   },
+  
+  // Dynamic template scanning methods
+  async scanGenerators(templatesDir) {
+    try {
+      const generators = [];
+      const templatesPath = path.resolve(templatesDir);
+      
+      if (!(await fs.pathExists(templatesPath))) {
+        return generators;
+      }
+      
+      const items = await fs.readdir(templatesPath, { withFileTypes: true });
+      
+      for (const item of items) {
+        if (item.isDirectory()) {
+          const generatorPath = path.join(templatesPath, item.name);
+          const hasTemplates = await this.hasTemplateFiles(generatorPath);
+          
+          if (hasTemplates) {
+            generators.push({
+              name: item.name,
+              description: await this.getGeneratorDescription(generatorPath)
+            });
+          }
+        }
+      }
+      
+      return generators;
+    } catch (error) {
+      console.error('Error scanning generators:', error);
+      return [];
+    }
+  },
+
+  async scanTemplates(templatesDir, generatorName) {
+    try {
+      const templates = [];
+      const generatorPath = path.resolve(templatesDir, generatorName);
+      
+      if (!(await fs.pathExists(generatorPath))) {
+        return templates;
+      }
+      
+      const items = await fs.readdir(generatorPath, { withFileTypes: true });
+      
+      for (const item of items) {
+        if (item.isDirectory()) {
+          const templatePath = path.join(generatorPath, item.name);
+          const hasFiles = await this.hasTemplateFiles(templatePath);
+          
+          if (hasFiles) {
+            templates.push({
+              name: item.name,
+              description: await this.getTemplateDescription(templatePath)
+            });
+          }
+        }
+      }
+      
+      return templates;
+    } catch (error) {
+      console.error('Error scanning templates:', error);
+      return [];
+    }
+  },
+
+  async hasTemplateFiles(dirPath) {
+    try {
+      const items = await fs.readdir(dirPath, { withFileTypes: true });
+      
+      for (const item of items) {
+        if (item.isFile() && (item.name.endsWith('.njk') || item.name.endsWith('.hbs'))) {
+          return true;
+        }
+        if (item.isDirectory()) {
+          const hasSubFiles = await this.hasTemplateFiles(path.join(dirPath, item.name));
+          if (hasSubFiles) return true;
+        }
+      }
+      return false;
+    } catch (error) {
+      return false;
+    }
+  },
+
+  async getGeneratorDescription(generatorPath) {
+    try {
+      // Look for a README or description file
+      const possibleFiles = ['README.md', 'description.txt', 'info.md'];
+      
+      for (const file of possibleFiles) {
+        const filePath = path.join(generatorPath, file);
+        if (await fs.pathExists(filePath)) {
+          const content = await fs.readFile(filePath, 'utf8');
+          const firstLine = content.split('\n')[0].replace(/^#+\s*/, '').trim();
+          return firstLine || `Generator for ${path.basename(generatorPath)}`;
+        }
+      }
+      
+      return `Generator for ${path.basename(generatorPath)}`;
+    } catch (error) {
+      return `Generator for ${path.basename(generatorPath)}`;
+    }
+  },
+
+  async getTemplateDescription(templatePath) {
+    try {
+      // Look for template files to infer description
+      const items = await fs.readdir(templatePath, { withFileTypes: true });
+      const templateFiles = items.filter(item => 
+        item.isFile() && (item.name.endsWith('.njk') || item.name.endsWith('.hbs'))
+      );
+      
+      if (templateFiles.length > 0) {
+        return `Template with ${templateFiles.length} file(s)`;
+      }
+      
+      return `Template: ${path.basename(templatePath)}`;
+    } catch (error) {
+      return `Template: ${path.basename(templatePath)}`;
+    }
+  }
 });

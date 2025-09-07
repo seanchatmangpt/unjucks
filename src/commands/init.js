@@ -1,12 +1,12 @@
 import { defineCommand } from "citty";
-import * as chalk from "chalk";
+import chalk from "chalk";
 import { Generator } from "../lib/generator.js";
 import { promptForProjectType } from "../lib/prompts.js";
 import { validators, displayValidationResults, createCommandError } from "../lib/command-validation.js";
 import { CommandError, UnjucksCommandError } from "../types/commands.js";
 import { handleError, ConfigurationError, ErrorCategory } from "../lib/actionable-error.js";
-import * as ora from "ora";
-import * as fs from "fs-extra";
+import ora from "ora";
+import fs from "fs-extra";
 import * as path from "node:path";
 import { execSync } from "node:child_process";
 

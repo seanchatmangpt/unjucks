@@ -1,16 +1,16 @@
 import { defineCommand } from "citty";
-import * as chalk from "chalk";
+import chalk from "chalk";
 import { Generator } from "../lib/generator.js";
-import { FileInjector } from "../lib/file-injector.js";
+import { FileInjectorOrchestrator } from "../lib/file-injector/file-injector-orchestrator.js";
 import {
   validators,
   displayValidationResults,
   createCommandError,
 } from "../lib/command-validation.js";
 import { CommandError, UnjucksCommandError } from "../types/commands.js";
-import * as ora from "ora";
-import * as fs from "fs-extra";
-import * as path from "node:path";
+import ora from "ora";
+import fs from "fs-extra";
+import path from "node:path";
 
 /**
  * @typedef {Object} InjectCommandArgs
@@ -97,9 +97,17 @@ export const injectCommand = defineCommand({
     },
     mode: {
       type: "string",
-      description: "Injection mode: inject, append, prepend, before, after, replace",
-      default: "inject",
+      description: "Injection mode: before, after, append, prepend, lineAt",
+      default: "after",
       alias: "m",
+    },
+    line: {
+      type: "number",
+      description: "Line number for lineAt injection mode",
+    },
+    name: {
+      type: "string",
+      description: "Name variable for template rendering",
     },
     target: {
       type: "string",
@@ -194,8 +202,9 @@ export const injectCommand = defineCommand({
         );
       }
 
-      // Resolve content to inject
+      // Resolve content to inject and build frontmatter configuration
       let contentToInject = args.content;
+      let frontmatterConfig = {};
       
       if (args.template) {
         if (!args.quiet) {
@@ -207,7 +216,7 @@ export const injectCommand = defineCommand({
         // Extract flag variables for template rendering
         const templateVariables = {};
         for (const [key, value] of Object.entries(args)) {
-          if (!['file', 'template', 'generator', 'mode', 'target', 'marker', 'backup', 'dry', 'force', 'quiet', 'verbose'].includes(key)) {
+          if (!['file', 'template', 'generator', 'mode', 'target', 'marker', 'backup', 'dry', 'force', 'quiet', 'verbose', 'line'].includes(key)) {
             templateVariables[key] = value;
           }
         }
@@ -223,7 +232,13 @@ export const injectCommand = defineCommand({
 
           if (result.files && result.files.length > 0) {
             // Use content from the first generated file
-            contentToInject = result.files[0].content;
+            const generatedFile = result.files[0];
+            contentToInject = generatedFile.content;
+            
+            // Extract frontmatter from generated template if available
+            if (generatedFile.frontmatter) {
+              frontmatterConfig = { ...generatedFile.frontmatter };
+            }
           } else {
             throw new Error("Template generated no content");
           }
@@ -245,6 +260,32 @@ export const injectCommand = defineCommand({
         }
       }
 
+      // Build frontmatter configuration from CLI arguments
+      if (args.mode === 'before' && (args.target || args.marker)) {
+        frontmatterConfig.inject = true;
+        frontmatterConfig.before = args.target || args.marker;
+      } else if (args.mode === 'after' && (args.target || args.marker)) {
+        frontmatterConfig.inject = true;
+        frontmatterConfig.after = args.target || args.marker;
+      } else if (args.mode === 'append') {
+        frontmatterConfig.append = true;
+      } else if (args.mode === 'prepend') {
+        frontmatterConfig.prepend = true;
+      } else if (args.mode === 'lineAt' && args.line !== undefined) {
+        frontmatterConfig.lineAt = args.line;
+      } else if (args.mode === 'lineAt' && args.target) {
+        // Support line number as target
+        const lineNum = parseInt(args.target, 10);
+        if (!isNaN(lineNum)) {
+          frontmatterConfig.lineAt = lineNum;
+        }
+      }
+
+      // Add skipIf condition for idempotent operations
+      if (!args.force) {
+        frontmatterConfig.skipIf = `content.includes('${contentToInject.trim().replace(/'/g, "\\'")}')`;
+      }
+
       if (!contentToInject) {
         throw createCommandError(
           "No content to inject",
@@ -257,8 +298,8 @@ export const injectCommand = defineCommand({
         );
       }
 
-      // Perform injection
-      const injector = new FileInjector();
+      // Perform injection using FileInjectorOrchestrator
+      const orchestrator = new FileInjectorOrchestrator();
       
       if (!args.quiet) {
         const message = args.dry 
@@ -268,15 +309,42 @@ export const injectCommand = defineCommand({
       }
 
       const injectionOptions = {
-        mode: args.mode,
-        target: args.target,
-        marker: args.marker,
-        backup: args.backup,
         force: args.force,
         dry: args.dry,
+        backup: args.backup,
       };
 
-      const result = await injector.inject(filePath, contentToInject, injectionOptions);
+      const result = await orchestrator.processFile(filePath, contentToInject, frontmatterConfig, injectionOptions);
+      
+      // Handle chmod if specified in frontmatter
+      if (result.success && frontmatterConfig.chmod && !args.dry) {
+        const chmodSuccess = await orchestrator.setPermissions(filePath, frontmatterConfig.chmod);
+        if (!chmodSuccess && !args.quiet) {
+          console.warn(chalk.yellow(`⚠️ Warning: Failed to set permissions ${frontmatterConfig.chmod} on ${filePath}`));
+        }
+      }
+      
+      // Execute shell commands if specified in frontmatter
+      if (result.success && frontmatterConfig.sh && !args.dry) {
+        const commandResult = await orchestrator.executeCommands(
+          Array.isArray(frontmatterConfig.sh) ? frontmatterConfig.sh : [frontmatterConfig.sh],
+          path.dirname(filePath)
+        );
+        
+        if (!args.quiet) {
+          if (commandResult.success) {
+            console.log(chalk.blue(`📋 Command executed: ${frontmatterConfig.sh}`));
+            if (commandResult.stdout) {
+              console.log(chalk.gray(commandResult.stdout));
+            }
+          } else {
+            console.warn(chalk.yellow(`⚠️ Command failed: ${commandResult.message}`));
+            if (commandResult.stderr) {
+              console.error(chalk.red(commandResult.stderr));
+            }
+          }
+        }
+      }
 
       if (!args.quiet) {
         spinner.stop();
@@ -288,19 +356,20 @@ export const injectCommand = defineCommand({
       if (args.dry) {
         if (!args.quiet) {
           console.log(chalk.yellow("\n🔍 Dry Run Results - No files were modified"));
-          console.log(chalk.gray("Content that would be injected:"));
+          console.log(chalk.blue(`Would inject:`));
           console.log(chalk.cyan(contentToInject));
+          
+          console.log(chalk.blue(`\nMode: ${args.mode}`));
+          if (args.target || args.marker) {
+            console.log(chalk.blue(`Target: ${args.target || args.marker}`));
+          }
+          if (args.line !== undefined) {
+            console.log(chalk.blue(`Line: ${args.line}`));
+          }
           
           if (result.preview) {
             console.log(chalk.gray("\nPreview of changes:"));
             console.log(chalk.white(result.preview));
-          }
-          
-          if (result.warnings && result.warnings.length > 0) {
-            console.log(chalk.yellow("\n⚠️ Warnings:"));
-            result.warnings.forEach((warning) => {
-              console.log(chalk.yellow(`  • ${warning}`));
-            });
           }
         }
 
@@ -308,30 +377,33 @@ export const injectCommand = defineCommand({
         console.log(chalk.gray("Run without --dry to apply the changes"));
       } else {
         if (!args.quiet) {
-          if (result.success) {
+          if (result.success && !result.skipped) {
             console.log(chalk.green(`\n✅ Content injected successfully`));
             console.log(chalk.gray(`Mode: ${args.mode}`));
             console.log(chalk.gray(`File: ${args.file}`));
             
-            if (args.target) {
-              console.log(chalk.gray(`Target: ${args.target}`));
+            if (args.target || args.marker) {
+              console.log(chalk.gray(`Target: ${args.target || args.marker}`));
+            }
+            if (args.line !== undefined) {
+              console.log(chalk.gray(`Line: ${args.line}`));
             }
             
-            if (result.backup) {
-              console.log(chalk.gray(`Backup: ${result.backup}`));
+            if (result.backupPath) {
+              console.log(chalk.gray(`Backup: ${result.backupPath}`));
             }
+          } else if (result.skipped) {
+            console.log(chalk.yellow(`\n⚠️ Content already exists, skipping`));
+            console.log(chalk.gray(result.message));
+          } else if (args.force) {
+            console.log(chalk.yellow(`\n⚡ Forcing injection`));
+            console.log(chalk.gray(result.message));
           } else {
-            console.log(chalk.yellow(`\n⚠️ Injection completed with warnings`));
-          }
-          
-          if (result.warnings && result.warnings.length > 0) {
-            console.log(chalk.yellow("\n⚠️ Warnings:"));
-            result.warnings.forEach((warning) => {
-              console.log(chalk.yellow(`  • ${warning}`));
-            });
+            console.log(chalk.red(`\n❌ Injection failed`));
+            console.log(chalk.gray(result.message));
           }
 
-          if (args.verbose && result.changes) {
+          if (args.verbose && result.changes && result.changes.length > 0) {
             console.log(chalk.blue("\n📝 Changes made:"));
             result.changes.forEach((change) => {
               console.log(chalk.gray(`  ${change}`));
@@ -339,15 +411,17 @@ export const injectCommand = defineCommand({
           }
         }
 
-        console.log(chalk.green(`\n🎉 Injection completed in ${duration}ms`));
+        if (result.success && !result.skipped) {
+          console.log(chalk.green(`\n🎉 Injection completed in ${duration}ms`));
 
-        // Show next steps
-        if (!args.quiet && result.success) {
-          console.log(chalk.blue("\n📝 Next steps:"));
-          console.log(chalk.gray("  1. Review the modified file"));
-          console.log(chalk.gray("  2. Test your changes"));
-          if (result.backup) {
-            console.log(chalk.gray("  3. Remove backup file when satisfied"));
+          // Show next steps
+          if (!args.quiet) {
+            console.log(chalk.blue("\n📝 Next steps:"));
+            console.log(chalk.gray("  1. Review the modified file"));
+            console.log(chalk.gray("  2. Test your changes"));
+            if (result.backupPath) {
+              console.log(chalk.gray("  3. Remove backup file when satisfied"));
+            }
           }
         }
       }
@@ -356,7 +430,11 @@ export const injectCommand = defineCommand({
         success: result.success || false,
         message: args.dry 
           ? "Dry run completed" 
-          : "Content injected successfully",
+          : result.skipped 
+            ? "Content already exists, skipped"
+            : result.success
+              ? "Content injected successfully"
+              : "Injection failed",
         files: [args.file],
         duration,
       };

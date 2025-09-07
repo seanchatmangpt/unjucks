@@ -1,0 +1,8 @@
+---
+to: "src/components/{{ componentName | pascalCase }}/index.ts"
+---
+export { {{ componentName | pascalCase }} } from './{{ componentName | pascalCase }}';
+export type { {{ componentName | pascalCase }}Props } from './{{ componentName | pascalCase }}';
+
+// Re-export for convenience
+export default {{ componentName | pascalCase }};

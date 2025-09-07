@@ -1,0 +1,223 @@
+---
+skipIf: "{{ withValidation }}" == "false"
+to: src/validators/{{ entityName | camelCase }}Validator.ts
+---
+import Joi from 'joi';
+import { Request, Response, NextFunction } from 'express';
+{% if withAuth %}import { AuthenticatedRequest } from '../types/auth';{% endif %}
+
+/**
+ * Validation schemas for {{ entityName | pascalCase }}
+ */
+
+const {{ entityName | camelCase }}Schema = Joi.object({
+  {% for field in fields -%}
+  {% if field.type === 'string' -%}
+  {{ field.name }}: Joi.string()
+    {% if field.required %}.required(){% else %}.optional(){% endif %}
+    {% if field.minLength %}.min({{ field.minLength }}){% endif %}
+    {% if field.maxLength %}.max({{ field.maxLength }}){% endif %}
+    {% if field.pattern %}.pattern(new RegExp('{{ field.pattern }}')){% endif %}
+    {% if field.email %}.email(){% endif %}
+    {% if field.description %}.description('{{ field.description }}'){% endif %},
+  {% elif field.type === 'number' -%}
+  {{ field.name }}: Joi.number()
+    {% if field.required %}.required(){% else %}.optional(){% endif %}
+    {% if field.min %}.min({{ field.min }}){% endif %}
+    {% if field.max %}.max({{ field.max }}){% endif %}
+    {% if field.integer %}.integer(){% endif %}
+    {% if field.positive %}.positive(){% endif %}
+    {% if field.description %}.description('{{ field.description }}'){% endif %},
+  {% elif field.type === 'boolean' -%}
+  {{ field.name }}: Joi.boolean()
+    {% if field.required %}.required(){% else %}.optional(){% endif %}
+    {% if field.description %}.description('{{ field.description }}'){% endif %},
+  {% elif field.type === 'array' -%}
+  {{ field.name }}: Joi.array()
+    {% if field.items -%}
+    .items({% if field.items.type === 'string' %}Joi.string(){% elif field.items.type === 'number' %}Joi.number(){% else %}Joi.object(){% endif %})
+    {% endif -%}
+    {% if field.required %}.required(){% else %}.optional(){% endif %}
+    {% if field.minItems %}.min({{ field.minItems }}){% endif %}
+    {% if field.maxItems %}.max({{ field.maxItems }}){% endif %}
+    {% if field.description %}.description('{{ field.description }}'){% endif %},
+  {% elif field.type === 'date' -%}
+  {{ field.name }}: Joi.date()
+    {% if field.required %}.required(){% else %}.optional(){% endif %}
+    {% if field.iso %}.iso(){% endif %}
+    {% if field.description %}.description('{{ field.description }}'){% endif %},
+  {% endif -%}
+  {% endfor -%}
+});
+
+const {{ entityName | camelCase }}UpdateSchema = Joi.object({
+  {% for field in fields -%}
+  {% if field.type === 'string' -%}
+  {{ field.name }}: Joi.string()
+    .optional()
+    {% if field.minLength %}.min({{ field.minLength }}){% endif %}
+    {% if field.maxLength %}.max({{ field.maxLength }}){% endif %}
+    {% if field.pattern %}.pattern(new RegExp('{{ field.pattern }}')){% endif %}
+    {% if field.email %}.email(){% endif %}
+    {% if field.description %}.description('{{ field.description }}'){% endif %},
+  {% elif field.type === 'number' -%}
+  {{ field.name }}: Joi.number()
+    .optional()
+    {% if field.min %}.min({{ field.min }}){% endif %}
+    {% if field.max %}.max({{ field.max }}){% endif %}
+    {% if field.integer %}.integer(){% endif %}
+    {% if field.positive %}.positive(){% endif %}
+    {% if field.description %}.description('{{ field.description }}'){% endif %},
+  {% elif field.type === 'boolean' -%}
+  {{ field.name }}: Joi.boolean()
+    .optional()
+    {% if field.description %}.description('{{ field.description }}'){% endif %},
+  {% elif field.type === 'array' -%}
+  {{ field.name }}: Joi.array()
+    {% if field.items -%}
+    .items({% if field.items.type === 'string' %}Joi.string(){% elif field.items.type === 'number' %}Joi.number(){% else %}Joi.object(){% endif %})
+    {% endif -%}
+    .optional()
+    {% if field.minItems %}.min({{ field.minItems }}){% endif %}
+    {% if field.maxItems %}.max({{ field.maxItems }}){% endif %}
+    {% if field.description %}.description('{{ field.description }}'){% endif %},
+  {% elif field.type === 'date' -%}
+  {{ field.name }}: Joi.date()
+    .optional()
+    {% if field.iso %}.iso(){% endif %}
+    {% if field.description %}.description('{{ field.description }}'){% endif %},
+  {% endif -%}
+  {% endfor -%}
+});
+
+/**
+ * Validation function for {{ entityName | lower }} data
+ * @param {Object} data - Data to validate
+ * @param {boolean} isUpdate - Whether this is an update operation
+ * @returns {Object|null} Validation errors or null if valid
+ */
+export function validate{{ entityName | pascalCase }}(data: any, isUpdate: boolean = false): any {
+  const schema = isUpdate ? {{ entityName | camelCase }}UpdateSchema : {{ entityName | camelCase }}Schema;
+  const { error } = schema.validate(data, { abortEarly: false });
+  
+  if (error) {
+    return {
+      errors: error.details.map((detail) => ({
+        field: detail.path.join('.'),
+        message: detail.message,
+        value: detail.context?.value
+      }))
+    };
+  }
+  
+  return null;
+}
+
+/**
+ * Express middleware for validating {{ entityName | lower }} input
+ */
+export function validate{{ entityName | pascalCase }}Input(
+  req: {% if withAuth %}AuthenticatedRequest{% else %}Request{% endif %}, 
+  res: Response, 
+  next: NextFunction
+): void {
+  const isUpdate = req.method === 'PUT' || req.method === 'PATCH';
+  const validationError = validate{{ entityName | pascalCase }}(req.body, isUpdate);
+  
+  if (validationError) {
+    res.status(400).json({
+      success: false,
+      message: 'Validation failed',
+      errors: validationError.errors
+    });
+    return;
+  }
+  
+  next();
+}
+
+/**
+ * Validation schemas for query parameters
+ */
+export const {{ entityName | camelCase }}QuerySchema = Joi.object({
+  {% if withPagination -%}
+  limit: Joi.number().integer().min(1).max(100).default(10),
+  offset: Joi.number().integer().min(0).default(0),
+  page: Joi.number().integer().min(1),
+  {% endif -%}
+  {% if withSorting -%}
+  sort: Joi.string().valid({% for field in fields %}'{{ field.name }}'{% if not loop.last %}, {% endif %}{% endfor %}),
+  order: Joi.string().valid('ASC', 'DESC').default('ASC'),
+  {% endif -%}
+  {% if withSearch -%}
+  search: Joi.string().min(1).max(255),
+  {% endif -%}
+  {% if withFilters -%}
+  {% for field in fields -%}
+  {% if field.filterable -%}
+  {{ field.name }}: {% if field.type === 'string' %}Joi.string(){% elif field.type === 'number' %}Joi.number(){% elif field.type === 'boolean' %}Joi.boolean(){% elif field.type === 'date' %}Joi.date(){% else %}Joi.any(){% endif %}.optional(),
+  {% endif -%}
+  {% endfor -%}
+  {% endif -%}
+});
+
+/**
+ * Express middleware for validating query parameters
+ */
+export function validate{{ entityName | pascalCase }}Query(
+  req: Request, 
+  res: Response, 
+  next: NextFunction
+): void {
+  const { error, value } = {{ entityName | camelCase }}QuerySchema.validate(req.query, { 
+    abortEarly: false,
+    allowUnknown: true,
+    stripUnknown: true
+  });
+  
+  if (error) {
+    res.status(400).json({
+      success: false,
+      message: 'Invalid query parameters',
+      errors: error.details.map((detail) => ({
+        field: detail.path.join('.'),
+        message: detail.message,
+        value: detail.context?.value
+      }))
+    });
+    return;
+  }
+  
+  // Replace req.query with validated and sanitized values
+  req.query = value;
+  next();
+}
+
+/**
+ * Custom validation rules for specific business logic
+ */
+export const customValidators = {
+  {% for field in fields -%}
+  {% if field.customValidation -%}
+  validate{{ field.name | pascalCase }}: (value: any): boolean => {
+    // Custom validation logic for {{ field.name }}
+    {{ field.customValidation }}
+    return true;
+  },
+  {% endif -%}
+  {% endfor -%}
+  
+  /**
+   * Validate if {{ entityName | lower }} exists and user has access
+   */
+  validateAccess: async ({{ entityName | camelCase }}Id: string, userId: string): Promise<boolean> => {
+    // Implement access validation logic
+    {% if withDatabase -%}
+    // const {{ entityName | camelCase }} = await {{ entityName | pascalCase }}.findOne({
+    //   where: { id: {{ entityName | camelCase }}Id, userId }
+    // });
+    // return !!{{ entityName | camelCase }};
+    {% endif -%}
+    return true; // Replace with actual validation
+  }
+};

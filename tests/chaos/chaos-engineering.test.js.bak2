@@ -1,0 +1,738 @@
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { Generator } from '../../src/lib/generator.js';
+import { FileInjector } from '../../src/lib/file-injector.js';
+import { TemplateScanner } from '../../src/lib/template-scanner.js';
+import { GeneratorFactory, FileFactory } from '../factories/index.js';
+import fs from 'fs-extra';
+import { EventEmitter } from 'events';
+
+// Mock external dependencies
+vi.mock('fs-extra');
+const mockFs = vi.mocked(fs);
+
+// Chaos Engineering Test Suite
+// These tests intentionally introduce failures to verify system resilience
+
+describe('Chaos Engineering Tests', () => {
+  let generator;
+  let injector;
+  let scanner;
+  let chaosController;
+
+  beforeEach(() => {
+    generator = new Generator('/test/templates');
+    injector = new FileInjector();
+    scanner = new TemplateScanner();
+    chaosController = new ChaosController();
+
+    // Setup baseline mocks
+    mockFs.pathExists.mockResolvedValue(true);
+    mockFs.readFile.mockResolvedValue('template content');
+    mockFs.writeFile.mockResolvedValue();
+    mockFs.ensureDir.mockResolvedValue();
+  });
+
+  afterEach(() => {
+    chaosController.stopAllChaos();
+    vi.resetAllMocks();
+  });
+
+  describe('Network Failures', () => {
+    it('should handle complete network outages gracefully', async () => {
+      // Simulate total network failure
+      chaosController.simulateNetworkOutage();
+
+      mockFs.readFile.mockRejectedValue(new Error('ENETUNREACH: Network unreachable'));
+      mockFs.writeFile.mockRejectedValue(new Error('ENETUNREACH: Network unreachable'));
+
+      const options = GeneratorFactory.createGenerateOptions();
+
+      // System should degrade gracefully, not crash
+      await expect(generator.generate(options)).rejects.toThrow();
+      
+      // Should provide meaningful error message
+      try {
+        await generator.generate(options);
+      } catch (error) {
+        expect(error.message).toContain('network');
+        expect(error.message).not.toContain('undefined');
+        expect(error.message).not.toContain('null');
+      }
+
+      // System should recover when network is restored
+      chaosController.restoreNetwork();
+      mockFs.readFile.mockResolvedValue('recovered content');
+      mockFs.writeFile.mockResolvedValue();
+
+      await expect(generator.generate(options)).resolves.toBeDefined();
+    });
+
+    it('should handle intermittent network failures with retries', async () => {
+      let attempts = 0;
+      const maxAttempts = 3;
+
+      mockFs.readFile.mockImplementation(() => {
+        attempts++;
+        if (attempts < maxAttempts) {
+          return Promise.reject(new Error('ECONNRESET: Connection reset'));
+        }
+        return Promise.resolve('template content after retry');
+      });
+
+      const options = GeneratorFactory.createGenerateOptions();
+
+      // Should eventually succeed after retries
+      const result = await generator.generate(options);
+      expect(result).toBeDefined();
+      expect(attempts).toBe(maxAttempts);
+    });
+
+    it('should handle DNS resolution failures', async () => {
+      chaosController.simulateDNSFailure();
+
+      mockFs.readFile.mockRejectedValue(new Error('ENOTFOUND: DNS resolution failed'));
+
+      const options = GeneratorFactory.createGenerateOptions();
+
+      await expect(generator.generate(options)).rejects.toThrow();
+
+      // Should recover when DNS is restored
+      chaosController.restoreDNS();
+      mockFs.readFile.mockResolvedValue('template content');
+
+      await expect(generator.generate(options)).resolves.toBeDefined();
+    });
+
+    it('should handle slow network responses (timeout scenarios)', async () => {
+      let responseTime = 0;
+
+      mockFs.readFile.mockImplementation(() => {
+        return new Promise((resolve) => {
+          setTimeout(() => {
+            resolve('slow response');
+          }, responseTime);
+        });
+      });
+
+      const options = GeneratorFactory.createGenerateOptions();
+
+      // Normal response time - should succeed
+      responseTime = 100;
+      await expect(generator.generate(options)).resolves.toBeDefined();
+
+      // Very slow response - should timeout
+      responseTime = 30000; // 30 seconds
+      const slowPromise = generator.generate(options);
+      
+      // Should timeout before 30 seconds
+      await expect(Promise.race([
+        slowPromise,
+        new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Test timeout')), 5000)
+        )
+      ])).rejects.toThrow('Test timeout');
+    });
+  });
+
+  describe('File System Failures', () => {
+    it('should handle disk space exhaustion', async () => {
+      mockFs.writeFile.mockRejectedValue(new Error('ENOSPC: No space left on device'));
+
+      const options = GeneratorFactory.createGenerateOptions();
+
+      await expect(generator.generate(options)).rejects.toThrow();
+
+      // Should provide disk space error guidance
+      try {
+        await generator.generate(options);
+      } catch (error) {
+        expect(error.message).toContain('space');
+        // Should suggest cleanup or alternative locations
+      }
+    });
+
+    it('should handle permission denied errors', async () => {
+      mockFs.writeFile.mockRejectedValue(new Error('EACCES: Permission denied'));
+      mockFs.ensureDir.mockRejectedValue(new Error('EACCES: Permission denied'));
+
+      const options = GeneratorFactory.createGenerateOptions();
+
+      await expect(generator.generate(options)).rejects.toThrow();
+
+      // Should recover with alternative permissions
+      mockFs.writeFile.mockResolvedValue();
+      mockFs.ensureDir.mockResolvedValue();
+
+      await expect(generator.generate(options)).resolves.toBeDefined();
+    });
+
+    it('should handle corrupted file system', async () => {
+      // Simulate various file system corruption scenarios
+      const corruptionScenarios = [
+        new Error('EIO: I/O error'),
+        new Error('EBADF: Bad file descriptor'),
+        new Error('ESTALE: Stale file handle'),
+        new Error('EFAULT: Bad address')
+      ];
+
+      for (const error of corruptionScenarios) {
+        mockFs.readFile.mockRejectedValue(error);
+        
+        const options = GeneratorFactory.createGenerateOptions();
+        
+        await expect(generator.generate(options)).rejects.toThrow();
+        
+        // System should attempt recovery
+        mockFs.readFile.mockResolvedValue('recovered content');
+        await expect(generator.generate(options)).resolves.toBeDefined();
+      }
+    });
+
+    it('should handle file locking conflicts', async () => {
+      let lockCount = 0;
+
+      mockFs.writeFile.mockImplementation(() => {
+        lockCount++;
+        if (lockCount <= 2) {
+          return Promise.reject(new Error('EBUSY: Device or resource busy'));
+        }
+        return Promise.resolve();
+      });
+
+      const options = GeneratorFactory.createGenerateOptions();
+
+      // Should retry and eventually succeed
+      await expect(generator.generate(options)).resolves.toBeDefined();
+      expect(lockCount).toBeGreaterThan(2);
+    });
+
+    it('should handle file system becoming read-only', async () => {
+      mockFs.writeFile.mockRejectedValue(new Error('EROFS: Read-only file system'));
+
+      const options = GeneratorFactory.createGenerateOptions();
+
+      // Should fail with read-only error
+      await expect(generator.generate(options)).rejects.toThrow();
+
+      // Should adapt to read-only mode (dry run)
+      const dryRunOptions = { ...options, dry };
+      await expect(generator.generate(dryRunOptions)).resolves.toBeDefined();
+    });
+  });
+
+  describe('Memory Pressure', () => {
+    it('should handle out-of-memory conditions', async () => {
+      // Simulate OOM by creating large objects
+      const simulateOOM = () => {
+        const largeArray = [];
+        try {
+          // Attempt to allocate large amount of memory
+          for (let i = 0; i < 10000; i++) {
+            largeArray.push(new Array(100000).fill(Math.random()));
+          }
+        } catch (error) {
+          if (error.message.includes('memory') || error.name === 'RangeError') {
+            throw new Error('Out of memory');
+          }
+          throw error;
+        }
+      };
+
+      const options = GeneratorFactory.createGenerateOptions();
+
+      // Mock generator to simulate OOM during processing
+      vi.spyOn(generator, 'generate').mockImplementation(async () => { simulateOOM();
+        return { files };
+      });
+
+      await expect(generator.generate(options)).rejects.toThrow();
+
+      // Should recover after memory pressure is relieved
+      vi.spyOn(generator, 'generate').mockRestore();
+      mockFs.readFile.mockResolvedValue('template');
+      
+      await expect(generator.generate(options)).resolves.toBeDefined();
+    });
+
+    it('should handle memory leaks in long-running operations', async () => {
+      const initialMemory = process.memoryUsage().heapUsed;
+      const operations = [];
+
+      // Simulate many operations that could cause memory leaks
+      for (let i = 0; i < 100; i++) {
+        const operation = generator.generate(GeneratorFactory.createGenerateOptions({
+          variables: 'large' // Large variable set
+        }));
+        operations.push(operation);
+      }
+
+      await Promise.all(operations);
+
+      // Force garbage collection if available
+      if (global.gc) {
+        global.gc();
+      }
+
+      const finalMemory = process.memoryUsage().heapUsed;
+      const memoryIncrease = finalMemory - initialMemory;
+
+      // Should not leak excessive memory (less than 50MB increase)
+      expect(memoryIncrease).toBeLessThan(50 * 1024 * 1024);
+    });
+
+    it('should handle heap exhaustion gracefully', async () => { 
+      const createLargeObject = () => {
+        return {
+          largeString: 'x'.repeat(10000) 
+        };
+      };
+
+      try {
+        const largeObjects = [];
+        // Try to create objects until we hit memory limits
+        for (let i = 0; i < 100; i++) {
+          largeObjects.push(createLargeObject());
+        }
+      } catch (error) {
+        expect(error.name).toBe('RangeError');
+      }
+
+      // System should recover and continue functioning
+      const options = GeneratorFactory.createGenerateOptions();
+      await expect(generator.generate(options)).resolves.toBeDefined();
+    });
+  });
+
+  describe('CPU Overload', () => {
+    it('should handle high CPU load scenarios', async () => {
+      // Simulate CPU-intensive operation
+      const cpuIntensiveWork = () => {
+        const start = Date.now();
+        let counter = 0;
+        
+        // Burn CPU for a short time
+        while (Date.now() - start < 100) {
+          counter += Math.random() * Math.random();
+        }
+        
+        return counter;
+      };
+
+      // Start multiple CPU-intensive operations
+      const cpuTasks = Array.from({ length: 10 }, () =>
+        new Promise(resolve => {
+          setTimeout(() => {
+            cpuIntensiveWork();
+            resolve('completed');
+          }, Math.random() * 100);
+        })
+      );
+
+      const generationTask = generator.generate(GeneratorFactory.createGenerateOptions());
+
+      // Both CPU tasks and generation should complete
+      const results = await Promise.all([...cpuTasks, generationTask]);
+      
+      expect(results).toHaveLength(21); // 20 CPU tasks + 1 generation
+      expect(results[results.length - 1]).toHaveProperty('files');
+    });
+
+    it('should handle infinite loops and runaway processes', async () => {
+      const infiniteLoopTemplate = `
+        {% set counter = 0 %}
+        {% for i in range(1000000) %}
+          {% set counter = counter + 1 %}
+          {{ counter }}
+        {% endfor %}
+      `;
+
+      mockFs.readFile.mockResolvedValue(infiniteLoopTemplate);
+
+      const options = GeneratorFactory.createGenerateOptions();
+
+      // Should timeout or limit execution time
+      const startTime = Date.now();
+      
+      try {
+        await generator.generate(options);
+      } catch (error) {
+        const endTime = Date.now();
+        const duration = endTime - startTime;
+        
+        // Should not run for more than reasonable time (e.g., 10 seconds)
+        expect(duration).toBeLessThan(10000);
+      }
+    });
+  });
+
+  describe('Dependency Failures', () => {
+    it('should handle missing or corrupted templates', async () => {
+      mockFs.readFile.mockRejectedValue(new Error('ENOENT: No such file or directory'));
+
+      const options = GeneratorFactory.createGenerateOptions();
+
+      await expect(generator.generate(options)).rejects.toThrow();
+
+      // Should provide helpful error message
+      try {
+        await generator.generate(options);
+      } catch (error) {
+        expect(error.message).toContain('not found');
+        expect(error.message).not.toContain('undefined');
+      }
+    });
+
+    it('should handle template engine failures', async () => {
+      mockFs.readFile.mockResolvedValue('{{ invalid | unknown_filter }}');
+
+      const options = GeneratorFactory.createGenerateOptions();
+
+      // Should handle template syntax errors gracefully
+      await expect(generator.generate(options)).rejects.toThrow();
+
+      // Should recover with valid template
+      mockFs.readFile.mockResolvedValue('{{ name }}');
+      await expect(generator.generate(options)).resolves.toBeDefined();
+    });
+
+    it('should handle external service dependencies', async () => {
+      // Simulate external service failure
+      const mockExternalService = vi.fn();
+      mockExternalService
+        .mockRejectedValueOnce(new Error('Service unavailable'))
+        .mockRejectedValueOnce(new Error('Timeout'))
+        .mockResolvedValueOnce('Service restored');
+
+      // Should retry and eventually succeed
+      for (let attempt = 0; attempt < 3; attempt++) {
+        try {
+          await mockExternalService();
+          break; // Success
+        } catch (error) {
+          if (attempt === 2) {
+            throw error; // Final attempt failed
+          }
+          await new Promise(resolve => setTimeout(resolve, 100)); // Wait before retry
+        }
+      }
+
+      expect(mockExternalService).toHaveBeenCalledTimes(3);
+    });
+  });
+
+  describe('Concurrent Access Chaos', () => {
+    it('should handle race conditions in file operations', async () => {
+      const targetFile = '/test/concurrent.ts';
+      let writeCount = 0;
+
+      // Simulate race condition with multiple writers
+      mockFs.writeFile.mockImplementation(async (filePath, content) => {
+        writeCount++;
+        // Random delay to increase chance of race condition
+        await new Promise(resolve => setTimeout(resolve, Math.random() * 50));
+        
+        if (writeCount % 3 === 0) {
+          throw new Error('Concurrent write conflict');
+        }
+        
+        return Promise.resolve();
+      });
+
+      const concurrentOperations = Array.from({ length: 5 }, (_, i) =>
+        injector.inject(targetFile, `content ${i}`, { append })
+      );
+
+      const results = await Promise.allSettled(concurrentOperations);
+      
+      const successful = results.filter(r => r.status === 'fulfilled').length;
+      const failed = results.filter(r => r.status === 'rejected').length;
+
+      // Some operations should succeed, some may fail due to conflicts
+      expect(successful).toBeGreaterThan(0);
+      expect(successful + failed).toBe(10);
+    });
+
+    it('should handle concurrent template scanning', async () => {
+      const templatePaths = Array.from({ length, (_, i) => `/templates/template${i}`);
+
+      // Simulate random delays and occasional failures
+      mockFs.readFile.mockImplementation(async (filePath) => {
+        await new Promise(resolve => setTimeout(resolve, Math.random() * 100));
+        
+        if (Math.random() < 0.1) { // 10% chance of failure
+          throw new Error('Temporary read error');
+        }
+        
+        return `template content for ${filePath}`;
+      });
+
+      const scanPromises = templatePaths.map(path => scanner.scanTemplate(path));
+      
+      const results = await Promise.allSettled(scanPromises);
+      
+      // Most scans should succeed despite occasional failures
+      const successful = results.filter(r => r.status === 'fulfilled').length;
+      expect(successful).toBeGreaterThan(15); // At least 75% success rate
+    });
+
+    it('should handle deadlock scenarios', async () => {
+      const resource1 = 'resource1';
+      const resource2 = 'resource2';
+      const locks = new Map();
+
+      const acquireLock = async (resource, timeout = 1000) => {
+        const startTime = Date.now();
+        
+        while (locks.get(resource)) {
+          if (Date.now() - startTime > timeout) {
+            throw new Error(`Deadlock detected in chaos test`);
+          }
+          await new Promise(resolve => setTimeout(resolve, 10));
+        }
+        
+        locks.set(resource, true);
+      };
+
+      const releaseLock = (resource) => {
+        locks.set(resource, false);
+      };
+
+      const operation1 = async () => {
+        await acquireLock(resource1);
+        await new Promise(resolve => setTimeout(resolve, 50)); // Hold lock briefly
+        await acquireLock(resource2);
+        releaseLock(resource2);
+        releaseLock(resource1);
+      };
+
+      const operation2 = async () => {
+        await acquireLock(resource2);
+        await new Promise(resolve => setTimeout(resolve, 50)); // Hold lock briefly
+        await acquireLock(resource1);
+        releaseLock(resource1);
+        releaseLock(resource2);
+      };
+
+      // These operations may deadlock, but should timeout and recover
+      const results = await Promise.allSettled([operation1(), operation2()]);
+      
+      // At least one should complete or timeout gracefully
+      expect(results.some(r => r.status === 'fulfilled' || 
+        (r.status === 'rejected' && r.reason.message.includes('Deadlock')))).toBe(true);
+    });
+  });
+
+  describe('System Recovery', () => {
+    it('should implement circuit breaker pattern', async () => {
+      const circuitBreaker = new CircuitBreaker();
+      let failureCount = 0;
+
+      const unreliableOperation = async () => {
+        failureCount++;
+        if (failureCount <= 5) {
+          throw new Error('Service temporarily unavailable');
+        }
+        return 'success';
+      };
+
+      // Should trip circuit breaker after repeated failures
+      for (let i = 0; i < 10; i++) {
+        try {
+          await circuitBreaker.execute(unreliableOperation);
+        } catch (error) {
+          if (circuitBreaker.isOpen()) {
+            expect(error.message).toContain('Circuit breaker is open');
+            break;
+          }
+        }
+      }
+
+      expect(circuitBreaker.isOpen()).toBe(true);
+
+      // Should allow half-open state after timeout
+      await new Promise(resolve => setTimeout(resolve, 1100)); // Wait for circuit breaker timeout
+      
+      expect(circuitBreaker.isHalfOpen()).toBe(true);
+
+      // Should close circuit after successful operation
+      const result = await circuitBreaker.execute(unreliableOperation);
+      expect(result).toBe('success');
+      expect(circuitBreaker.isClosed()).toBe(true);
+    });
+
+    it('should implement graceful degradation', async () => { const features = {
+        templateValidation,
+        syntaxHighlighting,
+        autoComplete,
+        advancedFilters };
+
+      const degradationLevels = [
+        () => { features.advancedFilters = false; },      // Level 1: Disable advanced features
+        () => { features.autoComplete = false; },         // Level 2: Disable auto-complete
+        () => { features.syntaxHighlighting = false; },   // Level 3: Disable syntax highlighting
+        () => { features.templateValidation = false; }    // Level 4: Minimal functionality
+      ];
+
+      let systemLoad = 0.3; // 30% load
+
+      const checkSystemHealth = () => {
+        if (systemLoad > 0.9) return 'critical';
+        if (systemLoad > 0.7) return 'high';
+        if (systemLoad > 0.5) return 'medium';
+        return 'normal';
+      };
+
+      const applyDegradation = () => { const health = checkSystemHealth();
+        
+        switch (health) {
+          case 'critical' }
+      };
+
+      // Simulate increasing load
+      systemLoad = 0.8;
+      applyDegradation();
+      
+      expect(features.advancedFilters).toBe(false);
+      expect(features.autoComplete).toBe(false);
+      expect(features.templateValidation).toBe(true); // Core feature should remain
+
+      // Critical load
+      systemLoad = 0.95;
+      applyDegradation();
+      
+      expect(features.templateValidation).toBe(false); // Even core features degraded
+    });
+
+    it('should recover from cascading failures', async () => { const services = {
+        templateService },
+        validationService: { healthy, dependencies },
+        renderingService: { healthy, dependencies },
+        outputService: { healthy, dependencies }
+      };
+
+      const propagateFailure = (failedService) => {
+        services[failedService typeof services].healthy = false;
+        
+        // Find dependent services
+        Object.entries(services).forEach(([serviceName, service]) => {
+          if (service.dependencies.includes(failedService)) {
+            service.healthy = false;
+            propagateFailure(serviceName); // Cascade failure
+          }
+        });
+      };
+
+      const recoverService = (serviceName) => {
+        const service = services[serviceName typeof services];
+        
+        // Check if all dependencies are healthy
+        const dependenciesHealthy = service.dependencies.every(dep => 
+          services[dep typeof services].healthy
+        );
+        
+        if (dependenciesHealthy) {
+          service.healthy = true;
+          
+          // Trigger recovery of dependent services
+          Object.entries(services).forEach(([name, svc]) => {
+            if (svc.dependencies.includes(serviceName) && !svc.healthy) {
+              setTimeout(() => recoverService(name), 100); // Delayed recovery
+            }
+          });
+        }
+      };
+
+      // Simulate cascade failure
+      propagateFailure('templateService');
+      
+      expect(services.templateService.healthy).toBe(false);
+      expect(services.validationService.healthy).toBe(false);
+      expect(services.renderingService.healthy).toBe(false);
+      expect(services.outputService.healthy).toBe(false);
+
+      // Simulate recovery
+      recoverService('templateService');
+      
+      // Wait for cascade recovery
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      expect(services.templateService.healthy).toBe(true);
+      expect(services.validationService.healthy).toBe(true);
+      expect(services.renderingService.healthy).toBe(true);
+      expect(services.outputService.healthy).toBe(true);
+    });
+  });
+});
+
+// Helper classes for chaos testing
+class ChaosController extends EventEmitter {
+  private activeFailures = new Set();
+
+  simulateNetworkOutage() {
+    this.activeFailures.add('network');
+    this.emit('network-failure');
+  }
+
+  restoreNetwork() {
+    this.activeFailures.delete('network');
+    this.emit('network-restored');
+  }
+
+  simulateDNSFailure() {
+    this.activeFailures.add('dns');
+    this.emit('dns-failure');
+  }
+
+  restoreDNS() {
+    this.activeFailures.delete('dns');
+    this.emit('dns-restored');
+  }
+
+  stopAllChaos() {
+    this.activeFailures.clear();
+    this.emit('all-restored');
+  }
+
+  isFailureActive(type) {
+    return this.activeFailures.has(type);
+  }
+}
+
+class CircuitBreaker { private state } else {
+        throw new Error('Circuit breaker is open');
+      }
+    }
+
+    try {
+      const result = await operation();
+      
+      if (this.state === 'half-open') {
+        this.state = 'closed';
+        this.failureCount = 0;
+      }
+      
+      return result;
+    } catch (error) {
+      this.failureCount++;
+      this.lastFailureTime = Date.now();
+      
+      if (this.failureCount >= this.failureThreshold) {
+        this.state = 'open';
+      }
+      
+      throw error;
+    }
+  }
+
+  isOpen() {
+    return this.state === 'open';
+  }
+
+  isClosed() {
+    return this.state === 'closed';
+  }
+
+  isHalfOpen() {
+    return this.state === 'half-open';
+  }
+}

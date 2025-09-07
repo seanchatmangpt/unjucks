@@ -1,406 +1,855 @@
 /**
- * Mock MCP Client for testing MCP tool integrations
- * Provides realistic mock responses and call tracking
+ * Mock MCP Client Implementation
+ * 
+ * Provides comprehensive mock implementation for testing MCP integration
+ * without requiring actual MCP server connections. Supports all MCP tools
+ * and simulates realistic response patterns.
  */
+
+import { EventEmitter } from 'events';
+import { createMCPResponse, createMCPError, createTextToolResult, createJSONToolResult } from '../../src/mcp/utils.js';
+import { MCPErrorCode, TOOL_SCHEMAS } from '../../src/mcp/types.js';
 
 /**
- * @typedef {Object} MCPCall
- * @property {string} toolName
- * @property {any} params
- * @property {any} result
- * @property {Date} timestamp
- * @property {boolean} called
+ * Mock MCP Client for testing purposes
  */
-
-/**
- * @typedef {Object} MCPResponse
- * @property {boolean} success
- * @property {any} data
- * @property {string} error
- * @property {any} metadata
- */
-
-export class MockMCPClient {
-  constructor() {
-    /** @type {Map<string, MCPCall[]>} */
-    this.calls = new Map();
-    /** @type {Map<string, MCPResponse>} */
-    this.responses = new Map();
-    /** @type {boolean} */
-    this.available = false;
-  }
-
-  async initialize() {
-    this.available = true;
-    this.setupDefaultResponses();
-  }
-
-  /**
-   * @param {boolean} available
-   */
-  setAvailable(available) {
-    this.available = available;
-  }
-
-  /**
-   * @returns {boolean}
-   */
-  isAvailable() {
-    return this.available;
-  }
-
-  reset() {
-    this.calls.clear();
-    this.responses.clear();
-    this.setupDefaultResponses();
-  }
-
-  /**
-   * @param {string} toolName
-   * @param {MCPResponse} response
-   */
-  mockResponse(toolName, response) {
-    this.responses.set(toolName, response);
-  }
-
-  setupDefaultResponses() {
-    // Swarm initialization responses
-    this.mockResponse('swarm_init', {
-      success: true,
-      data: {
-        swarmId: 'swarm-001',
-        topology: 'mesh',
-        agents: 5,
-        status: 'initialized',
-        created: new Date().toISOString()
-      }
-    });
-
-    this.mockResponse('agent_spawn', {
-      success: true,
-      data: {
-        agentId: `agent-${Date.now()}`,
-        type: 'coder',
-        status: 'active',
-        capabilities: ['code-generation', 'testing', 'review'],
-        spawned: new Date().toISOString()
-      }
-    });
-
-    this.mockResponse('task_orchestrate', {
-      success: true,
-      data: {
-        taskId: `task-${Date.now()}`,
-        strategy: 'parallel',
-        agentsAssigned: 3,
-        estimatedDuration: '5 minutes',
-        status: 'running'
-      }
-    });
-
-    this.mockResponse('swarm_status', {
-      success: true,
-      data: {
-        swarmId: 'swarm-001',
-        status: 'active',
-        agents: [
-          { id: 'agent-001', type: 'coder', status: 'active', load: 0.6 },
-          { id: 'agent-002', type: 'tester', status: 'active', load: 0.4 },
-          { id: 'agent-003', type: 'reviewer', status: 'idle', load: 0.0 }
-        ],
-        metrics: {
-          totalTasks: 15,
-          completedTasks: 12,
-          averageResponseTime: '2.3s',
-          efficiency: 0.85
-        }
-      }
-    });
-
-    // Semantic validation responses
-    this.mockResponse('semantic_validate', {
-      success: true,
-      data: {
-        valid: true,
-        format: 'turtle',
-        triples: 156,
-        classes: 8,
-        properties: 12,
-        warnings: [],
-        errors: [],
-        shaclResults: {
-          conforms: true,
-          validationReport: []
-        }
-      }
-    });
-
-    this.mockResponse('template_generate', {
-      success: true,
-      data: {
-        templateId: `template-${Date.now()}`,
-        filesGenerated: [
-          'src/models/user.js',
-          'src/models/user.test.js',
-          'src/models/user.spec.js'
-        ],
-        semanticAnnotations: true,
-        rdfCompatible: true
-      }
-    });
-
-    this.mockResponse('ai_generate', {
-      success: true,
-      data: {
-        enhanced: true,
-        model: 'claude-3-sonnet',
-        tokensUsed: 1250,
-        generatedFiles: [
-          'src/components/user-profile.jsx',
-          'src/hooks/use-user.js',
-          'src/types/user.types.js'
-        ],
-        aiFeatures: ['type-inference', 'best-practices', 'optimization']
-      }
-    });
-
-    this.mockResponse('batch_process', {
-      success: true,
-      data: {
-        batchId: `batch-${Date.now()}`,
-        totalTemplates: 3,
-        processedTemplates: 3,
-        parallelExecution: true,
-        executionTime: '1.8s',
-        results: [
-          { template: 'component.njk', status: 'success', files: ['component.js'] },
-          { template: 'service.njk', status: 'success', files: ['service.js'] },
-          { template: 'model.njk', status: 'success', files: ['model.js'] }
-        ]
-      }
-    });
-
-    this.mockResponse('swarm_restore', {
-      success: true,
-      data: {
-        swarmId: 'imported-swarm-001',
-        agentsRestored: 2,
-        configurationApplied: true,
-        status: 'active',
-        restoredAt: new Date().toISOString()
-      }
-    });
-
-    // Memory storage response
-    this.mockResponse('memory_store', {
-      success: true,
-      data: {
-        key: 'swarm/bdd/setup',
-        namespace: 'unjucks-testing',
-        stored: true,
-        size: 432,
-        timestamp: new Date().toISOString()
-      }
-    });
-
-    // Error response for invalid RDF
-    this.mockResponse('semantic_validate_error', {
-      success: false,
-      error: 'RDF syntax error',
-      data: {
-        valid: false,
-        errors: [
-          {
-            line: 5,
-            column: 25,
-            message: 'Expected "." but found ";;"',
-            severity: 'error'
-          },
-          {
-            line: 7,
-            column: 1,
-            message: 'Missing rdf:type declaration',
-            severity: 'warning'
-          }
-        ],
-        warnings: [
-          {
-            line: 3,
-            message: 'Missing namespace prefix declaration',
-            severity: 'warning'
-          }
-        ]
-      }
-    });
-  }
-
-  /**
-   * @param {string} toolName
-   * @param {any} params
-   * @returns {Promise<MCPResponse>}
-   */
-  async callTool(toolName, params = {}) {
-    if (!this.available) {
-      throw new Error('MCP tools are not available');
-    }
-
-    // Record the call
-    const call = {
-      toolName,
-      params: { ...params },
-      timestamp: new Date(),
-      called: true
-    };
-
-    // Handle special cases for dynamic responses
-    if (toolName === 'agent_spawn' && params.type) {
-      const response = this.responses.get(toolName);
-      if (response && response.success) {
-        response.data = {
-          ...response.data,
-          agentId: `${params.type}-${Date.now()}`,
-          type: params.type
-        };
-      }
-      call.result = response ? response.data : null;
-    } else if (toolName === 'semantic_validate' && params.file && params.file.includes('invalid')) {
-      // Return error response for invalid files
-      const errorResponse = this.responses.get('semantic_validate_error');
-      call.result = errorResponse ? errorResponse.data : null;
-      this.recordCall(toolName, call);
-      return errorResponse || { success: false, error: 'Validation failed' };
-    } else {
-      const response = this.responses.get(toolName);
-      call.result = response ? response.data : null;
-    }
-
-    this.recordCall(toolName, call);
-
-    return this.responses.get(toolName) || { 
-      success: false, 
-      error: `No mock response defined for ${toolName}` 
-    };
-  }
-
-  /**
-   * @param {string} toolName
-   * @param {MCPCall} call
-   */
-  recordCall(toolName, call) {
-    if (!this.calls.has(toolName)) {
-      this.calls.set(toolName, []);
-    }
-    this.calls.get(toolName).push(call);
-  }
-
-  /**
-   * @param {string} toolName
-   * @returns {MCPCall | undefined}
-   */
-  getLastCall(toolName) {
-    const calls = this.calls.get(toolName);
-    return calls && calls.length > 0 ? calls[calls.length - 1] : undefined;
-  }
-
-  /**
-   * @param {string} toolName
-   * @returns {MCPCall[]}
-   */
-  getAllCalls(toolName) {
-    return this.calls.get(toolName) || [];
-  }
-
-  /**
-   * @param {string} toolName
-   * @returns {number}
-   */
-  getCallCount(toolName) {
-    return this.calls.get(toolName)?.length || 0;
-  }
-
-  /**
-   * @param {string} toolName
-   * @returns {boolean}
-   */
-  hasBeenCalled(toolName) {
-    return this.getCallCount(toolName) > 0;
-  }
-
-  /**
-   * @returns {Map<string, MCPCall[]>}
-   */
-  getCallHistory() {
-    return new Map(this.calls);
-  }
-
-  /**
-   * Utility methods for test assertions
-   * @param {string} toolName
-   * @param {Partial<any>} expectedParams
-   * @returns {boolean}
-   */
-  verifyCallMade(toolName, expectedParams) {
-    const call = this.getLastCall(toolName);
-    if (!call) return false;
-
-    if (expectedParams) {
-      return Object.keys(expectedParams).every(key => 
-        call.params[key] === expectedParams[key]
-      );
-    }
-
-    return true;
-  }
-
-  /**
-   * @param {string[]} expectedSequence
-   * @returns {boolean}
-   */
-  verifyCallSequence(expectedSequence) {
-    /** @type {Array<{toolName: string, timestamp: Date}>} */
-    const allCalls = [];
+export class MockMCPClient extends EventEmitter {
+  constructor(options = {}) {
+    super();
     
-    for (const [toolName, calls] of this.calls.entries()) {
-      calls.forEach(call => {
-        allCalls.push({ toolName, timestamp: call.timestamp });
+    this.options = {
+      latency: options.latency || 100,
+      errorRate: options.errorRate || 0,
+      debug: options.debug || false,
+      ...options
+    };
+    
+    this.connected = false;
+    this.requestHistory = [];
+    this.responseHistory = [];
+    this.nextRequestId = 1;
+    
+    // Mock server state
+    this.mockState = {
+      generators: [
+        {
+          name: 'component',
+          description: 'React component generator',
+          templates: [
+            { name: 'basic', description: 'Basic functional component' },
+            { name: 'class', description: 'Class-based component' },
+            { name: 'hook', description: 'Custom hook component' }
+          ]
+        },
+        {
+          name: 'api',
+          description: 'API generator',
+          templates: [
+            { name: 'rest', description: 'REST API endpoints' },
+            { name: 'graphql', description: 'GraphQL schema and resolvers' }
+          ]
+        },
+        {
+          name: 'docs',
+          description: 'Documentation generator',
+          templates: [
+            { name: 'api', description: 'API documentation' },
+            { name: 'readme', description: 'README file' }
+          ]
+        }
+      ],
+      lastGeneratedFiles: [],
+      injectHistory: []
+    };
+  }
+
+  /**
+   * Connect to mock MCP server
+   */
+  async connect() {
+    if (this.connected) {
+      return { success: true, message: 'Already connected' };
+    }
+
+    // Simulate connection delay
+    await this.simulateLatency();
+
+    // Simulate occasional connection failures
+    if (this.shouldSimulateError()) {
+      const error = new Error('Connection failed: Server not available');
+      this.emit('error', error);
+      throw error;
+    }
+
+    this.connected = true;
+    this.emit('connected');
+    
+    if (this.options.debug) {
+      console.log('[MockMCPClient] Connected to mock MCP server');
+    }
+
+    return { success: true, message: 'Connected to mock MCP server' };
+  }
+
+  /**
+   * Disconnect from mock MCP server
+   */
+  async disconnect() {
+    if (!this.connected) {
+      return { success: true, message: 'Already disconnected' };
+    }
+
+    this.connected = false;
+    this.requestHistory = [];
+    this.responseHistory = [];
+    this.emit('disconnected');
+    
+    if (this.options.debug) {
+      console.log('[MockMCPClient] Disconnected from mock MCP server');
+    }
+
+    return { success: true, message: 'Disconnected from mock MCP server' };
+  }
+
+  /**
+   * Send MCP request to mock server
+   */
+  async request(method, params = {}) {
+    if (!this.connected) {
+      throw new Error('Not connected to MCP server');
+    }
+
+    const requestId = this.nextRequestId++;
+    const request = {
+      jsonrpc: '2.0',
+      id: requestId,
+      method,
+      params
+    };
+
+    this.requestHistory.push({ ...request, timestamp: new Date() });
+
+    if (this.options.debug) {
+      console.log('[MockMCPClient] Sending request:', method, params);
+    }
+
+    // Simulate network latency
+    await this.simulateLatency();
+
+    // Simulate occasional errors
+    if (this.shouldSimulateError()) {
+      const error = createMCPError(requestId, MCPErrorCode.ServerError, 'Mock server error');
+      this.responseHistory.push({ ...error, timestamp: new Date() });
+      return error;
+    }
+
+    let response;
+
+    try {
+      switch (method) {
+        case 'initialize':
+          response = createMCPResponse(requestId, {
+            protocolVersion: '2024-11-05',
+            capabilities: {
+              tools: { listChanged: false },
+              resources: { subscribe: false, listChanged: false },
+              prompts: { listChanged: false }
+            },
+            serverInfo: {
+              name: 'mock-unjucks-mcp-server',
+              version: '1.0.0'
+            }
+          });
+          break;
+
+        case 'tools/list':
+          response = createMCPResponse(requestId, {
+            tools: Object.keys(TOOL_SCHEMAS).map(name => ({
+              name,
+              description: this.getToolDescription(name),
+              inputSchema: TOOL_SCHEMAS[name]
+            }))
+          });
+          break;
+
+        case 'tools/call':
+          const toolResult = await this.callTool(params.name, params.arguments || {});
+          response = createMCPResponse(requestId, toolResult);
+          break;
+
+        default:
+          response = createMCPError(requestId, MCPErrorCode.MethodNotFound, `Method ${method} not found`);
+      }
+    } catch (error) {
+      response = createMCPError(requestId, MCPErrorCode.InternalError, error.message);
+    }
+
+    this.responseHistory.push({ ...response, timestamp: new Date() });
+
+    if (this.options.debug) {
+      console.log('[MockMCPClient] Received response:', response);
+    }
+
+    return response;
+  }
+
+  /**
+   * Call specific tool with parameters
+   */
+  async callTool(toolName, args = {}) {
+    switch (toolName) {
+      case 'unjucks_list':
+        return this.mockUnjucksList(args);
+      case 'unjucks_generate':
+        return this.mockUnjucksGenerate(args);
+      case 'unjucks_help':
+        return this.mockUnjucksHelp(args);
+      case 'unjucks_dry_run':
+        return this.mockUnjucksDryRun(args);
+      case 'unjucks_inject':
+        return this.mockUnjucksInject(args);
+      default:
+        throw new Error(`Unknown tool: ${toolName}`);
+    }
+  }
+
+  /**
+   * Mock implementation of unjucks_list
+   */
+  async mockUnjucksList(args) {
+    await this.simulateLatency();
+
+    const { generator, detailed = false } = args;
+    let generators = [...this.mockState.generators];
+
+    // Filter by specific generator if requested
+    if (generator) {
+      generators = generators.filter(g => g.name === generator);
+    }
+
+    // Add detailed information if requested
+    if (detailed) {
+      generators = generators.map(gen => ({
+        ...gen,
+        templateCount: gen.templates.length,
+        lastModified: new Date().toISOString(),
+        variables: gen.templates.map(t => ({
+          template: t.name,
+          variables: this.getTemplateVariables(gen.name, t.name)
+        }))
+      }));
+    }
+
+    return createJSONToolResult({
+      generators,
+      totalCount: generators.length,
+      timestamp: new Date().toISOString()
+    }, {
+      operation: 'list',
+      detailed,
+      generator: generator || 'all'
+    });
+  }
+
+  /**
+   * Mock implementation of unjucks_generate
+   */
+  async mockUnjucksGenerate(args) {
+    await this.simulateLatency(200); // Generation takes longer
+
+    const { generator, template, dest, variables = {}, force = false, dry = false } = args;
+
+    if (!generator || !template || !dest) {
+      throw new Error('Missing required parameters: generator, template, dest');
+    }
+
+    // Find generator and template
+    const gen = this.mockState.generators.find(g => g.name === generator);
+    if (!gen) {
+      throw new Error(`Generator '${generator}' not found`);
+    }
+
+    const tmpl = gen.templates.find(t => t.name === template);
+    if (!tmpl) {
+      throw new Error(`Template '${template}' not found in generator '${generator}'`);
+    }
+
+    // Generate mock files
+    const files = this.generateMockFiles(generator, template, dest, variables);
+    
+    if (!dry) {
+      this.mockState.lastGeneratedFiles = files;
+    }
+
+    const summary = {
+      created: dry ? 0 : files.filter(f => f.action === 'created').length,
+      updated: dry ? 0 : files.filter(f => f.action === 'updated').length,
+      skipped: files.filter(f => f.action === 'skipped').length,
+      total: files.length
+    };
+
+    return createJSONToolResult({
+      files: files.map(f => ({ path: f.path, action: f.action })),
+      summary,
+      generator,
+      template,
+      variables,
+      dry,
+      force,
+      timestamp: new Date().toISOString()
+    }, {
+      operation: 'generate',
+      duration: this.options.latency + 100,
+      filesGenerated: summary.total
+    });
+  }
+
+  /**
+   * Mock implementation of unjucks_help
+   */
+  async mockUnjucksHelp(args) {
+    await this.simulateLatency();
+
+    const { generator, template } = args;
+
+    if (!generator || !template) {
+      throw new Error('Missing required parameters: generator, template');
+    }
+
+    const gen = this.mockState.generators.find(g => g.name === generator);
+    if (!gen) {
+      throw new Error(`Generator '${generator}' not found`);
+    }
+
+    const tmpl = gen.templates.find(t => t.name === template);
+    if (!tmpl) {
+      throw new Error(`Template '${template}' not found in generator '${generator}'`);
+    }
+
+    const variables = this.getTemplateVariables(generator, template);
+    const helpText = this.generateHelpText(generator, template, tmpl.description, variables);
+
+    return createTextToolResult(helpText, {
+      operation: 'help',
+      generator,
+      template,
+      variableCount: variables.length
+    });
+  }
+
+  /**
+   * Mock implementation of unjucks_dry_run
+   */
+  async mockUnjucksDryRun(args) {
+    await this.simulateLatency(150);
+
+    const { generator, template, dest, variables = {} } = args;
+
+    if (!generator || !template || !dest) {
+      throw new Error('Missing required parameters: generator, template, dest');
+    }
+
+    // Generate same files as generate but with preview content
+    const files = this.generateMockFiles(generator, template, dest, variables, true);
+
+    return createJSONToolResult({
+      files: files.map(f => ({
+        path: f.path,
+        content: f.content,
+        action: f.action,
+        size: f.content.length
+      })),
+      preview: true,
+      generator,
+      template,
+      variables,
+      timestamp: new Date().toISOString()
+    }, {
+      operation: 'dry_run',
+      filesPreviewedCount: files.length
+    });
+  }
+
+  /**
+   * Mock implementation of unjucks_inject
+   */
+  async mockUnjucksInject(args) {
+    await this.simulateLatency();
+
+    const { 
+      file, 
+      content, 
+      before, 
+      after, 
+      append = false, 
+      prepend = false, 
+      lineAt, 
+      force = false, 
+      dry = false 
+    } = args;
+
+    if (!file || !content) {
+      throw new Error('Missing required parameters: file, content');
+    }
+
+    // Mock injection operation
+    const injectionResult = {
+      file,
+      content,
+      linesAdded: content.split('\n').length,
+      action: 'injected',
+      position: before ? 'before' : after ? 'after' : append ? 'append' : prepend ? 'prepend' : lineAt ? 'line' : 'unknown',
+      success: true,
+      dry
+    };
+
+    if (!dry) {
+      this.mockState.injectHistory.push({
+        ...injectionResult,
+        timestamp: new Date().toISOString()
       });
     }
 
-    // Sort by timestamp
-    allCalls.sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime());
+    return createJSONToolResult(injectionResult, {
+      operation: 'inject',
+      fileModified: !dry,
+      injectionType: injectionResult.position
+    });
+  }
+
+  /**
+   * Get tool description for mock responses
+   */
+  getToolDescription(toolName) {
+    const descriptions = {
+      unjucks_list: 'List available generators and templates',
+      unjucks_generate: 'Generate files from templates',
+      unjucks_help: 'Get help information for a specific generator and template',
+      unjucks_dry_run: 'Preview file generation without creating files',
+      unjucks_inject: 'Inject content into existing files'
+    };
+    return descriptions[toolName] || `${toolName} tool`;
+  }
+
+  /**
+   * Get template variables for mock responses
+   */
+  getTemplateVariables(generator, template) {
+    const variablesByTemplate = {
+      'component/basic': [
+        { name: 'name', type: 'string', description: 'Component name', required: true },
+        { name: 'description', type: 'string', description: 'Component description', defaultValue: '' },
+        { name: 'withProps', type: 'boolean', description: 'Include props interface', defaultValue: false }
+      ],
+      'component/class': [
+        { name: 'name', type: 'string', description: 'Component name', required: true },
+        { name: 'withState', type: 'boolean', description: 'Include state', defaultValue: true },
+        { name: 'extends', type: 'string', description: 'Base class to extend', defaultValue: 'Component' }
+      ],
+      'api/rest': [
+        { name: 'entityName', type: 'string', description: 'Entity name', required: true },
+        { name: 'withAuth', type: 'boolean', description: 'Include authentication', defaultValue: true },
+        { name: 'version', type: 'string', description: 'API version', defaultValue: 'v1' }
+      ],
+      'docs/api': [
+        { name: 'title', type: 'string', description: 'Documentation title', required: true },
+        { name: 'version', type: 'string', description: 'API version', required: true },
+        { name: 'baseUrl', type: 'string', description: 'Base URL', defaultValue: 'http://localhost:3000' }
+      ]
+    };
+
+    const key = `${generator}/${template}`;
+    return variablesByTemplate[key] || [
+      { name: 'name', type: 'string', description: 'Name', required: true }
+    ];
+  }
+
+  /**
+   * Generate mock files for templates
+   */
+  generateMockFiles(generator, template, dest, variables, includeContent = false) {
+    const files = [];
+    const name = variables.name || 'Generated';
+
+    switch (`${generator}/${template}`) {
+      case 'component/basic':
+        files.push({
+          path: `${dest}/${this.toPascalCase(name)}.jsx`,
+          action: 'created',
+          content: includeContent ? this.generateComponentContent(name, 'functional') : ''
+        });
+        if (variables.withProps) {
+          files.push({
+            path: `${dest}/${this.toPascalCase(name)}.types.js`,
+            action: 'created',
+            content: includeContent ? this.generateTypeContent(name) : ''
+          });
+        }
+        break;
+
+      case 'component/class':
+        files.push({
+          path: `${dest}/${this.toPascalCase(name)}.jsx`,
+          action: 'created',
+          content: includeContent ? this.generateComponentContent(name, 'class', variables.withState) : ''
+        });
+        break;
+
+      case 'api/rest':
+        files.push({
+          path: `${dest}/${this.toKebabCase(variables.entityName || 'entity')}.controller.js`,
+          action: 'created',
+          content: includeContent ? this.generateControllerContent(variables.entityName || 'entity') : ''
+        });
+        files.push({
+          path: `${dest}/${this.toKebabCase(variables.entityName || 'entity')}.routes.js`,
+          action: 'created',
+          content: includeContent ? this.generateRoutesContent(variables.entityName || 'entity') : ''
+        });
+        break;
+
+      case 'docs/api':
+        files.push({
+          path: `${dest}/api-docs.md`,
+          action: 'created',
+          content: includeContent ? this.generateApiDocsContent(variables) : ''
+        });
+        break;
+
+      default:
+        files.push({
+          path: `${dest}/${this.toKebabCase(name)}.generated.js`,
+          action: 'created',
+          content: includeContent ? `// Generated file for ${name}\nexport default '${name}';\n` : ''
+        });
+    }
+
+    return files;
+  }
+
+  /**
+   * Generate help text for templates
+   */
+  generateHelpText(generator, template, description, variables) {
+    let help = `# ${generator}/${template}\n\n`;
+    help += `${description}\n\n`;
+    help += `## Variables\n\n`;
     
-    const actualSequence = allCalls.map(call => call.toolName);
+    for (const variable of variables) {
+      help += `- **${variable.name}** (${variable.type})`;
+      if (variable.required) help += ' *required*';
+      help += `: ${variable.description}`;
+      if (variable.defaultValue !== undefined) {
+        help += ` (default: ${JSON.stringify(variable.defaultValue)})`;
+      }
+      help += '\n';
+    }
+
+    help += `\n## Usage\n\n`;
+    help += `\`\`\`bash\n`;
+    help += `unjucks generate ${generator} ${template} --dest ./output`;
     
-    return expectedSequence.every((tool, index) => 
-      actualSequence[index] === tool
+    const requiredVars = variables.filter(v => v.required);
+    for (const variable of requiredVars) {
+      help += ` --${variable.name} "value"`;
+    }
+    
+    help += `\n\`\`\`\n`;
+
+    return help;
+  }
+
+  /**
+   * Generate mock component content
+   */
+  generateComponentContent(name, type = 'functional', withState = false) {
+    const pascalName = this.toPascalCase(name);
+    const kebabName = this.toKebabCase(name);
+
+    if (type === 'class') {
+      return `import React${withState ? ', { Component }' : ''} from 'react';
+
+export class ${pascalName} extends ${withState ? 'Component' : 'React.Component'} {${withState ? `
+  constructor(props) {
+    super(props);
+    this.state = {
+      // Add state properties here
+    };
+  }` : ''}
+
+  render() {
+    return (
+      <div className="${kebabName}">
+        <h1>${name}</h1>
+      </div>
     );
-  }
-
-  /**
-   * Helper method for generating realistic agent IDs
-   * @param {string} type
-   * @returns {string}
-   */
-  generateAgentId(type) {
-    return `${type}-${Math.random().toString(36).substr(2, 9)}`;
-  }
-
-  /**
-   * Helper method for generating realistic task IDs
-   * @returns {string}
-   */
-  generateTaskId() {
-    return `task-${Math.random().toString(36).substr(2, 9)}`;
-  }
-
-  /**
-   * Helper method for generating realistic swarm IDs
-   * @returns {string}
-   */
-  generateSwarmId() {
-    return `swarm-${Math.random().toString(36).substr(2, 9)}`;
   }
 }
 
-// Export singleton instance for testing
-export const mockMCPClient = new MockMCPClient();
+export default ${pascalName};
+`;
+    } else {
+      return `import React from 'react';
+
+export const ${pascalName} = ({ children, ...props }) => {
+  return (
+    <div className="${kebabName}" {...props}>
+      <h1>${name}</h1>
+      {children}
+    </div>
+  );
+};
+
+export default ${pascalName};
+`;
+    }
+  }
+
+  /**
+   * Generate mock type content
+   */
+  generateTypeContent(name) {
+    const pascalName = this.toPascalCase(name);
+    
+    return `/**
+ * @typedef {Object} ${pascalName}Props
+ * @property {React.ReactNode} [children] - Child components
+ * @property {string} [className] - Additional CSS classes
+ */
+
+export default {};
+`;
+  }
+
+  /**
+   * Generate mock controller content
+   */
+  generateControllerContent(entityName) {
+    const pascalName = this.toPascalCase(entityName);
+    
+    return `export class ${pascalName}Controller {
+  async getAll(req, res) {
+    // Implementation here
+    res.json({ message: 'Get all ${entityName}s' });
+  }
+
+  async getById(req, res) {
+    const { id } = req.params;
+    res.json({ message: \`Get ${entityName} \${id}\` });
+  }
+
+  async create(req, res) {
+    // Implementation here
+    res.status(201).json({ message: 'Create ${entityName}' });
+  }
+
+  async update(req, res) {
+    const { id } = req.params;
+    res.json({ message: \`Update ${entityName} \${id}\` });
+  }
+
+  async delete(req, res) {
+    const { id } = req.params;
+    res.status(204).send();
+  }
+}
+`;
+  }
+
+  /**
+   * Generate mock routes content
+   */
+  generateRoutesContent(entityName) {
+    const kebabName = this.toKebabCase(entityName);
+    const pascalName = this.toPascalCase(entityName);
+    
+    return `import { Router } from 'express';
+import { ${pascalName}Controller } from './${kebabName}.controller.js';
+
+const router = Router();
+const controller = new ${pascalName}Controller();
+
+router.get('/', controller.getAll.bind(controller));
+router.get('/:id', controller.getById.bind(controller));
+router.post('/', controller.create.bind(controller));
+router.put('/:id', controller.update.bind(controller));
+router.delete('/:id', controller.delete.bind(controller));
+
+export default router;
+`;
+  }
+
+  /**
+   * Generate mock API docs content
+   */
+  generateApiDocsContent(variables) {
+    const { title = 'API Documentation', version = '1.0.0', baseUrl = 'http://localhost:3000' } = variables;
+    
+    return `# ${title}
+
+Version: ${version}  
+Base URL: ${baseUrl}
+
+## Overview
+
+This API provides endpoints for managing resources.
+
+## Authentication
+
+All endpoints require authentication via Bearer token:
+
+\`\`\`
+Authorization: Bearer <your-token>
+\`\`\`
+
+## Endpoints
+
+### GET /api/resource
+Get all resources
+
+### GET /api/resource/:id
+Get resource by ID
+
+### POST /api/resource
+Create new resource
+
+### PUT /api/resource/:id
+Update resource
+
+### DELETE /api/resource/:id
+Delete resource
+
+## Error Responses
+
+All errors follow the format:
+
+\`\`\`json
+{
+  "error": {
+    "code": 400,
+    "message": "Error description"
+  }
+}
+\`\`\`
+`;
+  }
+
+  /**
+   * Simulate network latency
+   */
+  async simulateLatency(customLatency) {
+    const delay = customLatency || this.options.latency;
+    if (delay > 0) {
+      await new Promise(resolve => setTimeout(resolve, delay));
+    }
+  }
+
+  /**
+   * Determine if an error should be simulated
+   */
+  shouldSimulateError() {
+    return Math.random() < this.options.errorRate;
+  }
+
+  /**
+   * Utility: Convert to PascalCase
+   */
+  toPascalCase(str) {
+    return str.replace(/(?:^|[-_\s])([a-z])/g, (_, char) => char.toUpperCase());
+  }
+
+  /**
+   * Utility: Convert to kebab-case
+   */
+  toKebabCase(str) {
+    return str
+      .replace(/([a-z])([A-Z])/g, '$1-$2')
+      .replace(/[\s_]+/g, '-')
+      .toLowerCase();
+  }
+
+  /**
+   * Get client statistics
+   */
+  getStats() {
+    return {
+      connected: this.connected,
+      requestCount: this.requestHistory.length,
+      responseCount: this.responseHistory.length,
+      errorRate: this.options.errorRate,
+      latency: this.options.latency,
+      lastRequest: this.requestHistory[this.requestHistory.length - 1],
+      lastResponse: this.responseHistory[this.responseHistory.length - 1],
+      generatedFiles: this.mockState.lastGeneratedFiles.length,
+      injectionHistory: this.mockState.injectHistory.length
+    };
+  }
+
+  /**
+   * Reset client state
+   */
+  reset() {
+    this.requestHistory = [];
+    this.responseHistory = [];
+    this.mockState.lastGeneratedFiles = [];
+    this.mockState.injectHistory = [];
+    this.nextRequestId = 1;
+  }
+
+  /**
+   * Update mock configuration
+   */
+  updateConfig(newOptions) {
+    this.options = { ...this.options, ...newOptions };
+  }
+}
+
+/**
+ * Create mock MCP client with default configuration
+ */
+export function createMockMCPClient(options = {}) {
+  return new MockMCPClient(options);
+}
+
+/**
+ * Factory for creating different types of mock clients
+ */
+export const MockClientFactory = {
+  /**
+   * Create a fast, reliable client for basic testing
+   */
+  reliable: () => new MockMCPClient({
+    latency: 10,
+    errorRate: 0,
+    debug: false
+  }),
+
+  /**
+   * Create a realistic client that simulates real network conditions
+   */
+  realistic: () => new MockMCPClient({
+    latency: 150,
+    errorRate: 0.05,
+    debug: false
+  }),
+
+  /**
+   * Create an unreliable client for error testing
+   */
+  unreliable: () => new MockMCPClient({
+    latency: 500,
+    errorRate: 0.3,
+    debug: true
+  }),
+
+  /**
+   * Create a slow client for performance testing
+   */
+  slow: () => new MockMCPClient({
+    latency: 1000,
+    errorRate: 0,
+    debug: false
+  })
+};
+
+export default MockMCPClient;

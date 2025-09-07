@@ -1,0 +1,349 @@
+---
+to: tests/unit/{{ testName | kebabCase }}.test.ts
+---
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+{% if withMocks %}import { createMockInstance } from '../../helpers/mockHelpers';{% endif %}
+{% for importItem in imports -%}
+import { {{ importItem.exports.join(', ') }} } from '{{ importItem.from }}';
+{% endfor -%}
+
+/**
+ * Unit Tests: {{ testName | pascalCase }}
+ * 
+ * {{ description || "Comprehensive unit tests for " + testName }}
+ * 
+ * Test Categories:
+ * - ✅ Happy Path Scenarios
+ * - ❌ Error Handling
+ * - 🔄 Edge Cases
+ * - 🧪 Business Logic Validation
+ {% if withPerformance %} * - ⚡ Performance Testing{% endif %}
+ {% if withAsync %} * - 🔄 Async Operations{% endif %}
+ {% if withMocks %} * - 🎭 Mocking & Stubbing{% endif %}
+ */
+
+describe('{{ testName | pascalCase }}', () => {
+  {% if withSetup -%}
+  // Test setup and teardown
+  let {{ testSubject | camelCase }}: {{ testSubject | pascalCase }};
+  {% if withMocks -%}
+  let mockDependencies: any;
+  {% endif -%}
+
+  beforeEach(() => {
+    {% if withMocks -%}
+    // Setup mocks
+    mockDependencies = {
+      {% for mock in mocks -%}
+      {{ mock.name }}: createMockInstance({{ mock.type }}),
+      {% endfor -%}
+    };
+    {% endif -%}
+
+    // Initialize test subject
+    {{ testSubject | camelCase }} = new {{ testSubject | pascalCase }}({% if withMocks %}mockDependencies{% endif %});
+    
+    // Clear all mocks
+    vi.clearAllMocks();
+  });
+
+  afterEach(() => {
+    // Cleanup after each test
+    vi.resetAllMocks();
+    {% if withCleanup -%}
+    // Additional cleanup
+    {{ testSubject | camelCase }} = null;
+    {% endif -%}
+  });
+  {% endif -%}
+
+  describe('Constructor & Initialization', () => {
+    it('should create instance with valid configuration', () => {
+      {% if withSetup -%}
+      expect({{ testSubject | camelCase }}).toBeDefined();
+      expect({{ testSubject | camelCase }}).toBeInstanceOf({{ testSubject | pascalCase }});
+      {% else -%}
+      const instance = new {{ testSubject | pascalCase }}();
+      expect(instance).toBeDefined();
+      expect(instance).toBeInstanceOf({{ testSubject | pascalCase }});
+      {% endif -%}
+    });
+
+    {% if withValidation -%}
+    it('should throw error with invalid configuration', () => {
+      expect(() => {
+        new {{ testSubject | pascalCase }}(null);
+      }).toThrow('Invalid configuration');
+    });
+    {% endif -%}
+
+    {% if withDefaults -%}
+    it('should set default values correctly', () => {
+      const instance = new {{ testSubject | pascalCase }}();
+      {% for defaultValue in defaultValues -%}
+      expect(instance.{{ defaultValue.property }}).toBe({{ defaultValue.expected }});
+      {% endfor -%}
+    });
+    {% endif -%}
+  });
+
+  {% for testGroup in testGroups -%}
+  describe('{{ testGroup.name }}', () => {
+    {% for test in testGroup.tests -%}
+    {% if test.async -%}
+    it('{{ test.description }}', async () => {
+      {% if test.setup -%}
+      // Test setup
+      {{ test.setup }}
+      {% endif -%}
+
+      {% if test.withMocks -%}
+      // Setup mocks
+      {% for mock in test.mocks -%}
+      {{ mock.setup }}
+      {% endfor -%}
+      {% endif -%}
+
+      {% if test.expectError -%}
+      // Expect error to be thrown
+      await expect({{ test.execution }}).rejects.toThrow('{{ test.expectedError }}');
+      {% else -%}
+      // Execute test
+      const result = await {{ test.execution }};
+      
+      // Assertions
+      {% for assertion in test.assertions -%}
+      expect({{ assertion.actual }}).{{ assertion.matcher }}({{ assertion.expected }});
+      {% endfor -%}
+      {% endif -%}
+
+      {% if test.mockVerifications -%}
+      // Verify mock calls
+      {% for verification in test.mockVerifications -%}
+      expect({{ verification.mock }}).toHaveBeenCalledWith({{ verification.expectedArgs }});
+      {% endfor -%}
+      {% endif -%}
+    });
+    {% else -%}
+    it('{{ test.description }}', () => {
+      {% if test.setup -%}
+      // Test setup
+      {{ test.setup }}
+      {% endif -%}
+
+      {% if test.withMocks -%}
+      // Setup mocks
+      {% for mock in test.mocks -%}
+      {{ mock.setup }}
+      {% endfor -%}
+      {% endif -%}
+
+      {% if test.expectError -%}
+      // Expect error to be thrown
+      expect(() => {{ test.execution }}).toThrow('{{ test.expectedError }}');
+      {% else -%}
+      // Execute test
+      const result = {{ test.execution }};
+      
+      // Assertions
+      {% for assertion in test.assertions -%}
+      expect({{ assertion.actual }}).{{ assertion.matcher }}({{ assertion.expected }});
+      {% endfor -%}
+      {% endif -%}
+
+      {% if test.mockVerifications -%}
+      // Verify mock calls
+      {% for verification in test.mockVerifications -%}
+      expect({{ verification.mock }}).toHaveBeenCalledWith({{ verification.expectedArgs }});
+      {% endfor -%}
+      {% endif -%}
+    });
+    {% endif -%}
+    {% endfor -%}
+  });
+  {% endfor -%}
+
+  {% if withHappyPath -%}
+  describe('Happy Path Scenarios', () => {
+    {% for scenario in happyPathScenarios -%}
+    it('{{ scenario.description }}', {% if scenario.async %}async {% endif %}() => {
+      // Arrange
+      {{ scenario.arrange }}
+
+      // Act
+      {% if scenario.async -%}
+      const result = await {{ scenario.act }};
+      {% else -%}
+      const result = {{ scenario.act }};
+      {% endif -%}
+
+      // Assert
+      {% for assertion in scenario.assertions -%}
+      expect({{ assertion.actual }}).{{ assertion.matcher }}({{ assertion.expected }});
+      {% endfor -%}
+    });
+    {% endfor -%}
+  });
+  {% endif -%}
+
+  {% if withErrorHandling -%}
+  describe('Error Handling', () => {
+    {% for errorTest in errorTests -%}
+    it('{{ errorTest.description }}', {% if errorTest.async %}async {% endif %}() => {
+      // Arrange
+      {{ errorTest.arrange }}
+
+      // Act & Assert
+      {% if errorTest.async -%}
+      await expect({{ errorTest.act }}).rejects.toThrow({{ errorTest.expectedError }});
+      {% else -%}
+      expect(() => {{ errorTest.act }}).toThrow({{ errorTest.expectedError }});
+      {% endif -%}
+    });
+    {% endfor -%}
+  });
+  {% endif -%}
+
+  {% if withEdgeCases -%}
+  describe('Edge Cases', () => {
+    {% for edgeCase in edgeCases -%}
+    it('{{ edgeCase.description }}', {% if edgeCase.async %}async {% endif %}() => {
+      // Arrange
+      {{ edgeCase.arrange }}
+
+      // Act
+      {% if edgeCase.async -%}
+      const result = await {{ edgeCase.act }};
+      {% else -%}
+      const result = {{ edgeCase.act }};
+      {% endif -%}
+
+      // Assert
+      {% for assertion in edgeCase.assertions -%}
+      expect({{ assertion.actual }}).{{ assertion.matcher }}({{ assertion.expected }});
+      {% endfor -%}
+    });
+    {% endfor -%}
+  });
+  {% endif -%}
+
+  {% if withPerformance -%}
+  describe('Performance Tests', () => {
+    it('should complete operation within acceptable time', async () => {
+      const startTime = Date.now();
+      
+      // Execute performance-critical operation
+      await {{ performanceTest.operation }};
+      
+      const duration = Date.now() - startTime;
+      expect(duration).toBeLessThan({{ performanceTest.maxDuration || 1000 }});
+    });
+
+    {% if performanceTest.memoryTest -%}
+    it('should not cause memory leaks', async () => {
+      const initialMemory = process.memoryUsage().heapUsed;
+      
+      // Execute operation multiple times
+      for (let i = 0; i < {{ performanceTest.iterations || 100 }}; i++) {
+        await {{ performanceTest.operation }};
+      }
+      
+      // Force garbage collection if available
+      if (global.gc) {
+        global.gc();
+      }
+      
+      const finalMemory = process.memoryUsage().heapUsed;
+      const memoryIncrease = finalMemory - initialMemory;
+      
+      // Memory increase should be reasonable (less than 10MB)
+      expect(memoryIncrease).toBeLessThan(10 * 1024 * 1024);
+    });
+    {% endif -%}
+  });
+  {% endif -%}
+
+  {% if withIntegration -%}
+  describe('Integration Scenarios', () => {
+    {% for integration in integrationTests -%}
+    it('{{ integration.description }}', async () => {
+      // Setup integration test environment
+      {{ integration.setup }}
+
+      // Execute integration test
+      const result = await {{ integration.execution }};
+
+      // Verify integration results
+      {% for assertion in integration.assertions -%}
+      expect({{ assertion.actual }}).{{ assertion.matcher }}({{ assertion.expected }});
+      {% endfor -%}
+
+      // Cleanup
+      {{ integration.cleanup }}
+    });
+    {% endfor -%}
+  });
+  {% endif -%}
+
+  {% if withBusinessLogic -%}
+  describe('Business Logic Validation', () => {
+    {% for businessRule in businessRules -%}
+    it('{{ businessRule.description }}', {% if businessRule.async %}async {% endif %}() => {
+      // Setup business scenario
+      {{ businessRule.setup }}
+
+      // Execute business logic
+      {% if businessRule.async -%}
+      const result = await {{ businessRule.execution }};
+      {% else -%}
+      const result = {{ businessRule.execution }};
+      {% endif -%}
+
+      // Validate business rules
+      {% for rule in businessRule.validations -%}
+      expect({{ rule.condition }}).toBe({{ rule.expected }});
+      {% endfor -%}
+    });
+    {% endfor -%}
+  });
+  {% endif -%}
+
+  {% if withDataValidation -%}
+  describe('Data Validation', () => {
+    const validData = {{ validData | dump }};
+    const invalidData = {{ invalidData | dump }};
+
+    it('should accept valid data', () => {
+      expect(() => {{ testSubject | camelCase }}.validate(validData)).not.toThrow();
+    });
+
+    it('should reject invalid data', () => {
+      expect(() => {{ testSubject | camelCase }}.validate(invalidData)).toThrow();
+    });
+
+    {% for field in validationFields -%}
+    it('should validate {{ field.name }} field correctly', () => {
+      const dataWithInvalid{{ field.name | pascalCase }} = {
+        ...validData,
+        {{ field.name }}: {{ field.invalidValue }}
+      };
+      
+      expect(() => {{ testSubject | camelCase }}.validate(dataWithInvalid{{ field.name | pascalCase }}))
+        .toThrow('{{ field.errorMessage }}');
+    });
+    {% endfor -%}
+  });
+  {% endif -%}
+
+  {% if customTestSuites -%}
+  {% for suite in customTestSuites -%}
+  describe('{{ suite.name }}', () => {
+    {% for test in suite.tests -%}
+    it('{{ test.description }}', {% if test.async %}async {% endif %}() => {
+      {{ test.implementation }}
+    });
+    {% endfor -%}
+  });
+  {% endfor -%}
+  {% endif -%}
+});

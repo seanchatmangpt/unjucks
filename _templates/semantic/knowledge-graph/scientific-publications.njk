@@ -1,0 +1,374 @@
+---
+to: <%= domain || 'scientific-publications' %>-knowledge-graph.ttl
+inject: false
+sh: echo "Generated <%= domain || 'scientific-publications' %> knowledge graph with provenance and versioning"
+---
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix dc: <http://purl.org/dc/terms/> .
+@prefix dcat: <http://www.w3.org/ns/dcat#> .
+@prefix prov: <http://www.w3.org/ns/prov#> .
+@prefix foaf: <http://xmlns.com/foaf/0.1/> .
+@prefix bibo: <http://purl.org/ontology/bibo/> .
+@prefix prism: <http://prismstandard.org/namespaces/basic/2.0/> .
+@prefix void: <http://rdfs.org/ns/void#> .
+@prefix : <http://example.org/<%= domain || 'scientific-publications' %>/> .
+@prefix pub: <http://example.org/<%= domain || 'scientific-publications' %>/> .
+
+# =============================================
+# Knowledge Graph for Scientific Publications
+# with Provenance and Versioning Support
+# =============================================
+
+# Knowledge Graph Dataset
+pub:<%= (domain || 'scientific-publications') | camelize %>KG a dcat:Dataset, void:Dataset ;
+    dc:title "<%= (domain || 'Scientific Publications') | title %> Knowledge Graph" ;
+    dc:description "A comprehensive knowledge graph of scientific publications with full provenance tracking and versioning support." ;
+    dc:created "<%= new Date().toISOString().split('T')[0] %>"^^xsd:date ;
+    dc:publisher "<%= publisher || 'Research Institution' %>" ;
+    dcat:version "<%= version || '1.0.0' %>" ;
+    {% if withProvenance %}prov:wasGeneratedBy [
+        a prov:Activity ;
+        rdfs:label "Knowledge Graph Generation Activity" ;
+        prov:used "unjucks generate knowledge-graph <%= domain || 'scientific-publications' %>" ;
+        prov:startedAtTime "<%= new Date().toISOString() %>"^^xsd:dateTime ;
+        prov:endedAtTime "<%= new Date().toISOString() %>"^^xsd:dateTime ;
+        prov:wasAssociatedWith pub:UnjucksAgent
+    ] ;{% endif %}
+    void:triples "<%= triplesCount || '50000' %>"^^xsd:integer ;
+    void:entities "<%= entitiesCount || '15000' %>"^^xsd:integer ;
+    void:properties "<%= propertiesCount || '45' %>"^^xsd:integer .
+
+{% if withProvenance %}
+# Provenance Agent
+pub:UnjucksAgent a prov:SoftwareAgent ;
+    rdfs:label "Unjucks Semantic Generator" ;
+    prov:actedOnBehalfOf pub:ResearchTeam ;
+    foaf:homepage <https://unjucks.dev> .
+
+pub:ResearchTeam a prov:Organization ;
+    rdfs:label "<%= organization || 'Research Team' %>" ;
+    foaf:name "<%= organization || 'Research Team' %>" .
+{% endif %}
+
+# =============================================
+# Named Graphs for Data Source Separation
+# =============================================
+
+{% if withVersioning %}
+# Main Publications Graph
+pub:MainPublicationsGraph a dcat:Dataset ;
+    rdfs:label "Main Publications Graph" ;
+    dc:description "Primary graph containing publication metadata" ;
+    dcat:version "<%= version || '1.0.0' %>" ;
+    dc:created "<%= new Date().toISOString().split('T')[0] %>"^^xsd:date .
+
+# Authors Graph  
+pub:AuthorsGraph a dcat:Dataset ;
+    rdfs:label "Authors Graph" ;
+    dc:description "Graph containing author information and affiliations" ;
+    dcat:version "<%= version || '1.0.0' %>" ;
+    dc:created "<%= new Date().toISOString().split('T')[0] %>"^^xsd:date .
+
+# Citations Graph
+pub:CitationsGraph a dcat:Dataset ;
+    rdfs:label "Citations Graph" ;
+    dc:description "Graph containing citation relationships" ;
+    dcat:version "<%= version || '1.0.0' %>" ;
+    dc:created "<%= new Date().toISOString().split('T')[0] %>"^^xsd:date .
+
+# Metrics Graph
+pub:MetricsGraph a dcat:Dataset ;
+    rdfs:label "Metrics Graph" ;
+    dc:description "Graph containing publication metrics and analytics" ;
+    dcat:version "<%= version || '1.0.0' %>" ;
+    dc:created "<%= new Date().toISOString().split('T')[0] %>"^^xsd:date .
+{% endif %}
+
+# =============================================
+# Core RDF Triples - Publications
+# =============================================
+
+# Sample Research Article 1
+pub:article_001 a bibo:AcademicArticle ;
+    dc:title "Machine Learning Applications in Climate Science: A Comprehensive Review" ;
+    dc:abstract "This paper presents a systematic review of machine learning techniques applied to climate science problems, analyzing 247 papers published between 2018-2024." ;
+    bibo:doi "10.1000/nature.climate.2024.001" ;
+    prism:publicationDate "2024-03-15"^^xsd:date ;
+    bibo:pageStart "45" ;
+    bibo:pageEnd "72" ;
+    bibo:volume "15" ;
+    bibo:issue "3" ;
+    dc:publisher pub:publisher_nature ;
+    bibo:authorList (
+        pub:author_smith_jane
+        pub:author_johnson_robert
+        pub:author_chen_li
+    ) ;
+    dc:subject pub:subject_machine_learning, pub:subject_climate_science ;
+    {% if withProvenance %}prov:wasGeneratedBy [
+        a prov:Activity ;
+        rdfs:label "Article Publication Activity" ;
+        prov:startedAtTime "2024-01-10T09:00:00Z"^^xsd:dateTime ;
+        prov:endedAtTime "2024-03-15T12:00:00Z"^^xsd:dateTime ;
+        prov:wasAssociatedWith pub:author_smith_jane
+    ] ;{% endif %}
+    {% if withVersioning %}dcat:version "1.2" ;
+    dc:hasVersion pub:article_001_v1_0, pub:article_001_v1_1 ;{% endif %}
+    pub:citationCount 47 ;
+    pub:downloadCount 1205 ;
+    pub:altmetricScore 23.4 .
+
+# Sample Research Article 2
+pub:article_002 a bibo:AcademicArticle ;
+    dc:title "Quantum Computing Algorithms for Optimization Problems" ;
+    dc:abstract "Novel quantum algorithms for solving NP-hard optimization problems with applications to logistics and resource allocation." ;
+    bibo:doi "10.1000/quantum.comp.2024.002" ;
+    prism:publicationDate "2024-05-22"^^xsd:date ;
+    bibo:pageStart "112" ;
+    bibo:pageEnd "134" ;
+    bibo:volume "8" ;
+    bibo:issue "2" ;
+    dc:publisher pub:publisher_ieee ;
+    bibo:authorList (
+        pub:author_patel_kumar
+        pub:author_garcia_maria
+    ) ;
+    dc:subject pub:subject_quantum_computing, pub:subject_optimization ;
+    {% if withProvenance %}prov:wasGeneratedBy [
+        a prov:Activity ;
+        rdfs:label "Article Publication Activity" ;
+        prov:startedAtTime "2024-03-01T14:00:00Z"^^xsd:dateTime ;
+        prov:endedAtTime "2024-05-22T16:30:00Z"^^xsd:dateTime ;
+        prov:wasAssociatedWith pub:author_patel_kumar
+    ] ;{% endif %}
+    {% if withVersioning %}dcat:version "1.0" ;{% endif %}
+    pub:citationCount 23 ;
+    pub:downloadCount 856 ;
+    pub:altmetricScore 18.7 .
+
+# =============================================
+# Authors with Affiliations
+# =============================================
+
+pub:author_smith_jane a foaf:Person ;
+    foaf:name "Dr. Jane Smith" ;
+    foaf:givenName "Jane" ;
+    foaf:familyName "Smith" ;
+    foaf:title "Dr." ;
+    pub:orcid "0000-0002-1825-0097" ;
+    foaf:mbox <mailto:jane.smith@university.edu> ;
+    pub:affiliation pub:institution_stanford ;
+    pub:researchArea pub:subject_machine_learning, pub:subject_climate_science ;
+    {% if withProvenance %}prov:actedOnBehalfOf pub:institution_stanford ;{% endif %}
+    pub:hIndex 34 ;
+    pub:totalCitations 2847 .
+
+pub:author_johnson_robert a foaf:Person ;
+    foaf:name "Prof. Robert Johnson" ;
+    foaf:givenName "Robert" ;
+    foaf:familyName "Johnson" ;
+    foaf:title "Prof." ;
+    pub:orcid "0000-0003-2456-1234" ;
+    foaf:mbox <mailto:r.johnson@mit.edu> ;
+    pub:affiliation pub:institution_mit ;
+    pub:researchArea pub:subject_climate_science ;
+    {% if withProvenance %}prov:actedOnBehalfOf pub:institution_mit ;{% endif %}
+    pub:hIndex 42 ;
+    pub:totalCitations 3654 .
+
+pub:author_chen_li a foaf:Person ;
+    foaf:name "Dr. Li Chen" ;
+    foaf:givenName "Li" ;
+    foaf:familyName "Chen" ;
+    foaf:title "Dr." ;
+    pub:orcid "0000-0004-5678-9012" ;
+    foaf:mbox <mailto:li.chen@berkeley.edu> ;
+    pub:affiliation pub:institution_berkeley ;
+    pub:researchArea pub:subject_machine_learning ;
+    {% if withProvenance %}prov:actedOnBehalfOf pub:institution_berkeley ;{% endif %}
+    pub:hIndex 28 ;
+    pub:totalCitations 1923 .
+
+# =============================================
+# Institutions and Affiliations
+# =============================================
+
+pub:institution_stanford a foaf:Organization ;
+    foaf:name "Stanford University" ;
+    pub:institutionType "Research University" ;
+    pub:country "USA" ;
+    pub:establishedYear "1885"^^xsd:gYear ;
+    foaf:homepage <https://stanford.edu> .
+
+pub:institution_mit a foaf:Organization ;
+    foaf:name "Massachusetts Institute of Technology" ;
+    pub:institutionType "Research University" ;
+    pub:country "USA" ;
+    pub:establishedYear "1861"^^xsd:gYear ;
+    foaf:homepage <https://mit.edu> .
+
+pub:institution_berkeley a foaf:Organization ;
+    foaf:name "University of California, Berkeley" ;
+    pub:institutionType "Research University" ;
+    pub:country "USA" ;
+    pub:establishedYear "1868"^^xsd:gYear ;
+    foaf:homepage <https://berkeley.edu> .
+
+# =============================================
+# Publishers
+# =============================================
+
+pub:publisher_nature a foaf:Organization ;
+    foaf:name "Nature Publishing Group" ;
+    pub:publisherType "Academic Publisher" ;
+    pub:impactFactor 49.962 ;
+    foaf:homepage <https://nature.com> .
+
+pub:publisher_ieee a foaf:Organization ;
+    foaf:name "IEEE Computer Society" ;
+    pub:publisherType "Professional Society" ;
+    pub:impactFactor 3.356 ;
+    foaf:homepage <https://ieee.org> .
+
+# =============================================
+# Subject Areas and Research Topics
+# =============================================
+
+pub:subject_machine_learning a dc:Subject ;
+    rdfs:label "Machine Learning"@en ;
+    dc:description "Algorithms and statistical models for computer systems"@en ;
+    pub:fieldOfStudy "Computer Science" .
+
+pub:subject_climate_science a dc:Subject ;
+    rdfs:label "Climate Science"@en ;
+    dc:description "Scientific study of climate and climate change"@en ;
+    pub:fieldOfStudy "Environmental Science" .
+
+pub:subject_quantum_computing a dc:Subject ;
+    rdfs:label "Quantum Computing"@en ;
+    dc:description "Computing using quantum mechanical phenomena"@en ;
+    pub:fieldOfStudy "Computer Science" .
+
+pub:subject_optimization a dc:Subject ;
+    rdfs:label "Optimization"@en ;
+    dc:description "Mathematical optimization methods and algorithms"@en ;
+    pub:fieldOfStudy "Mathematics" .
+
+# =============================================
+# Citation Relationships
+# =============================================
+
+pub:citation_001 a bibo:Citation ;
+    bibo:cites pub:article_002 ;
+    bibo:citedBy pub:article_001 ;
+    pub:citationType "methodological" ;
+    {% if withProvenance %}prov:wasGeneratedBy [
+        a prov:Activity ;
+        rdfs:label "Citation Analysis Activity" ;
+        prov:startedAtTime "2024-09-07T10:00:00Z"^^xsd:dateTime ;
+        prov:wasAssociatedWith pub:CitationAnalysisBot
+    ] ;{% endif %}
+    pub:citationContext "The quantum optimization approach described in [2] provides a foundation for our climate modeling algorithms." .
+
+{% if withProvenance %}
+pub:CitationAnalysisBot a prov:SoftwareAgent ;
+    rdfs:label "Citation Analysis Bot" ;
+    prov:actedOnBehalfOf pub:ResearchTeam .
+{% endif %}
+
+# =============================================
+# SPARQL Query Examples for Common Patterns
+# =============================================
+
+# Query 1: Find all articles by author with citation count > 30
+pub:query_popular_articles a pub:SPARQLQuery ;
+    rdfs:label "Popular Articles Query" ;
+    pub:sparqlText """
+    PREFIX pub: <http://example.org/scientific-publications/>
+    PREFIX bibo: <http://purl.org/ontology/bibo/>
+    PREFIX foaf: <http://xmlns.com/foaf/0.1/>
+    
+    SELECT ?article ?title ?author ?citations
+    WHERE {
+        ?article a bibo:AcademicArticle ;
+                 dc:title ?title ;
+                 bibo:authorList/rdf:rest*/rdf:first ?author ;
+                 pub:citationCount ?citations .
+        ?author foaf:name ?authorName .
+        FILTER (?citations > 30)
+    }
+    ORDER BY DESC(?citations)
+    """ .
+
+# Query 2: Find research collaborations (co-authorship networks)
+pub:query_collaborations a pub:SPARQLQuery ;
+    rdfs:label "Research Collaborations Query" ;
+    pub:sparqlText """
+    PREFIX pub: <http://example.org/scientific-publications/>
+    PREFIX bibo: <http://purl.org/ontology/bibo/>
+    PREFIX foaf: <http://xmlns.com/foaf/0.1/>
+    
+    SELECT ?author1 ?author2 ?sharedPapers
+    WHERE {
+        {
+            SELECT ?author1 ?author2 (COUNT(?article) AS ?sharedPapers)
+            WHERE {
+                ?article bibo:authorList/rdf:rest*/rdf:first ?author1, ?author2 .
+                FILTER (?author1 != ?author2)
+            }
+            GROUP BY ?author1 ?author2
+            HAVING (?sharedPapers > 1)
+        }
+        ?author1 foaf:name ?name1 .
+        ?author2 foaf:name ?name2 .
+    }
+    ORDER BY DESC(?sharedPapers)
+    """ .
+
+{% if withVersioning %}
+# =============================================
+# Versioning Metadata
+# =============================================
+
+pub:article_001_v1_0 a bibo:AcademicArticle ;
+    dc:title "Machine Learning in Climate Science: Initial Findings" ;
+    dcat:version "1.0" ;
+    dc:created "2024-01-15"^^xsd:date ;
+    dc:isVersionOf pub:article_001 ;
+    prov:wasRevisionOf pub:article_001_v1_0 ;
+    pub:versionNotes "Initial submission version" .
+
+pub:article_001_v1_1 a bibo:AcademicArticle ;
+    dc:title "Machine Learning in Climate Science: Revised Analysis" ;
+    dcat:version "1.1" ;
+    dc:created "2024-02-20"^^xsd:date ;
+    dc:isVersionOf pub:article_001 ;
+    prov:wasRevisionOf pub:article_001_v1_0 ;
+    pub:versionNotes "Incorporated peer review feedback, expanded dataset analysis" .
+{% endif %}
+
+# =============================================
+# Dataset Statistics and Metadata
+# =============================================
+
+pub:DatasetStatistics a void:Dataset ;
+    rdfs:label "Knowledge Graph Statistics" ;
+    void:triples <%= triplesCount || '50000' %> ;
+    void:entities <%= entitiesCount || '15000' %> ;
+    void:classes 15 ;
+    void:properties <%= propertiesCount || '45' %> ;
+    void:distinctSubjects <%= distinctSubjects || '12500' %> ;
+    void:distinctObjects <%= distinctObjects || '18750' %> ;
+    dc:created "<%= new Date().toISOString().split('T')[0] %>"^^xsd:date ;
+    {% if withProvenance %}prov:wasGeneratedBy [
+        a prov:Activity ;
+        rdfs:label "Statistics Generation Activity" ;
+        prov:startedAtTime "<%= new Date().toISOString() %>"^^xsd:dateTime
+    ] .{% else %}.{% endif %}
+
+# =============================================
+# End of Knowledge Graph
+# =============================================

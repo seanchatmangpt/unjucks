@@ -1,0 +1,118 @@
+name: "Enterprise Compliance Framework"
+description: "GDPR, SOX, HIPAA, and PCI-DSS compliance automation with audit trails and reporting"
+category: "enterprise"
+complexity: "advanced"
+tags: ["compliance", "gdpr", "sox", "hipaa", "pci-dss", "audit", "enterprise", "regulation"]
+author: "Unjucks Enterprise Team"
+version: "1.0.0"
+
+variables:
+  - name: complianceFramework
+    type: string
+    description: "Primary compliance framework"
+    required: true
+    choices: ["gdpr", "sox", "hipaa", "pci-dss", "iso27001", "basel3", "ccpa"]
+  
+  - name: serviceName
+    type: string
+    description: "Service or application name"
+    required: true
+    pattern: "^[A-Z][a-zA-Z0-9]*$"
+    
+  - name: additionalFrameworks
+    type: array
+    description: "Additional compliance frameworks to include"
+    default: []
+    choices: ["gdpr", "sox", "hipaa", "pci-dss", "iso27001", "basel3", "ccpa", "glba", "ferpa"]
+    
+  - name: withAuditTrail
+    type: boolean
+    description: "Include comprehensive audit trail system"
+    default: true
+    
+  - name: withDataRetention
+    type: boolean
+    description: "Include data retention policy automation"
+    default: true
+    
+  - name: withConsentManagement
+    type: boolean
+    description: "Include consent management system (GDPR/CCPA)"
+    default: true
+    
+  - name: withAccessControls
+    type: boolean
+    description: "Include role-based access control system"
+    default: true
+    
+  - name: withDataEncryption
+    type: boolean
+    description: "Include data encryption at rest and in transit"
+    default: true
+    
+  - name: withIncidentResponse
+    type: boolean
+    description: "Include automated incident response workflows"
+    default: true
+    
+  - name: withReporting
+    type: boolean
+    description: "Include compliance reporting and dashboards"
+    default: true
+    
+  - name: withRiskAssessment
+    type: boolean
+    description: "Include automated risk assessment tools"
+    default: true
+    
+  - name: retentionPeriodDays
+    type: number
+    description: "Default data retention period in days"
+    default: 2555
+    minimum: 30
+    maximum: 3650
+    
+  - name: encryptionAlgorithm
+    type: string
+    description: "Encryption algorithm for sensitive data"
+    default: "AES-256-GCM"
+    choices: ["AES-256-GCM", "AES-256-CBC", "ChaCha20-Poly1305"]
+    
+  - name: organizationName
+    type: string
+    description: "Legal name of the organization"
+    required: true
+    
+  - name: dataProtectionOfficer
+    type: string
+    description: "Name/email of Data Protection Officer"
+    default: "dpo@organization.com"
+    
+  - name: jurisdictions
+    type: array
+    description: "Legal jurisdictions for compliance"
+    default: ["US", "EU"]
+    choices: ["US", "EU", "UK", "CA", "AU", "JP", "SG", "HK"]
+
+examples:
+  - "unjucks generate enterprise compliance --complianceFramework=gdpr --serviceName=UserService --withConsentManagement"
+  - "unjucks generate enterprise compliance --complianceFramework=sox --serviceName=FinancialService --additionalFrameworks=basel3"
+  - "unjucks generate enterprise compliance --complianceFramework=hipaa --serviceName=PatientService --withDataEncryption"
+  - "unjucks generate enterprise compliance --complianceFramework=pci-dss --serviceName=PaymentService --withIncidentResponse"
+
+usage: |
+  This template creates a comprehensive enterprise compliance framework including:
+  - Compliance-specific service implementations (GDPR, SOX, HIPAA, PCI-DSS)
+  - Automated audit trail logging for all data operations
+  - Data retention policy automation with scheduled cleanup
+  - Consent management system for privacy regulations
+  - Role-based access control with principle of least privilege
+  - Data encryption at rest and in transit with key management
+  - Automated incident response workflows and breach notification
+  - Compliance reporting dashboards and regulatory filing automation
+  - Risk assessment tools and vulnerability scanning
+  - Data subject rights automation (access, rectification, erasure, portability)
+  - Change management and approval workflows
+  - Employee training tracking and compliance attestation
+  - Third-party vendor risk assessment integration
+  - Automated compliance monitoring and alerting

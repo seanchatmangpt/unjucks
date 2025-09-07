@@ -1,0 +1,30 @@
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix ex: <http://example.org/> .
+
+# Define User class
+ex:User rdf:type owl:Class ;
+    rdfs:label "User" ;
+    rdfs:comment "A user in the system" .
+
+# Define Person class  
+ex:Person rdf:type owl:Class ;
+    rdfs:label "Person" ;
+    rdfs:comment "A person entity" .
+
+# Define properties
+ex:hasName rdf:type owl:DatatypeProperty ;
+    rdfs:label "has name" ;
+    rdfs:domain ex:User ;
+    rdfs:range rdfs:Literal .
+
+ex:hasEmail rdf:type owl:DatatypeProperty ;
+    rdfs:label "has email" ;
+    rdfs:domain ex:User ;
+    rdfs:range rdfs:Literal .
+
+ex:knowsPerson rdf:type owl:ObjectProperty ;
+    rdfs:label "knows person" ;
+    rdfs:domain ex:User ;
+    rdfs:range ex:Person .

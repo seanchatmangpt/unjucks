@@ -45,10 +45,12 @@ if (!fs.existsSync(cliPath)) {
 try {
   // Import using dynamic import to support ES modules
   (async () => {
-    const { runMain } = await import('../src/cli/index.js');
+    const fullPath = path.resolve(__dirname, '../src/cli/index.js');
+    const cliModule = await import(fullPath);
+    const { runMain } = cliModule;
   
     // Run with proper error handling
-    runMain().catch((error) => {
+    await runMain().catch((error) => {
       if (error.code === 'ENOENT') {
         console.error('❌ Command not found or file missing');
         console.error('   Check that all required files are present');

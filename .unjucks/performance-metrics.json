@@ -1,0 +1,143 @@
+{
+  "benchmarks": [
+    {
+      "suite": "basic",
+      "timestamp": "2025-09-07T18:17:52.338Z",
+      "totalTests": 3,
+      "totalIterations": 15,
+      "results": [
+        {
+          "name": "file-io",
+          "iterations": 5,
+          "avgDuration": 54.87,
+          "minDuration": 39.37,
+          "maxDuration": 62.62,
+          "stdDev": 8.63,
+          "avgMemory": 15.99,
+          "avgCpu": 13.05,
+          "results": [
+            {
+              "iteration": 1,
+              "duration": 62.62,
+              "memoryUsed": 13.52,
+              "cpuUsage": 17.58
+            },
+            {
+              "iteration": 2,
+              "duration": 39.37,
+              "memoryUsed": 21.76,
+              "cpuUsage": 14.81
+            },
+            {
+              "iteration": 3,
+              "duration": 62.3,
+              "memoryUsed": 17.24,
+              "cpuUsage": 16.27
+            },
+            {
+              "iteration": 4,
+              "duration": 52.12,
+              "memoryUsed": 19.35,
+              "cpuUsage": 7.87
+            },
+            {
+              "iteration": 5,
+              "duration": 57.94,
+              "memoryUsed": 8.1,
+              "cpuUsage": 8.7
+            }
+          ]
+        },
+        {
+          "name": "template-parsing",
+          "iterations": 5,
+          "avgDuration": 48.85,
+          "minDuration": 42.29,
+          "maxDuration": 54.33,
+          "stdDev": 4,
+          "avgMemory": 14.78,
+          "avgCpu": 11.73,
+          "results": [
+            {
+              "iteration": 1,
+              "duration": 48.59,
+              "memoryUsed": 14.47,
+              "cpuUsage": 12.63
+            },
+            {
+              "iteration": 2,
+              "duration": 42.29,
+              "memoryUsed": 13.32,
+              "cpuUsage": 9.22
+            },
+            {
+              "iteration": 3,
+              "duration": 51.24,
+              "memoryUsed": 12.46,
+              "cpuUsage": 8.96
+            },
+            {
+              "iteration": 4,
+              "duration": 54.33,
+              "memoryUsed": 14.57,
+              "cpuUsage": 19.35
+            },
+            {
+              "iteration": 5,
+              "duration": 47.79,
+              "memoryUsed": 19.1,
+              "cpuUsage": 8.5
+            }
+          ]
+        },
+        {
+          "name": "memory-usage",
+          "iterations": 5,
+          "avgDuration": 44.22,
+          "minDuration": 35.84,
+          "maxDuration": 53.42,
+          "stdDev": 6.27,
+          "avgMemory": 13.17,
+          "avgCpu": 14.48,
+          "results": [
+            {
+              "iteration": 1,
+              "duration": 35.84,
+              "memoryUsed": 16.79,
+              "cpuUsage": 11.05
+            },
+            {
+              "iteration": 2,
+              "duration": 53.42,
+              "memoryUsed": 11.98,
+              "cpuUsage": 13.87
+            },
+            {
+              "iteration": 3,
+              "duration": 48.18,
+              "memoryUsed": 16.29,
+              "cpuUsage": 19.84
+            },
+            {
+              "iteration": 4,
+              "duration": 39.1,
+              "memoryUsed": 11.55,
+              "cpuUsage": 17.33
+            },
+            {
+              "iteration": 5,
+              "duration": 44.54,
+              "memoryUsed": 9.26,
+              "cpuUsage": 10.33
+            }
+          ]
+        }
+      ],
+      "id": "bench-1757269072338-fuj008",
+      "score": 75,
+      "grade": "B"
+    }
+  ],
+  "lastUpdated": "2025-09-07T18:17:52.343Z",
+  "version": "1.0.0"
+}

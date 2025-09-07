@@ -1,62 +1,292 @@
 import { defineCommand } from "citty";
 import chalk from "chalk";
+import { SimpleFileInjectorOrchestrator } from '../lib/file-injector/simple-file-injector-orchestrator.js';
+import { addCommonFilters } from '../lib/nunjucks-filters.js';
+import nunjucks from 'nunjucks';
+import fs from 'fs-extra';
+import path from 'node:path';
+import matter from 'gray-matter';
 
 /**
- * Placeholder generator for basic functionality
+ * Real template generator using Nunjucks and file injection system
  */
 class Generator {
-  async listGenerators() {
-    return [
+  constructor() {
+    this.templatesDir = '_templates';
+    this.fileInjector = new SimpleFileInjectorOrchestrator();
+    
+    // Configure Nunjucks environment
+    this.nunjucksEnv = new nunjucks.Environment(
+      new nunjucks.FileSystemLoader(this.templatesDir),
       {
-        name: "component",
-        description: "React/Vue component generator"
-      },
-      {
-        name: "api", 
-        description: "API endpoint generator"
+        autoescape: false,
+        throwOnUndefined: false
       }
-    ];
+    );
+    
+    // Add common filters for template processing
+    addCommonFilters(this.nunjucksEnv);
+  }
+
+  async listGenerators() {
+    try {
+      const generators = [];
+      const templatesPath = path.resolve(this.templatesDir);
+      
+      if (!(await fs.pathExists(templatesPath))) {
+        return [];
+      }
+      
+      const items = await fs.readdir(templatesPath, { withFileTypes: true });
+      
+      for (const item of items) {
+        if (item.isDirectory()) {
+          const generatorPath = path.join(templatesPath, item.name);
+          const hasTemplates = await this.hasTemplateFiles(generatorPath);
+          
+          if (hasTemplates) {
+            generators.push({
+              name: item.name,
+              description: `Generator for ${item.name}`
+            });
+          }
+        }
+      }
+      
+      return generators;
+    } catch (error) {
+      console.error('Error listing generators:', error);
+      return [];
+    }
   }
 
   async listTemplates(generatorName) {
-    const mockTemplates = {
-      component: [
-        { name: "react", description: "React functional component" },
-        { name: "vue", description: "Vue 3 composition API component" }
-      ],
-      api: [
-        { name: "express", description: "Express.js router" },
-        { name: "fastify", description: "Fastify plugin" }
-      ]
-    };
-
-    return mockTemplates[generatorName] || [];
+    try {
+      const templates = [];
+      const generatorPath = path.resolve(this.templatesDir, generatorName);
+      
+      if (!(await fs.pathExists(generatorPath))) {
+        return [];
+      }
+      
+      const items = await fs.readdir(generatorPath, { withFileTypes: true });
+      
+      for (const item of items) {
+        if (item.isDirectory()) {
+          const templatePath = path.join(generatorPath, item.name);
+          const hasFiles = await this.hasTemplateFiles(templatePath);
+          
+          if (hasFiles) {
+            templates.push({
+              name: item.name,
+              description: `Template: ${item.name}`
+            });
+          }
+        }
+      }
+      
+      return templates;
+    } catch (error) {
+      console.error('Error listing templates:', error);
+      return [];
+    }
   }
 
   async generate(options) {
-    // Mock generation result
-    const files = [
-      {
-        path: `${options.dest}/${options.template}-${options.variables?.name || 'component'}.js`,
-        exists: false,
-        size: 1234
+    try {
+      const { generator: generatorName, template: templateName, dest, variables = {}, dry = false, force = false } = options;
+      
+      const templatePath = path.resolve(this.templatesDir, generatorName, templateName);
+      
+      if (!(await fs.pathExists(templatePath))) {
+        return {
+          success: false,
+          message: `Template not found: ${generatorName}/${templateName}`,
+          files: [],
+          warnings: []
+        };
       }
-    ];
+      
+      const templateFiles = await this.getTemplateFiles(templatePath);
+      const results = [];
+      const warnings = [];
+      
+      for (const templateFile of templateFiles) {
+        try {
+          const result = await this.processTemplateFile(templateFile, variables, dest, { dry, force });
+          results.push(result);
+          
+          if (result.warnings) {
+            warnings.push(...result.warnings);
+          }
+        } catch (error) {
+          console.error(`Error processing template file ${templateFile}:`, error);
+          warnings.push(`Failed to process ${templateFile}: ${error.message}`);
+        }
+      }
+      
+      const files = results
+        .filter(r => r.success)
+        .map(r => ({
+          path: r.outputPath,
+          exists: r.existed || false,
+          size: r.size || 0
+        }));
+      
+      return {
+        success: results.some(r => r.success),
+        files,
+        warnings: dry ? ['This is a dry run - no files were created', ...warnings] : warnings
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: `Generation failed: ${error.message}`,
+        files: [],
+        warnings: []
+      };
+    }
+  }
 
+  async processTemplateFile(templateFilePath, variables, destDir, options) {
+    const { dry, force } = options;
+    
+    // Read template file
+    const templateContent = await fs.readFile(templateFilePath, 'utf8');
+    
+    // Parse frontmatter
+    const { data: frontmatter, content } = matter(templateContent);
+    
+    // Render output path using Nunjucks
+    const outputPath = frontmatter.to 
+      ? this.nunjucksEnv.renderString(frontmatter.to, variables)
+      : path.basename(templateFilePath, '.njk');
+    
+    // Resolve full output path
+    const fullOutputPath = path.resolve(destDir, outputPath);
+    
+    // Render content using Nunjucks
+    const renderedContent = this.nunjucksEnv.renderString(content, variables);
+    
+    // Check if file exists
+    const existed = await fs.pathExists(fullOutputPath);
+    
+    // Don't fail on existing files if we're doing injection
+    if (existed && !force && !dry && !frontmatter.inject) {
+      return {
+        success: false,
+        outputPath: fullOutputPath,
+        existed,
+        warnings: [`File exists: ${fullOutputPath} (use --force to overwrite)`]
+      };
+    }
+    
+    // Use FileInjectorOrchestrator to write the file
+    const injectionResult = await this.fileInjector.processFile(
+      fullOutputPath,
+      renderedContent,
+      frontmatter,
+      { dry, force }
+    );
+    
+    if (!injectionResult.success) {
+      return {
+        success: false,
+        outputPath: fullOutputPath,
+        existed,
+        warnings: [injectionResult.message]
+      };
+    }
+    
+    // Get file size if not dry run
+    let size = 0;
+    if (!dry && injectionResult.success) {
+      try {
+        const stats = await fs.stat(fullOutputPath);
+        size = stats.size;
+      } catch (error) {
+        console.warn('Could not get file size:', error);
+      }
+    }
+    
     return {
       success: true,
-      files,
-      warnings: options.dry ? [`This is a dry run - no files were created`] : []
+      outputPath: fullOutputPath,
+      existed,
+      size
     };
   }
 
-  async scanTemplateForVariables(generator, template) {
-    return {
-      variables: [
-        { name: "name", required: true, type: "string", description: "Component name" },
-        { name: "withTests", required: false, type: "boolean", description: "Include test files" }
-      ]
-    };
+  async hasTemplateFiles(dirPath) {
+    try {
+      const files = await this.getTemplateFiles(dirPath);
+      return files.length > 0;
+    } catch (error) {
+      return false;
+    }
+  }
+  
+  async getTemplateFiles(dirPath) {
+    const files = [];
+    
+    const items = await fs.readdir(dirPath, { withFileTypes: true });
+    
+    for (const item of items) {
+      const itemPath = path.join(dirPath, item.name);
+      
+      if (item.isDirectory()) {
+        // Recursively get files from subdirectories
+        const subFiles = await this.getTemplateFiles(itemPath);
+        files.push(...subFiles);
+      } else if (item.isFile() && (item.name.endsWith('.njk') || item.name.endsWith('.hbs'))) {
+        files.push(itemPath);
+      }
+    }
+    
+    return files;
+  }
+
+  async scanTemplateForVariables(generatorName, templateName) {
+    try {
+      const templatePath = path.resolve(this.templatesDir, generatorName, templateName);
+      const templateFiles = await this.getTemplateFiles(templatePath);
+      
+      const variables = new Set();
+      
+      for (const templateFile of templateFiles) {
+        const templateContent = await fs.readFile(templateFile, 'utf8');
+        const { data: frontmatter, content } = matter(templateContent);
+        
+        // Extract variables from frontmatter 'to' field and content
+        const fullContent = (frontmatter.to || '') + '\n' + content;
+        
+        // Simple regex to find {{ variable }} patterns
+        const variableMatches = fullContent.match(/\{\{\s*([a-zA-Z_][a-zA-Z0-9_]*)\s*\}\}/g);
+        
+        if (variableMatches) {
+          variableMatches.forEach(match => {
+            const varName = match.replace(/[{}\s]/g, '');
+            variables.add(varName);
+          });
+        }
+      }
+      
+      return {
+        variables: Array.from(variables).map(name => ({
+          name,
+          required: true,
+          type: 'string',
+          description: `Variable: ${name}`
+        }))
+      };
+    } catch (error) {
+      console.error('Error scanning template variables:', error);
+      return {
+        variables: [
+          { name: 'name', required: true, type: 'string', description: 'Entity name' }
+        ]
+      };
+    }
   }
 }
 

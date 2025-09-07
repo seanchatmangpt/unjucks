@@ -1,0 +1,367 @@
+import { describe, it, expect, beforeEach } from 'vitest';
+import { FrontmatterParser } from '../../src/lib/frontmatter-parser.js';
+import { TemplateFactory } from '../factories/index.js';
+
+describe('FrontmatterParser', () => {
+  let parser;
+
+  beforeEach(() => {
+    parser = new FrontmatterParser();
+  });
+
+  describe('parse', () => {
+    it('should parse frontmatter and content correctly', () => {
+      const template = `---
+to: src/{{ name | kebabCase }}.ts
+inject: false
+---
+export const {{ name | pascalCase }} = () => {};`;
+
+      const result = parser.parse(template);
+
+      expect(result.frontmatter.to).toBe('src/{{ name | kebabCase }}.ts');
+      expect(result.frontmatter.inject).toBe(false);
+      expect(result.content.trim()).toBe('export const {{ name | pascalCase }} = () => {};');
+    });
+
+    it('should handle template without frontmatter', () => {
+      const template = 'export const {{ name }} = () => {};';
+
+      const result = parser.parse(template);
+
+      expect(result.frontmatter).toEqual({});
+      expect(result.content).toBe(template);
+    });
+
+    it('should parse complex frontmatter configuration', () => {
+      const template = `---
+to: src/{{ name | kebabCase }}.ts
+inject: true
+before: import React from 'react';
+after: "// Component imports"
+skipIf: "{{ name | pascalCase }}"
+chmod: 755
+sh: "npm run format {{ to }}"
+---
+Component content`;
+
+      const result = parser.parse(template);
+
+      expect(result.frontmatter.to).toBe('src/{{ name | kebabCase }}.ts');
+      expect(result.frontmatter.inject).toBe(true);
+      expect(result.frontmatter.before).toBe('import React from \'react\';');
+      expect(result.frontmatter.after).toBe('// Component imports');
+      expect(result.frontmatter.skipIf).toBe('{{ name | pascalCase }}');
+      expect(result.frontmatter.chmod).toBe(755);
+      expect(result.frontmatter.sh).toBe('npm run format {{ to }}');
+    });
+
+    it('should handle malformed YAML gracefully', () => {
+      const template = `---
+to: src/{{ name | kebabCase }}.ts
+invalid: [unclosed array
+inject: true
+---
+Content`;
+
+      expect(() => parser.parse(template)).not.toThrow();
+      
+      const result = parser.parse(template);
+      // Should return empty frontmatter on parse error
+      expect(result.frontmatter).toEqual({});
+      expect(result.content).toBe(template);
+    });
+
+    it('should handle empty frontmatter', () => {
+      const template = `---
+---
+Content only`;
+
+      const result = parser.parse(template);
+
+      expect(result.frontmatter).toEqual({});
+      expect(result.content.trim()).toBe('Content only');
+    });
+
+    it('should preserve whitespace in content', () => {
+      const template = `---
+to: output.txt
+---
+Content with   spaces`;
+
+      const result = parser.parse(template);
+      expect(result.content).toContain('   '); // Preserves multiple spaces
+    });
+  });
+
+  describe('injection configuration', () => {
+    it('should parse injection options correctly', () => {
+      const template = `---
+to: output.txt
+inject: true
+after: marker
+---
+Content`;
+
+      const result = parser.parse(template);
+      expect(result.frontmatter.inject).toBe(true);
+      expect(result.frontmatter.after).toBe('marker');
+    });
+
+    it('should handle skipIf conditions', () => {
+      const template = `---
+to: src/components/{{ name | kebabCase }}.tsx
+skipIf: "import { useState }"
+---
+import { useState } from 'react';`;
+
+      const result = parser.parse(template);
+
+      expect(result.frontmatter.skipIf).toBe('import { useState }');
+    });
+
+    it('should parse shell commands', () => {
+      const template = `---
+to: src/{{ name | kebabCase }}.ts
+sh: |
+  npm run format {{ to }}
+  git add {{ to }}
+chmod: 644
+---
+Content`;
+
+      const result = parser.parse(template);
+
+      expect(result.frontmatter.sh).toBe('npm run format {{ to }}\ngit add {{ to }}');
+      expect(result.frontmatter.chmod).toBe(644);
+    });
+  });
+
+  describe('template variable support', () => {
+    it('should preserve template variables in frontmatter', () => {
+      const template = `---
+to: src/{{ componentType }}/{{ name | kebabCase }}.{{ extension }}
+inject: {{ shouldInject }}
+skipIf: "{{ skipCondition }}"
+---
+Content with {{ variables }}`;
+
+      const result = parser.parse(template);
+
+      expect(result.frontmatter.to).toBe('src/{{ componentType }}/{{ name | kebabCase }}.{{ extension }}');
+      expect(result.frontmatter.inject).toBe('{{ shouldInject }}');
+      expect(result.frontmatter.skipIf).toBe('{{ skipCondition }}');
+    });
+
+    it('should handle complex template expressions', () => {
+      const template = `---
+to: >
+  {% if isComponent %}
+    src/components/{{ name | kebabCase }}.tsx
+  {% else %}
+    src/utils/{{ name | kebabCase }}.ts
+  {% endif %}
+inject: "{{ hasExistingFile }}"
+---
+Content`;
+
+      const result = parser.parse(template);
+
+      expect(result.frontmatter.to).toContain('{% if isComponent %}');
+      expect(result.frontmatter.to).toContain('src/components/{{ name | kebabCase }}.tsx');
+    });
+  });
+
+  describe('error handling', () => {
+    it('should handle invalid YAML syntax', () => {
+      const invalidTemplates = [
+        `---
+to: invalid yaml [
+---
+content`,
+        `---
+to: {{ name }}
+invalid: [unclosed
+---
+content`
+      ];
+      
+      invalidTemplates.forEach(template => {
+        expect(() => parser.parse(template)).not.toThrow();
+      });
+    });
+
+    it('should handle malformed frontmatter delimiters', () => {
+      const templates = [
+        `--
+to: file.txt
+---
+content`,
+        `---
+to: file.txt
+--
+content`
+      ];
+      
+      templates.forEach(template => {
+        const result = parser.parse(template);
+        expect(result).toBeDefined();
+      });
+    });
+
+    it('should handle empty or whitespace-only input', () => {
+      const inputs = ['', '   ', '\n\n\n', '\t\t\t'];
+
+      inputs.forEach(input => {
+        const result = parser.parse(input);
+        expect(result.frontmatter).toEqual({});
+        expect(result.content).toBe(input);
+      });
+    });
+  });
+
+  describe('edge cases', () => {
+    it('should handle frontmatter with only delimiters', () => {
+      const template = '---\n---\nContent';
+
+      const result = parser.parse(template);
+
+      expect(result.frontmatter).toEqual({});
+      expect(result.content.trim()).toBe('Content');
+    });
+
+    it('should handle content with --- inside', () => {
+      const template = `---
+to: output.txt
+---
+Content with --- separator inside`;
+      
+      const result = parser.parse(template);
+      
+      expect(result.frontmatter.to).toBe('output.txt');
+      expect(result.content).toContain('--- separator');
+    });
+
+    it('should handle Unicode characters', () => {
+      const template = `---
+to: src/{{ name | kebabCase }}.ts
+description: "Component with émojis 🚀 and unicode ñ"
+---
+Content with émojis 🎉 and unicode characters ñáéíóú`;
+
+      const result = parser.parse(template);
+
+      expect(result.frontmatter.description).toBe('Component with émojis 🚀 and unicode ñ');
+      expect(result.content).toContain('Content with émojis 🎉 and unicode characters ñáéíóú');
+    });
+
+    it('should handle very large frontmatter', () => {
+      const largeFrontmatter = Array.from({ length: 100 }, (_, i) => 
+        `field${i}: "value ${i}"`
+      ).join('\n');
+      
+      const template = `---
+${largeFrontmatter}
+---
+Content`;
+
+      const result = parser.parse(template);
+
+      expect(Object.keys(result.frontmatter)).toHaveLength(100);
+      expect(result.frontmatter.field0).toBe('value 0');
+      expect(result.frontmatter.field99).toBe('value 99');
+    });
+  });
+
+  describe('performance', () => {
+    it('should parse large templates efficiently', () => {
+      const largeContent = 'Line content\n'.repeat(10000);
+      const template = `---
+to: large.ts
+---
+${largeContent}`;
+
+      const startTime = Date.now();
+      const result = parser.parse(template);
+      const endTime = Date.now();
+
+      expect(result.frontmatter.to).toBe('large.ts');
+      expect(result.content.split('\n')).toHaveLength(10001); // +1 for final newline
+      expect(endTime - startTime).toBeLessThan(100); // Should be very fast
+    });
+
+    it('should handle concurrent parsing efficiently', async () => {
+      const templates = Array.from({ length: 50 }, (_, i) => `---
+to: file${i}.ts
+---
+Content ${i}`);
+
+      const startTime = Date.now();
+      const results = templates.map(template => parser.parse(template));
+      const endTime = Date.now();
+
+      expect(results).toHaveLength(50);
+      results.forEach((result, i) => {
+        expect(result.frontmatter.to).toBe(`file${i}.ts`);
+        expect(result.content.trim()).toBe(`Content ${i}`);
+      });
+      expect(endTime - startTime).toBeLessThan(50); // Should be very fast
+    });
+  });
+
+  describe('factory integration', () => {
+    it('should parse factory-generated frontmatter correctly', () => {
+      const frontmatter = TemplateFactory.createFrontmatter({
+        to: 'src/{{ name | kebabCase }}.ts',
+        inject: true,
+        before: 'import statement'
+      });
+
+      const template = `---
+to: ${frontmatter.to}
+inject: ${frontmatter.inject}
+before: ${frontmatter.before}
+---
+Test content`;
+
+      const result = parser.parse(template);
+
+      expect(result.frontmatter.to).toBe(frontmatter.to);
+      expect(result.frontmatter.inject).toBe(frontmatter.inject);
+      expect(result.frontmatter.before).toBe(frontmatter.before);
+    });
+
+    it('should handle all frontmatter configuration options', () => {
+      const frontmatter = TemplateFactory.createFrontmatter({
+        to: 'src/{{ name | kebabCase }}.ts',
+        inject: true,
+        before: 'import statement',
+        after: 'after statement',
+        append: 'append content',
+        prepend: 'prepend content',
+        lineAt: 42,
+        skipIf: 'condition',
+        chmod: 755,
+        sh: 'npm run format'
+      });
+
+      const yamlParts = Object.entries(frontmatter)
+        .filter(([_, value]) => value !== undefined)
+        .map(([key, value]) => `${key}: ${typeof value === 'string' ? `"${value}"` : value}`)
+        .join('\n');
+
+      const template = `---
+${yamlParts}
+---
+Content`;
+
+      const result = parser.parse(template);
+
+      Object.entries(frontmatter).forEach(([key, value]) => {
+        if (value !== undefined) {
+          expect(result.frontmatter[key]).toBe(value);
+        }
+      });
+    });
+  });
+});

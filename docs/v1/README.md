@@ -2,7 +2,7 @@
 
 > **Quick Start**: Install → `npm i -g unjucks` → `unjucks init` → Start generating!
 
-Universal Nunjucks-based code generator with smart templating, dynamic CLI generation, and semantic RDF capabilities.
+Universal Nunjucks-based code generator with smart templating, dynamic CLI generation, and semantic RDF capabilities. Built with JavaScript ES2023 for optimal performance and developer experience.
 
 ## 🚀 3-Step Quick Start
 
@@ -51,8 +51,8 @@ unjucks help <generator> <template>
 
 ### Enterprise Features
 - **Template Discovery**: Auto-finds generators in `_templates/` or custom dirs
-- **Configuration**: `unjucks.config.ts` with c12 loading
-- **TypeScript**: Built-in TypeScript support and types
+- **Configuration**: `unjucks.config.js` with c12 loading (ES modules)
+- **JavaScript ES2023**: Native JavaScript with modern ES features
 - **Testing**: BDD scenarios with Vitest + Cucumber integration
 
 ## 📂 Project Structure
@@ -66,7 +66,7 @@ my-project/
 │   │       └── test.ejs.t
 │   └── service/
 │       └── new/
-├── unjucks.config.ts        # Configuration
+├── unjucks.config.js        # Configuration (ES modules)
 └── src/                     # Generated files go here
 ```
 
@@ -103,7 +103,7 @@ my-project/
 - ✅ **Nunjucks Templates**: Powerful templating with filters and inheritance
 - ✅ **Dynamic CLI**: Auto-generated flags from template variables
 - ✅ **File Injection**: Update existing files, not just create new ones
-- ✅ **TypeScript First**: Full TypeScript support and types
+- ✅ **JavaScript ES2023**: Native JavaScript with modern ES features
 - ✅ **BDD Testing**: Built-in testing framework with Vitest+Cucumber
 - ✅ **RDF Metadata**: Semantic annotations for advanced template management
 
@@ -133,7 +133,7 @@ my-project/
 
 ### 🔧 Reference (Look Up When Needed)
 - [**CLI Reference**](api/cli-reference.md) - All commands and flags
-- [**Programmatic API**](api/programmatic-api.md) - TypeScript API
+- [**Programmatic API**](api/programmatic-api.md) - JavaScript API
 - [**Template Syntax**](reference/template-syntax.md) - Nunjucks + frontmatter *[Coming Soon]*
 - [**Configuration**](reference/configuration.md) - Config file options *[Coming Soon]*
 - [**Troubleshooting**](reference/troubleshooting.md) - Common issues and fixes
@@ -184,7 +184,7 @@ unjucks generate component new --name=Modal
 
 ### API Usage
 
-```typescript
+```javascript
 import { Unjucks } from 'unjucks';
 
 const generator = new Unjucks({
@@ -218,4 +218,4 @@ console.log(generators);
 - 💬 **Discussions**: [GitHub Discussions](https://github.com/unjs/unjucks/discussions)
 - 📖 **Full Docs**: [Complete Index](index.md)
 
-*Unjucks v1.0 - Built with TypeScript, tested with Vitest+Cucumber, powered by Nunjucks*
+*Unjucks v1.0 - Built with JavaScript ES2023, tested with Vitest+Cucumber, powered by Nunjucks*

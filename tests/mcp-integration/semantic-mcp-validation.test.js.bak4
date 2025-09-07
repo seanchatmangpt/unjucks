@@ -1,0 +1,313 @@
+/**
+ * Semantic MCP Tool Validation Tests
+ * Tests RDF/Turtle integration with MCP tools for semantic operations
+ */
+
+import { describe, it, expect, beforeAll, afterAll, beforeEach } from 'vitest'
+import { spawn, type ChildProcess } from 'node:child_process'
+import { writeFile, mkdir, rm } from 'node:fs/promises'
+import { join } from 'node:path'
+// import type { McpRequest, McpResponse, McpServerProcess } from '../types/mcp-protocol.js'
+
+// Mock semantic MCP server interface for testing
+class SemanticMcpServer { private process }>()
+
+  async start() { return new Promise((resolve, reject) => {
+      this.process = spawn('npx', ['claude-flow@alpha', 'mcp', 'start'], {
+        stdio }
+      })
+
+      this.process.stderr?.on('data', (data) => {
+        const error = data.toString()
+        if (error.includes('error')) {
+          reject(new Error(`Semantic MCP server error))
+        }
+      })
+
+      this.process.on('error', (error) => {
+        reject(new Error(`Failed to spawn semantic MCP server))
+      })
+
+      setTimeout(() => {
+        reject(new Error('Semantic MCP server startup timeout'))
+      }, 15000)
+    })
+  }
+
+  private setupResponseHandler() {
+    if (!this.process?.stdout) return
+
+    let responseBuffer = ''
+    this.process.stdout.on('data', (data) => {
+      responseBuffer += data.toString()
+      
+      const lines = responseBuffer.split('\n')
+      responseBuffer = lines.pop() || ''
+      
+      for (const line of lines) {
+        if (line.trim()) {
+          try {
+            const response = JSON.parse(line)
+            if (response.id && this.pendingRequests.has(response.id)) {
+              const { resolve, reject } = this.pendingRequests.get(response.id)!
+              this.pendingRequests.delete(response.id)
+              
+              if (response.error) {
+                reject(new Error(response.error.message))
+              } else {
+                resolve(response)
+              }
+            }
+          } catch (parseError) { console.warn('Failed to parse semantic MCP response }
+        }
+      }
+    })
+  }
+
+  async send(request) {
+    return new Promise((resolve, reject) => {
+      if (!this.process?.stdin) {
+        reject(new Error('Semantic MCP server not available'))
+        return
+      }
+
+      const id = ++this.messageId
+      const message = { ...request, id }
+      
+      this.pendingRequests.set(id, { resolve, reject })
+      
+      const jsonMessage = JSON.stringify(message) + '\n'
+      this.process.stdin.write(jsonMessage)
+
+      setTimeout(() => {
+        if (this.pendingRequests.has(id)) {
+          this.pendingRequests.delete(id)
+          reject(new Error(`Semantic MCP request timeout for message ${id}`))
+        }
+      }, 10000)
+    })
+  }
+
+  async close() {
+    if (this.process) {
+      return new Promise((resolve) => {
+        this.process!.on('close', () => resolve())
+        this.process!.kill('SIGTERM')
+        
+        setTimeout(() => {
+          if (this.process && !this.process.killed) {
+            this.process.kill('SIGKILL')
+          }
+          resolve()
+        }, 2000)
+      })
+    }
+  }
+}
+
+describe('Semantic MCP Tool Validation', () => {
+  let semanticServer
+  let testDataDir => { testDataDir = join(process.cwd(), 'tests', 'fixtures', 'semantic-test-data')
+    await mkdir(testDataDir, { recursive })
+
+    // Create test RDF/Turtle files
+    await createSemanticTestData(testDataDir)
+
+    semanticServer = new SemanticMcpServer()
+    await semanticServer.start()
+  })
+
+  afterAll(async () => {
+    if (semanticServer) {
+      await semanticServer.close()
+    }
+    await rm(testDataDir, { recursive: true, force })
+  })
+
+  describe('RDF Data Loading and Validation', () => { it('should load RDF data via MCP semantic tools', async () => {
+      const response = await semanticServer.send({
+        jsonrpc }
+        }
+      })
+
+      expect(response.error).toBeUndefined()
+      expect(response.result).toBeDefined()
+      
+      const result = JSON.parse(response.result.content[0].text)
+      expect(result.success).toBe(true)
+      expect(result.triples).toBeGreaterThan(0)
+      expect(result.validation).toBeDefined()
+      expect(result.validation.valid).toBe(true)
+    })
+
+    it('should validate RDF schema compliance', async () => { const response = await semanticServer.send({
+        jsonrpc }
+        }
+      })
+
+      expect(response.error).toBeUndefined()
+      expect(response.result).toBeDefined()
+      
+      const result = JSON.parse(response.result.content[0].text)
+      expect(result.valid).toBe(true)
+      expect(result.violations).toHaveLength(0)
+    })
+
+    it('should execute SPARQL queries via MCP', async () => { const sparqlQuery = `
+        PREFIX foaf }
+      `
+
+      const response = await semanticServer.send({ jsonrpc }
+        }
+      })
+
+      expect(response.error).toBeUndefined()
+      expect(response.result).toBeDefined()
+      
+      const result = JSON.parse(response.result.content[0].text)
+      expect(result.results.bindings).toBeDefined()
+      expect(Array.isArray(result.results.bindings)).toBe(true)
+    })
+
+    it('should transform RDF to template variables', async () => { const response = await semanticServer.send({
+        jsonrpc }
+          }
+        }
+      })
+
+      expect(response.error).toBeUndefined()
+      expect(response.result).toBeDefined()
+      
+      const result = JSON.parse(response.result.content[0].text)
+      expect(result.variables).toBeDefined()
+      expect(result.variables.personName).toBeDefined()
+      expect(result.variables.email).toBeDefined()
+    })
+  })
+
+  describe('Semantic Template Generation', () => { it('should generate templates from RDF ontologies', async () => {
+      const response = await semanticServer.send({
+        jsonrpc }
+        }
+      })
+
+      expect(response.error).toBeUndefined()
+      expect(response.result).toBeDefined()
+      
+      const result = JSON.parse(response.result.content[0].text)
+      expect(result.templates).toBeDefined()
+      expect(Array.isArray(result.templates)).toBe(true)
+      expect(result.templates.length).toBeGreaterThan(0)
+    })
+
+    it('should validate semantic template consistency', async () => { const response = await semanticServer.send({
+        jsonrpc }
+        }
+      })
+
+      expect(response.error).toBeUndefined()
+      expect(response.result).toBeDefined()
+      
+      const result = JSON.parse(response.result.content[0].text)
+      expect(result.consistent).toBe(true)
+      expect(result.inconsistencies).toHaveLength(0)
+    })
+  })
+
+  describe('Semantic Workflow Integration', () => { it('should orchestrate semantic-aware swarms', async () => {
+      const response = await semanticServer.send({
+        jsonrpc }
+        }
+      })
+
+      expect(response.error).toBeUndefined()
+      expect(response.result).toBeDefined()
+      
+      const result = JSON.parse(response.result.content[0].text)
+      expect(result.swarm).toBeDefined()
+      expect(result.semanticContext).toBeDefined()
+      expect(result.reasoning.enabled).toBe(true)
+    })
+
+    it('should perform semantic reasoning in workflows', async () => { const response = await semanticServer.send({
+        jsonrpc }
+        }
+      })
+
+      expect(response.error).toBeUndefined()
+      expect(response.result).toBeDefined()
+      
+      const result = JSON.parse(response.result.content[0].text)
+      expect(result.inferences).toBeDefined()
+      expect(result.newTriples).toBeGreaterThan(0)
+      expect(result.consistency).toBe(true)
+    })
+  })
+
+  describe('Error Handling and Edge Cases', () => { it('should handle malformed RDF gracefully', async () => {
+      const response = await semanticServer.send({
+        jsonrpc }
+        }
+      })
+
+      expect(response.error).toBeUndefined()
+      expect(response.result).toBeDefined()
+      
+      const result = JSON.parse(response.result.content[0].text)
+      expect(result.success).toBe(false)
+      expect(result.errors).toBeDefined()
+      expect(Array.isArray(result.errors)).toBe(true)
+    })
+
+    it('should validate large RDF datasets efficiently', async () => { const startTime = Date.now()
+      
+      const response = await semanticServer.send({
+        jsonrpc }
+        }
+      })
+
+      const duration = Date.now() - startTime
+      
+      expect(response.error).toBeUndefined()
+      expect(response.result).toBeDefined()
+      expect(duration).toBeLessThan(30000) // Should complete in under 30 seconds
+      
+      const result = JSON.parse(response.result.content[0].text)
+      expect(result.processed).toBeGreaterThan(100000) // Large dataset
+      expect(result.streaming).toBe(true)
+    })
+
+    it('should handle concurrent semantic operations', async () => { const operations = [
+        semanticServer.send({
+          jsonrpc } LIMIT 10'
+            }
+          }
+        }),
+        semanticServer.send({ jsonrpc }
+          }
+        }),
+        semanticServer.send({ jsonrpc }
+            }
+          }
+        })
+      ]
+
+      const responses = await Promise.all(operations)
+      
+      for (const response of responses) {
+        expect(response.error).toBeUndefined()
+        expect(response.result).toBeDefined()
+      }
+    })
+  })
+})
+
+/**
+ * Helper function to create semantic test data
+ */
+async function createSemanticTestData(dir) { // Person.ttl - Basic FOAF data
+  const personTtl = `
+@prefix foaf } ex:hasValue ${i} .`)
+  }
+  await writeFile(join(dir, 'large-dataset.ttl'), largeDatasetParts.join('\n'))
+}

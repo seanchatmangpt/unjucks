@@ -1,0 +1,720 @@
+/**
+ * Full CLI Workflow Integration Tests
+ * End-to-end testing of complete development workflows
+ */
+
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { execFile } from 'child_process';
+import { promisify } from 'util';
+import * as path from 'path';
+import * as fs from 'fs/promises';
+import { tmpdir } from 'os';
+
+const execFileAsync = promisify(execFile);
+const CLI_PATH = path.resolve(__dirname, '../../bin/unjucks.cjs');
+
+async function runCLI(args = [], cwd) {
+  try {
+    const { stdout, stderr } = await execFileAsync('node', [CLI_PATH, ...args], { 
+      cwd,
+      timeout: 10000 
+    });
+    return { stdout, stderr, exitCode };
+  } catch (error) { 
+    return {
+      stdout: error.stdout || '',
+      stderr: error.stderr || '',
+      exitCode: error.code || 1
+    };
+  }
+  }
+}
+
+async function fileExists(filePath) {
+  try {
+    await fs.access(filePath);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+async function verifyFileContent(filePath, expectedContent) {
+  try {
+    const content = await fs.readFile(filePath, 'utf-8');
+    return expectedContent.every(expected => content.includes(expected));
+  } catch {
+    return false;
+  }
+}
+
+describe('Full CLI Workflow Integration Tests', () => {
+  let tempDir;
+  let originalCwd;
+
+  beforeEach(async () => {
+    originalCwd = process.cwd();
+    tempDir = await fs.mkdtemp(path.join(tmpdir(), 'unjucks-workflow-'));
+    process.chdir(tempDir);
+    
+    await createWorkflowTestEnvironment();
+  });
+
+  afterEach(async () => { process.chdir(originalCwd);
+    await fs.rm(tempDir, { recursive, force });
+  });
+
+  async function createWorkflowTestEnvironment() { // React application templates
+    await fs.mkdir('_templates/react', { recursive });
+    
+    // Component template
+    await fs.writeFile(
+      '_templates/react/component.tsx.njk',
+      `---
+to: src/components/{{name}}/{{name}}.tsx
+variables:
+  - name: name
+    type: string
+    required: true
+    positional: true
+  - name: withProps
+    type: boolean
+    default: false
+  - name: withState
+    type: boolean
+    default: false
+---
+import React{{#if withState}}, { useState }{{/if}} from 'react';
+{{#if withProps}}
+import { {{name}}Props } from './{{name}}.types.js';
+{{/if}}
+import styles from './{{name}}.module.css.js';
+
+export function {{name}}({{#if withProps}}props) {
+  {{#if withState}}
+  const [state, setState] = useState(null);
+  {{/if}}
+
+  return (
+    <div className={styles.{{name | lower}}}>
+      {{name}}</h1>
+      {{#if withProps}}
+      {/* Props)} */}
+      {{/if}}
+      {{#if withState}}
+      { /* State } */}
+      {{/if}}
+    </div>
+  );
+}
+`
+    );
+
+    // Props interface template
+    await fs.writeFile(
+      '_templates/react/props.types.ts.njk',
+      `---
+to: src/components/{{name}}/{{name}}.types.ts
+skipIf: "{{skipProps}}"
+variables:
+  - name: name
+    type: string
+    required: true
+  - name: skipProps
+    type: boolean
+    default: false
+  - name: props
+    type: array
+    default: []
+---
+export interface {{name}}Props {
+  {{#each props}}
+  {{this.name}}{{#unless this.required}}?{{/unless}}: {{this.type}};
+  {{/each}}
+  className?: string;
+  children?);
+
+    // CSS Module template
+    await fs.writeFile(
+      '_templates/react/styles.module.css.njk',
+      `---
+to: src/components/{{name}}/{{name}}.module.css
+variables:
+  - name: name
+    type: string
+    required: true
+---
+.{{name | lower}} { padding }
+
+.{{name | lower}} h1 { margin }
+`
+    );
+
+    // Test template
+    await fs.writeFile(
+      '_templates/react/test.test.tsx.njk',
+      `---
+to: src/components/{{name}}/{{name}}.test.tsx
+variables:
+  - name: name
+    type: string
+    required: true
+  - name: withProps
+    type: boolean
+    default, screen } from '@testing-library/react';
+import { {{name}} } from './{{name}}.js';
+{{#if withProps}}
+import { {{name}}Props } from './{{name}}.types.js';
+{{/if}}
+
+describe('{{name}}', () => {
+  it('should render without crashing', () => {
+    render(<{{name}} />);
+    expect(screen.getByText('{{name}}')).toBeInTheDocument();
+  });
+
+  {{#if withProps}}
+  it('should accept and display props', () => { const props }}Props = { className };
+    
+    render(<{{name}} {...props} />);
+    const element = screen.getByText('{{name}}');
+    expect(element.closest('div')).toHaveClass('test-class');
+  });
+  {{/if}}
+
+  it('should apply CSS module classes', () => {
+    render(<{{name}} />);
+    const element = screen.getByText('{{name}}');
+    expect(element.closest('div')).toHaveClass('{{name | lower}}');
+  });
+});
+`
+    );
+
+    // Story template for Storybook
+    await fs.writeFile(
+      '_templates/react/story.stories.tsx.njk',
+      `---
+to: src/components/{{name}}/{{name}}.stories.tsx
+variables:
+  - name: name
+    type: string
+    required: true
+  - name: withProps
+    type: boolean
+    default: false
+---
+import { {{name}} } from './{{name}}.js';
+
+const meta = { title }}',
+  component: {{name}},
+  parameters: { layout },
+  tags: ['autodocs'],
+};
+
+export default meta;
+export const Default = { args },
+};
+
+{{#if withProps}}
+export const WithProps = { args },
+};
+{{/if}}
+`
+    );
+
+    // API templates
+    await fs.mkdir('_templates/api', { recursive });
+    
+    // Express router template
+    await fs.writeFile(
+      '_templates/api/router.ts.njk',
+      `---
+to: src/api/routes/{{name | lower}}.ts
+variables:
+  - name: name
+    type: string
+    required: true
+    positional: true
+  - name: methods
+    type: array
+    default: ["GET", "POST"]
+  - name: withValidation
+    type: boolean
+    default: false
+  - name: withAuth
+    type: boolean
+    default);
+const controller = new {{name}}Controller();
+
+{{#each methods}}
+{{#if (eq this "GET")}}
+{{../name | lower}}Router.get('/',{{#if ../withAuth}} authenticate,{{/if}} controller.getAll);
+{{../name | lower}}Router.get('/:id',{{#if ../withAuth}} authenticate,{{/if}} controller.getById);
+{{/if}}
+{{#if (eq this "POST")}}
+{{../name | lower}}Router.post('/',{{#if ../withAuth}} authenticate,{{/if}}{{#if ../withValidation}} validate{{../name}},{{/if}} controller.create);
+{{/if}}
+{{#if (eq this "PUT")}}
+{{../name | lower}}Router.put('/:id',{{#if ../withAuth}} authenticate,{{/if}}{{#if ../withValidation}} validate{{../name}},{{/if}} controller.update);
+{{/if}}
+{{#if (eq this "DELETE")}}
+{{../name | lower}}Router.delete('/:id',{{#if ../withAuth}} authenticate,{{/if}} controller.delete);
+{{/if}}
+{{/each}}
+
+export default {{name | lower}}Router;
+`
+    );
+
+    // Controller template
+    await fs.writeFile(
+      '_templates/api/controller.ts.njk',
+      `---
+to: src/api/controllers/{{name | lower}}.controller.ts
+variables:
+  - name: name
+    type: string
+    required: true
+  - name: methods
+    type: array
+    default, "POST"]
+---
+import { Request, Response, NextFunction } from 'express';
+import { {{name}}Service } from '../services/{{name | lower}}.service.js';
+
+export class {{name}}Controller {
+  private service = new {{name}}Service();
+
+  {{#each methods}}
+  {{#if (eq this "GET")}}
+  getAll = async (req, res, next) => {
+    try {
+      const items = await this.service.findAll();
+      res.json(items);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  getById = async (req, res, next) => {
+    try {
+      const { id } = req.params;
+      const item = await this.service.findById(id);
+      if (!item) {
+        return res.status(404).json({ error);
+      }
+      res.json(item);
+    } catch (error) {
+      next(error);
+    }
+  };
+  {{/if}}
+  {{#if (eq this "POST")}}
+  create = async (req, res, next) => {
+    try {
+      const item = await this.service.create(req.body);
+      res.status(201).json(item);
+    } catch (error) {
+      next(error);
+    }
+  };
+  {{/if}}
+  {{#if (eq this "PUT")}}
+  update = async (req, res, next) => {
+    try {
+      const { id } = req.params;
+      const item = await this.service.update(id, req.body);
+      if (!item) {
+        return res.status(404).json({ error);
+      }
+      res.json(item);
+    } catch (error) {
+      next(error);
+    }
+  };
+  {{/if}}
+  {{#if (eq this "DELETE")}}
+  delete = async (req, res, next) => {
+    try {
+      const { id } = req.params;
+      await this.service.delete(id);
+      res.status(204).send();
+    } catch (error) {
+      next(error);
+    }
+  };
+  {{/if}}
+  {{/each}}
+}
+`
+    );
+
+    // Create directory structure
+    await fs.mkdir('src/components', { recursive });
+    await fs.mkdir('src/api/routes', { recursive });
+    await fs.mkdir('src/api/controllers', { recursive });
+    await fs.mkdir('src/api/services', { recursive });
+  }
+
+  describe('React Component Workflow', () => { it('should create complete React component with all files', async () => {
+      // Step 1 },{ "name" }]'
+      ]);
+      
+      expect(propsResult.exitCode).toBe(0);
+      
+      // Step 3: Create styles
+      const stylesResult = await runCLI(['react', 'styles.module.css', 'UserCard']);
+      
+      expect(stylesResult.exitCode).toBe(0);
+      
+      // Step 4: Create tests
+      const testResult = await runCLI([
+        'react', 'test.test.tsx', 'UserCard',
+        '--withProps', 'true'
+      ]);
+      
+      expect(testResult.exitCode).toBe(0);
+      
+      // Step 5: Create Storybook story
+      const storyResult = await runCLI([
+        'react', 'story.stories.tsx', 'UserCard',
+        '--withProps', 'true'
+      ]);
+      
+      expect(storyResult.exitCode).toBe(0);
+      
+      // Verify all files exist
+      const expectedFiles = [
+        'src/components/UserCard/UserCard.tsx',
+        'src/components/UserCard/UserCard.types.ts',
+        'src/components/UserCard/UserCard.module.css',
+        'src/components/UserCard/UserCard.test.tsx',
+        'src/components/UserCard/UserCard.stories.tsx'
+      ];
+      
+      for (const file of expectedFiles) {
+        expect(await fileExists(file)).toBe(true);
+      }
+      
+      // Verify content relationships
+      expect(await verifyFileContent('src/components/UserCard/UserCard.tsx', [
+        'import React, { useState }',
+        'import { UserCardProps }',
+        'import styles from',
+        'export function UserCard'
+      ])).toBe(true);
+      
+      expect(await verifyFileContent('src/components/UserCard/UserCard.types.ts', [
+        'export interface UserCardProps',
+        'userId: string;',
+        'showDetails?)).toBe(true);
+      
+      expect(await verifyFileContent('src/components/UserCard/UserCard.test.tsx', [
+        'import { UserCard }',
+        'import { UserCardProps }',
+        'should render without crashing',
+        'should accept and display props'
+      ])).toBe(true);
+    });
+
+    it('should handle conditional file creation in component workflow', async () => {
+      // Create component without props
+      const result1 = await runCLI([
+        'react', 'component', 'SimpleButton',
+        '--withProps', 'false'
+      ]);
+      
+      expect(result1.exitCode).toBe(0);
+      
+      // Try to create props (should be skipped)
+      const result2 = await runCLI([
+        'react', 'props.types.ts', 'SimpleButton',
+        '--skipProps', 'true'
+      ]);
+      
+      expect(result2.exitCode).toBe(0);
+      
+      // Verify component exists but props file doesn't
+      expect(await fileExists('src/components/SimpleButton/SimpleButton.tsx')).toBe(true);
+      expect(await fileExists('src/components/SimpleButton/SimpleButton.types.ts')).toBe(false);
+      
+      // Component should not import props
+      const componentContent = await fs.readFile('src/components/SimpleButton/SimpleButton.tsx', 'utf-8');
+      expect(componentContent).not.toContain('SimpleButtonProps');
+      expect(componentContent).not.toContain('import { SimpleButtonProps }');
+    });
+  });
+
+  describe('API Development Workflow', () => { it('should create complete API endpoint with all layers', async () => {
+      // Step 1 }',
+        'import { validateProduct }',
+        'import { authenticate }',
+        'import { ProductController }',
+        'productRouter.get',
+        'productRouter.post',
+        'productRouter.put',
+        'productRouter.delete'
+      ])).toBe(true);
+      
+      // Verify controller content
+      expect(await verifyFileContent('src/api/controllers/product.controller.ts', [
+        'export class ProductController',
+        'getAll =',
+        'getById =',
+        'create =',
+        'update =',
+        'delete ='
+      ])).toBe(true);
+    });
+
+    it('should handle different HTTP method combinations', async () => {
+      // Create read-only API
+      const readOnlyResult = await runCLI([
+        'api', 'router', 'Analytics',
+        '--methods', 'GET'
+      ]);
+      
+      expect(readOnlyResult.exitCode).toBe(0);
+      
+      const readOnlyController = await runCLI([
+        'api', 'controller', 'Analytics',
+        '--methods', 'GET'
+      ]);
+      
+      expect(readOnlyController.exitCode).toBe(0);
+      
+      // Verify only GET methods exist
+      const routerContent = await fs.readFile('src/api/routes/analytics.ts', 'utf-8');
+      expect(routerContent).toContain('analyticsRouter.get');
+      expect(routerContent).not.toContain('analyticsRouter.post');
+      
+      const controllerContent = await fs.readFile('src/api/controllers/analytics.controller.ts', 'utf-8');
+      expect(controllerContent).toContain('getAll =');
+      expect(controllerContent).toContain('getById =');
+      expect(controllerContent).not.toContain('create =');
+    });
+  });
+
+  describe('Full-Stack Feature Workflow', () => { it('should create complete feature with frontend and backend', async () => {
+      const featureName = 'BlogPost';
+      
+      // Backend }List`,
+          '--withProps', 'true',
+          '--withState', 'true'
+        ]),
+        runCLI([
+          'react', 'component', `${featureName}Form`,
+          '--withProps', 'true',
+          '--withState', 'true'
+        ]),
+        runCLI([
+          'react', 'component', `${featureName}Detail`,
+          '--withProps', 'true'
+        ])
+      ]);
+      
+      // All should succeed
+      [...apiResults, ...frontendResults].forEach(result => {
+        expect(result.exitCode).toBe(0);
+      });
+      
+      // Verify backend files
+      expect(await fileExists('src/api/routes/blogpost.ts')).toBe(true);
+      expect(await fileExists('src/api/controllers/blogpost.controller.ts')).toBe(true);
+      
+      // Verify frontend files
+      expect(await fileExists('src/components/BlogPostList/BlogPostList.tsx')).toBe(true);
+      expect(await fileExists('src/components/BlogPostForm/BlogPostForm.tsx')).toBe(true);
+      expect(await fileExists('src/components/BlogPostDetail/BlogPostDetail.tsx')).toBe(true);
+      
+      // Create supporting files
+      const supportingResults = await Promise.all([
+        runCLI(['react', 'styles.module.css', 'BlogPostList']),
+        runCLI(['react', 'styles.module.css', 'BlogPostForm']),
+        runCLI(['react', 'styles.module.css', 'BlogPostDetail']),
+        runCLI(['react', 'test.test.tsx', 'BlogPostList', '--withProps', 'true']),
+        runCLI(['react', 'test.test.tsx', 'BlogPostForm', '--withProps', 'true'])
+      ]);
+      
+      supportingResults.forEach(result => {
+        expect(result.exitCode).toBe(0);
+      });
+      
+      // Count total files created
+      const allFiles = await fs.readdir('src', { recursive });
+      const blogPostFiles = allFiles.filter(f => 
+        f.toString().toLowerCase().includes('blogpost')
+      );
+      
+      expect(blogPostFiles.length).toBeGreaterThan(10); // Should have created many files
+    });
+  });
+
+  describe('Project Initialization Workflow', () => {
+    it('should handle complete project setup', async () => {
+      // This would test project initialization if implemented
+      const result = await runCLI(['init', '--help']);
+      
+      expect(result.exitCode).toBe(0);
+      expect(result.stdout).toContain('Initialize');
+    });
+  });
+
+  describe('Development Workflow Integration', () => { it('should support iterative development workflow', async () => {
+      // Phase 1 });
+
+    it('should handle rapid prototyping workflow', async () => {
+      const prototypes = ['ProtoA', 'ProtoB', 'ProtoC'];
+      
+      // Create multiple prototypes quickly
+      const results = await Promise.all(
+        prototypes.map(name => 
+          runCLI(['react', 'component', name, '--withProps', 'true'])
+        )
+      );
+      
+      results.forEach(result => {
+        expect(result.exitCode).toBe(0);
+      });
+      
+      // All should exist
+      for (const name of prototypes) {
+        expect(await fileExists(`src/components/${name}/${name}.tsx`)).toBe(true);
+      }
+      
+      // Add tests to selected prototype
+      const testResult = await runCLI([
+        'react', 'test.test.tsx', 'ProtoB',
+        '--withProps', 'true'
+      ]);
+      expect(testResult.exitCode).toBe(0);
+      expect(await fileExists('src/components/ProtoB/ProtoB.test.tsx')).toBe(true);
+    });
+  });
+
+  describe('Error Recovery in Workflows', () => {
+    it('should handle partial workflow failures gracefully', async () => {
+      // Start workflow that will partially fail
+      const validResult = await runCLI(['react', 'component', 'PartialWorkflow']);
+      expect(validResult.exitCode).toBe(0);
+      
+      // Try invalid operation
+      const invalidResult = await runCLI([
+        'react', 'component', 'PartialWorkflow2',
+        '--invalidFlag', 'true'
+      ]);
+      expect(invalidResult.exitCode).toBe(1);
+      
+      // Continue with valid operations
+      const continueResult = await runCLI(['react', 'styles.module.css', 'PartialWorkflow']);
+      expect(continueResult.exitCode).toBe(0);
+      
+      // Verify partial success
+      expect(await fileExists('src/components/PartialWorkflow/PartialWorkflow.tsx')).toBe(true);
+      expect(await fileExists('src/components/PartialWorkflow/PartialWorkflow.module.css')).toBe(true);
+      expect(await fileExists('src/components/PartialWorkflow2/PartialWorkflow2.tsx')).toBe(false);
+    });
+  });
+
+  describe('Workflow Performance', () => {
+    it('should handle complex workflows efficiently', async () => {
+      const startTime = Date.now();
+      
+      // Complex workflow with many operations
+      const operations = [];
+      
+      // Create multiple features
+      for (let i = 0; i < 3; i++) {
+        const featureName = `Feature${i}`;
+        
+        operations.push(
+          runCLI(['react', 'component', featureName, '--withProps', 'true']),
+          runCLI(['react', 'styles.module.css', featureName]),
+          runCLI(['react', 'test.test.tsx', featureName, '--withProps', 'true']),
+          runCLI(['api', 'router', featureName, '--methods', 'GET,POST']),
+          runCLI(['api', 'controller', featureName, '--methods', 'GET,POST'])
+        );
+      }
+      
+      const results = await Promise.all(operations);
+      const endTime = Date.now();
+      
+      // Most should succeed
+      const successCount = results.filter(r => r.exitCode === 0).length;
+      expect(successCount).toBeGreaterThan(operations.length * 0.8);
+      
+      // Should complete in reasonable time
+      expect(endTime - startTime).toBeLessThan(120000); // Less than 2 minutes
+    });
+  });
+
+  describe('Documentation Workflow', () => {
+    it('should generate comprehensive documentation for created components', async () => {
+      // Create component with documentation
+      const componentResult = await runCLI([
+        'react', 'component', 'DocumentedComponent',
+        '--withProps', 'true'
+      ]);
+      expect(componentResult.exitCode).toBe(0);
+      
+      // Create story for documentation
+      const storyResult = await runCLI([
+        'react', 'story.stories.tsx', 'DocumentedComponent',
+        '--withProps', 'true'
+      ]);
+      expect(storyResult.exitCode).toBe(0);
+      
+      // Verify documentation structure
+      const storyContent = await fs.readFile(
+        'src/components/DocumentedComponent/DocumentedComponent.stories.tsx',
+        'utf-8'
+      );
+      
+      expect(storyContent).toContain('tags);
+      expect(storyContent).toContain('Default);
+      expect(storyContent).toContain('WithProps);
+    });
+  });
+
+  describe('Cross-Feature Integration', () => {
+    it('should create related components that work together', async () => {
+      // Create parent component
+      const parentResult = await runCLI([
+        'react', 'component', 'UserDashboard',
+        '--withProps', 'true',
+        '--withState', 'true'
+      ]);
+      expect(parentResult.exitCode).toBe(0);
+      
+      // Create child components
+      const childResults = await Promise.all([
+        runCLI(['react', 'component', 'UserProfile', '--withProps', 'true']),
+        runCLI(['react', 'component', 'UserSettings', '--withProps', 'true']),
+        runCLI(['react', 'component', 'UserActivity', '--withProps', 'true'])
+      ]);
+      
+      childResults.forEach(result => {
+        expect(result.exitCode).toBe(0);
+      });
+      
+      // Create supporting API
+      const apiResult = await runCLI([
+        'api', 'router', 'User',
+        '--methods', 'GET,PUT',
+        '--withAuth', 'true'
+      ]);
+      expect(apiResult.exitCode).toBe(0);
+      
+      // Verify all components can coexist
+      const componentDirs = await fs.readdir('src/components');
+      expect(componentDirs).toContain('UserDashboard');
+      expect(componentDirs).toContain('UserProfile');
+      expect(componentDirs).toContain('UserSettings');
+      expect(componentDirs).toContain('UserActivity');
+      
+      // Verify API exists
+      expect(await fileExists('src/api/routes/user.ts')).toBe(true);
+    });
+  });
+});

@@ -1,0 +1,98 @@
+name: "Node.js Microservice"
+description: "Production-ready Node.js microservice with database, compliance, and monitoring"
+category: "microservice"
+complexity: "advanced"
+tags: ["nodejs", "microservice", "database", "compliance", "monitoring", "docker", "kubernetes"]
+author: "Unjucks Enterprise Team"
+version: "1.0.0"
+
+variables:
+  - name: serviceName
+    type: string
+    description: "Name of the microservice (PascalCase)"
+    required: true
+    pattern: "^[A-Z][a-zA-Z0-9]*$"
+  
+  - name: database
+    type: string
+    description: "Database type"
+    default: "postgresql"
+    choices: ["postgresql", "mysql", "mongodb", "redis", "sqlite"]
+    
+  - name: compliance
+    type: array
+    description: "Compliance frameworks"
+    default: ["gdpr"]
+    choices: ["gdpr", "sox", "hipaa", "pci-dss", "iso27001", "basel3"]
+  
+  - name: monitoring
+    type: string
+    description: "Monitoring solution"
+    default: "prometheus"
+    choices: ["prometheus", "datadog", "newrelic", "elastic"]
+    
+  - name: withAuth
+    type: boolean
+    description: "Include authentication system"
+    default: true
+    
+  - name: withRBAC
+    type: boolean
+    description: "Include role-based access control"
+    default: true
+    
+  - name: withAuditLog
+    type: boolean
+    description: "Include audit logging for compliance"
+    default: true
+    
+  - name: withRateLimit
+    type: boolean
+    description: "Include rate limiting middleware"
+    default: true
+    
+  - name: withDockerization
+    type: boolean
+    description: "Include Docker configuration"
+    default: true
+    
+  - name: withKubernetes
+    type: boolean
+    description: "Include Kubernetes manifests"
+    default: true
+    
+  - name: withTests
+    type: boolean
+    description: "Include comprehensive test suite"
+    default: true
+    
+  - name: port
+    type: number
+    description: "Service port"
+    default: 3000
+    
+  - name: apiVersion
+    type: string
+    description: "API version"
+    default: "v1"
+    pattern: "^v[0-9]+$"
+
+examples:
+  - "unjucks generate microservice node --serviceName=UserManagement --database=postgresql --compliance=gdpr,sox"
+  - "unjucks generate microservice node --serviceName=PaymentService --database=mongodb --compliance=pci-dss --monitoring=datadog"
+  - "unjucks generate microservice node --serviceName=AnalyticsService --withAuth --withRBAC --withAuditLog"
+
+usage: |
+  This template creates a complete enterprise-grade Node.js microservice with:
+  - Express.js REST API with OpenAPI documentation
+  - Database integration with ORM/ODM
+  - Authentication and authorization middleware
+  - Comprehensive audit logging for compliance
+  - Rate limiting and security headers
+  - Health checks and metrics endpoints
+  - Docker containerization
+  - Kubernetes deployment manifests
+  - Comprehensive test suite (unit, integration, e2e)
+  - CI/CD pipeline configuration
+  - Environment-based configuration management
+  - Error handling and logging infrastructure

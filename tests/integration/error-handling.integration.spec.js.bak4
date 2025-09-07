@@ -1,0 +1,354 @@
+import { describe, it, expect, beforeEach } from 'vitest'
+import { promises } from 'fs'
+import path from 'path'
+import { execSync } from 'child_process'
+
+/**
+ * ERROR HANDLING INTEGRATION TESTING
+ * Validates comprehensive error scenarios and recovery behaviors
+ * Tests actual error messages and system responses
+ */
+
+const TEST_WORKSPACE = path.join(process.cwd(), 'test-error-workspace')
+const CLI_PATH = path.join(process.cwd(), 'dist/cli.mjs')
+
+describe('Error Handling Integration Validation', () => { beforeEach(async () => {
+    await fs.rm(TEST_WORKSPACE, { recursive: true, force })
+    await fs.mkdir(TEST_WORKSPACE, { recursive })
+    execSync('npm run build', { cwd), stdio })
+  })
+
+  describe('Template and Frontmatter Error Handling', () => { it('should handle invalid frontmatter gracefully', async () => {
+      const templateDir = path.join(TEST_WORKSPACE, '_templates', 'error', 'invalid-frontmatter')
+      await fs.mkdir(templateDir, { recursive })
+
+      // Invalid YAML frontmatter
+      const invalidTemplate = `---
+to: "test.ts"
+invalid_yaml: [unclosed array
+skipIf: missing quotes
+---
+Content here
+`
+      await fs.writeFile(path.join(templateDir, 'invalid.ts'), invalidTemplate)
+
+      let errorCaught = false
+      let errorMessage = ''
+
+      try {
+        execSync(`node "${CLI_PATH}" generate error invalid-frontmatter --name="test"`, { cwd,
+          stdio } catch (error) {
+        errorCaught = true
+        errorMessage = error.message
+      }
+
+      expect(errorCaught, 'Should catch invalid frontmatter error').toBe(true)
+      expect(errorMessage.toLowerCase()).toMatch(/yaml|frontmatter|parse/i)
+    })
+
+    it('should handle missing template variables gracefully', async () => { const templateDir = path.join(TEST_WORKSPACE, '_templates', 'error', 'missing-vars')
+      await fs.mkdir(templateDir, { recursive })
+
+      const templateWithMissingVars = `---
+to: "{{ missingVar }}/{{ name }}.ts"
+---
+export const {{ undefinedVariable }} = "{{ name }}"
+`
+      await fs.writeFile(path.join(templateDir, 'missing.ts'), templateWithMissingVars)
+
+      let errorOutput = ''
+      try {
+        execSync(`node "${CLI_PATH}" generate error missing-vars --name="test"`, { cwd,
+          stdio } catch (error) {
+        errorOutput = error.stderr || error.stdout || error.message
+      }
+
+      // Should either handle gracefully or provide meaningful error
+      expect(errorOutput.length > 0, 'Should provide error feedback for missing variables').toBe(true)
+    })
+
+    it('should handle template syntax errors with helpful messages', async () => { const templateDir = path.join(TEST_WORKSPACE, '_templates', 'error', 'syntax-error')
+      await fs.mkdir(templateDir, { recursive })
+
+      const syntaxErrorTemplate = `---
+to: "syntax-error.ts"
+---
+{% if unclosed
+  Content without closing if
+{{ unclosed_variable
+{% endfor %} <!-- Wrong closing tag -->
+`
+      await fs.writeFile(path.join(templateDir, 'syntax.ts'), syntaxErrorTemplate)
+
+      let errorCaught = false
+      let errorDetails = ''
+
+      try {
+        execSync(`node "${CLI_PATH}" generate error syntax-error --name="test"`, { cwd,
+          stdio } catch (error) {
+        errorCaught = true
+        errorDetails = error.stderr || error.stdout || error.message
+      }
+
+      expect(errorCaught, 'Should catch template syntax errors').toBe(true)
+      expect(errorDetails.toLowerCase()).toMatch(/syntax|template|error/i)
+    })
+  })
+
+  describe('File System Error Handling', () => { it('should handle permission denied errors gracefully', async () => {
+      const templateDir = path.join(TEST_WORKSPACE, '_templates', 'error', 'permission')
+      await fs.mkdir(templateDir, { recursive })
+
+      await fs.writeFile(path.join(templateDir, 'permission.ts'), `---
+to: "/root/protected-file.ts"
+---
+Should not be able to write here
+`)
+
+      let errorHandled = false
+      try {
+        execSync(`node "${CLI_PATH}" generate error permission --name="test"`, { cwd,
+          stdio } catch (error) {
+        errorHandled = true
+        expect(error.message.toLowerCase()).toMatch(/permission|access|denied|eacces/i)
+      }
+
+      expect(errorHandled, 'Should handle permission errors gracefully').toBe(true)
+    })
+
+    it('should handle missing directory creation', async () => { const templateDir = path.join(TEST_WORKSPACE, '_templates', 'error', 'deep-path')
+      await fs.mkdir(templateDir, { recursive })
+
+      await fs.writeFile(path.join(templateDir, 'deep.ts'), `---
+to: "very/deep/nested/path/{{ name }}.ts"
+---
+export const {{ name }} = "created in deep path"
+`)
+
+      // Should create nested directories automatically
+      let success = false
+      try {
+        execSync(`node "${CLI_PATH}" generate error deep-path --name="DeepTest"`, {
+          cwd,
+          stdio)
+
+        const deepFile = path.join(TEST_WORKSPACE, 'very/deep/nested/path/DeepTest.ts')
+        const exists = await fs.access(deepFile).then(() => true).catch(() => false)
+        success = exists
+      } catch (error) {
+        // Should not error - should create directories
+      }
+
+      expect(success, 'Should create nested directories automatically').toBe(true)
+    })
+
+    it('should handle file overwrite scenarios safely', async () => { const templateDir = path.join(TEST_WORKSPACE, '_templates', 'error', 'overwrite')
+      await fs.mkdir(templateDir, { recursive })
+
+      await fs.writeFile(path.join(templateDir, 'overwrite.ts'), `---
+to: "existing-file.ts"
+---
+New content: {{ name }}
+`)
+
+      // Create existing file
+      const existingFile = path.join(TEST_WORKSPACE, 'existing-file.ts')
+      await fs.writeFile(existingFile, 'Original content that should not be lost')
+
+      // Test without force flag - should fail or prompt
+      let overwritePrevented = false
+      try {
+        execSync(`node "${CLI_PATH}" generate error overwrite --name="OverwriteTest"`, { cwd,
+          stdio } catch (error) {
+        overwritePrevented = true
+      }
+
+      const contentAfterAttempt = await fs.readFile(existingFile, 'utf-8')
+      const preservedOriginal = contentAfterAttempt.includes('Original content')
+
+      expect(preservedOriginal || overwritePrevented, 'Should prevent accidental overwrites').toBe(true)
+
+      // Test with force flag - should overwrite
+      execSync(`node "${CLI_PATH}" generate error overwrite --name="ForcedTest" --force`, {
+        cwd,
+        stdio)
+
+      const forcedContent = await fs.readFile(existingFile, 'utf-8')
+      expect(forcedContent).toContain('ForcedTest')
+    })
+  })
+
+  describe('CLI Error Handling', () => {
+    it('should handle invalid generator/template combinations', async () => {
+      let errorCaught = false
+      let errorMessage = ''
+
+      try {
+        execSync(`node "${CLI_PATH}" generate nonexistent template --name="test"`, { cwd,
+          stdio } catch (error) {
+        errorCaught = true
+        errorMessage = error.stderr || error.stdout || error.message
+      }
+
+      expect(errorCaught, 'Should handle nonexistent generators').toBe(true)
+      expect(errorMessage.toLowerCase()).toMatch(/not found|invalid|generator|template/i)
+    })
+
+    it('should handle missing required parameters gracefully', async () => { const templateDir = path.join(TEST_WORKSPACE, '_templates', 'error', 'required')
+      await fs.mkdir(templateDir, { recursive })
+
+      await fs.writeFile(path.join(templateDir, 'required.ts'), `---
+to: "{{ requiredParam }}/test.ts"
+---
+export const test = "{{ requiredParam }}"
+`)
+
+      let errorOutput = ''
+      try {
+        // Generate without required parameter
+        execSync(`node "${CLI_PATH}" generate error required`, { cwd,
+          stdio } catch (error) {
+        errorOutput = error.stderr || error.stdout || error.message
+      }
+
+      // Should either prompt for missing params or provide clear error
+      expect(errorOutput.length > 0, 'Should handle missing required parameters').toBe(true)
+    })
+
+    it('should validate command line argument types', async () => { const templateDir = path.join(TEST_WORKSPACE, '_templates', 'error', 'types')
+      await fs.mkdir(templateDir, { recursive })
+
+      await fs.writeFile(path.join(templateDir, 'types.ts'), `---
+to: "types.ts"
+---
+Boolean: {{ boolParam }}
+Number: {{ numberParam }}
+`)
+
+      // Test with invalid types
+      let handled = true
+      try {
+        execSync(`node "${CLI_PATH}" generate error types --boolParam="not-a-boolean" --numberParam="not-a-number"`, {
+          cwd,
+          stdio)
+        // If this succeeds, check if values were handled sensibly
+        const result = await fs.readFile(path.join(TEST_WORKSPACE, 'types.ts'), 'utf-8')
+        handled = result.includes('not-a-boolean') // Should pass through
+      } catch (error) {
+        // Catching errors is also acceptable behavior
+      }
+
+      expect(handled, 'Should handle type mismatches gracefully').toBe(true)
+    })
+  })
+
+  describe('Recovery and Fallback Behaviors', () => { it('should demonstrate backup creation before modifications', async () => {
+      const templateDir = path.join(TEST_WORKSPACE, '_templates', 'error', 'backup')
+      await fs.mkdir(templateDir, { recursive })
+
+      await fs.writeFile(path.join(templateDir, 'backup.ts'), `---
+to: "backup-test.ts"
+inject: true
+after: "// INJECT"
+---
+// Injected content: {{ name }}
+`)
+
+      // Create target file
+      const targetFile = path.join(TEST_WORKSPACE, 'backup-test.ts')
+      const originalContent = `// Original content
+// INJECT
+// More content`
+      await fs.writeFile(targetFile, originalContent)
+
+      // Perform injection
+      execSync(`node "${CLI_PATH}" generate error backup --name="BackupTest"`, {
+        cwd,
+        stdio)
+
+      // Check if backup was created
+      const backupFiles = await fs.readdir(TEST_WORKSPACE)
+      const backupExists = backupFiles.some(f => f.includes('backup') && f.includes('.bak'))
+
+      // If no backup file, check if original content is preserved in case of error
+      let recoveryPossible = backupExists
+      if (!backupExists) {
+        const modifiedContent = await fs.readFile(targetFile, 'utf-8')
+        recoveryPossible = modifiedContent.includes('// Original content')
+      }
+
+      expect(recoveryPossible, 'Should enable recovery from modifications').toBe(true)
+    })
+
+    it('should handle partial failures during batch operations', async () => { // Create multiple templates with mixed success/failure scenarios
+      const templateDir = path.join(TEST_WORKSPACE, '_templates', 'error', 'batch')
+      await fs.mkdir(templateDir, { recursive })
+
+      const batchTemplate = `---
+to: "batch/{{ name }}-{{ index }}.ts"
+---
+// Generated: {{ name }} {{ index }}
+{% if index == "3" %}
+{{ undefined.property }} <!-- This will cause an error -->
+{% endif %}
+`
+      await fs.writeFile(path.join(templateDir, 'batch.ts'), batchTemplate)
+
+      // Try to generate multiple files where some might fail
+      const successes = []
+      const failures = []
+
+      for (let i = 1; i <= 5; i++) {
+        try {
+          execSync(`node "${CLI_PATH}" generate error batch --name="Batch" --index="${i}"`, {
+            cwd,
+            stdio)
+          successes.push(i)
+        } catch (error) {
+          failures.push(i)
+        }
+      }
+
+      // Should have some successes and some failures
+      expect(successes.length > 0, 'Should complete some operations successfully').toBe(true)
+      expect(failures.length > 0, 'Should fail predictably on error cases').toBe(true)
+      
+      // Verify successful files were actually created
+      const batchDir = path.join(TEST_WORKSPACE, 'batch')
+      if (successes.length > 0) {
+        const dirExists = await fs.access(batchDir).then(() => true).catch(() => false)
+        expect(dirExists, 'Should create files for successful operations').toBe(true)
+      }
+    })
+  })
+
+  describe('Error Message Quality', () => { it('should provide helpful error messages with context and suggestions', async () => {
+      const templateDir = path.join(TEST_WORKSPACE, '_templates', 'error', 'helpful')
+      await fs.mkdir(templateDir, { recursive })
+
+      // Template with common mistake
+      await fs.writeFile(path.join(templateDir, 'helpful.ts'), `---
+to: {{ name }}.ts  # Missing quotes - common mistake
+---
+export const {{ name }} = "test"
+`)
+
+      let errorMessage = ''
+      try {
+        execSync(`node "${CLI_PATH}" generate error helpful --name="HelpfulTest"`, { cwd,
+          stdio } catch (error) {
+        errorMessage = error.stderr || error.stdout || error.message
+      }
+
+      // Error message should be helpful
+      const isHelpful = 
+        errorMessage.length > 20 && // Not just a generic error
+        (errorMessage.includes('frontmatter') || 
+         errorMessage.includes('yaml') ||
+         errorMessage.includes('quote') ||
+         errorMessage.includes('template'))
+
+      expect(isHelpful, `Error message should be helpful. Got).toBe(true)
+    })
+  })
+})

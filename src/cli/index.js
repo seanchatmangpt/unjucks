@@ -2,51 +2,25 @@
 
 import { defineCommand, runMain as cittyRunMain } from "citty";
 import chalk from "chalk";
-import { createRequire } from 'module';
 
-// Create require function for ES modules
-const require = createRequire(import.meta.url);
-import { createRequire } from 'module';
-const require = createRequire(import.meta.url);
-
-// Import all commands (temporarily commented out until converted to JavaScript)
-// TODO: Uncomment once all command files are converted to .js
-// import { generateCommand } from '../commands/generate.js';
-// import { listCommand } from '../commands/list.js';
-// import { injectCommand } from '../commands/inject.js';
-// import { initCommand } from '../commands/init.js';
-// import { semanticCommand } from '../commands/semantic.js';
-// import { migrateCommand } from '../commands/migrate.js';
-// import { versionCommand } from '../commands/version.js';
+// Import all commands (corrected paths)
+import { generateCommand } from '../commands/generate.js';
+import { listCommand } from '../commands/list.js';
+import { injectCommand } from '../commands/inject.js';
+import { initCommand } from '../commands/init.js';
+import { semanticCommand } from '../commands/semantic.js';
+import { migrateCommand } from '../commands/migrate.js';
+import { versionCommand } from '../commands/version.js';
+import { newCommand } from '../commands/new.js';
+import { previewCommand } from '../commands/preview.js';
 
 // Import NEW enhanced commands
-// import { swarmCommand } from '../commands/swarm.js';
-// import workflowCommand from '../commands/workflow.js';
-// import { perfCommand } from '../commands/perf.js';
-// import { githubCommand } from '../commands/github.js';
-
-// Temporary placeholder commands for testing
-const createPlaceholderCommand = (name, description) => ({
-  meta: { name, description },
-  run() {
-    console.log(chalk.yellow(`⚠️  ${name} command is not yet available (TypeScript conversion in progress)`));
-    console.log(chalk.gray(`   Description: ${description}`));
-    console.log(chalk.gray(`   This command will be available once all TypeScript files are converted to JavaScript.`));
-  }
-});
-
-// Placeholder commands until TypeScript conversion is complete
-const generateCommand = createPlaceholderCommand('generate', 'Generate files from templates');
-const listCommand = createPlaceholderCommand('list', 'List available generators');
-const injectCommand = createPlaceholderCommand('inject', 'Inject code into existing files');
-const initCommand = createPlaceholderCommand('init', 'Initialize a new project');
-const semanticCommand = createPlaceholderCommand('semantic', 'Generate code from RDF/OWL ontologies');
-const migrateCommand = createPlaceholderCommand('migrate', 'Database and project migration utilities');
-const versionCommand = createPlaceholderCommand('version', 'Show version information');
-const swarmCommand = createPlaceholderCommand('swarm', 'Multi-agent swarm coordination');
-const workflowCommand = createPlaceholderCommand('workflow', 'Automated development workflow management');
-const perfCommand = createPlaceholderCommand('perf', 'Performance analysis and optimization tools');
-const githubCommand = createPlaceholderCommand('github', 'GitHub integration and repository management');
+import { swarmCommand } from '../commands/swarm.js';
+import { workflowCommand } from '../commands/workflow.js';
+import { perfCommand } from '../commands/perf.js';
+import { githubCommand } from '../commands/github.js';
+import { knowledgeCommand } from '../commands/knowledge.js';
+import { neuralCommand } from '../commands/neural.js';
 
 // All commands now imported from their respective modules
 
@@ -71,23 +45,40 @@ const helpCommand = defineCommand({
  * @returns {string} The version string
  */
 function getVersion() {
-  // Try to read from package.json first (more reliable than npm_package_version)
+  // Try to read from package.json first
   try {
-    const packageJson = require('../../package.json');
-    return packageJson.version;
-  } catch {
-    // Fallback to npm environment variable if available
-    if (process.env.npm_package_version && process.env.npm_package_version !== '0.0.0') {
-      return process.env.npm_package_version;
+    const fs = require('fs');
+    const path = require('path');
+    
+    // Try different paths to find package.json
+    const possiblePaths = [
+      path.join(__dirname, '../../package.json'),
+      path.join(process.cwd(), 'package.json'),
+      // For global installations
+      path.resolve(__dirname, '../../package.json')
+    ];
+    
+    for (const packagePath of possiblePaths) {
+      if (fs.existsSync(packagePath)) {
+        const packageData = fs.readFileSync(packagePath, 'utf8');
+        const packageJson = JSON.parse(packageData);
+        if (packageJson.version) {
+          return packageJson.version;
+        }
+      }
     }
-    return "2025.09.06.17.40"; // Default fallback version
+  } catch (error) {
+    // Ignore errors and fall through to fallbacks
   }
+  
+  // Skip npm environment variable as it may be stale during development
+  // Final fallback - return current version
+  return "2025.09.07.11.18";
 }
 
 /**
  * Enhanced pre-process arguments to handle comprehensive Hygen-style positional syntax
- * Transforms positional arguments to explicit command syntax for internal processing
- * @returns {string[]} Processed arguments array
+ * @returns {string[]} Processed arguments
  */
 const preprocessArgs = () => {
   const rawArgs = process.argv.slice(2);
@@ -103,7 +94,7 @@ const preprocessArgs = () => {
   }
   
   // Don't transform if already using explicit commands
-  if (['generate', 'list', 'inject', 'init', 'version', 'help', 'semantic', 'swarm', 'workflow', 'perf', 'github', 'migrate'].includes(firstArg)) {
+  if (['generate', 'new', 'preview', 'help', 'list', 'init', 'inject', 'version', 'semantic', 'swarm', 'workflow', 'perf', 'github', 'knowledge', 'neural', 'migrate'].includes(firstArg)) {
     return rawArgs;
   }
   
@@ -136,10 +127,7 @@ const preprocessArgs = () => {
 const originalArgv = process.argv;
 process.argv = [...process.argv.slice(0, 2), ...preprocessArgs()];
 
-/**
- * Main CLI application definition
- * Handles the primary command routing and help display
- */
+// Main CLI application
 const main = defineCommand({
   meta: {
     name: "unjucks",
@@ -158,29 +146,38 @@ const main = defineCommand({
     }
   },
   subCommands: {
-    generate: generateCommand,
+    // PRIMARY UNIFIED COMMANDS
+    new: newCommand,        // Primary command - clear intent
+    preview: previewCommand, // Safe exploration
+    help: helpCommand,      // Context-sensitive help
+    
+    // SECONDARY COMMANDS
     list: listCommand,
-    inject: injectCommand,
     init: initCommand,
+    inject: injectCommand,
+    version: versionCommand,
+    
+    // LEGACY SUPPORT
+    generate: generateCommand, // Legacy command with deprecation warnings
+    
+    // ADVANCED FEATURES
     semantic: semanticCommand,
     swarm: swarmCommand,
     workflow: workflowCommand,
     perf: perfCommand,
     github: githubCommand,
+    knowledge: knowledgeCommand,
+    neural: neuralCommand,
     migrate: migrateCommand,
-    version: versionCommand,
-    help: helpCommand,
   },
   /**
-   * Main run handler for the CLI application
-   * @param {Object} ctx - Context object containing parsed arguments
-   * @param {Object} ctx.args - Parsed command-line arguments
+   * @param {{ args: any }} params - Command parameters
    */
   run({ args }) {
     // Handle --version flag
     if (args.version) {
       console.log(getVersion());
-      return;
+      return { success: true, action: 'version' };
     }
 
     // Handle --help flag
@@ -193,18 +190,22 @@ const main = defineCommand({
       console.log(chalk.gray("  unjucks generate <generator> <template>   # Explicit syntax"));
       console.log();
       console.log(chalk.yellow("COMMANDS:"));
-      console.log(chalk.gray("  generate  Generate files from templates"));
-      console.log(chalk.gray("  list      List available generators"));
-      console.log(chalk.gray("  inject    Inject code into existing files"));
-      console.log(chalk.gray("  init      Initialize a new project"));
+      console.log(chalk.gray("  new       Create new projects and components (primary)"));
+      console.log(chalk.gray("  preview   Preview template output without writing files"));
+      console.log(chalk.gray("  help      Show template variable help"));
+      console.log(chalk.gray("  generate  Generate files from templates (legacy)"));
+      console.log(chalk.gray("  list      List available generators and templates"));
+      console.log(chalk.gray("  inject    Inject or modify content in existing files"));
+      console.log(chalk.gray("  init      Initialize a new project with scaffolding"));
       console.log(chalk.gray("  semantic  Generate code from RDF/OWL ontologies with semantic awareness"));
       console.log(chalk.gray("  swarm     Multi-agent swarm coordination and management"));
       console.log(chalk.gray("  workflow  Automated development workflow management"));
       console.log(chalk.gray("  perf      Performance analysis and optimization tools"));
       console.log(chalk.gray("  github    GitHub integration and repository management"));
+      console.log(chalk.gray("  knowledge RDF/OWL ontology and semantic knowledge management"));
+      console.log(chalk.gray("  neural    AI/ML neural network training and inference"));
       console.log(chalk.gray("  migrate   Database and project migration utilities"));
       console.log(chalk.gray("  version   Show version information"));
-      console.log(chalk.gray("  help      Show template variable help"));
       console.log();
       console.log(chalk.yellow("OPTIONS:"));
       console.log(chalk.gray("  --version, -v  Show version information"));
@@ -221,7 +222,7 @@ const main = defineCommand({
       console.log(chalk.gray("  unjucks workflow create --name api-dev # Create development workflow"));
       console.log(chalk.gray("  unjucks perf benchmark --suite all    # Run performance benchmarks"));
       console.log(chalk.gray("  unjucks github analyze --repo owner/repo # Analyze repository"));
-      return;
+      return { success: true, action: 'help' };
     }
 
     // Default help output when no arguments
@@ -233,8 +234,11 @@ const main = defineCommand({
     console.log(chalk.gray("  unjucks generate <generator> <template>   # Explicit syntax"));
     console.log();
     console.log(chalk.yellow("Available commands:"));
-    console.log(chalk.gray("  generate  Generate files from templates"));
-    console.log(chalk.gray("  list      List available generators"));
+    console.log(chalk.gray("  new       Create new projects and components (primary)"));
+    console.log(chalk.gray("  preview   Preview template output without writing files"));
+    console.log(chalk.gray("  help      Show template variable help"));
+    console.log(chalk.gray("  generate  Generate files from templates (legacy)"));
+    console.log(chalk.gray("  list      List available generators and templates"));
     console.log(chalk.gray("  inject    Inject code into existing files"));
     console.log(chalk.gray("  init      Initialize a new project"));
     console.log(chalk.gray("  semantic  Generate code from RDF/OWL ontologies with semantic awareness"));
@@ -242,9 +246,10 @@ const main = defineCommand({
     console.log(chalk.gray("  workflow  Automated development workflow management"));
     console.log(chalk.gray("  perf      Performance analysis and optimization tools"));
     console.log(chalk.gray("  github    GitHub integration and repository management"));
+    console.log(chalk.gray("  knowledge RDF/OWL ontology and semantic knowledge management"));
+    console.log(chalk.gray("  neural    AI/ML neural network training and inference"));
     console.log(chalk.gray("  migrate   Database and project migration utilities"));
     console.log(chalk.gray("  version   Show version information"));
-    console.log(chalk.gray("  help      Show template variable help"));
     console.log();
     console.log(chalk.yellow("Examples:"));
     console.log(chalk.gray("  unjucks component react MyComponent   # Hygen-style positional"));
@@ -259,16 +264,13 @@ const main = defineCommand({
     console.log(chalk.gray("  unjucks github analyze --repo owner/repo # Analyze repository"));
     console.log();
     console.log(chalk.gray("Use --help with any command for more information."));
+    return { success: true, action: 'help' };
   },
 });
 
-/**
- * Export the main runner function for external use
- * @returns {Promise<void>} Promise that resolves when CLI execution completes
- */
 export const runMain = () => cittyRunMain(main);
 
-// Auto-run if this is the main module (ES module compatible check)
+// Auto-run if this is the main module
 if (import.meta.url === `file://${process.argv[1]}`) {
   cittyRunMain(main);
 }

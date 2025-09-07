@@ -1,0 +1,269 @@
+import { describe, it, expect, beforeEach } from 'vitest';
+import { SemanticValidator } from '../../src/lib/semantic-validator.js';
+describe('SemanticValidator', () => { let validator;
+
+  beforeEach(() => {
+    validator = new SemanticValidator({
+      performanceThresholds },
+      enabledCompliances, 'HIPAA', 'SOX']
+    });
+  });
+
+  describe('RDF Structure Validation', () => { it('should validate empty RDF data', async () => {
+      const emptyData = {
+        subjects },
+        predicates: new Set(),
+        triples: [],
+        prefixes: {}
+      };
+
+      const result = await validator.validateRDFData(emptyData);
+      
+      expect(result.valid).toBe(false); // Empty data should generate warnings
+      expect(result.warnings).toHaveLength(1);
+      expect(result.warnings[0].code).toBe('STRUCTURE_EMPTY_DATA');
+    });
+
+    it('should validate valid RDF structure', async () => { const validData = {
+        subjects }],
+              'http://xmlns.com/foaf/0.1/name': [{ type }]
+            },
+            type: ['http://xmlns.com/foaf/0.1/Person']
+          }
+        },
+        predicates: new Set([
+          'http://www.w3.org/1999/02/22-rdf-syntax-ns#type',
+          'http://xmlns.com/foaf/0.1/name'
+        ]),
+        triples: [],
+        prefixes: { 'foaf' }
+      };
+
+      const result = await validator.validateRDFData(validData);
+      
+      expect(result.valid).toBe(true);
+      expect(result.errors).toHaveLength(0);
+    });
+  });
+
+  describe('Performance Validation', () => { it('should validate performance metrics', async () => {
+      const largeData = {
+        subjects },
+        predicates: new Set(),
+        triples: new Array(2000).fill(null).map((_, i) => ({ subject }` },
+          predicate: { termType },
+          object: { termType }`, language: '', datatype: null },
+          graph: { termType }
+      };
+
+      const result = await validator.validateRDFData(largeData, { enablePerformance });
+      
+      expect(result.performance).toBeDefined();
+      expect(result.performance!.tripleCount).toBe(2000);
+      
+      // Should have performance error due to exceeding threshold (1000)
+      const performanceErrors = result.errors.filter(e => e.code.includes('PERF_'));
+      expect(performanceErrors.length).toBeGreaterThan(0);
+    });
+
+    it('should pass performance validation for small datasets', async () => { const smallData = {
+        subjects }]
+            },
+            type: []
+          }
+        },
+        predicates: new Set(['http://xmlns.com/foaf/0.1/name']),
+        triples: [],
+        prefixes: {}
+      };
+
+      const result = await validator.validateRDFData(smallData, { enablePerformance });
+      
+      expect(result.performance!.tripleCount).toBeLessThan(1000);
+      const performanceErrors = result.errors.filter(e => e.code.includes('PERF_'));
+      expect(performanceErrors.length).toBe(0);
+    });
+  });
+
+  describe('GDPR Compliance Validation', () => { it('should detect personal data without protection', async () => {
+      const personalData = {
+        subjects }],
+              'http://xmlns.com/foaf/0.1/phone': [{ type }]
+            },
+            type: ['http://xmlns.com/foaf/0.1/Person']
+          }
+        },
+        predicates: new Set(['http://xmlns.com/foaf/0.1/name', 'http://xmlns.com/foaf/0.1/phone']),
+        triples: [],
+        prefixes: {}
+      };
+
+      const result = await validator.validateRDFData(personalData, { enableCompliance });
+      
+      expect(result.compliance).toBeDefined();
+      const gdprResult = result.compliance!.find(c => c.framework === 'GDPR');
+      expect(gdprResult).toBeDefined();
+      expect(gdprResult!.compliant).toBe(false);
+      expect(gdprResult!.violations.length).toBeGreaterThan(0);
+    });
+
+    it('should pass GDPR validation with proper protections', async () => { const protectedData = {
+        subjects }],
+              'http://example.org/security/encrypted': [{ type }],
+              'http://example.org/gdpr/consent': [{ type }],
+              'http://purl.org/dc/terms/purpose': [{ type }]
+            },
+            type: ['http://xmlns.com/foaf/0.1/Person']
+          }
+        },
+        predicates: new Set(),
+        triples: [],
+        prefixes: {}
+      };
+
+      const result = await validator.validateRDFData(protectedData, { enableCompliance });
+      
+      const gdprResult = result.compliance!.find(c => c.framework === 'GDPR');
+      expect(gdprResult!.violations.filter(v => v.severity === 'error').length).toBe(0);
+    });
+  });
+
+  describe('HIPAA Compliance Validation', () => { it('should detect PHI without proper safeguards', async () => {
+      const phiData = {
+        subjects }],
+              'http://example.org/medical/treatment': [{ type }]
+            },
+            type: []
+          }
+        },
+        predicates: new Set(),
+        triples: [],
+        prefixes: {}
+      };
+
+      const result = await validator.validateRDFData(phiData, { enableCompliance });
+      
+      const hipaaResult = result.compliance!.find(c => c.framework === 'HIPAA');
+      expect(hipaaResult).toBeDefined();
+      expect(hipaaResult!.compliant).toBe(false);
+      expect(hipaaResult!.violations.some(v => v.code === 'HIPAA_PHI_UNENCRYPTED')).toBe(true);
+    });
+  });
+
+  describe('SOX Compliance Validation', () => { it('should detect financial data without controls', async () => {
+      const financialData = {
+        subjects }],
+              'http://example.org/finance/expense': [{ type }]
+            },
+            type: []
+          }
+        },
+        predicates: new Set(),
+        triples: [],
+        prefixes: {}
+      };
+
+      const result = await validator.validateRDFData(financialData, { enableCompliance });
+      
+      const soxResult = result.compliance!.find(c => c.framework === 'SOX');
+      expect(soxResult).toBeDefined();
+      expect(soxResult!.compliant).toBe(false);
+      expect(soxResult!.violations.some(v => v.code === 'SOX_MISSING_CONTROLS')).toBe(true);
+    });
+  });
+
+  describe('Ontology Validation', () => { it('should validate ontology compliance', async () => {
+      const ontologyData = {
+        subjects }]
+            },
+            type: [] // Missing type declaration
+          }
+        },
+        predicates: new Set(),
+        triples: [],
+        prefixes: {}
+      };
+
+      const errors = await validator.validateOntology(ontologyData, 'http://xmlns.com/foaf/0.1/');
+      
+      expect(errors.length).toBeGreaterThan(0);
+      expect(errors.some(e => e.code === 'ONTOLOGY_MISSING_TYPE')).toBe(true);
+    });
+  });
+
+  describe('Template Consistency Validation', () => { it('should validate consistency across templates', async () => {
+      const templates = [
+        {
+          name }]
+                },
+                type: []
+              }
+            },
+            predicates: new Set(),
+            triples: [],
+            prefixes: {}
+          },
+          variables: { name }
+        },
+        { name },
+            predicates: new Set(),
+            triples: [],
+            prefixes: {}
+          },
+          variables: { name } // Type mismatch
+        }
+      ];
+
+      const result = validator.validateTemplateConsistency(templates);
+      
+      expect(result.coherent).toBe(false);
+      expect(result.conflicts.length).toBeGreaterThan(0);
+      expect(result.conflicts.some(c => c.type === 'property_conflict')).toBe(true);
+    });
+  });
+
+  describe('Metadata and Recommendations', () => { it('should provide validation metadata', async () => {
+      const data = {
+        subjects },
+        predicates: new Set(),
+        triples: [],
+        prefixes: {}
+      };
+
+      const result = await validator.validateRDFData(data);
+      
+      expect(result.metadata).toBeDefined();
+      expect(result.metadata.validationTime).toBeGreaterThan(0);
+      expect(result.metadata.rulesApplied).toContain('rdf_structure_validation');
+      expect(result.metadata.dataSourceCount).toBe(1);
+    });
+
+    it('should provide performance metrics', async () => { const data = {
+        subjects },
+        predicates: new Set(),
+        triples: [],
+        prefixes: {}
+      };
+
+      const result = await validator.validateRDFData(data, { enablePerformance });
+      
+      expect(result.performance).toBeDefined();
+      expect(result.performance!.tripleCount).toBe(0);
+      expect(result.performance!.processingTime).toBeGreaterThanOrEqual(0);
+      expect(result.performance!.threshold).toBeDefined();
+    });
+  });
+
+  describe('Error Handling', () => {
+    it('should handle validation errors gracefully', async () => {
+      // Pass invalid data structure
+      const invalidData = null;
+
+      const result = await validator.validateRDFData(invalidData);
+      
+      expect(result.valid).toBe(false);
+      expect(result.errors.length).toBeGreaterThan(0);
+      expect(result.errors[0].code).toBe('VALIDATION_ERROR');
+    });
+  });
+});

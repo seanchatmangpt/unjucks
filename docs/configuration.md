@@ -14,12 +14,12 @@ Unjucks provides flexible configuration options at multiple levels - project-wid
 
 ## Project Configuration
 
-### unjucks.config.js/ts
+### unjucks.config.js
 
-Create an `unjucks.config.js` or `unjucks.config.ts` file in your project root for project-wide settings:
+Create an `unjucks.config.js` file in your project root for project-wide settings (ES modules):
 
-```typescript
-// unjucks.config.ts
+```javascript
+// unjucks.config.js (ES modules)
 export default {
   templatesDir: '_templates',
   defaultGenerator: 'component',
@@ -29,19 +29,7 @@ export default {
   },
   filters: {
     // Custom Nunjucks filters
-    upperSnake: (str: string) => str.toUpperCase().replace(/[^A-Z0-9]/g, '_')
-  }
-}
-```
-
-```javascript
-// unjucks.config.js
-module.exports = {
-  templatesDir: '_templates',
-  defaultGenerator: 'component',
-  variables: {
-    author: 'Your Name',
-    license: 'MIT'
+    upperSnake: (str) => str.toUpperCase().replace(/[^A-Z0-9]/g, '_')
   }
 }
 ```

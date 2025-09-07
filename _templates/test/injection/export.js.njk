@@ -1,0 +1,6 @@
+---
+to: src/index.js
+inject: true
+after: "// EXPORTS"
+---
+export { {{ name | pascalCase }} } from './components/{{ name | pascalCase }}.js';

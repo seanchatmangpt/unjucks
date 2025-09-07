@@ -1,10 +1,10 @@
 # API Reference
 
-Complete programmatic API reference for Unjucks v1.0.
+Complete programmatic API reference for Unjucks v1.0 (JavaScript ES2023).
 
 ## Overview
 
-Unjucks provides a comprehensive Node.js API for integrating code generation into your applications. The API mirrors the CLI functionality while providing additional programmatic features.
+Unjucks provides a comprehensive Node.js API for integrating code generation into your applications. The API mirrors the CLI functionality while providing additional programmatic features using modern JavaScript ES2023.
 
 ## Installation
 
@@ -18,7 +18,7 @@ npm install unjucks
 
 The main class for template processing and file generation.
 
-```typescript
+```javascript
 import { Generator } from 'unjucks';
 
 const generator = new Generator('/path/to/_templates');
@@ -26,8 +26,8 @@ const generator = new Generator('/path/to/_templates');
 
 #### Constructor
 
-```typescript
-new Generator(templatesDir?: string)
+```javascript
+new Generator(templatesDir)
 ```
 
 **Parameters:**

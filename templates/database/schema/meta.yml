@@ -1,0 +1,94 @@
+name: "Database Schema Generator"
+description: "Production-ready database schema with migrations, indexes, and constraints"
+category: "database"
+complexity: "intermediate"
+tags: ["database", "schema", "migration", "sql", "postgresql", "mysql"]
+author: "Unjucks Enterprise Team"
+version: "1.0.0"
+
+variables:
+  - name: tableName
+    type: string
+    description: "Database table name (snake_case)"
+    required: true
+    pattern: "^[a-z][a-z0-9_]*$"
+  
+  - name: modelName
+    type: string
+    description: "Model class name (PascalCase)"
+    required: true
+    pattern: "^[A-Z][a-zA-Z0-9]*$"
+    
+  - name: databaseType
+    type: string
+    description: "Database system type"
+    default: "postgresql"
+    choices: ["postgresql", "mysql", "sqlite", "mssql", "oracle"]
+    
+  - name: withTimestamps
+    type: boolean
+    description: "Include created_at and updated_at columns"
+    default: true
+    
+  - name: withSoftDeletes
+    type: boolean
+    description: "Include soft delete functionality"
+    default: true
+    
+  - name: withUUID
+    type: boolean
+    description: "Use UUID for primary key instead of integer"
+    default: true
+    
+  - name: withIndexes
+    type: boolean
+    description: "Generate database indexes for performance"
+    default: true
+    
+  - name: withConstraints
+    type: boolean
+    description: "Include foreign key constraints and checks"
+    default: true
+    
+  - name: withAuditLog
+    type: boolean
+    description: "Include audit logging table"
+    default: true
+    
+  - name: withSecurity
+    type: boolean
+    description: "Include security columns (tenant_id, access_level)"
+    default: true
+    
+  - name: fields
+    type: array
+    description: "Custom fields for the table"
+    default: []
+    
+  - name: relationships
+    type: array
+    description: "Foreign key relationships"
+    default: []
+    
+  - name: indexes
+    type: array
+    description: "Additional custom indexes"
+    default: []
+
+examples:
+  - "unjucks generate database schema --tableName=users --modelName=User --withAuditLog --withSecurity"
+  - "unjucks generate database schema --tableName=products --databaseType=mysql --withIndexes"
+  - "unjucks generate database schema --tableName=orders --withSoftDeletes --withConstraints"
+
+usage: |
+  This template creates a complete database schema package including:
+  - SQL migration files for table creation
+  - Database model/entity classes
+  - Index definitions for optimal performance
+  - Foreign key constraints and relationships
+  - Audit logging table structure
+  - Security and multi-tenancy columns
+  - Data validation and business rules
+  - Rollback migrations for safety
+  - Database seeding scripts
+  - Performance optimization recommendations

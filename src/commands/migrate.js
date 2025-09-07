@@ -1,5 +1,5 @@
 import { defineCommand } from "citty";
-import * as chalk from "chalk";
+import chalk from "chalk";
 
 export const migrateCommand = defineCommand({
   meta: {

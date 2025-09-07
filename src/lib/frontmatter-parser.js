@@ -20,6 +20,9 @@ export class FrontmatterParser {
 
   /**
    * Parse template content with frontmatter and optional semantic validation
+   * @param {string} templateContent - Template content to parse
+   * @param {boolean} [enableSemanticValidation=false] - Enable semantic validation
+   * @returns {Promise<{frontmatter: Object, content: string, hasValidFrontmatter: boolean, validationResult?: Object}>}
    */
   async parse(templateContent, enableSemanticValidation = false) {
     const frontmatterRegex = /^---\s*\n([\s\S]*?)\n---\s*\n([\s\S]*)$/;
@@ -81,6 +84,8 @@ export class FrontmatterParser {
 
   /**
    * Validate frontmatter configuration
+   * @param {Object} frontmatter - Frontmatter object to validate
+   * @returns {{valid: boolean, errors: string[]}}
    */
   validate(frontmatter) {
     const errors = [];
@@ -163,6 +168,8 @@ export class FrontmatterParser {
 
   /**
    * Check if frontmatter contains RDF configuration
+   * @param {Object} frontmatter - Frontmatter object to check
+   * @returns {boolean}
    */
   hasRDFConfig(frontmatter) {
     return !!(
@@ -175,6 +182,8 @@ export class FrontmatterParser {
 
   /**
    * Extract RDF configuration from frontmatter
+   * @param {Object} frontmatter - Frontmatter object
+   * @returns {Object|null} RDF configuration or null if not found
    */
   getRDFConfig(frontmatter) {
     if (frontmatter.rdf) {
@@ -206,6 +215,11 @@ export class FrontmatterParser {
     return null;
   }
 
+  /**
+   * Check if URI is valid
+   * @param {string} uri - URI to validate
+   * @returns {boolean}
+   */
   isValidUri(uri) {
     try {
       new URL(uri);
@@ -218,6 +232,8 @@ export class FrontmatterParser {
 
   /**
    * Determine the operation mode based on frontmatter
+   * @param {Object} frontmatter - Frontmatter object
+   * @returns {{mode: string, lineNumber?: number, target?: string}}
    */
   getOperationMode(frontmatter) {
     if (frontmatter.lineAt !== undefined) {
@@ -247,6 +263,9 @@ export class FrontmatterParser {
 
   /**
    * Check if generation should be skipped based on skipIf condition
+   * @param {Object} frontmatter - Frontmatter object
+   * @param {Object} variables - Template variables
+   * @returns {boolean}
    */
   shouldSkip(frontmatter, variables) {
     if (!frontmatter.skipIf) {
@@ -305,6 +324,8 @@ export class FrontmatterParser {
 
   /**
    * Normalize chmod value to octal number
+   * @param {string|number} chmod - Chmod value to normalize
+   * @returns {number} Normalized chmod as octal number
    */
   normalizeChmod(chmod) {
     if (typeof chmod === "number") {

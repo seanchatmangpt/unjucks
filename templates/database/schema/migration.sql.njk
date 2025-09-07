@@ -1,0 +1,364 @@
+---
+to: migrations/{{ timestamp() }}_create_{{ tableName }}_table.sql
+---
+{% set primaryKeyType = 'UUID' if withUUID else 'BIGSERIAL' %}
+{% if databaseType === 'postgresql' %}-- PostgreSQL Migration{% elif databaseType === 'mysql' %}-- MySQL Migration{% else %}-- {{ databaseType | upper }} Migration{% endif %}
+-- Created: {{ now() }}
+-- Table: {{ tableName }}
+-- Model: {{ modelName }}
+
+-- ============================================================================
+-- CREATE {{ tableName | upper }} TABLE
+-- ============================================================================
+
+{% if databaseType === 'postgresql' %}
+-- Enable UUID extension if using UUIDs
+{% if withUUID %}
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+{% endif %}
+
+CREATE TABLE IF NOT EXISTS {{ tableName }} (
+{% elif databaseType === 'mysql' %}
+CREATE TABLE IF NOT EXISTS `{{ tableName }}` (
+{% else %}
+CREATE TABLE {{ tableName }} (
+{% endif %}
+    -- Primary Key
+    {% if withUUID %}
+    {% if databaseType === 'postgresql' %}
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    {% elif databaseType === 'mysql' %}
+    `id` CHAR(36) PRIMARY KEY DEFAULT (UUID()),
+    {% else %}
+    id CHAR(36) PRIMARY KEY,
+    {% endif %}
+    {% else %}
+    {% if databaseType === 'postgresql' %}
+    id BIGSERIAL PRIMARY KEY,
+    {% elif databaseType === 'mysql' %}
+    `id` BIGINT AUTO_INCREMENT PRIMARY KEY,
+    {% else %}
+    id BIGINT IDENTITY(1,1) PRIMARY KEY,
+    {% endif %}
+    {% endif %}
+
+    -- Core Business Fields
+    {% if databaseType === 'mysql' %}
+    `name` VARCHAR(255) NOT NULL,
+    `description` TEXT,
+    `status` ENUM('active', 'inactive', 'pending', 'archived') DEFAULT 'active',
+    {% else %}
+    name VARCHAR(255) NOT NULL,
+    description TEXT,
+    status VARCHAR(20) CHECK (status IN ('active', 'inactive', 'pending', 'archived')) DEFAULT 'active',
+    {% endif %}
+
+    -- Custom Fields (add your specific fields here)
+    {% for field in fields %}
+    {% if databaseType === 'mysql' %}
+    `{{ field.name }}` {{ field.type }}{% if field.required %} NOT NULL{% endif %}{% if field.default %} DEFAULT {{ field.default }}{% endif %},
+    {% else %}
+    {{ field.name }} {{ field.type }}{% if field.required %} NOT NULL{% endif %}{% if field.default %} DEFAULT {{ field.default }}{% endif %},
+    {% endif %}
+    {% endfor %}
+
+    -- Metadata and Configuration
+    {% if databaseType === 'mysql' %}
+    `metadata` JSON,
+    `config` JSON,
+    {% elif databaseType === 'postgresql' %}
+    metadata JSONB,
+    config JSONB,
+    {% else %}
+    metadata NVARCHAR(MAX),
+    config NVARCHAR(MAX),
+    {% endif %}
+
+    {% if withSecurity %}
+    -- Security and Multi-tenancy
+    {% if databaseType === 'mysql' %}
+    `tenant_id` {% if withUUID %}CHAR(36){% else %}BIGINT{% endif %},
+    `access_level` ENUM('public', 'private', 'restricted', 'confidential') DEFAULT 'private',
+    `owner_id` {% if withUUID %}CHAR(36){% else %}BIGINT{% endif %},
+    {% else %}
+    tenant_id {% if withUUID %}UUID{% else %}BIGINT{% endif %},
+    access_level VARCHAR(20) CHECK (access_level IN ('public', 'private', 'restricted', 'confidential')) DEFAULT 'private',
+    owner_id {% if withUUID %}UUID{% else %}BIGINT{% endif %},
+    {% endif %}
+    {% endif %}
+
+    {% if withTimestamps %}
+    -- Timestamps
+    {% if databaseType === 'postgresql' %}
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    {% elif databaseType === 'mysql' %}
+    `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    {% else %}
+    created_at DATETIME2 DEFAULT GETDATE(),
+    updated_at DATETIME2 DEFAULT GETDATE(),
+    {% endif %}
+    {% endif %}
+
+    {% if withSoftDeletes %}
+    -- Soft Delete
+    {% if databaseType === 'mysql' %}
+    `deleted_at` TIMESTAMP NULL,
+    `deleted_by` {% if withUUID %}CHAR(36){% else %}BIGINT{% endif %} NULL,
+    {% else %}
+    deleted_at TIMESTAMP NULL,
+    deleted_by {% if withUUID %}UUID{% else %}BIGINT{% endif %} NULL,
+    {% endif %}
+    {% endif %}
+
+    -- Audit Fields
+    {% if databaseType === 'mysql' %}
+    `created_by` {% if withUUID %}CHAR(36){% else %}BIGINT{% endif %},
+    `updated_by` {% if withUUID %}CHAR(36){% else %}BIGINT{% endif %},
+    `version` INT DEFAULT 1
+    {% else %}
+    created_by {% if withUUID %}UUID{% else %}BIGINT{% endif %},
+    updated_by {% if withUUID %}UUID{% else %}BIGINT{% endif %},
+    version INTEGER DEFAULT 1
+    {% endif %}
+
+    {% if withConstraints and relationships %}
+    {% for rel in relationships %}
+    ,
+    -- Foreign Key: {{ rel.name }}
+    CONSTRAINT fk_{{ tableName }}_{{ rel.name }} 
+        FOREIGN KEY ({{ rel.column }}) 
+        REFERENCES {{ rel.table }}({{ rel.references | default('id') }})
+        {% if rel.onDelete %}ON DELETE {{ rel.onDelete }}{% endif %}
+        {% if rel.onUpdate %}ON UPDATE {{ rel.onUpdate }}{% endif %}
+    {% endfor %}
+    {% endif %}
+);
+
+{% if withIndexes %}
+-- ============================================================================
+-- CREATE INDEXES FOR PERFORMANCE
+-- ============================================================================
+
+-- Index for status queries
+{% if databaseType === 'mysql' %}
+CREATE INDEX idx_{{ tableName }}_status ON `{{ tableName }}`(`status`);
+{% else %}
+CREATE INDEX idx_{{ tableName }}_status ON {{ tableName }}(status);
+{% endif %}
+
+{% if withTimestamps %}
+-- Index for timestamp queries
+{% if databaseType === 'mysql' %}
+CREATE INDEX idx_{{ tableName }}_created_at ON `{{ tableName }}`(`created_at`);
+CREATE INDEX idx_{{ tableName }}_updated_at ON `{{ tableName }}`(`updated_at`);
+{% else %}
+CREATE INDEX idx_{{ tableName }}_created_at ON {{ tableName }}(created_at);
+CREATE INDEX idx_{{ tableName }}_updated_at ON {{ tableName }}(updated_at);
+{% endif %}
+{% endif %}
+
+{% if withSecurity %}
+-- Security indexes
+{% if databaseType === 'mysql' %}
+CREATE INDEX idx_{{ tableName }}_tenant_id ON `{{ tableName }}`(`tenant_id`);
+CREATE INDEX idx_{{ tableName }}_owner_id ON `{{ tableName }}`(`owner_id`);
+CREATE INDEX idx_{{ tableName }}_access_level ON `{{ tableName }}`(`access_level`);
+{% else %}
+CREATE INDEX idx_{{ tableName }}_tenant_id ON {{ tableName }}(tenant_id);
+CREATE INDEX idx_{{ tableName }}_owner_id ON {{ tableName }}(owner_id);
+CREATE INDEX idx_{{ tableName }}_access_level ON {{ tableName }}(access_level);
+{% endif %}
+{% endif %}
+
+{% if withSoftDeletes %}
+-- Soft delete index
+{% if databaseType === 'mysql' %}
+CREATE INDEX idx_{{ tableName }}_deleted_at ON `{{ tableName }}`(`deleted_at`);
+{% else %}
+CREATE INDEX idx_{{ tableName }}_deleted_at ON {{ tableName }}(deleted_at);
+{% endif %}
+
+-- Composite index for active records (most common query)
+{% if databaseType === 'mysql' %}
+CREATE INDEX idx_{{ tableName }}_active ON `{{ tableName }}`(`status`, `deleted_at`);
+{% else %}
+CREATE INDEX idx_{{ tableName }}_active ON {{ tableName }}(status) WHERE deleted_at IS NULL;
+{% endif %}
+{% endif %}
+
+-- Name search index (if applicable)
+{% if databaseType === 'postgresql' %}
+CREATE INDEX idx_{{ tableName }}_name_search ON {{ tableName }} USING GIN(name gin_trgm_ops);
+{% elif databaseType === 'mysql' %}
+CREATE FULLTEXT INDEX idx_{{ tableName }}_name_fulltext ON `{{ tableName }}`(`name`);
+{% else %}
+CREATE INDEX idx_{{ tableName }}_name ON {{ tableName }}(name);
+{% endif %}
+
+-- Custom indexes
+{% for index in indexes %}
+{% if databaseType === 'mysql' %}
+CREATE {% if index.unique %}UNIQUE {% endif %}INDEX {{ index.name }} ON `{{ tableName }}`({% for col in index.columns %}`{{ col }}`{% if not loop.last %}, {% endif %}{% endfor %});
+{% else %}
+CREATE {% if index.unique %}UNIQUE {% endif %}INDEX {{ index.name }} ON {{ tableName }}({% for col in index.columns %}{{ col }}{% if not loop.last %}, {% endif %}{% endfor %});
+{% endif %}
+{% endfor %}
+{% endif %}
+
+{% if withAuditLog %}
+-- ============================================================================
+-- CREATE AUDIT LOG TABLE
+-- ============================================================================
+
+{% if databaseType === 'mysql' %}
+CREATE TABLE IF NOT EXISTS `{{ tableName }}_audit` (
+{% else %}
+CREATE TABLE {{ tableName }}_audit (
+{% endif %}
+    {% if withUUID %}
+    {% if databaseType === 'postgresql' %}
+    audit_id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    record_id UUID NOT NULL,
+    {% elif databaseType === 'mysql' %}
+    `audit_id` CHAR(36) PRIMARY KEY DEFAULT (UUID()),
+    `record_id` CHAR(36) NOT NULL,
+    {% else %}
+    audit_id CHAR(36) PRIMARY KEY,
+    record_id CHAR(36) NOT NULL,
+    {% endif %}
+    {% else %}
+    {% if databaseType === 'postgresql' %}
+    audit_id BIGSERIAL PRIMARY KEY,
+    record_id BIGINT NOT NULL,
+    {% elif databaseType === 'mysql' %}
+    `audit_id` BIGINT AUTO_INCREMENT PRIMARY KEY,
+    `record_id` BIGINT NOT NULL,
+    {% else %}
+    audit_id BIGINT IDENTITY(1,1) PRIMARY KEY,
+    record_id BIGINT NOT NULL,
+    {% endif %}
+    {% endif %}
+
+    {% if databaseType === 'mysql' %}
+    `action` ENUM('INSERT', 'UPDATE', 'DELETE', 'RESTORE') NOT NULL,
+    `user_id` {% if withUUID %}CHAR(36){% else %}BIGINT{% endif %},
+    `ip_address` VARCHAR(45),
+    `user_agent` TEXT,
+    `old_values` JSON,
+    `new_values` JSON,
+    `timestamp` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    
+    INDEX idx_{{ tableName }}_audit_record_id (`record_id`),
+    INDEX idx_{{ tableName }}_audit_action (`action`),
+    INDEX idx_{{ tableName }}_audit_user_id (`user_id`),
+    INDEX idx_{{ tableName }}_audit_timestamp (`timestamp`)
+    {% else %}
+    action VARCHAR(10) CHECK (action IN ('INSERT', 'UPDATE', 'DELETE', 'RESTORE')) NOT NULL,
+    user_id {% if withUUID %}UUID{% else %}BIGINT{% endif %},
+    ip_address VARCHAR(45),
+    user_agent TEXT,
+    old_values {% if databaseType === 'postgresql' %}JSONB{% else %}NVARCHAR(MAX){% endif %},
+    new_values {% if databaseType === 'postgresql' %}JSONB{% else %}NVARCHAR(MAX){% endif %},
+    timestamp TIMESTAMP {% if databaseType === 'postgresql' %}WITH TIME ZONE {% endif %}DEFAULT {% if databaseType === 'postgresql' %}NOW(){% else %}GETDATE(){% endif %}
+    {% endif %}
+);
+
+{% if databaseType !== 'mysql' %}
+-- Audit table indexes
+CREATE INDEX idx_{{ tableName }}_audit_record_id ON {{ tableName }}_audit(record_id);
+CREATE INDEX idx_{{ tableName }}_audit_action ON {{ tableName }}_audit(action);
+CREATE INDEX idx_{{ tableName }}_audit_user_id ON {{ tableName }}_audit(user_id);
+CREATE INDEX idx_{{ tableName }}_audit_timestamp ON {{ tableName }}_audit(timestamp);
+{% endif %}
+{% endif %}
+
+{% if databaseType === 'postgresql' %}
+-- ============================================================================
+-- CREATE TRIGGERS FOR AUTOMATIC UPDATES
+-- ============================================================================
+
+{% if withTimestamps %}
+-- Trigger function to update updated_at timestamp
+CREATE OR REPLACE FUNCTION update_{{ tableName }}_updated_at()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = NOW();
+    NEW.version = OLD.version + 1;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Apply trigger to table
+CREATE TRIGGER trigger_{{ tableName }}_updated_at
+    BEFORE UPDATE ON {{ tableName }}
+    FOR EACH ROW EXECUTE FUNCTION update_{{ tableName }}_updated_at();
+{% endif %}
+
+{% if withAuditLog %}
+-- Audit logging trigger function
+CREATE OR REPLACE FUNCTION {{ tableName }}_audit_trigger()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF TG_OP = 'INSERT' THEN
+        INSERT INTO {{ tableName }}_audit (record_id, action, new_values, timestamp)
+        VALUES (NEW.id, 'INSERT', to_jsonb(NEW), NOW());
+        RETURN NEW;
+    ELSIF TG_OP = 'UPDATE' THEN
+        INSERT INTO {{ tableName }}_audit (record_id, action, old_values, new_values, timestamp)
+        VALUES (NEW.id, 'UPDATE', to_jsonb(OLD), to_jsonb(NEW), NOW());
+        RETURN NEW;
+    ELSIF TG_OP = 'DELETE' THEN
+        INSERT INTO {{ tableName }}_audit (record_id, action, old_values, timestamp)
+        VALUES (OLD.id, 'DELETE', to_jsonb(OLD), NOW());
+        RETURN OLD;
+    END IF;
+    RETURN NULL;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Apply audit trigger
+CREATE TRIGGER trigger_{{ tableName }}_audit
+    AFTER INSERT OR UPDATE OR DELETE ON {{ tableName }}
+    FOR EACH ROW EXECUTE FUNCTION {{ tableName }}_audit_trigger();
+{% endif %}
+{% endif %}
+
+-- ============================================================================
+-- COMMENTS AND DOCUMENTATION
+-- ============================================================================
+
+{% if databaseType === 'postgresql' %}
+COMMENT ON TABLE {{ tableName }} IS '{{ modelName }} entity table - Generated by Unjucks';
+COMMENT ON COLUMN {{ tableName }}.id IS 'Primary key identifier';
+COMMENT ON COLUMN {{ tableName }}.name IS 'Human-readable name or title';
+COMMENT ON COLUMN {{ tableName }}.status IS 'Current status of the record';
+{% if withSecurity %}
+COMMENT ON COLUMN {{ tableName }}.tenant_id IS 'Multi-tenancy isolation identifier';
+COMMENT ON COLUMN {{ tableName }}.access_level IS 'Security access control level';
+{% endif %}
+{% if withTimestamps %}
+COMMENT ON COLUMN {{ tableName }}.created_at IS 'Timestamp when record was created';
+COMMENT ON COLUMN {{ tableName }}.updated_at IS 'Timestamp when record was last updated';
+{% endif %}
+{% if withSoftDeletes %}
+COMMENT ON COLUMN {{ tableName }}.deleted_at IS 'Soft delete timestamp (NULL = active)';
+{% endif %}
+{% endif %}
+
+-- ============================================================================
+-- GRANT PERMISSIONS (Adjust as needed for your security model)
+-- ============================================================================
+
+-- Grant permissions to application user
+-- GRANT SELECT, INSERT, UPDATE, DELETE ON {{ tableName }} TO app_user;
+-- {% if withAuditLog %}GRANT SELECT, INSERT ON {{ tableName }}_audit TO app_user;{% endif %}
+
+-- Grant read-only permissions to reporting user
+-- GRANT SELECT ON {{ tableName }} TO reporting_user;
+-- {% if withAuditLog %}GRANT SELECT ON {{ tableName }}_audit TO reporting_user;{% endif %}
+
+-- Migration completed successfully
+-- Table: {{ tableName }}
+-- Features: {% if withTimestamps %}timestamps, {% endif %}{% if withSoftDeletes %}soft-deletes, {% endif %}{% if withIndexes %}indexes, {% endif %}{% if withAuditLog %}audit-log, {% endif %}{% if withSecurity %}security{% endif %}

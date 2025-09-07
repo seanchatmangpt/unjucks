@@ -1,0 +1,232 @@
+/**
+ * Unit Tests for Swarm Topologies and Agent Orchestration
+ * Tests different swarm topologies with real agent coordination patterns
+ */
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { ClaudeFlowConnector } from '../../src/mcp/claude-flow-connector.js';
+import { TaskOrchestrator } from '../../src/mcp/task-orchestrator.js';
+import { SharedMemoryInterface } from '../../src/mcp/shared-memory-interface.js';
+import { AgentType, SwarmStrategy, ExecutionStrategy, SwarmTask } from '../../src/lib/types/index.js';
+import { existsSync, rmSync } from 'fs';
+import { tmpdir } from 'os';
+import { join } from 'path';
+
+describe('Swarm Topologies and Agent Orchestration', () => {
+  let connector;
+  let testWorkspace => {
+    testWorkspace = join(tmpdir(), `swarm-test-${Date.now()}`);
+    connector = new ClaudeFlowConnector({
+      workspace,
+      timeout);
+    
+    await connector.initialize();
+  });
+
+  afterEach(async () => {
+    if (connector) {
+      await connector.cleanup();
+    }
+    
+    if (existsSync(testWorkspace)) { rmSync(testWorkspace, { recursive: true, force });
+    }
+  });
+
+  describe('Mesh Topology', () => { it('should create mesh topology with peer-to-peer communication', async () => {
+      const swarmResult = await connector.createSwarm({
+        topology });
+
+    it('should handle load balancing in mesh topology', async () => { const swarmResult = await connector.createSwarm({
+        topology }`,
+        type: 'template_generate',
+        agentType: AgentType.CODER,
+        params: { templateName },
+        priority: 1,
+        dependencies: [],
+        estimatedDuration));
+
+      const orchestratorResult = await connector.orchestrateToolExecution(
+        'parallel_template_generation',
+        { tasks },
+        3,
+        { strategy);
+
+      expect(orchestratorResult.success).toBe(true);
+      expect(orchestratorResult.metrics.loadBalancingEfficiency).toBeGreaterThan(0.8); // > 80% efficiency
+    });
+
+    it('should maintain fault tolerance in mesh topology', async () => { const swarmResult = await connector.createSwarm({
+        topology });
+  });
+
+  describe('Hierarchical Topology', () => { it('should create hierarchical topology with coordinator-worker pattern', async () => {
+      const swarmResult = await connector.createSwarm({
+        topology });
+
+    it('should implement proper command flow in hierarchy', async () => { const swarmResult = await connector.createSwarm({
+        topology },
+            { phase },
+            { phase },
+            { phase });
+
+    it('should handle coordinator failure with promotion', async () => { const swarmResult = await connector.createSwarm({
+        topology });
+  });
+
+  describe('Ring Topology', () => { it('should create ring topology with circular communication', async () => {
+      const swarmResult = await connector.createSwarm({
+        topology });
+
+    it('should implement pipeline processing in ring', async () => { const swarmResult = await connector.createSwarm({
+        topology },
+          pipelineStages, 'generate', 'validate']
+        },
+        1
+      );
+
+      expect(result.success).toBe(true);
+      expect(result.data.pipelineResults).toHaveLength(3);
+      expect(result.metrics.pipelineEfficiency).toBeGreaterThan(0.85); // > 85% efficiency
+    });
+
+    it('should handle ring breaks and self-healing', async () => { const swarmResult = await connector.createSwarm({
+        topology });
+  });
+
+  describe('Star Topology', () => { it('should create star topology with central hub', async () => {
+      const swarmResult = await connector.createSwarm({
+        topology });
+
+    it('should implement efficient resource distribution through hub', async () => { const swarmResult = await connector.createSwarm({
+        topology },
+            { type },
+            { type });
+
+    it('should handle hub failure with designated backup', async () => { const swarmResult = await connector.createSwarm({
+        topology });
+  });
+
+  describe('Topology Performance Comparison', () => {
+    it('should compare performance across different topologies', async () => {
+      const topologies = ['mesh', 'hierarchical', 'ring', 'star'];
+      const results = [];
+
+      for (const topology of topologies) {
+        const swarmResult = await connector.createSwarm({
+          topology,
+          maxAgents);
+
+        // Spawn appropriate agents for each topology
+        if (topology === 'hierarchical' || topology === 'star') {
+          await connector.spawnAgent(swarmResult.swarmId!, AgentType.COORDINATOR, []);
+          await Promise.all([
+            connector.spawnAgent(swarmResult.swarmId!, AgentType.CODER, []),
+            connector.spawnAgent(swarmResult.swarmId!, AgentType.TESTER, []),
+            connector.spawnAgent(swarmResult.swarmId!, AgentType.REVIEWER, [])
+          ]);
+        } else {
+          await Promise.all([
+            connector.spawnAgent(swarmResult.swarmId!, AgentType.CODER, []),
+            connector.spawnAgent(swarmResult.swarmId!, AgentType.CODER, []),
+            connector.spawnAgent(swarmResult.swarmId!, AgentType.CODER, []),
+            connector.spawnAgent(swarmResult.swarmId!, AgentType.CODER, [])
+          ]);
+        }
+
+        const startTime = Date.now();
+        const result = await connector.orchestrateToolExecution(
+          'performance_benchmark',
+          { complexity,
+          1
+        );
+        const executionTime = Date.now() - startTime;
+
+        results.push({
+          topology,
+          success }
+
+      // Verify all topologies completed successfully
+      expect(results.every(r => r.success)).toBe(true);
+
+      // Analyze performance characteristics
+      const meshResult = results.find(r => r.topology === 'mesh')!;
+      const hierarchicalResult = results.find(r => r.topology === 'hierarchical')!;
+      const ringResult = results.find(r => r.topology === 'ring')!;
+      const starResult = results.find(r => r.topology === 'star')!;
+
+      // Mesh should have high efficiency but potentially higher resource usage
+      expect(meshResult.efficiency).toBeGreaterThan(0.8);
+      
+      // Hierarchical should have good coordination but some overhead
+      expect(hierarchicalResult.executionTime).toBeGreaterThan(meshResult.executionTime * 0.9);
+      
+      // Ring should be efficient for pipeline tasks
+      expect(ringResult.efficiency).toBeGreaterThan(0.75);
+      
+      // Star should have low resource utilization on spokes
+      expect(starResult.resourceUtilization).toBeLessThan(meshResult.resourceUtilization);
+    });
+
+    it('should recommend optimal topology based on task characteristics', async () => { const taskProfiles = [
+        {
+          name },
+          expectedTopology: 'mesh'
+        },
+        { name },
+          expectedTopology: 'hierarchical'
+        },
+        { name },
+          expectedTopology: 'ring'
+        },
+        { name },
+          expectedTopology: 'star'
+        }
+      ];
+
+      for (const profile of taskProfiles) {
+        const recommendation = await connector.recommendTopology(profile.characteristics);
+        
+        expect(recommendation.recommendedTopology).toBe(profile.expectedTopology);
+        expect(recommendation.confidence).toBeGreaterThan(0.7); // > 70% confidence
+        expect(recommendation.reasoning).toBeDefined();
+      }
+    });
+  });
+
+  describe('Dynamic Topology Adaptation', () => { it('should adapt topology based on runtime performance', async () => {
+      // Start with mesh topology
+      const swarmResult = await connector.createSwarm({
+        topology },
+        1,
+        { enableTopologyAdaptation }
+      );
+
+      expect(result.success).toBe(true);
+      
+      // Check if topology was adapted
+      const finalStatus = await connector.getSwarmStatus(swarmResult.swarmId!);
+      if (result.metrics?.topologyChanged) {
+        expect(finalStatus.data.currentTopology).toBe('hierarchical');
+        expect(result.metrics.adaptationReason).toBeDefined();
+      }
+    });
+
+    it('should handle topology transitions smoothly', async () => { const swarmResult = await connector.createSwarm({
+        topology }
+      );
+
+      expect(transitionResult.success).toBe(true);
+      expect(transitionResult.transitionTime).toBeLessThan(5000); // < 5 seconds
+      expect(transitionResult.agentsPreserved).toBe(3);
+      
+      // Verify new topology is working
+      const verificationResult = await connector.orchestrateToolExecution(
+        'topology_verification',
+        {},
+        1
+      );
+      
+      expect(verificationResult.success).toBe(true);
+      expect(verificationResult.data.currentTopology).toBe('mesh');
+    });
+  });
+});

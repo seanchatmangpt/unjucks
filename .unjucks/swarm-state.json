@@ -1,0 +1,755 @@
+{
+  "swarms": [
+    {
+      "name": "test-swarm",
+      "topology": "mesh",
+      "maxAgents": 5,
+      "strategy": "adaptive",
+      "agents": [
+        {
+          "id": "coordinator-1-e173yv",
+          "type": "coordinator",
+          "status": "active",
+          "capabilities": [
+            "coordination",
+            "task-distribution",
+            "monitoring"
+          ],
+          "mcpEnabled": false
+        },
+        {
+          "id": "researcher-2-or49hv",
+          "type": "researcher",
+          "status": "active",
+          "capabilities": [
+            "research",
+            "analysis",
+            "documentation"
+          ],
+          "mcpEnabled": false
+        },
+        {
+          "id": "coder-3-pcj9yk",
+          "type": "coder",
+          "status": "active",
+          "capabilities": [
+            "coding",
+            "implementation",
+            "debugging"
+          ],
+          "mcpEnabled": false
+        },
+        {
+          "id": "reviewer-4-r7648f",
+          "type": "reviewer",
+          "status": "active",
+          "capabilities": [
+            "code-review",
+            "quality-assurance",
+            "security"
+          ],
+          "mcpEnabled": false
+        },
+        {
+          "id": "tester-5-61ca62",
+          "type": "tester",
+          "status": "active",
+          "capabilities": [
+            "testing",
+            "validation",
+            "quality-control"
+          ],
+          "mcpEnabled": false
+        },
+        {
+          "id": "optimizer-scaled-1757266879104-li5u7g",
+          "type": "optimizer",
+          "status": "active",
+          "capabilities": [
+            "optimization",
+            "performance",
+            "efficiency"
+          ],
+          "mcpEnabled": false,
+          "scaledAt": "2025-09-07T17:41:19.104Z"
+        },
+        {
+          "id": "coordinator-scaled-1757266879207-af5z5w",
+          "type": "coordinator",
+          "status": "active",
+          "capabilities": [
+            "coordination",
+            "task-distribution",
+            "monitoring"
+          ],
+          "mcpEnabled": false,
+          "scaledAt": "2025-09-07T17:41:19.207Z"
+        },
+        {
+          "id": "researcher-scaled-1757266879308-xccwuj",
+          "type": "researcher",
+          "status": "active",
+          "capabilities": [
+            "research",
+            "analysis",
+            "documentation"
+          ],
+          "mcpEnabled": false,
+          "scaledAt": "2025-09-07T17:41:19.308Z"
+        }
+      ],
+      "id": "swarm-1757266597340-azt03o2zj",
+      "created": "2025-09-07T17:36:37.340Z",
+      "status": "active",
+      "tasks": [
+        "task-1757266739128-lx4ftj"
+      ],
+      "metrics": {
+        "totalTasks": 0,
+        "successfulTasks": 0,
+        "failedTasks": 0,
+        "avgExecutionTime": 0
+      },
+      "lastUpdated": "2025-09-07T17:41:19.308Z",
+      "neuralMetrics": {
+        "trainingSessions": 1,
+        "accuracy": 0.65,
+        "lastTraining": "2025-09-07T17:41:12.107Z",
+        "model": "coordination"
+      },
+      "neuralPatterns": true,
+      "learningMode": "active",
+      "lastScaled": "2025-09-07T17:41:19.308Z",
+      "scalingHistory": [
+        {
+          "timestamp": "2025-09-07T17:41:19.308Z",
+          "from": 5,
+          "to": 8,
+          "strategy": "gradual",
+          "delta": 3
+        }
+      ]
+    },
+    {
+      "name": "swarm-1757267032157",
+      "topology": "mesh",
+      "maxAgents": 5,
+      "strategy": "adaptive",
+      "agents": [
+        {
+          "id": "coordinator-1-uv7neb",
+          "type": "coordinator",
+          "status": "active",
+          "capabilities": [
+            "coordination",
+            "task-distribution",
+            "monitoring"
+          ],
+          "mcpEnabled": false
+        },
+        {
+          "id": "researcher-2-fe65gs",
+          "type": "researcher",
+          "status": "active",
+          "capabilities": [
+            "research",
+            "analysis",
+            "documentation"
+          ],
+          "mcpEnabled": false
+        },
+        {
+          "id": "coder-3-p2i80s",
+          "type": "coder",
+          "status": "active",
+          "capabilities": [
+            "coding",
+            "implementation",
+            "debugging"
+          ],
+          "mcpEnabled": false
+        },
+        {
+          "id": "reviewer-4-rvovqr",
+          "type": "reviewer",
+          "status": "active",
+          "capabilities": [
+            "code-review",
+            "quality-assurance",
+            "security"
+          ],
+          "mcpEnabled": false
+        },
+        {
+          "id": "tester-5-d6nu25",
+          "type": "tester",
+          "status": "active",
+          "capabilities": [
+            "testing",
+            "validation",
+            "quality-control"
+          ],
+          "mcpEnabled": false
+        }
+      ],
+      "id": "swarm-1757267032157-oju066ks5",
+      "created": "2025-09-07T17:43:52.157Z",
+      "status": "active",
+      "tasks": [],
+      "metrics": {
+        "totalTasks": 0,
+        "successfulTasks": 0,
+        "failedTasks": 0,
+        "avgExecutionTime": 0
+      },
+      "lastUpdated": "2025-09-07T17:43:52.158Z"
+    },
+    {
+      "name": "swarm-1757267080432",
+      "topology": "mesh",
+      "maxAgents": 5,
+      "strategy": "adaptive",
+      "agents": [
+        {
+          "id": "coordinator-1-5pg797",
+          "type": "coordinator",
+          "status": "active",
+          "capabilities": [
+            "coordination",
+            "task-distribution",
+            "monitoring"
+          ],
+          "mcpEnabled": false
+        },
+        {
+          "id": "researcher-2-hcmbtu",
+          "type": "researcher",
+          "status": "active",
+          "capabilities": [
+            "research",
+            "analysis",
+            "documentation"
+          ],
+          "mcpEnabled": false
+        },
+        {
+          "id": "coder-3-y4sxwj",
+          "type": "coder",
+          "status": "active",
+          "capabilities": [
+            "coding",
+            "implementation",
+            "debugging"
+          ],
+          "mcpEnabled": false
+        },
+        {
+          "id": "reviewer-4-jzf4ei",
+          "type": "reviewer",
+          "status": "active",
+          "capabilities": [
+            "code-review",
+            "quality-assurance",
+            "security"
+          ],
+          "mcpEnabled": false
+        },
+        {
+          "id": "tester-5-03b9xu",
+          "type": "tester",
+          "status": "active",
+          "capabilities": [
+            "testing",
+            "validation",
+            "quality-control"
+          ],
+          "mcpEnabled": false
+        }
+      ],
+      "id": "swarm-1757267080432-c77uy6a0a",
+      "created": "2025-09-07T17:44:40.432Z",
+      "status": "active",
+      "tasks": [],
+      "metrics": {
+        "totalTasks": 0,
+        "successfulTasks": 0,
+        "failedTasks": 0,
+        "avgExecutionTime": 0
+      },
+      "lastUpdated": "2025-09-07T17:44:40.433Z"
+    },
+    {
+      "name": "swarm-1757267408220",
+      "topology": "mesh",
+      "maxAgents": 5,
+      "strategy": "adaptive",
+      "agents": [
+        {
+          "id": "coordinator-1-5exwge",
+          "type": "coordinator",
+          "status": "active",
+          "capabilities": [
+            "coordination",
+            "task-distribution",
+            "monitoring"
+          ],
+          "mcpEnabled": false
+        },
+        {
+          "id": "researcher-2-1kgylu",
+          "type": "researcher",
+          "status": "active",
+          "capabilities": [
+            "research",
+            "analysis",
+            "documentation"
+          ],
+          "mcpEnabled": false
+        },
+        {
+          "id": "coder-3-2kp85i",
+          "type": "coder",
+          "status": "active",
+          "capabilities": [
+            "coding",
+            "implementation",
+            "debugging"
+          ],
+          "mcpEnabled": false
+        },
+        {
+          "id": "reviewer-4-4pnynd",
+          "type": "reviewer",
+          "status": "active",
+          "capabilities": [
+            "code-review",
+            "quality-assurance",
+            "security"
+          ],
+          "mcpEnabled": false
+        },
+        {
+          "id": "tester-5-eazs8y",
+          "type": "tester",
+          "status": "active",
+          "capabilities": [
+            "testing",
+            "validation",
+            "quality-control"
+          ],
+          "mcpEnabled": false
+        }
+      ],
+      "id": "swarm-1757267408220-e1j9nq04c",
+      "created": "2025-09-07T17:50:08.220Z",
+      "status": "active",
+      "tasks": [],
+      "metrics": {
+        "totalTasks": 0,
+        "successfulTasks": 0,
+        "failedTasks": 0,
+        "avgExecutionTime": 0
+      },
+      "lastUpdated": "2025-09-07T17:50:08.221Z"
+    },
+    {
+      "name": "test-hierarchical",
+      "topology": "hierarchical",
+      "maxAgents": 8,
+      "strategy": "specialized",
+      "agents": [
+        {
+          "id": "coordinator-1-h0yxu5",
+          "type": "coordinator",
+          "status": "active",
+          "capabilities": [
+            "coordination",
+            "task-distribution",
+            "monitoring"
+          ],
+          "mcpEnabled": false
+        },
+        {
+          "id": "researcher-2-qamm6v",
+          "type": "researcher",
+          "status": "active",
+          "capabilities": [
+            "research",
+            "analysis",
+            "documentation"
+          ],
+          "mcpEnabled": false
+        },
+        {
+          "id": "coder-3-yc2ruo",
+          "type": "coder",
+          "status": "active",
+          "capabilities": [
+            "coding",
+            "implementation",
+            "debugging"
+          ],
+          "mcpEnabled": false
+        },
+        {
+          "id": "reviewer-4-8n4r2w",
+          "type": "reviewer",
+          "status": "active",
+          "capabilities": [
+            "code-review",
+            "quality-assurance",
+            "security"
+          ],
+          "mcpEnabled": false
+        },
+        {
+          "id": "tester-5-b08kwc",
+          "type": "tester",
+          "status": "active",
+          "capabilities": [
+            "testing",
+            "validation",
+            "quality-control"
+          ],
+          "mcpEnabled": false
+        },
+        {
+          "id": "optimizer-6-1crqdu",
+          "type": "optimizer",
+          "status": "active",
+          "capabilities": [
+            "optimization",
+            "performance",
+            "efficiency"
+          ],
+          "mcpEnabled": false
+        },
+        {
+          "id": "coordinator-7-pdaedc",
+          "type": "coordinator",
+          "status": "active",
+          "capabilities": [
+            "coordination",
+            "task-distribution",
+            "monitoring"
+          ],
+          "mcpEnabled": false
+        },
+        {
+          "id": "researcher-8-r3wwma",
+          "type": "researcher",
+          "status": "active",
+          "capabilities": [
+            "research",
+            "analysis",
+            "documentation"
+          ],
+          "mcpEnabled": false
+        }
+      ],
+      "id": "swarm-1757267629387-mm713to8p",
+      "created": "2025-09-07T17:53:49.387Z",
+      "status": "active",
+      "tasks": [],
+      "metrics": {
+        "totalTasks": 0,
+        "successfulTasks": 0,
+        "failedTasks": 0,
+        "avgExecutionTime": 0
+      },
+      "lastUpdated": "2025-09-07T17:53:49.388Z"
+    },
+    {
+      "name": "test-integration",
+      "topology": "mesh",
+      "maxAgents": 5,
+      "strategy": "adaptive",
+      "agents": [
+        {
+          "id": "coordinator-1-w93ie1",
+          "type": "coordinator",
+          "status": "active",
+          "capabilities": [
+            "coordination",
+            "task-distribution",
+            "monitoring"
+          ],
+          "mcpEnabled": false
+        },
+        {
+          "id": "researcher-2-w3j76z",
+          "type": "researcher",
+          "status": "active",
+          "capabilities": [
+            "research",
+            "analysis",
+            "documentation"
+          ],
+          "mcpEnabled": false
+        },
+        {
+          "id": "coder-3-2cfru7",
+          "type": "coder",
+          "status": "active",
+          "capabilities": [
+            "coding",
+            "implementation",
+            "debugging"
+          ],
+          "mcpEnabled": false
+        },
+        {
+          "id": "reviewer-4-adpht2",
+          "type": "reviewer",
+          "status": "active",
+          "capabilities": [
+            "code-review",
+            "quality-assurance",
+            "security"
+          ],
+          "mcpEnabled": false
+        },
+        {
+          "id": "tester-5-0ln6ws",
+          "type": "tester",
+          "status": "active",
+          "capabilities": [
+            "testing",
+            "validation",
+            "quality-control"
+          ],
+          "mcpEnabled": false
+        }
+      ],
+      "id": "swarm-1757267703000-l3tfld1r2",
+      "created": "2025-09-07T17:55:03.000Z",
+      "status": "active",
+      "tasks": [],
+      "metrics": {
+        "totalTasks": 0,
+        "successfulTasks": 0,
+        "failedTasks": 0,
+        "avgExecutionTime": 0
+      },
+      "lastUpdated": "2025-09-07T17:55:03.001Z"
+    },
+    {
+      "name": "swarm-1757267783777",
+      "topology": "mesh",
+      "maxAgents": 3,
+      "strategy": "adaptive",
+      "agents": [
+        {
+          "id": "coordinator-1-3507vw",
+          "type": "coordinator",
+          "status": "active",
+          "capabilities": [
+            "coordination",
+            "task-distribution",
+            "monitoring"
+          ],
+          "mcpEnabled": false
+        },
+        {
+          "id": "researcher-2-kp7fif",
+          "type": "researcher",
+          "status": "active",
+          "capabilities": [
+            "research",
+            "analysis",
+            "documentation"
+          ],
+          "mcpEnabled": false
+        },
+        {
+          "id": "coder-3-utetj5",
+          "type": "coder",
+          "status": "active",
+          "capabilities": [
+            "coding",
+            "implementation",
+            "debugging"
+          ],
+          "mcpEnabled": false
+        }
+      ],
+      "id": "swarm-1757267783778-ledvg5c4s",
+      "created": "2025-09-07T17:56:23.778Z",
+      "status": "active",
+      "tasks": [],
+      "metrics": {
+        "totalTasks": 0,
+        "successfulTasks": 0,
+        "failedTasks": 0,
+        "avgExecutionTime": 0
+      },
+      "lastUpdated": "2025-09-07T17:56:23.778Z"
+    },
+    {
+      "name": "swarm-1757267958942",
+      "topology": "mesh",
+      "maxAgents": 5,
+      "strategy": "adaptive",
+      "agents": [
+        {
+          "id": "coordinator-1-uct4iy",
+          "type": "coordinator",
+          "status": "active",
+          "capabilities": [
+            "coordination",
+            "task-distribution",
+            "monitoring"
+          ],
+          "mcpEnabled": false
+        },
+        {
+          "id": "researcher-2-w7ebcv",
+          "type": "researcher",
+          "status": "active",
+          "capabilities": [
+            "research",
+            "analysis",
+            "documentation"
+          ],
+          "mcpEnabled": false
+        },
+        {
+          "id": "coder-3-orusco",
+          "type": "coder",
+          "status": "active",
+          "capabilities": [
+            "coding",
+            "implementation",
+            "debugging"
+          ],
+          "mcpEnabled": false
+        },
+        {
+          "id": "reviewer-4-j57all",
+          "type": "reviewer",
+          "status": "active",
+          "capabilities": [
+            "code-review",
+            "quality-assurance",
+            "security"
+          ],
+          "mcpEnabled": false
+        },
+        {
+          "id": "tester-5-qsfpuk",
+          "type": "tester",
+          "status": "active",
+          "capabilities": [
+            "testing",
+            "validation",
+            "quality-control"
+          ],
+          "mcpEnabled": false
+        }
+      ],
+      "id": "swarm-1757267958942-3g024u1ax",
+      "created": "2025-09-07T17:59:18.942Z",
+      "status": "active",
+      "tasks": [],
+      "metrics": {
+        "totalTasks": 0,
+        "successfulTasks": 0,
+        "failedTasks": 0,
+        "avgExecutionTime": 0
+      },
+      "lastUpdated": "2025-09-07T17:59:18.943Z"
+    },
+    {
+      "name": "test-swarm",
+      "topology": "mesh",
+      "maxAgents": 5,
+      "strategy": "adaptive",
+      "agents": [
+        {
+          "id": "coordinator-1-0jrk7c",
+          "type": "coordinator",
+          "status": "active",
+          "capabilities": [
+            "coordination",
+            "task-distribution",
+            "monitoring"
+          ],
+          "mcpEnabled": false
+        },
+        {
+          "id": "researcher-2-qw0170",
+          "type": "researcher",
+          "status": "active",
+          "capabilities": [
+            "research",
+            "analysis",
+            "documentation"
+          ],
+          "mcpEnabled": false
+        },
+        {
+          "id": "coder-3-alr17j",
+          "type": "coder",
+          "status": "active",
+          "capabilities": [
+            "coding",
+            "implementation",
+            "debugging"
+          ],
+          "mcpEnabled": false
+        },
+        {
+          "id": "reviewer-4-4p1mnx",
+          "type": "reviewer",
+          "status": "active",
+          "capabilities": [
+            "code-review",
+            "quality-assurance",
+            "security"
+          ],
+          "mcpEnabled": false
+        },
+        {
+          "id": "tester-5-zd7f71",
+          "type": "tester",
+          "status": "active",
+          "capabilities": [
+            "testing",
+            "validation",
+            "quality-control"
+          ],
+          "mcpEnabled": false
+        }
+      ],
+      "id": "swarm-1757268095277-k7h6krzk4",
+      "created": "2025-09-07T18:01:35.277Z",
+      "status": "active",
+      "tasks": [],
+      "metrics": {
+        "totalTasks": 0,
+        "successfulTasks": 0,
+        "failedTasks": 0,
+        "avgExecutionTime": 0
+      },
+      "lastUpdated": "2025-09-07T18:01:35.278Z"
+    }
+  ],
+  "tasks": [
+    {
+      "description": "Implement REST API endpoints for user management",
+      "strategy": "adaptive",
+      "assignedAgents": [
+        "coordinator-1-e173yv",
+        "researcher-2-or49hv",
+        "coder-3-pcj9yk",
+        "reviewer-4-r7648f",
+        "tester-5-61ca62"
+      ],
+      "id": "task-1757266739128-lx4ftj",
+      "swarmId": "swarm-1757266597340-azt03o2zj",
+      "created": "2025-09-07T17:38:59.128Z",
+      "status": "pending"
+    }
+  ],
+  "lastUpdated": "2025-09-07T18:01:35.281Z"
+}
