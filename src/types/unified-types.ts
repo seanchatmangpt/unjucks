@@ -1287,9 +1287,7 @@ export interface ValidatorConfig {
 /**
  * Validator factory type
  */
-export type ValidatorFactory = (
-  config: ValidatorConfig
-) => ValidatorFunction;
+export type ValidatorFactory = (config: ValidatorConfig) => ValidatorFunction;
 
 /**
  * Generated validator result
