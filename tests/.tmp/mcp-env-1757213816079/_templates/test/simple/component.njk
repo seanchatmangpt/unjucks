@@ -1,0 +1,10 @@
+
+---
+to: "{{ dest | default('./output') }}/{{ name | pascalCase }}.tsx"
+---
+import React from 'react';
+
+export const {{ name | pascalCase }} = () => {
+  return <div>{{ name }}</div>;
+};
+      

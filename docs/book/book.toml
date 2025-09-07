@@ -1,51 +1,29 @@
 [book]
-title = "The Complete Unjucks Ecosystem Guide"
-description = "Comprehensive documentation for the Unjucks template generation platform with semantic web capabilities, MCP integration, and Fortune 5 enterprise patterns"
-authors = ["Unjucks Development Team", "Claude Code AI Assistant"]
-language = "en"
-multilingual = false
+title = "Unjucks 2026: Next-Generation Code Generation Best Practices"
+authors = ["Unjucks Team", "AI Swarm Contributors"]
+description = "Comprehensive guide to AI-powered code generation with MCP integration, semantic web capabilities, and enterprise workflows"
 src = "src"
+language = "en"
 
 [rust]
-edition = "2021"
+edition = "2018"
 
 [build]
 build-dir = "book"
 create-missing = true
 
-[preprocessor.links]
-
 [preprocessor.index]
 
-[preprocessor.toc]
-command = "mdbook-toc"
-renderer = ["html"]
-
 [output.html]
-additional-css = ["theme/custom.css"]
-additional-js = ["theme/custom.js"]
-no-section-label = false
+mathjax-support = true
+default-theme = "navy"
 git-repository-url = "https://github.com/ruvnet/unjucks"
-edit-url-template = "https://github.com/ruvnet/unjucks/edit/main/docs/book/{path}"
 site-url = "https://ruvnet.github.io/unjucks/"
 cname = "unjucks.dev"
-default-theme = "light"
-preferred-dark-theme = "navy"
-copy-fonts = true
-google-analytics = "G-UNJUCKS-ANALYTICS"
-print = { enable = true, page-break = true }
-search = { enable = true, limit-results = 30, teaser-word-count = 30, use-boolean-and = true, boost-title = 2, boost-hierarchy = 1, boost-paragraph = 1, expand = true, heading-split-level = 3 }
 
 [output.html.fold]
 enable = true
 level = 2
-
-[output.html.playground]
-editable = true
-copyable = true
-copy-js = true
-line-numbers = true
-runnable = true
 
 [output.html.search]
 enable = true
@@ -58,14 +36,9 @@ boost-paragraph = 1
 expand = true
 heading-split-level = 3
 
-[output.linkcheck]
-follow-web-links = true
-traverse-parent-directories = false
-exclude = ["^print.html$"]
-
 [output.html.print]
 enable = true
 page-break = true
 
-[output.html.git-repository-icon]
-fa-icon = true
+[output.linkcheck]
+follow-web-links = true
