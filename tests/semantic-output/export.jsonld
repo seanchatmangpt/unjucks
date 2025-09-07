@@ -1,0 +1,9 @@
+{
+  "@context": {
+    "ex": "http://example.org/",
+    "rdfs": "http://www.w3.org/2000/01/rdf-schema#"
+  },
+  "@type": "Ontology",
+  "ex:exportedBy": "Unjucks Semantic Generator",
+  "ex:exportDate": "2025-09-07T18:29:21.618Z"
+}

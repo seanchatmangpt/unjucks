@@ -1,0 +1,92 @@
+---
+to: examples/generated/date-demo-{{ now() | formatDate('YYYY-MM-DD') }}.txt
+inject: false
+---
+# Day.js Date/Time Filters Demo
+Generated on: {{ now() | formatDate('MMMM DD, YYYY [at] HH:mm:ss') }}
+
+## Basic Date Formatting
+Current timestamp: {{ timestamp() }}
+Today's date: {{ now() | formatDate('YYYY-MM-DD') }}
+Full datetime: {{ now() | formatDate('dddd, MMMM DD, YYYY [at] h:mm A') }}
+Migration format: {{ now() | formatDate('YYYY_MM_DD_HHmmss') }}
+
+## Date Arithmetic
+Tomorrow: {{ now() | dateAdd(1, 'day') | formatDate('YYYY-MM-DD') }}
+Last week: {{ now() | dateSub(1, 'week') | formatDate('YYYY-MM-DD') }}
+Next month: {{ now() | dateAdd(1, 'month') | formatDate('YYYY-MM-DD') }}
+Start of this month: {{ now() | dateStart('month') | formatDate('YYYY-MM-DD') }}
+End of this year: {{ now() | dateEnd('year') | formatDate('YYYY-MM-DD') }}
+
+## Relative Time Examples
+Christmas 2023: {{ '2023-12-25' | dateFrom }}
+Future date: {{ now() | dateAdd(30, 'day') | dateTo }}
+Yesterday: {{ now() | dateSub(1, 'day') | fromNow }}
+
+## Date Comparisons
+Is today today? {{ now() | isToday }}
+Is Christmas before New Year? {{ '2023-12-25' | isBefore('2024-01-01') }}
+Is summer after spring? {{ '2024-06-21' | isAfter('2024-03-20') }}
+Days until next year: {{ now() | dateDiff(now() | dateEnd('year'), 'day') }}
+
+## Date Conversions
+Unix timestamp: {{ now() | unix }}
+ISO format: {{ now() | iso }}
+UTC time: {{ now() | utc | formatDate('YYYY-MM-DD HH:mm:ss [UTC]') }}
+
+## Advanced Examples
+File naming with timestamp:
+- migration_{{ now() | formatDate('YYYY_MM_DD_HHmmss') }}_create_users.sql
+- backup_{{ today() | formatDate('YYYYMMDD') }}.zip
+- log_{{ now() | formatDate('YYYY-MM-DD_HH-mm-ss') }}.txt
+
+Database records:
+- created_at: {{ now() | iso }}
+- updated_at: {{ now() | dateAdd(5, 'minute') | iso }}
+- expires_at: {{ now() | dateAdd(30, 'day') | formatDate('YYYY-MM-DD HH:mm:ss') }}
+
+Schedule examples:
+- Meeting: {{ now() | dateAdd(2, 'hour') | formatDate('h:mm A [on] MMMM DD') }}
+- Deadline: {{ now() | dateAdd(7, 'day') | dateEnd('day') | formatDate('YYYY-MM-DD [at] HH:mm') }}
+- Review date: {{ now() | dateAdd(1, 'month') | dateStart('month') | formatDate('MMMM DD, YYYY') }}
+
+## Practical Template Usage
+
+### Migration File Template
+```sql
+-- Migration created on {{ now() | formatDate('YYYY-MM-DD [at] HH:mm:ss') }}
+-- File: {{ timestamp() }}_add_user_preferences.sql
+
+CREATE TABLE user_preferences (
+  id SERIAL PRIMARY KEY,
+  user_id INTEGER NOT NULL,
+  preferences JSONB DEFAULT '{}',
+  created_at TIMESTAMP DEFAULT '{{ now() | iso }}',
+  updated_at TIMESTAMP DEFAULT '{{ now() | iso }}'
+);
+```
+
+### API Response Template
+```json
+{
+  "timestamp": "{{ now() | iso }}",
+  "data": {
+    "created": "{{ now() | formatDate('YYYY-MM-DD') }}",
+    "expires": "{{ now() | dateAdd(7, 'day') | iso }}",
+    "last_updated": "{{ now() | fromNow }}"
+  }
+}
+```
+
+### Cron Job Template
+```bash
+#!/bin/bash
+# Generated on {{ now() | formatDate('YYYY-MM-DD') }}
+# Backup script for {{ now() | formatDate('MMMM YYYY') }}
+
+BACKUP_DIR="/backups/{{ now() | formatDate('YYYY/MM') }}"
+BACKUP_FILE="backup_{{ now() | formatDate('YYYY-MM-DD_HH-mm-ss') }}.tar.gz"
+LOG_FILE="/logs/backup_{{ now() | formatDate('YYYY-MM-DD') }}.log"
+
+echo "Backup started at {{ now() | formatDate('YYYY-MM-DD HH:mm:ss') }}" >> $LOG_FILE
+```

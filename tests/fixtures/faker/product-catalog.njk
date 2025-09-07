@@ -1,0 +1,109 @@
+---
+to: tests/data/products/{{ categoryName | kebabCase }}.json
+inject: false
+skip_if: '{{ !generateProducts }}'
+---
+{
+  "category": "{{ categoryName | title }}",
+  "products": [
+    {% for i in range(0, productCount | default(10)) %}
+    {
+      "id": "{{ faker.uuid }}",
+      "sku": "{{ faker.sku }}",
+      "name": "{{ faker.productName }}",
+      "description": "{{ faker.productDescription }}",
+      "shortDescription": "{{ faker.shortDescription }}",
+      "price": {
+        "regular": {{ faker.price(10, 500, 2) }},
+        "sale": {{ faker.price(5, 400, 2) }},
+        "currency": "{{ currency | default('USD') }}"
+      },
+      "inventory": {
+        "inStock": {{ faker.boolean }},
+        "quantity": {{ faker.number(0, 1000) }},
+        "lowStockThreshold": {{ faker.number(5, 50) }},
+        "reorderPoint": {{ faker.number(10, 100) }}
+      },
+      "dimensions": {
+        "weight": {{ faker.number(0.1, 50, 2) }},
+        "length": {{ faker.number(1, 100, 1) }},
+        "width": {{ faker.number(1, 80, 1) }},
+        "height": {{ faker.number(1, 60, 1) }},
+        "unit": "{{ faker.randomElement(['cm', 'in']) }}"
+      },
+      "images": [
+        {% for j in range(0, faker.number(1, 5)) %}
+        "{{ faker.imageUrl(640, 480, categoryName | lowercase) }}"{% if not loop.last %},{% endif %}
+        {% endfor %}
+      ],
+      "tags": [
+        {% for j in range(0, faker.number(2, 8)) %}
+        "{{ faker.word }}"{% if not loop.last %},{% endif %}
+        {% endfor %}
+      ],
+      "attributes": {
+        "color": "{{ faker.color }}",
+        "material": "{{ faker.material }}",
+        "brand": "{{ faker.brand }}",
+        "model": "{{ faker.model }}",
+        "year": {{ faker.year }},
+        "warranty": "{{ faker.number(1, 5) }} years"
+      },
+      "ratings": {
+        "average": {{ faker.number(1, 5, 1) }},
+        "count": {{ faker.number(0, 1000) }},
+        "distribution": {
+          "5": {{ faker.number(0, 300) }},
+          "4": {{ faker.number(0, 250) }},
+          "3": {{ faker.number(0, 200) }},
+          "2": {{ faker.number(0, 100) }},
+          "1": {{ faker.number(0, 50) }}
+        }
+      },
+      "shipping": {
+        "freeShipping": {{ faker.boolean }},
+        "weight": {{ faker.number(0.1, 50, 2) }},
+        "dimensions": "{{ faker.number(1, 100) }}x{{ faker.number(1, 80) }}x{{ faker.number(1, 60) }}",
+        "shippingClass": "{{ faker.randomElement(['standard', 'express', 'overnight']) }}"
+      },
+      "seo": {
+        "slug": "{{ faker.slug }}",
+        "metaTitle": "{{ faker.sentence }}",
+        "metaDescription": "{{ faker.paragraph }}",
+        "keywords": [
+          {% for j in range(0, faker.number(3, 10)) %}
+          "{{ faker.word }}"{% if not loop.last %},{% endif %}
+          {% endfor %}
+        ]
+      },
+      "status": "{{ faker.randomElement(['active', 'inactive', 'draft', 'discontinued']) }}",
+      "featured": {{ faker.boolean }},
+      "createdAt": "{{ faker.pastDate | formatDate('YYYY-MM-DD[T]HH:mm:ss[Z]') }}",
+      "updatedAt": "{{ faker.recentDate | formatDate('YYYY-MM-DD[T]HH:mm:ss[Z]') }}"
+    }{% if not loop.last %},{% endif %}
+    {% endfor %}
+  ],
+  "categoryInfo": {
+    "id": "{{ faker.uuid }}",
+    "name": "{{ categoryName | title }}",
+    "slug": "{{ categoryName | kebabCase }}",
+    "description": "{{ faker.paragraph }}",
+    "parentCategory": {{ parentCategory | json | default('null') }},
+    "subcategories": [
+      {% for j in range(0, faker.number(2, 6)) %}
+      {
+        "id": "{{ faker.uuid }}",
+        "name": "{{ faker.department }}",
+        "slug": "{{ faker.slug }}"
+      }{% if not loop.last %},{% endif %}
+      {% endfor %}
+    ]
+  },
+  "metadata": {
+    "generated": "{{ now | formatDate('YYYY-MM-DD[T]HH:mm:ss[Z]') }}",
+    "totalProducts": {{ productCount | default(10) }},
+    "category": "{{ categoryName }}",
+    "version": "{{ version | default('1.0.0') }}",
+    "seed": "{{ seed | default(faker.seed) }}"
+  }
+}

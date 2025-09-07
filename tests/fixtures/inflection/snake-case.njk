@@ -1,0 +1,127 @@
+---
+to: database/models/{{ name | snakeCase }}.py
+inject: false
+---
+"""
+{{ name | title }} Model
+Generated: {{ now | formatDate('YYYY-MM-DD HH:mm:ss') }}
+"""
+
+from datetime import datetime
+from sqlalchemy import Column, Integer, String, Text, Boolean, DateTime, ForeignKey, JSON
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import relationship
+from typing import Optional, Dict, Any
+
+Base = declarative_base()
+
+
+class {{ name | pascalCase }}(Base):
+    """{{ name | title }} database model"""
+    
+    __tablename__ = '{{ name | snakeCase }}'
+    
+    # Primary key
+    {{ primaryKey | snakeCase }} = Column(Integer, primary_key=True, autoincrement=True)
+    
+    # Basic fields
+    {{ fieldName | snakeCase }} = Column(String({{ fieldLength | default('255') }}), nullable={{ nullable | default('False') }})
+    {{ secondField | snakeCase }} = Column(Text, nullable=True)
+    {{ boolField | snakeCase }} = Column(Boolean, default={{ boolDefault | default('True') }}, nullable=False)
+    {{ jsonField | snakeCase }} = Column(JSON, default={}, nullable=True)
+    
+    # Foreign key relationships
+    {% if hasRelation %}
+    {{ relationField | snakeCase }}_id = Column(Integer, ForeignKey('{{ relationTable | snakeCase }}.id'), nullable=True)
+    {{ relationField | snakeCase }} = relationship('{{ relationModel | pascalCase }}', back_populates='{{ name | pluralize | snakeCase }}')
+    {% endif %}
+    
+    # Timestamps
+    {{ createdField | snakeCase }} = Column(DateTime, default=datetime.utcnow, nullable=False)
+    {{ updatedField | snakeCase }} = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+    
+    def __init__(
+        self,
+        {{ fieldName | snakeCase }}: str,
+        {{ secondField | snakeCase }}: Optional[str] = None,
+        {{ boolField | snakeCase }}: bool = {{ boolDefault | default('True') }},
+        {{ jsonField | snakeCase }}: Optional[Dict[str, Any]] = None,
+        {% if hasRelation %}
+        {{ relationField | snakeCase }}_id: Optional[int] = None,
+        {% endif %}
+    ):
+        self.{{ fieldName | snakeCase }} = {{ fieldName | snakeCase }}
+        self.{{ secondField | snakeCase }} = {{ secondField | snakeCase }}
+        self.{{ boolField | snakeCase }} = {{ boolField | snakeCase }}
+        self.{{ jsonField | snakeCase }} = {{ jsonField | snakeCase }} or {}
+        {% if hasRelation %}
+        self.{{ relationField | snakeCase }}_id = {{ relationField | snakeCase }}_id
+        {% endif %}
+    
+    def __repr__(self) -> str:
+        return f"<{{ name | pascalCase }}({{ primaryKey | snakeCase }}={self.{{ primaryKey | snakeCase }}}, {{ fieldName | snakeCase }}='{self.{{ fieldName | snakeCase }}}')>"
+    
+    def to_dict(self) -> Dict[str, Any]:
+        """Convert model instance to dictionary"""
+        return {
+            '{{ primaryKey | snakeCase }}': self.{{ primaryKey | snakeCase }},
+            '{{ fieldName | snakeCase }}': self.{{ fieldName | snakeCase }},
+            '{{ secondField | snakeCase }}': self.{{ secondField | snakeCase }},
+            '{{ boolField | snakeCase }}': self.{{ boolField | snakeCase }},
+            '{{ jsonField | snakeCase }}': self.{{ jsonField | snakeCase }},
+            {% if hasRelation %}
+            '{{ relationField | snakeCase }}_id': self.{{ relationField | snakeCase }}_id,
+            {% endif %}
+            '{{ createdField | snakeCase }}': self.{{ createdField | snakeCase }}.isoformat() if self.{{ createdField | snakeCase }} else None,
+            '{{ updatedField | snakeCase }}': self.{{ updatedField | snakeCase }}.isoformat() if self.{{ updatedField | snakeCase }} else None,
+        }
+    
+    @classmethod
+    def from_dict(cls, data: Dict[str, Any]) -> '{{ name | pascalCase }}':
+        """Create model instance from dictionary"""
+        return cls(
+            {{ fieldName | snakeCase }}=data.get('{{ fieldName | snakeCase }}'),
+            {{ secondField | snakeCase }}=data.get('{{ secondField | snakeCase }}'),
+            {{ boolField | snakeCase }}=data.get('{{ boolField | snakeCase }}', {{ boolDefault | default('True') }}),
+            {{ jsonField | snakeCase }}=data.get('{{ jsonField | snakeCase }}', {}),
+            {% if hasRelation %}
+            {{ relationField | snakeCase }}_id=data.get('{{ relationField | snakeCase }}_id'),
+            {% endif %}
+        )
+    
+    def update_from_dict(self, data: Dict[str, Any]) -> None:
+        """Update model instance from dictionary"""
+        for key, value in data.items():
+            if hasattr(self, key) and key not in ['{{ primaryKey | snakeCase }}', '{{ createdField | snakeCase }}']:
+                setattr(self, key, value)
+        self.{{ updatedField | snakeCase }} = datetime.utcnow()
+    
+    def {{ methodName | snakeCase }}(self) -> str:
+        """Custom method for {{ name }}"""
+        return f"{{ name | title }}: {self.{{ fieldName | snakeCase }}}"
+    
+    def {{ validationMethod | snakeCase }}(self) -> bool:
+        """Validate {{ name }} data"""
+        if not self.{{ fieldName | snakeCase }} or len(self.{{ fieldName | snakeCase }}.strip()) == 0:
+            return False
+        
+        if self.{{ boolField | snakeCase }} is None:
+            return False
+            
+        return True
+    
+    @classmethod
+    def {{ queryMethod | snakeCase }}(cls, session, {{ paramName | snakeCase }}: str):
+        """Query {{ name | pluralize }} by {{ paramName }}"""
+        return session.query(cls).filter(
+            cls.{{ fieldName | snakeCase }}.ilike(f'%{{{ paramName | snakeCase }}}%')
+        ).all()
+    
+    @classmethod
+    def {{ activeMethod | snakeCase }}(cls, session):
+        """Get active {{ name | pluralize }}"""
+        return session.query(cls).filter(cls.{{ boolField | snakeCase }} == True).all()
+
+
+# Model configuration
+{{ name | snakeCase }}_table = {{ name | pascalCase }}.__table__

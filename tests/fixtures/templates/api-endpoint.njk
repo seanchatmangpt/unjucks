@@ -1,0 +1,222 @@
+---
+to: src/routes/{{ version | default('v1') }}/{{ resourceName | kebabCase }}.{{ extension | default('ts') }}
+inject: false
+skip_if: '{{ !generateAPI }}'
+chmod: 0644
+---
+import { Router, Request, Response, NextFunction } from 'express'
+import { body, param, query, validationResult } from 'express-validator'
+import { {{ resourceName | pascalCase }}Service } from '../services/{{ resourceName | kebabCase }}-service'
+import { authenticate, authorize } from '../middleware/auth'
+import { rateLimit } from '../middleware/rate-limit'
+import { logger } from '../utils/logger'
+
+const router = Router()
+const {{ resourceName | camelCase }}Service = new {{ resourceName | pascalCase }}Service()
+
+/**
+ * {{ resourceName | title }} API Routes
+ * Generated: {{ now | formatDate('YYYY-MM-DD HH:mm:ss') }}
+ * Version: {{ version | default('1.0.0') }}
+ */
+
+// Rate limiting
+const {{ resourceName | camelCase }}RateLimit = rateLimit({
+  windowMs: {{ rateLimit.window | default('15 * 60 * 1000') }}, // {{ rateLimit.windowDescription | default('15 minutes') }}
+  max: {{ rateLimit.max | default('100') }}, // {{ rateLimit.description | default('limit each IP to 100 requests per windowMs') }}
+  message: 'Too many {{ resourceName | lowercase }} requests from this IP'
+})
+
+{% if withAuth %}
+// Apply authentication to all routes
+router.use(authenticate)
+{% endif %}
+
+{% for endpoint in endpoints %}
+/**
+ * {{ endpoint.method | uppercase }} {{ endpoint.path }}
+ * {{ endpoint.description }}
+ */
+router.{{ endpoint.method | lowercase }}(
+  '{{ endpoint.path }}',
+  {{ resourceName | camelCase }}RateLimit,
+  {% if endpoint.auth %}authenticate,{% endif %}
+  {% if endpoint.permissions %}authorize({{ endpoint.permissions | json }}),{% endif %}
+  [
+    {% for validation in endpoint.validations %}
+    {% if validation.field === 'param' %}
+    param('{{ validation.name }}'){{ validation.rules | join('.') }},
+    {% elif validation.field === 'query' %}
+    query('{{ validation.name }}'){{ validation.rules | join('.') }},
+    {% elif validation.field === 'body' %}
+    body('{{ validation.name }}'){{ validation.rules | join('.') }},
+    {% endif %}
+    {% endfor %}
+  ],
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      // Check validation results
+      const errors = validationResult(req)
+      if (!errors.isEmpty()) {
+        return res.status(400).json({
+          success: false,
+          message: 'Validation failed',
+          errors: errors.array(),
+          timestamp: '{{ now | formatDate('YYYY-MM-DD HH:mm:ss') }}'
+        })
+      }
+
+      {% if endpoint.method === 'get' and endpoint.path === '/' %}
+      // Get all {{ resourceName | pluralize }}
+      const { page = 1, limit = 10, sort = 'createdAt', order = 'desc', ...filters } = req.query
+      
+      const result = await {{ resourceName | camelCase }}Service.findAll({
+        page: Number(page),
+        limit: Number(limit),
+        sort: sort as string,
+        order: order as 'asc' | 'desc',
+        filters
+      })
+
+      logger.info(`Retrieved {{ resourceName | pluralize }}`, {
+        count: result.data.length,
+        page,
+        limit,
+        userId: req.user?.id
+      })
+
+      res.json({
+        success: true,
+        data: result.data,
+        meta: {
+          page: Number(page),
+          limit: Number(limit),
+          total: result.total,
+          pages: Math.ceil(result.total / Number(limit))
+        },
+        timestamp: new Date().toISOString()
+      })
+
+      {% elif endpoint.method === 'get' and endpoint.path === '/:id' %}
+      // Get single {{ resourceName }}
+      const { id } = req.params
+      
+      const {{ resourceName | camelCase }} = await {{ resourceName | camelCase }}Service.findById(id)
+      
+      if (!{{ resourceName | camelCase }}) {
+        return res.status(404).json({
+          success: false,
+          message: '{{ resourceName | title }} not found',
+          timestamp: new Date().toISOString()
+        })
+      }
+
+      logger.info(`Retrieved {{ resourceName }}`, { id, userId: req.user?.id })
+
+      res.json({
+        success: true,
+        data: {{ resourceName | camelCase }},
+        timestamp: new Date().toISOString()
+      })
+
+      {% elif endpoint.method === 'post' %}
+      // Create new {{ resourceName }}
+      const {{ resourceName | camelCase }}Data = {
+        ...req.body,
+        {% if withTimestamps %}
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        {% endif %}
+        {% if withAuth %}
+        createdBy: req.user?.id,
+        {% endif %}
+      }
+
+      const new{{ resourceName | pascalCase }} = await {{ resourceName | camelCase }}Service.create({{ resourceName | camelCase }}Data)
+
+      logger.info(`Created {{ resourceName }}`, { 
+        id: new{{ resourceName | pascalCase }}.id, 
+        userId: req.user?.id 
+      })
+
+      res.status(201).json({
+        success: true,
+        data: new{{ resourceName | pascalCase }},
+        message: '{{ resourceName | title }} created successfully',
+        timestamp: new Date().toISOString()
+      })
+
+      {% elif endpoint.method === 'put' or endpoint.method === 'patch' %}
+      // Update {{ resourceName }}
+      const { id } = req.params
+      
+      const existing{{ resourceName | pascalCase }} = await {{ resourceName | camelCase }}Service.findById(id)
+      if (!existing{{ resourceName | pascalCase }}) {
+        return res.status(404).json({
+          success: false,
+          message: '{{ resourceName | title }} not found',
+          timestamp: new Date().toISOString()
+        })
+      }
+
+      const updateData = {
+        ...req.body,
+        {% if withTimestamps %}
+        updatedAt: new Date(),
+        {% endif %}
+        {% if withAuth %}
+        updatedBy: req.user?.id,
+        {% endif %}
+      }
+
+      const updated{{ resourceName | pascalCase }} = await {{ resourceName | camelCase }}Service.update(id, updateData)
+
+      logger.info(`Updated {{ resourceName }}`, { id, userId: req.user?.id })
+
+      res.json({
+        success: true,
+        data: updated{{ resourceName | pascalCase }},
+        message: '{{ resourceName | title }} updated successfully',
+        timestamp: new Date().toISOString()
+      })
+
+      {% elif endpoint.method === 'delete' %}
+      // Delete {{ resourceName }}
+      const { id } = req.params
+      
+      const existing{{ resourceName | pascalCase }} = await {{ resourceName | camelCase }}Service.findById(id)
+      if (!existing{{ resourceName | pascalCase }}) {
+        return res.status(404).json({
+          success: false,
+          message: '{{ resourceName | title }} not found',
+          timestamp: new Date().toISOString()
+        })
+      }
+
+      await {{ resourceName | camelCase }}Service.delete(id)
+
+      logger.info(`Deleted {{ resourceName }}`, { id, userId: req.user?.id })
+
+      res.json({
+        success: true,
+        message: '{{ resourceName | title }} deleted successfully',
+        timestamp: new Date().toISOString()
+      })
+      {% endif %}
+
+    } catch (error) {
+      logger.error(`Error in {{ endpoint.method | uppercase }} {{ endpoint.path }}`, {
+        error: error.message,
+        stack: error.stack,
+        userId: req.user?.id
+      })
+      
+      next(error)
+    }
+  }
+)
+
+{% endfor %}
+
+export { router as {{ resourceName | camelCase }}Routes }
+export default router

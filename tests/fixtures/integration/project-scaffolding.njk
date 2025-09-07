@@ -1,0 +1,206 @@
+---
+to: '{{ projectPath }}/README.md'
+inject: false
+skip_if: '{{ !generateReadme }}'
+sh: 'cd {{ projectPath }} && npm init -y && npm install {{ dependencies | join(" ") }}'
+---
+# {{ projectName | title }}
+
+> {{ description | default('A project generated with Unjucks') }}
+
+Generated on {{ now | formatDate('MMMM Do, YYYY [at] h:mm A') }}
+
+## 📋 Project Overview
+
+- **Framework**: {{ framework | title }}
+- **Language**: {{ language | title }}
+- **Architecture**: {{ architecture | title }}
+- **Generated Files**: {{ fileCount | default('Multiple') }}
+
+## 🚀 Quick Start
+
+```bash
+# Install dependencies
+{{ packageManager | default('npm') }} install
+
+# Start development server
+{{ packageManager | default('npm') }} run dev
+
+# Run tests
+{{ packageManager | default('npm') }} test
+
+# Build for production
+{{ packageManager | default('npm') }} run build
+```
+
+## 📁 Project Structure
+
+```
+{{ projectName | kebabCase }}/
+{% for dir in projectStructure %}
+├── {{ dir.path }}{% if dir.description %} # {{ dir.description }}{% endif %}
+{% for file in dir.files %}
+│   ├── {{ file.name }}{% if file.description %} # {{ file.description }}{% endif %}
+{% endfor %}
+{% endfor %}
+└── README.md
+```
+
+## 🧩 Generated Components
+
+{% if generatedComponents %}
+### Components
+{% for component in generatedComponents %}
+- **{{ component.name | title }}** (`{{ component.path }}`): {{ component.description }}
+{% endfor %}
+{% endif %}
+
+{% if generatedServices %}
+### Services
+{% for service in generatedServices %}
+- **{{ service.name | title }}** (`{{ service.path }}`): {{ service.description }}
+{% endfor %}
+{% endif %}
+
+{% if generatedModels %}
+### Models
+{% for model in generatedModels %}
+- **{{ model.name | title }}** (`{{ model.path }}`): {{ model.description }}
+{% endfor %}
+{% endif %}
+
+## ⚙️ Configuration
+
+{% if configFiles %}
+### Configuration Files
+{% for config in configFiles %}
+- `{{ config.path }}`: {{ config.description }}
+{% endfor %}
+{% endif %}
+
+### Environment Variables
+
+{% if envVariables %}
+Create a `.env` file with:
+
+```env
+{% for env in envVariables %}
+{{ env.name }}={{ env.example | default('your_value_here') }}{% if env.description %} # {{ env.description }}{% endif %}
+{% endfor %}
+```
+{% endif %}
+
+## 🧪 Testing
+
+{% if testFiles %}
+Generated test files:
+{% for test in testFiles %}
+- `{{ test.path }}`: {{ test.description }}
+{% endfor %}
+
+Run tests with:
+```bash
+{{ packageManager | default('npm') }} test
+```
+{% endif %}
+
+## 📚 API Documentation
+
+{% if hasApi %}
+### Endpoints
+
+{% for endpoint in apiEndpoints %}
+#### {{ endpoint.method | uppercase }} {{ endpoint.path }}
+{{ endpoint.description }}
+
+**Parameters:**
+{% for param in endpoint.parameters %}
+- `{{ param.name }}` ({{ param.type }}{% if param.required %}, required{% endif %}): {{ param.description }}
+{% endfor %}
+
+**Response:**
+```json
+{{ endpoint.responseExample | json }}
+```
+{% endfor %}
+{% endif %}
+
+## 🛠️ Development
+
+### Scripts
+
+{% for script in packageScripts %}
+- `{{ packageManager | default('npm') }} run {{ script.name }}`: {{ script.description }}
+{% endfor %}
+
+### Dependencies
+
+{% if dependencies %}
+**Runtime Dependencies:**
+{% for dep in dependencies %}
+- {{ dep }}
+{% endfor %}
+{% endif %}
+
+{% if devDependencies %}
+**Development Dependencies:**
+{% for dep in devDependencies %}
+- {{ dep }}
+{% endfor %}
+{% endif %}
+
+## 🏗️ Build & Deployment
+
+### Build Process
+
+```bash
+# Production build
+{{ packageManager | default('npm') }} run build
+
+# Preview build
+{{ packageManager | default('npm') }} run preview
+```
+
+### Deployment
+
+{% if deploymentInstructions %}
+{{ deploymentInstructions }}
+{% else %}
+Deployment instructions depend on your hosting platform:
+
+- **Vercel**: Connect your repository and deploy automatically
+- **Netlify**: Drag and drop your `dist` folder or connect via Git
+- **Docker**: Use the included `Dockerfile` if available
+{% endif %}
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## 📝 License
+
+{% if license %}
+This project is licensed under the {{ license }} License.
+{% else %}
+This project is licensed under the MIT License - see the LICENSE file for details.
+{% endif %}
+
+## 🔧 Generator Information
+
+This project was generated using:
+- **Generator**: Unjucks Template Engine
+- **Template Version**: {{ templateVersion | default('1.0.0') }}
+- **Generated**: {{ now | formatDate('YYYY-MM-DD [at] HH:mm:ss') }}
+- **Generator Config**: {{ generatorConfig | json }}
+
+---
+
+{% if customFooter %}
+{{ customFooter }}
+{% else %}
+Built with ❤️ using [Unjucks](https://github.com/your-org/unjucks)
+{% endif %}

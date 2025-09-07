@@ -1,0 +1,75 @@
+---
+to: tests/data/{{ dataType }}/{{ fileName | kebabCase }}.json
+inject: false
+skip_if: '{{ !generateFakeData }}'
+---
+{
+  "users": [
+    {% for i in range(0, userCount | default(5)) %}
+    {
+      "id": "{{ faker.uuid }}",
+      "firstName": "{{ faker.firstName }}",
+      "lastName": "{{ faker.lastName }}",
+      "email": "{{ faker.email }}",
+      "username": "{{ faker.username }}",
+      "avatar": "{{ faker.avatar }}",
+      "dateOfBirth": "{{ faker.dateOfBirth | formatDate('YYYY-MM-DD') }}",
+      "phoneNumber": "{{ faker.phoneNumber }}",
+      "address": {
+        "street": "{{ faker.streetAddress }}",
+        "city": "{{ faker.city }}",
+        "state": "{{ faker.state }}",
+        "zipCode": "{{ faker.zipCode }}",
+        "country": "{{ faker.country }}"
+      },
+      "company": {
+        "name": "{{ faker.companyName }}",
+        "department": "{{ faker.department }}",
+        "jobTitle": "{{ faker.jobTitle }}",
+        "industry": "{{ faker.industry }}"
+      },
+      "profile": {
+        "bio": "{{ faker.bio }}",
+        "website": "{{ faker.url }}",
+        "socialMedia": {
+          "twitter": "@{{ faker.username }}",
+          "linkedin": "{{ faker.url }}",
+          "github": "{{ faker.username }}"
+        }
+      },
+      "preferences": {
+        "theme": "{{ faker.randomElement(['light', 'dark', 'auto']) }}",
+        "language": "{{ faker.locale }}",
+        "timezone": "{{ faker.timezone }}",
+        "notifications": {
+          "email": {{ faker.boolean }},
+          "sms": {{ faker.boolean }},
+          "push": {{ faker.boolean }}
+        }
+      },
+      "metadata": {
+        "createdAt": "{{ faker.pastDate | formatDate('YYYY-MM-DD[T]HH:mm:ss[Z]') }}",
+        "updatedAt": "{{ faker.recentDate | formatDate('YYYY-MM-DD[T]HH:mm:ss[Z]') }}",
+        "lastLogin": "{{ faker.recentDate | formatDate('YYYY-MM-DD[T]HH:mm:ss[Z]') }}",
+        "isActive": {{ faker.boolean }},
+        "isVerified": {{ faker.boolean }},
+        "loginCount": {{ faker.number(1, 1000) }},
+        "accountType": "{{ faker.randomElement(['free', 'premium', 'enterprise']) }}"
+      },
+      "stats": {
+        "totalOrders": {{ faker.number(0, 50) }},
+        "totalSpent": {{ faker.number(0, 10000, 2) }},
+        "loyaltyPoints": {{ faker.number(0, 5000) }},
+        "referralCount": {{ faker.number(0, 20) }}
+      }
+    }{% if not loop.last %},{% endif %}
+    {% endfor %}
+  ],
+  "metadata": {
+    "generated": "{{ now | formatDate('YYYY-MM-DD[T]HH:mm:ss[Z]') }}",
+    "totalUsers": {{ userCount | default(5) }},
+    "version": "{{ version | default('1.0.0') }}",
+    "seed": "{{ seed | default(faker.seed) }}",
+    "locale": "{{ locale | default('en') }}"
+  }
+}

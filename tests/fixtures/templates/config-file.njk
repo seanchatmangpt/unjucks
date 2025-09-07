@@ -1,0 +1,208 @@
+---
+to: config/{{ environment }}.{{ format | default('json') }}
+inject: false
+skip_if: '{{ !generateConfig }}'
+chmod: 0600
+---
+{% if format === 'json' %}
+{
+  "app": {
+    "name": "{{ appName | title }}",
+    "version": "{{ version | default('1.0.0') }}",
+    "environment": "{{ environment }}",
+    "port": {{ port | default('3000') }},
+    "host": "{{ host | default('localhost') }}",
+    "baseUrl": "{{ baseUrl | default('http://localhost:3000') }}",
+    "timezone": "{{ timezone | default('UTC') }}",
+    "locale": "{{ locale | default('en') }}",
+    "debug": {{ debug | default(environment === 'development') }},
+    "logLevel": "{{ logLevel | default(environment === 'production' ? 'warn' : 'debug') }}"
+  },
+  "database": {
+    "type": "{{ database.type | default('postgresql') }}",
+    "host": "{{ database.host | default('localhost') }}",
+    "port": {{ database.port | default('5432') }},
+    "username": "{{ database.username | default('app_user') }}",
+    "password": "{{ database.password | default('change_me_in_production') }}",
+    "database": "{{ database.name | default(appName + '_' + environment) }}",
+    "ssl": {{ database.ssl | default(environment === 'production') }},
+    "pool": {
+      "min": {{ database.pool.min | default('2') }},
+      "max": {{ database.pool.max | default('10') }},
+      "idle": {{ database.pool.idle | default('10000') }},
+      "acquire": {{ database.pool.acquire | default('30000') }}
+    },
+    "migrations": {
+      "directory": "./database/migrations",
+      "tableName": "migrations"
+    }
+  },
+  "redis": {
+    "host": "{{ redis.host | default('localhost') }}",
+    "port": {{ redis.port | default('6379') }},
+    "password": "{{ redis.password | default('') }}",
+    "db": {{ redis.db | default('0') }},
+    "keyPrefix": "{{ appName | snakeCase }}:{{ environment }}:",
+    "ttl": {{ redis.ttl | default('3600') }}
+  },
+  "auth": {
+    "jwtSecret": "{{ auth.jwtSecret | default('change_me_in_production_' + faker.uuid) }}",
+    "jwtExpires": "{{ auth.jwtExpires | default('24h') }}",
+    "bcryptRounds": {{ auth.bcryptRounds | default('12') }},
+    "sessionTimeout": {{ auth.sessionTimeout | default('1800') }},
+    "maxLoginAttempts": {{ auth.maxLoginAttempts | default('5') }},
+    "lockoutDuration": {{ auth.lockoutDuration | default('300') }}
+  },
+  "security": {
+    "cors": {
+      "origin": {{ security.cors.origin | json | default('["http://localhost:3000"]') }},
+      "credentials": {{ security.cors.credentials | default('true') }},
+      "methods": {{ security.cors.methods | json | default('["GET", "POST", "PUT", "DELETE"]') }}
+    },
+    "helmet": {
+      "contentSecurityPolicy": {{ security.helmet.csp | default('true') }},
+      "hsts": {{ security.helmet.hsts | default(environment === 'production') }},
+      "noSniff": {{ security.helmet.noSniff | default('true') }}
+    },
+    "rateLimit": {
+      "windowMs": {{ security.rateLimit.window | default('900000') }},
+      "max": {{ security.rateLimit.max | default('100') }},
+      "skipSuccessfulRequests": {{ security.rateLimit.skipSuccessful | default('false') }}
+    }
+  },
+  "email": {
+    "provider": "{{ email.provider | default('smtp') }}",
+    "host": "{{ email.host | default('localhost') }}",
+    "port": {{ email.port | default('587') }},
+    "secure": {{ email.secure | default('false') }},
+    "auth": {
+      "user": "{{ email.user | default('') }}",
+      "pass": "{{ email.pass | default('') }}"
+    },
+    "from": "{{ email.from | default('noreply@' + appName.toLowerCase() + '.com') }}",
+    "templates": {
+      "welcome": "./templates/email/welcome.hbs",
+      "resetPassword": "./templates/email/reset-password.hbs"
+    }
+  },
+  "storage": {
+    "type": "{{ storage.type | default('local') }}",
+    "local": {
+      "path": "{{ storage.local.path | default('./uploads') }}",
+      "maxSize": "{{ storage.local.maxSize | default('10MB') }}"
+    },
+    "s3": {
+      "bucket": "{{ storage.s3.bucket | default('') }}",
+      "region": "{{ storage.s3.region | default('us-east-1') }}",
+      "accessKeyId": "{{ storage.s3.accessKey | default('') }}",
+      "secretAccessKey": "{{ storage.s3.secretKey | default('') }}"
+    }
+  },
+  "monitoring": {
+    "enabled": {{ monitoring.enabled | default(environment === 'production') }},
+    "healthCheck": {
+      "path": "/health",
+      "interval": {{ monitoring.healthCheck.interval | default('30000') }}
+    },
+    "metrics": {
+      "enabled": {{ monitoring.metrics.enabled | default('true') }},
+      "path": "/metrics"
+    },
+    "logging": {
+      "file": "{{ monitoring.logging.file | default('./logs/' + environment + '.log') }}",
+      "maxSize": "{{ monitoring.logging.maxSize | default('10m') }}",
+      "maxFiles": {{ monitoring.logging.maxFiles | default('5') }}
+    }
+  },
+  "features": {
+    {% for feature in features %}
+    "{{ feature.name | camelCase }}": {{ feature.enabled | default('false') }},
+    {% endfor %}
+    "maintenanceMode": {{ maintenanceMode | default('false') }}
+  },
+  "api": {
+    "version": "{{ apiVersion | default('v1') }}",
+    "prefix": "/api/{{ apiVersion | default('v1') }}",
+    "documentation": {
+      "enabled": {{ api.docs.enabled | default(environment !== 'production') }},
+      "path": "/api-docs"
+    },
+    "pagination": {
+      "defaultLimit": {{ api.pagination.default | default('10') }},
+      "maxLimit": {{ api.pagination.max | default('100') }}
+    }
+  }
+}
+{% elif format === 'yaml' %}
+app:
+  name: {{ appName | title }}
+  version: {{ version | default('1.0.0') }}
+  environment: {{ environment }}
+  port: {{ port | default('3000') }}
+  host: {{ host | default('localhost') }}
+  baseUrl: {{ baseUrl | default('http://localhost:3000') }}
+  timezone: {{ timezone | default('UTC') }}
+  locale: {{ locale | default('en') }}
+  debug: {{ debug | default(environment === 'development') }}
+  logLevel: {{ logLevel | default(environment === 'production' ? 'warn' : 'debug') }}
+
+database:
+  type: {{ database.type | default('postgresql') }}
+  host: {{ database.host | default('localhost') }}
+  port: {{ database.port | default('5432') }}
+  username: {{ database.username | default('app_user') }}
+  password: {{ database.password | default('change_me_in_production') }}
+  database: {{ database.name | default(appName + '_' + environment) }}
+  ssl: {{ database.ssl | default(environment === 'production') }}
+  pool:
+    min: {{ database.pool.min | default('2') }}
+    max: {{ database.pool.max | default('10') }}
+    idle: {{ database.pool.idle | default('10000') }}
+    acquire: {{ database.pool.acquire | default('30000') }}
+
+# ... Additional YAML configuration sections would continue here
+{% elif format === 'env' %}
+# {{ appName | title }} Configuration
+# Environment: {{ environment | uppercase }}
+# Generated: {{ now | formatDate('YYYY-MM-DD HH:mm:ss') }}
+
+# Application
+APP_NAME={{ appName | title }}
+APP_VERSION={{ version | default('1.0.0') }}
+APP_ENV={{ environment | uppercase }}
+APP_PORT={{ port | default('3000') }}
+APP_HOST={{ host | default('localhost') }}
+APP_BASE_URL={{ baseUrl | default('http://localhost:3000') }}
+APP_TIMEZONE={{ timezone | default('UTC') }}
+APP_LOCALE={{ locale | default('en') }}
+APP_DEBUG={{ debug | default(environment === 'development') | uppercase }}
+APP_LOG_LEVEL={{ logLevel | default(environment === 'production' ? 'warn' : 'debug') | uppercase }}
+
+# Database
+DB_TYPE={{ database.type | default('postgresql') | uppercase }}
+DB_HOST={{ database.host | default('localhost') }}
+DB_PORT={{ database.port | default('5432') }}
+DB_USERNAME={{ database.username | default('app_user') }}
+DB_PASSWORD={{ database.password | default('change_me_in_production') }}
+DB_DATABASE={{ database.name | default(appName + '_' + environment) }}
+DB_SSL={{ database.ssl | default(environment === 'production') | uppercase }}
+
+# Redis
+REDIS_HOST={{ redis.host | default('localhost') }}
+REDIS_PORT={{ redis.port | default('6379') }}
+REDIS_PASSWORD={{ redis.password | default('') }}
+REDIS_DB={{ redis.db | default('0') }}
+
+# Authentication
+JWT_SECRET={{ auth.jwtSecret | default('change_me_in_production_' + faker.uuid) }}
+JWT_EXPIRES={{ auth.jwtExpires | default('24h') }}
+BCRYPT_ROUNDS={{ auth.bcryptRounds | default('12') }}
+
+# Email
+EMAIL_PROVIDER={{ email.provider | default('smtp') | uppercase }}
+EMAIL_HOST={{ email.host | default('localhost') }}
+EMAIL_PORT={{ email.port | default('587') }}
+EMAIL_USER={{ email.user | default('') }}
+EMAIL_PASS={{ email.pass | default('') }}
+EMAIL_FROM={{ email.from | default('noreply@' + appName.toLowerCase() + '.com') }}
+{% endif %}

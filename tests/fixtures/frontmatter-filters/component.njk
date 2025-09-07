@@ -1,0 +1,24 @@
+---
+to: src/components/{{ componentName | pascalCase }}.vue
+inject: true
+skip_if: '{{ !withTests }}'
+---
+<template>
+  <div class="{{ componentName | kebabCase }}">
+    <!-- {{ componentName | titleCase }} Component -->
+    <h1>{{ componentName | sentenceCase }}</h1>
+  </div>
+</template>
+
+<script>
+export default {
+  name: '{{ componentName | pascalCase }}',
+  // {{ componentName | camelCase }} logic here
+}
+</script>
+
+<style scoped>
+.{{ componentName | kebabCase }} {
+  /* {{ componentName | pascalCase }} styles */
+}
+</style>

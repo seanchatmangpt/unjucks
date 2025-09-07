@@ -1,0 +1,83 @@
+{
+  "name": "",
+  "version": "1.0.0",
+  "description": " microservice with enterprise compliance and monitoring",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js",
+    
+    "lint": "eslint . --ext .js",
+    "lint:fix": "eslint . --ext .js --fix",
+    "security:audit": "npm audit --audit-level moderate",
+    "security:scan": "snyk test",
+    
+    
+    "docs:generate": "jsdoc -c jsdoc.json",
+    "migrate": "node scripts/migrate.js",
+    "seed": "node scripts/seed.js"
+  },
+  "keywords": [
+    "microservice",
+    "nodejs",
+    "express",
+    "postgresql",
+    
+    
+    "enterprise"
+  ],
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "helmet": "^7.1.0",
+    
+    "bcryptjs": "^2.4.3",
+    "jsonwebtoken": "^9.0.2",
+    "joi": "^17.11.0",
+    "winston": "^3.11.0",
+    "winston-daily-rotate-file": "^4.7.1",
+    
+    
+    "pg": "^8.11.3",
+    "knex": "^3.0.1",
+    
+    "dotenv": "^16.3.1",
+    "uuid": "^9.0.1",
+    "moment": "^2.29.4",
+    "lodash": "^4.17.21",
+    
+    
+    "swagger-jsdoc": "^6.2.8",
+    "swagger-ui-express": "^5.0.0"
+  },
+  "devDependencies": {
+    
+    "nodemon": "^3.0.1",
+    "eslint": "^8.52.0",
+    "eslint-config-airbnb-base": "^15.0.0",
+    "eslint-plugin-import": "^2.29.0",
+    "eslint-plugin-security": "^1.7.1",
+    "jsdoc": "^4.0.2",
+    "snyk": "^1.1245.0",
+    
+    "@commitlint/cli": "^18.2.0",
+    "@commitlint/config-conventional": "^18.1.0",
+    "husky": "^8.0.3",
+    "lint-staged": "^15.0.2"
+  },
+  "engines": {
+    "node": ">=16.0.0",
+    "npm": ">=8.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourorg/.git"
+  },
+  
+  "license": "MIT",
+  "author": "Enterprise Development Team",
+  "bugs": {
+    "url": "https://github.com/yourorg//issues"
+  },
+  "homepage": "https://github.com/yourorg/#readme"
+}

@@ -732,6 +732,192 @@
         "avgExecutionTime": 0
       },
       "lastUpdated": "2025-09-07T18:01:35.278Z"
+    },
+    {
+      "name": "test-integration-swarm",
+      "topology": "mesh",
+      "maxAgents": 3,
+      "strategy": "adaptive",
+      "agents": [
+        {
+          "id": "coordinator-1-atiqg5",
+          "type": "coordinator",
+          "status": "active",
+          "capabilities": [
+            "coordination",
+            "task-distribution",
+            "monitoring"
+          ],
+          "mcpEnabled": false
+        },
+        {
+          "id": "researcher-2-clcppc",
+          "type": "researcher",
+          "status": "active",
+          "capabilities": [
+            "research",
+            "analysis",
+            "documentation"
+          ],
+          "mcpEnabled": false
+        },
+        {
+          "id": "coder-3-u86js1",
+          "type": "coder",
+          "status": "active",
+          "capabilities": [
+            "coding",
+            "implementation",
+            "debugging"
+          ],
+          "mcpEnabled": false
+        }
+      ],
+      "id": "swarm-1757269715504-7h4b5erem",
+      "created": "2025-09-07T18:28:35.504Z",
+      "status": "active",
+      "tasks": [],
+      "metrics": {
+        "totalTasks": 0,
+        "successfulTasks": 0,
+        "failedTasks": 0,
+        "avgExecutionTime": 0
+      },
+      "lastUpdated": "2025-09-07T18:30:42.015Z",
+      "neuralMetrics": {
+        "trainingSessions": 1,
+        "accuracy": 0.65,
+        "lastTraining": "2025-09-07T18:30:42.014Z",
+        "model": "coordination"
+      },
+      "neuralPatterns": true,
+      "learningMode": "active"
+    },
+    {
+      "name": "swarm-1757270401827",
+      "topology": "mesh",
+      "maxAgents": 3,
+      "strategy": "adaptive",
+      "agents": [
+        {
+          "id": "coordinator-1-09zlgq",
+          "type": "coordinator",
+          "status": "active",
+          "capabilities": [
+            "coordination",
+            "task-distribution",
+            "monitoring"
+          ],
+          "mcpEnabled": false
+        },
+        {
+          "id": "researcher-2-lp4g7s",
+          "type": "researcher",
+          "status": "active",
+          "capabilities": [
+            "research",
+            "analysis",
+            "documentation"
+          ],
+          "mcpEnabled": false
+        },
+        {
+          "id": "coder-3-7eba7q",
+          "type": "coder",
+          "status": "active",
+          "capabilities": [
+            "coding",
+            "implementation",
+            "debugging"
+          ],
+          "mcpEnabled": false
+        }
+      ],
+      "id": "swarm-1757270401827-qc2vyuqew",
+      "created": "2025-09-07T18:40:01.827Z",
+      "status": "active",
+      "tasks": [],
+      "metrics": {
+        "totalTasks": 0,
+        "successfulTasks": 0,
+        "failedTasks": 0,
+        "avgExecutionTime": 0
+      },
+      "lastUpdated": "2025-09-07T18:40:01.828Z"
+    },
+    {
+      "name": "swarm-1757270522944",
+      "topology": "mesh",
+      "maxAgents": 5,
+      "strategy": "adaptive",
+      "agents": [
+        {
+          "id": "coordinator-1-budbdv",
+          "type": "coordinator",
+          "status": "active",
+          "capabilities": [
+            "coordination",
+            "task-distribution",
+            "monitoring"
+          ],
+          "mcpEnabled": false
+        },
+        {
+          "id": "researcher-2-7zpt46",
+          "type": "researcher",
+          "status": "active",
+          "capabilities": [
+            "research",
+            "analysis",
+            "documentation"
+          ],
+          "mcpEnabled": false
+        },
+        {
+          "id": "coder-3-0lnt57",
+          "type": "coder",
+          "status": "active",
+          "capabilities": [
+            "coding",
+            "implementation",
+            "debugging"
+          ],
+          "mcpEnabled": false
+        },
+        {
+          "id": "reviewer-4-tyzukx",
+          "type": "reviewer",
+          "status": "active",
+          "capabilities": [
+            "code-review",
+            "quality-assurance",
+            "security"
+          ],
+          "mcpEnabled": false
+        },
+        {
+          "id": "tester-5-7p6l5a",
+          "type": "tester",
+          "status": "active",
+          "capabilities": [
+            "testing",
+            "validation",
+            "quality-control"
+          ],
+          "mcpEnabled": false
+        }
+      ],
+      "id": "swarm-1757270522945-oknuwbb00",
+      "created": "2025-09-07T18:42:02.945Z",
+      "status": "active",
+      "tasks": [],
+      "metrics": {
+        "totalTasks": 0,
+        "successfulTasks": 0,
+        "failedTasks": 0,
+        "avgExecutionTime": 0
+      },
+      "lastUpdated": "2025-09-07T18:42:02.946Z"
     }
   ],
   "tasks": [
@@ -751,5 +937,5 @@
       "status": "pending"
     }
   ],
-  "lastUpdated": "2025-09-07T18:01:35.281Z"
+  "lastUpdated": "2025-09-07T18:42:02.948Z"
 }

@@ -2,468 +2,112 @@
 to: src/models/{{ modelName }}.js
 ---
 const { Model } = require('objection');
-{% if withTimestamps %}const { BaseModel } = require('./BaseModel');{% endif %}
 const Joi = require('joi');
-const { v4: uuidv4 } = require('uuid');
 
 /**
  * {{ modelName }} Model
  * 
  * Represents {{ tableName }} table in the database
- * {% if withSoftDeletes %}Supports soft delete operations{% endif %}
- * {% if withAuditLog %}Includes automatic audit logging{% endif %}
- * {% if withSecurity %}Multi-tenant aware with access controls{% endif %}
- * 
- * @class {{ modelName }}
- * @extends {{% if withTimestamps %}BaseModel{% else %}Model{% endif %}}
  */
-class {{ modelName }} extends {% if withTimestamps %}BaseModel{% else %}Model{% endif %} {
+class {{ modelName }} extends Model {
   /**
    * Table name in database
-   * @static
-   * @return {string}
    */
   static get tableName() {
     return '{{ tableName }}';
   }
 
-  {% if withUUID %}
   /**
-   * ID column configuration
-   * @static
-   * @return {string}
-   */
-  static get idColumn() {
-    return 'id';
-  }
-  {% endif %}
-
-  /**
-   * JSON schema for validation
-   * @static
-   * @return {Object}
+   * JSON Schema for validation
    */
   static get jsonSchema() {
     return {
       type: 'object',
-      required: ['name'],
-      
+      required: ['id'],
       properties: {
-        {% if withUUID %}
-        id: { type: 'string', format: 'uuid' },
-        {% else %}
         id: { type: 'integer' },
-        {% endif %}
+        name: { type: 'string' },
+        email: { type: 'string', format: 'email' },
+        status: { type: 'string', enum: ['active', 'inactive'] },
         
-        // Core fields
-        name: { 
-          type: 'string', 
-          minLength: 1, 
-          maxLength: 255 
-        },
-        description: { 
-          type: ['string', 'null'],
-          maxLength: 10000
-        },
-        status: {
-          type: 'string',
-          enum: ['active', 'inactive', 'pending', 'archived'],
-          default: 'active'
-        },
-
-        // Custom fields
-        {% for field in fields %}
-        {{ field.name }}: {
-          {% if field.type === 'string' %}
-          type: 'string',
-          {% if field.maxLength %}maxLength: {{ field.maxLength }},{% endif %}
-          {% if field.minLength %}minLength: {{ field.minLength }},{% endif %}
-          {% elif field.type === 'integer' %}
-          type: 'integer',
-          {% if field.minimum %}minimum: {{ field.minimum }},{% endif %}
-          {% if field.maximum %}maximum: {{ field.maximum }},{% endif %}
-          {% elif field.type === 'number' %}
-          type: 'number',
-          {% elif field.type === 'boolean' %}
-          type: 'boolean',
-          {% elif field.type === 'array' %}
-          type: 'array',
-          {% elif field.type === 'object' %}
-          type: 'object',
-          {% endif %}
-          {% if field.enum %}enum: {{ field.enum | dump }},{% endif %}
-          {% if field.default %}default: {{ field.default | dump }},{% endif %}
-          {% if not field.required %}type: [{% if field.type === 'string' %}'string'{% elif field.type === 'integer' %}'integer'{% elif field.type === 'number' %}'number'{% elif field.type === 'boolean' %}'boolean'{% elif field.type === 'array' %}'array'{% elif field.type === 'object' %}'object'{% endif %}, 'null'],{% endif %}
-        },
-        {% endfor %}
-
-        // Metadata fields
-        metadata: { type: ['object', 'null'] },
-        config: { type: ['object', 'null'] },
-
-        {% if withSecurity %}
-        // Security fields
-        {% if withUUID %}
-        tenant_id: { type: ['string', 'null'], format: 'uuid' },
-        owner_id: { type: ['string', 'null'], format: 'uuid' },
-        {% else %}
-        tenant_id: { type: ['integer', 'null'] },
-        owner_id: { type: ['integer', 'null'] },
-        {% endif %}
-        access_level: {
-          type: 'string',
-          enum: ['public', 'private', 'restricted', 'confidential'],
-          default: 'private'
-        },
-        {% endif %}
-
-        {% if withTimestamps %}
         // Timestamps
+        {% if withTimestamps %}
         created_at: { type: 'string', format: 'date-time' },
         updated_at: { type: 'string', format: 'date-time' },
         {% endif %}
-
+        
+        // Soft deletes
         {% if withSoftDeletes %}
-        // Soft delete
         deleted_at: { type: ['string', 'null'], format: 'date-time' },
-        {% if withUUID %}
-        deleted_by: { type: ['string', 'null'], format: 'uuid' },
-        {% else %}
-        deleted_by: { type: ['integer', 'null'] },
         {% endif %}
-        {% endif %}
-
-        // Audit fields
-        {% if withUUID %}
-        created_by: { type: ['string', 'null'], format: 'uuid' },
-        updated_by: { type: ['string', 'null'], format: 'uuid' },
-        {% else %}
-        created_by: { type: ['integer', 'null'] },
-        updated_by: { type: ['integer', 'null'] },
-        {% endif %}
-        version: { type: 'integer', default: 1 }
       }
     };
   }
 
   /**
-   * Relation mappings for associations
-   * @static
-   * @return {Object}
+   * Model relationships
    */
   static get relationMappings() {
     return {
-      {% for rel in relationships %}
-      {{ rel.name }}: {
-        relation: Model.{{ rel.type | default('BelongsToOneRelation') }},
-        modelClass: require('./{{ rel.model }}'),
-        join: {
-          from: '{{ tableName }}.{{ rel.from }}',
-          to: '{{ rel.table }}.{{ rel.to | default('id') }}'
-        }
-      },
-      {% endfor %}
-
-      {% if withAuditLog %}
-      // Audit logs relationship
-      auditLogs: {
-        relation: Model.HasManyRelation,
-        modelClass: require('./{{ modelName }}Audit'),
-        join: {
-          from: '{{ tableName }}.id',
-          to: '{{ tableName }}_audit.record_id'
-        }
-      },
-      {% endif %}
-
-      {% if withSecurity %}
-      // Security relationships
-      {% if relationships | selectattr('name', 'equalto', 'owner') | list | length === 0 %}
-      owner: {
-        relation: Model.BelongsToOneRelation,
-        modelClass: require('./User'),
-        join: {
-          from: '{{ tableName }}.owner_id',
-          to: 'users.id'
-        }
-      },
-      {% endif %}
-      
-      {% if relationships | selectattr('name', 'equalto', 'tenant') | list | length === 0 %}
-      tenant: {
-        relation: Model.BelongsToOneRelation,
-        modelClass: require('./Tenant'),
-        join: {
-          from: '{{ tableName }}.tenant_id',
-          to: 'tenants.id'
-        }
-      }
-      {% endif %}
-      {% endif %}
+      // Define relationships here based on your schema
     };
   }
 
   /**
-   * Hook called before inserting new record
-   * @param {Object} context
+   * Before insert hook
    */
-  async $beforeInsert(context) {
-    await super.$beforeInsert(context);
-    
-    {% if withUUID %}
-    // Generate UUID if not provided
-    if (!this.id) {
-      this.id = uuidv4();
-    }
-    {% endif %}
-
-    // Set initial version
-    if (!this.version) {
-      this.version = 1;
-    }
-
-    {% if withSecurity %}
-    // Set default access level
-    if (!this.access_level) {
-      this.access_level = 'private';
-    }
-    {% endif %}
-
-    // Set default status
-    if (!this.status) {
-      this.status = 'active';
-    }
-  }
-
-  /**
-   * Hook called before updating record
-   * @param {Object} context
-   */
-  async $beforeUpdate(context) {
-    await super.$beforeUpdate(context);
-    
-    // Increment version for optimistic locking
-    this.version = (this.version || 0) + 1;
-  }
-
-  {% if withSoftDeletes %}
-  /**
-   * Soft delete this record
-   * @param {string|null} userId - ID of user performing the delete
-   * @return {Promise<{{ modelName }}>}
-   */
-  async softDelete(userId = null) {
-    return this.$query().patch({
-      deleted_at: new Date().toISOString(),
-      deleted_by: userId
-    });
-  }
-
-  /**
-   * Restore soft deleted record
-   * @return {Promise<{{ modelName }}>}
-   */
-  async restore() {
-    return this.$query().patch({
-      deleted_at: null,
-      deleted_by: null
-    });
-  }
-
-  /**
-   * Check if record is soft deleted
-   * @return {boolean}
-   */
-  get isDeleted() {
-    return this.deleted_at !== null;
-  }
-
-  /**
-   * Query modifier to exclude soft deleted records
-   * @static
-   * @param {QueryBuilder} query
-   */
-  static modifiers = {
-    active: (query) => {
-      query.whereNull('deleted_at');
-    },
-    
-    withDeleted: (query) => {
-      // Include soft deleted records (no additional filtering)
-    },
-    
-    onlyDeleted: (query) => {
-      query.whereNotNull('deleted_at');
-    }
-  };
-  {% endif %}
-
-  {% if withSecurity %}
-  /**
-   * Scope query by tenant for multi-tenancy
-   * @static
-   * @param {QueryBuilder} query
-   * @param {string} tenantId
-   */
-  static scopeByTenant(query, tenantId) {
-    return query.where('tenant_id', tenantId);
-  }
-
-  /**
-   * Scope query by access level
-   * @static
-   * @param {QueryBuilder} query
-   * @param {string} accessLevel
-   */
-  static scopeByAccessLevel(query, accessLevel) {
-    return query.where('access_level', accessLevel);
-  }
-
-  /**
-   * Check if user can access this record
-   * @param {Object} user - User object with id and roles
-   * @return {boolean}
-   */
-  canAccess(user) {
-    if (!user) return this.access_level === 'public';
-    
-    // Owner can always access
-    if (this.owner_id === user.id) return true;
-    
-    // Check tenant access
-    if (this.tenant_id && this.tenant_id !== user.tenant_id) return false;
-    
-    // Check access level permissions
-    switch (this.access_level) {
-      case 'public':
-        return true;
-      case 'private':
-        return user.tenant_id === this.tenant_id;
-      case 'restricted':
-        return user.roles?.includes('restricted_access') || user.roles?.includes('admin');
-      case 'confidential':
-        return user.roles?.includes('confidential_access') || user.roles?.includes('admin');
-      default:
-        return false;
-    }
-  }
-  {% endif %}
-
-  /**
-   * Custom validation method
-   * @param {Object} json
-   * @param {Object} options
-   */
-  static async validate(json, options = {}) {
-    // Custom business logic validation
-    
-    // Validate unique name per tenant (if applicable)
-    {% if withSecurity %}
-    if (json.name && json.tenant_id) {
-      const existing = await this.query()
-        .where('name', json.name)
-        .where('tenant_id', json.tenant_id)
-        .whereNot('id', json.id || '')
-        {% if withSoftDeletes %}.whereNull('deleted_at'){% endif %}
-        .first();
-        
-      if (existing) {
-        throw new Error(`Name "${json.name}" already exists in this tenant`);
-      }
-    }
-    {% endif %}
-
-    return super.validate(json, options);
-  }
-
-  /**
-   * Serialize model for JSON response
-   * @param {Object} options
-   * @return {Object}
-   */
-  $formatJson(json) {
-    json = super.$formatJson(json);
-    
-    // Remove sensitive fields from API responses
-    {% if withSecurity %}
-    if (json.access_level === 'confidential') {
-      // Mask or remove confidential data based on context
-    }
-    {% endif %}
-
-    // Format dates consistently
+  $beforeInsert() {
     {% if withTimestamps %}
-    if (json.created_at) {
-      json.created_at = new Date(json.created_at).toISOString();
-    }
-    if (json.updated_at) {
-      json.updated_at = new Date(json.updated_at).toISOString();
-    }
+    this.created_at = new Date().toISOString();
+    this.updated_at = new Date().toISOString();
     {% endif %}
-
-    {% if withSoftDeletes %}
-    if (json.deleted_at) {
-      json.deleted_at = new Date(json.deleted_at).toISOString();
-    }
-    {% endif %}
-
-    return json;
   }
 
   /**
-   * Search records with filtering and pagination
-   * @static
-   * @param {Object} filters
-   * @param {Object} pagination
-   * @return {Promise<Object>}
+   * Before update hook
    */
-  static async search(filters = {}, pagination = {}) {
-    const query = this.query(){% if withSoftDeletes %}.modify('active'){% endif %};
-
-    // Apply filters
-    if (filters.search) {
-      query.where(builder => {
-        builder.where('name', 'ilike', `%${filters.search}%`)
-               .orWhere('description', 'ilike', `%${filters.search}%`);
-      });
-    }
-
-    if (filters.status) {
-      query.where('status', filters.status);
-    }
-
-    {% if withSecurity %}
-    if (filters.tenant_id) {
-      query.where('tenant_id', filters.tenant_id);
-    }
-
-    if (filters.access_level) {
-      query.where('access_level', filters.access_level);
-    }
+  $beforeUpdate() {
+    {% if withTimestamps %}
+    this.updated_at = new Date().toISOString();
     {% endif %}
+  }
 
-    // Apply sorting
-    const sortField = filters.sort || 'created_at';
-    const sortOrder = filters.order || 'desc';
-    query.orderBy(sortField, sortOrder);
-
-    // Apply pagination
-    const page = Math.max(1, parseInt(pagination.page) || 1);
-    const limit = Math.min(100, Math.max(1, parseInt(pagination.limit) || 10));
-    const offset = (page - 1) * limit;
-
-    const results = await query.page(offset, limit);
-    
+  /**
+   * Query modifiers
+   */
+  static get modifiers() {
     return {
-      data: results.results,
-      pagination: {
-        page,
-        limit,
-        total: results.total,
-        pages: Math.ceil(results.total / limit)
+      // Active records only (if soft deletes enabled)
+      {% if withSoftDeletes %}
+      active(query) {
+        query.whereNull('deleted_at');
+      },
+      {% endif %}
+
+      // Filter by status
+      byStatus(query, status) {
+        query.where('status', status);
       }
     };
   }
+
+  /**
+   * Find active records
+   */
+  static findActive() {
+    return this.query(){% if withSoftDeletes %}.modify('active'){% endif %};
+  }
+
+  /**
+   * Soft delete (if enabled)
+   */
+  {% if withSoftDeletes %}
+  async softDelete() {
+    return await this.$query().patch({
+      deleted_at: new Date().toISOString()
+    });
+  }
+  {% endif %}
 }
 
-module.exports = { {{ modelName }} };
+module.exports = {{ modelName }};

@@ -6,9 +6,13 @@ export default defineConfig({
     environment: "node",
     globals: true,
     
-    // Only include tests that we know work
+    // Only include tests that we know work + new filter tests
     include: [
       "tests/unit/configuration-loader.test.js",
+      "tests/unit/nunjucks-filters.test.js",
+      "tests/unit/advanced-filters.test.js",
+      "tests/integration/template-rendering.test.js",
+      "tests/integration/frontmatter-filters.test.js",
       // "tests/atomic-operations.test.js", // Has syntax issues
       // "tests/template-scanner.test.js", // Has syntax issues
     ],
@@ -21,7 +25,8 @@ export default defineConfig({
       "tests/unit/github-command.test.js", 
       "tests/smoke/**",
       "tests/features/**",
-      "tests/integration/**",
+      // Exclude other integration tests but not our filter tests
+      "tests/integration/!(template-rendering|frontmatter-filters).test.js",
       "tests/security/**",
       "tests/performance/**",
       "tests/validation/**",

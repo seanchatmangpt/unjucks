@@ -1,0 +1,45 @@
+---
+to: src/utils/{{ name | kebabCase }}.ts
+inject: false
+---
+/**
+ * {{ name | title }} utility functions
+ * Generated: {{ now | formatDate('YYYY-MM-DD') }}
+ */
+
+export class {{ name | pascalCase }}Utils {
+  private {{ propName | camelCase }}: string
+  private {{ configName | camelCase }}: Record<string, any>
+
+  constructor({{ propName | camelCase }}: string, {{ configName | camelCase }}: Record<string, any> = {}) {
+    this.{{ propName | camelCase }} = {{ propName | camelCase }}
+    this.{{ configName | camelCase }} = {{ configName | camelCase }}
+  }
+
+  public {{ methodName | camelCase }}(): string {
+    return `{{ name | title }}: ${this.{{ propName | camelCase }}}`
+  }
+
+  public {{ secondMethod | camelCase }}(input: string): string {
+    return this.{{ configName | camelCase }}.{{ transformType | camelCase }} 
+      ? input.{{ transformType | camelCase }}()
+      : input
+  }
+
+  public get{{ propName | pascalCase }}(): string {
+    return this.{{ propName | camelCase }}
+  }
+
+  public set{{ propName | pascalCase }}(value: string): void {
+    this.{{ propName | camelCase }} = value
+  }
+}
+
+export const {{ name | camelCase }}Factory = (
+  {{ initParam | camelCase }}: string,
+  {{ optionsParam | camelCase }}: Record<string, any> = {}
+) => {
+  return new {{ name | pascalCase }}Utils({{ initParam | camelCase }}, {{ optionsParam | camelCase }})
+}
+
+export default {{ name | pascalCase }}Utils

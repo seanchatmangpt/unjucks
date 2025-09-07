@@ -1,0 +1,81 @@
+---
+to: src/styles/{{ name | kebabCase }}.css
+inject: false
+---
+/* {{ name | title }} Styles */
+/* Generated: {{ now | formatDate('YYYY-MM-DD HH:mm:ss') }} */
+
+.{{ name | kebabCase }} {
+  display: {{ display | default('block') }};
+  padding: {{ padding | default('1rem') }};
+  margin: {{ margin | default('0') }};
+  background-color: {{ bgColor | default('#ffffff') }};
+  border: {{ borderWidth | default('1px') }} solid {{ borderColor | default('#e1e5e9') }};
+  border-radius: {{ borderRadius | default('0.375rem') }};
+}
+
+.{{ name | kebabCase }}__{{ elementName | kebabCase }} {
+  font-size: {{ fontSize | default('1rem') }};
+  font-weight: {{ fontWeight | default('400') }};
+  color: {{ textColor | default('#374151') }};
+  line-height: {{ lineHeight | default('1.5') }};
+}
+
+.{{ name | kebabCase }}__{{ secondElement | kebabCase }} {
+  margin-top: {{ spacing | default('0.5rem') }};
+  opacity: {{ opacity | default('1') }};
+  transition: all {{ transitionDuration | default('0.2s') }} ease-in-out;
+}
+
+.{{ name | kebabCase }}--{{ modifierName | kebabCase }} {
+  background-color: {{ modifierBgColor | default('#f3f4f6') }};
+  border-color: {{ modifierBorderColor | default('#d1d5db') }};
+}
+
+.{{ name | kebabCase }}--{{ secondModifier | kebabCase }} {
+  font-size: {{ modifierFontSize | default('0.875rem') }};
+  padding: {{ modifierPadding | default('0.75rem') }};
+}
+
+/* Responsive styles */
+@media (min-width: {{ breakpointSm | default('640px') }}) {
+  .{{ name | kebabCase }} {
+    padding: {{ smPadding | default('1.5rem') }};
+  }
+}
+
+@media (min-width: {{ breakpointMd | default('768px') }}) {
+  .{{ name | kebabCase }} {
+    padding: {{ mdPadding | default('2rem') }};
+  }
+  
+  .{{ name | kebabCase }}__{{ elementName | kebabCase }} {
+    font-size: {{ mdFontSize | default('1.125rem') }};
+  }
+}
+
+@media (min-width: {{ breakpointLg | default('1024px') }}) {
+  .{{ name | kebabCase }} {
+    padding: {{ lgPadding | default('2.5rem') }};
+  }
+}
+
+/* State variations */
+.{{ name | kebabCase }}:hover {
+  background-color: {{ hoverBgColor | default('#f9fafb') }};
+  transform: {{ hoverTransform | default('translateY(-1px)') }};
+}
+
+.{{ name | kebabCase }}:focus {
+  outline: {{ focusOutlineWidth | default('2px') }} solid {{ focusOutlineColor | default('#3b82f6') }};
+  outline-offset: {{ focusOutlineOffset | default('2px') }};
+}
+
+.{{ name | kebabCase }}:active {
+  transform: {{ activeTransform | default('translateY(0)') }};
+}
+
+.{{ name | kebabCase }}.is-{{ stateName | kebabCase }} {
+  opacity: {{ stateOpacity | default('0.5') }};
+  pointer-events: {{ statePointerEvents | default('none') }};
+}

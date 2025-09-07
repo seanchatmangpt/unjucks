@@ -1,0 +1,58 @@
+---
+to: database/migrations/{{ now | formatDate('YYYYMMDD_HHmmss') }}_{{ action | snakeCase }}_{{ tableName | snakeCase }}.sql
+skip_if: '{{ !generateMigration }}'
+chmod: 0644
+---
+-- Migration: {{ action | capitalize }} {{ tableName | pascalCase }}
+-- Created: {{ now | formatDate('YYYY-MM-DD HH:mm:ss') }}
+-- Author: {{ author | default('System') }}
+
+{% if action === 'create' %}
+CREATE TABLE {{ tableName | snakeCase }} (
+  id SERIAL PRIMARY KEY,
+  {% for field in fields %}
+  {{ field.name | snakeCase }} {{ field.type | uppercase }}{% if field.nullable !== true %} NOT NULL{% endif %}{% if field.default %} DEFAULT {{ field.default }}{% endif %},
+  {% endfor %}
+  created_at TIMESTAMP DEFAULT {{ now | formatDate('YYYY-MM-DD HH:mm:ss') | quote }},
+  updated_at TIMESTAMP DEFAULT {{ now | formatDate('YYYY-MM-DD HH:mm:ss') | quote }}
+);
+
+{% for index in indexes %}
+CREATE {% if index.unique %}UNIQUE {% endif %}INDEX idx_{{ tableName | snakeCase }}_{{ index.fields | join('_') | snakeCase }}
+  ON {{ tableName | snakeCase }} ({{ index.fields | join(', ') }});
+{% endfor %}
+
+{% elif action === 'alter' %}
+{% for change in changes %}
+{% if change.type === 'add' %}
+ALTER TABLE {{ tableName | snakeCase }} 
+  ADD COLUMN {{ change.field.name | snakeCase }} {{ change.field.type | uppercase }}{% if change.field.nullable !== true %} NOT NULL{% endif %}{% if change.field.default %} DEFAULT {{ change.field.default }}{% endif %};
+{% elif change.type === 'drop' %}
+ALTER TABLE {{ tableName | snakeCase }} 
+  DROP COLUMN {{ change.field | snakeCase }};
+{% elif change.type === 'modify' %}
+ALTER TABLE {{ tableName | snakeCase }} 
+  ALTER COLUMN {{ change.field.name | snakeCase }} TYPE {{ change.field.type | uppercase }};
+{% endif %}
+{% endfor %}
+
+{% elif action === 'drop' %}
+DROP TABLE IF EXISTS {{ tableName | snakeCase }};
+{% endif %}
+
+-- Rollback instructions:
+{% if action === 'create' %}
+-- DROP TABLE {{ tableName | snakeCase }};
+{% elif action === 'drop' %}
+-- Recreate table with original schema
+{% elif action === 'alter' %}
+{% for change in changes %}
+{% if change.type === 'add' %}
+-- ALTER TABLE {{ tableName | snakeCase }} DROP COLUMN {{ change.field.name | snakeCase }};
+{% elif change.type === 'drop' %}
+-- ALTER TABLE {{ tableName | snakeCase }} ADD COLUMN {{ change.field.name | snakeCase }} {{ change.field.type | uppercase }};
+{% elif change.type === 'modify' %}
+-- ALTER TABLE {{ tableName | snakeCase }} ALTER COLUMN {{ change.field.name | snakeCase }} TYPE {{ change.field.originalType | uppercase }};
+{% endif %}
+{% endfor %}
+{% endif %}

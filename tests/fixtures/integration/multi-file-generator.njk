@@ -1,0 +1,107 @@
+---
+to: src/generated/{{ projectName | kebabCase }}/file-manifest.json
+inject: false
+skip_if: '{{ !generateMultiFile }}'
+---
+{
+  "manifest": {
+    "projectName": "{{ projectName | title }}",
+    "generated": "{{ now | formatDate('YYYY-MM-DD[T]HH:mm:ss[Z]') }}",
+    "version": "{{ version | default('1.0.0') }}",
+    "totalFiles": {{ files | length }},
+    "generator": "unjucks-multi-file-generator"
+  },
+  "files": [
+    {% for file in files %}
+    {
+      "path": "{{ file.path }}",
+      "type": "{{ file.type }}",
+      "template": "{{ file.template }}",
+      "size": {{ file.estimatedSize | default('0') }},
+      "dependencies": {{ file.dependencies | json | default('[]') }},
+      "generated": "{{ now | formatDate('YYYY-MM-DD[T]HH:mm:ss[Z]') }}",
+      "checksum": "{{ file.checksum | default('pending') }}",
+      "variables": {
+        {% for key, value in file.variables %}
+        "{{ key }}": {{ value | json }}{% if not loop.last %},{% endif %}
+        {% endfor %}
+      }
+    }{% if not loop.last %},{% endif %}
+    {% endfor %}
+  ],
+  "structure": {
+    {% for dir in directories %}
+    "{{ dir.name }}": {
+      "files": {{ dir.fileCount | default('0') }},
+      "subdirectories": {{ dir.subdirs | json | default('[]') }},
+      "purpose": "{{ dir.description | default('Generated directory') }}"
+    }{% if not loop.last %},{% endif %}
+    {% endfor %}
+  },
+  "metadata": {
+    "features": {{ features | json | default('[]') }},
+    "architecture": "{{ architecture | default('modular') }}",
+    "framework": "{{ framework | default('generic') }}",
+    "language": "{{ language | default('typescript') }}",
+    "testFramework": "{{ testFramework | default('vitest') }}",
+    "buildTool": "{{ buildTool | default('vite') }}",
+    "packageManager": "{{ packageManager | default('npm') }}"
+  },
+  "scripts": {
+    "postGenerate": [
+      {% for script in postGenerateScripts %}
+      {
+        "name": "{{ script.name }}",
+        "command": "{{ script.command }}",
+        "description": "{{ script.description }}",
+        "runIf": "{{ script.condition | default('true') }}"
+      }{% if not loop.last %},{% endif %}
+      {% endfor %}
+    ],
+    "install": [
+      {% if installDependencies %}
+      {
+        "name": "install-dependencies",
+        "command": "{{ packageManager | default('npm') }} install",
+        "description": "Install project dependencies"
+      },
+      {% endif %}
+      {% if runTests %}
+      {
+        "name": "run-tests",
+        "command": "{{ packageManager | default('npm') }} test",
+        "description": "Run generated tests"
+      },
+      {% endif %}
+      {% if buildProject %}
+      {
+        "name": "build-project", 
+        "command": "{{ packageManager | default('npm') }} run build",
+        "description": "Build the generated project"
+      }
+      {% endif %}
+    ]
+  },
+  "validation": {
+    "requiredFiles": [
+      {% for required in requiredFiles %}
+      "{{ required }}"{% if not loop.last %},{% endif %}
+      {% endfor %}
+    ],
+    "optionalFiles": [
+      {% for optional in optionalFiles %}
+      "{{ optional }}"{% if not loop.last %},{% endif %}
+      {% endfor %}
+    ],
+    "checksums": {
+      {% for file in files %}
+      "{{ file.path }}": "{{ file.checksum | default('pending') }}"{% if not loop.last %},{% endif %}
+      {% endfor %}
+    }
+  },
+  "configuration": {
+    {% for key, value in configuration %}
+    "{{ key }}": {{ value | json }}{% if not loop.last %},{% endif %}
+    {% endfor %}
+  }
+}

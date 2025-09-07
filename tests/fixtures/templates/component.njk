@@ -1,0 +1,78 @@
+---
+to: src/components/{{ name | pascalCase }}.vue
+inject: true
+skip_if: '{{ !withComposition }}'
+append: '{{ appendContent }}'
+chmod: 0644
+---
+<template>
+  <div class="{{ name | kebabCase }}-component" data-testid="{{ name | kebabCase }}">
+    <h1 class="title">{{ title | capitalize }}</h1>
+    <p class="meta">Created: {{ now | formatDate('YYYY-MM-DD') }}</p>
+    <div class="content">
+      {{ description | truncate(100) }}
+    </div>
+    {% if withProps %}
+    <div class="props">
+      {% for prop in props %}
+      <span class="{{ prop.name | camelCase }}-prop">
+        {{ prop.label | capitalize }}: {{ prop.type | uppercase }}
+      </span>
+      {% endfor %}
+    </div>
+    {% endif %}
+  </div>
+</template>
+
+<script>
+import { defineComponent{% if withComposition %}, ref, computed{% endif %} } from 'vue'
+
+export default defineComponent({
+  name: '{{ name | pascalCase }}Component',
+  {% if withProps %}
+  props: {
+    {% for prop in props %}
+    {{ prop.name | camelCase }}: {
+      type: {{ prop.type | capitalize }},
+      {% if prop.required %}required: true,{% endif %}
+      {% if prop.default %}default: {{ prop.default | json }},{% endif %}
+    },
+    {% endfor %}
+  },
+  {% endif %}
+  {% if withComposition %}
+  setup(props) {
+    const isLoading = ref(false)
+    const displayTitle = computed(() => `{{ name | capitalize }} - ${props.title}`)
+    
+    return {
+      isLoading,
+      displayTitle
+    }
+  }
+  {% else %}
+  data() {
+    return {
+      isLoading: false
+    }
+  },
+  computed: {
+    displayTitle() {
+      return `{{ name | capitalize }} - ${this.title}`
+    }
+  }
+  {% endif %}
+})
+</script>
+
+<style scoped>
+.{{ name | kebabCase }}-component {
+  padding: {{ spacing | default('16px') }};
+  border-radius: {{ borderRadius | default('8px') }};
+}
+
+.title {
+  font-size: {{ titleSize | default('24px') }};
+  color: {{ primaryColor | default('#333') }};
+}
+</style>

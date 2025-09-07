@@ -586,7 +586,7 @@ export const githubCommand = defineCommand({
     if (args.token) {
       const client = new GitHubAPIClient();
       client.saveToken(args.token);
-      return;
+      return { success: true, action: 'save-token' };
     }
     
     console.log(chalk.yellow("Available subcommands:"));
@@ -607,6 +607,8 @@ export const githubCommand = defineCommand({
     } else {
       console.log(chalk.yellow("⚠ No GitHub token found. Set GITHUB_TOKEN environment variable or use --token flag"));
     }
+    
+    return { success: true, action: 'help' };
   },
 });
 

@@ -54,7 +54,7 @@ router.use((req, res, next) => {
   next();
 });
 
-{% if 'OPTIONS' in methods %}
+{% if methods and methods.includes and methods.includes('OPTIONS') %}
 /**
  * @swagger
  * /api/{{ apiVersion }}/{{ resourceName }}:
@@ -75,7 +75,7 @@ router.options('/', asyncHandler(controller.options.bind(controller)));
 router.options('/:id', asyncHandler(controller.options.bind(controller)));
 {% endif %}
 
-{% if 'GET' in methods %}
+{% if methods and methods.includes and methods.includes('GET') %}
 /**
  * @swagger
  * /api/{{ apiVersion }}/{{ resourceName }}:
@@ -149,7 +149,7 @@ router.get('/:id',
 );
 {% endif %}
 
-{% if 'HEAD' in methods %}
+{% if methods and methods.includes and methods.includes('HEAD') %}
 /**
  * @swagger
  * /api/{{ apiVersion }}/{{ resourceName }}/{id}:
@@ -179,7 +179,7 @@ router.head('/:id',
 );
 {% endif %}
 
-{% if 'POST' in methods %}
+{% if methods and methods.includes and methods.includes('POST') %}
 /**
  * @swagger
  * /api/{{ apiVersion }}/{{ resourceName }}:
@@ -222,7 +222,7 @@ router.post('/',
 );
 {% endif %}
 
-{% if 'PUT' in methods %}
+{% if methods and methods.includes and methods.includes('PUT') %}
 /**
  * @swagger
  * /api/{{ apiVersion }}/{{ resourceName }}/{id}:
@@ -275,7 +275,7 @@ router.put('/:id',
 );
 {% endif %}
 
-{% if 'PATCH' in methods %}
+{% if methods and methods.includes and methods.includes('PATCH') %}
 /**
  * @swagger
  * /api/{{ apiVersion }}/{{ resourceName }}/{id}:
@@ -314,7 +314,7 @@ router.patch('/:id',
 );
 {% endif %}
 
-{% if 'DELETE' in methods %}
+{% if methods and methods.includes and methods.includes('DELETE') %}
 /**
  * @swagger
  * /api/{{ apiVersion }}/{{ resourceName }}/{id}:

@@ -1,6 +1,6 @@
 {
   "name": "@seanchatmangpt/unjucks",
-  "version": "2025.09.07.11.23",
+  "version": "1.0.0",
   "type": "module",
   "description": "Nunjucks + Hygen style scaffolding with RDF/Turtle support",
   "main": "./src/cli/index.js",
@@ -100,6 +100,7 @@
     "cli-table3": "^0.6.5",
     "confbox": "^0.2.2",
     "consola": "^3.4.2",
+    "dayjs": "^1.11.18",
     "fs-extra": "^11.3.1",
     "glob": "^10.3.10",
     "gray-matter": "^4.0.3",

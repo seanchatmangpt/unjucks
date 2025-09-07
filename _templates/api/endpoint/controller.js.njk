@@ -29,7 +29,7 @@ class {{ endpointName | pascalCase }}Controller {
    */
   setupValidationSchemas() {
     this.schemas = {
-      {% if 'GET' in methods %}
+      {% if methods and methods.includes and methods.includes('GET') %}
       list: Joi.object({
         {% if withPagination %}
         page: Joi.number().integer().min(1).default(1),
@@ -48,7 +48,7 @@ class {{ endpointName | pascalCase }}Controller {
       }),
       {% endif %}
       
-      {% if 'POST' in methods %}
+      {% if methods and methods.includes and methods.includes('POST') %}
       create: Joi.object({
         // Add specific fields for {{ resourceName }} creation
         name: Joi.string().min(2).max(255).required(),
@@ -59,7 +59,7 @@ class {{ endpointName | pascalCase }}Controller {
       }),
       {% endif %}
       
-      {% if 'PUT' in methods or 'PATCH' in methods %}
+      {% if (methods and methods.includes and methods.includes('PUT')) or (methods and methods.includes and methods.includes('PATCH')) %}
       update: Joi.object({
         name: Joi.string().min(2).max(255).optional(),
         description: Joi.string().max(1000).optional(),
@@ -71,7 +71,7 @@ class {{ endpointName | pascalCase }}Controller {
     };
   }
 
-  {% if 'GET' in methods %}
+  {% if methods and methods.includes and methods.includes('GET') %}
   /**
    * Get all {{ resourceName }} with pagination and filtering
    * 
@@ -193,7 +193,7 @@ class {{ endpointName | pascalCase }}Controller {
   }
   {% endif %}
 
-  {% if 'POST' in methods %}
+  {% if methods and methods.includes and methods.includes('POST') %}
   /**
    * Create new {{ resourceName | singular }}
    * 
@@ -261,7 +261,7 @@ class {{ endpointName | pascalCase }}Controller {
   }
   {% endif %}
 
-  {% if 'PUT' in methods %}
+  {% if methods and methods.includes and methods.includes('PUT') %}
   /**
    * Update existing {{ resourceName | singular }}
    */
@@ -316,7 +316,7 @@ class {{ endpointName | pascalCase }}Controller {
   }
   {% endif %}
 
-  {% if 'DELETE' in methods %}
+  {% if methods and methods.includes and methods.includes('DELETE') %}
   /**
    * Delete {{ resourceName | singular }}
    */
@@ -358,7 +358,7 @@ class {{ endpointName | pascalCase }}Controller {
   }
   {% endif %}
 
-  {% if 'HEAD' in methods %}
+  {% if methods and methods.includes and methods.includes('HEAD') %}
   /**
    * Check if {{ resourceName | singular }} exists
    */
@@ -377,7 +377,7 @@ class {{ endpointName | pascalCase }}Controller {
   }
   {% endif %}
 
-  {% if 'OPTIONS' in methods %}
+  {% if methods and methods.includes and methods.includes('OPTIONS') %}
   /**
    * Get allowed methods for this endpoint
    */

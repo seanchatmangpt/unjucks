@@ -44,7 +44,7 @@ describe('Feature: Core CLI Commands', () => {
         const result = execSync(`node ${join(originalCwd, 'src/cli/index.js')} --version`, { 
           encoding: 'utf8',
           cwd: testDir,
-          stdio: ['pipe', 'pipe', 'pipe']
+          stdio: ['inherit', 'pipe', 'pipe']
         });
         const output = result.toString();
         
@@ -66,7 +66,7 @@ describe('Feature: Core CLI Commands', () => {
         const result = execSync(`node ${join(originalCwd, 'src/cli/index.js')} --help`, {
           encoding: 'utf8',
           cwd: testDir,
-          stdio: ['pipe', 'pipe', 'pipe']
+          stdio: ['inherit', 'pipe', 'pipe']
         });
         const output = result.toString();
 
@@ -109,7 +109,7 @@ export default function <%= name %>() {
         const output = execSync(`node ${join(originalCwd, 'src/cli/index.js')} list`, {
           encoding: 'utf8',
           cwd: testDir,
-          stdio: 'pipe'
+          stdio: ['inherit', 'pipe', 'pipe']
         });
 
         // Then I should see a list of available generators
@@ -136,7 +136,7 @@ export default function <%= name %>() {
         const output = execSync(`node ${join(originalCwd, 'src/cli/index.js')} list`, {
           encoding: 'utf8',
           cwd: testDir,
-          stdio: 'pipe'
+          stdio: ['inherit', 'pipe', 'pipe']
         });
 
         // Then I should see "No generators found" message
@@ -157,7 +157,7 @@ export default function <%= name %>() {
         const result = execSync(`node ${join(originalCwd, 'src/cli/index.js')} invalidcommand`, {
           encoding: 'utf8',
           cwd: testDir,
-          stdio: ['pipe', 'pipe', 'pipe']
+          stdio: ['inherit', 'pipe', 'pipe']
         });
         const output = result.toString();
         
@@ -179,7 +179,7 @@ export default function <%= name %>() {
         const result = execSync(`node ${join(originalCwd, 'src/cli/index.js')} generate`, {
           encoding: 'utf8',
           cwd: testDir,
-          stdio: ['pipe', 'pipe', 'pipe']
+          stdio: ['inherit', 'pipe', 'pipe']
         });
         const output = result.toString();
         

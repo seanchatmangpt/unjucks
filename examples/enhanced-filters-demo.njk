@@ -1,0 +1,75 @@
+---
+to: examples/enhanced-filters-output.md
+title: "User Management System"
+entityName: user_posts
+description: "A comprehensive guide to using enhanced Nunjucks filters"
+---
+# {{ title | titleCase }}
+
+## Entity Information
+- **Class Name**: {{ entityName | classify }}
+- **Table Name**: {{ entityName | tableize }}
+- **URL Slug**: {{ title | slug }}
+- **Humanized**: {{ entityName | humanize }}
+
+## Case Transformations
+- **Original**: {{ entityName }}
+- **PascalCase**: {{ entityName | pascalCase }}
+- **camelCase**: {{ entityName | camelCase }}
+- **snake_case**: {{ entityName | snakeCase }}
+- **kebab-case**: {{ entityName | kebabCase }}
+- **CONSTANT_CASE**: {{ entityName | constantCase }}
+- **Title Case**: {{ entityName | titleCase }}
+- **Sentence case**: {{ entityName | sentenceCase }}
+
+## Inflection Examples
+- **Underscore**: {{ 'HelloWorld' | underscore }}
+- **Dasherize**: {{ 'hello_world' | dasherize }}
+- **Camelize**: {{ 'hello_world' | camelize }}
+- **Camelize (first letter)**: {{ 'hello_world' | camelize(true) }}
+- **Demodulize**: {{ 'Admin::Users::User' | demodulize }}
+
+## String Utilities
+- **Truncated Description**: {{ description | truncate(30) }}
+- **Padded Title**: "{{ title | pad(40, '-') }}"
+- **Repeated Pattern**: {{ 'abc' | repeat(3) }}
+- **Reversed**: {{ title | reverse }}
+- **Swap Case**: {{ title | swapCase }}
+
+## Word Wrapping
+{{ 'This is a very long line that should be wrapped at a specific width to demonstrate the wrap filter functionality in Nunjucks templates.' | wrap(50) }}
+
+## Template Usage Examples
+
+### Model Class Generation
+```javascript
+export class {{ entityName | classify }} {
+  static tableName = '{{ entityName | tableize }}';
+  
+  constructor(data) {
+    this.{{ entityName | singular | camelCase }}Id = data.id;
+  }
+  
+  get urlSlug() {
+    return this.title ? '{{ entityName | slug }}' : null;
+  }
+}
+```
+
+### Database Migration
+```sql
+CREATE TABLE {{ entityName | tableize }} (
+  id SERIAL PRIMARY KEY,
+  {{ entityName | singular | snakeCase }}_name VARCHAR(255),
+  created_at TIMESTAMP DEFAULT NOW()
+);
+```
+
+### API Route
+```javascript
+app.get('/api/{{ entityName | kebabCase }}/:id', (req, res) => {
+  // Handle {{ entityName | humanize | lower }} request
+});
+```
+
+Generated at: {{ now() }}

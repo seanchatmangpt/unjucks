@@ -1,0 +1,333 @@
+{
+  "inflection_tests": {
+    "pascalCase": [
+      { "input": "hello-world", "expected": "HelloWorld" },
+      { "input": "user_profile", "expected": "UserProfile" },
+      { "input": "camelCaseInput", "expected": "CamelCaseInput" },
+      { "input": "already-pascal", "expected": "AlreadyPascal" },
+      { "input": "123-number-start", "expected": "123NumberStart" },
+      { "input": "special@chars#test", "expected": "SpecialCharsTest" },
+      { "input": "", "expected": "" },
+      { "input": "a", "expected": "A" },
+      { "input": "XML-HTTP-REQUEST", "expected": "XMLHTTPREQUEST" }
+    ],
+    "camelCase": [
+      { "input": "hello-world", "expected": "helloWorld" },
+      { "input": "user_profile", "expected": "userProfile" },
+      { "input": "PascalCaseInput", "expected": "pascalCaseInput" },
+      { "input": "already-camel", "expected": "alreadyCamel" },
+      { "input": "123-number-start", "expected": "123NumberStart" },
+      { "input": "special@chars#test", "expected": "specialCharsTest" },
+      { "input": "", "expected": "" },
+      { "input": "A", "expected": "a" },
+      { "input": "XML-HTTP-REQUEST", "expected": "xMLHTTPREQUEST" }
+    ],
+    "kebabCase": [
+      { "input": "HelloWorld", "expected": "hello-world" },
+      { "input": "userProfile", "expected": "user-profile" },
+      { "input": "user_profile", "expected": "user-profile" },
+      { "input": "already-kebab", "expected": "already-kebab" },
+      { "input": "XMLHttpRequest", "expected": "xml-http-request" },
+      { "input": "iOS14Update", "expected": "i-os14-update" },
+      { "input": "", "expected": "" },
+      { "input": "A", "expected": "a" }
+    ],
+    "snakeCase": [
+      { "input": "HelloWorld", "expected": "hello_world" },
+      { "input": "userProfile", "expected": "user_profile" },
+      { "input": "user-profile", "expected": "user_profile" },
+      { "input": "already_snake", "expected": "already_snake" },
+      { "input": "XMLHttpRequest", "expected": "xml_http_request" },
+      { "input": "iOS14Update", "expected": "i_os14_update" },
+      { "input": "", "expected": "" },
+      { "input": "A", "expected": "a" }
+    ],
+    "capitalize": [
+      { "input": "hello world", "expected": "Hello world" },
+      { "input": "already Capitalized", "expected": "Already Capitalized" },
+      { "input": "ALL CAPS", "expected": "ALL CAPS" },
+      { "input": "mixed-Cases_here", "expected": "Mixed-Cases_here" },
+      { "input": "", "expected": "" },
+      { "input": "a", "expected": "A" }
+    ],
+    "uppercase": [
+      { "input": "hello world", "expected": "HELLO WORLD" },
+      { "input": "Mixed-Cases_123", "expected": "MIXED-CASES_123" },
+      { "input": "ALREADY_UPPER", "expected": "ALREADY_UPPER" },
+      { "input": "", "expected": "" }
+    ],
+    "lowercase": [
+      { "input": "HELLO WORLD", "expected": "hello world" },
+      { "input": "Mixed-Cases_123", "expected": "mixed-cases_123" },
+      { "input": "already_lower", "expected": "already_lower" },
+      { "input": "", "expected": "" }
+    ],
+    "title": [
+      { "input": "hello-world", "expected": "Hello World" },
+      { "input": "user_profile", "expected": "User Profile" },
+      { "input": "camelCaseInput", "expected": "Camel Case Input" },
+      { "input": "already title", "expected": "Already Title" },
+      { "input": "XML-HTTP-REQUEST", "expected": "XML HTTP REQUEST" },
+      { "input": "", "expected": "" }
+    ],
+    "pluralize": [
+      { "input": "user", "expected": "users" },
+      { "input": "person", "expected": "people" },
+      { "input": "child", "expected": "children" },
+      { "input": "mouse", "expected": "mice" },
+      { "input": "data", "expected": "data" },
+      { "input": "sheep", "expected": "sheep" },
+      { "input": "category", "expected": "categories" },
+      { "input": "", "expected": "" }
+    ]
+  },
+  "datetime_tests": {
+    "formatDate": [
+      {
+        "input": "2024-09-07T14:30:00Z",
+        "format": "YYYY-MM-DD",
+        "expected": "2024-09-07"
+      },
+      {
+        "input": "2024-09-07T14:30:00Z",
+        "format": "YYYY-MM-DD HH:mm:ss",
+        "expected": "2024-09-07 14:30:00"
+      },
+      {
+        "input": "2024-09-07T14:30:00Z",
+        "format": "YYYYMMDD_HHmmss",
+        "expected": "20240907_143000"
+      },
+      {
+        "input": "2024-09-07T14:30:00Z",
+        "format": "MMMM Do, YYYY",
+        "expected": "September 7th, 2024"
+      },
+      {
+        "input": "2024-09-07T14:30:00Z",
+        "format": "dddd [at] h:mm A",
+        "expected": "Saturday at 2:30 PM"
+      },
+      {
+        "input": "2024-12-25T00:00:00Z",
+        "format": "MM/DD/YYYY",
+        "expected": "12/25/2024"
+      },
+      {
+        "input": "2024-01-01T23:59:59Z",
+        "format": "YYYY-MM-DD[T]HH:mm:ss[Z]",
+        "expected": "2024-01-01T23:59:59Z"
+      }
+    ]
+  },
+  "utility_tests": {
+    "truncate": [
+      {
+        "input": "This is a very long string that should be truncated",
+        "length": 20,
+        "expected": "This is a very long..."
+      },
+      {
+        "input": "Short string",
+        "length": 50,
+        "expected": "Short string"
+      },
+      {
+        "input": "Exactly twenty chars",
+        "length": 20,
+        "expected": "Exactly twenty chars"
+      },
+      {
+        "input": "",
+        "length": 10,
+        "expected": ""
+      },
+      {
+        "input": "Test with unicode: café résumé",
+        "length": 15,
+        "expected": "Test with unico..."
+      }
+    ],
+    "default": [
+      {
+        "input": null,
+        "default": "fallback",
+        "expected": "fallback"
+      },
+      {
+        "input": "",
+        "default": "empty fallback",
+        "expected": "empty fallback"
+      },
+      {
+        "input": 0,
+        "default": "zero fallback",
+        "expected": "zero fallback"
+      },
+      {
+        "input": false,
+        "default": "false fallback",
+        "expected": "false fallback"
+      },
+      {
+        "input": "actual value",
+        "default": "fallback",
+        "expected": "actual value"
+      },
+      {
+        "input": [],
+        "default": "array fallback",
+        "expected": []
+      },
+      {
+        "input": {},
+        "default": "object fallback",
+        "expected": {}
+      }
+    ],
+    "json": [
+      {
+        "input": { "key": "value", "number": 42 },
+        "expected": "{\"key\":\"value\",\"number\":42}"
+      },
+      {
+        "input": ["item1", "item2", "item3"],
+        "expected": "[\"item1\",\"item2\",\"item3\"]"
+      },
+      {
+        "input": "simple string",
+        "expected": "\"simple string\""
+      },
+      {
+        "input": 123,
+        "expected": "123"
+      },
+      {
+        "input": true,
+        "expected": "true"
+      },
+      {
+        "input": null,
+        "expected": "null"
+      }
+    ],
+    "quote": [
+      {
+        "input": "simple string",
+        "expected": "'simple string'"
+      },
+      {
+        "input": "string with 'quotes'",
+        "expected": "'string with \\'quotes\\''"
+      },
+      {
+        "input": "",
+        "expected": "''"
+      },
+      {
+        "input": "line1\nline2",
+        "expected": "'line1\\nline2'"
+      }
+    ],
+    "join": [
+      {
+        "input": ["one", "two", "three"],
+        "separator": ", ",
+        "expected": "one, two, three"
+      },
+      {
+        "input": ["single"],
+        "separator": " | ",
+        "expected": "single"
+      },
+      {
+        "input": [],
+        "separator": ", ",
+        "expected": ""
+      },
+      {
+        "input": ["a", "b", "c", "d"],
+        "separator": " -> ",
+        "expected": "a -> b -> c -> d"
+      }
+    ]
+  },
+  "faker_tests": {
+    "patterns": [
+      {
+        "filter": "faker.uuid",
+        "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+        "description": "Should match UUID v4 format"
+      },
+      {
+        "filter": "faker.email",
+        "pattern": "^[\\w\\.-]+@[\\w\\.-]+\\.[\\w]+$",
+        "description": "Should match email format"
+      },
+      {
+        "filter": "faker.phoneNumber",
+        "pattern": "^[\\d\\-\\(\\)\\+\\s]+$",
+        "description": "Should contain only phone number characters"
+      },
+      {
+        "filter": "faker.url",
+        "pattern": "^https?:\\/\\/[\\w\\.-]+",
+        "description": "Should start with http or https"
+      }
+    ],
+    "types": [
+      {
+        "filter": "faker.boolean",
+        "expectedType": "boolean",
+        "possibleValues": [true, false]
+      },
+      {
+        "filter": "faker.number",
+        "expectedType": "number",
+        "rangeTest": true
+      },
+      {
+        "filter": "faker.word",
+        "expectedType": "string",
+        "minLength": 1
+      },
+      {
+        "filter": "faker.sentence",
+        "expectedType": "string",
+        "minLength": 10
+      }
+    ]
+  },
+  "complex_combinations": [
+    {
+      "name": "Pascal case with date formatting",
+      "template": "{{ name | pascalCase }}_{{ now | formatDate('YYYYMMDD') }}",
+      "input": { "name": "user-profile" },
+      "expectedPattern": "^UserProfile_\\d{8}$"
+    },
+    {
+      "name": "Chained inflection filters",
+      "template": "{{ name | kebabCase | uppercase }}",
+      "input": { "name": "XMLHttpRequest" },
+      "expected": "XML-HTTP-REQUEST"
+    },
+    {
+      "name": "Default with inflection",
+      "template": "{{ missingValue | default('fallback-value') | pascalCase }}",
+      "input": {},
+      "expected": "FallbackValue"
+    },
+    {
+      "name": "Truncate with title case",
+      "template": "{{ description | title | truncate(30) }}",
+      "input": { "description": "this-is-a-very-long-description-that-should-be-truncated-properly" },
+      "expected": "This Is A Very Long Descripti..."
+    },
+    {
+      "name": "Array join with inflection",
+      "template": "{{ items | join('_') | uppercase }}",
+      "input": { "items": ["user", "profile", "component"] },
+      "expected": "USER_PROFILE_COMPONENT"
+    }
+  ]
+}

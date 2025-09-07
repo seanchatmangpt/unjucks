@@ -1,0 +1,16 @@
+# User Profile
+
+Name: {{ '' | fakerName }}
+Email: {{ '' | fakerEmail }}
+Phone: {{ '' | fakerPhone }}
+Address: {{ '' | fakerAddress }}
+Company: {{ '' | fakerCompany }}
+
+User ID: {{ '' | fakerUuid }}
+
+Bio: {{ '' | fakerLorem(10) }}
+
+## Multiple Users
+{% for i in range(3) %}
+User {{ i + 1 }}: {{ '' | fakerName }} - {{ '' | fakerEmail }}
+{% endfor %}

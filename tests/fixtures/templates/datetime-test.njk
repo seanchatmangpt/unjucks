@@ -1,0 +1,10 @@
+# Date Testing Template
+
+Current date: {{ currentDate | dateFormat("YYYY-MM-DD") }}
+Future date: {{ currentDate | dateAdd(30, "day") | dateFormat("MM/DD/YYYY") }}
+Past date: {{ currentDate | dateSubtract(7, "day") | dateFormat("DD-MM-YYYY") }}
+
+Relative time: {{ pastDate | fromNow }}
+
+Timestamp: {{ timestamp() }}
+ISO time: {{ now() }}

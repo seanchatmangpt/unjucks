@@ -1,0 +1,150 @@
+---
+to: src/{{ moduleType }}/{{ name | kebabCase }}.{{ extension | default('ts') }}
+inject: {{ injectMode | default('false') }}
+{% if injectMode === 'before' %}before: '{{ beforePattern }}'
+{% elif injectMode === 'after' %}after: '{{ afterPattern }}'
+{% elif injectMode === 'append' %}append: '{{ appendContent }}'
+{% elif injectMode === 'prepend' %}prepend: '{{ prependContent }}'
+{% elif injectMode === 'lineAt' %}lineAt: {{ lineNumber | default('1') }}
+{% endif %}
+skip_if: '{{ skipCondition }}'
+chmod: {{ permissions | default('0644') }}
+sh: {{ shellCommand }}
+---
+{% if injectMode === false or injectMode === 'false' %}
+/**
+ * {{ name | title }} {{ moduleType | title }}
+ * Generated: {{ now | formatDate('YYYY-MM-DD HH:mm:ss') }}
+ * Mode: Complete file replacement
+ */
+
+export class {{ name | pascalCase }} {
+  private {{ propertyName | camelCase }}: string
+  
+  constructor({{ paramName | camelCase }}: string) {
+    this.{{ propertyName | camelCase }} = {{ paramName | camelCase }}
+  }
+  
+  public {{ methodName | camelCase }}(): string {
+    return `{{ name | title }}: ${this.{{ propertyName | camelCase }}}`
+  }
+}
+
+export default {{ name | pascalCase }}
+
+{% elif injectMode === 'before' %}
+// INJECTED BEFORE: {{ beforePattern }}
+// Generated: {{ now | formatDate('YYYY-MM-DD HH:mm:ss') }}
+
+import { {{ importName | pascalCase }} } from '{{ importPath }}'
+
+const {{ name | camelCase }}Config = {
+  {{ configProperty | camelCase }}: '{{ configValue }}',
+  enabled: {{ enabled | default('true') }},
+  timestamp: '{{ now | formatDate('YYYY-MM-DD[T]HH:mm:ss[Z]') }}'
+}
+
+{% elif injectMode === 'after' %}
+// INJECTED AFTER: {{ afterPattern }}
+// Generated: {{ now | formatDate('YYYY-MM-DD HH:mm:ss') }}
+
+// {{ name | title }} implementation
+export const {{ name | camelCase }}Implementation = {
+  {{ methodName | camelCase }}: ({{ paramName | camelCase }}: string) => {
+    console.log(`Executing {{ methodName }}: ${{{ paramName | camelCase }}}`)
+    return `{{ name | title }} result: ${{{ paramName | camelCase }}}`
+  }
+}
+
+{% elif injectMode === 'append' %}
+{{ appendContent }}
+
+// APPENDED CONTENT
+// Generated: {{ now | formatDate('YYYY-MM-DD HH:mm:ss') }}
+
+export const {{ name | camelCase }}Extensions = {
+  version: '{{ version | default('1.0.0') }}',
+  {{ extensionMethod | camelCase }}: () => {
+    return '{{ name | title }} extension loaded'
+  },
+  metadata: {
+    generated: '{{ now | formatDate('YYYY-MM-DD[T]HH:mm:ss[Z]') }}',
+    type: '{{ moduleType }}'
+  }
+}
+
+{% elif injectMode === 'prepend' %}
+{{ prependContent }}
+
+// PREPENDED CONTENT
+// Generated: {{ now | formatDate('YYYY-MM-DD HH:mm:ss') }}
+
+/**
+ * {{ name | title }} Module Header
+ * This content is prepended to the file
+ */
+
+const {{ name | snakeCase | uppercase }}_MODULE_VERSION = '{{ version | default('1.0.0') }}'
+const {{ name | snakeCase | uppercase }}_GENERATED_AT = '{{ now | formatDate('YYYY-MM-DD[T]HH:mm:ss[Z]') }}'
+
+{% elif injectMode === 'lineAt' %}
+// INSERTED AT LINE {{ lineNumber | default('1') }}
+// Generated: {{ now | formatDate('YYYY-MM-DD HH:mm:ss') }}
+const {{ name | camelCase }}AtLine{{ lineNumber | default('1') }} = '{{ content | default('Injected content') }}'
+
+{% endif %}
+
+// Conditional sections based on frontmatter variables
+{% if withLogging %}
+import { logger } from '../utils/logger'
+
+const log = logger.child({ module: '{{ name | kebabCase }}' })
+{% endif %}
+
+{% if withValidation %}
+import { ValidationError } from '../utils/errors'
+
+function validate{{ name | pascalCase }}(data: any): boolean {
+  if (!data || typeof data !== 'object') {
+    throw new ValidationError('Invalid {{ name | lowercase }} data')
+  }
+  return true
+}
+{% endif %}
+
+{% if withDatabase %}
+import { Database } from '../database'
+
+const db = new Database()
+{% endif %}
+
+// Skip conditions demonstration
+{% if skipCondition %}
+// This content would be skipped based on condition: {{ skipCondition }}
+{% endif %}
+
+// Permission demonstration
+// File permissions will be set to: {{ permissions | default('0644') }}
+
+{% if shellCommand %}
+// Shell command to execute after generation: {{ shellCommand }}
+{% endif %}
+
+// Environment-specific content
+{% if environment === 'development' %}
+console.log('Development mode: {{ name | title }}')
+{% elif environment === 'production' %}
+// Production optimizations
+{% elif environment === 'test' %}
+// Test-specific setup
+{% endif %}
+
+// Dynamic exports based on conditions
+{% if exportType === 'default' %}
+export default {{ name | pascalCase }}
+{% elif exportType === 'named' %}
+export { {{ name | pascalCase }} }
+{% elif exportType === 'both' %}
+export { {{ name | pascalCase }} }
+export default {{ name | pascalCase }}
+{% endif %}

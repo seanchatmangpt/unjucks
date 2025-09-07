@@ -1,0 +1,85 @@
+---
+to: database/migrations/{{ now | formatDate('YYYYMMDD_HHmmss') }}_{{ operation | snakeCase }}_{{ tableName | snakeCase }}_table.sql
+inject: false
+---
+-- Migration: {{ operation | title }} {{ tableName | title }} Table
+-- Generated: {{ now | formatDate('YYYY-MM-DD HH:mm:ss') }}
+-- File: {{ now | formatDate('YYYYMMDD_HHmmss') }}_{{ operation | snakeCase }}_{{ tableName | snakeCase }}_table.sql
+
+{% if operation === 'create' %}
+-- Create {{ tableName | title }} table
+CREATE TABLE {{ tableName | snakeCase }} (
+    id SERIAL PRIMARY KEY,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    version INTEGER DEFAULT 1,
+    
+    -- Timestamp tracking
+    created_date DATE DEFAULT '{{ now | formatDate('YYYY-MM-DD') }}',
+    created_year INTEGER DEFAULT {{ now | formatDate('YYYY') }},
+    created_month INTEGER DEFAULT {{ now | formatDate('MM') }},
+    created_day INTEGER DEFAULT {{ now | formatDate('DD') }}
+);
+
+-- Add indexes for date-based queries
+CREATE INDEX idx_{{ tableName | snakeCase }}_created_date ON {{ tableName | snakeCase }}(created_date);
+CREATE INDEX idx_{{ tableName | snakeCase }}_created_month ON {{ tableName | snakeCase }}(created_year, created_month);
+
+-- Comment with creation info
+COMMENT ON TABLE {{ tableName | snakeCase }} IS 'Created on {{ now | formatDate('YYYY-MM-DD [at] HH:mm:ss') }} via migration';
+
+{% elif operation === 'alter' %}
+-- Alter {{ tableName | title }} table
+ALTER TABLE {{ tableName | snakeCase }} ADD COLUMN migration_date TIMESTAMP DEFAULT '{{ now | formatDate('YYYY-MM-DD HH:mm:ss') }}';
+
+-- Update metadata
+UPDATE {{ tableName | snakeCase }} SET 
+    updated_at = '{{ now | formatDate('YYYY-MM-DD HH:mm:ss') }}',
+    version = version + 1;
+
+{% elif operation === 'drop' %}
+-- Drop {{ tableName | title }} table
+-- Backup created: {{ now | formatDate('YYYY-MM-DD_HH-mm-ss') }}_{{ tableName | snakeCase }}_backup.sql
+
+-- Record deletion in audit log
+INSERT INTO migration_log (
+    operation,
+    table_name,
+    executed_at,
+    backup_file
+) VALUES (
+    'DROP TABLE',
+    '{{ tableName | snakeCase }}',
+    '{{ now | formatDate('YYYY-MM-DD HH:mm:ss') }}',
+    '{{ now | formatDate('YYYY-MM-DD_HH-mm-ss') }}_{{ tableName | snakeCase }}_backup.sql'
+);
+
+DROP TABLE IF EXISTS {{ tableName | snakeCase }};
+{% endif %}
+
+-- Migration metadata
+INSERT INTO schema_migrations (
+    version,
+    operation,
+    table_name,
+    executed_at,
+    filename
+) VALUES (
+    '{{ now | formatDate('YYYYMMDD_HHmmss') }}',
+    '{{ operation | uppercase }}',
+    '{{ tableName | snakeCase }}',
+    '{{ now | formatDate('YYYY-MM-DD HH:mm:ss') }}',
+    '{{ now | formatDate('YYYYMMDD_HHmmss') }}_{{ operation | snakeCase }}_{{ tableName | snakeCase }}_table.sql'
+);
+
+-- Rollback information
+-- To rollback this migration:
+{% if operation === 'create' %}
+-- DROP TABLE {{ tableName | snakeCase }};
+{% elif operation === 'alter' %}
+-- ALTER TABLE {{ tableName | snakeCase }} DROP COLUMN migration_date;
+{% elif operation === 'drop' %}
+-- Restore from: {{ now | formatDate('YYYY-MM-DD_HH-mm-ss') }}_{{ tableName | snakeCase }}_backup.sql
+{% endif %}
+
+-- End of migration: {{ now | formatDate('YYYY-MM-DD HH:mm:ss') }}

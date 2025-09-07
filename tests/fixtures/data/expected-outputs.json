@@ -1,0 +1,118 @@
+{
+  "component_rendered": {
+    "filename": "src/components/UserProfile.vue",
+    "content": "<template>\n  <div class=\"user-profile-component\" data-testid=\"user-profile\">\n    <h1 class=\"title\">User profile dashboard</h1>\n    <p class=\"meta\">Created: 2024-09-07</p>\n    <div class=\"content\">\n      A comprehensive user profile component with avatar, settings, and activity feed functional...\n    </div>\n    <div class=\"props\">\n      <span class=\"userId-prop\">\n        User ID: STRING\n      </span>\n      <span class=\"showAvatar-prop\">\n        Show avatar: BOOLEAN\n      </span>\n      <span class=\"maxActivities-prop\">\n        Maximum activities: NUMBER\n      </span>\n    </div>\n  </div>\n</template>"
+  },
+  "migration_rendered": {
+    "filename": "database/migrations/20240907_143000_create_user_profiles.sql",
+    "content": "-- Migration: Create UserProfiles\n-- Created: 2024-09-07 14:30:00\n-- Author: Development Team\n\nCREATE TABLE user_profiles (\n  id SERIAL PRIMARY KEY,\n  user_id VARCHAR(36) NOT NULL,\n  display_name VARCHAR(255) NOT NULL,\n  avatar_url VARCHAR(500),\n  bio TEXT,\n  preferences JSONB DEFAULT '{}',\n  is_active BOOLEAN NOT NULL DEFAULT true,\n  created_at TIMESTAMP DEFAULT '2024-09-07 14:30:00',\n  updated_at TIMESTAMP DEFAULT '2024-09-07 14:30:00'\n);\n\nCREATE UNIQUE INDEX idx_user_profiles_user_id\n  ON user_profiles (user_id);\nCREATE INDEX idx_user_profiles_display_name\n  ON user_profiles (display_name);\nCREATE INDEX idx_user_profiles_is_active\n  ON user_profiles (is_active);"
+  },
+  "test_rendered": {
+    "filename": "tests/unit/user-service.test.ts",
+    "content": "import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'\nimport { UserService } from '../src/user-service'\n\ndescribe('UserService Unit Tests', () => {\n  // Test data generated with faker\n  const mockData = {\n    id: '123e4567-e89b-12d3-a456-426614174000',\n    name: 'John Doe',\n    email: 'john.doe@example.com',\n    createdAt: '2024-09-07',\n    profileId: 'profile-123',\n    lastLogin: '2024-09-06T10:30:00Z',\n    isVerified: true,\n    loginCount: 15\n  }"
+  },
+  "api_rendered": {
+    "filename": "src/routes/v2/users.ts",
+    "content": "import { Router, Request, Response, NextFunction } from 'express'\nimport { body, param, query, validationResult } from 'express-validator'\nimport { UsersService } from '../services/users-service'\nimport { authenticate, authorize } from '../middleware/auth'\nimport { rateLimit } from '../middleware/rate-limit'\nimport { logger } from '../utils/logger'\n\nconst router = Router()\nconst usersService = new UsersService()\n\n/**\n * Users API Routes\n * Generated: 2024-09-07 14:30:00\n * Version: 2.1.0\n */"
+  },
+  "config_rendered_json": {
+    "filename": "config/production.json",
+    "content": "{\n  \"app\": {\n    \"name\": \"Enterprise App\",\n    \"version\": \"2.1.0\",\n    \"environment\": \"production\",\n    \"port\": 8080,\n    \"host\": \"0.0.0.0\",\n    \"baseUrl\": \"https://api.enterprise-app.com\",\n    \"timezone\": \"America/New_York\",\n    \"locale\": \"en-US\",\n    \"debug\": false,\n    \"logLevel\": \"info\"\n  },\n  \"database\": {\n    \"type\": \"postgresql\",\n    \"host\": \"db.enterprise-app.com\",\n    \"port\": 5432,\n    \"username\": \"app_prod_user\",\n    \"password\": \"secure_prod_password_2024\",\n    \"database\": \"enterprise_app_production\",\n    \"ssl\": true"
+  },
+  "filter_transformations": {
+    "inflection": {
+      "pascalCase": {
+        "input": "user-profile",
+        "expected": "UserProfile"
+      },
+      "camelCase": {
+        "input": "user-profile", 
+        "expected": "userProfile"
+      },
+      "kebabCase": {
+        "input": "UserProfile",
+        "expected": "user-profile"
+      },
+      "snakeCase": {
+        "input": "UserProfile",
+        "expected": "user_profile"
+      },
+      "capitalize": {
+        "input": "user profile dashboard",
+        "expected": "User profile dashboard"
+      },
+      "uppercase": {
+        "input": "varchar(36)",
+        "expected": "VARCHAR(36)"
+      },
+      "lowercase": {
+        "input": "GET /api/users",
+        "expected": "get /api/users"
+      },
+      "title": {
+        "input": "enterprise-app",
+        "expected": "Enterprise App"
+      },
+      "pluralize": {
+        "input": "user",
+        "expected": "users"
+      }
+    },
+    "datetime": {
+      "formatDate": [
+        {
+          "input": "2024-09-07T14:30:00Z",
+          "format": "YYYY-MM-DD",
+          "expected": "2024-09-07"
+        },
+        {
+          "input": "2024-09-07T14:30:00Z",
+          "format": "YYYY-MM-DD HH:mm:ss",
+          "expected": "2024-09-07 14:30:00"
+        },
+        {
+          "input": "2024-09-07T14:30:00Z",
+          "format": "YYYYMMDD_HHmmss",
+          "expected": "20240907_143000"
+        }
+      ]
+    },
+    "utility": {
+      "truncate": {
+        "input": "A comprehensive user profile component with avatar, settings, and activity feed functionality",
+        "length": 100,
+        "expected": "A comprehensive user profile component with avatar, settings, and activity feed functional..."
+      },
+      "default": [
+        {
+          "input": null,
+          "default": "localhost",
+          "expected": "localhost"
+        },
+        {
+          "input": "",
+          "default": "3000",
+          "expected": "3000"
+        },
+        {
+          "input": "8080",
+          "default": "3000",
+          "expected": "8080"
+        }
+      ],
+      "json": {
+        "input": ["GET", "POST", "PUT", "DELETE"],
+        "expected": "[\"GET\", \"POST\", \"PUT\", \"DELETE\"]"
+      },
+      "quote": {
+        "input": "2024-09-07 14:30:00",
+        "expected": "'2024-09-07 14:30:00'"
+      },
+      "join": {
+        "input": ["user_id", "display_name"],
+        "separator": ", ",
+        "expected": "user_id, display_name"
+      }
+    }
+  }
+}

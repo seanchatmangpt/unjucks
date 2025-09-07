@@ -1,0 +1,50 @@
+---
+to: src/{{ moduleType | default('modules') }}/{{ name | kebabCase }}/index.ts
+inject: false
+skip_if: '{{ !generateCrud }}'
+---
+/**
+ * {{ name | title }} CRUD Module
+ * Generated: {{ now | formatDate('YYYY-MM-DD HH:mm:ss') }}
+ * Features: {{ features | join(', ') }}
+ */
+
+// Export all CRUD components
+export { {{ name | pascalCase }}Controller } from './controller'
+export { {{ name | pascalCase }}Service } from './service'
+export { {{ name | pascalCase }}Repository } from './repository'
+export { {{ name | pascalCase }}Model } from './model'
+export { {{ name | pascalCase }}Validator } from './validator'
+
+// Export types
+export type {
+  {{ name | pascalCase }},
+  {{ name | pascalCase }}CreateInput,
+  {{ name | pascalCase }}UpdateInput,
+  {{ name | pascalCase }}Query,
+  {{ name | pascalCase }}Response
+} from './types'
+
+// Export routes
+export { {{ name | camelCase }}Routes } from './routes'
+
+// Export middleware
+{% if withAuth %}
+export { {{ name | camelCase }}Auth } from './middleware/auth'
+{% endif %}
+{% if withValidation %}
+export { {{ name | camelCase }}Validation } from './middleware/validation'
+{% endif %}
+{% if withRateLimit %}
+export { {{ name | camelCase }}RateLimit } from './middleware/rate-limit'
+{% endif %}
+
+// Default export
+export default {
+  controller: {{ name | pascalCase }}Controller,
+  service: {{ name | pascalCase }}Service,
+  repository: {{ name | pascalCase }}Repository,
+  model: {{ name | pascalCase }}Model,
+  validator: {{ name | pascalCase }}Validator,
+  routes: {{ name | camelCase }}Routes
+}

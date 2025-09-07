@@ -1,0 +1,204 @@
+---
+to: '{% if generateFile %}src/{{ directory }}/{{ name | kebabCase }}.{{ extension }}{% else %}skip{% endif %}'
+inject: {{ injectMode | default('false') }}
+skip_if: '{{ !generateFile or skipConditions }}'
+chmod: '{% if isExecutable %}0755{% else %}0644{% endif %}'
+sh: '{% if runPostScript %}{{ postScript }}{% endif %}'
+---
+{% set shouldGenerate = generateFile and not skipConditions %}
+{% set fileType = extension | default('ts') %}
+{% set isScript = fileType in ['js', 'ts', 'py', 'sh'] %}
+
+{% if shouldGenerate %}
+{# File header with conditional content #}
+{% if withHeader %}
+/**
+ * {{ name | title }}
+ * Type: {{ fileType | uppercase }} {{ moduleType | default('Module') }}
+ * Generated: {{ now | formatDate('YYYY-MM-DD HH:mm:ss') }}
+ * {% if description %}Description: {{ description }}{% endif %}
+ * {% if author %}Author: {{ author }}{% endif %}
+ * {% if version %}Version: {{ version }}{% endif %}
+ */
+
+{% endif %}
+
+{# Import statements based on dependencies #}
+{% if dependencies %}
+{% for dep in dependencies %}
+{% if dep.type === 'npm' %}
+import {{ dep.import | default('*') }} from '{{ dep.package }}'
+{% elif dep.type === 'local' %}
+import { {{ dep.exports | join(', ') }} } from '{{ dep.path }}'
+{% endif %}
+{% endfor %}
+
+{% endif %}
+
+{# Environment-specific imports #}
+{% if environment === 'development' %}
+import { devTools } from '../utils/dev-tools'
+{% endif %}
+
+{% if withLogging %}
+import { Logger } from '../utils/logger'
+const logger = new Logger('{{ name | kebabCase }}')
+{% endif %}
+
+{# Conditional type definitions #}
+{% if withTypes and fileType in ['ts', 'tsx'] %}
+export interface {{ name | pascalCase }}Config {
+  {% for field in configFields %}
+  {{ field.name | camelCase }}{% if field.optional %}?{% endif %}: {{ field.type }}
+  {% endfor %}
+}
+
+{% if hasEvents %}
+export interface {{ name | pascalCase }}Events {
+  {% for event in events %}
+  {{ event.name | camelCase }}: ({{ event.params | join(', ') }}) => void
+  {% endfor %}
+}
+{% endif %}
+
+{% endif %}
+
+{# Main class/function/component generation #}
+{% if moduleType === 'class' %}
+export class {{ name | pascalCase }} {
+  {% if withPrivateFields %}
+  {% for field in privateFields %}
+  private {{ field.name | camelCase }}: {{ field.type | default('any') }}
+  {% endfor %}
+  {% endif %}
+
+  {% if withConstructor %}
+  constructor(
+    {% for param in constructorParams %}
+    {{ param.name | camelCase }}: {{ param.type }}{% if param.optional %}?{% endif %}{% if param.default %} = {{ param.default }}{% endif %}{% if not loop.last %},{% endif %}
+    {% endfor %}
+  ) {
+    {% for param in constructorParams %}
+    {% if param.assignTo %}
+    this.{{ param.assignTo | camelCase }} = {{ param.name | camelCase }}
+    {% endif %}
+    {% endfor %}
+    
+    {% if withLogging %}
+    logger.info('{{ name | pascalCase }} initialized')
+    {% endif %}
+  }
+  {% endif %}
+
+  {% for method in methods %}
+  {% if method.visibility %}{{ method.visibility }} {% endif %}{{ method.name | camelCase }}(
+    {% for param in method.params %}
+    {{ param.name | camelCase }}: {{ param.type }}{% if param.optional %}?{% endif %}{% if not loop.last %},{% endif %}
+    {% endfor %}
+  ): {{ method.returnType | default('void') }} {
+    {% if withLogging %}
+    logger.debug('Executing {{ method.name }}')
+    {% endif %}
+    
+    {% if method.body %}
+    {{ method.body }}
+    {% else %}
+    // TODO: Implement {{ method.name }}
+    {% if method.returnType and method.returnType !== 'void' %}
+    return {{ method.defaultReturn | default('null') }}
+    {% endif %}
+    {% endif %}
+  }
+
+  {% endfor %}
+}
+
+{% elif moduleType === 'function' %}
+export function {{ name | camelCase }}(
+  {% for param in functionParams %}
+  {{ param.name | camelCase }}: {{ param.type }}{% if param.optional %}?{% endif %}{% if param.default %} = {{ param.default }}{% endif %}{% if not loop.last %},{% endif %}
+  {% endfor %}
+): {{ returnType | default('void') }} {
+  {% if withLogging %}
+  logger.debug('Executing {{ name | camelCase }}')
+  {% endif %}
+  
+  {% if functionBody %}
+  {{ functionBody }}
+  {% else %}
+  // TODO: Implement function logic
+  {% if returnType and returnType !== 'void' %}
+  return {{ defaultReturn | default('null') }}
+  {% endif %}
+  {% endif %}
+}
+
+{% elif moduleType === 'component' and fileType in ['jsx', 'tsx'] %}
+{% if withTypes and fileType === 'tsx' %}
+interface {{ name | pascalCase }}Props {
+  {% for prop in componentProps %}
+  {{ prop.name | camelCase }}{% if prop.optional %}?{% endif %}: {{ prop.type }}
+  {% endfor %}
+}
+{% endif %}
+
+export const {{ name | pascalCase }}: React.FC{% if withTypes and fileType === 'tsx' %}<{{ name | pascalCase }}Props>{% endif %} = ({
+  {% for prop in componentProps %}
+  {{ prop.name | camelCase }}{% if prop.default %} = {{ prop.default }}{% endif %}{% if not loop.last %},{% endif %}
+  {% endfor %}
+}) => {
+  {% if withHooks %}
+  {% for hook in hooks %}
+  const {{ hook.name | camelCase }} = {{ hook.type }}({{ hook.initialValue | default('undefined') }})
+  {% endfor %}
+  {% endif %}
+
+  {% if withEffects %}
+  useEffect(() => {
+    {% if withLogging %}
+    logger.debug('{{ name | pascalCase }} mounted')
+    {% endif %}
+  }, [])
+  {% endif %}
+
+  return (
+    <div className="{{ name | kebabCase }}">
+      {% if componentTemplate %}
+      {{ componentTemplate }}
+      {% else %}
+      <h1>{{ name | title }}</h1>
+      <p>Component generated at {{ now | formatDate('YYYY-MM-DD HH:mm:ss') }}</p>
+      {% endif %}
+    </div>
+  )
+}
+
+{% endif %}
+
+{# Conditional exports #}
+{% if withDefaultExport %}
+export default {{ name | pascalCase }}
+{% endif %}
+
+{% if additionalExports %}
+{% for export in additionalExports %}
+export { {{ export.name }} } from '{{ export.path }}'
+{% endfor %}
+{% endif %}
+
+{# Post-generation comments #}
+{% if withFooter %}
+
+/**
+ * Generated file footer
+ * File: {{ name | kebabCase }}.{{ extension }}
+ * Generated: {{ now | formatDate('YYYY-MM-DD HH:mm:ss') }}
+ * Conditions: {{ generateFile }}, {{ skipConditions }}
+ */
+{% endif %}
+
+{% else %}
+// File generation skipped due to conditions:
+// generateFile: {{ generateFile }}
+// skipConditions: {{ skipConditions }}
+{% endif %}

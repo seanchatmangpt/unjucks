@@ -1,0 +1,50 @@
+---
+to: logs/{{ logType }}/{{ now | formatDate('YYYY-MM-DD') }}.log
+inject: true
+append: '\n'
+---
+[{{ now | formatDate('YYYY-MM-DD HH:mm:ss') }}] {{ level | uppercase }} - {{ message }}
+
+Session Details:
+- Session ID: {{ sessionId }}
+- User: {{ user | default('Anonymous') }}
+- IP: {{ ipAddress | default('Unknown') }}
+- Timestamp: {{ now | formatDate('YYYY-MM-DD[T]HH:mm:ss.SSS[Z]') }}
+- Date Only: {{ now | formatDate('YYYY-MM-DD') }}
+- Time Only: {{ now | formatDate('HH:mm:ss') }}
+- Month/Year: {{ now | formatDate('MM/YYYY') }}
+- Day of Week: {{ now | formatDate('dddd') }}
+- Readable: {{ now | formatDate('MMMM Do, YYYY [at] h:mm A') }}
+
+Request Information:
+- Method: {{ method | uppercase }}
+- URL: {{ url }}
+- Duration: {{ duration }}ms
+- Status: {{ statusCode }}
+{% if error %}
+- Error: {{ error.message }}
+- Stack: {{ error.stack }}
+{% endif %}
+
+Custom Dates:
+{% if customDate %}
+- Custom: {{ customDate | formatDate('YYYY-MM-DD HH:mm:ss') }}
+{% endif %}
+{% if startDate and endDate %}
+- Period: {{ startDate | formatDate('MM/DD/YYYY') }} to {{ endDate | formatDate('MM/DD/YYYY') }}
+{% endif %}
+
+File Naming Examples:
+- Backup: backup_{{ now | formatDate('YYYYMMDD_HHmmss') }}.sql
+- Report: report_{{ now | formatDate('YYYY-MM') }}.pdf
+- Migration: {{ now | formatDate('YYYYMMDD_HHmmss') }}_{{ actionType | snakeCase }}.sql
+
+Archive Information:
+{% if archiveDate %}
+- Archived: {{ archiveDate | formatDate('YYYY-MM-DD [at] HH:mm') }}
+{% endif %}
+{% if expiryDate %}
+- Expires: {{ expiryDate | formatDate('YYYY-MM-DD [at] HH:mm') }}
+{% endif %}
+
+---

@@ -1114,5 +1114,7 @@ export const neuralCommand = defineCommand({
     console.log(chalk.gray("  • Export to ONNX, TensorFlow, PyTorch formats"));
     console.log(chalk.gray("  • Real-time training progress with accuracy/loss metrics"));
     console.log(chalk.gray("  • Comprehensive benchmarking and performance analysis"));
+    
+    return { success: true, action: 'help' };
   },
 });

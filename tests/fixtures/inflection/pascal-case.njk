@@ -1,0 +1,27 @@
+---
+to: src/components/{{ name | pascalCase }}.tsx
+inject: false
+---
+import React from 'react'
+
+interface {{ name | pascalCase }}Props {
+  {{ propName | camelCase }}: string
+  {{ secondProp | camelCase }}?: number
+}
+
+export const {{ name | pascalCase }}: React.FC<{{ name | pascalCase }}Props> = ({
+  {{ propName | camelCase }},
+  {{ secondProp | camelCase }} = 0
+}) => {
+  return (
+    <div className="{{ name | kebabCase }}-component">
+      <h2>{{ name | title }}</h2>
+      <p>{{ propName | camelCase }}: {{{ propName | camelCase }}}</p>
+      {{{ secondProp | camelCase }} > 0 && (
+        <span>Count: {{{ secondProp | camelCase }}}</span>
+      )}
+    </div>
+  )
+}
+
+export default {{ name | pascalCase }}

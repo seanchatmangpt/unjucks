@@ -1,245 +1,304 @@
-Feature: Advanced Frontmatter Processing
-  As a developer using Unjucks
-  I want comprehensive frontmatter support with YAML parsing
-  So that I can control file generation with advanced options
+Feature: Frontmatter Processing with Filters
+  As a developer using Unjucks templates
+  I want frontmatter to support filter expressions in YAML metadata
+  So that I can generate dynamic file paths, inject content intelligently, and control template behavior
 
   Background:
-    Given I have a project with templates directory
-    And I am in the project root directory
+    Given Unjucks template system is initialized
+    And frontmatter parser supports YAML with filter expressions
+    And template discovery system is ready
+    And file injection system is available
 
-  @critical @frontmatter
-  Scenario: Basic frontmatter processing with 'to' directive
-    Given I have a template with frontmatter:
+  Scenario: Dynamic file path generation with filters
+    Given I have a template file with frontmatter:
       """
       ---
-      to: "src/components/{{ name | pascalCase }}.ts"
+      to: src/components/{{ componentName | pascalCase }}.jsx
+      inject: false
       ---
-      export class {{ name | pascalCase }} {
-        constructor() {}
+      import React from 'react';
+      
+      export const {{ componentName | pascalCase }} = () => {
+        return (
+          <div className="{{ componentName | kebabCase }}">
+            {{ componentName | humanize }}
+          </div>
+        );
+      };
+      """
+    And the variable "componentName" has value "user_profile_card"
+    When I process the template
+    Then the file should be written to "src/components/UserProfileCard.jsx"
+    And the content should contain "export const UserProfileCard"
+    And the content should contain 'className="user-profile-card"'
+    And the content should contain "User profile card"
+
+  Scenario: Conditional file injection with skipIf
+    Given I have a template file with frontmatter:
+      """
+      ---
+      to: src/models/{{ modelName | pascalCase }}.ts
+      inject: true
+      skipIf: "export class {{ modelName | pascalCase }}"
+      ---
+      export class {{ modelName | pascalCase }} extends Model {
+        static tableName = '{{ modelName | tableize }}';
+        
+        // Generated on {{ formatDate() }}
       }
       """
-    When I run "unjucks generate test basic --name=userProfile"
-    Then I should see "src/components/UserProfile.ts" file generated
-    And the file should contain "export class UserProfile"
+    And the variable "modelName" has value "user"
+    And the file "src/models/User.ts" already contains "export class User"
+    When I process the template
+    Then the file should not be modified
+    And the skipIf condition should prevent injection
 
-  @critical @frontmatter @injection
-  Scenario: Frontmatter injection with 'inject' and 'after'
-    Given I have an existing file "src/index.ts" with content:
-      """
-      // Components
-      export * from './Component1';
-      """
-    And I have a template with frontmatter:
+  Scenario: Multiple file generation with array iteration
+    Given I have a template file with frontmatter:
       """
       ---
-      to: "src/index.ts"
-      inject: true
-      after: "// Components"
+      to: src/types/{{ entityName | pascalCase }}Types.ts
+      inject: false
       ---
-      export * from './{{ name | pascalCase }}';
+      export interface {{ entityName | pascalCase }} {
+        id: string;
+        {{ entityName | camelCase }}Name: string;
+        createdAt: Date;
+        updatedAt: Date;
+      }
+      
+      export type {{ entityName | pascalCase }}Create = Omit<{{ entityName | pascalCase }}, 'id' | 'createdAt' | 'updatedAt'>;
+      export type {{ entityName | pascalCase }}Update = Partial<{{ entityName | pascalCase }}Create>;
       """
-    When I run "unjucks generate test inject --name=userProfile"
-    Then the file "src/index.ts" should contain:
-      """
-      // Components
-      export * from './UserProfile';
-      export * from './Component1';
-      """
+    And the variable "entityName" has value "blog_post"
+    When I process the template
+    Then the file should be written to "src/types/BlogPostTypes.ts"
+    And the content should contain "export interface BlogPost"
+    And the content should contain "blogPostName: string"
+    And the content should contain "export type BlogPostCreate"
+    And the content should contain "export type BlogPostUpdate"
 
-  @critical @frontmatter @injection
-  Scenario: Frontmatter injection with 'inject' and 'before'
-    Given I have an existing file "src/index.ts" with content:
-      """
-      export * from './Component1';
-      // End of components
-      """
-    And I have a template with frontmatter:
+  Scenario: File injection at specific line with lineAt
+    Given I have a template file with frontmatter:
       """
       ---
-      to: "src/index.ts"
+      to: src/routes/index.ts
       inject: true
-      before: "// End of components"
+      lineAt: 10
       ---
-      export * from './{{ name | pascalCase }}';
+      router.get('/{{ resourceName | kebabCase }}', {{ resourceName | camelCase }}Controller.index);
+      router.post('/{{ resourceName | kebabCase }}', {{ resourceName | camelCase }}Controller.create);
       """
-    When I run "unjucks generate test inject --name=userProfile"
-    Then the file "src/index.ts" should contain:
-      """
-      export * from './Component1';
-      export * from './UserProfile';
-      // End of components
-      """
+    And the variable "resourceName" has value "user_profiles"
+    And the file "src/routes/index.ts" exists with 15 lines
+    When I process the template
+    Then the content should be injected at line 10
+    And the file should contain "router.get('/user-profiles'"
+    And the file should contain "userProfilesController.index"
 
-  @critical @frontmatter @unique
-  Scenario: Frontmatter 'append' mode (Unjucks unique feature)
-    Given I have an existing file "src/exports.ts" with content:
-      """
-      export * from './Component1';
-      """
-    And I have a template with frontmatter:
+  Scenario: Append content to existing file
+    Given I have a template file with frontmatter:
       """
       ---
-      to: "src/exports.ts"
-      inject: true
+      to: src/database/seeds/{{ timestamp() }}_{{ seedName | snakeCase }}.js
+      inject: false
       append: true
       ---
-      export * from './{{ name | pascalCase }}';
+      
+      exports.seed = function(knex) {
+        return knex('{{ tableName | tableize }}').del()
+          .then(function () {
+            return knex('{{ tableName | tableize }}').insert([
+              { name: '{{ faker.person.fullName() }}', email: '{{ faker.internet.email() }}' }
+            ]);
+          });
+      };
       """
-    When I run "unjucks generate test append --name=userProfile"
-    Then the file "src/exports.ts" should contain:
-      """
-      export * from './Component1';
-      export * from './UserProfile';
-      """
+    And the variable "seedName" has value "admin-users"
+    And the variable "tableName" has value "User"
+    When I process the template
+    Then the file should be created with a timestamped name
+    And the filename should contain "_admin_users.js"
+    And the content should contain "knex('users')"
 
-  @critical @frontmatter @unique
-  Scenario: Frontmatter 'prepend' mode (Unjucks unique feature)
-    Given I have an existing file "src/exports.ts" with content:
-      """
-      export * from './Component1';
-      """
-    And I have a template with frontmatter:
+  Scenario: Prepend import statements to existing file
+    Given I have a template file with frontmatter:
       """
       ---
-      to: "src/exports.ts"
+      to: src/components/{{ componentName | pascalCase }}/index.ts
       inject: true
       prepend: true
+      skipIf: "export { {{ componentName | pascalCase }} }"
       ---
-      export * from './{{ name | pascalCase }}';
+      export { {{ componentName | pascalCase }} } from './{{ componentName | pascalCase }}';
       """
-    When I run "unjucks generate test prepend --name=userProfile"
-    Then the file "src/exports.ts" should contain:
-      """
-      export * from './UserProfile';
-      export * from './Component1';
-      """
+    And the variable "componentName" has value "user_card"
+    And the file "src/components/UserCard/index.ts" exists
+    When I process the template
+    Then the export statement should be prepended to the file
+    And the content should contain "export { UserCard } from './UserCard'"
 
-  @critical @frontmatter @unique
-  Scenario: Frontmatter 'lineAt' mode (Unjucks unique feature)
-    Given I have an existing file "src/config.ts" with content:
-      """
-      // Line 1
-      // Line 2
-      // Line 3
-      // Line 4
-      """
-    And I have a template with frontmatter:
+  Scenario: Complex frontmatter with multiple operations
+    Given I have a template file with frontmatter:
       """
       ---
-      to: "src/config.ts"
-      inject: true
-      lineAt: 3
-      ---
-      // Inserted {{ name }} at line 3
-      """
-    When I run "unjucks generate test lineAt --name=userProfile"
-    Then the file "src/config.ts" should contain:
-      """
-      // Line 1
-      // Line 2
-      // Inserted userProfile at line 3
-      // Line 3
-      // Line 4
-      """
-
-  @critical @frontmatter @unique
-  Scenario: Frontmatter 'chmod' mode (Unjucks unique feature)
-    Given I have a template with frontmatter:
-      """
-      ---
-      to: "scripts/{{ name }}.sh"
-      chmod: "755"
-      ---
-      #!/bin/bash
-      echo "Running {{ name }} script"
-      """
-    When I run "unjucks generate test chmod --name=deploy"
-    Then I should see "scripts/deploy.sh" file generated
-    And the file "scripts/deploy.sh" should have permissions "755"
-    And the file should contain "Running deploy script"
-
-  @critical @frontmatter @conditional
-  Scenario: Frontmatter 'skipIf' condition (enhanced syntax)
-    Given I have a template with frontmatter:
-      """
-      ---
-      to: "src/{{ name }}.ts"
-      skipIf: "name == 'test'"
-      ---
-      export class {{ name | pascalCase }} {}
-      """
-    When I run "unjucks generate test skipIf --name=test"
-    Then I should not see "src/test.ts" file generated
-    When I run "unjucks generate test skipIf --name=user"
-    Then I should see "src/user.ts" file generated
-
-  @critical @frontmatter @shell
-  Scenario: Frontmatter shell commands with array support (enhanced)
-    Given I have a template with frontmatter:
-      """
-      ---
-      to: "src/{{ name }}.ts"
-      sh: ["echo 'Generated {{ name }}'", "touch .{{ name }}.generated"]
-      ---
-      export class {{ name | pascalCase }} {}
-      """
-    When I run "unjucks generate test shell --name=user"
-    Then I should see "src/user.ts" file generated
-    And I should see ".user.generated" file created
-    And the command output should contain "Generated user"
-
-  @regression @frontmatter @validation
-  Scenario: Invalid frontmatter should show helpful error
-    Given I have a template with invalid frontmatter:
-      """
-      ---
-      to: "src/{{ name }}.ts"
-      invalidOption: true
-      malformedYAML: [unclosed
-      ---
-      export class {{ name }} {}
-      """
-    When I run "unjucks generate test invalid --name=user"
-    Then I should see an error message
-    And the error should contain "Invalid frontmatter"
-    And the error should contain "YAML parsing error"
-
-  @regression @frontmatter @idempotent
-  Scenario: Idempotent injection prevents duplicates
-    Given I have an existing file "src/index.ts" with content:
-      """
-      // Components
-      export * from './UserProfile';
-      """
-    And I have a template with frontmatter:
-      """
-      ---
-      to: "src/index.ts"
-      inject: true
-      after: "// Components"
-      ---
-      export * from './{{ name | pascalCase }}';
-      """
-    When I run "unjucks generate test idempotent --name=userProfile"
-    Then the file "src/index.ts" should contain exactly one occurrence of "export * from './UserProfile';"
-    And the file should not contain duplicate exports
-
-  @performance @frontmatter
-  Scenario: Complex frontmatter processing performance
-    Given I have a template with complex frontmatter:
-      """
-      ---
-      to: "src/complex/{{ category }}/{{ name | pascalCase }}.ts"
+      to: src/api/{{ serviceName | kebabCase }}/{{ version }}/{{ resourceName | kebabCase }}.ts
       inject: false
-      skipIf: "name == 'ignore' || category == 'deprecated'"
-      chmod: "644"
-      sh: ["mkdir -p src/complex/{{ category }}", "echo 'Created {{ name }}'"]
+      chmod: 755
+      before: "// END OF IMPORTS"
+      after: "// START OF ROUTES"
       ---
-      export class {{ name | pascalCase }} {
-        category = '{{ category }}';
+      import { Router } from 'express';
+      import { {{ resourceName | pascalCase }}Service } from '../services/{{ resourceName | pascalCase }}Service';
+      
+      const router = Router();
+      const {{ resourceName | camelCase }}Service = new {{ resourceName | pascalCase }}Service();
+      
+      // {{ resourceName | humanize }} endpoints
+      router.get('/', async (req, res) => {
+        const {{ resourceName | pluralize | camelCase }} = await {{ resourceName | camelCase }}Service.findAll();
+        res.json({{ resourceName | pluralize | camelCase }});
+      });
+      
+      export { router as {{ resourceName | camelCase }}Router };
+      """
+    And the variable "serviceName" has value "user-management"
+    And the variable "version" has value "v1"
+    And the variable "resourceName" has value "user_profile"
+    When I process the template
+    Then the file should be created at "src/api/user-management/v1/user-profile.ts"
+    And the file permissions should be set to 755
+    And the content should contain "UserProfileService"
+    And the content should contain "// User profile endpoints"
+    And the content should contain "const userProfiles"
+
+  Scenario: Database migration with timestamp and filters
+    Given I have a template file with frontmatter:
+      """
+      ---
+      to: migrations/{{ timestamp() }}_create_{{ tableName | tableize }}.js
+      inject: false
+      ---
+      exports.up = function(knex) {
+        return knex.schema.createTable('{{ tableName | tableize }}', function(table) {
+          table.increments('id');
+          table.string('{{ tableName | singular | snakeCase }}_name').notNullable();
+          table.string('email').unique();
+          table.timestamp('created_at').defaultTo(knex.fn.now());
+          table.timestamp('updated_at').defaultTo(knex.fn.now());
+        });
+      };
+      
+      exports.down = function(knex) {
+        return knex.schema.dropTable('{{ tableName | tableize }}');
+      };
+      """
+    And the variable "tableName" has value "AdminUser"
+    When I process the template
+    Then the file should be created with a timestamp prefix
+    And the filename should end with "_create_admin_users.js"
+    And the content should contain "createTable('admin_users'"
+    And the content should contain "admin_user_name"
+
+  Scenario: Test file generation with nested directory structure
+    Given I have a template file with frontmatter:
+      """
+      ---
+      to: tests/{{ testType }}/{{ moduleName | kebabCase }}/{{ testName | kebabCase }}.test.ts
+      inject: false
+      ---
+      import { {{ moduleName | pascalCase }} } from '../../../src/{{ moduleName | kebabCase }}';
+      
+      describe('{{ moduleName | humanize }}', () => {
+        describe('{{ testName | humanize }}', () => {
+          it('should {{ behavior | lowerCase }}', () => {
+            const {{ moduleName | camelCase }} = new {{ moduleName | pascalCase }}();
+            // Test implementation
+            expect({{ moduleName | camelCase }}).toBeDefined();
+          });
+        });
+      });
+      """
+    And the variable "testType" has value "unit"
+    And the variable "moduleName" has value "userService"
+    And the variable "testName" has value "user_creation"
+    And the variable "behavior" has value "Create New User Successfully"
+    When I process the template
+    Then the file should be created at "tests/unit/user-service/user-creation.test.ts"
+    And the content should contain "import { UserService }"
+    And the content should contain "describe('User service'"
+    And the content should contain "describe('User creation'"
+    And the content should contain "should create new user successfully"
+
+  Scenario: Configuration file with environment-specific paths
+    Given I have a template file with frontmatter:
+      """
+      ---
+      to: config/{{ environment }}/{{ serviceName | kebabCase }}.json
+      inject: false
+      ---
+      {
+        "service": {
+          "name": "{{ serviceName | humanize }}",
+          "version": "1.0.0",
+          "environment": "{{ environment }}",
+          "database": {
+            "host": "{{ environment }}.{{ serviceName | kebabCase }}.db.local",
+            "database": "{{ serviceName | snakeCase }}_{{ environment }}"
+          },
+          "cache": {
+            "prefix": "{{ serviceName | constantCase }}_{{ environment | upper }}_",
+            "ttl": 3600
+          },
+          "logging": {
+            "level": "{{ environment === 'production' ? 'warn' : 'debug' }}",
+            "file": "logs/{{ serviceName | kebabCase }}-{{ environment }}.log"
+          }
+        }
       }
       """
-    When I run "unjucks generate test complex --name=advancedUser --category=users"
-    Then the processing should complete in under 200ms
-    And I should see "src/complex/users/AdvancedUser.ts" file generated
-    And the file should contain "category = 'users';"
+    And the variable "serviceName" has value "user-auth"
+    And the variable "environment" has value "staging"
+    When I process the template
+    Then the file should be created at "config/staging/user-auth.json"
+    And the content should contain '"name": "User auth"'
+    And the content should contain '"database": "user_auth_staging"'
+    And the content should contain '"prefix": "USER_AUTH_STAGING_"'
+
+  Scenario: Docker configuration with filtered values
+    Given I have a template file with frontmatter:
+      """
+      ---
+      to: docker/{{ serviceName | kebabCase }}/Dockerfile
+      inject: false
+      ---
+      FROM node:18-alpine
+      
+      WORKDIR /app
+      
+      # Install dependencies
+      COPY package*.json ./
+      RUN npm ci --only=production
+      
+      # Copy source code
+      COPY . .
+      
+      # Create non-root user
+      RUN addgroup -g 1001 -S {{ serviceName | kebabCase }} && \
+          adduser -S {{ serviceName | kebabCase }} -u 1001
+      
+      USER {{ serviceName | kebabCase }}
+      
+      EXPOSE {{ port || 3000 }}
+      
+      CMD ["node", "src/{{ entryPoint | kebabCase }}.js"]
+      """
+    And the variable "serviceName" has value "API_Gateway"
+    And the variable "port" has value 8080
+    And the variable "entryPoint" has value "serverMain"
+    When I process the template
+    Then the file should be created at "docker/api-gateway/Dockerfile"
+    And the content should contain "addgroup -g 1001 -S api-gateway"
+    And the content should contain "USER api-gateway"
+    And the content should contain "EXPOSE 8080"
+    And the content should contain 'CMD ["node", "src/server-main.js"]'

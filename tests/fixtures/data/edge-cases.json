@@ -1,0 +1,266 @@
+{
+  "empty_values": {
+    "null_name": {
+      "input": {
+        "name": null,
+        "title": "Test Component"
+      },
+      "expected_error": "Variable 'name' is required but received null"
+    },
+    "empty_string_name": {
+      "input": {
+        "name": "",
+        "title": "Test Component"
+      },
+      "expected_error": "Variable 'name' cannot be empty"
+    },
+    "undefined_title": {
+      "input": {
+        "name": "testComponent"
+      },
+      "expected_behavior": "Should use default filter or skip conditional blocks"
+    },
+    "empty_array": {
+      "input": {
+        "name": "testComponent",
+        "props": []
+      },
+      "expected_behavior": "Should skip loop blocks gracefully"
+    },
+    "null_object": {
+      "input": {
+        "name": "testComponent",
+        "config": null
+      },
+      "expected_behavior": "Should handle null object references without crashing"
+    }
+  },
+  "invalid_filter_inputs": {
+    "pascalCase_with_numbers": {
+      "input": "123-invalid-name",
+      "filter": "pascalCase",
+      "expected": "123InvalidName",
+      "note": "Should handle leading numbers appropriately"
+    },
+    "camelCase_with_special_chars": {
+      "input": "user@profile#component",
+      "filter": "camelCase", 
+      "expected": "userProfileComponent",
+      "note": "Should strip special characters"
+    },
+    "kebabCase_with_spaces": {
+      "input": "User   Profile    Component",
+      "filter": "kebabCase",
+      "expected": "user-profile-component",
+      "note": "Should handle multiple consecutive spaces"
+    },
+    "snakeCase_with_unicode": {
+      "input": "user-profil\u00e9-component",
+      "filter": "snakeCase",
+      "expected": "user_profil\u00e9_component",
+      "note": "Should preserve unicode characters"
+    },
+    "formatDate_invalid_date": {
+      "input": "not-a-date",
+      "filter": "formatDate('YYYY-MM-DD')",
+      "expected_error": "Invalid date format: not-a-date"
+    },
+    "formatDate_null_input": {
+      "input": null,
+      "filter": "formatDate('YYYY-MM-DD')",
+      "expected_error": "Cannot format null date"
+    },
+    "truncate_negative_length": {
+      "input": "This is a test string",
+      "filter": "truncate(-5)",
+      "expected_error": "Truncate length must be positive"
+    },
+    "truncate_non_string": {
+      "input": 12345,
+      "filter": "truncate(10)",
+      "expected": "12345",
+      "note": "Should convert to string first"
+    }
+  },
+  "deeply_nested_objects": {
+    "input": {
+      "config": {
+        "database": {
+          "connections": {
+            "primary": {
+              "settings": {
+                "pool": {
+                  "max": null
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "template": "{{ config.database.connections.primary.settings.pool.max | default('10') }}",
+    "expected": "10",
+    "note": "Should handle deep nesting with null values"
+  },
+  "conditional_logic_edge_cases": {
+    "falsy_values": [
+      {
+        "condition": "{{ false }}",
+        "expected_behavior": "Skip if block"
+      },
+      {
+        "condition": "{{ 0 }}",
+        "expected_behavior": "Skip if block"
+      },
+      {
+        "condition": "{{ '' }}",
+        "expected_behavior": "Skip if block"
+      },
+      {
+        "condition": "{{ null }}",
+        "expected_behavior": "Skip if block"
+      },
+      {
+        "condition": "{{ undefined }}",
+        "expected_behavior": "Skip if block"
+      },
+      {
+        "condition": "{{ [] }}",
+        "expected_behavior": "Enter if block (arrays are truthy)"
+      },
+      {
+        "condition": "{{ {} }}",
+        "expected_behavior": "Enter if block (objects are truthy)"
+      }
+    ],
+    "comparison_edge_cases": [
+      {
+        "condition": "{{ '5' === 5 }}",
+        "expected": false,
+        "note": "Strict equality check"
+      },
+      {
+        "condition": "{{ '5' == 5 }}",
+        "expected": true,
+        "note": "Loose equality check"
+      },
+      {
+        "condition": "{{ undefined === null }}",
+        "expected": false,
+        "note": "Undefined vs null strict comparison"
+      }
+    ]
+  },
+  "loop_edge_cases": {
+    "empty_loop": {
+      "template": "{% for item in items %}{{ item }}{% endfor %}",
+      "input": { "items": [] },
+      "expected": "",
+      "note": "Should produce no output for empty arrays"
+    },
+    "null_loop": {
+      "template": "{% for item in items %}{{ item }}{% endfor %}",
+      "input": { "items": null },
+      "expected_error": "Cannot iterate over null",
+      "note": "Should throw error for null iteration"
+    },
+    "nested_loops": {
+      "template": "{% for group in groups %}{% for item in group.items %}{{ item.name }}{% endfor %}{% endfor %}",
+      "input": {
+        "groups": [
+          { "items": [] },
+          { "items": null },
+          { "items": [{"name": "test"}] }
+        ]
+      },
+      "expected_behavior": "Should handle mixed null/empty arrays in nested loops"
+    }
+  },
+  "frontmatter_edge_cases": {
+    "invalid_yaml": {
+      "frontmatter": "---\nto: src/{{ name\ninject: true\n---",
+      "expected_error": "Invalid YAML syntax in frontmatter"
+    },
+    "missing_closing": {
+      "frontmatter": "---\nto: src/{{ name }}.js\ninject: true",
+      "expected_error": "Missing closing frontmatter delimiter"
+    },
+    "empty_frontmatter": {
+      "frontmatter": "---\n---",
+      "expected_behavior": "Should use default settings"
+    },
+    "dynamic_frontmatter_with_errors": {
+      "frontmatter": "---\nto: {{ undefined.property }}\n---",
+      "expected_error": "Cannot read property of undefined in frontmatter"
+    }
+  },
+  "security_edge_cases": {
+    "script_injection": {
+      "input": {
+        "name": "<script>alert('xss')</script>"
+      },
+      "template": "<div>{{ name }}</div>",
+      "expected": "<div>&lt;script&gt;alert('xss')&lt;/script&gt;</div>",
+      "note": "Should escape HTML by default"
+    },
+    "path_traversal": {
+      "input": {
+        "filename": "../../etc/passwd"
+      },
+      "frontmatter": "to: src/{{ filename }}",
+      "expected_error": "Path traversal detected in filename",
+      "note": "Should prevent directory traversal"
+    },
+    "code_injection": {
+      "input": {
+        "code": "'; DROP TABLE users; --"
+      },
+      "template": "const query = '{{ code }}';",
+      "expected": "const query = '\\'; DROP TABLE users; --';",
+      "note": "Should escape single quotes in code context"
+    }
+  },
+  "memory_and_performance": {
+    "large_string": {
+      "input": {
+        "content": "x".repeat(1000000)
+      },
+      "template": "{{ content | truncate(100) }}",
+      "expected_behavior": "Should handle large strings without memory issues"
+    },
+    "deep_recursion": {
+      "input": {
+        "items": [
+          { "children": [
+            { "children": [
+              { "children": [] }
+            ]}
+          ]}
+        ]
+      },
+      "template": "{% macro renderItem(item) %}{% for child in item.children %}{{ renderItem(child) }}{% endfor %}{% endmacro %}{{ renderItem(items[0]) }}",
+      "expected_behavior": "Should handle reasonable recursion depth"
+    },
+    "many_variables": {
+      "input": Object.fromEntries(
+        Array.from({length: 1000}, (_, i) => [`var${i}`, `value${i}`])
+      ),
+      "template": "{% for key, value in this %}{{ key }}: {{ value }}\n{% endfor %}",
+      "expected_behavior": "Should handle many variables efficiently"
+    }
+  },
+  "file_system_edge_cases": {
+    "long_filename": {
+      "filename": "a".repeat(255) + ".js",
+      "expected_behavior": "Should handle filesystem filename limits"
+    },
+    "special_chars_filename": {
+      "filename": "file:with<>special|chars?.js",
+      "expected_behavior": "Should sanitize invalid filename characters"
+    },
+    "unicode_filename": {
+      "filename": "tést-fîle-naméé.js",
+      "expected_behavior": "Should preserve valid unicode in filenames"
+    }
+  }
+}

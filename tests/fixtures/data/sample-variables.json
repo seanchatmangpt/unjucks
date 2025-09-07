@@ -1,0 +1,383 @@
+{
+  "component": {
+    "name": "userProfile",
+    "title": "user profile dashboard",
+    "description": "A comprehensive user profile component with avatar, settings, and activity feed functionality",
+    "withComposition": true,
+    "withProps": true,
+    "appendContent": "\n<!-- Generated component footer -->",
+    "spacing": "20px",
+    "borderRadius": "12px",
+    "titleSize": "28px",
+    "primaryColor": "#2563eb",
+    "props": [
+      {
+        "name": "userId",
+        "type": "string",
+        "label": "user ID",
+        "required": true,
+        "default": null
+      },
+      {
+        "name": "showAvatar",
+        "type": "boolean",
+        "label": "show avatar",
+        "required": false,
+        "default": true
+      },
+      {
+        "name": "maxActivities",
+        "type": "number",
+        "label": "maximum activities",
+        "required": false,
+        "default": 10
+      }
+    ]
+  },
+  "migration": {
+    "action": "create",
+    "tableName": "userProfiles",
+    "generateMigration": true,
+    "author": "Development Team",
+    "fields": [
+      {
+        "name": "userId",
+        "type": "varchar(36)",
+        "nullable": false,
+        "default": null
+      },
+      {
+        "name": "displayName",
+        "type": "varchar(255)",
+        "nullable": false,
+        "default": null
+      },
+      {
+        "name": "avatarUrl",
+        "type": "varchar(500)",
+        "nullable": true,
+        "default": null
+      },
+      {
+        "name": "bio",
+        "type": "text",
+        "nullable": true,
+        "default": null
+      },
+      {
+        "name": "preferences",
+        "type": "jsonb",
+        "nullable": true,
+        "default": "'{}'"
+      },
+      {
+        "name": "isActive",
+        "type": "boolean",
+        "nullable": false,
+        "default": "true"
+      }
+    ],
+    "indexes": [
+      {
+        "fields": ["userId"],
+        "unique": true
+      },
+      {
+        "fields": ["displayName"],
+        "unique": false
+      },
+      {
+        "fields": ["isActive"],
+        "unique": false
+      }
+    ]
+  },
+  "test": {
+    "name": "userService",
+    "testType": "unit",
+    "extension": "ts",
+    "generateTests": true,
+    "testFields": [
+      {
+        "name": "profileId",
+        "type": "string"
+      },
+      {
+        "name": "lastLogin",
+        "type": "date"
+      },
+      {
+        "name": "isVerified",
+        "type": "boolean"
+      },
+      {
+        "name": "loginCount",
+        "type": "number"
+      }
+    ],
+    "methods": [
+      {
+        "name": "createUser",
+        "description": "create a new user with validation",
+        "async": true,
+        "returnType": "object",
+        "inputField": "userData",
+        "shouldThrow": false
+      },
+      {
+        "name": "validateEmail",
+        "description": "validate email format and uniqueness",
+        "async": false,
+        "returnType": "boolean",
+        "inputField": "email",
+        "shouldThrow": true
+      },
+      {
+        "name": "hashPassword",
+        "description": "hash password with bcrypt",
+        "async": true,
+        "returnType": "string",
+        "inputField": "password",
+        "shouldThrow": false
+      }
+    ]
+  },
+  "api": {
+    "resourceName": "users",
+    "version": "v2",
+    "extension": "ts",
+    "generateAPI": true,
+    "withAuth": true,
+    "withTimestamps": true,
+    "rateLimit": {
+      "window": "10 * 60 * 1000",
+      "windowDescription": "10 minutes",
+      "max": "150",
+      "description": "limit each IP to 150 requests per 10 minutes"
+    },
+    "endpoints": [
+      {
+        "method": "get",
+        "path": "/",
+        "description": "Get all users with pagination and filtering",
+        "auth": true,
+        "permissions": ["users:read"],
+        "validations": [
+          {
+            "field": "query",
+            "name": "page",
+            "rules": [".optional()", ".isInt({ min: 1 })"]
+          },
+          {
+            "field": "query",
+            "name": "limit",
+            "rules": [".optional()", ".isInt({ min: 1, max: 100 })"]
+          },
+          {
+            "field": "query",
+            "name": "search",
+            "rules": [".optional()", ".isString()", ".trim()"]
+          }
+        ]
+      },
+      {
+        "method": "get",
+        "path": "/:id",
+        "description": "Get user by ID",
+        "auth": true,
+        "permissions": ["users:read"],
+        "validations": [
+          {
+            "field": "param",
+            "name": "id",
+            "rules": [".isUUID()"]
+          }
+        ]
+      },
+      {
+        "method": "post",
+        "path": "/",
+        "description": "Create new user",
+        "auth": true,
+        "permissions": ["users:create"],
+        "validations": [
+          {
+            "field": "body",
+            "name": "email",
+            "rules": [".isEmail()", ".normalizeEmail()"]
+          },
+          {
+            "field": "body",
+            "name": "username",
+            "rules": [".isLength({ min: 3, max: 30 })", ".matches(/^[a-zA-Z0-9_]+$/)"]
+          },
+          {
+            "field": "body",
+            "name": "password",
+            "rules": [".isLength({ min: 8 })", ".matches(/^(?=.*[A-Za-z])(?=.*\\d)(?=.*[@$!%*#?&])[A-Za-z\\d@$!%*#?&]/)"]
+          }
+        ]
+      },
+      {
+        "method": "put",
+        "path": "/:id",
+        "description": "Update user",
+        "auth": true,
+        "permissions": ["users:update"],
+        "validations": [
+          {
+            "field": "param",
+            "name": "id",
+            "rules": [".isUUID()"]
+          },
+          {
+            "field": "body",
+            "name": "email",
+            "rules": [".optional()", ".isEmail()", ".normalizeEmail()"]
+          },
+          {
+            "field": "body",
+            "name": "username",
+            "rules": [".optional()", ".isLength({ min: 3, max: 30 })"]
+          }
+        ]
+      },
+      {
+        "method": "delete",
+        "path": "/:id",
+        "description": "Delete user",
+        "auth": true,
+        "permissions": ["users:delete"],
+        "validations": [
+          {
+            "field": "param",
+            "name": "id",
+            "rules": [".isUUID()"]
+          }
+        ]
+      }
+    ]
+  },
+  "config": {
+    "appName": "enterprise-app",
+    "environment": "production",
+    "format": "json",
+    "generateConfig": true,
+    "version": "2.1.0",
+    "port": 8080,
+    "host": "0.0.0.0",
+    "baseUrl": "https://api.enterprise-app.com",
+    "timezone": "America/New_York",
+    "locale": "en-US",
+    "debug": false,
+    "logLevel": "info",
+    "database": {
+      "type": "postgresql",
+      "host": "db.enterprise-app.com",
+      "port": 5432,
+      "username": "app_prod_user",
+      "password": "secure_prod_password_2024",
+      "name": "enterprise_app_production",
+      "ssl": true,
+      "pool": {
+        "min": 5,
+        "max": 20,
+        "idle": 30000,
+        "acquire": 60000
+      }
+    },
+    "redis": {
+      "host": "redis.enterprise-app.com",
+      "port": 6379,
+      "password": "redis_secure_password",
+      "db": 0,
+      "ttl": 7200
+    },
+    "auth": {
+      "jwtSecret": "super_secure_jwt_secret_production_2024_v2",
+      "jwtExpires": "8h",
+      "bcryptRounds": 14,
+      "sessionTimeout": 3600,
+      "maxLoginAttempts": 3,
+      "lockoutDuration": 900
+    },
+    "security": {
+      "cors": {
+        "origin": ["https://enterprise-app.com", "https://admin.enterprise-app.com"],
+        "credentials": true,
+        "methods": ["GET", "POST", "PUT", "DELETE", "PATCH"]
+      },
+      "helmet": {
+        "csp": true,
+        "hsts": true,
+        "noSniff": true
+      },
+      "rateLimit": {
+        "window": 600000,
+        "max": 200,
+        "skipSuccessful": true
+      }
+    },
+    "email": {
+      "provider": "sendgrid",
+      "host": "smtp.sendgrid.net",
+      "port": 587,
+      "secure": true,
+      "user": "apikey",
+      "pass": "sendgrid_api_key_here",
+      "from": "noreply@enterprise-app.com"
+    },
+    "storage": {
+      "type": "s3",
+      "s3": {
+        "bucket": "enterprise-app-prod-uploads",
+        "region": "us-east-1",
+        "accessKey": "AWS_ACCESS_KEY",
+        "secretKey": "AWS_SECRET_KEY"
+      }
+    },
+    "monitoring": {
+      "enabled": true,
+      "healthCheck": {
+        "interval": 15000
+      },
+      "metrics": {
+        "enabled": true
+      },
+      "logging": {
+        "file": "./logs/production.log",
+        "maxSize": "50m",
+        "maxFiles": 10
+      }
+    },
+    "features": [
+      {
+        "name": "userAnalytics",
+        "enabled": true
+      },
+      {
+        "name": "advancedSearch",
+        "enabled": true
+      },
+      {
+        "name": "realtimeNotifications",
+        "enabled": true
+      },
+      {
+        "name": "betaFeatures",
+        "enabled": false
+      }
+    ],
+    "maintenanceMode": false,
+    "apiVersion": "v2",
+    "api": {
+      "docs": {
+        "enabled": false
+      },
+      "pagination": {
+        "default": 20,
+        "max": 200
+      }
+    }
+  }
+}

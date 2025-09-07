@@ -1,0 +1,211 @@
+---
+to: tests/mocks/{{ endpoint | kebabCase }}-responses.ts
+inject: false
+skip_if: '{{ !generateMocks }}'
+---
+/**
+ * Mock API responses for {{ endpoint | title }}
+ * Generated: {{ now | formatDate('YYYY-MM-DD HH:mm:ss') }}
+ */
+
+export interface {{ responseType | pascalCase }} {
+  id: string
+  {{ primaryField | camelCase }}: string
+  {{ secondaryField | camelCase }}?: string
+  createdAt: string
+  updatedAt: string
+}
+
+export interface PaginatedResponse<T> {
+  data: T[]
+  meta: {
+    page: number
+    limit: number
+    total: number
+    pages: number
+  }
+  success: boolean
+}
+
+// Single {{ responseType | title }} Response
+export const mock{{ responseType | pascalCase }}: {{ responseType | pascalCase }} = {
+  id: '{{ faker.uuid }}',
+  {{ primaryField | camelCase }}: '{{ faker.name }}',
+  {{ secondaryField | camelCase }}: '{{ faker.sentence }}',
+  createdAt: '{{ faker.pastDate | formatDate('YYYY-MM-DD[T]HH:mm:ss[Z]') }}',
+  updatedAt: '{{ faker.recentDate | formatDate('YYYY-MM-DD[T]HH:mm:ss[Z]') }}'
+}
+
+// Collection of {{ responseType | title }} Responses
+export const mock{{ responseType | pascalCase }}List: {{ responseType | pascalCase }}[] = [
+  {% for i in range(0, listSize | default(5)) %}
+  {
+    id: '{{ faker.uuid }}',
+    {{ primaryField | camelCase }}: '{{ faker.name }}',
+    {{ secondaryField | camelCase }}: '{{ faker.sentence }}',
+    createdAt: '{{ faker.pastDate | formatDate('YYYY-MM-DD[T]HH:mm:ss[Z]') }}',
+    updatedAt: '{{ faker.recentDate | formatDate('YYYY-MM-DD[T]HH:mm:ss[Z]') }}'
+  }{% if not loop.last %},{% endif %}
+  {% endfor %}
+]
+
+// Paginated Response
+export const mockPaginated{{ responseType | pascalCase }}: PaginatedResponse<{{ responseType | pascalCase }}> = {
+  data: mock{{ responseType | pascalCase }}List,
+  meta: {
+    page: {{ page | default(1) }},
+    limit: {{ limit | default(10) }},
+    total: {{ total | default(25) }},
+    pages: {{ Math.ceil((total | default(25)) / (limit | default(10))) }}
+  },
+  success: true
+}
+
+// Error Responses
+export const mockErrorResponses = {
+  notFound: {
+    success: false,
+    error: {
+      code: 'NOT_FOUND',
+      message: '{{ responseType | title }} not found',
+      details: 'The requested {{ responseType | lowercase }} with the given ID does not exist'
+    },
+    timestamp: '{{ now | formatDate('YYYY-MM-DD[T]HH:mm:ss[Z]') }}'
+  },
+  
+  validationError: {
+    success: false,
+    error: {
+      code: 'VALIDATION_ERROR',
+      message: 'Validation failed',
+      details: [
+        {
+          field: '{{ primaryField | camelCase }}',
+          message: '{{ primaryField | title }} is required'
+        },
+        {
+          field: 'email',
+          message: 'Invalid email format'
+        }
+      ]
+    },
+    timestamp: '{{ now | formatDate('YYYY-MM-DD[T]HH:mm:ss[Z]') }}'
+  },
+  
+  serverError: {
+    success: false,
+    error: {
+      code: 'INTERNAL_SERVER_ERROR',
+      message: 'An unexpected error occurred',
+      details: 'Please try again later or contact support'
+    },
+    timestamp: '{{ now | formatDate('YYYY-MM-DD[T]HH:mm:ss[Z]') }}'
+  },
+  
+  unauthorizedError: {
+    success: false,
+    error: {
+      code: 'UNAUTHORIZED',
+      message: 'Authentication required',
+      details: 'Please provide valid authentication credentials'
+    },
+    timestamp: '{{ now | formatDate('YYYY-MM-DD[T]HH:mm:ss[Z]') }}'
+  },
+  
+  forbiddenError: {
+    success: false,
+    error: {
+      code: 'FORBIDDEN',
+      message: 'Insufficient permissions',
+      details: 'You do not have permission to perform this action'
+    },
+    timestamp: '{{ now | formatDate('YYYY-MM-DD[T]HH:mm:ss[Z]') }}'
+  }
+}
+
+// Mock API Handlers
+export const mock{{ responseType | pascalCase }}Handlers = {
+  // GET /{{ endpoint }}
+  getAll: () => mockPaginated{{ responseType | pascalCase }},
+  
+  // GET /{{ endpoint }}/:id
+  getById: (id: string) => {
+    if (id === 'not-found') {
+      return mockErrorResponses.notFound
+    }
+    return {
+      success: true,
+      data: { ...mock{{ responseType | pascalCase }}, id },
+      timestamp: '{{ now | formatDate('YYYY-MM-DD[T]HH:mm:ss[Z]') }}'
+    }
+  },
+  
+  // POST /{{ endpoint }}
+  create: (data: Partial<{{ responseType | pascalCase }}>) => {
+    if (!data.{{ primaryField | camelCase }}) {
+      return mockErrorResponses.validationError
+    }
+    return {
+      success: true,
+      data: {
+        id: '{{ faker.uuid }}',
+        ...data,
+        createdAt: '{{ now | formatDate('YYYY-MM-DD[T]HH:mm:ss[Z]') }}',
+        updatedAt: '{{ now | formatDate('YYYY-MM-DD[T]HH:mm:ss[Z]') }}'
+      },
+      message: '{{ responseType | title }} created successfully',
+      timestamp: '{{ now | formatDate('YYYY-MM-DD[T]HH:mm:ss[Z]') }}'
+    }
+  },
+  
+  // PUT /{{ endpoint }}/:id
+  update: (id: string, data: Partial<{{ responseType | pascalCase }}>) => {
+    if (id === 'not-found') {
+      return mockErrorResponses.notFound
+    }
+    return {
+      success: true,
+      data: {
+        ...mock{{ responseType | pascalCase }},
+        id,
+        ...data,
+        updatedAt: '{{ now | formatDate('YYYY-MM-DD[T]HH:mm:ss[Z]') }}'
+      },
+      message: '{{ responseType | title }} updated successfully',
+      timestamp: '{{ now | formatDate('YYYY-MM-DD[T]HH:mm:ss[Z]') }}'
+    }
+  },
+  
+  // DELETE /{{ endpoint }}/:id
+  delete: (id: string) => {
+    if (id === 'not-found') {
+      return mockErrorResponses.notFound
+    }
+    return {
+      success: true,
+      message: '{{ responseType | title }} deleted successfully',
+      timestamp: '{{ now | formatDate('YYYY-MM-DD[T]HH:mm:ss[Z]') }}'
+    }
+  }
+}
+
+// Helper function to generate random {{ responseType | title }} data
+export function generate{{ responseType | pascalCase }}(count: number = 1): {{ responseType | pascalCase }}[] {
+  return Array.from({ length: count }, () => ({
+    id: '{{ faker.uuid }}',
+    {{ primaryField | camelCase }}: '{{ faker.name }}',
+    {{ secondaryField | camelCase }}: '{{ faker.sentence }}',
+    createdAt: '{{ faker.pastDate | formatDate('YYYY-MM-DD[T]HH:mm:ss[Z]') }}',
+    updatedAt: '{{ faker.recentDate | formatDate('YYYY-MM-DD[T]HH:mm:ss[Z]') }}'
+  }))
+}
+
+// Export all mocks
+export default {
+  single: mock{{ responseType | pascalCase }},
+  list: mock{{ responseType | pascalCase }}List,
+  paginated: mockPaginated{{ responseType | pascalCase }},
+  errors: mockErrorResponses,
+  handlers: mock{{ responseType | pascalCase }}Handlers,
+  generate: generate{{ responseType | pascalCase }}
+}

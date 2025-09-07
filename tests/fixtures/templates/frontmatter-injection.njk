@@ -1,0 +1,9 @@
+---
+to: "{{ outputPath }}"
+inject: true
+after: "// INSERT_POINT"
+---
+// Generated method
+function {{ methodName | camelCase }}() {
+  return "{{ description }}";
+}

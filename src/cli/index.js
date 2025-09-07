@@ -174,6 +174,17 @@ const main = defineCommand({
    * @param {{ args: any }} params - Command parameters
    */
   run({ args }) {
+    // If we've detected that a subcommand already executed successfully,
+    // don't show the main help to avoid confusion
+    const originalArgs = process.argv.slice(2);
+    const hasSubcommand = originalArgs.length > 0 && 
+      ['semantic', 'github', 'neural', 'workflow', 'perf', 'knowledge', 'migrate', 'swarm'].includes(originalArgs[0]) &&
+      !originalArgs.includes('--help') && !originalArgs.includes('-h');
+    
+    if (hasSubcommand) {
+      return { success: true, action: 'subcommand-completed', skipMainHelp: true };
+    }
+    
     // Handle --version flag
     if (args.version) {
       console.log(getVersion());

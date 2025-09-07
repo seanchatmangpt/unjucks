@@ -1,0 +1,24 @@
+{
+  "title": "hello world example",
+  "entity": "user_profile",
+  "methodName": "get_user_data",
+  "description": "Retrieves user data from database",
+  "outputPath": "generated/user-service.js",
+  "currentDate": "2024-01-15T10:30:00Z",
+  "pastDate": "2024-01-01T00:00:00Z",
+  "users": [
+    {
+      "name": "test user",
+      "email": "test@example.com"
+    },
+    {
+      "name": "admin user", 
+      "email": "admin@example.com"
+    }
+  ],
+  "config": {
+    "appName": "test_application",
+    "version": "1.0.0-beta",
+    "environment": "development"
+  }
+}

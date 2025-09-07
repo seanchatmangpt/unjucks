@@ -1,0 +1,145 @@
+---
+to: tests/{{ testType }}/{{ name | kebabCase }}.test.{{ extension | default('ts') }}
+inject: false
+skip_if: '{{ !generateTests }}'
+chmod: 0644
+---
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
+{% if testType === 'unit' %}
+import { {{ name | pascalCase }} } from '../src/{{ name | kebabCase }}'
+{% elif testType === 'integration' %}
+import { setupTestApp } from '../helpers/test-app'
+import request from 'supertest'
+{% elif testType === 'e2e' %}
+import { test, expect } from '@playwright/test'
+{% endif %}
+
+describe('{{ name | pascalCase }} {{ testType | capitalize }} Tests', () => {
+  // Test data generated with faker
+  const mockData = {
+    id: '{{ faker.uuid }}',
+    name: '{{ faker.name }}',
+    email: '{{ faker.email }}',
+    createdAt: '{{ now | formatDate('YYYY-MM-DD') }}',
+    {% for field in testFields %}
+    {{ field.name | camelCase }}: {% if field.type === 'string' %}'{{ faker.word }}'{% elif field.type === 'number' %}{{ faker.number }}{% elif field.type === 'boolean' %}{{ faker.boolean }}{% elif field.type === 'date' %}'{{ faker.date }}'{% else %}null{% endif %},
+    {% endfor %}
+  }
+
+  {% if testType === 'unit' %}
+  let {{ name | camelCase }}: {{ name | pascalCase }}
+
+  beforeEach(() => {
+    {{ name | camelCase }} = new {{ name | pascalCase }}()
+  })
+
+  afterEach(() => {
+    vi.clearAllMocks()
+  })
+
+  describe('{{ name | camelCase }} instantiation', () => {
+    it('should create instance successfully', () => {
+      expect({{ name | camelCase }}).toBeInstanceOf({{ name | pascalCase }})
+    })
+  })
+
+  {% for method in methods %}
+  describe('{{ method.name | camelCase }}', () => {
+    it('should {{ method.description | lowercase }}', async () => {
+      const input = mockData.{{ method.inputField | camelCase }}
+      const expected = {% if method.returnType === 'string' %}'{{ faker.word }}'{% elif method.returnType === 'number' %}{{ faker.number }}{% elif method.returnType === 'boolean' %}true{% else %}mockData{% endif %}
+      
+      {% if method.async %}
+      const result = await {{ name | camelCase }}.{{ method.name | camelCase }}(input)
+      {% else %}
+      const result = {{ name | camelCase }}.{{ method.name | camelCase }}(input)
+      {% endif %}
+      
+      expect(result).{% if method.returnType === 'object' %}toEqual{% else %}toBe{% endif %}(expected)
+    })
+
+    it('should handle edge cases for {{ method.name | camelCase }}', async () => {
+      const edgeCases = [null, undefined, '', 0, false]
+      
+      for (const edgeCase of edgeCases) {
+        {% if method.shouldThrow %}
+        await expect({{ name | camelCase }}.{{ method.name | camelCase }}(edgeCase))
+          .rejects.toThrow()
+        {% else %}
+        {% if method.async %}
+        const result = await {{ name | camelCase }}.{{ method.name | camelCase }}(edgeCase)
+        {% else %}
+        const result = {{ name | camelCase }}.{{ method.name | camelCase }}(edgeCase)
+        {% endif %}
+        expect(result).toBeDefined()
+        {% endif %}
+      }
+    })
+  })
+  {% endfor %}
+
+  {% elif testType === 'integration' %}
+  let app: any
+
+  beforeEach(async () => {
+    app = await setupTestApp()
+  })
+
+  describe('{{ endpoint }} endpoint', () => {
+    it('should handle GET requests', async () => {
+      const response = await request(app)
+        .get('{{ endpoint }}')
+        .expect(200)
+
+      expect(response.body).toBeDefined()
+    })
+
+    it('should handle POST requests with valid data', async () => {
+      const response = await request(app)
+        .post('{{ endpoint }}')
+        .send(mockData)
+        .expect(201)
+
+      expect(response.body.id).toBeDefined()
+      expect(response.body.name).toBe(mockData.name)
+    })
+
+    it('should validate request data', async () => {
+      const invalidData = { ...mockData }
+      delete invalidData.name
+
+      await request(app)
+        .post('{{ endpoint }}')
+        .send(invalidData)
+        .expect(400)
+    })
+  })
+
+  {% elif testType === 'e2e' %}
+  test.beforeEach(async ({ page }) => {
+    await page.goto('/{{ route | default('') }}')
+  })
+
+  test('should display {{ name | title }} page', async ({ page }) => {
+    await expect(page.locator('h1')).toContainText('{{ title | default(name | title) }}')
+  })
+
+  test('should interact with {{ name | camelCase }} form', async ({ page }) => {
+    {% for field in formFields %}
+    await page.fill('[data-testid="{{ field.name | kebabCase }}-input"]', mockData.{{ field.name | camelCase }})
+    {% endfor %}
+    
+    await page.click('[data-testid="submit-button"]')
+    
+    await expect(page.locator('[data-testid="success-message"]'))
+      .toBeVisible()
+  })
+
+  test('should handle form validation errors', async ({ page }) => {
+    await page.click('[data-testid="submit-button"]')
+    
+    await expect(page.locator('[data-testid="error-message"]'))
+      .toBeVisible()
+  })
+  {% endif %}
+})
