@@ -1,0 +1,133 @@
+---
+to: "{{ outputDir || './output' }}/entities/{{ domain | kebabCase }}-entities.ttl"
+inject: false
+force: "{{ force || false }}"
+unless: "{{ skipIf }}"
+---
+@prefix kg: <{{ baseUri | default('http://example.org/kg') | rdfResource }}/{{ domain | kebabCase }}/> .
+@prefix schema: <http://schema.org/> .
+@prefix foaf: <http://xmlns.com/foaf/0.1/> .
+@prefix dct: <http://purl.org/dc/terms/> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+
+# Dataset Metadata
+kg: a owl:Ontology ;
+    dct:title "{{ domain | title }} Knowledge Graph" ;
+    dct:description "{{ description | default('Generated knowledge graph for ' + domain) }}" ;
+    dct:created "{{ now() | formatDate('YYYY-MM-DDTHH:mm:ss') }}"^^xsd:dateTime ;
+    dct:creator "{{ creator | default('Unjucks KG Pipeline') }}" ;
+    owl:versionIRI kg:v{{ version | default('1.0.0') | replace('.', '-') }} .
+
+{% if entities %}
+# Entity Definitions
+{{ entities | map(item => {
+    const entityId = item.id || item.name | slug;
+    const entityUri = 'kg:' + entityId;
+    const entityType = item.type | default('Thing') | pascalCase | schemaType;
+    
+    let properties = [];
+    
+    // Core identification
+    if (item.id) properties.push('schema:identifier "' + item.id + '"');
+    if (item.name) properties.push('schema:name "' + item.name + '"@en');
+    if (item.label) properties.push('rdfs:label "' + item.label + '"@en');
+    if (item.description) properties.push('schema:description "' + item.description + '"@en');
+    
+    // Type-specific properties
+    if (item.type === 'Person') {
+        if (item.email) properties.push('foaf:mbox <mailto:' + item.email + '>');
+        if (item.firstName) properties.push('foaf:firstName "' + item.firstName + '"@en');
+        if (item.lastName) properties.push('foaf:lastName "' + item.lastName + '"@en');
+        if (item.birthDate) properties.push('schema:birthDate "' + item.birthDate + '"^^xsd:date');
+    }
+    
+    if (item.type === 'Organization') {
+        if (item.website) properties.push('foaf:homepage <' + item.website + '>');
+        if (item.industry) properties.push('schema:knowsAbout "' + item.industry + '"@en');
+        if (item.foundingDate) properties.push('schema:foundingDate "' + item.foundingDate + '"^^xsd:date');
+    }
+    
+    if (item.type === 'Product') {
+        if (item.price) properties.push('schema:price "' + item.price + '"^^xsd:decimal');
+        if (item.currency) properties.push('schema:priceCurrency "' + item.currency + '"');
+        if (item.brand) properties.push('schema:brand kg:' + (item.brand | slug));
+    }
+    
+    // Custom properties
+    if (item.properties) {
+        Object.keys(item.properties).forEach(key => {
+            const value = item.properties[key];
+            const predicate = 'schema:' + (key | camelCase);
+            
+            if (typeof value === 'string' && value.startsWith('http')) {
+                properties.push(predicate + ' <' + value + '>');
+            } else if (typeof value === 'number') {
+                properties.push(predicate + ' "' + value + '"^^xsd:decimal');
+            } else if (typeof value === 'boolean') {
+                properties.push(predicate + ' "' + value + '"^^xsd:boolean');
+            } else {
+                properties.push(predicate + ' "' + value + '"@en');
+            }
+        });
+    }
+    
+    // Provenance
+    properties.push('dct:created "' + (item.created || now() | formatDate('YYYY-MM-DDTHH:mm:ss')) + '"^^xsd:dateTime');
+    if (item.source) properties.push('dct:source <' + item.source + '>');
+    
+    const propertiesStr = properties.length > 0 ? '\n    ' + properties.join(' ;\n    ') + ' .' : ' .';
+    
+    return entityUri + ' a ' + entityType + ' ;' + propertiesStr;
+}) | join('\n\n') }}
+{% endif %}
+
+{% if geospatialEntities %}
+# Geospatial Entities
+{{ geospatialEntities | map(item => {
+    const entityId = item.id || item.name | slug;
+    const entityUri = 'kg:' + entityId;
+    
+    let geoProperties = [
+        'a schema:Place'
+    ];
+    
+    if (item.name) geoProperties.push('schema:name "' + item.name + '"@en');
+    if (item.latitude && item.longitude) {
+        geoProperties.push('schema:latitude "' + item.latitude + '"^^xsd:decimal');
+        geoProperties.push('schema:longitude "' + item.longitude + '"^^xsd:decimal');
+    }
+    if (item.address) geoProperties.push('schema:address "' + item.address + '"@en');
+    if (item.postalCode) geoProperties.push('schema:postalCode "' + item.postalCode + '"');
+    if (item.country) geoProperties.push('schema:addressCountry "' + item.country + '"@en');
+    
+    return entityUri + ' ' + geoProperties.join(' ;\n    ') + ' .';
+}) | join('\n\n') }}
+{% endif %}
+
+{% if temporalEntities %}
+# Temporal Entities
+{{ temporalEntities | map(item => {
+    const entityId = item.id || item.name | slug;
+    const entityUri = 'kg:' + entityId;
+    
+    let timeProperties = [
+        'a schema:Event'
+    ];
+    
+    if (item.name) timeProperties.push('schema:name "' + item.name + '"@en');
+    if (item.startDate) timeProperties.push('schema:startDate "' + item.startDate + '"^^xsd:dateTime');
+    if (item.endDate) timeProperties.push('schema:endDate "' + item.endDate + '"^^xsd:dateTime');
+    if (item.duration) timeProperties.push('schema:duration "' + item.duration + '"^^xsd:duration');
+    if (item.location) timeProperties.push('schema:location kg:' + (item.location | slug));
+    
+    return entityUri + ' ' + timeProperties.join(' ;\n    ') + ' .';
+}) | join('\n\n') }}
+{% endif %}
+
+# Entity Statistics
+kg:statistics a owl:NamedIndividual ;
+    schema:name "Dataset Statistics" ;
+    schema:numberOfItems {{ (entities || []).length + (geospatialEntities || []).length + (temporalEntities || []).length }} ;
+    schema:dateCreated "{{ now() | formatDate('YYYY-MM-DDTHH:mm:ss') }}"^^xsd:dateTime .

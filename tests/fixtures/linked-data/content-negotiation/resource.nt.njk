@@ -1,0 +1,216 @@
+---
+to: "{{ resourceId | slug }}.nt"
+inject: true
+skipIf: "{{ skipExisting | default(false) }}"
+chmod: "644"
+---
+# N-Triples serialization for {{ title | titleCase }}
+# Generated: {{ now() | isoDate }}
+
+<{{ baseUri | rdfResource }}{{ resourceId | slug }}> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <{{ resourceType | schemaOrg | expandUri }}> .
+<{{ baseUri | rdfResource }}{{ resourceId | slug }}> <http://schema.org/{{ nameProperty | camelCase | default('name') }}> {{ title | titleCase | rdfLiteral('en') }} .
+<{{ baseUri | rdfResource }}{{ resourceId | slug }}> <http://schema.org/identifier> {{ resourceId | upper | rdfLiteral('string') }} .
+<{{ baseUri | rdfResource }}{{ resourceId | slug }}> <http://schema.org/url> <{{ baseUri | rdfResource }}{{ resourceId | slug }}> .
+{% if description -%}
+<{{ baseUri | rdfResource }}{{ resourceId | slug }}> <http://schema.org/description> {{ description | rdfLiteral('en') }} .
+{% endif -%}
+
+# Keywords
+{% if keywords -%}
+{% for keyword in keywords -%}
+<{{ baseUri | rdfResource }}{{ resourceId | slug }}> <http://schema.org/keywords> {{ keyword | rdfLiteral('en') }} .
+{% endfor -%}
+{% endif -%}
+
+# Temporal metadata
+{% if createdDate -%}
+<{{ baseUri | rdfResource }}{{ resourceId | slug }}> <http://purl.org/dc/terms/created> {{ createdDate | formatDate('YYYY-MM-DDTHH:mm:ss') | rdfLiteral('dateTime') }} .
+{% endif -%}
+<{{ baseUri | rdfResource }}{{ resourceId | slug }}> <http://purl.org/dc/terms/modified> {{ now() | formatDate('YYYY-MM-DDTHH:mm:ss') | rdfLiteral('dateTime') }} .
+{% if validFrom -%}
+<{{ baseUri | rdfResource }}{{ resourceId | slug }}> <http://schema.org/validFrom> {{ validFrom | formatDate('YYYY-MM-DD') | rdfLiteral('date') }} .
+{% endif -%}
+{% if validThrough -%}
+<{{ baseUri | rdfResource }}{{ resourceId | slug }}> <http://schema.org/validThrough> {{ validThrough | formatDate('YYYY-MM-DD') | rdfLiteral('date') }} .
+{% endif -%}
+
+# Authorship and provenance
+{% if creator -%}
+<{{ baseUri | rdfResource }}{{ resourceId | slug }}> <http://purl.org/dc/terms/creator> <{{ baseUri | rdfResource }}{{ creator | slug }}> .
+{% endif -%}
+{% if publisher -%}
+<{{ baseUri | rdfResource }}{{ resourceId | slug }}> <http://purl.org/dc/terms/publisher> <{{ baseUri | rdfResource }}{{ publisher | slug }}> .
+{% endif -%}
+{% if contributors -%}
+{% for contributor in contributors -%}
+<{{ baseUri | rdfResource }}{{ resourceId | slug }}> <http://purl.org/dc/terms/contributor> <{{ baseUri | rdfResource }}{{ contributor | slug }}> .
+{% endfor -%}
+{% endif -%}
+
+# Rights and licensing
+{% if license -%}
+<{{ baseUri | rdfResource }}{{ resourceId | slug }}> <http://purl.org/dc/terms/license> <{{ license | licenseUri }}> .
+{% endif -%}
+{% if rightsHolder -%}
+<{{ baseUri | rdfResource }}{{ resourceId | slug }}> <http://purl.org/dc/terms/rightsHolder> <{{ baseUri | rdfResource }}{{ rightsHolder | slug }}> .
+{% endif -%}
+{% if accessRights -%}
+<{{ baseUri | rdfResource }}{{ resourceId | slug }}> <http://purl.org/dc/terms/accessRights> {{ accessRights | rdfLiteral('en') }} .
+{% endif -%}
+
+# Technical metadata
+<{{ baseUri | rdfResource }}{{ resourceId | slug }}> <http://schema.org/encodingFormat> {{ format | default('application/n-triples') | contentType | rdfLiteral('string') }} .
+{% if version -%}
+<{{ baseUri | rdfResource }}{{ resourceId | slug }}> <http://schema.org/version> {{ version | rdfLiteral('string') }} .
+{% endif -%}
+{% if size -%}
+<{{ baseUri | rdfResource }}{{ resourceId | slug }}> <http://schema.org/contentSize> {{ size | rdfLiteral('integer') }} .
+{% endif -%}
+
+# Web presence
+<{{ baseUri | rdfResource }}{{ resourceId | slug }}> <http://schema.org/mainEntityOfPage> <{{ baseUri | rdfResource }}{{ resourceId | slug }}.html> .
+{% if canonicalUrl -%}
+<{{ baseUri | rdfResource }}{{ resourceId | slug }}> <http://schema.org/url> <{{ canonicalUrl }}> .
+{% endif -%}
+
+# Dataset membership
+<{{ baseUri | rdfResource }}{{ resourceId | slug }}> <http://rdfs.org/ns/void#inDataset> <{{ baseUri | rdfResource }}{{ dataset | kebabCase }}> .
+
+# Geospatial information
+{% if latitude and longitude -%}
+<{{ baseUri | rdfResource }}{{ resourceId | slug }}> <http://www.opengis.net/ont/geosparql#hasGeometry> _:geometry{{ resourceId | hash('md5') | slice(0, 8) }} .
+_:geometry{{ resourceId | hash('md5') | slice(0, 8) }} <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.opengis.net/ont/geosparql#Point> .
+_:geometry{{ resourceId | hash('md5') | slice(0, 8) }} <http://www.opengis.net/ont/geosparql#asWKT> {{ geoPoint(latitude, longitude) }} .
+{% endif -%}
+
+# Address information
+{% if address -%}
+<{{ baseUri | rdfResource }}{{ resourceId | slug }}> <http://schema.org/address> _:address{{ resourceId | hash('md5') | slice(0, 8) }} .
+_:address{{ resourceId | hash('md5') | slice(0, 8) }} <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://schema.org/PostalAddress> .
+{% if address.streetAddress -%}
+_:address{{ resourceId | hash('md5') | slice(0, 8) }} <http://schema.org/streetAddress> {{ address.streetAddress | rdfLiteral('en') }} .
+{% endif -%}
+{% if address.locality -%}
+_:address{{ resourceId | hash('md5') | slice(0, 8) }} <http://schema.org/addressLocality> {{ address.locality | rdfLiteral('en') }} .
+{% endif -%}
+{% if address.region -%}
+_:address{{ resourceId | hash('md5') | slice(0, 8) }} <http://schema.org/addressRegion> {{ address.region | rdfLiteral('en') }} .
+{% endif -%}
+{% if address.postalCode -%}
+_:address{{ resourceId | hash('md5') | slice(0, 8) }} <http://schema.org/postalCode> {{ address.postalCode | rdfLiteral('string') }} .
+{% endif -%}
+{% if address.country -%}
+_:address{{ resourceId | hash('md5') | slice(0, 8) }} <http://schema.org/addressCountry> {{ address.country | rdfLiteral('en') }} .
+{% endif -%}
+{% endif -%}
+
+# Content-specific properties for Person
+{% if resourceType == 'person' -%}
+{% if givenName -%}
+<{{ baseUri | rdfResource }}{{ resourceId | slug }}> <http://xmlns.com/foaf/0.1/givenName> {{ givenName | rdfLiteral('en') }} .
+{% endif -%}
+{% if familyName -%}
+<{{ baseUri | rdfResource }}{{ resourceId | slug }}> <http://xmlns.com/foaf/0.1/familyName> {{ familyName | rdfLiteral('en') }} .
+{% endif -%}
+{% if email -%}
+<{{ baseUri | rdfResource }}{{ resourceId | slug }}> <http://xmlns.com/foaf/0.1/mbox> <mailto:{{ email }}> .
+{% endif -%}
+{% if homepage -%}
+<{{ baseUri | rdfResource }}{{ resourceId | slug }}> <http://xmlns.com/foaf/0.1/homepage> <{{ homepage }}> .
+{% endif -%}
+{% endif -%}
+
+# Content-specific properties for Organization
+{% if resourceType == 'organization' -%}
+{% if legalName -%}
+<{{ baseUri | rdfResource }}{{ resourceId | slug }}> <http://schema.org/legalName> {{ legalName | rdfLiteral('en') }} .
+{% endif -%}
+{% if foundingDate -%}
+<{{ baseUri | rdfResource }}{{ resourceId | slug }}> <http://schema.org/foundingDate> {{ foundingDate | formatDate('YYYY-MM-DD') | rdfLiteral('date') }} .
+{% endif -%}
+{% if numberOfEmployees -%}
+<{{ baseUri | rdfResource }}{{ resourceId | slug }}> <http://schema.org/numberOfEmployees> {{ numberOfEmployees | rdfLiteral('integer') }} .
+{% endif -%}
+{% endif -%}
+
+# Content-specific properties for Dataset
+{% if resourceType == 'dataset' and distribution -%}
+{% for dist in distribution -%}
+<{{ baseUri | rdfResource }}{{ resourceId | slug }}> <http://www.w3.org/ns/dcat#distribution> _:dist{{ loop.index }}{{ resourceId | hash('md5') | slice(0, 8) }} .
+_:dist{{ loop.index }}{{ resourceId | hash('md5') | slice(0, 8) }} <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/ns/dcat#Distribution> .
+_:dist{{ loop.index }}{{ resourceId | hash('md5') | slice(0, 8) }} <http://purl.org/dc/terms/format> {{ dist.format | contentType | rdfLiteral('string') }} .
+{% if dist.downloadUrl -%}
+_:dist{{ loop.index }}{{ resourceId | hash('md5') | slice(0, 8) }} <http://www.w3.org/ns/dcat#downloadURL> <{{ dist.downloadUrl }}> .
+{% endif -%}
+{% if dist.accessUrl -%}
+_:dist{{ loop.index }}{{ resourceId | hash('md5') | slice(0, 8) }} <http://www.w3.org/ns/dcat#accessURL> <{{ dist.accessUrl }}> .
+{% endif -%}
+{% endfor -%}
+{% endif -%}
+
+# Custom properties
+{% if customProperties -%}
+{% for prop, values in customProperties -%}
+{% if values is iterable and values is not string -%}
+{% for value in values -%}
+<{{ baseUri | rdfResource }}{{ resourceId | slug }}> <{{ prop | expandUri }}> {{ value | rdfLiteral }} .
+{% endfor -%}
+{% else -%}
+<{{ baseUri | rdfResource }}{{ resourceId | slug }}> <{{ prop | expandUri }}> {{ values | rdfLiteral }} .
+{% endif -%}
+{% endfor -%}
+{% endif -%}
+
+# External interlinking
+{% if externalLinks -%}
+{% for link in externalLinks -%}
+<{{ baseUri | rdfResource }}{{ resourceId | slug }}> <http://www.w3.org/2002/07/owl#sameAs> <{{ link }}> .
+{% endfor -%}
+{% endif -%}
+
+# Related resources
+{% if relatedResources -%}
+{% for related in relatedResources -%}
+<{{ baseUri | rdfResource }}{{ resourceId | slug }}> <http://schema.org/relatedLink> <{{ baseUri | rdfResource }}{{ related.uri | default(related | slug) }}> .
+{% if related.relation -%}
+<{{ baseUri | rdfResource }}{{ resourceId | slug }}> <{{ related.relation | expandUri }}> <{{ baseUri | rdfResource }}{{ related.uri | default(related | slug) }}> .
+{% endif -%}
+{% endfor -%}
+{% endif -%}
+
+# Provenance chain
+<{{ baseUri | rdfResource }}{{ resourceId | slug }}> <http://www.w3.org/ns/prov#wasGeneratedBy> _:activity{{ resourceId | hash('md5') | slice(0, 8) }} .
+_:activity{{ resourceId | hash('md5') | slice(0, 8) }} <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/ns/prov#Activity> .
+_:activity{{ resourceId | hash('md5') | slice(0, 8) }} <http://www.w3.org/ns/prov#startedAtTime> {{ now() | isoDate | rdfLiteral('dateTime') }} .
+_:activity{{ resourceId | hash('md5') | slice(0, 8) }} <http://www.w3.org/ns/prov#wasAssociatedWith> <{{ baseUri | rdfResource }}{{ generator | default('unjucks-system') | slug }}> .
+{% if generatorVersion -%}
+_:activity{{ resourceId | hash('md5') | slice(0, 8) }} <http://www.w3.org/ns/prov#used> _:software{{ resourceId | hash('md5') | slice(0, 8) }} .
+_:software{{ resourceId | hash('md5') | slice(0, 8) }} <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/ns/prov#SoftwareAgent> .
+_:software{{ resourceId | hash('md5') | slice(0, 8) }} <http://schema.org/version> {{ generatorVersion | rdfLiteral('string') }} .
+{% endif -%}
+
+# Additional resource descriptions (referenced entities)
+{% if creator -%}
+<{{ baseUri | rdfResource }}{{ creator | slug }}> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://xmlns.com/foaf/0.1/Agent> .
+<{{ baseUri | rdfResource }}{{ creator | slug }}> <http://www.w3.org/2000/01/rdf-schema#label> {{ creatorName | default('Resource Creator') | rdfLiteral('en') }} .
+{% endif -%}
+
+{% if publisher -%}
+<{{ baseUri | rdfResource }}{{ publisher | slug }}> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://xmlns.com/foaf/0.1/Organization> .
+<{{ baseUri | rdfResource }}{{ publisher | slug }}> <http://www.w3.org/2000/01/rdf-schema#label> {{ publisherName | default('Resource Publisher') | rdfLiteral('en') }} .
+{% endif -%}
+
+# Dataset metadata
+<{{ baseUri | rdfResource }}{{ dataset | kebabCase }}> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://rdfs.org/ns/void#Dataset> .
+<{{ baseUri | rdfResource }}{{ dataset | kebabCase }}> <http://purl.org/dc/terms/title> {{ datasetTitle | default('Resource Dataset') | rdfLiteral('en') }} .
+<{{ baseUri | rdfResource }}{{ dataset | kebabCase }}> <http://rdfs.org/ns/void#subset> <{{ baseUri | rdfResource }}{{ resourceId | slug }}> .
+
+# Document metadata for this N-Triples file
+<{{ baseUri | rdfResource }}{{ resourceId | slug }}.nt> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://rdfs.org/ns/void#Dataset> .
+<{{ baseUri | rdfResource }}{{ resourceId | slug }}.nt> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/ns/dcat#Dataset> .
+<{{ baseUri | rdfResource }}{{ resourceId | slug }}.nt> <http://purl.org/dc/terms/title> {{ ('N-Triples Description of ' + title) | rdfLiteral('en') }} .
+<{{ baseUri | rdfResource }}{{ resourceId | slug }}.nt> <http://purl.org/dc/terms/description> {{ ('N-Triples serialization of ' + resourceType + ' resource') | rdfLiteral('en') }} .
+<{{ baseUri | rdfResource }}{{ resourceId | slug }}.nt> <http://purl.org/dc/terms/format> {{ 'application/n-triples' | contentType | rdfLiteral('string') }} .
+<{{ baseUri | rdfResource }}{{ resourceId | slug }}.nt> <http://purl.org/dc/terms/created> {{ now() | isoDate | rdfLiteral('dateTime') }} .
+<{{ baseUri | rdfResource }}{{ resourceId | slug }}.nt> <http://rdfs.org/ns/void#primaryTopic> <{{ baseUri | rdfResource }}{{ resourceId | slug }}> .
+<{{ baseUri | rdfResource }}{{ resourceId | slug }}.nt> <http://purl.org/dc/terms/isFormatOf> <{{ baseUri | rdfResource }}{{ resourceId | slug }}> .

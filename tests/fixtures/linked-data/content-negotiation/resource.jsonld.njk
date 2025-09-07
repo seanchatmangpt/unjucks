@@ -1,0 +1,270 @@
+---
+to: "{{ resourceId | slug }}.jsonld"
+inject: true
+skipIf: "{{ skipExisting | default(false) }}"
+chmod: "644"
+---
+{
+  "@context": {
+    "@version": 1.1,
+    "@base": "{{ baseUri | rdfResource }}",
+    "schema": "http://schema.org/",
+    "dct": "http://purl.org/dc/terms/",
+    "void": "http://rdfs.org/ns/void#",
+    "foaf": "http://xmlns.com/foaf/0.1/",
+    "owl": "http://www.w3.org/2002/07/owl#",
+    "prov": "http://www.w3.org/ns/prov#",
+    "geo": "http://www.opengis.net/ont/geosparql#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#",
+    {% if customContext -%}
+    {% for prefix, uri in customContext -%}
+    "{{ prefix }}": "{{ uri }}"{% if not loop.last %},{% endif %}
+    {% endfor -%}
+    {% if customContext | length > 0 %},{% endif %}
+    {% endif -%}
+    
+    "name": {
+      "@id": "schema:name",
+      "@type": "@id",
+      "@language": "{{ language | default('en') }}"
+    },
+    "title": {
+      "@id": "dct:title", 
+      "@language": "{{ language | default('en') }}"
+    },
+    "description": {
+      "@id": "schema:description",
+      "@language": "{{ language | default('en') }}"
+    },
+    "identifier": {
+      "@id": "schema:identifier",
+      "@type": "xsd:string"
+    },
+    "created": {
+      "@id": "dct:created",
+      "@type": "xsd:dateTime"
+    },
+    "modified": {
+      "@id": "dct:modified", 
+      "@type": "xsd:dateTime"
+    },
+    "creator": {
+      "@id": "dct:creator",
+      "@type": "@id"
+    },
+    "publisher": {
+      "@id": "dct:publisher",
+      "@type": "@id" 
+    },
+    "license": {
+      "@id": "dct:license",
+      "@type": "@id"
+    },
+    "sameAs": {
+      "@id": "owl:sameAs",
+      "@type": "@id",
+      "@container": "@set"
+    },
+    "keywords": {
+      "@id": "schema:keywords",
+      "@container": "@set",
+      "@language": "{{ language | default('en') }}"
+    },
+    "latitude": {
+      "@id": "geo:lat",
+      "@type": "xsd:decimal"
+    },
+    "longitude": {
+      "@id": "geo:long", 
+      "@type": "xsd:decimal"
+    },
+    "geometry": {
+      "@id": "geo:hasGeometry"
+    },
+    "wkt": {
+      "@id": "geo:asWKT",
+      "@type": "geo:wktLiteral"
+    }
+  },
+  "@id": "{{ resourceId | slug }}",
+  "@type": "{{ resourceType | schemaOrg }}",
+  "name": "{{ title | titleCase }}",
+  {% if description -%}
+  "description": "{{ description | sparqlEscape }}",
+  {% endif -%}
+  "identifier": "{{ resourceId | upper }}",
+  "url": "{{ resourceId | slug }}",
+  {% if keywords -%}
+  "keywords": [
+    {% for keyword in keywords -%}
+    "{{ keyword | sparqlEscape }}"{% if not loop.last %},{% endif %}
+    {% endfor -%}
+  ],
+  {% endif -%}
+  
+  {% if createdDate -%}
+  "created": "{{ createdDate | formatDate('YYYY-MM-DDTHH:mm:ss') }}",
+  {% endif -%}
+  "modified": "{{ now() | formatDate('YYYY-MM-DDTHH:mm:ss') }}",
+  
+  {% if creator -%}
+  "creator": "{{ creator | slug }}",
+  {% endif -%}
+  {% if publisher -%}
+  "publisher": "{{ publisher | slug }}",
+  {% endif -%}
+  {% if contributors -%}
+  "contributor": [
+    {% for contributor in contributors -%}
+    "{{ contributor | slug }}"{% if not loop.last %},{% endif %}
+    {% endfor -%}
+  ],
+  {% endif -%}
+  
+  {% if license -%}
+  "license": "{{ license | licenseUri }}",
+  {% endif -%}
+  {% if rightsHolder -%}
+  "rightsHolder": "{{ rightsHolder | slug }}",
+  {% endif -%}
+  
+  "encodingFormat": "{{ format | default('application/ld+json') | contentType }}",
+  {% if version -%}
+  "version": "{{ version }}",
+  {% endif -%}
+  {% if size -%}
+  "contentSize": {{ size }},
+  {% endif -%}
+  
+  "mainEntityOfPage": "{{ resourceId | slug }}.html",
+  {% if canonicalUrl -%}
+  "url": "{{ canonicalUrl }}",
+  {% endif -%}
+  
+  "isPartOf": "{{ dataset | kebabCase }}",
+  
+  {% if latitude and longitude -%}
+  "geometry": {
+    "@type": "geo:Point",
+    "wkt": "{{ geoPoint(latitude, longitude) }}"
+  },
+  {% endif -%}
+  
+  {% if address -%}
+  "address": {
+    "@type": "schema:PostalAddress",
+    {% if address.streetAddress -%}
+    "streetAddress": "{{ address.streetAddress | sparqlEscape }}",
+    {% endif -%}
+    {% if address.locality -%}
+    "addressLocality": "{{ address.locality | sparqlEscape }}",
+    {% endif -%}
+    {% if address.region -%}
+    "addressRegion": "{{ address.region | sparqlEscape }}",
+    {% endif -%}
+    {% if address.postalCode -%}
+    "postalCode": "{{ address.postalCode }}",
+    {% endif -%}
+    {% if address.country -%}
+    "addressCountry": "{{ address.country | sparqlEscape }}"
+    {% endif -%}
+  },
+  {% endif -%}
+  
+  {% if resourceType == 'person' -%}
+  {% if givenName -%}
+  "givenName": "{{ givenName | sparqlEscape }}",
+  {% endif -%}
+  {% if familyName -%}
+  "familyName": "{{ familyName | sparqlEscape }}",
+  {% endif -%}
+  {% if email -%}
+  "email": "mailto:{{ email }}",
+  {% endif -%}
+  {% if homepage -%}
+  "url": "{{ homepage }}",
+  {% endif -%}
+  {% endif -%}
+  
+  {% if resourceType == 'organization' -%}
+  {% if legalName -%}
+  "legalName": "{{ legalName | sparqlEscape }}",
+  {% endif -%}
+  {% if foundingDate -%}
+  "foundingDate": "{{ foundingDate | formatDate('YYYY-MM-DD') }}",
+  {% endif -%}
+  {% if numberOfEmployees -%}
+  "numberOfEmployees": {{ numberOfEmployees }},
+  {% endif -%}
+  {% endif -%}
+  
+  {% if resourceType == 'dataset' -%}
+  {% if distribution -%}
+  "distribution": [
+    {% for dist in distribution -%}
+    {
+      "@type": "dcat:Distribution",
+      "encodingFormat": "{{ dist.format | contentType }}",
+      {% if dist.downloadUrl -%}
+      "downloadUrl": "{{ dist.downloadUrl }}",
+      {% endif -%}
+      {% if dist.accessUrl -%}
+      "contentUrl": "{{ dist.accessUrl }}"
+      {% endif -%}
+    }{% if not loop.last %},{% endif %}
+    {% endfor -%}
+  ],
+  {% endif -%}
+  {% endif -%}
+  
+  {% if customProperties -%}
+  {% for prop, values in customProperties -%}
+  "{{ prop | getLocalName }}": {% if values is iterable and values is not string -%}
+  [
+    {% for value in values -%}
+    {% if value is number -%}
+    {{ value }}
+    {% else -%}
+    "{{ value | sparqlEscape }}"
+    {% endif -%}{% if not loop.last %},{% endif %}
+    {% endfor -%}
+  ]
+  {% else -%}
+  {% if values is number -%}
+  {{ values }}
+  {% else -%}
+  "{{ values | sparqlEscape }}"
+  {% endif -%}
+  {% endif -%}{% if not loop.last %},{% endif %}
+  {% endfor -%}
+  {% if customProperties | length > 0 %},{% endif %}
+  {% endif -%}
+  
+  {% if externalLinks -%}
+  "sameAs": [
+    {% for link in externalLinks -%}
+    "{{ link }}"{% if not loop.last %},{% endif %}
+    {% endfor -%}
+  ],
+  {% endif -%}
+  
+  {% if relatedResources -%}
+  "relatedLink": [
+    {% for related in relatedResources -%}
+    "{{ related.uri | default(related | slug) }}"{% if not loop.last %},{% endif %}
+    {% endfor -%}
+  ],
+  {% endif -%}
+  
+  "wasGeneratedBy": {
+    "@type": "prov:Activity",
+    "startedAtTime": "{{ now() | isoDate }}",
+    "wasAssociatedWith": "{{ generator | default('unjucks-system') | slug }}",
+    {% if generatorVersion -%}
+    "used": {
+      "@type": "prov:SoftwareAgent", 
+      "version": "{{ generatorVersion }}"
+    }
+    {% endif -%}
+  }
+}

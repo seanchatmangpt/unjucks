@@ -1,4 +1,4 @@
-# 🌆 Unjucks v2025.9.6.17.41  
+# 🌆 Unjucks v2025.9.7.11.23  
 
 [![npm version](https://img.shields.io/npm/v/unjucks?color=yellow)](https://npmjs.com/package/unjucks)
 [![npm downloads](https://img.shields.io/npm/dm/unjucks?color=yellow)](https://npm.chart.dev/packageName)
@@ -9,10 +9,11 @@
 [![Test Success Rate](https://img.shields.io/badge/Tests-95.7%25-green.svg)](docs/reports/mcp-validation-results.md)
 [![AI Swarm](https://img.shields.io/badge/AI_Swarm-12_Agents-purple.svg)](docs/mcp-swarm-capabilities-summary.md)
 [![Semantic Web](https://img.shields.io/badge/RDF/Turtle-N3.js-blue.svg)](docs/mcp-semantic-web-convergence.md)
+[![Template Filters](https://img.shields.io/badge/Filters-65%2B-orange.svg)](docs/filters/README.md)
 
 > **Next-generation AI-powered code generation platform with native MCP integration, 12-agent swarm coordination, semantic web processing, and enterprise-grade automation.**
 
-Unjucks v2025 is a **revolutionary AI-native code generation platform** featuring native Model Context Protocol (MCP) integration, enabling direct AI assistant access with 40+ specialized tools, 12-agent swarm coordination, semantic web processing with N3.js, and enterprise-grade automation with 95.7% test success rate.
+Unjucks v2025 is a **revolutionary AI-native code generation platform** featuring native Model Context Protocol (MCP) integration, enabling direct AI assistant access with 40+ specialized tools, 12-agent swarm coordination, semantic web processing with N3.js, **65+ advanced template filters** including RDF/Turtle support, and enterprise-grade automation with 95.7% test success rate.
 
 ## 🎯 Why Unjucks v2025?
 
@@ -189,9 +190,17 @@ unjucks generate retail omnichannel \
 - Order fulfillment automation
 - Customer service and support tools
 
-### ⚡ **Advanced Template Engine**
+### ⚡ **Advanced Template Engine with 65+ Filters**
 
-Unjucks extends Nunjucks with enterprise-grade features:
+Unjucks extends Nunjucks with enterprise-grade features and comprehensive filter system:
+
+#### **Complete Filter Categories**
+
+- **🔤 String Inflection (15+)**: `pascalCase`, `camelCase`, `kebabCase`, `snakeCase`, `titleCase`, `humanize`, `slug`, `classify`, `tableize`
+- **📅 Date/Time with Day.js (20+)**: `formatDate`, `dateAdd`, `dateSub`, `fromNow`, `dateStart`, `dateEnd`, `timezone`, `unix`
+- **🎲 Faker.js Data Generation (15+)**: `fakeName`, `fakeEmail`, `fakeUuid`, `fakePhone`, `fakeCompany`, `fakeDate`, `fakeSchema`
+- **🌐 Semantic RDF/Turtle (20+)**: `rdfResource`, `rdfProperty`, `rdfClass`, `rdfDatatype`, `sparqlVar`, `schemaOrg`, `dublinCore`
+- **🔧 Utility Filters (10+)**: `dump`, `join`, `default`, `truncate`, `wrap`, `pad`, `repeat`, `reverse`
 
 #### **Semantic RDF Filters**
 ```njk
@@ -200,6 +209,11 @@ Unjucks extends Nunjucks with enterprise-grade features:
 {{ entity | rdfProperties | rdfRequired }}       <!-- Required properties -->
 {{ concept | rdfNamespace('skos') }}             <!-- Namespace filtering -->
 {{ data | rdfQuery('?s rdf:type :Organization') }} <!-- SPARQL-like queries -->
+{{ className | pascalCase | rdfClass('schema') }} <!-- Chain with case conversion -->
+{{ property | camelCase | rdfProperty('ex') }}    <!-- Property generation -->
+{{ value | rdfLiteral('en') }}                   <!-- Language-tagged literals -->
+{{ uri | sparqlVar }}                            <!-- SPARQL variable formatting -->
+{{ type | schemaOrg }}                           <!-- Schema.org mapping -->
 ```
 
 #### **Enterprise Template Inheritance**
@@ -514,6 +528,8 @@ Unjucks v2025 includes extensive documentation for enterprise adoption:
 - [**CLI Reference**](docs/v1/api/cli-reference.md) - Complete command documentation
 - [**Programmatic API**](docs/v1/api/programmatic-api.md) - JavaScript integration API
 - [**Template Syntax**](docs/v1/templates/nunjucks-syntax.md) - Advanced templating guide
+- [**Template Filters (65+)**](docs/filters/README.md) - Comprehensive filter documentation
+- [**Filter Reference**](docs/filters/filters-reference.md) - Complete catalog of all filters
 - [**Configuration**](docs/configuration.md) - Enterprise configuration management
 
 ### 🏢 **Enterprise Guides**

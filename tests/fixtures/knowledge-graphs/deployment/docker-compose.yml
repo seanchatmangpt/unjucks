@@ -1,0 +1,253 @@
+version: '3.8'
+
+services:
+  # Apache Jena Fuseki Triple Store
+  fuseki:
+    image: stain/jena-fuseki:latest
+    container_name: kg-fuseki
+    environment:
+      - ADMIN_PASSWORD=admin123
+      - JVM_ARGS=-Xmx2g
+    volumes:
+      - fuseki-data:/fuseki/databases
+      - ./config/fuseki:/fuseki/config
+      - ../output:/data:ro
+    ports:
+      - "3030:3030"
+    networks:
+      - kg-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3030/$/ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # OpenLink Virtuoso (Alternative)
+  virtuoso:
+    image: tenforce/virtuoso:1.3.2-virtuoso7.2.2
+    container_name: kg-virtuoso
+    environment:
+      - SPARQL_UPDATE=true
+      - DEFAULT_GRAPH=http://example.org/kg/enterprise
+      - DBA_PASSWORD=virtuoso123
+      - VIRT_Parameters_NumberOfBuffers=680000
+      - VIRT_Parameters_MaxDirtyBuffers=500000
+    volumes:
+      - virtuoso-data:/data
+      - ../output:/import:ro
+    ports:
+      - "8890:8890"
+      - "1111:1111"
+    networks:
+      - kg-network
+    restart: unless-stopped
+    profiles: ["virtuoso"]
+
+  # GraphDB (Enterprise Triple Store)
+  graphdb:
+    image: ontotext/graphdb:10.0.0
+    container_name: kg-graphdb
+    environment:
+      - GDB_HEAP_SIZE=2g
+    volumes:
+      - graphdb-data:/opt/graphdb/home
+      - ./config/graphdb:/opt/graphdb/home/conf
+      - ../output:/import:ro
+    ports:
+      - "7200:7200"
+    networks:
+      - kg-network
+    restart: unless-stopped
+    profiles: ["graphdb"]
+
+  # Knowledge Graph API Server
+  kg-api:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    container_name: kg-api-server
+    environment:
+      - NODE_ENV=production
+      - SPARQL_ENDPOINT=http://fuseki:3030/ds/sparql
+      - UPDATE_ENDPOINT=http://fuseki:3030/ds/update
+      - GRAPH_STORE_ENDPOINT=http://fuseki:3030/ds/data
+      - DEFAULT_GRAPH_URI=http://example.org/kg/enterprise
+      - API_KEY=${API_KEY:-kg-api-key-123}
+      - RATE_LIMIT_MAX=1000
+      - RATE_LIMIT_WINDOW=900000
+      - CACHE_TTL=300
+    ports:
+      - "3000:3000"
+    networks:
+      - kg-network
+    depends_on:
+      fuseki:
+        condition: service_healthy
+    restart: unless-stopped
+    volumes:
+      - ../output:/app/data:ro
+      - ./logs:/app/logs
+
+  # Knowledge Graph Web UI
+  kg-ui:
+    build:
+      context: .
+      dockerfile: Dockerfile.ui
+    container_name: kg-web-ui
+    environment:
+      - REACT_APP_API_URL=http://localhost:3000
+      - REACT_APP_SPARQL_ENDPOINT=http://localhost:3030/ds/sparql
+    ports:
+      - "3001:80"
+    networks:
+      - kg-network
+    depends_on:
+      - kg-api
+    restart: unless-stopped
+
+  # SPARQL Query Interface (YASGUI)
+  yasgui:
+    image: erikap/yasgui
+    container_name: kg-yasgui
+    environment:
+      - DEFAULT_SPARQL_ENDPOINT=http://localhost:3030/ds/sparql
+    ports:
+      - "3002:80"
+    networks:
+      - kg-network
+    restart: unless-stopped
+
+  # Elasticsearch for Full-Text Search
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.8.0
+    container_name: kg-elasticsearch
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - "ES_JAVA_OPTS=-Xms1g -Xmx1g"
+    volumes:
+      - elasticsearch-data:/usr/share/elasticsearch/data
+    ports:
+      - "9200:9200"
+    networks:
+      - kg-network
+    restart: unless-stopped
+    profiles: ["search"]
+
+  # Redis for Caching
+  redis:
+    image: redis:7-alpine
+    container_name: kg-redis
+    command: redis-server --appendonly yes --requirepass redis123
+    volumes:
+      - redis-data:/data
+    ports:
+      - "6379:6379"
+    networks:
+      - kg-network
+    restart: unless-stopped
+
+  # Monitoring with Prometheus
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: kg-prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--web.enable-lifecycle'
+    volumes:
+      - ./config/prometheus:/etc/prometheus
+      - prometheus-data:/prometheus
+    ports:
+      - "9090:9090"
+    networks:
+      - kg-network
+    restart: unless-stopped
+    profiles: ["monitoring"]
+
+  # Grafana for Visualization
+  grafana:
+    image: grafana/grafana:latest
+    container_name: kg-grafana
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin123
+      - GF_USERS_ALLOW_SIGN_UP=false
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./config/grafana:/etc/grafana/provisioning
+    ports:
+      - "3003:3000"
+    networks:
+      - kg-network
+    restart: unless-stopped
+    profiles: ["monitoring"]
+
+  # Data Loader Service
+  kg-loader:
+    build:
+      context: .
+      dockerfile: Dockerfile.loader
+    container_name: kg-data-loader
+    environment:
+      - SPARQL_UPDATE_ENDPOINT=http://fuseki:3030/ds/update
+      - GRAPH_STORE_ENDPOINT=http://fuseki:3030/ds/data
+      - DEFAULT_GRAPH_URI=http://example.org/kg/enterprise
+      - BATCH_SIZE=1000
+      - PARALLEL_UPLOADS=4
+    volumes:
+      - ../output:/data:ro
+      - ./logs:/app/logs
+    networks:
+      - kg-network
+    depends_on:
+      fuseki:
+        condition: service_healthy
+    restart: "no"
+    profiles: ["loader"]
+
+  # Backup Service
+  kg-backup:
+    build:
+      context: .
+      dockerfile: Dockerfile.backup
+    container_name: kg-backup
+    environment:
+      - SPARQL_ENDPOINT=http://fuseki:3030/ds/sparql
+      - BACKUP_SCHEDULE=0 2 * * *  # Daily at 2 AM
+      - S3_BUCKET=${BACKUP_S3_BUCKET:-}
+      - S3_ACCESS_KEY=${BACKUP_S3_ACCESS_KEY:-}
+      - S3_SECRET_KEY=${BACKUP_S3_SECRET_KEY:-}
+    volumes:
+      - ./backups:/app/backups
+      - ../output:/data:ro
+    networks:
+      - kg-network
+    restart: unless-stopped
+    profiles: ["backup"]
+
+networks:
+  kg-network:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.20.0.0/16
+
+volumes:
+  fuseki-data:
+    driver: local
+  virtuoso-data:
+    driver: local
+  graphdb-data:
+    driver: local
+  elasticsearch-data:
+    driver: local
+  redis-data:
+    driver: local
+  prometheus-data:
+    driver: local
+  grafana-data:
+    driver: local

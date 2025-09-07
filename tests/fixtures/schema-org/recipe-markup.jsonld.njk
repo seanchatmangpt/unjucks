@@ -1,0 +1,139 @@
+---
+to: "{{ destDir }}/{{ name | slug }}-recipe.json"
+inject: false
+---
+{
+  "@context": "https://schema.org/",
+  "@type": "Recipe",
+  "@id": "{{ baseUrl | rdfResource }}/recipe/{{ id | slug }}",
+  
+  "name": "{{ name | titleCase }}",
+  "description": "{{ description | truncate(300) | escape }}",
+  "image": [
+    {% for image in images -%}
+    {
+      "@type": "ImageObject",
+      "url": "{{ image.url | rdfResource }}",
+      "width": {{ image.width | default(1200) }},
+      "height": {{ image.height | default(800) }}
+    }{% if not loop.last %},{% endif %}
+    {% endfor %}
+  ],
+  
+  "author": {
+    "@type": "Person",
+    "name": "{{ chef | titleCase }}",
+    "url": "{{ chefUrl | rdfResource }}"
+  },
+  
+  "datePublished": "{{ published | schemaDate }}",
+  "dateModified": "{{ modified | default(now()) | schemaDate }}",
+  
+  "prepTime": "{{ prepTime | formatDuration }}",
+  "cookTime": "{{ cookTime | formatDuration }}",
+  "totalTime": "{{ totalTime | formatDuration }}",
+  
+  "recipeCategory": "{{ category | titleCase }}",
+  "recipeCuisine": "{{ cuisine | titleCase }}",
+  
+  "keywords": "{{ tags | map('titleCase') | join(', ') }}",
+  
+  "recipeYield": "{{ servings }} servings",
+  
+  "recipeIngredient": [
+    {% for ingredient in ingredients -%}
+    "{{ ingredient.amount }} {{ ingredient.unit }} {{ ingredient.name | titleCase }}"{% if not loop.last %},{% endif %}
+    {% endfor %}
+  ],
+  
+  "recipeInstructions": [
+    {% for step in instructions -%}
+    {
+      "@type": "HowToStep",
+      "name": "{{ step.name | titleCase }}",
+      "text": "{{ step.text | escape }}",
+      {% if step.image -%}
+      "image": {
+        "@type": "ImageObject",
+        "url": "{{ step.image | rdfResource }}"
+      },
+      {% endif %}
+      {% if step.equipment -%}
+      "tool": [
+        {% for tool in step.equipment -%}
+        {
+          "@type": "HowToTool",
+          "name": "{{ tool | titleCase }}"
+        }{% if not loop.last %},{% endif %}
+        {% endfor %}
+      ],
+      {% endif %}
+      "url": "{{ baseUrl }}/recipe/{{ id | slug }}#step-{{ loop.index }}"
+    }{% if not loop.last %},{% endif %}
+    {% endfor %}
+  ],
+  
+  {% if nutrition -%}
+  "nutrition": {
+    "@type": "NutritionInformation",
+    "calories": "{{ nutrition.calories }} calories",
+    "carbohydrateContent": "{{ nutrition.carbs }}g",
+    "proteinContent": "{{ nutrition.protein }}g",
+    "fatContent": "{{ nutrition.fat }}g",
+    "fiberContent": "{{ nutrition.fiber }}g",
+    "sugarContent": "{{ nutrition.sugar }}g",
+    "sodiumContent": "{{ nutrition.sodium }}mg",
+    "servingSize": "{{ nutrition.servingSize }}"
+  },
+  {% endif %}
+  
+  {% if aggregateRating -%}
+  "aggregateRating": {
+    "@type": "AggregateRating",
+    "ratingValue": "{{ aggregateRating.value | number(2) }}",
+    "reviewCount": "{{ aggregateRating.count | number }}",
+    "bestRating": "5",
+    "worstRating": "1"
+  },
+  {% endif %}
+  
+  {% if reviews -%}
+  "review": [
+    {% for review in reviews -%}
+    {
+      "@type": "Review",
+      "reviewRating": {
+        "@type": "Rating",
+        "ratingValue": "{{ review.rating }}"
+      },
+      "name": "{{ review.title | escape }}",
+      "reviewBody": "{{ review.body | escape }}",
+      "datePublished": "{{ review.date | schemaDate }}",
+      "author": {
+        "@type": "Person",
+        "name": "{{ review.author | titleCase }}"
+      }
+    }{% if not loop.last %},{% endif %}
+    {% endfor %}
+  ],
+  {% endif %}
+  
+  {% if video -%}
+  "video": {
+    "@type": "VideoObject",
+    "name": "{{ video.title | titleCase }}",
+    "description": "{{ video.description | escape }}",
+    "thumbnailUrl": "{{ video.thumbnail | rdfResource }}",
+    "contentUrl": "{{ video.url | rdfResource }}",
+    "embedUrl": "{{ video.embedUrl | rdfResource }}",
+    "uploadDate": "{{ video.uploadDate | schemaDate }}",
+    "duration": "{{ video.duration | formatDuration }}"
+  },
+  {% endif %}
+  
+  "url": "{{ recipeUrl | rdfResource }}",
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "{{ recipeUrl | rdfResource }}"
+  }
+}

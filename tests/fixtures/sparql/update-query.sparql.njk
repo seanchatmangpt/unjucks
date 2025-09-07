@@ -1,0 +1,65 @@
+---
+to: <%= dest %>/queries/update-<%= queryName %>.sparql
+inject: false
+---
+PREFIX ex: <{{ baseUri | rdfResource }}/>
+PREFIX schema: <http://schema.org/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+
+{% if operation === 'INSERT' %}
+INSERT DATA {
+  {% for triple in insertTriples %}
+  {{ triple.subject | rdfResource }} {{ triple.predicate | rdfProperty }} {{ triple.object | rdfValue }} .
+  {% endfor %}
+}
+
+{% elif operation === 'DELETE' %}
+DELETE DATA {
+  {% for triple in deleteTriples %}
+  {{ triple.subject | rdfResource }} {{ triple.predicate | rdfProperty }} {{ triple.object | rdfValue }} .
+  {% endfor %}
+}
+
+{% elif operation === 'DELETE_INSERT' %}
+DELETE {
+  {% for triple in deleteTriples %}
+  {{ triple.subject | sparqlVar }} {{ triple.predicate | rdfProperty }} {{ triple.object | sparqlVar }} .
+  {% endfor %}
+}
+INSERT {
+  {% for triple in insertTriples %}
+  {{ triple.subject | sparqlVar }} {{ triple.predicate | rdfProperty }} {{ triple.object | sparqlValue }} .
+  {% endfor %}
+}
+WHERE {
+  {% for pattern in wherePatterns %}
+  {{ pattern.subject | sparqlVar }} {{ pattern.predicate | rdfProperty }} {{ pattern.object | sparqlValue }} .
+  {% endfor %}
+  
+  {% if filters %}
+  {% for filter in filters %}
+  FILTER({{ filter | sparqlFilter }})
+  {% endfor %}
+  {% endif %}
+}
+
+{% elif operation === 'CLEAR' %}
+CLEAR {% if graphUri %}GRAPH {{ graphUri | rdfResource }}{% else %}DEFAULT{% endif %}
+
+{% elif operation === 'CREATE' %}
+CREATE {% if silent %}SILENT {% endif %}GRAPH {{ graphUri | rdfResource }}
+
+{% elif operation === 'DROP' %}
+DROP {% if silent %}SILENT {% endif %}GRAPH {{ graphUri | rdfResource }}
+
+{% elif operation === 'COPY' %}
+COPY {% if silent %}SILENT {% endif %}{{ sourceGraph | default('DEFAULT') }} TO {{ targetGraph | rdfResource }}
+
+{% elif operation === 'MOVE' %}
+MOVE {% if silent %}SILENT {% endif %}{{ sourceGraph | default('DEFAULT') }} TO {{ targetGraph | rdfResource }}
+
+{% elif operation === 'ADD' %}
+ADD {% if silent %}SILENT {% endif %}{{ sourceGraph | default('DEFAULT') }} TO {{ targetGraph | rdfResource }}
+
+{% endif %}

@@ -1,0 +1,565 @@
+---
+to: "{{ outputDir }}/scientific-research-context.jsonld"
+inject: false
+unless_exists: true
+variables:
+  - name: outputDir
+    type: string
+    default: "./contexts"
+  - name: institutionName
+    type: string
+    default: "Research Institution"
+  - name: baseUri
+    type: string
+    default: "https://research.example.edu"
+  - name: vocabularyPrefix
+    type: string
+    default: "research"
+  - name: includeCitations
+    type: boolean
+    default: true
+  - name: includeDatasets
+    type: boolean
+    default: true
+  - name: includeFunding
+    type: boolean
+    default: true
+---
+{
+  "@context": {
+    "@version": 1.1,
+    "@base": "{{ baseUri | rdfResource }}/",
+    "@vocab": "https://schema.org/",
+    
+    {{- rdfNamespaces(['schema', 'dct', 'xsd', 'rdf', 'rdfs', 'bibo', 'dcat', 'prov', 'foaf']) | dump | slice(1, -1) | safe }},
+    
+    "{{ vocabularyPrefix }}": "{{ baseUri | rdfResource }}/vocab/",
+    
+    "_comment": "Core research entity types",
+    "ScholarlyArticle": "schema:ScholarlyArticle",
+    "ResearchProject": "schema:ResearchProject", 
+    "Dataset": "schema:Dataset",
+    "SoftwareApplication": "schema:SoftwareApplication",
+    "Person": "schema:Person",
+    "Organization": "schema:Organization",
+    "EducationalOrganization": "schema:EducationalOrganization",
+    "CollegeOrUniversity": "schema:CollegeOrUniversity",
+    "ResearchOrganization": "schema:ResearchOrganization",
+    
+    "_comment": "Research-specific entity types",
+    "Experiment": {
+      "@id": "{{ vocabularyPrefix }}:Experiment",
+      "@type": "@id"
+    },
+    "Study": {
+      "@id": "{{ vocabularyPrefix }}:Study", 
+      "@type": "@id"
+    },
+    "Survey": {
+      "@id": "{{ vocabularyPrefix }}:Survey",
+      "@type": "@id"
+    },
+    "Laboratory": {
+      "@id": "{{ vocabularyPrefix }}:Laboratory",
+      "@type": "@id"
+    },
+    "ResearchGroup": {
+      "@id": "{{ vocabularyPrefix }}:ResearchGroup",
+      "@type": "@id"
+    },
+    "Hypothesis": {
+      "@id": "{{ vocabularyPrefix }}:Hypothesis",
+      "@type": "@id"
+    },
+    
+    "_comment": "Publication and manuscript properties",
+    "title": {
+      "@id": "dct:title",
+      "@type": "xsd:string"
+    },
+    "abstract": {
+      "@id": "schema:abstract",
+      "@type": "xsd:string"
+    },
+    "articleBody": {
+      "@id": "schema:articleBody",
+      "@type": "xsd:string"
+    },
+    "headline": {
+      "@id": "schema:headline",
+      "@type": "xsd:string"
+    },
+    "alternativeHeadline": {
+      "@id": "schema:alternativeHeadline",
+      "@type": "xsd:string"
+    },
+    "description": {
+      "@id": "schema:description",
+      "@type": "xsd:string"
+    },
+    "disambiguatingDescription": {
+      "@id": "schema:disambiguatingDescription",
+      "@type": "xsd:string"
+    },
+    "keywords": {
+      "@id": "schema:keywords",
+      "@type": "xsd:string",
+      "@container": "@set"
+    },
+    "about": {
+      "@id": "schema:about",
+      "@type": "@id",
+      "@container": "@set"
+    },
+    "genre": {
+      "@id": "schema:genre",
+      "@type": "xsd:string",
+      "@container": "@set"
+    },
+    "inLanguage": {
+      "@id": "schema:inLanguage",
+      "@type": "xsd:language"
+    },
+    
+    "_comment": "Authorship and contributors",
+    "author": {
+      "@id": "schema:author",
+      "@type": "@id",
+      "@container": "@list"
+    },
+    "editor": {
+      "@id": "schema:editor",
+      "@type": "@id",
+      "@container": "@set"
+    },
+    "contributor": {
+      "@id": "schema:contributor",
+      "@type": "@id",
+      "@container": "@set"
+    },
+    "creator": {
+      "@id": "dct:creator",
+      "@type": "@id",
+      "@container": "@set"
+    },
+    "accountablePerson": {
+      "@id": "schema:accountablePerson",
+      "@type": "@id"
+    },
+    "copyrightHolder": {
+      "@id": "schema:copyrightHolder",
+      "@type": "@id"
+    },
+    "sourceOrganization": {
+      "@id": "schema:sourceOrganization",
+      "@type": "@id"
+    },
+    "provider": {
+      "@id": "schema:provider",
+      "@type": "@id"
+    },
+    "sponsor": {
+      "@id": "schema:sponsor",
+      "@type": "@id",
+      "@container": "@set"
+    },
+    "funder": {
+      "@id": "schema:funder",
+      "@type": "@id",
+      "@container": "@set"
+    },
+    
+    "_comment": "Publication details and identifiers",
+    "doi": {
+      "@id": "{{ vocabularyPrefix }}:doi",
+      "@type": "xsd:string"
+    },
+    "pmid": {
+      "@id": "{{ vocabularyPrefix }}:pmid",
+      "@type": "xsd:string"
+    },
+    "isbn": {
+      "@id": "schema:isbn",
+      "@type": "xsd:string"
+    },
+    "issn": {
+      "@id": "schema:issn",
+      "@type": "xsd:string"
+    },
+    "identifier": {
+      "@id": "schema:identifier",
+      "@type": "xsd:string",
+      "@container": "@set"
+    },
+    "sameAs": {
+      "@id": "schema:sameAs",
+      "@type": "@id",
+      "@container": "@set"
+    },
+    "url": {
+      "@id": "schema:url",
+      "@type": "@id"
+    },
+    
+    "_comment": "Publication venue and context",
+    "publisher": {
+      "@id": "schema:publisher",
+      "@type": "@id"
+    },
+    "publisherImprint": {
+      "@id": "schema:publisherImprint",
+      "@type": "@id"
+    },
+    "isPartOf": {
+      "@id": "schema:isPartOf",
+      "@type": "@id"
+    },
+    "publicationIssue": {
+      "@id": "schema:publicationIssue",
+      "@type": "xsd:string"
+    },
+    "publicationVolume": {
+      "@id": "schema:publicationVolume",
+      "@type": "xsd:string"
+    },
+    "pageStart": {
+      "@id": "schema:pageStart",
+      "@type": "xsd:string"
+    },
+    "pageEnd": {
+      "@id": "schema:pageEnd",
+      "@type": "xsd:string"
+    },
+    "pagination": {
+      "@id": "schema:pagination",
+      "@type": "xsd:string"
+    },
+    
+    "_comment": "Temporal metadata",
+    "datePublished": {
+      "@id": "schema:datePublished",
+      "@type": "xsd:dateTime"
+    },
+    "dateCreated": {
+      "@id": "schema:dateCreated",
+      "@type": "xsd:dateTime"
+    },
+    "dateModified": {
+      "@id": "schema:dateModified",
+      "@type": "xsd:dateTime"
+    },
+    "dateReceived": {
+      "@id": "{{ vocabularyPrefix }}:dateReceived",
+      "@type": "xsd:dateTime"
+    },
+    "dateAccepted": {
+      "@id": "{{ vocabularyPrefix }}:dateAccepted",
+      "@type": "xsd:dateTime"
+    },
+    "dateSubmitted": {
+      "@id": "{{ vocabularyPrefix }}:dateSubmitted",
+      "@type": "xsd:dateTime"
+    },
+    "embargoEndDate": {
+      "@id": "{{ vocabularyPrefix }}:embargoEndDate",
+      "@type": "xsd:dateTime"
+    },
+    
+    {% if includeCitations -%}
+    "_comment": "Citations and references",
+    "citation": {
+      "@id": "schema:citation",
+      "@type": "@id",
+      "@container": "@set"
+    },
+    "isBasedOn": {
+      "@id": "schema:isBasedOn",
+      "@type": "@id",
+      "@container": "@set"
+    },
+    "cites": {
+      "@id": "{{ vocabularyPrefix }}:cites",
+      "@type": "@id",
+      "@container": "@set"
+    },
+    "citedBy": {
+      "@id": "{{ vocabularyPrefix }}:citedBy",
+      "@type": "@id",
+      "@container": "@set"
+    },
+    "references": {
+      "@id": "dct:references",
+      "@type": "@id",
+      "@container": "@set"
+    },
+    "isReferencedBy": {
+      "@id": "dct:isReferencedBy",
+      "@type": "@id",
+      "@container": "@set"
+    },
+    "hasPart": {
+      "@id": "dct:hasPart",
+      "@type": "@id",
+      "@container": "@set"
+    },
+    "isVersionOf": {
+      "@id": "dct:isVersionOf",
+      "@type": "@id"
+    },
+    "hasVersion": {
+      "@id": "dct:hasVersion",
+      "@type": "@id",
+      "@container": "@set"
+    },
+    "replaces": {
+      "@id": "dct:replaces",
+      "@type": "@id"
+    },
+    "isReplacedBy": {
+      "@id": "dct:isReplacedBy",
+      "@type": "@id"
+    },
+    {% endif %}
+    
+    {% if includeDatasets -%}
+    "_comment": "Research data and datasets",
+    "distribution": {
+      "@id": "dcat:distribution",
+      "@type": "@id",
+      "@container": "@set"
+    },
+    "dataset": {
+      "@id": "schema:dataset",
+      "@type": "@id",
+      "@container": "@set"
+    },
+    "includedInDataCatalog": {
+      "@id": "schema:includedInDataCatalog",
+      "@type": "@id"
+    },
+    "measurementTechnique": {
+      "@id": "schema:measurementTechnique",
+      "@type": "xsd:string",
+      "@container": "@set"
+    },
+    "variableMeasured": {
+      "@id": "schema:variableMeasured",
+      "@type": "xsd:string",
+      "@container": "@set"
+    },
+    "spatialCoverage": {
+      "@id": "schema:spatialCoverage",
+      "@type": "@id"
+    },
+    "temporalCoverage": {
+      "@id": "schema:temporalCoverage",
+      "@type": "xsd:string"
+    },
+    "datasetTimeInterval": {
+      "@id": "{{ vocabularyPrefix }}:datasetTimeInterval",
+      "@type": "@id"
+    },
+    "sampleSize": {
+      "@id": "{{ vocabularyPrefix }}:sampleSize",
+      "@type": "xsd:integer"
+    },
+    "methodology": {
+      "@id": "{{ vocabularyPrefix }}:methodology",
+      "@type": "xsd:string"
+    },
+    "instrument": {
+      "@id": "{{ vocabularyPrefix }}:instrument",
+      "@type": "xsd:string",
+      "@container": "@set"
+    },
+    "protocol": {
+      "@id": "{{ vocabularyPrefix }}:protocol",
+      "@type": "xsd:string"
+    },
+    {% endif %}
+    
+    {% if includeFunding -%}
+    "_comment": "Funding and grants",
+    "MonetaryGrant": "schema:MonetaryGrant",
+    "Grant": "schema:Grant",
+    "FundingScheme": "schema:FundingScheme",
+    "FundingAgency": "schema:FundingAgency",
+    
+    "funding": {
+      "@id": "schema:funding",
+      "@type": "@id",
+      "@container": "@set"
+    },
+    "grantId": {
+      "@id": "{{ vocabularyPrefix }}:grantId",
+      "@type": "xsd:string"
+    },
+    "grantNumber": {
+      "@id": "{{ vocabularyPrefix }}:grantNumber",
+      "@type": "xsd:string"
+    },
+    "fundingProgram": {
+      "@id": "{{ vocabularyPrefix }}:fundingProgram",
+      "@type": "xsd:string"
+    },
+    "awardNumber": {
+      "@id": "{{ vocabularyPrefix }}:awardNumber",
+      "@type": "xsd:string"
+    },
+    "principalInvestigator": {
+      "@id": "{{ vocabularyPrefix }}:principalInvestigator",
+      "@type": "@id"
+    },
+    "coPrincipalInvestigator": {
+      "@id": "{{ vocabularyPrefix }}:coPrincipalInvestigator",
+      "@type": "@id",
+      "@container": "@set"
+    },
+    {% endif %}
+    
+    "_comment": "Research methodology and statistics",
+    "hypothesis": {
+      "@id": "{{ vocabularyPrefix }}:hypothesis",
+      "@type": "xsd:string",
+      "@container": "@set"
+    },
+    "researchQuestion": {
+      "@id": "{{ vocabularyPrefix }}:researchQuestion",
+      "@type": "xsd:string",
+      "@container": "@set"
+    },
+    "studyDesign": {
+      "@id": "{{ vocabularyPrefix }}:studyDesign",
+      "@type": "xsd:string"
+    },
+    "studyType": {
+      "@id": "{{ vocabularyPrefix }}:studyType",
+      "@type": "xsd:string"
+    },
+    "statisticalMethod": {
+      "@id": "{{ vocabularyPrefix }}:statisticalMethod",
+      "@type": "xsd:string",
+      "@container": "@set"
+    },
+    "pValue": {
+      "@id": "{{ vocabularyPrefix }}:pValue",
+      "@type": "xsd:decimal"
+    },
+    "confidenceInterval": {
+      "@id": "{{ vocabularyPrefix }}:confidenceInterval",
+      "@type": "xsd:decimal"
+    },
+    "significanceLevel": {
+      "@id": "{{ vocabularyPrefix }}:significanceLevel",
+      "@type": "xsd:decimal"
+    },
+    "effectSize": {
+      "@id": "{{ vocabularyPrefix }}:effectSize",
+      "@type": "xsd:decimal"
+    },
+    "powerAnalysis": {
+      "@id": "{{ vocabularyPrefix }}:powerAnalysis",
+      "@type": "xsd:decimal"
+    },
+    
+    "_comment": "Research ethics and compliance",
+    "ethicsApproval": {
+      "@id": "{{ vocabularyPrefix }}:ethicsApproval",
+      "@type": "xsd:string"
+    },
+    "irbApprovalNumber": {
+      "@id": "{{ vocabularyPrefix }}:irbApprovalNumber",
+      "@type": "xsd:string"
+    },
+    "informedConsent": {
+      "@id": "{{ vocabularyPrefix }}:informedConsent",
+      "@type": "xsd:boolean"
+    },
+    "dataPrivacy": {
+      "@id": "{{ vocabularyPrefix }}:dataPrivacy",
+      "@type": "xsd:string"
+    },
+    "conflictOfInterest": {
+      "@id": "{{ vocabularyPrefix }}:conflictOfInterest",
+      "@type": "xsd:string"
+    },
+    
+    "_comment": "Academic and institutional context",
+    "department": {
+      "@id": "{{ vocabularyPrefix }}:department",
+      "@type": "xsd:string"
+    },
+    "institution": {
+      "@id": "{{ vocabularyPrefix }}:institution",
+      "@type": "@id"
+    },
+    "affiliation": {
+      "@id": "schema:affiliation",
+      "@type": "@id",
+      "@container": "@set"
+    },
+    "academicDegree": {
+      "@id": "{{ vocabularyPrefix }}:academicDegree",
+      "@type": "xsd:string",
+      "@container": "@set"
+    },
+    "researchArea": {
+      "@id": "{{ vocabularyPrefix }}:researchArea",
+      "@type": "xsd:string",
+      "@container": "@set"
+    },
+    "fieldOfStudy": {
+      "@id": "{{ vocabularyPrefix }}:fieldOfStudy",
+      "@type": "xsd:string",
+      "@container": "@set"
+    },
+    
+    "_comment": "Peer review and publication status",
+    "peerReviewed": {
+      "@id": "{{ vocabularyPrefix }}:peerReviewed",
+      "@type": "xsd:boolean"
+    },
+    "reviewType": {
+      "@id": "{{ vocabularyPrefix }}:reviewType",
+      "@type": "xsd:string"
+    },
+    "publicationStatus": {
+      "@id": "{{ vocabularyPrefix }}:publicationStatus",
+      "@type": "xsd:string"
+    },
+    "openAccess": {
+      "@id": "{{ vocabularyPrefix }}:openAccess",
+      "@type": "xsd:boolean"
+    },
+    "license": {
+      "@id": "dct:license",
+      "@type": "@id"
+    },
+    "accessRights": {
+      "@id": "dct:accessRights",
+      "@type": "xsd:string"
+    },
+    
+    "_comment": "Impact and metrics", 
+    "citationCount": {
+      "@id": "{{ vocabularyPrefix }}:citationCount",
+      "@type": "xsd:integer"
+    },
+    "downloadCount": {
+      "@id": "{{ vocabularyPrefix }}:downloadCount",
+      "@type": "xsd:integer"
+    },
+    "viewCount": {
+      "@id": "{{ vocabularyPrefix }}:viewCount",
+      "@type": "xsd:integer"
+    },
+    "impactFactor": {
+      "@id": "{{ vocabularyPrefix }}:impactFactor",
+      "@type": "xsd:decimal"
+    },
+    "altmetrics": {
+      "@id": "{{ vocabularyPrefix }}:altmetrics",
+      "@type": "xsd:string"
+    }
+  }
+}

@@ -93,3 +93,115 @@ test-*/
 # Integration test workspaces
 **/integration-test-*/
 **/e2e-test-*/
+
+# ================================================
+# CRITICAL BLOAT PREVENTION - Repository Size Management
+# ================================================
+
+# Backup files (865+ files identified - major bloat source)
+*.bak
+*.bak[0-9]
+*.bak[0-9][0-9]
+*.backup
+*.backup[0-9]
+*~
+.#*
+#*#
+*.orig
+*.old
+*.save
+
+# ================================================
+# TEST DATA AND ENVIRONMENTS (337MB+ identified)
+# ================================================
+
+# Validation test workspace (306MB identified)
+validation-test/
+validation-*/
+test-workspace-*/
+workspace-test-*/
+**/validation-test/
+
+# MCP test environments with timestamps
+**/mcp-env-*/
+**/mcp-comprehensive-*/
+tests/.tmp/mcp-env-[0-9]*/
+tests/.tmp/mcp-comprehensive-[0-9]*/
+
+# Test temporary directories
+tests/.tmp/
+tests/tmp/
+tests/temp/
+**/.tmp/
+**/test-tmp/
+**/test-temp/
+
+# ================================================
+# BUILD ARTIFACTS (Should never be committed)
+# ================================================
+
+# Nuxt.js build artifacts
+.nuxt/
+.output/
+.nitro/
+.cache/
+**/.nuxt/
+**/.output/
+
+# ================================================
+# GENERATED DOCUMENTATION (11MB+ identified)
+# ================================================
+
+# Large generated reports and marketplace docs
+docs/marketplace/
+docs/filters/
+docs/**/generated-*/
+docs/**/*-REPORT.md
+docs/**/*-analysis-report.md
+docs/**/*-ANALYSIS-REPORT.md
+docs/**/*-VALIDATION-REPORT.md
+docs/**/*-comprehensive-*.md
+docs/**/*-performance-*.md
+docs/**/*AUDIT*.md
+docs/**/*BLOAT*.md
+
+# ================================================
+# GENERATED CODE (Should be regenerated, not committed)
+# ================================================
+
+generated/
+gen/
+codegen/
+**/generated-*/
+test_output/
+final-test/
+
+# ================================================
+# TEST ARTIFACTS AND RESULTS
+# ================================================
+
+# Test result files
+*-results.json
+*-output.log
+integration-results.json
+bdd-test-results.json
+*.test.log
+*.spec.log
+junit.xml
+test-output.xml
+
+# Test reports and coverage
+reports/
+test-results/
+test-reports/
+coverage/
+**/.nyc_output/
+
+# ================================================
+# EXAMPLE AND DEMO FILES
+# ================================================
+
+examples/generated*/
+examples/test-*/
+demo-*/
+*-demo/

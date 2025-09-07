@@ -1,0 +1,389 @@
+---
+to: "{{ outputDir }}/{{ contextName | kebabCase }}-temporal-context.jsonld"
+inject: false
+unless_exists: true
+variables:
+  - name: contextName
+    type: string
+    description: "Name of the temporal JSON-LD context"
+  - name: outputDir
+    type: string
+    default: "./contexts"
+    description: "Output directory for context files"
+  - name: includeTimeOntology
+    type: boolean
+    default: true
+    description: "Include W3C Time Ontology concepts"
+  - name: includeSchemaTime
+    type: boolean
+    default: true
+    description: "Include Schema.org temporal properties"
+  - name: includeProvenanceTime
+    type: boolean
+    default: false
+    description: "Include PROV-O provenance temporal properties"
+  - name: precisionLevel
+    type: string
+    default: "millisecond"
+    description: "Temporal precision level (second, millisecond, nanosecond)"
+---
+{
+  "@context": {
+    "@version": 1.1,
+    "@vocab": "http://www.w3.org/2006/time#",
+    
+    {{- rdfNamespaces(['time', 'xsd', 'schema', 'dct', 'prov']) | dump | slice(1, -1) | safe }},
+    
+    {% if includeTimeOntology -%}
+    "_comment": "W3C Time Ontology classes",
+    "TemporalEntity": "time:TemporalEntity",
+    "Instant": "time:Instant", 
+    "Interval": "time:Interval",
+    "Duration": "time:Duration",
+    "ProperInterval": "time:ProperInterval",
+    "TemporalUnit": "time:TemporalUnit",
+    "TimePosition": "time:TimePosition",
+    "GeneralDateTimeDescription": "time:GeneralDateTimeDescription",
+    "DateTimeDescription": "time:DateTimeDescription",
+    "DateTimeInterval": "time:DateTimeInterval",
+    "TRS": "time:TRS",
+    "TemporalCoordinateSystem": "time:TemporalCoordinateSystem",
+    
+    "_comment": "Temporal relationships",
+    "before": {
+      "@id": "time:before",
+      "@type": "@id"
+    },
+    "after": {
+      "@id": "time:after", 
+      "@type": "@id"
+    },
+    "meets": {
+      "@id": "time:meets",
+      "@type": "@id"
+    },
+    "metBy": {
+      "@id": "time:metBy",
+      "@type": "@id"
+    },
+    "overlaps": {
+      "@id": "time:overlaps",
+      "@type": "@id"
+    },
+    "overlappedBy": {
+      "@id": "time:overlappedBy",
+      "@type": "@id"
+    },
+    "starts": {
+      "@id": "time:starts",
+      "@type": "@id"
+    },
+    "startedBy": {
+      "@id": "time:startedBy", 
+      "@type": "@id"
+    },
+    "during": {
+      "@id": "time:during",
+      "@type": "@id"
+    },
+    "contains": {
+      "@id": "time:contains",
+      "@type": "@id"
+    },
+    "finishes": {
+      "@id": "time:finishes",
+      "@type": "@id"
+    },
+    "finishedBy": {
+      "@id": "time:finishedBy",
+      "@type": "@id"
+    },
+    "equals": {
+      "@id": "time:equals",
+      "@type": "@id"
+    },
+    
+    "_comment": "Temporal boundaries and extents",
+    "hasBeginning": {
+      "@id": "time:hasBeginning",
+      "@type": "@id"
+    },
+    "hasEnd": {
+      "@id": "time:hasEnd",
+      "@type": "@id"
+    },
+    "hasDuration": {
+      "@id": "time:hasDuration",
+      "@type": "@id"
+    },
+    "hasDateTimeDescription": {
+      "@id": "time:hasDateTimeDescription",
+      "@type": "@id"
+    },
+    "hasTemporalDuration": {
+      "@id": "time:hasTemporalDuration",
+      "@type": "@id"
+    },
+    
+    "_comment": "Date and time values with precision",
+    "inXSDDateTime": {
+      "@id": "time:inXSDDateTime",
+      "@type": "xsd:dateTime"
+    },
+    "inXSDDate": {
+      "@id": "time:inXSDDate", 
+      "@type": "xsd:date"
+    },
+    "inXSDgYear": {
+      "@id": "time:inXSDgYear",
+      "@type": "xsd:gYear"
+    },
+    "inXSDgYearMonth": {
+      "@id": "time:inXSDgYearMonth",
+      "@type": "xsd:gYearMonth"
+    },
+    "inXSDDateTimeStamp": {
+      "@id": "time:inXSDDateTimeStamp",
+      "@type": "xsd:dateTimeStamp"
+    },
+    {% if precisionLevel == "millisecond" or precisionLevel == "nanosecond" -%}
+    "inXSDDateTimePrecise": {
+      "@id": "time:inXSDDateTime",
+      "@type": "xsd:dateTime"
+    },
+    {%- endif %}
+    
+    "_comment": "Duration and time measurements",
+    "durationInXSDDuration": {
+      "@id": "time:durationInXSDDuration",
+      "@type": "xsd:duration"
+    },
+    "numericDuration": {
+      "@id": "time:numericDuration",
+      "@type": "xsd:decimal"
+    },
+    "years": {
+      "@id": "time:years",
+      "@type": "xsd:decimal"
+    },
+    "months": {
+      "@id": "time:months",
+      "@type": "xsd:decimal"
+    },
+    "weeks": {
+      "@id": "time:weeks",
+      "@type": "xsd:decimal"
+    },
+    "days": {
+      "@id": "time:days",
+      "@type": "xsd:decimal"
+    },
+    "hours": {
+      "@id": "time:hours",
+      "@type": "xsd:decimal"
+    },
+    "minutes": {
+      "@id": "time:minutes",
+      "@type": "xsd:decimal"
+    },
+    "seconds": {
+      "@id": "time:seconds",
+      "@type": "xsd:decimal"
+    }
+    {% endif %}
+    
+    {% if includeSchemaTime -%}
+    {% if includeTimeOntology %},{% endif %}
+    
+    "_comment": "Schema.org temporal properties",
+    "startDate": {
+      "@id": "schema:startDate",
+      "@type": "xsd:dateTime"
+    },
+    "endDate": {
+      "@id": "schema:endDate",
+      "@type": "xsd:dateTime"
+    },
+    "startTime": {
+      "@id": "schema:startTime",
+      "@type": "xsd:time"
+    },
+    "endTime": {
+      "@id": "schema:endTime", 
+      "@type": "xsd:time"
+    },
+    "duration": {
+      "@id": "schema:duration",
+      "@type": "xsd:duration"
+    },
+    "dateCreated": {
+      "@id": "schema:dateCreated",
+      "@type": "xsd:dateTime"
+    },
+    "dateModified": {
+      "@id": "schema:dateModified",
+      "@type": "xsd:dateTime"
+    },
+    "datePublished": {
+      "@id": "schema:datePublished",
+      "@type": "xsd:dateTime"
+    },
+    "dateDeleted": {
+      "@id": "schema:dateDeleted",
+      "@type": "xsd:dateTime"
+    },
+    "expires": {
+      "@id": "schema:expires",
+      "@type": "xsd:dateTime"
+    },
+    "scheduledTime": {
+      "@id": "schema:scheduledTime",
+      "@type": "xsd:dateTime"
+    },
+    "validFrom": {
+      "@id": "schema:validFrom",
+      "@type": "xsd:dateTime"
+    },
+    "validThrough": {
+      "@id": "schema:validThrough",
+      "@type": "xsd:dateTime"
+    },
+    "availabilityStarts": {
+      "@id": "schema:availabilityStarts",
+      "@type": "xsd:dateTime"
+    },
+    "availabilityEnds": {
+      "@id": "schema:availabilityEnds",
+      "@type": "xsd:dateTime"
+    },
+    
+    "_comment": "Recurring and repeating events",
+    "repeatFrequency": {
+      "@id": "schema:repeatFrequency",
+      "@type": "xsd:duration"
+    },
+    "repeatCount": {
+      "@id": "schema:repeatCount", 
+      "@type": "xsd:integer"
+    },
+    "byDay": {
+      "@id": "schema:byDay",
+      "@type": "xsd:string",
+      "@container": "@set"
+    },
+    "byMonth": {
+      "@id": "schema:byMonth",
+      "@type": "xsd:integer",
+      "@container": "@set" 
+    },
+    "byMonthDay": {
+      "@id": "schema:byMonthDay",
+      "@type": "xsd:integer",
+      "@container": "@set"
+    },
+    "exceptDate": {
+      "@id": "schema:exceptDate",
+      "@type": "xsd:date",
+      "@container": "@set"
+    }
+    {% endif %}
+    
+    {% if includeProvenanceTime -%}
+    {% if includeTimeOntology or includeSchemaTime %},{% endif %}
+    
+    "_comment": "PROV-O provenance temporal properties",
+    "generatedAtTime": {
+      "@id": "prov:generatedAtTime",
+      "@type": "xsd:dateTime"
+    },
+    "startedAtTime": {
+      "@id": "prov:startedAtTime",
+      "@type": "xsd:dateTime"
+    },
+    "endedAtTime": {
+      "@id": "prov:endedAtTime",
+      "@type": "xsd:dateTime"
+    },
+    "atTime": {
+      "@id": "prov:atTime",
+      "@type": "xsd:dateTime"
+    },
+    "invalidatedAtTime": {
+      "@id": "prov:invalidatedAtTime",
+      "@type": "xsd:dateTime"
+    }
+    {% endif %}
+    
+    ,
+    
+    "_comment": "Time zone and calendar information",
+    "timeZone": {
+      "@id": "schema:timeZone",
+      "@type": "xsd:string"
+    },
+    "inTimeZone": {
+      "@id": "time:inTimeZone",
+      "@type": "xsd:string"
+    },
+    "hasTRS": {
+      "@id": "time:hasTRS",
+      "@type": "@id"
+    },
+    
+    "_comment": "Temporal aggregations and windows", 
+    "temporalCoverage": {
+      "@id": "schema:temporalCoverage",
+      "@type": "xsd:string"
+    },
+    "temporal": {
+      "@id": "dct:temporal",
+      "@type": "@id"
+    },
+    "periodName": {
+      "@id": "schema:periodName",
+      "@type": "xsd:string"
+    },
+    
+    "_comment": "Measurement and precision metadata",
+    "precision": {
+      "@id": "time:precision",
+      "@type": "xsd:string"
+    },
+    "uncertainty": {
+      "@id": "time:uncertainty",
+      "@type": "xsd:duration"
+    },
+    "resolution": {
+      "@id": "time:resolution", 
+      "@type": "xsd:duration"
+    },
+    
+    "_comment": "Time series and sequential data",
+    "sequence": {
+      "@id": "time:sequence",
+      "@type": "@id",
+      "@container": "@list"
+    },
+    "hasXSDDuration": {
+      "@id": "time:hasXSDDuration",
+      "@type": "xsd:duration"
+    },
+    "intervalAfter": {
+      "@id": "time:intervalAfter",
+      "@type": "@id"
+    },
+    "intervalBefore": {
+      "@id": "time:intervalBefore",
+      "@type": "@id"
+    },
+    "intervalContains": {
+      "@id": "time:intervalContains",
+      "@type": "@id",
+      "@container": "@set"
+    },
+    "intervalDuring": {
+      "@id": "time:intervalDuring",
+      "@type": "@id"
+    }
+  }
+}

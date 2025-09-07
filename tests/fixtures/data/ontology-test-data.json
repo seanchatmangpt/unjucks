@@ -1,0 +1,235 @@
+{
+  "basicOntology": {
+    "name": "PersonOntology",
+    "nsPrefix": "person",
+    "namespace": "http://example.org/person",
+    "title": "Person Ontology",
+    "description": "Basic ontology defining person-related concepts",
+    "version": "1.0.0",
+    "classes": [
+      {
+        "name": "Person",
+        "description": "A human being",
+        "parentClass": "foaf:Agent"
+      },
+      {
+        "name": "Organization",
+        "description": "A structured group of people",
+        "disjointWith": ["Person"]
+      },
+      {
+        "name": "Employee",
+        "description": "A person employed by an organization",
+        "parentClass": "Person"
+      }
+    ],
+    "properties": [
+      {
+        "name": "firstName",
+        "type": "datatype",
+        "description": "Given name of a person",
+        "domain": "Person",
+        "range": "string",
+        "characteristics": ["Functional"]
+      },
+      {
+        "name": "worksFor",
+        "type": "object",
+        "description": "Employment relationship",
+        "domain": "Employee",
+        "range": "Organization",
+        "inverseOf": "employs"
+      }
+    ]
+  },
+  
+  "ecommerceDomain": {
+    "domain": "ecommerce",
+    "nsPrefix": "ecom",
+    "namespace": "http://example.org/ecommerce",
+    "description": "E-commerce domain vocabulary with complex restrictions",
+    "version": "1.2.0",
+    "createdDate": "2023-01-01T00:00:00.000Z",
+    "modifiedDate": "2023-12-01T00:00:00.000Z",
+    "entities": [
+      {
+        "name": "Product",
+        "description": "An item available for purchase",
+        "restrictions": [
+          {
+            "property": "hasPrice",
+            "type": "someValuesFrom",
+            "value": "Price"
+          },
+          {
+            "property": "hasCategory",
+            "type": "minCardinality",
+            "value": "1"
+          }
+        ]
+      },
+      {
+        "name": "Customer",
+        "description": "A person who purchases products",
+        "superClass": "Person",
+        "restrictions": [
+          {
+            "property": "hasAddress",
+            "type": "allValuesFrom",
+            "value": "Address"
+          }
+        ]
+      }
+    ],
+    "relations": [
+      {
+        "name": "hasPrice",
+        "type": "datatype",
+        "description": "Monetary value of a product",
+        "domain": "Product",
+        "range": "decimal",
+        "characteristics": ["Functional"]
+      }
+    ],
+    "enumerations": [
+      {
+        "name": "OrderStatus",
+        "values": ["Pending", "Processing", "Shipped", "Delivered"]
+      }
+    ]
+  },
+  
+  "taskManagerApp": {
+    "appName": "TaskManager",
+    "nsPrefix": "task",
+    "namespace": "http://example.org/taskmanager",
+    "description": "Task management application ontology",
+    "version": "1.1.0",
+    "createdDate": "2023-06-01T00:00:00.000Z",
+    "modifiedDate": "2023-12-01T00:00:00.000Z",
+    "creator": "Development Team",
+    "generationTool": "Unjucks Ontology Generator",
+    "generationTime": "2023-12-25T10:00:00.000Z",
+    "baseOntology": "http://example.org/foundational",
+    "modules": [
+      {
+        "name": "Core",
+        "entities": [
+          {
+            "name": "Task",
+            "description": "A unit of work to be completed",
+            "businessRules": [
+              {
+                "property": "assignedTo",
+                "type": "required",
+                "valueClass": "User",
+                "description": "Every task must be assigned to a user"
+              }
+            ],
+            "lifecycle": "task"
+          }
+        ]
+      }
+    ],
+    "propertyGroups": [
+      {
+        "name": "Core",
+        "properties": [
+          {
+            "name": "assignedTo",
+            "type": "object",
+            "description": "User responsible for completing the task",
+            "domain": "Task",
+            "range": "User",
+            "characteristics": ["Functional"]
+          }
+        ]
+      }
+    ],
+    "businessProcesses": [
+      {
+        "name": "TaskCreation",
+        "description": "Process of creating a new task",
+        "steps": [
+          {
+            "name": "ValidateInput",
+            "description": "Validate task creation parameters",
+            "preconditions": ["UserAuthenticated"],
+            "postconditions": ["InputValid"]
+          }
+        ]
+      }
+    ],
+    "individuals": [
+      {
+        "name": "DefaultProject",
+        "type": "Project",
+        "description": "Default project for unassigned tasks",
+        "properties": {
+          "title": "Default Tasks"
+        }
+      }
+    ]
+  },
+  
+  "personAlignment": {
+    "mappingName": "PersonAlignment",
+    "nsPrefix": "align",
+    "namespace": "http://example.org/alignment",
+    "description": "Alignment between person vocabularies",
+    "version": "1.0.0",
+    "externalPrefixes": [
+      { "name": "foaf", "uri": "http://xmlns.com/foaf/0.1/" },
+      { "name": "schema", "uri": "https://schema.org/" }
+    ],
+    "sourceOntologies": ["http://example.org/person"],
+    "targetOntologies": ["http://xmlns.com/foaf/0.1/", "https://schema.org/"],
+    "classMappings": [
+      {
+        "sourceClass": "Person",
+        "sourcePrefix": "person",
+        "targetClass": "Person",
+        "targetPrefix": "foaf",
+        "relation": "equivalent",
+        "confidence": 0.95,
+        "notes": "Direct conceptual alignment"
+      }
+    ],
+    "propertyMappings": [
+      {
+        "sourceProperty": "firstName",
+        "sourcePrefix": "person",
+        "targetProperty": "givenName",
+        "targetPrefix": "foaf",
+        "relation": "equivalent",
+        "transformation": {
+          "type": "format",
+          "pattern": "^[A-Z].*",
+          "function": "capitalize"
+        }
+      }
+    ],
+    "complexMappings": [
+      {
+        "name": "EmployeeConcept",
+        "description": "Employee as intersection of Person and Worker",
+        "type": "intersection",
+        "sourcePrefix": "person",
+        "targetPrefix": "schema",
+        "classes": ["Person", "Worker"],
+        "targetEquivalent": "Employee"
+      }
+    ],
+    "bridgeAxioms": [
+      {
+        "name": "PersonIdentity",
+        "subject": "person:Person",
+        "predicate": "owl:equivalentClass",
+        "object": "foaf:Person",
+        "type": "equivalence",
+        "confidence": 1.0,
+        "justification": "Both represent the concept of human beings"
+      }
+    ]
+  }
+}

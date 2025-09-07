@@ -1,0 +1,124 @@
+---
+to: "{{ destDir }}/{{ name | slug }}-profile.json"
+inject: false
+---
+{
+  "@context": "https://schema.org/",
+  "@type": "{{ entityType | default('Person') | schemaOrg }}",
+  "@id": "{{ baseUrl | rdfResource }}/person/{{ id | slug }}",
+  
+  "name": "{{ fullName | titleCase }}",
+  "givenName": "{{ firstName | titleCase }}",
+  "familyName": "{{ lastName | titleCase }}",
+  "identifier": "{{ personId | upper }}",
+  "url": "{{ website | rdfResource }}",
+  "sameAs": [
+    {% for social in socialProfiles -%}
+    "{{ social.url | rdfResource }}"{% if not loop.last %},{% endif %}
+    {% endfor %}
+  ],
+  
+  "image": {
+    "@type": "ImageObject",
+    "url": "{{ photo | rdfResource }}",
+    "contentUrl": "{{ photo | rdfResource }}",
+    "width": {{ photoWidth | default(400) }},
+    "height": {{ photoHeight | default(400) }}
+  },
+  
+  "jobTitle": "{{ jobTitle | titleCase }}",
+  "worksFor": {
+    "@type": "{{ organizationType | default('Organization') | schemaOrg }}",
+    "name": "{{ company | titleCase }}",
+    "url": "{{ companyWebsite | rdfResource }}"
+  },
+  
+  "address": {{ address | schemaAddress | dump }},
+  
+  "contactPoint": [
+    {% if email -%}
+    {
+      "@type": "ContactPoint",
+      "contactType": "{{ contactType | default('customer service') }}",
+      "email": "{{ email }}",
+      "availableLanguage": "{{ language | default('English') }}"
+    }{% if phone %},{% endif %}
+    {% endif -%}
+    {% if phone -%}
+    {
+      "@type": "ContactPoint", 
+      "contactType": "phone",
+      "telephone": "{{ phone }}",
+      "availableLanguage": "{{ language | default('English') }}"
+    }
+    {% endif %}
+  ],
+  
+  {% if skills -%}
+  "knowsAbout": [
+    {% for skill in skills -%}
+    "{{ skill | titleCase }}"{% if not loop.last %},{% endif %}
+    {% endfor %}
+  ],
+  {% endif %}
+  
+  {% if awards -%}
+  "award": [
+    {% for award in awards -%}
+    "{{ award.name | titleCase }}"{% if not loop.last %},{% endif %}
+    {% endfor %}
+  ],
+  {% endif %}
+  
+  {% if education -%}
+  "alumniOf": [
+    {% for school in education -%}
+    {
+      "@type": "{{ school.type | default('EducationalOrganization') | schemaOrg }}",
+      "name": "{{ school.name | titleCase }}",
+      "url": "{{ school.url | rdfResource }}"
+    }{% if not loop.last %},{% endif %}
+    {% endfor %}
+  ],
+  {% endif %}
+  
+  "birthDate": "{{ birthDate | schemaDate('date') }}",
+  "birthPlace": {
+    "@type": "Place",
+    "name": "{{ birthPlace | titleCase }}"
+  },
+  
+  "nationality": {
+    "@type": "Country",
+    "name": "{{ nationality | titleCase }}"
+  },
+  
+  {% if languages -%}
+  "knowsLanguage": [
+    {% for lang in languages -%}
+    {
+      "@type": "Language",
+      "name": "{{ lang.name | titleCase }}",
+      "alternateName": "{{ lang.code | upper }}"
+    }{% if not loop.last %},{% endif %}
+    {% endfor %}
+  ],
+  {% endif %}
+  
+  "description": "{{ bio | truncate(300) | escape }}",
+  
+  "dateCreated": "{{ now() | schemaDate }}",
+  "dateModified": "{{ now() | schemaDate }}",
+  
+  "potentialAction": {
+    "@type": "ContactAction",
+    "target": {
+      "@type": "EntryPoint",
+      "urlTemplate": "{{ baseUrl }}/contact?person={{ id | slug }}",
+      "actionPlatform": [
+        "http://schema.org/DesktopWebPlatform",
+        "http://schema.org/MobileWebPlatform"
+      ]
+    }
+  }
+}

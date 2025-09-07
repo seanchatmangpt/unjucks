@@ -1,0 +1,599 @@
+{
+  "dashboards": {
+    "executive": {
+      "title": "Unjucks RDF Filters - Executive Dashboard",
+      "description": "High-level KPIs and business metrics",
+      "refreshRate": "30s",
+      "panels": [
+        {
+          "id": "system_health",
+          "title": "System Health Score",
+          "type": "stat",
+          "targets": [
+            {
+              "query": "avg(unjucks_health_score)",
+              "legend": "Health Score"
+            }
+          ],
+          "thresholds": {
+            "green": 95,
+            "yellow": 80,
+            "red": 70
+          },
+          "unit": "percent",
+          "decimals": 1
+        },
+        {
+          "id": "availability",
+          "title": "Service Availability",
+          "type": "stat",
+          "targets": [
+            {
+              "query": "avg_over_time(up[24h]) * 100",
+              "legend": "24h Availability"
+            }
+          ],
+          "thresholds": {
+            "green": 99.9,
+            "yellow": 99.5,
+            "red": 99.0
+          },
+          "unit": "percent",
+          "decimals": 2
+        },
+        {
+          "id": "response_time_sla",
+          "title": "Response Time SLA Compliance",
+          "type": "timeseries",
+          "targets": [
+            {
+              "query": "histogram_quantile(0.95, rate(unjucks_rdf_operation_duration_seconds_bucket[5m])) * 1000",
+              "legend": "95th Percentile Response Time"
+            },
+            {
+              "query": "100",
+              "legend": "SLA Target (100ms)"
+            }
+          ],
+          "unit": "ms",
+          "yAxis": {
+            "max": 200,
+            "min": 0
+          }
+        },
+        {
+          "id": "error_budget",
+          "title": "Error Budget Burn Rate",
+          "type": "gauge",
+          "targets": [
+            {
+              "query": "rate(unjucks_errors_total[1h]) / rate(unjucks_requests_total[1h]) * 100",
+              "legend": "Error Rate"
+            }
+          ],
+          "thresholds": {
+            "green": 0.1,
+            "yellow": 0.5,
+            "red": 1.0
+          },
+          "unit": "percent"
+        },
+        {
+          "id": "throughput",
+          "title": "Operations Throughput",
+          "type": "timeseries",
+          "targets": [
+            {
+              "query": "rate(unjucks_rdf_operations_total[5m])",
+              "legend": "Operations/sec"
+            }
+          ],
+          "unit": "ops/sec"
+        },
+        {
+          "id": "user_satisfaction",
+          "title": "User Satisfaction (Apdex)",
+          "type": "stat",
+          "targets": [
+            {
+              "query": "unjucks_apdex_score",
+              "legend": "Apdex Score"
+            }
+          ],
+          "thresholds": {
+            "green": 0.94,
+            "yellow": 0.85,
+            "red": 0.70
+          },
+          "unit": "short",
+          "decimals": 2
+        }
+      ]
+    },
+    "operations": {
+      "title": "RDF Operations Dashboard",
+      "description": "Detailed RDF filter performance metrics",
+      "refreshRate": "15s",
+      "panels": [
+        {
+          "id": "rdf_operations_rate",
+          "title": "RDF Operations Rate",
+          "type": "timeseries",
+          "targets": [
+            {
+              "query": "rate(unjucks_rdf_subject_operations_total[5m])",
+              "legend": "rdfSubject"
+            },
+            {
+              "query": "rate(unjucks_rdf_object_operations_total[5m])",
+              "legend": "rdfObject"
+            },
+            {
+              "query": "rate(unjucks_rdf_query_operations_total[5m])",
+              "legend": "rdfQuery"
+            },
+            {
+              "query": "rate(unjucks_rdf_label_operations_total[5m])",
+              "legend": "rdfLabel"
+            }
+          ],
+          "unit": "ops/sec"
+        },
+        {
+          "id": "rdf_operation_latency",
+          "title": "RDF Operation Latency by Percentile",
+          "type": "timeseries",
+          "targets": [
+            {
+              "query": "histogram_quantile(0.50, rate(unjucks_rdf_operation_duration_seconds_bucket[5m])) * 1000",
+              "legend": "50th percentile"
+            },
+            {
+              "query": "histogram_quantile(0.95, rate(unjucks_rdf_operation_duration_seconds_bucket[5m])) * 1000",
+              "legend": "95th percentile"
+            },
+            {
+              "query": "histogram_quantile(0.99, rate(unjucks_rdf_operation_duration_seconds_bucket[5m])) * 1000",
+              "legend": "99th percentile"
+            }
+          ],
+          "unit": "ms"
+        },
+        {
+          "id": "rdf_data_volume",
+          "title": "RDF Data Processing Volume",
+          "type": "timeseries",
+          "targets": [
+            {
+              "query": "rate(unjucks_rdf_triples_processed_total[5m])",
+              "legend": "Triples/sec"
+            },
+            {
+              "query": "rate(unjucks_rdf_bytes_processed_total[5m]) / 1024 / 1024",
+              "legend": "MB/sec"
+            }
+          ]
+        },
+        {
+          "id": "rdf_cache_performance",
+          "title": "RDF Cache Performance",
+          "type": "timeseries",
+          "targets": [
+            {
+              "query": "rate(unjucks_rdf_cache_hits_total[5m]) / (rate(unjucks_rdf_cache_hits_total[5m]) + rate(unjucks_rdf_cache_misses_total[5m])) * 100",
+              "legend": "Cache Hit Rate"
+            },
+            {
+              "query": "unjucks_rdf_cache_size_bytes / 1024 / 1024",
+              "legend": "Cache Size (MB)"
+            }
+          ]
+        },
+        {
+          "id": "sparql_query_performance",
+          "title": "SPARQL Query Performance",
+          "type": "timeseries",
+          "targets": [
+            {
+              "query": "histogram_quantile(0.95, rate(unjucks_sparql_query_duration_seconds_bucket[5m])) * 1000",
+              "legend": "95th Percentile Query Time"
+            },
+            {
+              "query": "rate(unjucks_sparql_queries_total[5m])",
+              "legend": "Queries/sec"
+            }
+          ]
+        },
+        {
+          "id": "memory_usage",
+          "title": "Memory Usage by Component",
+          "type": "timeseries",
+          "targets": [
+            {
+              "query": "unjucks_memory_usage_bytes{component=\"rdf_store\"} / 1024 / 1024",
+              "legend": "RDF Store (MB)"
+            },
+            {
+              "query": "unjucks_memory_usage_bytes{component=\"cache\"} / 1024 / 1024",
+              "legend": "Cache (MB)"
+            },
+            {
+              "query": "unjucks_memory_usage_bytes{component=\"parser\"} / 1024 / 1024",
+              "legend": "Parser (MB)"
+            }
+          ]
+        }
+      ]
+    },
+    "security": {
+      "title": "Security & Compliance Dashboard",
+      "description": "Security metrics and compliance monitoring",
+      "refreshRate": "1m",
+      "panels": [
+        {
+          "id": "security_score",
+          "title": "Security Score",
+          "type": "stat",
+          "targets": [
+            {
+              "query": "unjucks_security_score",
+              "legend": "Security Score"
+            }
+          ],
+          "thresholds": {
+            "green": 90,
+            "yellow": 75,
+            "red": 60
+          },
+          "unit": "percent"
+        },
+        {
+          "id": "vulnerability_count",
+          "title": "Open Vulnerabilities",
+          "type": "stat",
+          "targets": [
+            {
+              "query": "sum(unjucks_vulnerabilities_total) by (severity)",
+              "legend": "{{severity}}"
+            }
+          ],
+          "thresholds": {
+            "green": 0,
+            "yellow": 3,
+            "red": 10
+          }
+        },
+        {
+          "id": "injection_attempts",
+          "title": "Injection Attack Attempts",
+          "type": "timeseries",
+          "targets": [
+            {
+              "query": "rate(unjucks_injection_attempts_total{type=\"rdf\"}[5m])",
+              "legend": "RDF Injection"
+            },
+            {
+              "query": "rate(unjucks_injection_attempts_total{type=\"sparql\"}[5m])",
+              "legend": "SPARQL Injection"
+            },
+            {
+              "query": "rate(unjucks_injection_attempts_total{type=\"uri\"}[5m])",
+              "legend": "URI Manipulation"
+            }
+          ]
+        },
+        {
+          "id": "authentication_success",
+          "title": "Authentication Success Rate",
+          "type": "stat",
+          "targets": [
+            {
+              "query": "rate(unjucks_auth_success_total[5m]) / (rate(unjucks_auth_success_total[5m]) + rate(unjucks_auth_failure_total[5m])) * 100",
+              "legend": "Success Rate"
+            }
+          ],
+          "thresholds": {
+            "green": 99.0,
+            "yellow": 95.0,
+            "red": 90.0
+          },
+          "unit": "percent"
+        },
+        {
+          "id": "compliance_status",
+          "title": "Compliance Status",
+          "type": "table",
+          "targets": [
+            {
+              "query": "unjucks_compliance_score",
+              "legend": "{{framework}}"
+            }
+          ]
+        }
+      ]
+    },
+    "performance": {
+      "title": "Performance Analysis Dashboard",
+      "description": "Deep performance metrics and bottleneck analysis",
+      "refreshRate": "10s",
+      "panels": [
+        {
+          "id": "cpu_usage",
+          "title": "CPU Usage",
+          "type": "timeseries",
+          "targets": [
+            {
+              "query": "rate(process_cpu_seconds_total[5m]) * 100",
+              "legend": "CPU Usage"
+            }
+          ],
+          "unit": "percent",
+          "yAxis": {
+            "max": 100,
+            "min": 0
+          }
+        },
+        {
+          "id": "memory_consumption",
+          "title": "Memory Consumption",
+          "type": "timeseries",
+          "targets": [
+            {
+              "query": "process_resident_memory_bytes / 1024 / 1024",
+              "legend": "RSS (MB)"
+            },
+            {
+              "query": "nodejs_heap_size_used_bytes / 1024 / 1024",
+              "legend": "Heap Used (MB)"
+            },
+            {
+              "query": "nodejs_heap_size_total_bytes / 1024 / 1024",
+              "legend": "Heap Total (MB)"
+            }
+          ]
+        },
+        {
+          "id": "gc_performance",
+          "title": "Garbage Collection Performance",
+          "type": "timeseries",
+          "targets": [
+            {
+              "query": "rate(nodejs_gc_duration_seconds_total[5m]) * 1000",
+              "legend": "GC Duration (ms/sec)"
+            },
+            {
+              "query": "rate(nodejs_gc_runs_total[5m])",
+              "legend": "GC Runs/sec"
+            }
+          ]
+        },
+        {
+          "id": "event_loop_lag",
+          "title": "Event Loop Lag",
+          "type": "timeseries",
+          "targets": [
+            {
+              "query": "nodejs_eventloop_lag_seconds * 1000",
+              "legend": "Event Loop Lag (ms)"
+            }
+          ],
+          "unit": "ms"
+        },
+        {
+          "id": "concurrent_connections",
+          "title": "Concurrent Connections",
+          "type": "timeseries",
+          "targets": [
+            {
+              "query": "unjucks_active_connections",
+              "legend": "Active Connections"
+            },
+            {
+              "query": "unjucks_max_connections",
+              "legend": "Max Connections"
+            }
+          ]
+        },
+        {
+          "id": "file_descriptors",
+          "title": "File Descriptor Usage",
+          "type": "timeseries",
+          "targets": [
+            {
+              "query": "process_open_fds",
+              "legend": "Open FDs"
+            },
+            {
+              "query": "process_max_fds",
+              "legend": "Max FDs"
+            }
+          ]
+        }
+      ]
+    },
+    "business": {
+      "title": "Business Metrics Dashboard",
+      "description": "Business KPIs and usage analytics",
+      "refreshRate": "5m",
+      "panels": [
+        {
+          "id": "daily_active_users",
+          "title": "Daily Active Users",
+          "type": "stat",
+          "targets": [
+            {
+              "query": "count(count by (user_id)(increase(unjucks_user_operations_total[24h])))",
+              "legend": "DAU"
+            }
+          ]
+        },
+        {
+          "id": "feature_usage",
+          "title": "Feature Usage Distribution",
+          "type": "pie",
+          "targets": [
+            {
+              "query": "sum by (feature) (increase(unjucks_feature_usage_total[24h]))",
+              "legend": "{{feature}}"
+            }
+          ]
+        },
+        {
+          "id": "data_processing_volume",
+          "title": "Data Processing Volume Trends",
+          "type": "timeseries",
+          "targets": [
+            {
+              "query": "sum(increase(unjucks_rdf_triples_processed_total[1h]))",
+              "legend": "Triples/hour"
+            },
+            {
+              "query": "sum(increase(unjucks_templates_rendered_total[1h]))",
+              "legend": "Templates/hour"
+            }
+          ]
+        },
+        {
+          "id": "user_satisfaction_trends",
+          "title": "User Satisfaction Trends",
+          "type": "timeseries",
+          "targets": [
+            {
+              "query": "avg_over_time(unjucks_user_satisfaction_score[24h])",
+              "legend": "Satisfaction Score"
+            }
+          ],
+          "unit": "short",
+          "yAxis": {
+            "max": 10,
+            "min": 0
+          }
+        },
+        {
+          "id": "cost_efficiency",
+          "title": "Cost Efficiency Metrics",
+          "type": "timeseries",
+          "targets": [
+            {
+              "query": "unjucks_cost_per_operation",
+              "legend": "Cost per Operation ($)"
+            },
+            {
+              "query": "unjucks_resource_utilization * 100",
+              "legend": "Resource Utilization (%)"
+            }
+          ]
+        }
+      ]
+    },
+    "alerts": {
+      "title": "Active Alerts Dashboard",
+      "description": "Real-time alert monitoring and incident tracking",
+      "refreshRate": "30s",
+      "panels": [
+        {
+          "id": "active_alerts",
+          "title": "Active Alerts by Severity",
+          "type": "stat",
+          "targets": [
+            {
+              "query": "sum by (severity) (ALERTS{alertstate=\"firing\"})",
+              "legend": "{{severity}}"
+            }
+          ]
+        },
+        {
+          "id": "alert_trends",
+          "title": "Alert Trends",
+          "type": "timeseries",
+          "targets": [
+            {
+              "query": "sum(rate(prometheus_notifications_total[5m]))",
+              "legend": "Alert Rate"
+            }
+          ]
+        },
+        {
+          "id": "incident_mttr",
+          "title": "Mean Time to Resolution",
+          "type": "stat",
+          "targets": [
+            {
+              "query": "avg(unjucks_incident_resolution_duration_minutes)",
+              "legend": "MTTR (minutes)"
+            }
+          ],
+          "unit": "m"
+        },
+        {
+          "id": "sla_status",
+          "title": "SLA Status",
+          "type": "table",
+          "targets": [
+            {
+              "query": "unjucks_sla_compliance_percentage",
+              "legend": "{{sla_type}}"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "alertRules": [
+    {
+      "name": "unjucks_high_response_time",
+      "condition": "histogram_quantile(0.95, rate(unjucks_rdf_operation_duration_seconds_bucket[5m])) > 0.1",
+      "severity": "warning",
+      "duration": "2m",
+      "description": "RDF operation response time is above SLA threshold"
+    },
+    {
+      "name": "unjucks_critical_response_time",
+      "condition": "histogram_quantile(0.95, rate(unjucks_rdf_operation_duration_seconds_bucket[5m])) > 0.5",
+      "severity": "critical",
+      "duration": "1m",
+      "description": "RDF operation response time is critically high"
+    },
+    {
+      "name": "unjucks_high_error_rate",
+      "condition": "rate(unjucks_errors_total[5m]) / rate(unjucks_requests_total[5m]) > 0.01",
+      "severity": "warning",
+      "duration": "3m",
+      "description": "Error rate is above 1%"
+    },
+    {
+      "name": "unjucks_memory_leak",
+      "condition": "increase(process_resident_memory_bytes[1h]) > 100*1024*1024",
+      "severity": "warning",
+      "duration": "5m",
+      "description": "Potential memory leak detected"
+    },
+    {
+      "name": "unjucks_service_down",
+      "condition": "up == 0",
+      "severity": "critical",
+      "duration": "30s",
+      "description": "Unjucks service is down"
+    },
+    {
+      "name": "unjucks_security_incident",
+      "condition": "rate(unjucks_injection_attempts_total[5m]) > 10",
+      "severity": "critical",
+      "duration": "1m",
+      "description": "High rate of injection attempts detected"
+    }
+  ],
+  "exportConfig": {
+    "grafana": {
+      "version": "9.0+",
+      "datasource": "prometheus",
+      "folderName": "Unjucks Production",
+      "tags": ["unjucks", "rdf", "production", "monitoring"]
+    },
+    "prometheus": {
+      "scrapeInterval": "15s",
+      "evaluationInterval": "30s",
+      "retentionTime": "90d"
+    }
+  }
+}

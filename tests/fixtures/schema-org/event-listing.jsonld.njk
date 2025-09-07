@@ -1,0 +1,260 @@
+---
+to: "{{ destDir }}/{{ name | slug }}-event.json"
+inject: false
+---
+{
+  "@context": "https://schema.org/",
+  "@type": "{{ eventType | default('Event') | schemaOrg }}",
+  "@id": "{{ baseUrl | rdfResource }}/event/{{ id | slug }}",
+  
+  "name": "{{ name | titleCase }}",
+  "description": "{{ description | truncate(300) | escape }}",
+  "url": "{{ url | rdfResource }}",
+  "identifier": "{{ eventId | upper }}",
+  
+  "image": [
+    {% for image in images -%}
+    {
+      "@type": "ImageObject",
+      "url": "{{ image.url | rdfResource }}",
+      "contentUrl": "{{ image.url | rdfResource }}",
+      "width": {{ image.width | default(1200) }},
+      "height": {{ image.height | default(630) }},
+      "caption": "{{ image.caption | escape }}"
+    }{% if not loop.last %},{% endif %}
+    {% endfor %}
+  ],
+  
+  "startDate": "{{ startDate | schemaDate }}",
+  "endDate": "{{ endDate | schemaDate }}",
+  "doorTime": "{{ doorTime | schemaDate }}",
+  "duration": "{{ duration | formatDuration }}",
+  
+  "eventStatus": "https://schema.org/{{ eventStatus | default('EventScheduled') | schemaOrg }}",
+  "eventAttendanceMode": "https://schema.org/{{ attendanceMode | default('OfflineEventAttendanceMode') | schemaOrg }}",
+  
+  "location": {
+    "@type": "{{ location.type | default('Place') | schemaOrg }}",
+    "name": "{{ location.name | titleCase }}",
+    "address": {{ location.address | schemaAddress | dump }},
+    "geo": {{ location.coordinates | schemaGeo | dump }},
+    "url": "{{ location.url | rdfResource }}",
+    "telephone": "{{ location.phone }}",
+    "maximumAttendeeCapacity": {{ location.capacity }}
+  },
+  
+  "organizer": {
+    "@type": "{{ organizer.type | default('Organization') | schemaOrg }}",
+    "name": "{{ organizer.name | titleCase }}",
+    "url": "{{ organizer.url | rdfResource }}",
+    "email": "{{ organizer.email }}",
+    "telephone": "{{ organizer.phone }}",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "{{ organizer.logo | rdfResource }}"
+    }
+  },
+  
+  {% if performers -%}
+  "performer": [
+    {% for performer in performers -%}
+    {
+      "@type": "{{ performer.type | default('Person') | schemaOrg }}",
+      "name": "{{ performer.name | titleCase }}",
+      "url": "{{ performer.url | rdfResource }}",
+      "sameAs": [
+        {% for social in performer.socialProfiles -%}
+        "{{ social | rdfResource }}"{% if not loop.last %},{% endif %}
+        {% endfor %}
+      ]
+    }{% if not loop.last %},{% endif %}
+    {% endfor %}
+  ],
+  {% endif %}
+  
+  {% if offers -%}
+  "offers": [
+    {% for offer in offers -%}
+    {
+      "@type": "Offer",
+      "name": "{{ offer.name | titleCase }}",
+      "description": "{{ offer.description | escape }}",
+      "price": "{{ offer.price | number(2) }}",
+      "priceCurrency": "{{ offer.currency | default('USD') | upper }}",
+      "availability": "{{ offer.availability | default('InStock') | schemaAvailability }}",
+      "url": "{{ offer.url | rdfResource }}",
+      "validFrom": "{{ offer.validFrom | schemaDate }}",
+      "validThrough": "{{ offer.validThrough | schemaDate }}",
+      "seller": {
+        "@type": "Organization",
+        "name": "{{ offer.seller | titleCase }}"
+      }
+    }{% if not loop.last %},{% endif %}
+    {% endfor %}
+  ],
+  {% endif %}
+  
+  {% if audience -%}
+  "audience": {
+    "@type": "Audience",
+    "audienceType": "{{ audience.type | titleCase }}",
+    "suggestedMinAge": {{ audience.minAge }},
+    "suggestedMaxAge": {{ audience.maxAge }}
+  },
+  {% endif %}
+  
+  {% if subEvents -%}
+  "subEvent": [
+    {% for subEvent in subEvents -%}
+    {
+      "@type": "Event",
+      "name": "{{ subEvent.name | titleCase }}",
+      "startDate": "{{ subEvent.startDate | schemaDate }}",
+      "endDate": "{{ subEvent.endDate | schemaDate }}",
+      "description": "{{ subEvent.description | escape }}"
+    }{% if not loop.last %},{% endif %}
+    {% endfor %}
+  ],
+  {% endif %}
+  
+  {% if superEvent -%}
+  "superEvent": {
+    "@type": "Event",
+    "name": "{{ superEvent.name | titleCase }}",
+    "url": "{{ superEvent.url | rdfResource }}"
+  },
+  {% endif %}
+  
+  {% if sponsors -%}
+  "sponsor": [
+    {% for sponsor in sponsors -%}
+    {
+      "@type": "{{ sponsor.type | default('Organization') | schemaOrg }}",
+      "name": "{{ sponsor.name | titleCase }}",
+      "url": "{{ sponsor.url | rdfResource }}",
+      "logo": {
+        "@type": "ImageObject",
+        "url": "{{ sponsor.logo | rdfResource }}"
+      }
+    }{% if not loop.last %},{% endif %}
+    {% endfor %}
+  ],
+  {% endif %}
+  
+  {% if contributors -%}
+  "contributor": [
+    {% for contributor in contributors -%}
+    {
+      "@type": "{{ contributor.type | default('Person') | schemaOrg }}",
+      "name": "{{ contributor.name | titleCase }}",
+      "url": "{{ contributor.url | rdfResource }}"
+    }{% if not loop.last %},{% endif %}
+    {% endfor %}
+  ],
+  {% endif %}
+  
+  {% if attendees -%}
+  "attendee": [
+    {% for attendee in attendees -%}
+    {
+      "@type": "Person",
+      "name": "{{ attendee.name | titleCase }}"
+    }{% if not loop.last %},{% endif %}
+    {% endfor %}
+  ],
+  {% endif %}
+  
+  "maximumAttendeeCapacity": {{ maxCapacity }},
+  "remainingAttendeeCapacity": {{ remainingCapacity }},
+  
+  {% if workFeatured -%}
+  "workFeatured": [
+    {% for work in workFeatured -%}
+    {
+      "@type": "CreativeWork",
+      "name": "{{ work.name | titleCase }}",
+      "creator": "{{ work.creator | titleCase }}"
+    }{% if not loop.last %},{% endif %}
+    {% endfor %}
+  ],
+  {% endif %}
+  
+  {% if recordedIn -%}
+  "recordedIn": {
+    "@type": "CreativeWork",
+    "name": "{{ recordedIn.name | titleCase }}",
+    "url": "{{ recordedIn.url | rdfResource }}"
+  },
+  {% endif %}
+  
+  "inLanguage": "{{ language | default('en') }}",
+  
+  {% if accessibility -%}
+  "accessibilityFeature": [
+    {% for feature in accessibility -%}
+    "{{ feature }}"{% if not loop.last %},{% endif %}
+    {% endfor %}
+  ],
+  {% endif %}
+  
+  {% if reviews and reviews.length > 0 -%}
+  "review": [
+    {% for review in reviews -%}
+    {
+      "@type": "Review",
+      "reviewRating": {
+        "@type": "Rating",
+        "ratingValue": "{{ review.rating | number(1) }}",
+        "bestRating": "{{ review.maxRating | default(5) }}",
+        "worstRating": "{{ review.minRating | default(1) }}"
+      },
+      "name": "{{ review.title | escape }}",
+      "reviewBody": "{{ review.body | truncate(500) | escape }}",
+      "datePublished": "{{ review.date | schemaDate }}",
+      "author": {
+        "@type": "Person",
+        "name": "{{ review.author | titleCase }}"
+      }
+    }{% if not loop.last %},{% endif %}
+    {% endfor %}
+  ],
+  {% endif %}
+  
+  {% if aggregateRating -%}
+  "aggregateRating": {
+    "@type": "AggregateRating",
+    "ratingValue": "{{ aggregateRating.value | number(2) }}",
+    "reviewCount": "{{ aggregateRating.count | number }}",
+    "bestRating": "{{ aggregateRating.best | default(5) }}",
+    "worstRating": "{{ aggregateRating.worst | default(1) }}"
+  },
+  {% endif %}
+  
+  "dateCreated": "{{ created | default(now()) | schemaDate }}",
+  "dateModified": "{{ modified | default(now()) | schemaDate }}",
+  
+  "potentialAction": [
+    {
+      "@type": "JoinAction",
+      "target": {
+        "@type": "EntryPoint",
+        "urlTemplate": "{{ url | rdfResource }}",
+        "actionPlatform": [
+          "http://schema.org/DesktopWebPlatform",
+          "http://schema.org/MobileWebPlatform"
+        ]
+      }
+    },
+    {
+      "@type": "ReserveAction",
+      "target": {
+        "@type": "EntryPoint",
+        "urlTemplate": "{{ baseUrl }}/reserve?event={{ id | slug }}",
+        "actionPlatform": [
+          "http://schema.org/DesktopWebPlatform",
+          "http://schema.org/MobileWebPlatform"
+        ]
+      }
+    }
+  ]
+}

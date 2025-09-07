@@ -1,0 +1,389 @@
+---
+to: "{{ outputDir || './output' }}/queries/{{ domain | kebabCase }}-queries.sparql"
+inject: false
+force: "{{ force || false }}"
+unless: "{{ skipIf }}"
+---
+# SPARQL Queries for {{ domain | title }} Knowledge Graph
+# Generated on {{ now() | formatDate('YYYY-MM-DD HH:mm:ss') }}
+
+PREFIX kg: <{{ baseUri | default('http://example.org/kg') | rdfResource }}/{{ domain | kebabCase }}/>
+PREFIX schema: <http://schema.org/>
+PREFIX foaf: <http://xmlns.com/foaf/0.1/>
+PREFIX dct: <http://purl.org/dc/terms/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+
+{% if basicQueries %}
+# ========================================
+# BASIC ENTITY QUERIES
+# ========================================
+
+{{ basicQueries | map(query => {
+    const queryName = query.name | upper | replace(' ', '_');
+    let sparql = '# Query: ' + query.name + '\n';
+    
+    if (query.description) {
+        sparql += '# Description: ' + query.description + '\n';
+    }
+    
+    sparql += 'SELECT ';
+    
+    // Variables
+    if (query.variables) {
+        sparql += query.variables.map(v => '?' + v).join(' ');
+    } else {
+        sparql += '*';
+    }
+    
+    sparql += '\nWHERE {\n';
+    
+    // Triple patterns
+    if (query.patterns) {
+        query.patterns.forEach(pattern => {
+            sparql += '    ' + pattern + ' .\n';
+        });
+    }
+    
+    // Filters
+    if (query.filters) {
+        query.filters.forEach(filter => {
+            sparql += '    FILTER(' + filter + ')\n';
+        });
+    }
+    
+    sparql += '}';
+    
+    // Modifiers
+    if (query.orderBy) sparql += '\nORDER BY ' + query.orderBy;
+    if (query.limit) sparql += '\nLIMIT ' + query.limit;
+    if (query.offset) sparql += '\nOFFSET ' + query.offset;
+    
+    return sparql;
+}) | join('\n\n') }}
+{% endif %}
+
+# ========================================
+# ENTITY DISCOVERY QUERIES
+# ========================================
+
+# Find all entity types in the knowledge graph
+SELECT ?type (COUNT(?entity) AS ?count)
+WHERE {
+    ?entity a ?type .
+    FILTER(!isBlank(?entity))
+}
+GROUP BY ?type
+ORDER BY DESC(?count)
+
+# Find entities by name pattern
+SELECT ?entity ?name ?type
+WHERE {
+    ?entity schema:name ?name ;
+            a ?type .
+    FILTER(REGEX(?name, "{{ searchPattern || '.*' }}", "i"))
+}
+ORDER BY ?name
+
+# Find recently created entities
+SELECT ?entity ?name ?created
+WHERE {
+    ?entity dct:created ?created ;
+            schema:name ?name .
+    FILTER(?created >= "{{ startDate || now() | dateAdd(-30, 'days') | formatDate('YYYY-MM-DD') }}"^^xsd:date)
+}
+ORDER BY DESC(?created)
+
+{% if relationshipQueries %}
+# ========================================
+# RELATIONSHIP QUERIES
+# ========================================
+
+{{ relationshipQueries | map(query => {
+    let sparql = '# ' + query.name + '\n';
+    if (query.description) sparql += '# ' + query.description + '\n';
+    
+    sparql += 'SELECT ';
+    sparql += (query.variables || ['*']).map(v => v.startsWith('?') ? v : '?' + v).join(' ');
+    sparql += '\nWHERE {\n';
+    
+    if (query.patterns) {
+        query.patterns.forEach(pattern => {
+            sparql += '    ' + pattern + ' .\n';
+        });
+    }
+    
+    if (query.optional) {
+        query.optional.forEach(opt => {
+            sparql += '    OPTIONAL { ' + opt + ' }\n';
+        });
+    }
+    
+    if (query.filters) {
+        query.filters.forEach(filter => {
+            sparql += '    FILTER(' + filter + ')\n';
+        });
+    }
+    
+    sparql += '}';
+    
+    if (query.orderBy) sparql += '\nORDER BY ' + query.orderBy;
+    if (query.limit) sparql += '\nLIMIT ' + query.limit;
+    
+    return sparql;
+}) | join('\n\n') }}
+{% endif %}
+
+# Find direct relationships between entities
+SELECT ?source ?relationship ?target ?sourceLabel ?targetLabel
+WHERE {
+    ?source ?relationship ?target .
+    FILTER(?relationship != a && ?relationship != rdfs:label)
+    OPTIONAL { ?source rdfs:label ?sourceLabel }
+    OPTIONAL { ?target rdfs:label ?targetLabel }
+}
+LIMIT {{ relationshipLimit || 100 }}
+
+# Find shortest path between two entities
+SELECT ?path
+WHERE {
+    ?start schema:name "{{ startEntity || 'Entity1' }}" .
+    ?end schema:name "{{ endEntity || 'Entity2' }}" .
+    ?start (kg:relatedTo+) ?end .
+    BIND(kg:shortestPath(?start, ?end) AS ?path)
+}
+
+# Find entities with highest degree centrality
+SELECT ?entity ?name (COUNT(?relationship) AS ?degree)
+WHERE {
+    {
+        ?entity ?relationship ?target .
+        FILTER(?relationship != a)
+    } UNION {
+        ?source ?relationship ?entity .
+        FILTER(?relationship != a)
+    }
+    OPTIONAL { ?entity schema:name ?name }
+}
+GROUP BY ?entity ?name
+ORDER BY DESC(?degree)
+LIMIT {{ centralityLimit || 20 }}
+
+{% if aggregationQueries %}
+# ========================================
+# AGGREGATION AND ANALYTICS QUERIES  
+# ========================================
+
+{{ aggregationQueries | map(query => {
+    let sparql = '# ' + query.name + '\n';
+    if (query.description) sparql += '# ' + query.description + '\n';
+    
+    sparql += 'SELECT ';
+    sparql += (query.select || ['*']).join(' ');
+    sparql += '\nWHERE {\n';
+    
+    if (query.patterns) {
+        query.patterns.forEach(pattern => {
+            sparql += '    ' + pattern + ' .\n';
+        });
+    }
+    
+    if (query.filters) {
+        query.filters.forEach(filter => {
+            sparql += '    FILTER(' + filter + ')\n';
+        });
+    }
+    
+    sparql += '}';
+    
+    if (query.groupBy) sparql += '\nGROUP BY ' + query.groupBy.join(' ');
+    if (query.having) sparql += '\nHAVING ' + query.having;
+    if (query.orderBy) sparql += '\nORDER BY ' + query.orderBy;
+    if (query.limit) sparql += '\nLIMIT ' + query.limit;
+    
+    return sparql;
+}) | join('\n\n') }}
+{% endif %}
+
+# Count entities by type
+SELECT ?type (COUNT(?entity) AS ?count)
+WHERE {
+    ?entity a ?type .
+    FILTER(!isBlank(?entity))
+}
+GROUP BY ?type
+ORDER BY DESC(?count)
+
+# Find temporal patterns (events by year)
+SELECT ?year (COUNT(?event) AS ?eventCount)
+WHERE {
+    ?event a schema:Event ;
+           schema:startDate ?startDate .
+    BIND(YEAR(?startDate) AS ?year)
+    FILTER(?year >= {{ startYear || 2020 }} && ?year <= {{ endYear || now() | formatDate('YYYY') }})
+}
+GROUP BY ?year
+ORDER BY ?year
+
+# Geographic distribution analysis
+SELECT ?country (COUNT(?entity) AS ?count)
+WHERE {
+    ?entity schema:addressCountry ?country .
+}
+GROUP BY ?country
+ORDER BY DESC(?count)
+
+{% if domainSpecificQueries %}
+# ========================================
+# DOMAIN-SPECIFIC QUERIES
+# ========================================
+
+{{ domainSpecificQueries | map(query => {
+    let sparql = '# Domain Query: ' + query.name + '\n';
+    if (query.description) sparql += '# ' + query.description + '\n';
+    
+    // Handle different query types
+    if (query.type === 'construct') {
+        sparql += 'CONSTRUCT {\n';
+        query.construct.forEach(pattern => {
+            sparql += '    ' + pattern + ' .\n';
+        });
+        sparql += '}\nWHERE {\n';
+    } else if (query.type === 'ask') {
+        sparql += 'ASK {\n';
+    } else {
+        sparql += 'SELECT ';
+        sparql += (query.variables || ['*']).map(v => v.startsWith('?') ? v : '?' + v).join(' ');
+        sparql += '\nWHERE {\n';
+    }
+    
+    if (query.patterns) {
+        query.patterns.forEach(pattern => {
+            sparql += '    ' + pattern + ' .\n';
+        });
+    }
+    
+    if (query.optional) {
+        query.optional.forEach(opt => {
+            sparql += '    OPTIONAL { ' + opt + ' }\n';
+        });
+    }
+    
+    if (query.union) {
+        sparql += '    {\n';
+        query.union.forEach((unionBlock, index) => {
+            if (index > 0) sparql += '    } UNION {\n';
+            unionBlock.forEach(pattern => {
+                sparql += '        ' + pattern + ' .\n';
+            });
+        });
+        sparql += '    }\n';
+    }
+    
+    if (query.filters) {
+        query.filters.forEach(filter => {
+            sparql += '    FILTER(' + filter + ')\n';
+        });
+    }
+    
+    sparql += '}';
+    
+    if (query.orderBy) sparql += '\nORDER BY ' + query.orderBy;
+    if (query.limit) sparql += '\nLIMIT ' + query.limit;
+    
+    return sparql;
+}) | join('\n\n') }}
+{% endif %}
+
+{% if performanceQueries %}
+# ========================================
+# PERFORMANCE MONITORING QUERIES
+# ========================================
+
+# Query execution time monitoring
+SELECT ?query ?executionTime ?timestamp
+WHERE {
+    ?execution kg:query ?query ;
+               kg:executionTime ?executionTime ;
+               kg:timestamp ?timestamp .
+    FILTER(?timestamp >= "{{ monitoringStartDate || now() | dateAdd(-7, 'days') | formatDate('YYYY-MM-DD') }}"^^xsd:date)
+}
+ORDER BY DESC(?executionTime)
+LIMIT {{ performanceLimit || 50 }}
+
+# Resource usage patterns
+SELECT ?resourceType (AVG(?usage) AS ?avgUsage) (MAX(?usage) AS ?maxUsage)
+WHERE {
+    ?resource a ?resourceType ;
+              kg:usage ?usage ;
+              kg:timestamp ?timestamp .
+    FILTER(?timestamp >= "{{ resourceStartDate || now() | dateAdd(-1, 'days') | formatDate('YYYY-MM-DD') }}"^^xsd:date)
+}
+GROUP BY ?resourceType
+ORDER BY DESC(?avgUsage)
+{% endif %}
+
+{% if maintenanceQueries %}
+# ========================================
+# MAINTENANCE AND QUALITY QUERIES
+# ========================================
+
+# Find orphaned entities (no incoming or outgoing relationships)
+SELECT ?entity ?name
+WHERE {
+    ?entity a ?type ;
+            schema:name ?name .
+    FILTER NOT EXISTS { ?entity ?p ?o . FILTER(?p != a && ?p != schema:name) }
+    FILTER NOT EXISTS { ?s ?p ?entity . FILTER(?p != a) }
+}
+
+# Find duplicate entities (same name, different URIs)
+SELECT ?name (COUNT(?entity) AS ?duplicateCount)
+WHERE {
+    ?entity schema:name ?name .
+}
+GROUP BY ?name
+HAVING (COUNT(?entity) > 1)
+ORDER BY DESC(?duplicateCount)
+
+# Identify inconsistent data
+SELECT ?entity ?property ?value1 ?value2
+WHERE {
+    ?entity ?property ?value1 , ?value2 .
+    FILTER(?value1 != ?value2)
+    FILTER(?property = schema:email || ?property = schema:identifier)
+}
+
+# Find entities missing required properties
+SELECT ?entity ?type
+WHERE {
+    ?entity a ?type .
+    ?type kg:requiredProperty ?requiredProp .
+    FILTER NOT EXISTS { ?entity ?requiredProp ?value }
+}
+{% endif %}
+
+# ========================================
+# UTILITY QUERIES
+# ========================================
+
+# Graph statistics summary
+SELECT 
+    (COUNT(DISTINCT ?s) AS ?totalSubjects)
+    (COUNT(DISTINCT ?p) AS ?totalPredicates)
+    (COUNT(DISTINCT ?o) AS ?totalObjects)
+    (COUNT(*) AS ?totalTriples)
+WHERE {
+    ?s ?p ?o .
+}
+
+# Namespace usage statistics
+SELECT ?namespace (COUNT(?property) AS ?usage)
+WHERE {
+    ?s ?property ?o .
+    BIND(REPLACE(STR(?property), "([^#/]*[#/])[^#/]*$", "$1") AS ?namespace)
+}
+GROUP BY ?namespace
+ORDER BY DESC(?usage)

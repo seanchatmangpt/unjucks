@@ -1,0 +1,213 @@
+---
+to: generated/ontologies/<%= mappingName | kebabCase %>-mapping.owl
+inject: false
+sh: "echo 'Generated mapping ontology: <%= mappingName %>'"
+---
+@prefix {{ nsPrefix | kebabCase }}: <{{ namespace | rdfResource }}/> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix rdf: <http://www.w3.org/RDF/1999/02/22-rdf-syntax-ns#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix align: <http://knowledgeweb.semanticweb.org/heterogeneity/alignment#> .
+{% for prefix in externalPrefixes -%}
+@prefix {{ prefix.name }}: <{{ prefix.uri | rdfResource }}> .
+{% endfor -%}
+@base <{{ namespace | rdfResource }}/> .
+
+# Cross-Vocabulary Mapping Ontology
+<{{ namespace | rdfResource }}/> rdf:type owl:Ontology ;
+    owl:versionIRI <{{ namespace | rdfResource }}/{{ version | default('1.0.0') }}/> ;
+    owl:versionInfo "{{ version | default('1.0.0') | rdfLiteral('en') }}" ;
+    rdfs:label "{{ mappingName | titleCase }} Vocabulary Mapping" ;
+    rdfs:comment "{{ description | default('Cross-vocabulary alignments and mappings') | rdfLiteral('en') }}" ;
+    owl:imports <http://www.w3.org/2002/07/owl#> ,
+                <http://www.w3.org/2004/02/skos/core#> {% for ontology in sourceOntologies %},
+                <{{ ontology | rdfResource }}>{% endfor %}{% for ontology in targetOntologies %},
+                <{{ ontology | rdfResource }}>{% endfor %} .
+
+# Class Mappings
+{% for mapping in classMappings %}
+## Mapping: {{ mapping.sourceClass }} -> {{ mapping.targetClass }}
+{{ mapping.sourceClass | rdfClass(mapping.sourcePrefix) }} 
+    {%- if mapping.relation == 'equivalent' %}owl:equivalentClass
+    {%- elif mapping.relation == 'subclass' %}rdfs:subClassOf
+    {%- elif mapping.relation == 'superclass' %}^rdfs:subClassOf
+    {%- elif mapping.relation == 'related' %}skos:related
+    {%- elif mapping.relation == 'broader' %}skos:broader
+    {%- elif mapping.relation == 'narrower' %}skos:narrower
+    {%- elif mapping.relation == 'exactMatch' %}skos:exactMatch
+    {%- elif mapping.relation == 'closeMatch' %}skos:closeMatch
+    {%- elif mapping.relation == 'broadMatch' %}skos:broadMatch
+    {%- elif mapping.relation == 'narrowMatch' %}skos:narrowMatch
+    {%- else %}owl:sameAs{% endif %} {{ mapping.targetClass | rdfClass(mapping.targetPrefix) }} .
+
+{% if mapping.confidence %}
+{{ mapping.sourceClass | rdfClass(mapping.sourcePrefix) }} {{ nsPrefix | kebabCase }}:mappingConfidence "{{ mapping.confidence }}"^^xsd:float .
+{% endif %}
+
+{% if mapping.notes %}
+{{ mapping.sourceClass | rdfClass(mapping.sourcePrefix) }} {{ nsPrefix | kebabCase }}:mappingNotes "{{ mapping.notes | rdfLiteral('en') }}" .
+{% endif %}
+
+{% endfor %}
+
+# Property Mappings
+{% for mapping in propertyMappings %}
+## Property Mapping: {{ mapping.sourceProperty }} -> {{ mapping.targetProperty }}
+{{ mapping.sourceProperty | rdfProperty(mapping.sourcePrefix) }}
+    {%- if mapping.relation == 'equivalent' %}owl:equivalentProperty
+    {%- elif mapping.relation == 'subproperty' %}rdfs:subPropertyOf
+    {%- elif mapping.relation == 'superproperty' %}^rdfs:subPropertyOf
+    {%- elif mapping.relation == 'inverse' %}owl:inverseOf
+    {%- elif mapping.relation == 'exactMatch' %}skos:exactMatch
+    {%- elif mapping.relation == 'closeMatch' %}skos:closeMatch
+    {%- elif mapping.relation == 'broadMatch' %}skos:broadMatch
+    {%- elif mapping.relation == 'narrowMatch' %}skos:narrowMatch
+    {%- else %}owl:sameAs{% endif %} {{ mapping.targetProperty | rdfProperty(mapping.targetPrefix) }} .
+
+{% if mapping.transformation %}
+{{ mapping.sourceProperty | rdfProperty(mapping.sourcePrefix) }} {{ nsPrefix | kebabCase }}:hasTransformation [
+    rdf:type {{ nsPrefix | kebabCase }}:PropertyTransformation ;
+    {{ nsPrefix | kebabCase }}:transformationType "{{ mapping.transformation.type }}" ;
+    {% if mapping.transformation.pattern -%}
+    {{ nsPrefix | kebabCase }}:transformationPattern "{{ mapping.transformation.pattern }}" ;
+    {%- endif %}
+    {% if mapping.transformation.function -%}
+    {{ nsPrefix | kebabCase }}:transformationFunction "{{ mapping.transformation.function }}" ;
+    {%- endif %}
+] .
+{% endif %}
+
+{% endfor %}
+
+# Complex Mappings (Class Expressions)
+{% for complexMapping in complexMappings %}
+## Complex Mapping: {{ complexMapping.name }}
+{{ nsPrefix | kebabCase }}:{{ complexMapping.name | pascalCase }}Mapping rdf:type owl:Class ;
+    rdfs:label "{{ complexMapping.name | humanize | rdfLiteral('en') }}" ;
+    rdfs:comment "{{ complexMapping.description | rdfLiteral('en') }}" ;
+    owl:equivalentClass [
+        {% if complexMapping.type == 'intersection' -%}
+        rdf:type owl:Class ;
+        owl:intersectionOf (
+            {% for cls in complexMapping.classes -%}
+            {{ cls | rdfClass(complexMapping.sourcePrefix) }}
+            {% endfor -%}
+        )
+        {%- elif complexMapping.type == 'union' -%}
+        rdf:type owl:Class ;
+        owl:unionOf (
+            {% for cls in complexMapping.classes -%}
+            {{ cls | rdfClass(complexMapping.sourcePrefix) }}
+            {% endfor -%}
+        )
+        {%- elif complexMapping.type == 'complement' -%}
+        rdf:type owl:Class ;
+        owl:complementOf {{ complexMapping.complementClass | rdfClass(complexMapping.sourcePrefix) }}
+        {%- elif complexMapping.type == 'restriction' -%}
+        rdf:type owl:Restriction ;
+        owl:onProperty {{ complexMapping.property | rdfProperty(complexMapping.sourcePrefix) }} ;
+        {% if complexMapping.restrictionType == 'someValuesFrom' -%}
+        owl:someValuesFrom {{ complexMapping.valueClass | rdfClass(complexMapping.targetPrefix) }}
+        {%- elif complexMapping.restrictionType == 'allValuesFrom' -%}
+        owl:allValuesFrom {{ complexMapping.valueClass | rdfClass(complexMapping.targetPrefix) }}
+        {%- elif complexMapping.restrictionType == 'hasValue' -%}
+        owl:hasValue {{ complexMapping.value | rdfResource }}
+        {%- elif complexMapping.restrictionType == 'cardinality' -%}
+        owl:cardinality "{{ complexMapping.cardinality }}"^^xsd:nonNegativeInteger
+        {%- endif %}
+        {%- endif %}
+    ] ;
+    {% if complexMapping.targetEquivalent -%}
+    owl:equivalentClass {{ complexMapping.targetEquivalent | rdfClass(complexMapping.targetPrefix) }} ;
+    {%- endif %}
+    rdfs:isDefinedBy <{{ namespace | rdfResource }}/> .
+
+{% endfor %}
+
+# Bridging Axioms
+{% for bridge in bridgeAxioms %}
+## Bridge Axiom: {{ bridge.name }}
+[   rdf:type owl:Axiom ;
+    owl:annotatedSource {{ bridge.subject | rdfResource }} ;
+    owl:annotatedProperty {{ bridge.predicate | rdfResource }} ;
+    owl:annotatedTarget {{ bridge.object | rdfResource }} ;
+    {{ nsPrefix | kebabCase }}:bridgeType "{{ bridge.type }}" ;
+    {{ nsPrefix | kebabCase }}:bridgeConfidence "{{ bridge.confidence | default(1.0) }}"^^xsd:float ;
+    {% if bridge.conditions -%}
+    {{ nsPrefix | kebabCase }}:bridgeConditions "{{ bridge.conditions | rdfLiteral('en') }}" ;
+    {%- endif %}
+    rdfs:comment "{{ bridge.justification | rdfLiteral('en') }}"
+] .
+
+{% endfor %}
+
+# Mapping Metadata Classes
+{{ nsPrefix | kebabCase }}:PropertyTransformation rdf:type owl:Class ;
+    rdfs:label "Property Transformation" ;
+    rdfs:comment "Represents a transformation applied during property mapping" ;
+    rdfs:isDefinedBy <{{ namespace | rdfResource }}/> .
+
+{{ nsPrefix | kebabCase }}:MappingAlignment rdf:type owl:Class ;
+    rdfs:label "Mapping Alignment" ;
+    rdfs:comment "Represents an alignment between vocabularies" ;
+    rdfs:isDefinedBy <{{ namespace | rdfResource }}/> .
+
+# Mapping Properties
+{{ nsPrefix | kebabCase }}:mappingConfidence rdf:type owl:DatatypeProperty ;
+    rdfs:label "mapping confidence" ;
+    rdfs:comment "Confidence score for the mapping (0.0 to 1.0)" ;
+    rdfs:range xsd:float ;
+    rdfs:isDefinedBy <{{ namespace | rdfResource }}/> .
+
+{{ nsPrefix | kebabCase }}:mappingNotes rdf:type owl:DatatypeProperty ;
+    rdfs:label "mapping notes" ;
+    rdfs:comment "Additional notes about the mapping" ;
+    rdfs:range xsd:string ;
+    rdfs:isDefinedBy <{{ namespace | rdfResource }}/> .
+
+{{ nsPrefix | kebabCase }}:hasTransformation rdf:type owl:ObjectProperty ;
+    rdfs:label "has transformation" ;
+    rdfs:comment "Relates a property to its transformation specification" ;
+    rdfs:range {{ nsPrefix | kebabCase }}:PropertyTransformation ;
+    rdfs:isDefinedBy <{{ namespace | rdfResource }}/> .
+
+{{ nsPrefix | kebabCase }}:transformationType rdf:type owl:DatatypeProperty ;
+    rdfs:label "transformation type" ;
+    rdfs:comment "Type of transformation (format, units, encoding, etc.)" ;
+    rdfs:domain {{ nsPrefix | kebabCase }}:PropertyTransformation ;
+    rdfs:range xsd:string ;
+    rdfs:isDefinedBy <{{ namespace | rdfResource }}/> .
+
+{{ nsPrefix | kebabCase }}:transformationPattern rdf:type owl:DatatypeProperty ;
+    rdfs:label "transformation pattern" ;
+    rdfs:comment "Regular expression or pattern for transformation" ;
+    rdfs:domain {{ nsPrefix | kebabCase }}:PropertyTransformation ;
+    rdfs:range xsd:string ;
+    rdfs:isDefinedBy <{{ namespace | rdfResource }}/> .
+
+{{ nsPrefix | kebabCase }}:transformationFunction rdf:type owl:DatatypeProperty ;
+    rdfs:label "transformation function" ;
+    rdfs:comment "Mathematical or logical function for transformation" ;
+    rdfs:domain {{ nsPrefix | kebabCase }}:PropertyTransformation ;
+    rdfs:range xsd:string ;
+    rdfs:isDefinedBy <{{ namespace | rdfResource }}/> .
+
+{{ nsPrefix | kebabCase }}:bridgeType rdf:type owl:DatatypeProperty ;
+    rdfs:label "bridge type" ;
+    rdfs:comment "Type of bridging axiom (equivalence, subsumption, disjointness)" ;
+    rdfs:range xsd:string ;
+    rdfs:isDefinedBy <{{ namespace | rdfResource }}/> .
+
+{{ nsPrefix | kebabCase }}:bridgeConfidence rdf:type owl:DatatypeProperty ;
+    rdfs:label "bridge confidence" ;
+    rdfs:comment "Confidence in the bridging axiom" ;
+    rdfs:range xsd:float ;
+    rdfs:isDefinedBy <{{ namespace | rdfResource }}/> .
+
+{{ nsPrefix | kebabCase }}:bridgeConditions rdf:type owl:DatatypeProperty ;
+    rdfs:label "bridge conditions" ;
+    rdfs:comment "Conditions under which the bridge axiom applies" ;
+    rdfs:range xsd:string ;
+    rdfs:isDefinedBy <{{ namespace | rdfResource }}/> .

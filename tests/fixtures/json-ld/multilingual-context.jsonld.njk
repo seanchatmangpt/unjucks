@@ -1,0 +1,251 @@
+---
+to: "{{ outputDir }}/{{ contextName | kebabCase }}-multilingual-context.jsonld"
+inject: false
+unless_exists: true
+variables:
+  - name: contextName
+    type: string
+    description: "Name of the multilingual JSON-LD context"
+  - name: outputDir
+    type: string
+    default: "./contexts"
+    description: "Output directory for context files"
+  - name: defaultLanguage
+    type: string
+    default: "en"
+    description: "Default language code (ISO 639-1)"
+  - name: supportedLanguages
+    type: array
+    default: ["en", "es", "fr", "de", "ja", "zh"]
+    description: "List of supported language codes"
+  - name: includeTranslatedTerms
+    type: boolean
+    default: true
+    description: "Include language-specific term mappings"
+  - name: useLanguageContainers
+    type: boolean
+    default: true
+    description: "Use @language containers for multilingual values"
+---
+{
+  "@context": {
+    "@version": 1.1,
+    "@language": "{{ defaultLanguage }}",
+    "@vocab": "https://schema.org/",
+    
+    {{- rdfNamespaces(['schema', 'dct', 'xsd', 'rdf', 'rdfs']) | dump | slice(1, -1) | safe }},
+    
+    "_comment": "Multilingual content properties",
+    {% if useLanguageContainers -%}
+    "name": {
+      "@id": "schema:name",
+      "@container": "@language"
+    },
+    "description": {
+      "@id": "schema:description", 
+      "@container": "@language"
+    },
+    "headline": {
+      "@id": "schema:headline",
+      "@container": "@language"
+    },
+    "text": {
+      "@id": "schema:text",
+      "@container": "@language"
+    },
+    "abstract": {
+      "@id": "schema:abstract",
+      "@container": "@language"
+    },
+    "articleBody": {
+      "@id": "schema:articleBody",
+      "@container": "@language"
+    },
+    "alternateName": {
+      "@id": "schema:alternateName",
+      "@container": ["@language", "@set"]
+    },
+    "keywords": {
+      "@id": "schema:keywords",
+      "@container": ["@language", "@set"]
+    }
+    {%- else -%}
+    {% for lang in supportedLanguages -%}
+    "name_{{ lang }}": {
+      "@id": "schema:name",
+      "@type": "xsd:string",
+      "@language": "{{ lang }}"
+    },
+    "description_{{ lang }}": {
+      "@id": "schema:description",
+      "@type": "xsd:string", 
+      "@language": "{{ lang }}"
+    },
+    "headline_{{ lang }}": {
+      "@id": "schema:headline",
+      "@type": "xsd:string",
+      "@language": "{{ lang }}"
+    }{% if not loop.last %},{% endif %}
+    {%- endfor %}
+    {%- endif %}
+    
+    ,
+    
+    "_comment": "Language-aware content properties",
+    "inLanguage": {
+      "@id": "schema:inLanguage",
+      "@type": "xsd:language"
+    },
+    "availableLanguage": {
+      "@id": "schema:availableLanguage",
+      "@type": "xsd:language",
+      "@container": "@set"
+    },
+    "contentLanguage": {
+      "@id": "dct:language",
+      "@type": "xsd:language"
+    },
+    
+    "_comment": "Translation and localization properties",
+    "translationOf": {
+      "@id": "schema:translationOf",
+      "@type": "@id"
+    },
+    "workTranslation": {
+      "@id": "schema:workTranslation",
+      "@type": "@id",
+      "@container": "@set"
+    },
+    "translator": {
+      "@id": "schema:translator",
+      "@type": "@id",
+      "@container": "@set"
+    },
+    
+    {% if includeTranslatedTerms -%}
+    "_comment": "Localized term mappings",
+    {% for lang in supportedLanguages -%}
+    {% set langName = lang | languageName -%}
+    "localizedTerms_{{ lang }}": {
+      "@id": "schema:name",
+      "@language": "{{ lang }}",
+      "@container": "@index"
+    }{% if not loop.last %},{% endif %}
+    {%- endfor %},
+    
+    "_comment": "Common localized labels",
+    "labels": {
+      "@id": "rdfs:label",
+      "@container": "@language"
+    },
+    "comments": {
+      "@id": "rdfs:comment",
+      "@container": "@language"
+    },
+    "titles": {
+      "@id": "dct:title",
+      "@container": "@language"
+    },
+    "subjects": {
+      "@id": "dct:subject",
+      "@container": "@language"
+    }
+    {% endif %}
+    
+    ,
+    
+    "_comment": "Geographic and cultural context",
+    "addressCountry": {
+      "@id": "schema:addressCountry",
+      "@type": "xsd:string"
+    },
+    "addressRegion": {
+      "@id": "schema:addressRegion", 
+      "@type": "xsd:string"
+    },
+    "addressLocality": {
+      "@id": "schema:addressLocality",
+      "@type": "xsd:string"
+    },
+    "culturalContext": {
+      "@id": "schema:spatialCoverage",
+      "@type": "@id"
+    },
+    
+    "_comment": "Temporal context with localization",
+    "dateCreated": {
+      "@id": "schema:dateCreated",
+      "@type": "xsd:dateTime"
+    },
+    "dateModified": {
+      "@id": "schema:dateModified", 
+      "@type": "xsd:dateTime"
+    },
+    "datePublished": {
+      "@id": "schema:datePublished",
+      "@type": "xsd:dateTime"
+    },
+    "temporalCoverage": {
+      "@id": "schema:temporalCoverage",
+      "@type": "xsd:string"
+    },
+    
+    "_comment": "Content format and encoding",
+    "encodingFormat": {
+      "@id": "schema:encodingFormat",
+      "@type": "xsd:string"
+    },
+    "fileFormat": {
+      "@id": "schema:fileFormat",
+      "@type": "xsd:string"
+    },
+    "contentSize": {
+      "@id": "schema:contentSize",
+      "@type": "xsd:string"
+    },
+    
+    "_comment": "Accessibility and internationalization",
+    "accessibilityFeature": {
+      "@id": "schema:accessibilityFeature",
+      "@type": "xsd:string",
+      "@container": "@set"
+    },
+    "accessibilityAPI": {
+      "@id": "schema:accessibilityAPI",
+      "@type": "xsd:string",
+      "@container": "@set"
+    },
+    "accessibilityControl": {
+      "@id": "schema:accessibilityControl",
+      "@type": "xsd:string",
+      "@container": "@set"
+    },
+    "accessibilityHazard": {
+      "@id": "schema:accessibilityHazard",
+      "@type": "xsd:string",
+      "@container": "@set"
+    },
+    "accessibilitySummary": {
+      "@id": "schema:accessibilitySummary",
+      "@container": "@language"
+    },
+    
+    "_comment": "Rights and licensing with localization",
+    "license": {
+      "@id": "schema:license",
+      "@type": "@id"
+    },
+    "copyrightHolder": {
+      "@id": "schema:copyrightHolder",
+      "@type": "@id"
+    },
+    "copyrightNotice": {
+      "@id": "schema:copyrightNotice",
+      "@container": "@language"
+    },
+    "usageInfo": {
+      "@id": "schema:usageInfo",
+      "@container": "@language"
+    }
+  }
+}

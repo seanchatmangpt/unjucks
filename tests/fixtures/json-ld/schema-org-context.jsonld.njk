@@ -1,0 +1,258 @@
+---
+to: "{{ outputDir }}/{{ contextName | kebabCase }}-context.jsonld"
+inject: false
+unless_exists: true
+variables:
+  - name: contextName
+    type: string
+    description: "Name of the JSON-LD context"
+  - name: outputDir
+    type: string
+    default: "./contexts"
+    description: "Output directory for context files"
+  - name: entityTypes
+    type: array
+    default: ["Product", "Organization", "Person"]
+    description: "Schema.org entity types to include"
+  - name: baseUri
+    type: string
+    default: "https://example.com"
+    description: "Base URI for local resources"
+  - name: includeCommonProperties
+    type: boolean
+    default: true
+    description: "Include common Schema.org properties"
+---
+{
+  "@context": {
+    "@version": 1.1,
+    "@base": "{{ baseUri | rdfResource }}/",
+    "@vocab": "https://schema.org/",
+    
+    {{- rdfNamespaces(['schema', 'dct', 'xsd', 'rdf', 'rdfs']) | dump | slice(1, -1) | safe }},
+    
+    {% for entityType in entityTypes -%}
+    "{{ entityType }}": {
+      "@id": "schema:{{ entityType }}",
+      "@type": "@id"
+    }{% if not loop.last %},{% endif %}
+    {%- endfor %}
+    
+    {% if includeCommonProperties %},
+    
+    "_comment": "Common Schema.org properties with proper typing",
+    "name": {
+      "@id": "schema:name",
+      "@type": "xsd:string"
+    },
+    "description": {
+      "@id": "schema:description",
+      "@type": "xsd:string"
+    },
+    "url": {
+      "@id": "schema:url",
+      "@type": "@id"
+    },
+    "image": {
+      "@id": "schema:image",
+      "@type": "@id"
+    },
+    "sameAs": {
+      "@id": "schema:sameAs",
+      "@type": "@id",
+      "@container": "@set"
+    },
+    "identifier": {
+      "@id": "schema:identifier",
+      "@type": "xsd:string"
+    },
+    "alternateName": {
+      "@id": "schema:alternateName",
+      "@type": "xsd:string",
+      "@container": "@set"
+    },
+    
+    "_comment": "Temporal properties",
+    "dateCreated": {
+      "@id": "schema:dateCreated",
+      "@type": "xsd:dateTime"
+    },
+    "dateModified": {
+      "@id": "schema:dateModified",
+      "@type": "xsd:dateTime"
+    },
+    "datePublished": {
+      "@id": "schema:datePublished",
+      "@type": "xsd:dateTime"
+    },
+    "expires": {
+      "@id": "schema:expires",
+      "@type": "xsd:dateTime"
+    },
+    "startDate": {
+      "@id": "schema:startDate",
+      "@type": "xsd:dateTime"
+    },
+    "endDate": {
+      "@id": "schema:endDate",
+      "@type": "xsd:dateTime"
+    },
+    
+    "_comment": "Relationship properties",
+    "author": {
+      "@id": "schema:author",
+      "@type": "@id"
+    },
+    "creator": {
+      "@id": "schema:creator",
+      "@type": "@id"
+    },
+    "publisher": {
+      "@id": "schema:publisher",
+      "@type": "@id"
+    },
+    "provider": {
+      "@id": "schema:provider",
+      "@type": "@id"
+    },
+    "contributor": {
+      "@id": "schema:contributor",
+      "@type": "@id",
+      "@container": "@set"
+    },
+    "about": {
+      "@id": "schema:about",
+      "@type": "@id",
+      "@container": "@set"
+    },
+    "mentions": {
+      "@id": "schema:mentions",
+      "@type": "@id",
+      "@container": "@set"
+    },
+    
+    "_comment": "Location and geographic properties",
+    "location": {
+      "@id": "schema:location",
+      "@type": "@id"
+    },
+    "address": {
+      "@id": "schema:address",
+      "@type": "@id"
+    },
+    "geo": {
+      "@id": "schema:geo",
+      "@type": "@id"
+    },
+    "latitude": {
+      "@id": "schema:latitude",
+      "@type": "xsd:decimal"
+    },
+    "longitude": {
+      "@id": "schema:longitude",
+      "@type": "xsd:decimal"
+    },
+    "elevation": {
+      "@id": "schema:elevation",
+      "@type": "xsd:decimal"
+    },
+    
+    "_comment": "Economic and pricing properties",
+    "price": {
+      "@id": "schema:price",
+      "@type": "xsd:decimal"
+    },
+    "priceCurrency": {
+      "@id": "schema:priceCurrency",
+      "@type": "xsd:string"
+    },
+    "priceRange": {
+      "@id": "schema:priceRange",
+      "@type": "xsd:string"
+    },
+    "offers": {
+      "@id": "schema:offers",
+      "@type": "@id",
+      "@container": "@set"
+    },
+    
+    "_comment": "Content and media properties",
+    "text": {
+      "@id": "schema:text",
+      "@type": "xsd:string"
+    },
+    "articleBody": {
+      "@id": "schema:articleBody",
+      "@type": "xsd:string"
+    },
+    "abstract": {
+      "@id": "schema:abstract",
+      "@type": "xsd:string"
+    },
+    "headline": {
+      "@id": "schema:headline",
+      "@type": "xsd:string"
+    },
+    "keywords": {
+      "@id": "schema:keywords",
+      "@type": "xsd:string",
+      "@container": "@set"
+    },
+    "genre": {
+      "@id": "schema:genre",
+      "@type": "xsd:string",
+      "@container": "@set"
+    },
+    "inLanguage": {
+      "@id": "schema:inLanguage",
+      "@type": "xsd:language"
+    },
+    
+    "_comment": "Rating and review properties",
+    "aggregateRating": {
+      "@id": "schema:aggregateRating",
+      "@type": "@id"
+    },
+    "review": {
+      "@id": "schema:review",
+      "@type": "@id",
+      "@container": "@set"
+    },
+    "ratingValue": {
+      "@id": "schema:ratingValue",
+      "@type": "xsd:decimal"
+    },
+    "bestRating": {
+      "@id": "schema:bestRating",
+      "@type": "xsd:decimal"
+    },
+    "worstRating": {
+      "@id": "schema:worstRating",
+      "@type": "xsd:decimal"
+    },
+    "ratingCount": {
+      "@id": "schema:ratingCount",
+      "@type": "xsd:integer"
+    },
+    
+    "_comment": "Contact and communication properties",
+    "email": {
+      "@id": "schema:email",
+      "@type": "xsd:string"
+    },
+    "telephone": {
+      "@id": "schema:telephone",
+      "@type": "xsd:string"
+    },
+    "faxNumber": {
+      "@id": "schema:faxNumber",
+      "@type": "xsd:string"
+    },
+    "contactPoint": {
+      "@id": "schema:contactPoint",
+      "@type": "@id",
+      "@container": "@set"
+    }
+    {% endif %}
+  }
+}

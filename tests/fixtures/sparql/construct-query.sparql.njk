@@ -1,0 +1,45 @@
+---
+to: <%= dest %>/queries/construct-<%= queryName %>.sparql
+inject: false
+---
+PREFIX ex: <{{ baseUri | rdfResource }}/>
+PREFIX schema: <http://schema.org/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+
+CONSTRUCT {
+  {% for triple in constructTriples %}
+  {{ triple.subject | sparqlVar }} {{ triple.predicate | rdfProperty }} {{ triple.object | sparqlValue }} .
+  {% endfor %}
+  
+  {% if derivedTriples %}
+  {% for derived in derivedTriples %}
+  {{ derived.subject | sparqlVar }} a {{ derived.type | schemaOrg }} .
+  {{ derived.subject | sparqlVar }} rdfs:label "{{ derived.label | sparqlString }}" .
+  {% endfor %}
+  {% endif %}
+}
+WHERE {
+  {% for pattern in wherePatterns %}
+  {{ pattern.subject | sparqlVar }} {{ pattern.predicate | rdfProperty }} {{ pattern.object | sparqlValue }} .
+  {% endfor %}
+  
+  {% if filters %}
+  {% for filter in filters %}
+  FILTER({{ filter | sparqlFilter }})
+  {% endfor %}
+  {% endif %}
+  
+  {% if subqueries %}
+  {% for subquery in subqueries %}
+  {
+    SELECT {{ subquery.variables | map('sparqlVar') | join(' ') }}
+    WHERE {
+      {% for pattern in subquery.patterns %}
+      {{ pattern.subject | sparqlVar }} {{ pattern.predicate | rdfProperty }} {{ pattern.object | sparqlValue }} .
+      {% endfor %}
+    }
+  }
+  {% endfor %}
+  {% endif %}
+}

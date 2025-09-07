@@ -1,0 +1,287 @@
+---
+to: "{{ collectionId | kebabCase }}/page-{{ page | default(1) }}.ttl"
+inject: true
+skipIf: "{{ skipExisting | default(false) }}"
+chmod: "644"
+---
+@base <{{ baseUri | rdfResource }}> .
+@prefix hydra: <http://www.w3.org/ns/hydra/core#> .
+@prefix dct: <http://purl.org/dc/terms/> .
+@prefix void: <http://rdfs.org/ns/void#> .
+@prefix schema: <http://schema.org/> .
+@prefix foaf: <http://xmlns.com/foaf/0.1/> .
+@prefix dcat: <http://www.w3.org/ns/dcat#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix prov: <http://www.w3.org/ns/prov#> .
+
+{% set pagination = paginate(items, page | default(1), pageSize | default(10)) -%}
+
+# Paginated Collection: {{ collectionTitle | titleCase }}
+<{{ collectionId | kebabCase }}/page-{{ pagination.page }}> a hydra:PartialCollectionView , schema:CollectionPage ;
+    
+    # Basic identification
+    dct:title {{ (collectionTitle + ' - Page ' + pagination.page) | titleCase | rdfLiteral('en') }} ;
+    {% if collectionDescription -%}
+    dct:description {{ (collectionDescription + ' (Page ' + pagination.page + ' of ' + pagination.totalPages + ')') | rdfLiteral('en') }} ;
+    {% endif -%}
+    
+    # Collection membership
+    hydra:collection <{{ collectionId | kebabCase }}> ;
+    schema:isPartOf <{{ collectionId | kebabCase }}> ;
+    
+    # Pagination metadata
+    hydra:first <{{ collectionId | kebabCase }}/page-1> ;
+    hydra:last <{{ collectionId | kebabCase }}/page-{{ pagination.totalPages }}> ;
+    {% if pagination.hasPrev -%}
+    hydra:previous <{{ collectionId | kebabCase }}/page-{{ pagination.prevPage }}> ;
+    {% endif -%}
+    {% if pagination.hasNext -%}
+    hydra:next <{{ collectionId | kebabCase }}/page-{{ pagination.nextPage }}> ;
+    {% endif -%}
+    
+    # Page-specific metadata
+    schema:pageStart {{ pagination.firstItemIndex | rdfLiteral('integer') }} ;
+    schema:pageEnd {{ pagination.lastItemIndex | rdfLiteral('integer') }} ;
+    hydra:totalItems {{ pagination.totalItems | rdfLiteral('integer') }} ;
+    
+    # Generated metadata
+    dct:created {{ now() | isoDate | rdfLiteral('dateTime') }} ;
+    dct:format {{ 'text/turtle' | contentType | rdfLiteral('string') }} ;
+    
+    # Members on this page
+    {% for item in pagination.items -%}
+    rdfs:member <{{ item.id | slug }}>{% if not loop.last %} ,{% endif %}
+    {% endfor %} ;
+    .
+
+# Collection-level metadata
+<{{ collectionId | kebabCase }}> a hydra:Collection , schema:Collection , void:Dataset ;
+    
+    # Basic information
+    dct:title {{ collectionTitle | titleCase | rdfLiteral('en') }} ;
+    {% if collectionDescription -%}
+    dct:description {{ collectionDescription | rdfLiteral('en') }} ;
+    {% endif -%}
+    
+    # Collection statistics
+    hydra:totalItems {{ pagination.totalItems | rdfLiteral('integer') }} ;
+    schema:numberOfItems {{ pagination.totalItems | rdfLiteral('integer') }} ;
+    void:entities {{ pagination.totalItems | rdfLiteral('integer') }} ;
+    
+    # Pagination structure
+    hydra:view <{{ collectionId | kebabCase }}/page-{{ pagination.page }}> ;
+    hydra:firstPage <{{ collectionId | kebabCase }}/page-1> ;
+    hydra:lastPage <{{ collectionId | kebabCase }}/page-{{ pagination.totalPages }}> ;
+    
+    # Collection type and themes
+    {% if collectionType -%}
+    dct:type <{{ collectionType | expandUri }}> ;
+    schema:additionalType <{{ collectionType | expandUri }}> ;
+    {% endif -%}
+    {% if themes -%}
+    {% for theme in themes -%}
+    dcat:theme <{{ theme.uri | default(theme | slug) }}>{% if not loop.last %} ,{% endif %}
+    {% endfor %} ;
+    {% endif -%}
+    
+    # Temporal information
+    {% if temporalCoverage -%}
+    dct:temporal [
+        a dct:PeriodOfTime ;
+        {% if temporalCoverage.start -%}
+        dcat:startDate {{ temporalCoverage.start | formatDate('YYYY-MM-DD') | rdfLiteral('date') }} ;
+        {% endif -%}
+        {% if temporalCoverage.end -%}
+        dcat:endDate {{ temporalCoverage.end | formatDate('YYYY-MM-DD') | rdfLiteral('date') }} ;
+        {% endif -%}
+    ] ;
+    {% endif -%}
+    
+    # Rights and access
+    {% if license -%}
+    dct:license <{{ license | licenseUri }}> ;
+    {% endif -%}
+    {% if accessRights -%}
+    dct:accessRights {{ accessRights | rdfLiteral('en') }} ;
+    {% endif -%}
+    
+    # Authorship
+    {% if creator -%}
+    dct:creator <{{ creator | slug }}> ;
+    {% endif -%}
+    {% if publisher -%}
+    dct:publisher <{{ publisher | slug }}> ;
+    {% endif -%}
+    
+    # API and access information
+    {% if apiEndpoint -%}
+    hydra:search [
+        a hydra:IriTemplate ;
+        hydra:template {{ (apiEndpoint + '?query={query}&page={page}') | rdfLiteral('string') }} ;
+        hydra:mapping [
+            hydra:variable "query" ;
+            hydra:property schema:query ;
+            hydra:required false ;
+        ] , [
+            hydra:variable "page" ;
+            hydra:property hydra:pageReference ;
+            hydra:required false ;
+        ] ;
+    ] ;
+    {% endif -%}
+    
+    # Content negotiation
+    schema:encodingFormat {{ 'text/turtle' | contentType | rdfLiteral('string') }} ;
+    .
+
+# Individual item descriptions on this page
+{% for item in pagination.items %}
+<{{ item.id | slug }}> a {{ item.type | default('schema:Thing') | schemaOrg }} ;
+    
+    # Basic properties
+    {% if item.title -%}
+    schema:name {{ item.title | titleCase | rdfLiteral('en') }} ;
+    dct:title {{ item.title | titleCase | rdfLiteral('en') }} ;
+    {% endif -%}
+    {% if item.description -%}
+    schema:description {{ item.description | rdfLiteral('en') }} ;
+    dct:description {{ item.description | rdfLiteral('en') }} ;
+    {% endif -%}
+    {% if item.identifier -%}
+    schema:identifier {{ item.identifier | rdfLiteral('string') }} ;
+    dct:identifier {{ item.identifier | rdfLiteral('string') }} ;
+    {% endif -%}
+    
+    # URLs and access
+    {% if item.url -%}
+    schema:url <{{ item.url }}> ;
+    {% endif -%}
+    {% if item.sameAs -%}
+    {% for sameAsUri in item.sameAs -%}
+    schema:sameAs <{{ sameAsUri }}>{% if not loop.last %} ,{% endif %}
+    {% endfor %} ;
+    {% endif -%}
+    
+    # Temporal properties
+    {% if item.created -%}
+    dct:created {{ item.created | isoDate | rdfLiteral('dateTime') }} ;
+    {% endif -%}
+    {% if item.modified -%}
+    dct:modified {{ item.modified | isoDate | rdfLiteral('dateTime') }} ;
+    {% endif -%}
+    {% if item.published -%}
+    schema:datePublished {{ item.published | isoDate | rdfLiteral('dateTime') }} ;
+    {% endif -%}
+    
+    # Authorship
+    {% if item.creator -%}
+    dct:creator <{{ item.creator | slug }}> ;
+    schema:creator <{{ item.creator | slug }}> ;
+    {% endif -%}
+    {% if item.author -%}
+    schema:author <{{ item.author | slug }}> ;
+    {% endif -%}
+    
+    # Categories and tags
+    {% if item.categories -%}
+    {% for category in item.categories -%}
+    dct:subject <{{ category.uri | default(category | slug) }}>{% if not loop.last %} ,{% endif %}
+    {% endfor %} ;
+    {% endif -%}
+    {% if item.tags -%}
+    {% for tag in item.tags -%}
+    schema:keywords {{ tag | rdfLiteral('en') }}{% if not loop.last %} ,{% endif %}
+    {% endfor %} ;
+    {% endif -%}
+    
+    # Collection membership
+    schema:isPartOf <{{ collectionId | kebabCase }}> ;
+    void:inDataset <{{ collectionId | kebabCase }}> ;
+    
+    # Position in collection
+    schema:position {{ loop.index0 + ((pagination.page - 1) * pagination.pageSize) | rdfLiteral('integer') }} ;
+    
+    # Type-specific properties
+    {% if item.type == 'person' -%}
+    {% if item.givenName -%}
+    foaf:givenName {{ item.givenName | rdfLiteral('en') }} ;
+    {% endif -%}
+    {% if item.familyName -%}
+    foaf:familyName {{ item.familyName | rdfLiteral('en') }} ;
+    {% endif -%}
+    {% if item.email -%}
+    foaf:mbox <mailto:{{ item.email }}> ;
+    {% endif -%}
+    {% endif -%}
+    
+    {% if item.type == 'organization' -%}
+    {% if item.legalName -%}
+    schema:legalName {{ item.legalName | rdfLiteral('en') }} ;
+    {% endif -%}
+    {% if item.address -%}
+    schema:address {{ item.address | rdfLiteral('en') }} ;
+    {% endif -%}
+    {% endif -%}
+    
+    {% if item.type == 'article' -%}
+    {% if item.wordCount -%}
+    schema:wordCount {{ item.wordCount | rdfLiteral('integer') }} ;
+    {% endif -%}
+    {% if item.language -%}
+    dct:language <http://id.loc.gov/vocabulary/iso639-1/{{ item.language }}> ;
+    {% endif -%}
+    {% endif -%}
+    
+    # Custom properties
+    {% if item.customProperties -%}
+    {% for prop, value in item.customProperties -%}
+    {{ prop | expandUri }} {{ value | rdfLiteral }}{% if not loop.last %} ;{% endif %}
+    {% endfor %} ;
+    {% endif -%}
+    .
+
+{% endfor %}
+
+# Navigation and browsing aids
+{% if facets -%}
+# Faceted browsing
+<{{ collectionId | kebabCase }}/facets> a hydra:Collection ;
+    dct:title {{ 'Faceted browsing for ' + collectionTitle | rdfLiteral('en') }} ;
+    {% for facet in facets -%}
+    hydra:member [
+        a schema:PropertyValueSpecification ;
+        schema:propertyID {{ facet.property | expandUri | rdfLiteral('string') }} ;
+        schema:name {{ facet.label | rdfLiteral('en') }} ;
+        schema:valueRequired false ;
+        {% if facet.values -%}
+        schema:multipleValues true ;
+        {% for value in facet.values -%}
+        schema:defaultValue {{ value.label | rdfLiteral('en') }}{% if not loop.last %} ,{% endif %}
+        {% endfor %} ;
+        {% endif -%}
+    ]{% if not loop.last %} ,{% endif %}
+    {% endfor %} .
+{% endif %}
+
+# Search and filtering capabilities
+{% if searchable -%}
+<{{ collectionId | kebabCase }}/search> a hydra:IriTemplate ;
+    hydra:template {{ (baseUri + collectionId | kebabCase + '?q={query}&type={type}&category={category}&page={page}') | rdfLiteral('string') }} ;
+    hydra:mapping 
+        [ hydra:variable "query" ; hydra:property schema:query ; hydra:required false ] ,
+        [ hydra:variable "type" ; hydra:property dct:type ; hydra:required false ] ,
+        [ hydra:variable "category" ; hydra:property dct:subject ; hydra:required false ] ,
+        [ hydra:variable "page" ; hydra:property hydra:pageReference ; hydra:required false ] ;
+    .
+
+<{{ collectionId | kebabCase }}> hydra:search <{{ collectionId | kebabCase }}/search> .
+{% endif %}
+
+# Provenance for this page
+<{{ collectionId | kebabCase }}/page-{{ pagination.page }}> prov:wasGeneratedBy [
+    a prov:Activity ;
+    prov:startedAtTime {{ now() | isoDate | rdfLiteral('dateTime') }} ;
+    prov:wasAssociatedWith <{{ generator | default('unjucks-collection-generator') | slug }}> ;
+    prov:used <{{ collectionId | kebabCase }}> ;
+] .

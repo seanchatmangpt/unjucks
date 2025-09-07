@@ -1,0 +1,97 @@
+#!/bin/bash
+# Pre-commit hook to prevent test data bloat
+# Blocks commits of large files, backup files, and common bloat patterns
+
+echo "🔍 Checking for test data bloat patterns..."
+
+# Get list of files to be committed
+staged_files=$(git diff --cached --name-only)
+
+if [ -z "$staged_files" ]; then
+    echo "✅ No files to check"
+    exit 0
+fi
+
+# Check for files larger than 1MB
+echo "📏 Checking file sizes..."
+large_files=""
+for file in $staged_files; do
+    if [ -f "$file" ]; then
+        size=$(du -k "$file" | cut -f1)
+        if [ "$size" -gt 1024 ]; then  # 1MB = 1024KB
+            size_mb=$(echo "scale=1; $size/1024" | bc 2>/dev/null || echo "${size}KB")
+            large_files="$large_files\n  - $file (${size_mb}MB)"
+        fi
+    fi
+done
+
+if [ -n "$large_files" ]; then
+    echo "❌ Large files detected (>1MB):"
+    echo -e "$large_files"
+    echo ""
+    echo "💡 Consider adding these to .gitignore or reducing their size"
+    exit 1
+fi
+
+# Check for backup files
+backup_files=$(echo "$staged_files" | grep -E '\.(bak|bak[0-9]|tmp)$|~$' || true)
+if [ -n "$backup_files" ]; then
+    echo "❌ Backup files detected:"
+    echo "$backup_files" | sed 's/^/  - /'
+    echo ""
+    echo "💡 Backup files should not be committed. Remove with:"
+    echo "   git reset HEAD $(echo "$backup_files" | tr '\n' ' ')"
+    exit 1
+fi
+
+# Check for test environment directories
+test_dirs=$(echo "$staged_files" | grep -E '^(validation-test/|.*mcp-env-|.*test-[0-9])' || true)
+if [ -n "$test_dirs" ]; then
+    echo "❌ Test environment files detected:"
+    echo "$test_dirs" | sed 's/^/  - /'
+    echo ""
+    echo "💡 Test environments should be temporary. Consider adding to .gitignore"
+    exit 1
+fi
+
+# Check for build artifacts
+build_files=$(echo "$staged_files" | grep -E '(\.nuxt/|\.output/|dist/|build/)' || true)
+if [ -n "$build_files" ]; then
+    echo "❌ Build artifacts detected:"
+    echo "$build_files" | sed 's/^/  - /'
+    echo ""
+    echo "💡 Build artifacts should not be committed. They should be in .gitignore"
+    exit 1
+fi
+
+# Check for large generated documentation
+large_docs=$(echo "$staged_files" | grep -E 'docs/.*-(REPORT|analysis-report|ANALYSIS-REPORT)\.md$' || true)
+if [ -n "$large_docs" ]; then
+    echo "⚠️  Large generated documentation detected:"
+    echo "$large_docs" | sed 's/^/  - /'
+    echo ""
+    echo "💡 Consider if these reports should be generated rather than committed"
+    echo "   Press Enter to continue anyway, or Ctrl+C to abort"
+    read
+fi
+
+# Check total size of commit
+total_size=0
+for file in $staged_files; do
+    if [ -f "$file" ]; then
+        size=$(du -k "$file" | cut -f1)
+        total_size=$((total_size + size))
+    fi
+done
+
+if [ "$total_size" -gt 5120 ]; then  # 5MB = 5120KB
+    size_mb=$(echo "scale=1; $total_size/1024" | bc 2>/dev/null || echo "${total_size}KB")
+    echo "⚠️  Large commit detected (${size_mb}MB total)"
+    echo ""
+    echo "💡 Consider splitting large commits or reviewing files"
+    echo "   Press Enter to continue anyway, or Ctrl+C to abort"
+    read
+fi
+
+echo "✅ Pre-commit checks passed"
+exit 0

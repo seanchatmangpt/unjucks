@@ -1,0 +1,422 @@
+{
+  "domain": "enterprise",
+  "baseUri": "http://example.org/kg",
+  "description": "Enterprise knowledge graph test dataset",
+  "version": "1.0.0",
+  "creator": "Unjucks KG Pipeline Test",
+  
+  "entities": [
+    {
+      "id": "person_001",
+      "name": "Alice Johnson",
+      "type": "Person",
+      "email": "alice.johnson@example.com",
+      "firstName": "Alice",
+      "lastName": "Johnson",
+      "birthDate": "1985-03-15",
+      "created": "2023-01-15T10:30:00",
+      "source": "http://example.org/hr-system",
+      "properties": {
+        "department": "Engineering",
+        "position": "Senior Developer",
+        "employeeId": "EMP001",
+        "startDate": "2020-06-01",
+        "skills": ["JavaScript", "Python", "React"]
+      }
+    },
+    {
+      "id": "person_002", 
+      "name": "Bob Smith",
+      "type": "Person",
+      "email": "bob.smith@example.com",
+      "firstName": "Bob",
+      "lastName": "Smith",
+      "birthDate": "1982-11-22",
+      "created": "2023-01-16T14:22:00",
+      "source": "http://example.org/hr-system",
+      "properties": {
+        "department": "Marketing",
+        "position": "Product Manager",
+        "employeeId": "EMP002",
+        "startDate": "2019-03-15",
+        "certifications": ["PMP", "Agile"]
+      }
+    },
+    {
+      "id": "org_001",
+      "name": "TechCorp Inc.",
+      "type": "Organization",
+      "website": "https://techcorp.example.com",
+      "industry": "Software Development",
+      "foundingDate": "2010-05-01",
+      "created": "2023-01-10T09:00:00",
+      "properties": {
+        "employees": 500,
+        "revenue": 50000000,
+        "headquarters": "San Francisco, CA",
+        "stockSymbol": "TECH"
+      }
+    },
+    {
+      "id": "product_001",
+      "name": "DataFlow Pro",
+      "type": "Product",
+      "price": 299.99,
+      "currency": "USD",
+      "brand": "TechCorp",
+      "created": "2023-02-01T12:00:00",
+      "properties": {
+        "category": "Software",
+        "version": "2.1.0",
+        "releaseDate": "2023-01-30",
+        "features": ["Real-time Processing", "Cloud Integration", "Analytics"]
+      }
+    }
+  ],
+
+  "geospatialEntities": [
+    {
+      "id": "location_001",
+      "name": "TechCorp Headquarters",
+      "latitude": 37.7749,
+      "longitude": -122.4194,
+      "address": "123 Innovation Drive, San Francisco, CA",
+      "postalCode": "94105",
+      "country": "United States"
+    },
+    {
+      "id": "location_002", 
+      "name": "Development Center",
+      "latitude": 40.7128,
+      "longitude": -74.0060,
+      "address": "456 Tech Avenue, New York, NY",
+      "postalCode": "10001",
+      "country": "United States"
+    }
+  ],
+
+  "temporalEntities": [
+    {
+      "id": "event_001",
+      "name": "Product Launch",
+      "startDate": "2023-01-30T10:00:00",
+      "endDate": "2023-01-30T18:00:00",
+      "duration": "PT8H",
+      "location": "location_001"
+    },
+    {
+      "id": "event_002",
+      "name": "Annual Conference",
+      "startDate": "2023-06-15T09:00:00", 
+      "endDate": "2023-06-17T17:00:00",
+      "duration": "P3D",
+      "location": "location_002"
+    }
+  ],
+
+  "relationships": [
+    {
+      "subject": "person_001",
+      "predicate": "worksFor",
+      "object": "org_001",
+      "confidence": 0.95
+    },
+    {
+      "subject": "person_002",
+      "predicate": "worksFor", 
+      "object": "org_001",
+      "confidence": 0.98
+    },
+    {
+      "subject": "org_001",
+      "predicate": "produces",
+      "object": "product_001"
+    },
+    {
+      "subject": "person_001",
+      "predicate": "developed",
+      "object": "product_001",
+      "validFrom": "2022-01-01T00:00:00",
+      "validTo": "2023-01-30T23:59:59"
+    }
+  ],
+
+  "hierarchicalRelationships": [
+    {
+      "child": "person_001",
+      "parent": "org_001",
+      "type": "memberOf",
+      "level": 1,
+      "path": "/org_001/person_001"
+    },
+    {
+      "child": "product_001",
+      "parent": "org_001", 
+      "type": "partOf",
+      "level": 1,
+      "path": "/org_001/product_001"
+    }
+  ],
+
+  "networkRelationships": [
+    {
+      "from": "person_001",
+      "to": "person_002",
+      "type": "collaboratesWith",
+      "weight": 0.8,
+      "directed": false
+    }
+  ],
+
+  "qualifiedRelationships": [
+    {
+      "id": "qual_001",
+      "subject": "person_001",
+      "predicate": "manages",
+      "object": "product_001",
+      "qualifierType": "ProjectManagement",
+      "qualifiers": {
+        "role": "Technical Lead",
+        "startDate": "2022-06-01",
+        "responsibility": "Architecture Design",
+        "budget": 100000
+      },
+      "timestamp": "2023-01-15T10:30:00",
+      "source": "http://example.org/project-system"
+    }
+  ],
+
+  "inverseRelationships": [
+    {
+      "subject": "person_001",
+      "object": "org_001", 
+      "inversePredicate": "employs"
+    },
+    {
+      "subject": "product_001",
+      "object": "org_001",
+      "inversePredicate": "ownedBy"
+    }
+  ],
+
+  "classAlignments": [
+    {
+      "localClass": "Employee",
+      "label": "Employee",
+      "description": "A person employed by an organization",
+      "schemaOrg": "Person",
+      "subClassOf": ["http://schema.org/Person"],
+      "restrictions": [
+        {
+          "property": "worksFor",
+          "type": "someValuesFrom",
+          "class": "Organization"
+        }
+      ]
+    },
+    {
+      "localClass": "Company",
+      "label": "Company", 
+      "description": "A commercial organization",
+      "schemaOrg": "Organization",
+      "equivalentClass": "http://schema.org/Corporation"
+    }
+  ],
+
+  "propertyAlignments": [
+    {
+      "localProperty": "worksFor",
+      "label": "works for",
+      "description": "Indicates employment relationship",
+      "type": "object",
+      "domain": "Person",
+      "range": "Organization",
+      "schemaOrg": "worksFor",
+      "functional": false,
+      "inverseFunctional": false
+    },
+    {
+      "localProperty": "employeeId",
+      "label": "employee identifier",
+      "description": "Unique identifier for an employee",
+      "type": "data",
+      "domain": "Person", 
+      "range": "string",
+      "schemaOrg": "identifier",
+      "functional": true
+    }
+  ],
+
+  "vocabularyMappings": [
+    {
+      "concept": "SoftwareDevelopment",
+      "prefLabel": "Software Development",
+      "altLabels": ["Programming", "Coding", "Development"],
+      "definition": "The process of creating software applications",
+      "inScheme": "IndustryClassification",
+      "broader": ["Technology"],
+      "narrower": ["WebDevelopment", "MobileDevelopment"],
+      "related": ["SoftwareEngineering"],
+      "exactMatch": ["http://dbpedia.org/resource/Software_development"],
+      "closeMatch": ["http://example.org/industries#software"]
+    }
+  ],
+
+  "conceptSchemes": [
+    {
+      "name": "IndustryClassification",
+      "title": "Industry Classification Scheme",
+      "description": "Classification of business industries",
+      "creator": "TechCorp Standards Team",
+      "hasTopConcept": ["Technology", "Manufacturing", "Services"]
+    }
+  ],
+
+  "crosswalkMappings": [
+    {
+      "source": "employeeId",
+      "target": "http://schema.org/identifier",
+      "sourceVocabulary": "http://example.org/kg/enterprise/",
+      "targetVocabulary": "http://schema.org/",
+      "mappingType": "equivalentProperty",
+      "confidence": 0.9,
+      "notes": "Direct mapping to Schema.org identifier"
+    }
+  ],
+
+  "sourceSystems": [
+    {
+      "name": "hr-system",
+      "title": "Human Resources Management System",
+      "description": "Corporate HR database containing employee information",
+      "url": "http://example.org/hr-system",
+      "format": "application/json",
+      "size": 1024000,
+      "lastModified": "2023-01-15T08:00:00",
+      "license": "http://creativecommons.org/licenses/by/4.0/",
+      "publisher": "TechCorp IT Department",
+      "completeness": 0.95,
+      "accuracy": 0.92,
+      "consistency": 0.88
+    }
+  ],
+
+  "transformations": [
+    {
+      "name": "employee-normalization",
+      "description": "Normalize employee data from HR system",
+      "type": "DataCleaning",
+      "startTime": "2023-01-15T09:00:00",
+      "endTime": "2023-01-15T09:15:00", 
+      "duration": "PT15M",
+      "inputRecords": 1000,
+      "outputRecords": 995,
+      "errorRecords": 5,
+      "rules": [
+        "Email validation and normalization",
+        "Name standardization",
+        "Date format conversion"
+      ]
+    }
+  ],
+
+  "qualityMetrics": {
+    "completeness": {
+      "overall": 0.87,
+      "entities": 0.92,
+      "relationships": 0.85,
+      "attributes": 0.83
+    },
+    "accuracy": {
+      "overall": 0.91,
+      "syntactic": 0.95,
+      "semantic": 0.88
+    },
+    "consistency": {
+      "overall": 0.89,
+      "logical": 0.93,
+      "representational": 0.85
+    },
+    "coverage": {
+      "domain": 0.78,
+      "temporal": "2020-2023",
+      "geographic": "NorthAmerica"
+    },
+    "timeliness": {
+      "freshness": 0.85,
+      "updateFrequency": "daily",
+      "lastUpdate": "2023-01-15"
+    }
+  },
+
+  "statistics": {
+    "totalTriples": 2847,
+    "totalEntities": 158,
+    "totalClasses": 12,
+    "totalProperties": 24,
+    "averageDegree": 3.2,
+    "maxDegree": 15,
+    "clusteringCoefficient": 0.42,
+    "averagePathLength": 2.8
+  },
+
+  "versions": [
+    {
+      "number": "1.0.0",
+      "releaseDate": "2023-01-01",
+      "description": "Initial knowledge graph version",
+      "changes": 2847,
+      "additions": 2847,
+      "deletions": 0,
+      "modifications": 0
+    },
+    {
+      "number": "1.0.1", 
+      "releaseDate": "2023-01-15",
+      "description": "Updated employee information",
+      "changes": 23,
+      "previousVersion": "1.0.0",
+      "additions": 15,
+      "deletions": 3,
+      "modifications": 5
+    }
+  ],
+
+  "license": {
+    "title": "Creative Commons Attribution 4.0",
+    "url": "http://creativecommons.org/licenses/by/4.0/",
+    "description": "Free to use with attribution",
+    "permissions": ["commercial use", "distribution", "modification"],
+    "restrictions": ["trademark use"],
+    "obligations": ["attribution", "include license"]
+  },
+
+  "usageStats": {
+    "totalQueries": 15420,
+    "uniqueUsers": 47,
+    "averageResponseTime": 0.23,
+    "mostQueriedEntity": "person_001",
+    "peakUsageTime": "14:00:00",
+    "lastAccessed": "2023-01-15T16:45:00"
+  },
+
+  "contact": {
+    "organizationName": "TechCorp Knowledge Graph Team",
+    "email": "kg-team@techcorp.example.com",
+    "phone": "+1-555-0123",
+    "website": "https://techcorp.example.com/kg",
+    "address": {
+      "street": "123 Innovation Drive",
+      "city": "San Francisco",
+      "postalCode": "94105",
+      "country": "United States"
+    }
+  },
+
+  "organization": {
+    "name": "TechCorp Inc.",
+    "website": "https://techcorp.example.com",
+    "email": "contact@techcorp.example.com",
+    "address": "123 Innovation Drive, San Francisco, CA 94105"
+  }
+}

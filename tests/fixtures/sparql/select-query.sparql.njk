@@ -1,0 +1,57 @@
+---
+to: <%= dest %>/queries/select-<%= queryName %>.sparql
+inject: false
+---
+PREFIX ex: <{{ baseUri | rdfResource }}/>
+PREFIX schema: <http://schema.org/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+
+SELECT {{ variables | map('sparqlVar') | join(' ') }}{% if distinct %} DISTINCT{% endif %}
+WHERE {
+  {% for pattern in patterns %}
+  {{ pattern.subject | sparqlVar }} {{ pattern.predicate | rdfProperty }} {{ pattern.object | sparqlValue }} .
+  {% endfor %}
+  
+  {% if filters %}
+  {% for filter in filters %}
+  FILTER({{ filter | sparqlFilter }})
+  {% endfor %}
+  {% endif %}
+  
+  {% if optionalPatterns %}
+  {% for optional in optionalPatterns %}
+  OPTIONAL {
+    {{ optional.subject | sparqlVar }} {{ optional.predicate | rdfProperty }} {{ optional.object | sparqlValue }} .
+  }
+  {% endfor %}
+  {% endif %}
+  
+  {% if unionPatterns %}
+  {
+    {% for union in unionPatterns %}
+    {% if not loop.first %}UNION{% endif %}
+    {
+      {% for pattern in union %}
+      {{ pattern.subject | sparqlVar }} {{ pattern.predicate | rdfProperty }} {{ pattern.object | sparqlValue }} .
+      {% endfor %}
+    }
+    {% endfor %}
+  }
+  {% endif %}
+}
+{% if groupBy %}
+GROUP BY {{ groupBy | map('sparqlVar') | join(' ') }}
+{% endif %}
+{% if having %}
+HAVING {{ having | sparqlFilter }}
+{% endif %}
+{% if orderBy %}
+ORDER BY {{ orderBy | map('sparqlOrderBy') | join(' ') }}
+{% endif %}
+{% if limit %}
+LIMIT {{ limit }}
+{% endif %}
+{% if offset %}
+OFFSET {{ offset }}
+{% endif %}

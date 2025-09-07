@@ -1,0 +1,458 @@
+---
+to: "{{ outputDir }}/ecommerce-context.jsonld"
+inject: false
+unless_exists: true
+variables:
+  - name: outputDir
+    type: string
+    default: "./contexts"
+  - name: storeName
+    type: string
+    default: "Example Store"
+  - name: baseUri
+    type: string
+    default: "https://store.example.com"
+  - name: includePricing
+    type: boolean
+    default: true
+  - name: includeInventory
+    type: boolean
+    default: true
+  - name: includeReviews
+    type: boolean
+    default: true
+---
+{
+  "@context": {
+    "@version": 1.1,
+    "@base": "{{ baseUri | rdfResource }}/",
+    "@vocab": "https://schema.org/",
+    
+    {{- rdfNamespaces(['schema', 'dct', 'xsd', 'rdf', 'rdfs', 'gr']) | dump | slice(1, -1) | safe }},
+    
+    "_comment": "Core e-commerce entity types",
+    "Product": "schema:Product",
+    "ProductModel": "schema:ProductModel", 
+    "Brand": "schema:Brand",
+    "Organization": "schema:Organization",
+    "Offer": "schema:Offer",
+    "AggregateOffer": "schema:AggregateOffer",
+    "Demand": "schema:Demand",
+    "ItemAvailability": "schema:ItemAvailability",
+    
+    "_comment": "Product identification and classification",
+    "sku": {
+      "@id": "schema:sku",
+      "@type": "xsd:string"
+    },
+    "gtin": {
+      "@id": "schema:gtin", 
+      "@type": "xsd:string"
+    },
+    "gtin8": {
+      "@id": "schema:gtin8",
+      "@type": "xsd:string"
+    },
+    "gtin12": {
+      "@id": "schema:gtin12",
+      "@type": "xsd:string"
+    },
+    "gtin13": {
+      "@id": "schema:gtin13",
+      "@type": "xsd:string"
+    },
+    "gtin14": {
+      "@id": "schema:gtin14",
+      "@type": "xsd:string"
+    },
+    "mpn": {
+      "@id": "schema:mpn",
+      "@type": "xsd:string"
+    },
+    "productID": {
+      "@id": "schema:productID",
+      "@type": "xsd:string"
+    },
+    "model": {
+      "@id": "schema:model",
+      "@type": "xsd:string"
+    },
+    "category": {
+      "@id": "schema:category",
+      "@type": "xsd:string",
+      "@container": "@set"
+    },
+    "additionalType": {
+      "@id": "schema:additionalType",
+      "@type": "@id",
+      "@container": "@set"
+    },
+    
+    "_comment": "Product attributes and specifications",
+    "name": {
+      "@id": "schema:name",
+      "@type": "xsd:string"
+    },
+    "description": {
+      "@id": "schema:description",
+      "@type": "xsd:string"
+    },
+    "disambiguatingDescription": {
+      "@id": "schema:disambiguatingDescription",
+      "@type": "xsd:string"
+    },
+    "alternateName": {
+      "@id": "schema:alternateName",
+      "@type": "xsd:string",
+      "@container": "@set"
+    },
+    "color": {
+      "@id": "schema:color",
+      "@type": "xsd:string",
+      "@container": "@set"
+    },
+    "size": {
+      "@id": "schema:size",
+      "@type": "xsd:string",
+      "@container": "@set"
+    },
+    "material": {
+      "@id": "schema:material",
+      "@type": "xsd:string",
+      "@container": "@set"
+    },
+    "weight": {
+      "@id": "schema:weight",
+      "@type": "xsd:string"
+    },
+    "width": {
+      "@id": "schema:width",
+      "@type": "xsd:string"
+    },
+    "height": {
+      "@id": "schema:height",
+      "@type": "xsd:string"
+    },
+    "depth": {
+      "@id": "schema:depth",
+      "@type": "xsd:string"
+    },
+    
+    "_comment": "Brand and manufacturer information",
+    "brand": {
+      "@id": "schema:brand",
+      "@type": "@id"
+    },
+    "manufacturer": {
+      "@id": "schema:manufacturer",
+      "@type": "@id"
+    },
+    "logo": {
+      "@id": "schema:logo",
+      "@type": "@id"
+    },
+    
+    "_comment": "Media and visual content",
+    "image": {
+      "@id": "schema:image",
+      "@type": "@id",
+      "@container": "@set"
+    },
+    "video": {
+      "@id": "schema:video",
+      "@type": "@id",
+      "@container": "@set"
+    },
+    "thumbnail": {
+      "@id": "schema:thumbnail",
+      "@type": "@id"
+    },
+    
+    {% if includePricing -%}
+    "_comment": "Pricing and offers",
+    "offers": {
+      "@id": "schema:offers",
+      "@type": "@id",
+      "@container": "@set"
+    },
+    "price": {
+      "@id": "schema:price",
+      "@type": "xsd:decimal"
+    },
+    "priceCurrency": {
+      "@id": "schema:priceCurrency",
+      "@type": "xsd:string"
+    },
+    "priceRange": {
+      "@id": "schema:priceRange",
+      "@type": "xsd:string"
+    },
+    "lowPrice": {
+      "@id": "schema:lowPrice",
+      "@type": "xsd:decimal"
+    },
+    "highPrice": {
+      "@id": "schema:highPrice",
+      "@type": "xsd:decimal"
+    },
+    "offerCount": {
+      "@id": "schema:offerCount",
+      "@type": "xsd:integer"
+    },
+    "priceValidUntil": {
+      "@id": "schema:priceValidUntil",
+      "@type": "xsd:date"
+    },
+    "validFrom": {
+      "@id": "schema:validFrom",
+      "@type": "xsd:dateTime"
+    },
+    "validThrough": {
+      "@id": "schema:validThrough",
+      "@type": "xsd:dateTime"
+    },
+    "discount": {
+      "@id": "schema:discount",
+      "@type": "xsd:decimal"
+    },
+    "discountCode": {
+      "@id": "schema:discountCode",
+      "@type": "xsd:string"
+    },
+    "discountCurrency": {
+      "@id": "schema:discountCurrency",
+      "@type": "xsd:string"
+    },
+    {% endif %}
+    
+    {% if includeInventory -%}
+    "_comment": "Inventory and availability",
+    "availability": {
+      "@id": "schema:availability",
+      "@type": "@id"
+    },
+    "inventoryLevel": {
+      "@id": "schema:inventoryLevel",
+      "@type": "xsd:integer"
+    },
+    "deliveryLeadTime": {
+      "@id": "schema:deliveryLeadTime",
+      "@type": "xsd:duration"
+    },
+    "availabilityStarts": {
+      "@id": "schema:availabilityStarts",
+      "@type": "xsd:dateTime"
+    },
+    "availabilityEnds": {
+      "@id": "schema:availabilityEnds",
+      "@type": "xsd:dateTime"
+    },
+    "availableAtOrFrom": {
+      "@id": "schema:availableAtOrFrom",
+      "@type": "@id"
+    },
+    "availableDeliveryMethod": {
+      "@id": "schema:availableDeliveryMethod",
+      "@type": "@id",
+      "@container": "@set"
+    },
+    "businessFunction": {
+      "@id": "schema:businessFunction",
+      "@type": "@id"
+    },
+    "itemCondition": {
+      "@id": "schema:itemCondition",
+      "@type": "@id"
+    },
+    "warranty": {
+      "@id": "schema:warranty",
+      "@type": "@id"
+    },
+    {% endif %}
+    
+    {% if includeReviews -%}
+    "_comment": "Reviews and ratings",
+    "Review": "schema:Review",
+    "AggregateRating": "schema:AggregateRating",
+    "Rating": "schema:Rating",
+    
+    "review": {
+      "@id": "schema:review",
+      "@type": "@id",
+      "@container": "@set"
+    },
+    "aggregateRating": {
+      "@id": "schema:aggregateRating",
+      "@type": "@id"
+    },
+    "ratingValue": {
+      "@id": "schema:ratingValue",
+      "@type": "xsd:decimal"
+    },
+    "bestRating": {
+      "@id": "schema:bestRating",
+      "@type": "xsd:decimal"
+    },
+    "worstRating": {
+      "@id": "schema:worstRating",
+      "@type": "xsd:decimal"
+    },
+    "ratingCount": {
+      "@id": "schema:ratingCount",
+      "@type": "xsd:integer"
+    },
+    "reviewCount": {
+      "@id": "schema:reviewCount",
+      "@type": "xsd:integer"
+    },
+    "reviewBody": {
+      "@id": "schema:reviewBody",
+      "@type": "xsd:string"
+    },
+    "reviewRating": {
+      "@id": "schema:reviewRating",
+      "@type": "@id"
+    },
+    "author": {
+      "@id": "schema:author",
+      "@type": "@id"
+    },
+    "datePublished": {
+      "@id": "schema:datePublished",
+      "@type": "xsd:dateTime"
+    },
+    "publisher": {
+      "@id": "schema:publisher",
+      "@type": "@id"
+    },
+    {% endif %}
+    
+    "_comment": "Shopping and commerce actions",
+    "AddAction": "schema:AddAction",
+    "BuyAction": "schema:BuyAction",
+    "OrderAction": "schema:OrderAction",
+    "PayAction": "schema:PayAction",
+    "ReturnAction": "schema:ReturnAction",
+    
+    "seller": {
+      "@id": "schema:seller",
+      "@type": "@id"
+    },
+    "vendor": {
+      "@id": "schema:vendor",
+      "@type": "@id"
+    },
+    "buyer": {
+      "@id": "schema:buyer",
+      "@type": "@id"
+    },
+    "customer": {
+      "@id": "schema:customer",
+      "@type": "@id"
+    },
+    
+    "_comment": "Product relationships and recommendations",
+    "isRelatedTo": {
+      "@id": "schema:isRelatedTo",
+      "@type": "@id",
+      "@container": "@set"
+    },
+    "isSimilarTo": {
+      "@id": "schema:isSimilarTo",
+      "@type": "@id",
+      "@container": "@set"
+    },
+    "isAccessoryOrSparePartFor": {
+      "@id": "schema:isAccessoryOrSparePartFor",
+      "@type": "@id",
+      "@container": "@set"
+    },
+    "isConsumableFor": {
+      "@id": "schema:isConsumableFor",
+      "@type": "@id",
+      "@container": "@set"
+    },
+    "isPartOf": {
+      "@id": "schema:isPartOf",
+      "@type": "@id"
+    },
+    "hasPart": {
+      "@id": "schema:hasPart",
+      "@type": "@id",
+      "@container": "@set"
+    },
+    "itemListElement": {
+      "@id": "schema:itemListElement",
+      "@type": "@id",
+      "@container": "@list"
+    },
+    
+    "_comment": "SEO and discoverability",
+    "keywords": {
+      "@id": "schema:keywords",
+      "@type": "xsd:string",
+      "@container": "@set"
+    },
+    "mainEntityOfPage": {
+      "@id": "schema:mainEntityOfPage",
+      "@type": "@id"
+    },
+    "url": {
+      "@id": "schema:url",
+      "@type": "@id"
+    },
+    "sameAs": {
+      "@id": "schema:sameAs",
+      "@type": "@id",
+      "@container": "@set"
+    },
+    "potentialAction": {
+      "@id": "schema:potentialAction",
+      "@type": "@id",
+      "@container": "@set"
+    },
+    
+    "_comment": "Temporal metadata",
+    "dateCreated": {
+      "@id": "schema:dateCreated",
+      "@type": "xsd:dateTime"
+    },
+    "dateModified": {
+      "@id": "schema:dateModified",
+      "@type": "xsd:dateTime"
+    },
+    "releaseDate": {
+      "@id": "schema:releaseDate",
+      "@type": "xsd:date"
+    },
+    "discontinuedDate": {
+      "@id": "schema:discontinuedDate",
+      "@type": "xsd:date"
+    },
+    
+    "_comment": "Shipping and fulfillment",
+    "shippingDetails": {
+      "@id": "schema:shippingDetails",
+      "@type": "@id"
+    },
+    "hasMerchantReturnPolicy": {
+      "@id": "schema:hasMerchantReturnPolicy",
+      "@type": "@id"
+    },
+    "areaServed": {
+      "@id": "schema:areaServed",
+      "@type": "@id",
+      "@container": "@set"
+    },
+    "eligibleRegion": {
+      "@id": "schema:eligibleRegion",
+      "@type": "@id",
+      "@container": "@set"
+    },
+    "ineligibleRegion": {
+      "@id": "schema:ineligibleRegion",
+      "@type": "@id",
+      "@container": "@set"
+    }
+  }
+}

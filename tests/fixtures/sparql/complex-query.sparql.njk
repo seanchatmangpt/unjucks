@@ -1,0 +1,75 @@
+---
+to: <%= dest %>/queries/complex-<%= queryName %>.sparql
+inject: false
+---
+PREFIX ex: <{{ baseUri | rdfResource }}/>
+PREFIX schema: <http://schema.org/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX geo: <http://www.w3.org/2003/01/geo/wgs84_pos#>
+
+SELECT {{ variables | map('sparqlVar') | join(' ') }}
+       {{ aggregations | map('sparqlAggregation') | join(' ') }}
+WHERE {
+  {% if namedGraphs %}
+  {% for graph in namedGraphs %}
+  GRAPH {{ graph | rdfResource }} {
+    {% for pattern in graph.patterns %}
+    {{ pattern.subject | sparqlVar }} {{ pattern.predicate | rdfProperty }} {{ pattern.object | sparqlValue }} .
+    {% endfor %}
+  }
+  {% endfor %}
+  {% endif %}
+  
+  {% for pattern in patterns %}
+  {{ pattern.subject | sparqlVar }} {% if pattern.propertyPath %}{{ pattern.propertyPath | sparqlPropertyPath }}{% else %}{{ pattern.predicate | rdfProperty }}{% endif %} {{ pattern.object | sparqlValue }} .
+  {% endfor %}
+  
+  {% if regexFilters %}
+  {% for regex in regexFilters %}
+  FILTER(regex({{ regex.variable | sparqlVar }}, "{{ regex.pattern | escapeRegex }}"{% if regex.flags %}, "{{ regex.flags }}"{% endif %}))
+  {% endfor %}
+  {% endif %}
+  
+  {% if languageFilters %}
+  {% for langFilter in languageFilters %}
+  FILTER(lang({{ langFilter.variable | sparqlVar }}) = "{{ langFilter.language }}")
+  {% endfor %}
+  {% endif %}
+  
+  {% if datatypeFilters %}
+  {% for dtFilter in datatypeFilters %}
+  FILTER(datatype({{ dtFilter.variable | sparqlVar }}) = {{ dtFilter.datatype | rdfDatatype }})
+  {% endfor %}
+  {% endif %}
+  
+  {% if boundFilters %}
+  {% for bound in boundFilters %}
+  FILTER({% if bound.negated %}!{% endif %}bound({{ bound.variable | sparqlVar }}))
+  {% endfor %}
+  {% endif %}
+  
+  {% if existsPatterns %}
+  {% for exists in existsPatterns %}
+  FILTER({% if exists.negated %}NOT {% endif %}EXISTS {
+    {% for pattern in exists.patterns %}
+    {{ pattern.subject | sparqlVar }} {{ pattern.predicate | rdfProperty }} {{ pattern.object | sparqlValue }} .
+    {% endfor %}
+  })
+  {% endfor %}
+  {% endif %}
+  
+  {% if serviceQueries %}
+  {% for service in serviceQueries %}
+  SERVICE {% if service.silent %}SILENT {% endif %}{{ service.endpoint | rdfResource }} {
+    {% for pattern in service.patterns %}
+    {{ pattern.subject | sparqlVar }} {{ pattern.predicate | rdfProperty }} {{ pattern.object | sparqlValue }} .
+    {% endfor %}
+  }
+  {% endfor %}
+  {% endif %}
+}
+GROUP BY {{ groupBy | map('sparqlVar') | join(' ') }}
+HAVING {{ havingConditions | map('sparqlFilter') | join(' && ') }}
+ORDER BY {{ orderBy | map('sparqlOrderBy') | join(' ') }}
+LIMIT {{ limit | default(100) }}

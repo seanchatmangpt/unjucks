@@ -1,0 +1,215 @@
+---
+to: generated/ontologies/<%= name | kebabCase %>-upper.owl
+inject: false
+sh: "echo 'Generated upper ontology: <%= name %>'"
+---
+@prefix {{ nsPrefix | kebabCase }}: <{{ namespace | rdfResource }}/> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix rdf: <http://www.w3.org/RDF/1999/02/22-rdf-syntax-ns#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix time: <http://www.w3.org/2006/time#> .
+@prefix prov: <http://www.w3.org/ns/prov#> .
+@base <{{ namespace | rdfResource }}/> .
+
+# Upper Ontology: Abstract Conceptual Framework
+<{{ namespace | rdfResource }}/> rdf:type owl:Ontology ;
+    owl:versionIRI <{{ namespace | rdfResource }}/{{ version | default('1.0.0') }}/> ;
+    owl:versionInfo "{{ version | default('1.0.0') | rdfLiteral('en') }}" ;
+    rdfs:label "{{ title | titleCase }} Upper Ontology" ;
+    rdfs:comment "{{ description | default('Upper-level ontological framework defining fundamental concepts and relations') | rdfLiteral('en') }}" ;
+    owl:imports <http://www.w3.org/2002/07/owl#> ,
+                <http://www.w3.org/2006/time#> ,
+                <http://www.w3.org/ns/prov#> .
+
+# Top-level Abstract Classes
+{{ nsPrefix | kebabCase }}:Entity rdf:type owl:Class ;
+    rdfs:label "Entity" ;
+    rdfs:comment "The most general class representing anything that exists or can be conceived of" ;
+    owl:equivalentClass owl:Thing ;
+    rdfs:isDefinedBy <{{ namespace | rdfResource }}/> .
+
+{{ nsPrefix | kebabCase }}:Abstract rdf:type owl:Class ;
+    rdfs:label "Abstract Entity" ;
+    rdfs:comment "Entities that do not have physical existence" ;
+    rdfs:subClassOf {{ nsPrefix | kebabCase }}:Entity ;
+    owl:disjointWith {{ nsPrefix | kebabCase }}:Concrete ;
+    rdfs:isDefinedBy <{{ namespace | rdfResource }}/> .
+
+{{ nsPrefix | kebabCase }}:Concrete rdf:type owl:Class ;
+    rdfs:label "Concrete Entity" ;
+    rdfs:comment "Entities that have physical existence" ;
+    rdfs:subClassOf {{ nsPrefix | kebabCase }}:Entity ;
+    owl:disjointWith {{ nsPrefix | kebabCase }}:Abstract ;
+    rdfs:isDefinedBy <{{ namespace | rdfResource }}/> .
+
+# Temporal Classes
+{{ nsPrefix | kebabCase }}:TemporalEntity rdf:type owl:Class ;
+    rdfs:label "Temporal Entity" ;
+    rdfs:comment "Entities that exist in time" ;
+    rdfs:subClassOf {{ nsPrefix | kebabCase }}:Abstract ;
+    owl:equivalentClass [
+        rdf:type owl:Restriction ;
+        owl:onProperty {{ nsPrefix | kebabCase }}:hasTemporalExtent ;
+        owl:someValuesFrom time:TemporalEntity
+    ] ;
+    rdfs:isDefinedBy <{{ namespace | rdfResource }}/> .
+
+{{ nsPrefix | kebabCase }}:Event rdf:type owl:Class ;
+    rdfs:label "Event" ;
+    rdfs:comment "Occurrences or happenings in time" ;
+    rdfs:subClassOf {{ nsPrefix | kebabCase }}:TemporalEntity ;
+    rdfs:subClassOf [
+        rdf:type owl:Restriction ;
+        owl:onProperty {{ nsPrefix | kebabCase }}:hasParticipant ;
+        owl:minCardinality "0"^^xsd:nonNegativeInteger
+    ] ;
+    rdfs:isDefinedBy <{{ namespace | rdfResource }}/> .
+
+{{ nsPrefix | kebabCase }}:Process rdf:type owl:Class ;
+    rdfs:label "Process" ;
+    rdfs:comment "Extended events with internal structure" ;
+    rdfs:subClassOf {{ nsPrefix | kebabCase }}:Event ;
+    rdfs:subClassOf [
+        rdf:type owl:Restriction ;
+        owl:onProperty {{ nsPrefix | kebabCase }}:hasDuration ;
+        owl:someValuesFrom time:Duration
+    ] ;
+    rdfs:isDefinedBy <{{ namespace | rdfResource }}/> .
+
+# Quality and Quantity Classes
+{{ nsPrefix | kebabCase }}:Quality rdf:type owl:Class ;
+    rdfs:label "Quality" ;
+    rdfs:comment "Properties or attributes that entities possess" ;
+    rdfs:subClassOf {{ nsPrefix | kebabCase }}:Abstract ;
+    rdfs:subClassOf [
+        rdf:type owl:Restriction ;
+        owl:onProperty {{ nsPrefix | kebabCase }}:qualityOf ;
+        owl:someValuesFrom {{ nsPrefix | kebabCase }}:Entity
+    ] ;
+    rdfs:isDefinedBy <{{ namespace | rdfResource }}/> .
+
+{{ nsPrefix | kebabCase }}:Quantity rdf:type owl:Class ;
+    rdfs:label "Quantity" ;
+    rdfs:comment "Measurable qualities with numerical values" ;
+    rdfs:subClassOf {{ nsPrefix | kebabCase }}:Quality ;
+    rdfs:subClassOf [
+        rdf:type owl:Restriction ;
+        owl:onProperty {{ nsPrefix | kebabCase }}:hasNumericalValue ;
+        owl:someValuesFrom xsd:decimal
+    ] ;
+    rdfs:isDefinedBy <{{ namespace | rdfResource }}/> .
+
+# Role and Function Classes
+{{ nsPrefix | kebabCase }}:Role rdf:type owl:Class ;
+    rdfs:label "Role" ;
+    rdfs:comment "Functions or positions that entities can fulfill" ;
+    rdfs:subClassOf {{ nsPrefix | kebabCase }}:Abstract ;
+    rdfs:subClassOf [
+        rdf:type owl:Restriction ;
+        owl:onProperty {{ nsPrefix | kebabCase }}:playedBy ;
+        owl:someValuesFrom {{ nsPrefix | kebabCase }}:Entity
+    ] ;
+    rdfs:isDefinedBy <{{ namespace | rdfResource }}/> .
+
+# Fundamental Relations
+{{ nsPrefix | kebabCase }}:partOf rdf:type owl:ObjectProperty ;
+    rdfs:label "part of" ;
+    rdfs:comment "Relates a part to its whole" ;
+    rdfs:domain {{ nsPrefix | kebabCase }}:Entity ;
+    rdfs:range {{ nsPrefix | kebabCase }}:Entity ;
+    rdf:type owl:TransitiveProperty ;
+    owl:inverseOf {{ nsPrefix | kebabCase }}:hasPart ;
+    rdfs:isDefinedBy <{{ namespace | rdfResource }}/> .
+
+{{ nsPrefix | kebabCase }}:hasPart rdf:type owl:ObjectProperty ;
+    rdfs:label "has part" ;
+    rdfs:comment "Relates a whole to its parts" ;
+    rdfs:domain {{ nsPrefix | kebabCase }}:Entity ;
+    rdfs:range {{ nsPrefix | kebabCase }}:Entity ;
+    rdf:type owl:TransitiveProperty ;
+    owl:inverseOf {{ nsPrefix | kebabCase }}:partOf ;
+    rdfs:isDefinedBy <{{ namespace | rdfResource }}/> .
+
+{{ nsPrefix | kebabCase }}:dependsOn rdf:type owl:ObjectProperty ;
+    rdfs:label "depends on" ;
+    rdfs:comment "Relates an entity to another entity it depends upon" ;
+    rdfs:domain {{ nsPrefix | kebabCase }}:Entity ;
+    rdfs:range {{ nsPrefix | kebabCase }}:Entity ;
+    rdf:type owl:TransitiveProperty ;
+    rdfs:isDefinedBy <{{ namespace | rdfResource }}/> .
+
+{{ nsPrefix | kebabCase }}:hasParticipant rdf:type owl:ObjectProperty ;
+    rdfs:label "has participant" ;
+    rdfs:comment "Relates an event to its participants" ;
+    rdfs:domain {{ nsPrefix | kebabCase }}:Event ;
+    rdfs:range {{ nsPrefix | kebabCase }}:Entity ;
+    owl:inverseOf {{ nsPrefix | kebabCase }}:participatesIn ;
+    rdfs:isDefinedBy <{{ namespace | rdfResource }}/> .
+
+{{ nsPrefix | kebabCase }}:participatesIn rdf:type owl:ObjectProperty ;
+    rdfs:label "participates in" ;
+    rdfs:comment "Relates an entity to events it participates in" ;
+    rdfs:domain {{ nsPrefix | kebabCase }}:Entity ;
+    rdfs:range {{ nsPrefix | kebabCase }}:Event ;
+    owl:inverseOf {{ nsPrefix | kebabCase }}:hasParticipant ;
+    rdfs:isDefinedBy <{{ namespace | rdfResource }}/> .
+
+# Temporal Relations
+{{ nsPrefix | kebabCase }}:hasTemporalExtent rdf:type owl:ObjectProperty ;
+    rdfs:label "has temporal extent" ;
+    rdfs:comment "Relates an entity to its temporal extent" ;
+    rdfs:domain {{ nsPrefix | kebabCase }}:TemporalEntity ;
+    rdfs:range time:TemporalEntity ;
+    rdf:type owl:FunctionalProperty ;
+    rdfs:isDefinedBy <{{ namespace | rdfResource }}/> .
+
+{{ nsPrefix | kebabCase }}:hasDuration rdf:type owl:ObjectProperty ;
+    rdfs:label "has duration" ;
+    rdfs:comment "Relates a temporal entity to its duration" ;
+    rdfs:domain {{ nsPrefix | kebabCase }}:TemporalEntity ;
+    rdfs:range time:Duration ;
+    rdf:type owl:FunctionalProperty ;
+    rdfs:isDefinedBy <{{ namespace | rdfResource }}/> .
+
+# Quality Relations
+{{ nsPrefix | kebabCase }}:qualityOf rdf:type owl:ObjectProperty ;
+    rdfs:label "quality of" ;
+    rdfs:comment "Relates a quality to the entity that has it" ;
+    rdfs:domain {{ nsPrefix | kebabCase }}:Quality ;
+    rdfs:range {{ nsPrefix | kebabCase }}:Entity ;
+    owl:inverseOf {{ nsPrefix | kebabCase }}:hasQuality ;
+    rdfs:isDefinedBy <{{ namespace | rdfResource }}/> .
+
+{{ nsPrefix | kebabCase }}:hasQuality rdf:type owl:ObjectProperty ;
+    rdfs:label "has quality" ;
+    rdfs:comment "Relates an entity to its qualities" ;
+    rdfs:domain {{ nsPrefix | kebabCase }}:Entity ;
+    rdfs:range {{ nsPrefix | kebabCase }}:Quality ;
+    owl:inverseOf {{ nsPrefix | kebabCase }}:qualityOf ;
+    rdfs:isDefinedBy <{{ namespace | rdfResource }}/> .
+
+{{ nsPrefix | kebabCase }}:hasNumericalValue rdf:type owl:DatatypeProperty ;
+    rdfs:label "has numerical value" ;
+    rdfs:comment "Relates a quantity to its numerical value" ;
+    rdfs:domain {{ nsPrefix | kebabCase }}:Quantity ;
+    rdfs:range xsd:decimal ;
+    rdf:type owl:FunctionalProperty ;
+    rdfs:isDefinedBy <{{ namespace | rdfResource }}/> .
+
+# Role Relations
+{{ nsPrefix | kebabCase }}:playsRole rdf:type owl:ObjectProperty ;
+    rdfs:label "plays role" ;
+    rdfs:comment "Relates an entity to a role it plays" ;
+    rdfs:domain {{ nsPrefix | kebabCase }}:Entity ;
+    rdfs:range {{ nsPrefix | kebabCase }}:Role ;
+    owl:inverseOf {{ nsPrefix | kebabCase }}:playedBy ;
+    rdfs:isDefinedBy <{{ namespace | rdfResource }}/> .
+
+{{ nsPrefix | kebabCase }}:playedBy rdf:type owl:ObjectProperty ;
+    rdfs:label "played by" ;
+    rdfs:comment "Relates a role to the entity that plays it" ;
+    rdfs:domain {{ nsPrefix | kebabCase }}:Role ;
+    rdfs:range {{ nsPrefix | kebabCase }}:Entity ;
+    owl:inverseOf {{ nsPrefix | kebabCase }}:playsRole ;
+    rdfs:isDefinedBy <{{ namespace | rdfResource }}/> .

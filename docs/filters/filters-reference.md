@@ -1,6 +1,8 @@
 # Template Filters Reference
 
-Complete catalog of all available filters in Unjucks with syntax, examples, and use cases.
+> **📚 Complete catalog of 65+ available filters in Unjucks with syntax, examples, and use cases.**
+
+Unjucks provides a comprehensive set of filters for template processing, covering string manipulation, date/time formatting, fake data generation, semantic web processing, and utility functions. All filters are production-tested and optimized for performance.
 
 ## String Inflection Filters
 
@@ -96,6 +98,58 @@ Convert string to Sentence case format.
 **Input:** String  
 **Output:** String in Sentence case  
 **Use Cases:** Form labels, descriptions, UI text
+
+#### `slug`
+Convert string to URL-safe slug format.
+
+```njk
+{{ "Hello World!" | slug }}              <!-- hello-world -->
+{{ "Dr. John A. Smith" | slug }}         <!-- dr-john-a-smith -->
+```
+
+**Parameters:** `separator` (optional, default: '-')  
+**Input:** String  
+**Output:** URL-safe slug  
+**Use Cases:** URLs, file names, identifiers
+
+#### `humanize`
+Convert technical string to human-readable format.
+
+```njk
+{{ "user_profile" | humanize }}          <!-- User profile -->
+{{ "created-at" | humanize }}            <!-- Created at -->
+```
+
+**Parameters:** None  
+**Input:** String  
+**Output:** Human-readable string  
+**Use Cases:** UI labels, form fields, display text
+
+#### `classify`
+Convert string to singular PascalCase class name.
+
+```njk
+{{ "user_posts" | classify }}            <!-- UserPost -->
+{{ "blog-entries" | classify }}          <!-- BlogEntry -->
+```
+
+**Parameters:** None  
+**Input:** String  
+**Output:** Singular PascalCase  
+**Use Cases:** Model names, class names
+
+#### `tableize`
+Convert string to plural snake_case table name.
+
+```njk
+{{ "UserPost" | tableize }}              <!-- user_posts -->
+{{ "BlogEntry" | tableize }}             <!-- blog_entries -->
+```
+
+**Parameters:** None  
+**Input:** String  
+**Output:** Plural snake_case  
+**Use Cases:** Database tables, collections
 
 ### Basic String Filters
 

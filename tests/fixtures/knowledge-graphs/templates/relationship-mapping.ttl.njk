@@ -1,0 +1,189 @@
+---
+to: "{{ outputDir || './output' }}/relationships/{{ domain | kebabCase }}-relationships.ttl"
+inject: false
+force: "{{ force || false }}"
+unless: "{{ skipIf }}"
+---
+@prefix kg: <{{ baseUri | default('http://example.org/kg') | rdfResource }}/{{ domain | kebabCase }}/> .
+@prefix schema: <http://schema.org/> .
+@prefix foaf: <http://xmlns.com/foaf/0.1/> .
+@prefix dct: <http://purl.org/dc/terms/> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix prov: <http://www.w3.org/ns/prov#> .
+
+# Object Properties Definition
+{% if objectProperties %}
+{{ objectProperties | map(prop => {
+    const propUri = 'kg:' + (prop.name | camelCase);
+    let definition = [
+        propUri + ' a owl:ObjectProperty'
+    ];
+    
+    if (prop.label) definition.push('rdfs:label "' + prop.label + '"@en');
+    if (prop.description) definition.push('rdfs:comment "' + prop.description + '"@en');
+    if (prop.domain) definition.push('rdfs:domain kg:' + (prop.domain | pascalCase));
+    if (prop.range) definition.push('rdfs:range kg:' + (prop.range | pascalCase));
+    if (prop.inverseOf) definition.push('owl:inverseOf kg:' + (prop.inverseOf | camelCase));
+    if (prop.subPropertyOf) definition.push('rdfs:subPropertyOf kg:' + (prop.subPropertyOf | camelCase));
+    
+    return definition.join(' ;\n    ') + ' .';
+}) | join('\n\n') }}
+{% endif %}
+
+# Data Properties Definition  
+{% if dataProperties %}
+{{ dataProperties | map(prop => {
+    const propUri = 'kg:' + (prop.name | camelCase);
+    let definition = [
+        propUri + ' a owl:DatatypeProperty'
+    ];
+    
+    if (prop.label) definition.push('rdfs:label "' + prop.label + '"@en');
+    if (prop.description) definition.push('rdfs:comment "' + prop.description + '"@en');
+    if (prop.domain) definition.push('rdfs:domain kg:' + (prop.domain | pascalCase));
+    if (prop.range) definition.push('rdfs:range xsd:' + (prop.range || 'string'));
+    if (prop.functional) definition.push('a owl:FunctionalProperty');
+    
+    return definition.join(' ;\n    ') + ' .';
+}) | join('\n\n') }}
+{% endif %}
+
+{% if relationships %}
+# Direct Relationships
+{{ relationships | map(rel => {
+    const subjectUri = 'kg:' + (rel.subject | slug);
+    const predicateUri = rel.predicate.startsWith('http') ? '<' + rel.predicate + '>' : 'kg:' + (rel.predicate | camelCase);
+    const objectUri = rel.object.startsWith('http') ? '<' + rel.object + '>' : 'kg:' + (rel.object | slug);
+    
+    let statement = subjectUri + ' ' + predicateUri + ' ' + objectUri;
+    
+    if (rel.confidence) {
+        // Add confidence as reified statement
+        const stmtId = 'kg:stmt_' + (rel.subject + '_' + rel.predicate + '_' + rel.object | slug);
+        statement += ' .\n' + stmtId + ' a rdf:Statement ;\n    rdf:subject ' + subjectUri + ' ;\n    rdf:predicate ' + predicateUri + ' ;\n    rdf:object ' + objectUri + ' ;\n    kg:confidence "' + rel.confidence + '"^^xsd:decimal';
+    }
+    
+    if (rel.validFrom || rel.validTo) {
+        // Add temporal qualification
+        const stmtId = 'kg:stmt_' + (rel.subject + '_' + rel.predicate + '_' + rel.object | slug);
+        statement += ' .\n' + stmtId + ' a rdf:Statement ;\n    rdf:subject ' + subjectUri + ' ;\n    rdf:predicate ' + predicateUri + ' ;\n    rdf:object ' + objectUri;
+        if (rel.validFrom) statement += ' ;\n    kg:validFrom "' + rel.validFrom + '"^^xsd:dateTime';
+        if (rel.validTo) statement += ' ;\n    kg:validTo "' + rel.validTo + '"^^xsd:dateTime';
+    }
+    
+    return statement + ' .';
+}) | join('\n\n') }}
+{% endif %}
+
+{% if hierarchicalRelationships %}
+# Hierarchical Relationships (Transitive)
+{{ hierarchicalRelationships | map(rel => {
+    const subjectUri = 'kg:' + (rel.child | slug);
+    const objectUri = 'kg:' + (rel.parent | slug);
+    const relationshipType = rel.type || 'partOf';
+    
+    let statement = subjectUri + ' kg:' + relationshipType + ' ' + objectUri;
+    
+    // Add hierarchy level if specified
+    if (rel.level !== undefined) {
+        statement += ' ;\n    kg:hierarchyLevel "' + rel.level + '"^^xsd:integer';
+    }
+    
+    // Add path if specified (for efficient querying)
+    if (rel.path) {
+        statement += ' ;\n    kg:hierarchyPath "' + rel.path + '"';
+    }
+    
+    return statement + ' .';
+}) | join('\n\n') }}
+{% endif %}
+
+{% if networkRelationships %}
+# Network Relationships
+{{ networkRelationships | map(rel => {
+    const fromUri = 'kg:' + (rel.from | slug);
+    const toUri = 'kg:' + (rel.to | slug);
+    const relType = rel.type || 'connectedTo';
+    
+    let statement = fromUri + ' kg:' + relType + ' ' + toUri;
+    
+    // Add weight for weighted networks
+    if (rel.weight !== undefined) {
+        statement += ' ;\n    kg:weight "' + rel.weight + '"^^xsd:decimal';
+    }
+    
+    // Add direction indicator
+    if (rel.directed === false) {
+        // Add reverse relationship for undirected
+        statement += ' .\n' + toUri + ' kg:' + relType + ' ' + fromUri;
+        if (rel.weight !== undefined) {
+            statement += ' ;\n    kg:weight "' + rel.weight + '"^^xsd:decimal';
+        }
+    }
+    
+    return statement + ' .';
+}) | join('\n\n') }}
+{% endif %}
+
+{% if qualifiedRelationships %}
+# Qualified Relationships (n-ary relations)
+{{ qualifiedRelationships | map(rel => {
+    const qualId = 'kg:qual_' + (rel.id || rel.subject + '_' + rel.predicate + '_' + rel.object | slug);
+    const subjectUri = 'kg:' + (rel.subject | slug);
+    const objectUri = 'kg:' + (rel.object | slug);
+    
+    let statements = [
+        qualId + ' a kg:' + (rel.qualifierType || 'QualifiedRelation'),
+        '    kg:hasSubject ' + subjectUri,
+        '    kg:hasObject ' + objectUri,
+        '    kg:relationshipType kg:' + (rel.predicate | camelCase)
+    ];
+    
+    // Add qualifier properties
+    if (rel.qualifiers) {
+        Object.keys(rel.qualifiers).forEach(key => {
+            const value = rel.qualifiers[key];
+            const qualProp = 'kg:' + (key | camelCase);
+            
+            if (typeof value === 'string' && value.startsWith('http')) {
+                statements.push('    ' + qualProp + ' <' + value + '>');
+            } else if (typeof value === 'number') {
+                statements.push('    ' + qualProp + ' "' + value + '"^^xsd:decimal');
+            } else if (value instanceof Date || value.match(/^\d{4}-\d{2}-\d{2}/)) {
+                statements.push('    ' + qualProp + ' "' + value + '"^^xsd:dateTime');
+            } else {
+                statements.push('    ' + qualProp + ' "' + value + '"@en');
+            }
+        });
+    }
+    
+    // Add provenance
+    statements.push('    prov:generatedAtTime "' + (rel.timestamp || now() | formatDate('YYYY-MM-DDTHH:mm:ss')) + '"^^xsd:dateTime');
+    if (rel.source) statements.push('    prov:wasDerivedFrom <' + rel.source + '>');
+    
+    return statements.join(' ;\n') + ' .';
+}) | join('\n\n') }}
+{% endif %}
+
+{% if inverseRelationships %}
+# Automatically Generated Inverse Relationships
+{{ inverseRelationships | map(rel => {
+    const subjectUri = 'kg:' + (rel.object | slug);
+    const predicateUri = 'kg:' + (rel.inversePredicate | camelCase);
+    const objectUri = 'kg:' + (rel.subject | slug);
+    
+    return subjectUri + ' ' + predicateUri + ' ' + objectUri + ' .';
+}) | join('\n\n') }}
+{% endif %}
+
+# Relationship Statistics
+kg:relationshipStatistics a owl:NamedIndividual ;
+    schema:name "Relationship Statistics" ;
+    kg:totalRelationships {{ (relationships || []).length + (hierarchicalRelationships || []).length + (networkRelationships || []).length + (qualifiedRelationships || []).length + (inverseRelationships || []).length }} ;
+    kg:directRelationships {{ (relationships || []).length }} ;
+    kg:hierarchicalRelationships {{ (hierarchicalRelationships || []).length }} ;
+    kg:networkRelationships {{ (networkRelationships || []).length }} ;
+    kg:qualifiedRelationships {{ (qualifiedRelationships || []).length }} ;
+    schema:dateCreated "{{ now() | formatDate('YYYY-MM-DDTHH:mm:ss') }}"^^xsd:dateTime .

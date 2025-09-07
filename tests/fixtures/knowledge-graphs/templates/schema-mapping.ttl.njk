@@ -1,0 +1,256 @@
+---
+to: "{{ outputDir || './output' }}/schema/{{ domain | kebabCase }}-schema.ttl"
+inject: false
+force: "{{ force || false }}"
+unless: "{{ skipIf }}"
+---
+@prefix kg: <{{ baseUri | default('http://example.org/kg') | rdfResource }}/{{ domain | kebabCase }}/> .
+@prefix schema: <http://schema.org/> .
+@prefix foaf: <http://xmlns.com/foaf/0.1/> .
+@prefix dct: <http://purl.org/dc/terms/> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix void: <http://rdfs.org/ns/void#> .
+@prefix dcat: <http://www.w3.org/ns/dcat#> .
+
+# Ontology Alignment and Schema Mapping
+kg: a owl:Ontology ;
+    dct:title "{{ domain | title }} Schema Mapping" ;
+    dct:description "Schema mappings and alignments for {{ domain }} knowledge graph" ;
+    owl:imports schema: , foaf: , dct: ;
+    dct:created "{{ now() | formatDate('YYYY-MM-DDTHH:mm:ss') }}"^^xsd:dateTime ;
+    owl:versionInfo "{{ version | default('1.0.0') }}" .
+
+{% if classAlignments %}
+# Class Alignments to Standard Vocabularies
+{{ classAlignments | map(alignment => {
+    const localClass = 'kg:' + (alignment.localClass | pascalCase);
+    let statements = [
+        localClass + ' a owl:Class'
+    ];
+    
+    if (alignment.label) statements.push('rdfs:label "' + alignment.label + '"@en');
+    if (alignment.description) statements.push('rdfs:comment "' + alignment.description + '"@en');
+    
+    // Schema.org alignments
+    if (alignment.schemaOrg) {
+        statements.push('owl:equivalentClass schema:' + alignment.schemaOrg);
+    }
+    
+    // FOAF alignments
+    if (alignment.foaf) {
+        statements.push('owl:equivalentClass foaf:' + alignment.foaf);
+    }
+    
+    // Custom alignments
+    if (alignment.equivalentClass) {
+        statements.push('owl:equivalentClass <' + alignment.equivalentClass + '>');
+    }
+    
+    if (alignment.subClassOf) {
+        alignment.subClassOf.forEach(superClass => {
+            statements.push('rdfs:subClassOf <' + superClass + '>');
+        });
+    }
+    
+    // Add restrictions
+    if (alignment.restrictions) {
+        alignment.restrictions.forEach(restriction => {
+            const restrictionId = '_:restriction_' + (alignment.localClass + '_' + restriction.property | slug);
+            statements.push('rdfs:subClassOf ' + restrictionId);
+            // Note: Full OWL restriction syntax would be added here
+        });
+    }
+    
+    return statements.join(' ;\n    ') + ' .';
+}) | join('\n\n') }}
+{% endif %}
+
+{% if propertyAlignments %}
+# Property Alignments to Standard Vocabularies  
+{{ propertyAlignments | map(alignment => {
+    const localProperty = 'kg:' + (alignment.localProperty | camelCase);
+    const propertyType = alignment.type === 'object' ? 'owl:ObjectProperty' : 'owl:DatatypeProperty';
+    
+    let statements = [
+        localProperty + ' a ' + propertyType
+    ];
+    
+    if (alignment.label) statements.push('rdfs:label "' + alignment.label + '"@en');
+    if (alignment.description) statements.push('rdfs:comment "' + alignment.description + '"@en');
+    
+    // Domain and Range
+    if (alignment.domain) statements.push('rdfs:domain kg:' + (alignment.domain | pascalCase));
+    if (alignment.range) {
+        if (alignment.type === 'object') {
+            statements.push('rdfs:range kg:' + (alignment.range | pascalCase));
+        } else {
+            statements.push('rdfs:range xsd:' + alignment.range);
+        }
+    }
+    
+    // Schema.org alignments
+    if (alignment.schemaOrg) {
+        statements.push('owl:equivalentProperty schema:' + alignment.schemaOrg);
+    }
+    
+    // FOAF alignments  
+    if (alignment.foaf) {
+        statements.push('owl:equivalentProperty foaf:' + alignment.foaf);
+    }
+    
+    // Dublin Core alignments
+    if (alignment.dublinCore) {
+        statements.push('owl:equivalentProperty dct:' + alignment.dublinCore);
+    }
+    
+    // Custom alignments
+    if (alignment.equivalentProperty) {
+        statements.push('owl:equivalentProperty <' + alignment.equivalentProperty + '>');
+    }
+    
+    if (alignment.subPropertyOf) {
+        statements.push('rdfs:subPropertyOf <' + alignment.subPropertyOf + '>');
+    }
+    
+    // Property characteristics
+    if (alignment.functional) statements.push('a owl:FunctionalProperty');
+    if (alignment.inverseFunctional) statements.push('a owl:InverseFunctionalProperty');
+    if (alignment.transitive) statements.push('a owl:TransitiveProperty');
+    if (alignment.symmetric) statements.push('a owl:SymmetricProperty');
+    
+    return statements.join(' ;\n    ') + ' .';
+}) | join('\n\n') }}
+{% endif %}
+
+{% if vocabularyMappings %}
+# Vocabulary Concept Mappings (SKOS)
+{{ vocabularyMappings | map(mapping => {
+    const conceptUri = 'kg:' + (mapping.concept | pascalCase);
+    
+    let statements = [
+        conceptUri + ' a skos:Concept'
+    ];
+    
+    if (mapping.prefLabel) statements.push('skos:prefLabel "' + mapping.prefLabel + '"@en');
+    if (mapping.altLabels) {
+        mapping.altLabels.forEach(label => {
+            statements.push('skos:altLabel "' + label + '"@en');
+        });
+    }
+    if (mapping.definition) statements.push('skos:definition "' + mapping.definition + '"@en');
+    
+    // Concept scheme
+    if (mapping.inScheme) statements.push('skos:inScheme kg:' + (mapping.inScheme | pascalCase));
+    
+    // Hierarchical relationships
+    if (mapping.broader) {
+        mapping.broader.forEach(broader => {
+            statements.push('skos:broader kg:' + (broader | pascalCase));
+        });
+    }
+    if (mapping.narrower) {
+        mapping.narrower.forEach(narrower => {
+            statements.push('skos:narrower kg:' + (narrower | pascalCase));
+        });
+    }
+    
+    // Associative relationships
+    if (mapping.related) {
+        mapping.related.forEach(related => {
+            statements.push('skos:related kg:' + (related | pascalCase));
+        });
+    }
+    
+    // External mappings
+    if (mapping.exactMatch) {
+        mapping.exactMatch.forEach(match => {
+            statements.push('skos:exactMatch <' + match + '>');
+        });
+    }
+    if (mapping.closeMatch) {
+        mapping.closeMatch.forEach(match => {
+            statements.push('skos:closeMatch <' + match + '>');
+        });
+    }
+    
+    return statements.join(' ;\n    ') + ' .';
+}) | join('\n\n') }}
+{% endif %}
+
+{% if conceptSchemes %}
+# Concept Schemes
+{{ conceptSchemes | map(scheme => {
+    const schemeUri = 'kg:' + (scheme.name | pascalCase);
+    
+    let statements = [
+        schemeUri + ' a skos:ConceptScheme'
+    ];
+    
+    if (scheme.title) statements.push('dct:title "' + scheme.title + '"@en');
+    if (scheme.description) statements.push('dct:description "' + scheme.description + '"@en');
+    if (scheme.creator) statements.push('dct:creator "' + scheme.creator + '"');
+    
+    // Top concepts
+    if (scheme.hasTopConcept) {
+        scheme.hasTopConcept.forEach(concept => {
+            statements.push('skos:hasTopConcept kg:' + (concept | pascalCase));
+        });
+    }
+    
+    return statements.join(' ;\n    ') + ' .';
+}) | join('\n\n') }}
+{% endif %}
+
+{% if crosswalkMappings %}
+# Crosswalk Mappings Between Different Standards
+{{ crosswalkMappings | map(crosswalk => {
+    const mappingUri = 'kg:mapping_' + (crosswalk.source + '_' + crosswalk.target | slug);
+    
+    let statements = [
+        mappingUri + ' a owl:NamedIndividual , kg:CrosswalkMapping'
+    ];
+    
+    statements.push('kg:sourceVocabulary <' + crosswalk.sourceVocabulary + '>');
+    statements.push('kg:targetVocabulary <' + crosswalk.targetVocabulary + '>');
+    statements.push('kg:sourceElement kg:' + (crosswalk.source | camelCase));
+    statements.push('kg:targetElement <' + crosswalk.target + '>');
+    
+    if (crosswalk.mappingType) statements.push('kg:mappingType kg:' + (crosswalk.mappingType | pascalCase));
+    if (crosswalk.confidence) statements.push('kg:confidence "' + crosswalk.confidence + '"^^xsd:decimal');
+    if (crosswalk.notes) statements.push('rdfs:comment "' + crosswalk.notes + '"@en');
+    
+    return statements.join(' ;\n    ') + ' .';
+}) | join('\n\n') }}
+{% endif %}
+
+# Alignment Quality Metrics
+kg:alignmentQuality a owl:NamedIndividual ;
+    rdfs:label "Schema Alignment Quality Metrics" ;
+    kg:totalClassAlignments {{ (classAlignments || []).length }} ;
+    kg:totalPropertyAlignments {{ (propertyAlignments || []).length }} ;
+    kg:vocabularyMappings {{ (vocabularyMappings || []).length }} ;
+    kg:conceptSchemes {{ (conceptSchemes || []).length }} ;
+    kg:crosswalkMappings {{ (crosswalkMappings || []).length }} ;
+    kg:alignmentCoverage {{ (((classAlignments || []).length + (propertyAlignments || []).length) / (totalClasses + totalProperties * 100) | round(2)) }}% ;
+    dct:created "{{ now() | formatDate('YYYY-MM-DDTHH:mm:ss') }}"^^xsd:dateTime .
+
+# Dataset Description (VoID)
+kg:dataset a void:Dataset , dcat:Dataset ;
+    dct:title "{{ domain | title }} Knowledge Graph Dataset" ;
+    dct:description "{{ description | default('Knowledge graph dataset for ' + domain + ' domain') }}" ;
+    void:uriSpace "{{ baseUri | default('http://example.org/kg') | rdfResource }}/{{ domain | kebabCase }}/" ;
+    void:vocabulary schema: , foaf: , dct: ;
+    {% if sparqlEndpoint %}void:sparqlEndpoint <{{ sparqlEndpoint }}> ;{% endif %}
+    {% if dataDump %}void:dataDump <{{ dataDump }}> ;{% endif %}
+    dcat:theme <{{ theme || 'http://publications.europa.eu/resource/authority/data-theme/TECH' }}> ;
+    dct:issued "{{ issued || now() | formatDate('YYYY-MM-DD') }}"^^xsd:date ;
+    dct:modified "{{ now() | formatDate('YYYY-MM-DD') }}"^^xsd:date ;
+    dct:license <{{ license || 'http://creativecommons.org/licenses/by/4.0/' }}> ;
+    dcat:contactPoint [
+        a vcard:Organization ;
+        vcard:fn "{{ contactName | default('Knowledge Graph Team') }}" ;
+        {% if contactEmail %}vcard:hasEmail <mailto:{{ contactEmail }}> ;{% endif %}
+    ] .

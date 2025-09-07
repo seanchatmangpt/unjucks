@@ -1,0 +1,72 @@
+---
+to: generated/ontologies/<%= name | kebabCase %>.owl
+inject: false
+sh: "echo 'Generated basic ontology: <%= name %>'"
+---
+@prefix {{ nsPrefix | kebabCase }}: <{{ namespace | rdfResource }}/> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix rdf: <http://www.w3.org/RDF/1999/02/22-rdf-syntax-ns#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@base <{{ namespace | rdfResource }}/> .
+
+# Ontology Declaration
+<{{ namespace | rdfResource }}/> rdf:type owl:Ontology ;
+    owl:versionIRI <{{ namespace | rdfResource }}/{{ version | default('1.0.0') }}/> ;
+    owl:versionInfo "{{ version | default('1.0.0') | rdfLiteral('en') }}" ;
+    rdfs:label "{{ title | titleCase | rdfLiteral('en') }}" ;
+    rdfs:comment "{{ description | rdfLiteral('en') }}" ;
+    owl:imports <http://www.w3.org/2002/07/owl#> .
+
+{% for cls in classes %}
+# Class: {{ cls.name | pascalCase }}
+{{ nsPrefix | kebabCase }}:{{ cls.name | pascalCase }} rdf:type owl:Class ;
+    rdfs:label "{{ cls.name | humanize | rdfLiteral('en') }}" ;
+    {% if cls.description -%}
+    rdfs:comment "{{ cls.description | rdfLiteral('en') }}" ;
+    {%- endif %}
+    {% if cls.parentClass -%}
+    rdfs:subClassOf {{ cls.parentClass | pascalCase | rdfClass(nsPrefix) }} ;
+    {%- endif %}
+    {% if cls.equivalentClasses -%}
+    {% for equiv in cls.equivalentClasses -%}
+    owl:equivalentClass {{ equiv | pascalCase | rdfClass(nsPrefix) }} ;
+    {% endfor -%}
+    {%- endif %}
+    {% if cls.disjointWith -%}
+    {% for disjoint in cls.disjointWith -%}
+    owl:disjointWith {{ disjoint | pascalCase | rdfClass(nsPrefix) }} ;
+    {% endfor -%}
+    {%- endif %}
+    rdfs:isDefinedBy <{{ namespace | rdfResource }}/> .
+
+{% endfor %}
+
+{% for prop in properties %}
+# Property: {{ prop.name | camelCase }}
+{{ nsPrefix | kebabCase }}:{{ prop.name | camelCase }} rdf:type 
+    {%- if prop.type == 'datatype' %}owl:DatatypeProperty
+    {%- elif prop.type == 'object' %}owl:ObjectProperty
+    {%- elif prop.type == 'annotation' %}owl:AnnotationProperty
+    {%- else %}rdf:Property{% endif %} ;
+    rdfs:label "{{ prop.name | humanize | rdfLiteral('en') }}" ;
+    {% if prop.description -%}
+    rdfs:comment "{{ prop.description | rdfLiteral('en') }}" ;
+    {%- endif %}
+    {% if prop.domain -%}
+    rdfs:domain {{ prop.domain | pascalCase | rdfClass(nsPrefix) }} ;
+    {%- endif %}
+    {% if prop.range -%}
+    rdfs:range {% if prop.type == 'datatype' %}{{ prop.range | rdfDatatype }}{% else %}{{ prop.range | pascalCase | rdfClass(nsPrefix) }}{% endif %} ;
+    {%- endif %}
+    {% if prop.characteristics -%}
+    {% for char in prop.characteristics -%}
+    rdf:type owl:{{ char | pascalCase }}Property ;
+    {% endfor -%}
+    {%- endif %}
+    {% if prop.inverseOf -%}
+    owl:inverseOf {{ prop.inverseOf | camelCase | rdfProperty(nsPrefix) }} ;
+    {%- endif %}
+    rdfs:isDefinedBy <{{ namespace | rdfResource }}/> .
+
+{% endfor %}

@@ -1,0 +1,500 @@
+---
+to: "{{ outputDir }}/{{ contextName | kebabCase }}-geospatial-context.jsonld"
+inject: false
+unless_exists: true
+variables:
+  - name: contextName
+    type: string
+    description: "Name of the geospatial JSON-LD context"
+  - name: outputDir
+    type: string
+    default: "./contexts"
+    description: "Output directory for context files"
+  - name: includeWGS84
+    type: boolean
+    default: true
+    description: "Include WGS84 geo positioning vocabulary"
+  - name: includeGeoSPARQL
+    type: boolean
+    default: true
+    description: "Include GeoSPARQL OGC vocabulary"
+  - name: includeSchemaGeo
+    type: boolean
+    default: true
+    description: "Include Schema.org geographic properties"
+  - name: coordinateSystem
+    type: string
+    default: "WGS84"
+    description: "Default coordinate reference system"
+  - name: precisionLevel
+    type: string
+    default: "meter"
+    description: "Geographic precision level (meter, centimeter, millimeter)"
+---
+{
+  "@context": {
+    "@version": 1.1,
+    "@vocab": "http://www.w3.org/2003/01/geo/wgs84_pos#",
+    
+    {{- rdfNamespaces(['geo', 'sf', 'geof', 'geor', 'schema', 'xsd', 'rdf', 'rdfs']) | dump | slice(1, -1) | safe }},
+    
+    {% if includeWGS84 -%}
+    "_comment": "WGS84 Geographic positioning classes",
+    "SpatialThing": "geo:SpatialThing",
+    "Point": "geo:Point",
+    
+    "_comment": "Basic geographic coordinates",
+    "lat": {
+      "@id": "geo:lat",
+      "@type": "xsd:decimal"
+    },
+    "long": {
+      "@id": "geo:long", 
+      "@type": "xsd:decimal"
+    },
+    "alt": {
+      "@id": "geo:alt",
+      "@type": "xsd:decimal"
+    },
+    "location": {
+      "@id": "geo:location",
+      "@type": "@id"
+    }
+    {% endif %}
+    
+    {% if includeGeoSPARQL -%}
+    {% if includeWGS84 %},{% endif %}
+    
+    "_comment": "GeoSPARQL geometry classes",
+    "Geometry": "sf:Geometry",
+    "GeometryCollection": "sf:GeometryCollection", 
+    "LineString": "sf:LineString",
+    "MultiLineString": "sf:MultiLineString",
+    "MultiPoint": "sf:MultiPoint",
+    "MultiPolygon": "sf:MultiPolygon",
+    "Polygon": "sf:Polygon",
+    "LinearRing": "sf:LinearRing",
+    "Triangle": "sf:Triangle",
+    "TIN": "sf:TIN",
+    "PolyhedralSurface": "sf:PolyhedralSurface",
+    
+    "_comment": "GeoSPARQL feature classes",
+    "Feature": "geo:Feature",
+    "FeatureCollection": "geo:FeatureCollection",
+    "SpatialObject": "geo:SpatialObject",
+    
+    "_comment": "Geometry properties and relationships",
+    "hasGeometry": {
+      "@id": "geo:hasGeometry",
+      "@type": "@id"
+    },
+    "hasDefaultGeometry": {
+      "@id": "geo:hasDefaultGeometry",
+      "@type": "@id"
+    },
+    "asDGGS": {
+      "@id": "geo:asDGGS",
+      "@type": "geo:dggsLiteral"
+    },
+    "asGML": {
+      "@id": "geo:asGML",
+      "@type": "geo:gmlLiteral"
+    },
+    "asWKT": {
+      "@id": "geo:asWKT", 
+      "@type": "geo:wktLiteral"
+    },
+    "asGeoJSON": {
+      "@id": "geo:asGeoJSON",
+      "@type": "geo:geoJSONLiteral"
+    },
+    "coordinateDimension": {
+      "@id": "sf:coordinateDimension",
+      "@type": "xsd:integer"
+    },
+    "dimension": {
+      "@id": "sf:dimension",
+      "@type": "xsd:integer"
+    },
+    "isEmpty": {
+      "@id": "sf:isEmpty",
+      "@type": "xsd:boolean"
+    },
+    "isSimple": {
+      "@id": "sf:isSimple",
+      "@type": "xsd:boolean"
+    },
+    
+    "_comment": "Coordinate and boundary properties",
+    "coordinates": {
+      "@id": "sf:coordinates",
+      "@container": ["@list", "@list"],
+      "@type": "xsd:decimal"
+    },
+    "bbox": {
+      "@id": "geo:bbox",
+      "@container": "@list",
+      "@type": "xsd:decimal"
+    },
+    "boundary": {
+      "@id": "sf:boundary",
+      "@type": "@id"
+    },
+    "envelope": {
+      "@id": "sf:envelope",
+      "@type": "@id"
+    },
+    "exteriorRing": {
+      "@id": "sf:exteriorRing",
+      "@type": "@id"
+    },
+    "interiorRing": {
+      "@id": "sf:interiorRing",
+      "@type": "@id",
+      "@container": "@set"
+    },
+    
+    "_comment": "Spatial relationships (GeoSPARQL)",
+    "sfEquals": {
+      "@id": "geof:sfEquals",
+      "@type": "@id"
+    },
+    "sfDisjoint": {
+      "@id": "geof:sfDisjoint", 
+      "@type": "@id"
+    },
+    "sfIntersects": {
+      "@id": "geof:sfIntersects",
+      "@type": "@id"
+    },
+    "sfTouches": {
+      "@id": "geof:sfTouches",
+      "@type": "@id"
+    },
+    "sfCrosses": {
+      "@id": "geof:sfCrosses",
+      "@type": "@id"
+    },
+    "sfWithin": {
+      "@id": "geof:sfWithin",
+      "@type": "@id"
+    },
+    "sfContains": {
+      "@id": "geof:sfContains",
+      "@type": "@id"
+    },
+    "sfOverlaps": {
+      "@id": "geof:sfOverlaps",
+      "@type": "@id"
+    },
+    "ehEquals": {
+      "@id": "geof:ehEquals",
+      "@type": "@id"
+    },
+    "ehDisjoint": {
+      "@id": "geof:ehDisjoint",
+      "@type": "@id"
+    },
+    "ehMeet": {
+      "@id": "geof:ehMeet",
+      "@type": "@id"
+    },
+    "ehOverlap": {
+      "@id": "geof:ehOverlap",
+      "@type": "@id"
+    },
+    "ehCovers": {
+      "@id": "geof:ehCovers",
+      "@type": "@id"
+    },
+    "ehCoveredBy": {
+      "@id": "geof:ehCoveredBy",
+      "@type": "@id"
+    },
+    "ehInside": {
+      "@id": "geof:ehInside",
+      "@type": "@id"
+    },
+    "ehContains": {
+      "@id": "geof:ehContains", 
+      "@type": "@id"
+    },
+    "rcc8eq": {
+      "@id": "geof:rcc8eq",
+      "@type": "@id"
+    },
+    "rcc8dc": {
+      "@id": "geof:rcc8dc",
+      "@type": "@id"
+    },
+    "rcc8ec": {
+      "@id": "geof:rcc8ec",
+      "@type": "@id"
+    },
+    "rcc8po": {
+      "@id": "geof:rcc8po",
+      "@type": "@id"
+    },
+    "rcc8tppi": {
+      "@id": "geof:rcc8tppi",
+      "@type": "@id"
+    },
+    "rcc8tpp": {
+      "@id": "geof:rcc8tpp",
+      "@type": "@id"
+    },
+    "rcc8ntpp": {
+      "@id": "geof:rcc8ntpp",
+      "@type": "@id"
+    },
+    "rcc8ntppi": {
+      "@id": "geof:rcc8ntppi",
+      "@type": "@id"
+    }
+    {% endif %}
+    
+    {% if includeSchemaGeo -%}
+    {% if includeWGS84 or includeGeoSPARQL %},{% endif %}
+    
+    "_comment": "Schema.org geographic and address properties",
+    "Place": "schema:Place",
+    "GeoCoordinates": "schema:GeoCoordinates",
+    "GeoCircle": "schema:GeoCircle",
+    "GeoShape": "schema:GeoShape",
+    "PostalAddress": "schema:PostalAddress",
+    "Country": "schema:Country",
+    "State": "schema:State", 
+    "City": "schema:City",
+    
+    "geo": {
+      "@id": "schema:geo",
+      "@type": "@id"
+    },
+    "latitude": {
+      "@id": "schema:latitude",
+      "@type": "xsd:decimal"
+    },
+    "longitude": {
+      "@id": "schema:longitude",
+      "@type": "xsd:decimal"  
+    },
+    "elevation": {
+      "@id": "schema:elevation",
+      "@type": "xsd:decimal"
+    },
+    "geoRadius": {
+      "@id": "schema:geoRadius",
+      "@type": "xsd:decimal"
+    },
+    "geoMidpoint": {
+      "@id": "schema:geoMidpoint",
+      "@type": "@id"
+    },
+    "box": {
+      "@id": "schema:box",
+      "@type": "xsd:string"
+    },
+    "circle": {
+      "@id": "schema:circle",
+      "@type": "xsd:string"
+    },
+    "line": {
+      "@id": "schema:line",
+      "@type": "xsd:string"
+    },
+    "polygon": {
+      "@id": "schema:polygon", 
+      "@type": "xsd:string"
+    },
+    
+    "_comment": "Address and location properties",
+    "address": {
+      "@id": "schema:address",
+      "@type": "@id"
+    },
+    "streetAddress": {
+      "@id": "schema:streetAddress",
+      "@type": "xsd:string"
+    },
+    "addressLocality": {
+      "@id": "schema:addressLocality",
+      "@type": "xsd:string"
+    },
+    "addressRegion": {
+      "@id": "schema:addressRegion",
+      "@type": "xsd:string"
+    },
+    "postalCode": {
+      "@id": "schema:postalCode",
+      "@type": "xsd:string"
+    },
+    "addressCountry": {
+      "@id": "schema:addressCountry",
+      "@type": "xsd:string"
+    },
+    "postOfficeBoxNumber": {
+      "@id": "schema:postOfficeBoxNumber",
+      "@type": "xsd:string"
+    },
+    
+    "_comment": "Containment and spatial relationships",
+    "containedInPlace": {
+      "@id": "schema:containedInPlace",
+      "@type": "@id"
+    },
+    "containsPlace": {
+      "@id": "schema:containsPlace",
+      "@type": "@id",
+      "@container": "@set"
+    },
+    "spatialCoverage": {
+      "@id": "schema:spatialCoverage",
+      "@type": "@id"
+    },
+    "geospatiallyContains": {
+      "@id": "schema:geospatiallyContains",
+      "@type": "@id"
+    },
+    "geospatiallyCoveredBy": {
+      "@id": "schema:geospatiallyCoveredBy",
+      "@type": "@id" 
+    },
+    "geospatiallyCovers": {
+      "@id": "schema:geospatiallyCovers",
+      "@type": "@id"
+    },
+    "geospatiallyCrosses": {
+      "@id": "schema:geospatiallyCrosses",
+      "@type": "@id"
+    },
+    "geospatiallyDisjoint": {
+      "@id": "schema:geospatiallyDisjoint",
+      "@type": "@id"
+    },
+    "geospatiallyEquals": {
+      "@id": "schema:geospatiallyEquals",
+      "@type": "@id"
+    },
+    "geospatiallyIntersects": {
+      "@id": "schema:geospatiallyIntersects",
+      "@type": "@id"
+    },
+    "geospatiallyOverlaps": {
+      "@id": "schema:geospatiallyOverlaps",
+      "@type": "@id"
+    },
+    "geospatiallyTouches": {
+      "@id": "schema:geospatiallyTouches",
+      "@type": "@id"
+    },
+    "geospatiallyWithin": {
+      "@id": "schema:geospatiallyWithin",
+      "@type": "@id"
+    }
+    {% endif %}
+    
+    ,
+    
+    "_comment": "Coordinate reference systems and transformations",
+    "coordinateSystem": {
+      "@id": "geo:coordinateSystem",
+      "@type": "xsd:string"
+    },
+    "crs": {
+      "@id": "geo:crs",
+      "@type": "@id"
+    },
+    "srsName": {
+      "@id": "geo:srsName", 
+      "@type": "xsd:string"
+    },
+    "epsgCode": {
+      "@id": "geo:epsgCode",
+      "@type": "xsd:integer"
+    },
+    
+    "_comment": "Measurement and precision metadata",
+    "accuracy": {
+      "@id": "geo:accuracy",
+      "@type": "xsd:decimal"
+    },
+    "precision": {
+      "@id": "geo:precision",
+      "@type": "xsd:decimal"
+    },
+    "resolution": {
+      "@id": "geo:resolution",
+      "@type": "xsd:decimal"
+    },
+    "uncertainty": {
+      "@id": "geo:uncertainty",
+      "@type": "xsd:decimal"
+    },
+    "horizontalAccuracy": {
+      "@id": "geo:horizontalAccuracy",
+      "@type": "xsd:decimal"
+    },
+    "verticalAccuracy": {
+      "@id": "geo:verticalAccuracy",
+      "@type": "xsd:decimal"
+    },
+    
+    "_comment": "Distance and area measurements",
+    "distance": {
+      "@id": "geof:distance",
+      "@type": "xsd:decimal"
+    },
+    "area": {
+      "@id": "geof:area",
+      "@type": "xsd:decimal"
+    },
+    "length": {
+      "@id": "geof:length",
+      "@type": "xsd:decimal"
+    },
+    "perimeter": {
+      "@id": "geof:perimeter",
+      "@type": "xsd:decimal"
+    },
+    "buffer": {
+      "@id": "geof:buffer",
+      "@type": "@id"
+    },
+    "centroid": {
+      "@id": "geof:centroid",
+      "@type": "@id"
+    },
+    
+    "_comment": "Navigation and routing",
+    "bearing": {
+      "@id": "geo:bearing",
+      "@type": "xsd:decimal"
+    },
+    "heading": {
+      "@id": "geo:heading", 
+      "@type": "xsd:decimal"
+    },
+    "speed": {
+      "@id": "geo:speed",
+      "@type": "xsd:decimal"
+    },
+    "course": {
+      "@id": "geo:course",
+      "@type": "xsd:decimal"
+    },
+    
+    "_comment": "Temporal-spatial properties",
+    "validTime": {
+      "@id": "geo:validTime",
+      "@type": "@id"
+    },
+    "observationTime": {
+      "@id": "geo:observationTime",
+      "@type": "xsd:dateTime"
+    },
+    "collectionTime": {
+      "@id": "geo:collectionTime",
+      "@type": "xsd:dateTime"
+    }
+  }
+}

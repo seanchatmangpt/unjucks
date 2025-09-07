@@ -1,0 +1,212 @@
+---
+to: "{{ destDir }}/{{ slug }}-article.json"
+inject: false
+---
+{
+  "@context": "https://schema.org/",
+  "@type": "{{ articleType | default('Article') | schemaOrg }}",
+  "@id": "{{ baseUrl | rdfResource }}/article/{{ id | slug }}",
+  
+  "headline": "{{ headline | titleCase }}",
+  "alternativeHeadline": "{{ alternativeHeadline | titleCase }}",
+  "description": "{{ description | truncate(160) | escape }}",
+  "url": "{{ url | rdfResource }}",
+  "identifier": "{{ articleId | upper }}",
+  
+  "image": [
+    {% for image in images -%}
+    {
+      "@type": "ImageObject",
+      "url": "{{ image.url | rdfResource }}",
+      "contentUrl": "{{ image.url | rdfResource }}",
+      "width": {{ image.width | default(1200) }},
+      "height": {{ image.height | default(630) }},
+      "caption": "{{ image.caption | escape }}"
+    }{% if not loop.last %},{% endif %}
+    {% endfor %}
+  ],
+  
+  "author": [
+    {% for author in authors -%}
+    {
+      "@type": "Person",
+      "name": "{{ author.name | titleCase }}",
+      "url": "{{ author.url | rdfResource }}",
+      "email": "{{ author.email }}",
+      "jobTitle": "{{ author.title | titleCase }}",
+      "sameAs": [
+        {% for social in author.socialProfiles -%}
+        "{{ social | rdfResource }}"{% if not loop.last %},{% endif %}
+        {% endfor %}
+      ]
+    }{% if not loop.last %},{% endif %}
+    {% endfor %}
+  ],
+  
+  "publisher": {
+    "@type": "{{ publisherType | default('Organization') | schemaOrg }}",
+    "name": "{{ publisher.name | titleCase }}",
+    "url": "{{ publisher.url | rdfResource }}",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "{{ publisher.logo | rdfResource }}",
+      "width": {{ publisher.logoWidth | default(600) }},
+      "height": {{ publisher.logoHeight | default(60) }}
+    },
+    "sameAs": [
+      {% for social in publisher.socialProfiles -%}
+      "{{ social | rdfResource }}"{% if not loop.last %},{% endif %}
+      {% endfor %}
+    ]
+  },
+  
+  "datePublished": "{{ published | schemaDate }}",
+  "dateCreated": "{{ created | schemaDate }}",
+  "dateModified": "{{ modified | default(now()) | schemaDate }}",
+  
+  "articleBody": "{{ content | escape }}",
+  "wordCount": {{ wordCount | default(content | length) }},
+  
+  {% if section -%}
+  "articleSection": "{{ section | titleCase }}",
+  {% endif %}
+  
+  {% if tags -%}
+  "keywords": "{{ tags | map('titleCase') | join(', ') }}",
+  {% endif %}
+  
+  {% if about -%}
+  "about": [
+    {% for topic in about -%}
+    {
+      "@type": "Thing",
+      "name": "{{ topic.name | titleCase }}",
+      "sameAs": "{{ topic.wikidata | rdfResource }}"
+    }{% if not loop.last %},{% endif %}
+    {% endfor %}
+  ],
+  {% endif %}
+  
+  {% if mentions -%}
+  "mentions": [
+    {% for mention in mentions -%}
+    {
+      "@type": "{{ mention.type | default('Thing') | schemaOrg }}",
+      "name": "{{ mention.name | titleCase }}",
+      "url": "{{ mention.url | rdfResource }}"
+    }{% if not loop.last %},{% endif %}
+    {% endfor %}
+  ],
+  {% endif %}
+  
+  "inLanguage": "{{ language | default('en-US') }}",
+  
+  {% if isPartOf -%}
+  "isPartOf": {
+    "@type": "{{ isPartOf.type | default('WebSite') | schemaOrg }}",
+    "name": "{{ isPartOf.name | titleCase }}",
+    "url": "{{ isPartOf.url | rdfResource }}"
+  },
+  {% endif %}
+  
+  {% if mainEntityOfPage -%}
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "{{ url | rdfResource }}",
+    "url": "{{ url | rdfResource }}"
+  },
+  {% endif %}
+  
+  {% if relatedLink -%}
+  "relatedLink": [
+    {% for link in relatedLink -%}
+    "{{ link | rdfResource }}"{% if not loop.last %},{% endif %}
+    {% endfor %}
+  ],
+  {% endif %}
+  
+  {% if citation -%}
+  "citation": [
+    {% for cite in citation -%}
+    {
+      "@type": "{{ cite.type | default('CreativeWork') | schemaOrg }}",
+      "name": "{{ cite.name | titleCase }}",
+      "url": "{{ cite.url | rdfResource }}",
+      "author": "{{ cite.author | titleCase }}",
+      "datePublished": "{{ cite.date | schemaDate('date') }}"
+    }{% if not loop.last %},{% endif %}
+    {% endfor %}
+  ],
+  {% endif %}
+  
+  {% if comments and comments.length > 0 -%}
+  "comment": [
+    {% for comment in comments -%}
+    {
+      "@type": "Comment",
+      "text": "{{ comment.text | truncate(300) | escape }}",
+      "dateCreated": "{{ comment.date | schemaDate }}",
+      "author": {
+        "@type": "Person",
+        "name": "{{ comment.author | titleCase }}"
+      }
+    }{% if not loop.last %},{% endif %}
+    {% endfor %}
+  ],
+  {% endif %}
+  
+  {% if contentRating -%}
+  "contentRating": "{{ contentRating }}",
+  {% endif %}
+  
+  {% if accessibilityFeature -%}
+  "accessibilityFeature": [
+    {% for feature in accessibilityFeature -%}
+    "{{ feature }}"{% if not loop.last %},{% endif %}
+    {% endfor %}
+  ],
+  {% endif %}
+  
+  {% if license -%}
+  "license": "{{ license | rdfResource }}",
+  {% endif %}
+  
+  {% if copyrightHolder -%}
+  "copyrightHolder": {
+    "@type": "{{ copyrightHolder.type | default('Organization') | schemaOrg }}",
+    "name": "{{ copyrightHolder.name | titleCase }}",
+    "url": "{{ copyrightHolder.url | rdfResource }}"
+  },
+  {% endif %}
+  
+  "copyrightYear": {{ copyrightYear | default(published | formatDate('YYYY')) }},
+  
+  {% if breadcrumbs -%}
+  "breadcrumb": {{ breadcrumbs | schemaBreadcrumbs | dump }},
+  {% endif %}
+  
+  "potentialAction": [
+    {
+      "@type": "ReadAction",
+      "target": {
+        "@type": "EntryPoint",
+        "urlTemplate": "{{ url | rdfResource }}",
+        "actionPlatform": [
+          "http://schema.org/DesktopWebPlatform",
+          "http://schema.org/MobileWebPlatform"
+        ]
+      }
+    },
+    {
+      "@type": "ShareAction",
+      "target": {
+        "@type": "EntryPoint",
+        "urlTemplate": "{{ baseUrl }}/share?url={{ url | urlencode }}",
+        "actionPlatform": [
+          "http://schema.org/DesktopWebPlatform",
+          "http://schema.org/MobileWebPlatform"
+        ]
+      }
+    }
+  ]
+}

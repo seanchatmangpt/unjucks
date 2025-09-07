@@ -1,0 +1,213 @@
+---
+to: "{{ destDir }}/{{ name | slug }}-business.json"
+inject: false
+---
+{
+  "@context": "https://schema.org/",
+  "@type": "{{ businessType | default('LocalBusiness') | schemaOrg }}",
+  "@id": "{{ baseUrl | rdfResource }}/business/{{ id | slug }}",
+  
+  "name": "{{ name | titleCase }}",
+  "legalName": "{{ legalName | titleCase }}",
+  "description": "{{ description | truncate(300) | escape }}",
+  "url": "{{ website | rdfResource }}",
+  "identifier": "{{ businessId | upper }}",
+  
+  "image": [
+    {% for image in images -%}
+    {
+      "@type": "ImageObject",
+      "url": "{{ image.url | rdfResource }}",
+      "contentUrl": "{{ image.url | rdfResource }}",
+      "caption": "{{ image.caption | escape }}"
+    }{% if not loop.last %},{% endif %}
+    {% endfor %}
+  ],
+  
+  "logo": {
+    "@type": "ImageObject",
+    "url": "{{ logo | rdfResource }}",
+    "contentUrl": "{{ logo | rdfResource }}"
+  },
+  
+  "address": {{ address | schemaAddress | dump }},
+  
+  "geo": {{ location | schemaGeo | dump }},
+  
+  "telephone": "{{ phone }}",
+  "email": "{{ email }}",
+  "faxNumber": "{{ fax }}",
+  
+  "openingHoursSpecification": {{ openingHours | schemaOpeningHours | dump }},
+  
+  "priceRange": "{{ priceRange | default('$$') }}",
+  
+  {% if services -%}
+  "hasOfferCatalog": {
+    "@type": "OfferCatalog",
+    "name": "Services",
+    "itemListElement": [
+      {% for service in services -%}
+      {
+        "@type": "Offer",
+        "itemOffered": {
+          "@type": "Service",
+          "name": "{{ service.name | titleCase }}",
+          "description": "{{ service.description | escape }}"
+        },
+        "price": "{{ service.price | number(2) }}",
+        "priceCurrency": "{{ service.currency | default('USD') | upper }}"
+      }{% if not loop.last %},{% endif %}
+      {% endfor %}
+    ]
+  },
+  {% endif %}
+  
+  {% if reviews and reviews.length > 0 -%}
+  "review": [
+    {% for review in reviews -%}
+    {
+      "@type": "Review",
+      "reviewRating": {
+        "@type": "Rating",
+        "ratingValue": "{{ review.rating | number(1) }}",
+        "bestRating": "{{ review.maxRating | default(5) }}",
+        "worstRating": "{{ review.minRating | default(1) }}"
+      },
+      "name": "{{ review.title | escape }}",
+      "reviewBody": "{{ review.body | truncate(500) | escape }}",
+      "datePublished": "{{ review.date | schemaDate }}",
+      "author": {
+        "@type": "Person",
+        "name": "{{ review.author | titleCase }}"
+      }
+    }{% if not loop.last %},{% endif %}
+    {% endfor %}
+  ],
+  {% endif %}
+  
+  {% if aggregateRating -%}
+  "aggregateRating": {
+    "@type": "AggregateRating",
+    "ratingValue": "{{ aggregateRating.value | number(2) }}",
+    "reviewCount": "{{ aggregateRating.count | number }}",
+    "bestRating": "{{ aggregateRating.best | default(5) }}",
+    "worstRating": "{{ aggregateRating.worst | default(1) }}"
+  },
+  {% endif %}
+  
+  {% if employees -%}
+  "employee": [
+    {% for employee in employees -%}
+    {
+      "@type": "Person",
+      "name": "{{ employee.name | titleCase }}",
+      "jobTitle": "{{ employee.title | titleCase }}",
+      "email": "{{ employee.email }}",
+      "telephone": "{{ employee.phone }}"
+    }{% if not loop.last %},{% endif %}
+    {% endfor %}
+  ],
+  {% endif %}
+  
+  {% if founder -%}
+  "founder": {
+    "@type": "Person",
+    "name": "{{ founder.name | titleCase }}",
+    "birthDate": "{{ founder.birthDate | schemaDate('date') }}"
+  },
+  {% endif %}
+  
+  "foundingDate": "{{ founded | schemaDate('date') }}",
+  "foundingLocation": {
+    "@type": "Place",
+    "name": "{{ foundingLocation | titleCase }}"
+  },
+  
+  {% if paymentAccepted -%}
+  "paymentAccepted": [
+    {% for payment in paymentAccepted -%}
+    "{{ payment | titleCase }}"{% if not loop.last %},{% endif %}
+    {% endfor %}
+  ],
+  {% endif %}
+  
+  {% if currenciesAccepted -%}
+  "currenciesAccepted": "{{ currenciesAccepted | map('upper') | join(', ') }}",
+  {% endif %}
+  
+  {% if parentOrganization -%}
+  "parentOrganization": {
+    "@type": "{{ parentOrganization.type | default('Organization') | schemaOrg }}",
+    "name": "{{ parentOrganization.name | titleCase }}",
+    "url": "{{ parentOrganization.url | rdfResource }}"
+  },
+  {% endif %}
+  
+  {% if socialMedia -%}
+  "sameAs": [
+    {% for social in socialMedia -%}
+    "{{ social.url | rdfResource }}"{% if not loop.last %},{% endif %}
+    {% endfor %}
+  ],
+  {% endif %}
+  
+  {% if awards -%}
+  "award": [
+    {% for award in awards -%}
+    "{{ award.name | titleCase }}"{% if not loop.last %},{% endif %}
+    {% endfor %}
+  ],
+  {% endif %}
+  
+  {% if memberOf -%}
+  "memberOf": [
+    {% for membership in memberOf -%}
+    {
+      "@type": "Organization",
+      "name": "{{ membership.name | titleCase }}",
+      "url": "{{ membership.url | rdfResource }}"
+    }{% if not loop.last %},{% endif %}
+    {% endfor %}
+  ],
+  {% endif %}
+  
+  {% if areaServed -%}
+  "areaServed": [
+    {% for area in areaServed -%}
+    {
+      "@type": "{{ area.type | default('Place') | schemaOrg }}",
+      "name": "{{ area.name | titleCase }}"
+    }{% if not loop.last %},{% endif %}
+    {% endfor %}
+  ],
+  {% endif %}
+  
+  "dateCreated": "{{ created | default(now()) | schemaDate }}",
+  "dateModified": "{{ modified | default(now()) | schemaDate }}",
+  
+  "potentialAction": [
+    {
+      "@type": "ReserveAction",
+      "target": {
+        "@type": "EntryPoint",
+        "urlTemplate": "{{ website }}/reservation",
+        "actionPlatform": [
+          "http://schema.org/DesktopWebPlatform",
+          "http://schema.org/MobileWebPlatform"
+        ]
+      }
+    },
+    {
+      "@type": "ContactAction",
+      "target": {
+        "@type": "EntryPoint",
+        "urlTemplate": "{{ website }}/contact",
+        "actionPlatform": [
+          "http://schema.org/DesktopWebPlatform",
+          "http://schema.org/MobileWebPlatform"
+        ]
+      }
+    }
+  ]
+}

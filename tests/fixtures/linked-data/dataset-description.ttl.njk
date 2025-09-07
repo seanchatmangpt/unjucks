@@ -1,0 +1,299 @@
+---
+to: "{{ datasetId | kebabCase }}-dataset.ttl"
+inject: true
+skipIf: "{{ skipExisting | default(false) }}"
+chmod: "644"
+---
+@base <{{ baseUri | rdfResource }}> .
+@prefix dcat: <http://www.w3.org/ns/dcat#> .
+@prefix dct: <http://purl.org/dc/terms/> .
+@prefix void: <http://rdfs.org/ns/void#> .
+@prefix foaf: <http://xmlns.com/foaf/0.1/> .
+@prefix schema: <http://schema.org/> .
+@prefix prov: <http://www.w3.org/ns/prov#> .
+@prefix adms: <http://www.w3.org/ns/adms#> .
+@prefix vcard: <http://www.w3.org/2006/vcard/ns#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+
+# Dataset-level metadata using VoID and DCAT vocabularies
+<{{ datasetId | kebabCase }}> a void:Dataset , dcat:Dataset , schema:Dataset ;
+    
+    # Basic identification
+    dct:identifier {{ datasetId | upper | rdfLiteral('string') }} ;
+    dct:title {{ title | titleCase | rdfLiteral('en') }} ;
+    {% if alternateTitles -%}
+    {% for altTitle in alternateTitles -%}
+    dct:alternative {{ altTitle | rdfLiteral('en') }}{% if not loop.last %} ,{% endif %}
+    {% endfor %} ;
+    {% endif -%}
+    
+    # Description and documentation
+    dct:description {{ description | rdfLiteral('en') }} ;
+    {% if abstract -%}
+    dct:abstract {{ abstract | rdfLiteral('en') }} ;
+    {% endif -%}
+    {% if purpose -%}
+    schema:purpose {{ purpose | rdfLiteral('en') }} ;
+    {% endif -%}
+    
+    # Keywords and subjects
+    {% if keywords -%}
+    {% for keyword in keywords -%}
+    dcat:keyword {{ keyword | rdfLiteral('en') }}{% if not loop.last %} ,{% endif %}
+    {% endfor %} ;
+    {% endif -%}
+    {% if subjects -%}
+    {% for subject in subjects -%}
+    dct:subject <{{ subject.uri | default(subject | slug) }}>{% if not loop.last %} ,{% endif %}
+    {% endfor %} ;
+    {% endif -%}
+    {% if themes -%}
+    {% for theme in themes -%}
+    dcat:theme <{{ theme.uri | default(theme | slug) }}>{% if not loop.last %} ,{% endif %}
+    {% endfor %} ;
+    {% endif -%}
+    
+    # Temporal coverage
+    {% if temporalCoverage -%}
+    dct:temporal [
+        a dct:PeriodOfTime ;
+        {% if temporalCoverage.startDate -%}
+        dcat:startDate {{ temporalCoverage.startDate | formatDate('YYYY-MM-DD') | rdfLiteral('date') }} ;
+        {% endif -%}
+        {% if temporalCoverage.endDate -%}
+        dcat:endDate {{ temporalCoverage.endDate | formatDate('YYYY-MM-DD') | rdfLiteral('date') }} ;
+        {% endif -%}
+    ] ;
+    {% endif -%}
+    
+    # Spatial coverage
+    {% if spatialCoverage -%}
+    dct:spatial [
+        a dct:Location ;
+        {% if spatialCoverage.geometry -%}
+        {% if spatialCoverage.geometry.type == 'Point' -%}
+        schema:geo {{ geoPoint(spatialCoverage.geometry.coordinates[1], spatialCoverage.geometry.coordinates[0]) }} ;
+        {% endif -%}
+        {% endif -%}
+        {% if spatialCoverage.name -%}
+        skos:prefLabel {{ spatialCoverage.name | rdfLiteral('en') }} ;
+        {% endif -%}
+        {% if spatialCoverage.adminLevel -%}
+        schema:administrativeArea {{ spatialCoverage.adminLevel | rdfLiteral('string') }} ;
+        {% endif -%}
+    ] ;
+    {% endif -%}
+    
+    # Authorship and responsibility
+    {% if creator -%}
+    dct:creator <{{ creator | slug }}> ;
+    {% endif -%}
+    {% if publisher -%}
+    dct:publisher <{{ publisher | slug }}> ;
+    {% endif -%}
+    {% if contributors -%}
+    {% for contributor in contributors -%}
+    dct:contributor <{{ contributor | slug }}>{% if not loop.last %} ,{% endif %}
+    {% endfor %} ;
+    {% endif -%}
+    {% if contactPoint -%}
+    dcat:contactPoint [
+        a vcard:Organization ;
+        vcard:fn {{ contactPoint.name | rdfLiteral('en') }} ;
+        {% if contactPoint.email -%}
+        vcard:hasEmail <mailto:{{ contactPoint.email }}> ;
+        {% endif -%}
+        {% if contactPoint.url -%}
+        vcard:hasURL <{{ contactPoint.url }}> ;
+        {% endif -%}
+    ] ;
+    {% endif -%}
+    
+    # Rights and licensing
+    {% if license -%}
+    dct:license <{{ license | licenseUri }}> ;
+    {% endif -%}
+    {% if rightsHolder -%}
+    dct:rightsHolder <{{ rightsHolder | slug }}> ;
+    {% endif -%}
+    {% if accessRights -%}
+    dct:accessRights <{{ accessRights | expandUri }}>{{ accessRights | rdfLiteral('en') }} ;
+    {% endif -%}
+    
+    # Versioning and lifecycle
+    {% if version -%}
+    dcat:version {{ version | rdfLiteral('string') }} ;
+    adms:version {{ version | rdfLiteral('string') }} ;
+    {% endif -%}
+    {% if versionNotes -%}
+    adms:versionNotes {{ versionNotes | rdfLiteral('en') }} ;
+    {% endif -%}
+    dct:issued {{ issuedDate | default(now() | isoDate) | formatDate('YYYY-MM-DD') | rdfLiteral('date') }} ;
+    dct:modified {{ modifiedDate | default(now() | isoDate) | formatDate('YYYY-MM-DD') | rdfLiteral('date') }} ;
+    {% if nextVersionDue -%}
+    schema:expires {{ nextVersionDue | formatDate('YYYY-MM-DD') | rdfLiteral('date') }} ;
+    {% endif -%}
+    
+    # Update frequency
+    {% if updateFrequency -%}
+    dct:accrualPeriodicity <{{ updateFrequency | expandUri }}> ;
+    {% endif -%}
+    
+    # Language and internationalization
+    {% if languages -%}
+    {% for lang in languages -%}
+    dct:language <http://id.loc.gov/vocabulary/iso639-1/{{ lang }}>{% if not loop.last %} ,{% endif %}
+    {% endfor %} ;
+    {% endif -%}
+    
+    # Quality and conformance
+    {% if conformsTo -%}
+    {% for standard in conformsTo -%}
+    dct:conformsTo <{{ standard.uri | default(standard | slug) }}>{% if not loop.last %} ,{% endif %}
+    {% endfor %} ;
+    {% endif -%}
+    {% if qualityMeasures -%}
+    {% for measure in qualityMeasures -%}
+    dcat:qualifiedRelation [
+        a dcat:Relationship ;
+        dct:relation <{{ measure.type | expandUri }}> ;
+        dcat:hadRole <{{ measure.role | expandUri }}> ;
+        {% if measure.value -%}
+        schema:value {{ measure.value | rdfLiteral(measure.datatype | default('decimal')) }} ;
+        {% endif -%}
+    ]{% if not loop.last %} ,{% endif %}
+    {% endfor %} ;
+    {% endif -%}
+    
+    # VoID-specific statistics
+    {% if statistics -%}
+    void:triples {{ statistics.triples | default(0) | rdfLiteral('integer') }} ;
+    void:entities {{ statistics.entities | default(0) | rdfLiteral('integer') }} ;
+    void:classes {{ statistics.classes | default(0) | rdfLiteral('integer') }} ;
+    void:properties {{ statistics.properties | default(0) | rdfLiteral('integer') }} ;
+    void:distinctSubjects {{ statistics.distinctSubjects | default(0) | rdfLiteral('integer') }} ;
+    void:distinctObjects {{ statistics.distinctObjects | default(0) | rdfLiteral('integer') }} ;
+    {% endif -%}
+    
+    # Vocabularies used
+    {% if vocabularies -%}
+    {% for vocab in vocabularies -%}
+    void:vocabulary <{{ vocab.uri | default(vocab | expandUri) }}>{% if not loop.last %} ,{% endif %}
+    {% endfor %} ;
+    {% endif -%}
+    
+    # Example resources
+    {% if exampleResources -%}
+    {% for example in exampleResources -%}
+    void:exampleResource <{{ example | slug }}>{% if not loop.last %} ,{% endif %}
+    {% endfor %} ;
+    {% endif -%}
+    
+    # Data dumps and serializations
+    {% if dataDumps -%}
+    {% for dump in dataDumps -%}
+    void:dataDump <{{ dump.url }}>{% if not loop.last %} ,{% endif %}
+    {% endfor %} ;
+    {% endif -%}
+    
+    # SPARQL endpoints
+    {% if sparqlEndpoints -%}
+    {% for endpoint in sparqlEndpoints -%}
+    void:sparqlEndpoint <{{ endpoint.url }}>{% if not loop.last %} ,{% endif %}
+    {% endfor %} ;
+    {% endif -%}
+    
+    # Web access
+    {% if landingPage -%}
+    dcat:landingPage <{{ landingPage }}> ;
+    {% endif -%}
+    
+    # Relations to other datasets
+    {% if relatedDatasets -%}
+    {% for related in relatedDatasets -%}
+    {% if related.relation == 'subset' -%}
+    void:subset <{{ related.dataset | kebabCase }}>{% if not loop.last %} ,{% endif %}
+    {% elif related.relation == 'superset' -%}
+    void:rootResource <{{ related.dataset | kebabCase }}>{% if not loop.last %} ,{% endif %}
+    {% else -%}
+    dct:relation <{{ related.dataset | kebabCase }}>{% if not loop.last %} ,{% endif %}
+    {% endif -%}
+    {% endfor %} ;
+    {% endif -%}
+    
+    # Linksets to external datasets
+    {% if linksets -%}
+    {% for linkset in linksets -%}
+    void:subset [
+        a void:Linkset ;
+        void:target <{{ datasetId | kebabCase }}> ;
+        void:target <{{ linkset.targetDataset | kebabCase }}> ;
+        {% if linkset.linkPredicate -%}
+        void:linkPredicate <{{ linkset.linkPredicate | expandUri }}> ;
+        {% endif -%}
+        {% if linkset.triples -%}
+        void:triples {{ linkset.triples | rdfLiteral('integer') }} ;
+        {% endif -%}
+    ]{% if not loop.last %} ,{% endif %}
+    {% endfor %} ;
+    {% endif -%}
+    .
+
+# Distributions (different formats/access methods)
+{% if distributions -%}
+{% for dist in distributions -%}
+<{{ datasetId | kebabCase }}/distribution/{{ loop.index }}> a dcat:Distribution ;
+    dct:title {{ dist.title | default((title + ' - ' + dist.format) | titleCase) | rdfLiteral('en') }} ;
+    {% if dist.description -%}
+    dct:description {{ dist.description | rdfLiteral('en') }} ;
+    {% endif -%}
+    dct:format {{ dist.format | contentType | rdfLiteral('string') }} ;
+    {% if dist.mediaType -%}
+    dcat:mediaType {{ dist.mediaType | rdfLiteral('string') }} ;
+    {% endif -%}
+    {% if dist.downloadUrl -%}
+    dcat:downloadURL <{{ dist.downloadUrl }}> ;
+    {% endif -%}
+    {% if dist.accessUrl -%}
+    dcat:accessURL <{{ dist.accessUrl }}> ;
+    {% endif -%}
+    {% if dist.size -%}
+    dcat:byteSize {{ dist.size | rdfLiteral('integer') }} ;
+    {% endif -%}
+    {% if dist.license -%}
+    dct:license <{{ dist.license | licenseUri }}> ;
+    {% endif -%}
+    {% if dist.rights -%}
+    dct:rights {{ dist.rights | rdfLiteral('en') }} ;
+    {% endif -%}
+    dct:issued {{ dist.issued | default(now() | isoDate) | formatDate('YYYY-MM-DD') | rdfLiteral('date') }} ;
+    dct:modified {{ dist.modified | default(now() | isoDate) | formatDate('YYYY-MM-DD') | rdfLiteral('date') }} ;
+    .
+
+<{{ datasetId | kebabCase }}> dcat:distribution <{{ datasetId | kebabCase }}/distribution/{{ loop.index }}> .
+{% endfor -%}
+{% endif %}
+
+# Catalog record metadata
+<{{ datasetId | kebabCase }}/record> a dcat:CatalogRecord ;
+    foaf:primaryTopic <{{ datasetId | kebabCase }}> ;
+    dct:issued {{ now() | isoDate | rdfLiteral('dateTime') }} ;
+    dct:modified {{ now() | isoDate | rdfLiteral('dateTime') }} ;
+    {% if cataloger -%}
+    dct:creator <{{ cataloger | slug }}> ;
+    {% endif -%}
+    adms:status <http://purl.org/adms/status/{{ status | default('Completed') }}> ;
+    .
+
+# Provenance information
+<{{ datasetId | kebabCase }}> prov:wasGeneratedBy [
+    a prov:Activity ;
+    prov:startedAtTime {{ now() | isoDate | rdfLiteral('dateTime') }} ;
+    prov:wasAssociatedWith <{{ generator | default('unjucks-dataset-generator') | slug }}> ;
+    {% if generationMethod -%}
+    prov:used [
+        a prov:Plan ;
+        dct:description {{ generationMethod | rdfLiteral('en') }} ;
+    ] ;
+    {% endif -%}
+] .

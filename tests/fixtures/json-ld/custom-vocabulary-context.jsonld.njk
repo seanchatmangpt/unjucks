@@ -1,0 +1,150 @@
+---
+to: "{{ outputDir }}/{{ vocabularyName | kebabCase }}-vocab-context.jsonld"
+inject: false
+unless_exists: true
+variables:
+  - name: vocabularyName
+    type: string
+    description: "Name of the custom vocabulary"
+  - name: outputDir
+    type: string
+    default: "./contexts"
+    description: "Output directory for context files"
+  - name: vocabularyUri
+    type: string
+    description: "Base URI for the custom vocabulary"
+  - name: vocabularyPrefix
+    type: string
+    description: "Namespace prefix for the vocabulary"
+  - name: classes
+    type: array
+    default: []
+    description: "Custom classes in the vocabulary"
+  - name: properties
+    type: array
+    default: []
+    description: "Custom properties with their configurations"
+  - name: inheritFromSchema
+    type: boolean
+    default: false
+    description: "Inherit from Schema.org vocabulary"
+---
+{
+  "@context": {
+    "@version": 1.1,
+    {% if inheritFromSchema -%}
+    "@vocab": "https://schema.org/",
+    {%- else -%}
+    "@vocab": "{{ vocabularyUri | rdfResource }}/",
+    {%- endif %}
+    
+    {{- rdfNamespaces(['xsd', 'rdf', 'rdfs', 'owl', 'dct', 'skos']) | dump | slice(1, -1) | safe }},
+    
+    "{{ vocabularyPrefix }}": "{{ vocabularyUri | rdfResource }}/",
+    
+    {% if classes and classes.length > 0 -%}
+    "_comment": "Custom vocabulary classes",
+    {% for class in classes -%}
+    "{{ class.name | pascalCase }}": {
+      "@id": "{{ vocabularyPrefix }}:{{ class.name | pascalCase }}",
+      "@type": "@id"
+      {%- if class.subClassOf %},
+      "rdfs:subClassOf": {
+        "@id": "{{ class.subClassOf | rdfResource }}",
+        "@type": "@id"
+      }
+      {%- endif %}
+    }{% if not loop.last %},{% endif %}
+    {%- endfor %}
+    {% endif %}
+    
+    {% if properties and properties.length > 0 -%}
+    {% if classes and classes.length > 0 %},{% endif %}
+    
+    "_comment": "Custom vocabulary properties",
+    {% for prop in properties -%}
+    "{{ prop.name | camelCase }}": {
+      "@id": "{{ vocabularyPrefix }}:{{ prop.name | camelCase }}"
+      {%- if prop.datatype %},
+      "@type": "{{ prop.datatype | rdfDatatype }}"
+      {%- endif %}
+      {%- if prop.language %},
+      "@language": "{{ prop.language }}"
+      {%- endif %}
+      {%- if prop.container %},
+      "@container": "{{ prop.container }}"
+      {%- endif %}
+      {%- if prop.reverse %},
+      "@reverse": "{{ prop.reverse | rdfResource }}"
+      {%- endif %}
+      {%- if prop.domain %},
+      "rdfs:domain": {
+        "@id": "{{ prop.domain | rdfResource }}",
+        "@type": "@id"
+      }
+      {%- endif %}
+      {%- if prop.range %},
+      "rdfs:range": {
+        "@id": "{{ prop.range | rdfResource }}",
+        "@type": "@id"
+      }
+      {%- endif %}
+    }{% if not loop.last %},{% endif %}
+    {%- endfor %}
+    {% endif %}
+    
+    {% if inheritFromSchema %},
+    
+    "_comment": "Extended Schema.org properties for custom domain",
+    "customIdentifier": {
+      "@id": "{{ vocabularyPrefix }}:customIdentifier",
+      "@type": "xsd:string"
+    },
+    "internalId": {
+      "@id": "{{ vocabularyPrefix }}:internalId",
+      "@type": "xsd:string"
+    },
+    "customCategory": {
+      "@id": "{{ vocabularyPrefix }}:customCategory",
+      "@type": "xsd:string",
+      "@container": "@set"
+    },
+    "customTags": {
+      "@id": "{{ vocabularyPrefix }}:customTags",
+      "@type": "xsd:string",
+      "@container": "@list"
+    },
+    "customMetadata": {
+      "@id": "{{ vocabularyPrefix }}:customMetadata",
+      "@type": "@json"
+    },
+    "customStatus": {
+      "@id": "{{ vocabularyPrefix }}:customStatus",
+      "@type": "xsd:string"
+    },
+    "customPriority": {
+      "@id": "{{ vocabularyPrefix }}:customPriority",
+      "@type": "xsd:integer"
+    },
+    "customScore": {
+      "@id": "{{ vocabularyPrefix }}:customScore",
+      "@type": "xsd:decimal"
+    },
+    "customFlags": {
+      "@id": "{{ vocabularyPrefix }}:customFlags",
+      "@type": "xsd:boolean",
+      "@container": "@set"
+    },
+    "customReferences": {
+      "@id": "{{ vocabularyPrefix }}:customReferences",
+      "@type": "@id",
+      "@container": "@set"
+    },
+    "customHierarchy": {
+      "@id": "{{ vocabularyPrefix }}:customHierarchy",
+      "@type": "@id",
+      "@container": "@list"
+    }
+    {% endif %}
+  }
+}

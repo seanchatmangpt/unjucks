@@ -1,0 +1,79 @@
+---
+to: "{{ destDir }}/{{ slug }}-faq.json"
+inject: false
+---
+{
+  "@context": "https://schema.org/",
+  "@type": "FAQPage",
+  "@id": "{{ baseUrl | rdfResource }}/faq/{{ id | slug }}",
+  
+  "name": "{{ title | titleCase }}",
+  "description": "{{ description | truncate(160) | escape }}",
+  "url": "{{ url | rdfResource }}",
+  
+  "mainEntity": [
+    {% for faq in faqs -%}
+    {
+      "@type": "Question",
+      "name": "{{ faq.question | escape }}",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "{{ faq.answer | escape }}",
+        {% if faq.answerUrl -%}
+        "url": "{{ faq.answerUrl | rdfResource }}",
+        {% endif %}
+        {% if faq.author -%}
+        "author": {
+          "@type": "{{ faq.author.type | default('Person') | schemaOrg }}",
+          "name": "{{ faq.author.name | titleCase }}"
+        },
+        {% endif %}
+        "dateCreated": "{{ faq.dateCreated | default(now()) | schemaDate }}"
+      },
+      {% if faq.upvoteCount -%}
+      "upvoteCount": {{ faq.upvoteCount }},
+      {% endif %}
+      {% if faq.downvoteCount -%}
+      "downvoteCount": {{ faq.downvoteCount }},
+      {% endif %}
+      "dateCreated": "{{ faq.dateCreated | default(now()) | schemaDate }}"
+    }{% if not loop.last %},{% endif %}
+    {% endfor %}
+  ],
+  
+  {% if breadcrumbs -%}
+  "breadcrumb": {{ breadcrumbs | schemaBreadcrumbs | dump }},
+  {% endif %}
+  
+  {% if about -%}
+  "about": {
+    "@type": "Thing",
+    "name": "{{ about.name | titleCase }}",
+    "description": "{{ about.description | escape }}"
+  },
+  {% endif %}
+  
+  "inLanguage": "{{ language | default('en-US') }}",
+  
+  "dateCreated": "{{ created | default(now()) | schemaDate }}",
+  "dateModified": "{{ modified | default(now()) | schemaDate }}",
+  
+  "isPartOf": {
+    "@type": "WebSite",
+    "name": "{{ siteName | titleCase }}",
+    "url": "{{ siteUrl | rdfResource }}"
+  },
+  
+  "potentialAction": {
+    "@type": "SearchAction",
+    "target": {
+      "@type": "EntryPoint",
+      "urlTemplate": "{{ baseUrl }}/search?q={search_term_string}",
+      "actionPlatform": [
+        "http://schema.org/DesktopWebPlatform",
+        "http://schema.org/MobileWebPlatform"
+      ]
+    },
+    "query-input": "required name=search_term_string"
+  }
+}

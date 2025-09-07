@@ -1,0 +1,368 @@
+---
+to: "sitemap.ttl"
+inject: true
+skipIf: "{{ skipExisting | default(false) }}"
+chmod: "644"
+---
+@base <{{ baseUri | rdfResource }}> .
+@prefix sitemap: <http://www.sitemaps.org/schemas/sitemap/0.9/> .
+@prefix schema: <http://schema.org/> .
+@prefix dct: <http://purl.org/dc/terms/> .
+@prefix void: <http://rdfs.org/ns/void#> .
+@prefix hydra: <http://www.w3.org/ns/hydra/core#> .
+@prefix foaf: <http://xmlns.com/foaf/0.1/> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix prov: <http://www.w3.org/ns/prov#> .
+
+# Semantic Sitemap for {{ siteTitle | titleCase }}
+<sitemap> a schema:SiteNavigationElement , void:Dataset ;
+    
+    # Basic identification
+    dct:title {{ 'Semantic Sitemap for ' + siteTitle | titleCase | rdfLiteral('en') }} ;
+    dct:description {{ 'RDF-based site structure and navigation for linked data resources' | rdfLiteral('en') }} ;
+    
+    # Site metadata
+    schema:about <{{ baseUri | rdfResource }}> ;
+    dct:spatial <{{ spatialCoverage | default(baseUri) }}> ;
+    dct:language <http://id.loc.gov/vocabulary/iso639-1/{{ language | default('en') }}> ;
+    
+    # Generated information
+    dct:created {{ now() | isoDate | rdfLiteral('dateTime') }} ;
+    dct:modified {{ now() | isoDate | rdfLiteral('dateTime') }} ;
+    
+    # Site statistics
+    void:entities {{ totalResources | default(0) | rdfLiteral('integer') }} ;
+    schema:numberOfItems {{ totalResources | default(0) | rdfLiteral('integer') }} ;
+    
+    # Navigation structure
+    {% if mainNavigation -%}
+    {% for navItem in mainNavigation -%}
+    schema:hasPart <{{ navItem.id | slug }}>{% if not loop.last %} ,{% endif %}
+    {% endfor %} ;
+    {% endif -%}
+    .
+
+# Site root and home page
+<> a schema:WebSite , foaf:Document ;
+    schema:name {{ siteTitle | titleCase | rdfLiteral('en') }} ;
+    {% if siteDescription -%}
+    schema:description {{ siteDescription | rdfLiteral('en') }} ;
+    {% endif -%}
+    {% if siteKeywords -%}
+    {% for keyword in siteKeywords -%}
+    schema:keywords {{ keyword | rdfLiteral('en') }}{% if not loop.last %} ,{% endif %}
+    {% endfor %} ;
+    {% endif -%}
+    
+    # Site metadata
+    schema:url <{{ baseUri | rdfResource }}> ;
+    {% if author -%}
+    schema:author <{{ author | slug }}> ;
+    {% endif -%}
+    {% if publisher -%}
+    schema:publisher <{{ publisher | slug }}> ;
+    {% endif -%}
+    {% if license -%}
+    dct:license <{{ license | licenseUri }}> ;
+    {% endif -%}
+    
+    # Technical information
+    schema:potentialAction [
+        a schema:SearchAction ;
+        schema:target {{ (baseUri + 'search?q={search_term_string}') | rdfLiteral('string') }} ;
+        schema:query-input {{ 'required name=search_term_string' | rdfLiteral('string') }} ;
+    ] ;
+    
+    # Navigation structure
+    schema:mainEntity <sitemap> ;
+    .
+
+# Main navigation items
+{% if mainNavigation %}
+{% for navItem in mainNavigation %}
+<{{ navItem.id | slug }}> a schema:WebPage , skos:Concept ;
+    schema:name {{ navItem.title | titleCase | rdfLiteral('en') }} ;
+    {% if navItem.description -%}
+    schema:description {{ navItem.description | rdfLiteral('en') }} ;
+    {% endif -%}
+    schema:url <{{ navItem.url | default(navItem.id | slug) }}> ;
+    
+    # Navigation hierarchy
+    schema:isPartOf <sitemap> ;
+    {% if navItem.parent -%}
+    skos:broader <{{ navItem.parent | slug }}> ;
+    {% else -%}
+    skos:topConceptOf <sitemap> ;
+    {% endif -%}
+    {% if navItem.position -%}
+    schema:position {{ navItem.position | rdfLiteral('integer') }} ;
+    {% endif -%}
+    
+    # Content metadata
+    {% if navItem.lastModified -%}
+    dct:modified {{ navItem.lastModified | isoDate | rdfLiteral('dateTime') }} ;
+    {% endif -%}
+    {% if navItem.changeFrequency -%}
+    schema:publishingPrinciples {{ navItem.changeFrequency | rdfLiteral('string') }} ;
+    {% endif -%}
+    {% if navItem.priority -%}
+    schema:significance {{ navItem.priority | rdfLiteral('decimal') }} ;
+    {% endif -%}
+    
+    # Content type and format
+    {% if navItem.type -%}
+    dct:type <{{ navItem.type | expandUri }}> ;
+    schema:additionalType <{{ navItem.type | expandUri }}> ;
+    {% endif -%}
+    schema:encodingFormat {{ navItem.format | default('text/html') | contentType | rdfLiteral('string') }} ;
+    
+    # Sub-navigation
+    {% if navItem.children -%}
+    {% for child in navItem.children -%}
+    skos:narrower <{{ child.id | slug }}>{% if not loop.last %} ,{% endif %}
+    {% endfor %} ;
+    {% endif -%}
+    
+    # Related pages
+    {% if navItem.related -%}
+    {% for related in navItem.related -%}
+    schema:relatedLink <{{ related.id | slug }}>{% if not loop.last %} ,{% endif %}
+    {% endfor %} ;
+    {% endif -%}
+    
+    # Access and permissions
+    {% if navItem.accessLevel -%}
+    dct:accessRights {{ navItem.accessLevel | rdfLiteral('string') }} ;
+    {% endif -%}
+    
+    # Semantic categories
+    {% if navItem.categories -%}
+    {% for category in navItem.categories -%}
+    dct:subject <{{ category.uri | default(category | slug) }}>{% if not loop.last %} ,{% endif %}
+    {% endfor %} ;
+    {% endif -%}
+    .
+
+{% endfor %}
+{% endif %}
+
+# Resource collections and datasets
+{% if collections %}
+{% for collection in collections %}
+<{{ collection.id | kebabCase }}/collection> a hydra:Collection , void:Dataset ;
+    dct:title {{ collection.title | titleCase | rdfLiteral('en') }} ;
+    {% if collection.description -%}
+    dct:description {{ collection.description | rdfLiteral('en') }} ;
+    {% endif -%}
+    
+    # Collection metadata
+    hydra:totalItems {{ collection.totalItems | default(0) | rdfLiteral('integer') }} ;
+    void:entities {{ collection.totalItems | default(0) | rdfLiteral('integer') }} ;
+    
+    # Access URLs
+    hydra:view <{{ collection.id | kebabCase }}/page-1> ;
+    schema:url <{{ collection.id | kebabCase }}> ;
+    
+    # Content types in collection
+    {% if collection.itemTypes -%}
+    {% for itemType in collection.itemTypes -%}
+    void:class <{{ itemType | expandUri }}>{% if not loop.last %} ,{% endif %}
+    {% endfor %} ;
+    {% endif -%}
+    
+    # Update information
+    {% if collection.lastModified -%}
+    dct:modified {{ collection.lastModified | isoDate | rdfLiteral('dateTime') }} ;
+    {% endif -%}
+    {% if collection.updateFrequency -%}
+    dct:accrualPeriodicity <{{ collection.updateFrequency | expandUri }}> ;
+    {% endif -%}
+    
+    # Navigation context
+    schema:isPartOf <sitemap> ;
+    .
+
+<sitemap> schema:dataset <{{ collection.id | kebabCase }}/collection> .
+
+{% endfor %}
+{% endif %}
+
+# API endpoints and services
+{% if apiEndpoints %}
+{% for endpoint in apiEndpoints %}
+<api/{{ endpoint.id | kebabCase }}> a hydra:Class , schema:WebAPI ;
+    schema:name {{ endpoint.title | titleCase | rdfLiteral('en') }} ;
+    {% if endpoint.description -%}
+    schema:description {{ endpoint.description | rdfLiteral('en') }} ;
+    {% endif -%}
+    
+    # Endpoint information
+    hydra:entrypoint <{{ endpoint.url }}> ;
+    schema:url <{{ endpoint.url }}> ;
+    
+    # HTTP methods supported
+    {% if endpoint.methods -%}
+    {% for method in endpoint.methods -%}
+    hydra:supportedOperation [
+        a hydra:Operation ;
+        hydra:method {{ method | upper | rdfLiteral('string') }} ;
+        {% if endpoint.accepts -%}
+        hydra:expects {{ endpoint.accepts | contentType | rdfLiteral('string') }} ;
+        {% endif -%}
+        {% if endpoint.returns -%}
+        hydra:returns {{ endpoint.returns | contentType | rdfLiteral('string') }} ;
+        {% endif -%}
+    ]{% if not loop.last %} ,{% endif %}
+    {% endfor %} ;
+    {% endif -%}
+    
+    # API documentation
+    {% if endpoint.documentation -%}
+    schema:documentation <{{ endpoint.documentation }}> ;
+    {% endif -%}
+    
+    # Rate limiting and access
+    {% if endpoint.rateLimit -%}
+    schema:serviceLevel {{ endpoint.rateLimit | rdfLiteral('string') }} ;
+    {% endif -%}
+    {% if endpoint.authentication -%}
+    schema:requiresSubscription {{ endpoint.authentication | rdfLiteral('boolean') }} ;
+    {% endif -%}
+    
+    # Navigation context
+    schema:isPartOf <sitemap> ;
+    .
+
+<sitemap> schema:webAPI <api/{{ endpoint.id | kebabCase }}> .
+
+{% endfor %}
+{% endif %}
+
+# Content types and schemas
+{% if contentTypes %}
+<sitemap> void:vocabulary
+{% for contentType in contentTypes -%}
+    <{{ contentType.vocabulary | expandUri }}>{% if not loop.last %} ,{% endif %}
+{% endfor %} .
+
+{% for contentType in contentTypes %}
+<content-types/{{ contentType.id | kebabCase }}> a void:Dataset , schema:DefinedTermSet ;
+    dct:title {{ ('Content Type: ' + contentType.title) | titleCase | rdfLiteral('en') }} ;
+    {% if contentType.description -%}
+    dct:description {{ contentType.description | rdfLiteral('en') }} ;
+    {% endif -%}
+    
+    # Schema information
+    void:vocabulary <{{ contentType.vocabulary | expandUri }}> ;
+    {% if contentType.properties -%}
+    void:properties {{ contentType.properties | length | rdfLiteral('integer') }} ;
+    {% for property in contentType.properties -%}
+    void:property <{{ property | expandUri }}>{% if not loop.last %} ,{% endif %}
+    {% endfor %} ;
+    {% endif -%}
+    
+    # Example instances
+    {% if contentType.examples -%}
+    {% for example in contentType.examples -%}
+    void:exampleResource <{{ example | slug }}>{% if not loop.last %} ,{% endif %}
+    {% endfor %} ;
+    {% endif -%}
+    
+    # Documentation
+    {% if contentType.documentation -%}
+    schema:documentation <{{ contentType.documentation }}> ;
+    {% endif -%}
+    
+    schema:isPartOf <sitemap> ;
+    .
+
+{% endfor %}
+{% endif %}
+
+# Linked data endpoints
+{% if linkedDataEndpoints %}
+{% for endpoint in linkedDataEndpoints %}
+<linked-data/{{ endpoint.id | kebabCase }}> a void:Dataset , dcat:Dataset ;
+    dct:title {{ endpoint.title | titleCase | rdfLiteral('en') }} ;
+    {% if endpoint.description -%}
+    dct:description {{ endpoint.description | rdfLiteral('en') }} ;
+    {% endif -%}
+    
+    # Access methods
+    {% if endpoint.sparqlEndpoint -%}
+    void:sparqlEndpoint <{{ endpoint.sparqlEndpoint }}> ;
+    {% endif -%}
+    {% if endpoint.dataDump -%}
+    void:dataDump <{{ endpoint.dataDump }}> ;
+    {% endif -%}
+    
+    # Content negotiation
+    {% if endpoint.formats -%}
+    {% for format in endpoint.formats -%}
+    dcat:distribution [
+        a dcat:Distribution ;
+        dct:format {{ format | contentType | rdfLiteral('string') }} ;
+        dcat:downloadURL <{{ endpoint.baseUrl }}.{{ format }}> ;
+    ]{% if not loop.last %} ,{% endif %}
+    {% endfor %} ;
+    {% endif -%}
+    
+    # Statistics
+    {% if endpoint.triples -%}
+    void:triples {{ endpoint.triples | rdfLiteral('integer') }} ;
+    {% endif -%}
+    {% if endpoint.entities -%}
+    void:entities {{ endpoint.entities | rdfLiteral('integer') }} ;
+    {% endif -%}
+    
+    schema:isPartOf <sitemap> ;
+    .
+
+{% endfor %}
+{% endif %}
+
+# Breadcrumb navigation
+{% if breadcrumbs %}
+<navigation/breadcrumbs> a schema:BreadcrumbList ;
+    schema:name {{ 'Site Breadcrumb Navigation' | rdfLiteral('en') }} ;
+    {% for crumb in breadcrumbs -%}
+    schema:itemListElement [
+        a schema:ListItem ;
+        schema:position {{ loop.index | rdfLiteral('integer') }} ;
+        schema:item <{{ crumb.url | default(crumb.id | slug) }}> ;
+        schema:name {{ crumb.title | titleCase | rdfLiteral('en') }} ;
+    ]{% if not loop.last %} ,{% endif %}
+    {% endfor %} ;
+    .
+
+<sitemap> schema:breadcrumb <navigation/breadcrumbs> .
+{% endif %}
+
+# Site-wide metadata and provenance
+<sitemap> prov:wasGeneratedBy [
+    a prov:Activity ;
+    prov:startedAtTime {{ now() | isoDate | rdfLiteral('dateTime') }} ;
+    prov:wasAssociatedWith <{{ generator | default('unjucks-sitemap-generator') | slug }}> ;
+    {% if generatorVersion -%}
+    prov:used [
+        a prov:SoftwareAgent ;
+        schema:version {{ generatorVersion | rdfLiteral('string') }} ;
+        schema:name {{ 'Unjucks Linked Data Generator' | rdfLiteral('en') }} ;
+    ] ;
+    {% endif -%}
+] .
+
+# Alternate representations
+<sitemap.xml> a schema:DataDownload ;
+    dct:title {{ 'XML Sitemap' | rdfLiteral('en') }} ;
+    dct:format {{ 'application/xml' | rdfLiteral('string') }} ;
+    dct:isFormatOf <sitemap> ;
+    schema:encodingFormat {{ 'application/xml' | rdfLiteral('string') }} ;
+    .
+
+<sitemap.html> a schema:WebPage ;
+    dct:title {{ 'HTML Site Map' | rdfLiteral('en') }} ;
+    dct:format {{ 'text/html' | rdfLiteral('string') }} ;
+    dct:isFormatOf <sitemap> ;
+    schema:encodingFormat {{ 'text/html' | rdfLiteral('string') }} ;
+    .

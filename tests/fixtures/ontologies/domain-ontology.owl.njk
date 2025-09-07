@@ -1,0 +1,105 @@
+---
+to: generated/ontologies/<%= domain | kebabCase %>-domain.owl
+inject: false
+sh: "echo 'Generated domain ontology for: <%= domain %>'"
+---
+@prefix {{ nsPrefix | kebabCase }}: <{{ namespace | rdfResource }}/> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix rdf: <http://www.w3.org/RDF/1999/02/22-rdf-syntax-ns#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix foaf: <http://xmlns.com/foaf/0.1/> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@base <{{ namespace | rdfResource }}/> .
+
+# Domain Ontology: {{ domain | titleCase }}
+<{{ namespace | rdfResource }}/> rdf:type owl:Ontology ;
+    owl:versionIRI <{{ namespace | rdfResource }}/{{ version | default('1.0.0') }}/> ;
+    owl:versionInfo "{{ version | default('1.0.0') | rdfLiteral('en') }}" ;
+    rdfs:label "{{ domain | titleCase }} Domain Ontology" ;
+    rdfs:comment "{{ description | default('Domain-specific ontology for ' + domain) | rdfLiteral('en') }}" ;
+    dcterms:created "{{ createdDate | isoDate | rdfLiteral('xsd:dateTime') }}" ;
+    dcterms:modified "{{ modifiedDate | isoDate | rdfLiteral('xsd:dateTime') }}" ;
+    owl:imports <http://www.w3.org/2002/07/owl#> ,
+                <http://xmlns.com/foaf/0.1/> ,
+                <http://purl.org/dc/terms/> .
+
+# Core Domain Classes
+{% for entity in entities %}
+{{ nsPrefix | kebabCase }}:{{ entity.name | pascalCase }} rdf:type owl:Class ;
+    rdfs:label "{{ entity.name | humanize | rdfLiteral('en') }}" ;
+    {% if entity.description -%}
+    rdfs:comment "{{ entity.description | rdfLiteral('en') }}" ;
+    {%- endif %}
+    {% if entity.superClass -%}
+    rdfs:subClassOf {{ entity.superClass | pascalCase | rdfClass(nsPrefix) }} ;
+    {%- endif %}
+    {% if entity.restrictions -%}
+    {% for restriction in entity.restrictions -%}
+    rdfs:subClassOf [
+        rdf:type owl:Restriction ;
+        owl:onProperty {{ restriction.property | camelCase | rdfProperty(nsPrefix) }} ;
+        {% if restriction.type == 'someValuesFrom' -%}
+        owl:someValuesFrom {{ restriction.value | pascalCase | rdfClass(nsPrefix) }} ;
+        {%- elif restriction.type == 'allValuesFrom' -%}
+        owl:allValuesFrom {{ restriction.value | pascalCase | rdfClass(nsPrefix) }} ;
+        {%- elif restriction.type == 'hasValue' -%}
+        owl:hasValue {{ restriction.value | rdfResource }} ;
+        {%- elif restriction.type == 'cardinality' -%}
+        owl:cardinality "{{ restriction.value }}"^^xsd:nonNegativeInteger ;
+        {%- elif restriction.type == 'minCardinality' -%}
+        owl:minCardinality "{{ restriction.value }}"^^xsd:nonNegativeInteger ;
+        {%- elif restriction.type == 'maxCardinality' -%}
+        owl:maxCardinality "{{ restriction.value }}"^^xsd:nonNegativeInteger ;
+        {%- endif %}
+    ] ;
+    {% endfor -%}
+    {%- endif %}
+    rdfs:isDefinedBy <{{ namespace | rdfResource }}/> .
+
+{% endfor %}
+
+# Domain-specific Properties
+{% for relation in relations %}
+{{ nsPrefix | kebabCase }}:{{ relation.name | camelCase }} rdf:type 
+    {%- if relation.type == 'datatype' %}owl:DatatypeProperty
+    {%- else %}owl:ObjectProperty{% endif %} ;
+    rdfs:label "{{ relation.name | humanize | rdfLiteral('en') }}" ;
+    {% if relation.description -%}
+    rdfs:comment "{{ relation.description | rdfLiteral('en') }}" ;
+    {%- endif %}
+    {% if relation.domain -%}
+    rdfs:domain {{ relation.domain | pascalCase | rdfClass(nsPrefix) }} ;
+    {%- endif %}
+    {% if relation.range -%}
+    rdfs:range {% if relation.type == 'datatype' %}{{ relation.range | rdfDatatype }}{% else %}{{ relation.range | pascalCase | rdfClass(nsPrefix) }}{% endif %} ;
+    {%- endif %}
+    {% if relation.characteristics -%}
+    {% for char in relation.characteristics -%}
+    rdf:type owl:{{ char | pascalCase }}Property ;
+    {% endfor -%}
+    {%- endif %}
+    {% if relation.subPropertyOf -%}
+    rdfs:subPropertyOf {{ relation.subPropertyOf | camelCase | rdfProperty(nsPrefix) }} ;
+    {%- endif %}
+    rdfs:isDefinedBy <{{ namespace | rdfResource }}/> .
+
+{% endfor %}
+
+# Enumerated Classes
+{% for enumClass in enumerations %}
+{{ nsPrefix | kebabCase }}:{{ enumClass.name | pascalCase }} rdf:type owl:Class ;
+    rdfs:label "{{ enumClass.name | humanize | rdfLiteral('en') }}" ;
+    owl:equivalentClass [
+        rdf:type owl:Class ;
+        owl:oneOf ( {% for item in enumClass.values %}{{ nsPrefix | kebabCase }}:{{ item | pascalCase }} {% endfor %})
+    ] ;
+    rdfs:isDefinedBy <{{ namespace | rdfResource }}/> .
+
+{% for item in enumClass.values %}
+{{ nsPrefix | kebabCase }}:{{ item | pascalCase }} rdf:type owl:NamedIndividual ,
+    {{ nsPrefix | kebabCase }}:{{ enumClass.name | pascalCase }} ;
+    rdfs:label "{{ item | humanize | rdfLiteral('en') }}" .
+{% endfor %}
+
+{% endfor %}

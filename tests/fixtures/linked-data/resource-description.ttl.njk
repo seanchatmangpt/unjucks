@@ -1,0 +1,205 @@
+---
+to: "{{ resourceId | slug }}.ttl"
+inject: true
+skipIf: "{{ skipExisting | default(false) }}"
+chmod: "644"
+---
+@base <{{ baseUri | rdfResource }}> .
+@prefix ex: <{{ baseUri | rdfResource }}/{{ namespace | kebabCase }}/> .
+@prefix schema: <http://schema.org/> .
+@prefix dct: <http://purl.org/dc/terms/> .
+@prefix void: <http://rdfs.org/ns/void#> .
+@prefix foaf: <http://xmlns.com/foaf/0.1/> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix prov: <http://www.w3.org/ns/prov#> .
+@prefix geo: <http://www.opengis.net/ont/geosparql#> .
+
+# Resource Description for {{ title | titleCase }}
+<{{ resourceId | slug }}> a {{ resourceType | pascalCase | schemaOrg }} ;
+    schema:{{ nameProperty | camelCase | default('name') }} {{ title | titleCase | rdfLiteral('en') }} ;
+    schema:identifier {{ resourceId | upper | rdfLiteral('string') }} ;
+    schema:url <{{ resourceId | slug }}> ;
+    {% if description -%}
+    schema:description {{ description | rdfLiteral('en') }} ;
+    {% endif -%}
+    {% if keywords -%}
+    {% for keyword in keywords -%}
+    schema:keywords {{ keyword | rdfLiteral('en') }}{% if not loop.last %} ,{% endif %}
+    {% endfor %} ;
+    {% endif -%}
+    
+    # Temporal metadata
+    dct:created {{ createdDate | formatDate('YYYY-MM-DDTHH:mm:ss') | rdfLiteral('dateTime') }} ;
+    dct:modified {{ now() | formatDate('YYYY-MM-DDTHH:mm:ss') | rdfLiteral('dateTime') }} ;
+    {% if validFrom -%}
+    schema:validFrom {{ validFrom | formatDate('YYYY-MM-DD') | rdfLiteral('date') }} ;
+    {% endif -%}
+    {% if validThrough -%}
+    schema:validThrough {{ validThrough | formatDate('YYYY-MM-DD') | rdfLiteral('date') }} ;
+    {% endif -%}
+    
+    # Authorship and provenance
+    {% if creator -%}
+    dct:creator <{{ creator | slug }}> ;
+    {% endif -%}
+    {% if publisher -%}
+    dct:publisher <{{ publisher | slug }}> ;
+    {% endif -%}
+    {% if contributors -%}
+    {% for contributor in contributors -%}
+    dct:contributor <{{ contributor | slug }}>{% if not loop.last %} ,{% endif %}
+    {% endfor %} ;
+    {% endif -%}
+    
+    # Rights and licensing
+    {% if license -%}
+    dct:license <{{ license | licenseUri }}> ;
+    {% endif -%}
+    {% if rightsHolder -%}
+    dct:rightsHolder <{{ rightsHolder | slug }}> ;
+    {% endif -%}
+    {% if accessRights -%}
+    dct:accessRights {{ accessRights | rdfLiteral('en') }} ;
+    {% endif -%}
+    
+    # Technical metadata
+    schema:encodingFormat {{ format | default('text/turtle') | contentType | rdfLiteral('string') }} ;
+    {% if version -%}
+    schema:version {{ version | rdfLiteral('string') }} ;
+    {% endif -%}
+    {% if size -%}
+    schema:contentSize {{ size | rdfLiteral('integer') }} ;
+    {% endif -%}
+    
+    # Web presence
+    schema:mainEntityOfPage <{{ resourceId | slug }}.html> ;
+    {% if canonicalUrl -%}
+    schema:url <{{ canonicalUrl }}> ;
+    {% endif -%}
+    
+    # Dataset membership
+    void:inDataset <{{ dataset | kebabCase }}> ;
+    
+    # Geospatial information (if applicable)
+    {% if latitude and longitude -%}
+    geo:hasGeometry [
+        a geo:Point ;
+        geo:asWKT {{ geoPoint(latitude, longitude) }}
+    ] ;
+    {% endif -%}
+    {% if address -%}
+    schema:address [
+        a schema:PostalAddress ;
+        {% if address.streetAddress -%}
+        schema:streetAddress {{ address.streetAddress | rdfLiteral('en') }} ;
+        {% endif -%}
+        {% if address.locality -%}
+        schema:addressLocality {{ address.locality | rdfLiteral('en') }} ;
+        {% endif -%}
+        {% if address.region -%}
+        schema:addressRegion {{ address.region | rdfLiteral('en') }} ;
+        {% endif -%}
+        {% if address.postalCode -%}
+        schema:postalCode {{ address.postalCode | rdfLiteral('string') }} ;
+        {% endif -%}
+        {% if address.country -%}
+        schema:addressCountry {{ address.country | rdfLiteral('en') }} ;
+        {% endif -%}
+    ] ;
+    {% endif -%}
+    
+    # Content-specific properties
+    {% if resourceType == 'person' -%}
+    {% if givenName -%}
+    foaf:givenName {{ givenName | rdfLiteral('en') }} ;
+    {% endif -%}
+    {% if familyName -%}
+    foaf:familyName {{ familyName | rdfLiteral('en') }} ;
+    {% endif -%}
+    {% if email -%}
+    foaf:mbox <mailto:{{ email }}> ;
+    {% endif -%}
+    {% if homepage -%}
+    foaf:homepage <{{ homepage }}> ;
+    {% endif -%}
+    {% endif -%}
+    
+    {% if resourceType == 'organization' -%}
+    {% if legalName -%}
+    schema:legalName {{ legalName | rdfLiteral('en') }} ;
+    {% endif -%}
+    {% if foundingDate -%}
+    schema:foundingDate {{ foundingDate | formatDate('YYYY-MM-DD') | rdfLiteral('date') }} ;
+    {% endif -%}
+    {% if numberOfEmployees -%}
+    schema:numberOfEmployees {{ numberOfEmployees | rdfLiteral('integer') }} ;
+    {% endif -%}
+    {% endif -%}
+    
+    {% if resourceType == 'dataset' -%}
+    {% if distribution -%}
+    {% for dist in distribution -%}
+    dcat:distribution [
+        a dcat:Distribution ;
+        dct:format {{ dist.format | contentType | rdfLiteral('string') }} ;
+        {% if dist.downloadUrl -%}
+        dcat:downloadURL <{{ dist.downloadUrl }}> ;
+        {% endif -%}
+        {% if dist.accessUrl -%}
+        dcat:accessURL <{{ dist.accessUrl }}> ;
+        {% endif -%}
+    ]{% if not loop.last %} ,{% endif %}
+    {% endfor %} ;
+    {% endif -%}
+    {% endif -%}
+    
+    # Custom properties (extensible)
+    {% if customProperties -%}
+    {% for prop, values in customProperties -%}
+    {% if values is iterable and values is not string -%}
+    {% for value in values -%}
+    {{ prop | expandUri }} {{ value | rdfLiteral }}{% if not loop.last %} ,{% endif %}
+    {% endfor %}{% if not loop.last %} ;{% endif %}
+    {% else -%}
+    {{ prop | expandUri }} {{ values | rdfLiteral }}{% if not loop.last %} ;{% endif %}
+    {% endif -%}
+    {% endfor -%}
+    {% endif -%}
+    .
+
+{% if externalLinks -%}
+# External interlinking
+<{{ resourceId | slug }}> {{ sameAs(resourceId, externalLinks) }}{% if externalLinks | length > 0 %} .{% endif %}
+{% endif %}
+
+{% if relatedResources -%}
+# Related resources
+{% for related in relatedResources -%}
+<{{ resourceId | slug }}> schema:relatedLink <{{ related.uri | default(related | slug) }}> .
+{% if related.relation -%}
+<{{ resourceId | slug }}> {{ related.relation | expandUri }} <{{ related.uri | default(related | slug) }}> .
+{% endif -%}
+{% endfor -%}
+{% endif -%}
+
+# Provenance chain
+<{{ resourceId | slug }}> prov:wasGeneratedBy [
+    a prov:Activity ;
+    prov:startedAtTime {{ now() | isoDate | rdfLiteral('dateTime') }} ;
+    prov:wasAssociatedWith <{{ generator | default('unjucks-system') | slug }}> ;
+    {% if generatorVersion -%}
+    prov:used [
+        a prov:SoftwareAgent ;
+        schema:version {{ generatorVersion | rdfLiteral('string') }} ;
+    ] ;
+    {% endif -%}
+] .
+
+# Metadata about this description
+<{{ resourceId | slug }}.ttl> a void:Dataset , dcat:Dataset ;
+    dct:title {{ ('RDF Description of ' + title) | rdfLiteral('en') }} ;
+    dct:description {{ ('Turtle serialization of ' + resourceType + ' resource') | rdfLiteral('en') }} ;
+    dct:format {{ 'text/turtle' | contentType | rdfLiteral('string') }} ;
+    dct:created {{ now() | isoDate | rdfLiteral('dateTime') }} ;
+    void:primaryTopic <{{ resourceId | slug }}> ;
+    dct:isFormatOf <{{ resourceId | slug }}> .

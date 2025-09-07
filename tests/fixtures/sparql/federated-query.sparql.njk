@@ -1,0 +1,54 @@
+---
+to: <%= dest %>/queries/federated-<%= queryName %>.sparql
+inject: false
+---
+PREFIX ex: <{{ baseUri | rdfResource }}/>
+PREFIX schema: <http://schema.org/>
+PREFIX dbr: <http://dbpedia.org/resource/>
+PREFIX dbo: <http://dbpedia.org/ontology/>
+PREFIX foaf: <http://xmlns.com/foaf/0.1/>
+
+SELECT {{ variables | map('sparqlVar') | join(' ') }}
+WHERE {
+  # Local patterns
+  {% for pattern in localPatterns %}
+  {{ pattern.subject | sparqlVar }} {{ pattern.predicate | rdfProperty }} {{ pattern.object | sparqlValue }} .
+  {% endfor %}
+  
+  # Federated queries to external endpoints
+  {% for endpoint in federatedEndpoints %}
+  SERVICE {{ endpoint.url | rdfResource }} {
+    {% for pattern in endpoint.patterns %}
+    {{ pattern.subject | sparqlVar }} {{ pattern.predicate | rdfProperty }} {{ pattern.object | sparqlValue }} .
+    {% endfor %}
+    
+    {% if endpoint.filters %}
+    {% for filter in endpoint.filters %}
+    FILTER({{ filter | sparqlFilter }})
+    {% endfor %}
+    {% endif %}
+  }
+  {% endfor %}
+  
+  # Cross-endpoint joins
+  {% if crossEndpointJoins %}
+  {% for join in crossEndpointJoins %}
+  FILTER({{ join.leftVar | sparqlVar }} = {{ join.rightVar | sparqlVar }})
+  {% endfor %}
+  {% endif %}
+  
+  # Conditional federated queries
+  {% if conditionalServices %}
+  {% for conditional in conditionalServices %}
+  OPTIONAL {
+    SERVICE {{ conditional.endpoint | rdfResource }} {
+      {% for pattern in conditional.patterns %}
+      {{ pattern.subject | sparqlVar }} {{ pattern.predicate | rdfProperty }} {{ pattern.object | sparqlValue }} .
+      {% endfor %}
+    }
+  }
+  {% endfor %}
+  {% endif %}
+}
+ORDER BY {{ orderBy | map('sparqlOrderBy') | join(' ') }}
+LIMIT {{ limit | default(50) }}

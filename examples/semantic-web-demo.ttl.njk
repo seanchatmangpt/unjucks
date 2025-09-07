@@ -1,0 +1,187 @@
+# Semantic Web Demo Template - RDF/Turtle Generation
+# This template demonstrates the semantic web filters for generating RDF/Turtle content
+
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix schema: <http://schema.org/> .
+@prefix foaf: <http://xmlns.com/foaf/0.1/> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix ex: <{{ baseUri | rdfResource }}/> .
+
+# ====================
+# PERSON PROFILE
+# ====================
+
+ex:{{ person.id | kebabCase }} a {{ person.type | schemaOrg }} ;
+    {{ 'name' | foaf }} {{ person.name | rdfLiteral('en') }} ;
+    {{ 'givenName' | foaf }} {{ person.firstName | rdfLiteral('en') }} ;
+    {{ 'familyName' | foaf }} {{ person.lastName | rdfLiteral('en') }} ;
+    {{ 'email' | foaf }} <mailto:{{ person.email }}> ;
+    {{ 'age' | foaf }} {{ person.age | rdfDatatype('xsd:integer') }} ;
+    {{ 'birthDate' | schema }} {{ person.birthDate | rdfDatatype('xsd:date') }} ;
+    {{ 'created' | dublinCore }} {{ now() | rdfDatatype('xsd:dateTime') }} ;
+    {{ 'identifier' | dublinCore }} {{ person.uuid | rdfUuid | rdfDatatype('xsd:string') }} ;
+    
+    # Interests as RDF list
+    {{ 'interest' | foaf }} {{ person.interests | rdfList('literal') }} ;
+    
+    # Social connections
+{% for friend in person.friends %}
+    {{ 'knows' | foaf }} ex:{{ friend | kebabCase }} ;
+{% endfor %}
+    
+    # Work information
+    {{ 'workplaceHomepage' | foaf }} <{{ person.company.website }}> ;
+    {{ 'currentProject' | foaf }} ex:{{ person.currentProject | kebabCase }} .
+
+# ====================
+# ORGANIZATION DATA
+# ====================
+
+ex:{{ company.name | kebabCase }} a {{ 'organization' | schemaOrg }} ;
+    {{ 'name' | schema }} {{ company.name | rdfLiteral('en') }} ;
+    {{ 'description' | schema }} {{ company.description | rdfLiteral('en') }} ;
+    {{ 'url' | schema }} <{{ company.website }}> ;
+    {{ 'foundingDate' | schema }} {{ company.founded | rdfDatatype('xsd:date') }} ;
+    {{ 'numberOfEmployees' | schema }} {{ company.employees | rdfDatatype('xsd:integer') }} .
+
+# ====================
+# PROJECT INFORMATION
+# ====================
+
+ex:{{ project.name | kebabCase }} a {{ 'softwareapplication' | schemaOrg }} ;
+    {{ 'name' | schema }} {{ project.name | rdfLiteral('en') }} ;
+    {{ 'description' | schema }} {{ project.description | rdfLiteral('en') }} ;
+    {{ 'programmingLanguage' | schema }} {{ project.languages | rdfList('literal') }} ;
+    {{ 'version' | schema }} {{ project.version | rdfDatatype('xsd:string') }} ;
+    {{ 'dateCreated' | schema }} {{ project.created | rdfDatatype('xsd:dateTime') }} ;
+    {{ 'license' | schema }} <{{ project.license.url }}> ;
+    
+    # Repository information
+    {{ 'codeRepository' | schema }} <{{ project.repository }}> ;
+    
+    # Contributors
+{% for contributor in project.contributors %}
+    {{ 'contributor' | dublinCore }} ex:{{ contributor | kebabCase }} ;
+{% endfor %}
+    
+    # Technologies used (as blank nodes)
+{% for tech in project.technologies %}
+    {{ 'isBasedOn' | schema }} [
+        a {{ 'softwareapplication' | schemaOrg }} ;
+        {{ 'name' | schema }} {{ tech.name | rdfLiteral('en') }} ;
+        {{ 'version' | schema }} {{ tech.version | rdfDatatype('xsd:string') }}
+    ] ;
+{% endfor %} .
+
+# ====================
+# VOCABULARY/TAXONOMY (SKOS)
+# ====================
+
+ex:programming-languages a {{ 'conceptscheme' | skos }} ;
+    {{ 'title' | dublinCore }} {{ 'Programming Languages' | rdfLiteral('en') }} ;
+    {{ 'description' | dublinCore }} {{ 'A taxonomy of programming languages' | rdfLiteral('en') }} ;
+{% for lang in programmingLanguages %}
+    {{ 'hasTopConcept' | skos }} ex:{{ lang.name | kebabCase }} ;
+{% endfor %} .
+
+{% for lang in programmingLanguages %}
+ex:{{ lang.name | kebabCase }} a {{ 'concept' | skos }} ;
+    {{ 'prefLabel' | skos }} {{ lang.name | rdfLiteral('en') }} ;
+    {{ 'definition' | skos }} {{ lang.description | rdfLiteral('en') }} ;
+    {{ 'inScheme' | skos }} ex:programming-languages ;
+{% if lang.broader %}
+    {{ 'broader' | skos }} ex:{{ lang.broader | kebabCase }} ;
+{% endif %}
+{% if lang.related %}
+    {{ 'related' | skos }} {{ lang.related | map('kebabCase') | map('rdfResource', 'ex') | rdfList('resource') }} ;
+{% endif %}
+    {{ 'notation' | skos }} {{ lang.extension | rdfDatatype('xsd:string') }} .
+
+{% endfor %}
+
+# ====================
+# OWL ONTOLOGY DEFINITIONS
+# ====================
+
+ex:ontology a {{ 'ontology' | owl }} ;
+    {{ 'title' | dublinCore }} {{ 'Example Ontology' | rdfLiteral('en') }} ;
+    {{ 'versionInfo' | owl }} {{ ontologyVersion | rdfDatatype('xsd:string') }} ;
+    {{ 'created' | dublinCore }} {{ now() | rdfDatatype('xsd:dateTime') }} .
+
+# Custom classes
+ex:{{ 'developer' | ontologyName('class') }} a {{ 'class' | owl }} ;
+    {{ 'label' | rdfs }} {{ 'Developer' | rdfLiteral('en') }} ;
+    {{ 'comment' | rdfs }} {{ 'A person who develops software' | rdfLiteral('en') }} ;
+    {{ 'subClassOf' | rdfs }} {{ 'person' | schemaOrg }} .
+
+# Custom properties  
+ex:{{ 'hasSkill' | ontologyName('property') }} a {{ 'objectproperty' | owl }} ;
+    {{ 'label' | rdfs }} {{ 'has skill' | rdfLiteral('en') }} ;
+    {{ 'domain' | rdfs }} ex:{{ 'developer' | ontologyName('class') }} ;
+    {{ 'range' | rdfs }} ex:{{ 'skill' | ontologyName('class') }} .
+
+ex:{{ 'experienceYears' | ontologyName('property') }} a {{ 'datatypeproperty' | owl }} ;
+    {{ 'label' | rdfs }} {{ 'experience in years' | rdfLiteral('en') }} ;
+    {{ 'domain' | rdfs }} ex:{{ 'developer' | ontologyName('class') }} ;
+    {{ 'range' | rdfs }} {{ 'integer' | xsd }} .
+
+# ====================
+# SPARQL QUERY GENERATION
+# ====================
+
+# Query for all developers with their skills
+# SELECT {{ 'developer' | sparqlVar }} {{ 'name' | sparqlVar }} {{ 'skill' | sparqlVar }}
+# WHERE {
+#   {{ 'developer' | sparqlVar }} a ex:{{ 'developer' | ontologyName('class') }} ;
+#                {{ 'name' | foaf }} {{ 'name' | sparqlVar }} ;
+#                ex:{{ 'hasSkill' | ontologyName('property') }} {{ 'skill' | sparqlVar }} .
+#   {{ 'experienceYears' | sparqlVar }} >= 5 | sparqlFilter }}
+# }
+
+# ====================
+# METADATA
+# ====================
+
+<> a {{ 'dataset' | void }} ;
+    {{ 'title' | dublinCore }} {{ datasetTitle | rdfLiteral('en') }} ;
+    {{ 'description' | dublinCore }} {{ datasetDescription | rdfLiteral('en') }} ;
+    {{ 'creator' | dublinCore }} {{ author | rdfLiteral('en') }} ;
+    {{ 'created' | dublinCore }} {{ now() | rdfDatatype('xsd:dateTime') }} ;
+    {{ 'format' | dublinCore }} {{ 'text/turtle' | rdfDatatype('xsd:string') }} ;
+    {{ 'license' | dublinCore }} <{{ licenseUrl }}> ;
+    
+    # Statistics
+    {{ 'triples' | void }} {{ tripleCount | rdfDatatype('xsd:integer') }} ;
+    {{ 'entities' | void }} {{ entityCount | rdfDatatype('xsd:integer') }} ;
+    
+    # Provenance
+    {{ 'wasGeneratedBy' | prov }} [
+        a {{ 'activity' | prov }} ;
+        {{ 'startedAtTime' | prov }} {{ templateStart | rdfDatatype('xsd:dateTime') }} ;
+        {{ 'endedAtTime' | prov }} {{ now() | rdfDatatype('xsd:dateTime') }} ;
+        {{ 'wasAssociatedWith' | prov }} [
+            a {{ 'agent' | prov }} ;
+            {{ 'name' | foaf }} {{ 'Unjucks Template Engine' | rdfLiteral('en') }} ;
+            {{ 'version' | prov }} {{ templateVersion | rdfDatatype('xsd:string') }}
+        ]
+    ] .
+
+# ====================
+# NAMED GRAPHS (OPTIONAL)
+# ====================
+
+# GRAPH {{ 'user-profiles' | rdfGraph }} {
+#   # User profile triples would go here
+# }
+
+# GRAPH {{ 'company-data' | rdfGraph }} {
+#   # Company information triples would go here  
+# }
+
+# GRAPH {{ 'project-metadata' | rdfGraph }} {
+#   # Project-related triples would go here
+# }

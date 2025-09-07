@@ -1,0 +1,246 @@
+---
+to: "{{ destDir }}/{{ name | slug }}-course.json"
+inject: false
+---
+{
+  "@context": "https://schema.org/",
+  "@type": "Course",
+  "@id": "{{ baseUrl | rdfResource }}/course/{{ id | slug }}",
+  
+  "name": "{{ name | titleCase }}",
+  "description": "{{ description | truncate(300) | escape }}",
+  "url": "{{ courseUrl | rdfResource }}",
+  "identifier": "{{ courseId | upper }}",
+  
+  "image": {
+    "@type": "ImageObject",
+    "url": "{{ image | rdfResource }}",
+    "width": {{ imageWidth | default(1200) }},
+    "height": {{ imageHeight | default(630) }}
+  },
+  
+  "provider": {
+    "@type": "{{ providerType | default('EducationalOrganization') | schemaOrg }}",
+    "name": "{{ provider.name | titleCase }}",
+    "url": "{{ provider.url | rdfResource }}",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "{{ provider.logo | rdfResource }}"
+    },
+    "contactPoint": {
+      "@type": "ContactPoint",
+      "contactType": "customer support",
+      "email": "{{ provider.email }}",
+      "telephone": "{{ provider.phone }}"
+    }
+  },
+  
+  "instructor": [
+    {% for instructor in instructors -%}
+    {
+      "@type": "Person",
+      "name": "{{ instructor.name | titleCase }}",
+      "description": "{{ instructor.bio | escape }}",
+      "url": "{{ instructor.profileUrl | rdfResource }}",
+      "image": {
+        "@type": "ImageObject",
+        "url": "{{ instructor.photo | rdfResource }}"
+      },
+      "jobTitle": "{{ instructor.title | titleCase }}",
+      "worksFor": {
+        "@type": "Organization",
+        "name": "{{ instructor.organization | titleCase }}"
+      },
+      {% if instructor.credentials -%}
+      "hasCredential": [
+        {% for credential in instructor.credentials -%}
+        {
+          "@type": "EducationalOccupationalCredential",
+          "name": "{{ credential.name | titleCase }}",
+          "recognizedBy": {
+            "@type": "Organization",
+            "name": "{{ credential.issuer | titleCase }}"
+          }
+        }{% if not loop.last %},{% endif %}
+        {% endfor %}
+      ],
+      {% endif %}
+      "sameAs": [
+        {% for social in instructor.socialProfiles -%}
+        "{{ social | rdfResource }}"{% if not loop.last %},{% endif %}
+        {% endfor %}
+      ]
+    }{% if not loop.last %},{% endif %}
+    {% endfor %}
+  ],
+  
+  {% if prerequisites -%}
+  "coursePrerequisites": [
+    {% for prereq in prerequisites -%}
+    {
+      "@type": "Course",
+      "name": "{{ prereq.name | titleCase }}",
+      "url": "{{ prereq.url | rdfResource }}"
+    }{% if not loop.last %},{% endif %}
+    {% endfor %}
+  ],
+  {% endif %}
+  
+  "educationalCredentialAwarded": "{{ credential | titleCase }}",
+  "educationalLevel": "{{ level | titleCase }}",
+  "teaches": "{{ skills | map('titleCase') | join(', ') }}",
+  
+  "timeRequired": "{{ duration | formatDuration }}",
+  "numberOfCredits": {{ credits }},
+  
+  "courseCode": "{{ courseCode | upper }}",
+  "courseworkType": "{{ workType | default('Online') | titleCase }}",
+  
+  {% if syllabus -%}
+  "syllabusSections": [
+    {% for section in syllabus -%}
+    {
+      "@type": "Syllabus", 
+      "name": "{{ section.title | titleCase }}",
+      "description": "{{ section.description | escape }}",
+      "timeRequired": "{{ section.duration | formatDuration }}",
+      {% if section.learningOutcomes -%}
+      "teaches": "{{ section.learningOutcomes | join(', ') }}",
+      {% endif %}
+      "position": {{ loop.index }}
+    }{% if not loop.last %},{% endif %}
+    {% endfor %}
+  ],
+  {% endif %}
+  
+  {% if offers -%}
+  "offers": [
+    {% for offer in offers -%}
+    {
+      "@type": "Offer",
+      "name": "{{ offer.name | titleCase }}",
+      "description": "{{ offer.description | escape }}",
+      "price": "{{ offer.price | number(2) }}",
+      "priceCurrency": "{{ offer.currency | default('USD') | upper }}",
+      "availability": "{{ offer.availability | default('InStock') | schemaAvailability }}",
+      "url": "{{ offer.enrollmentUrl | rdfResource }}",
+      "validFrom": "{{ offer.validFrom | schemaDate }}",
+      "validThrough": "{{ offer.validThrough | schemaDate }}",
+      "category": "{{ offer.type | default('Course') | titleCase }}",
+      "seller": {
+        "@type": "Organization",
+        "name": "{{ provider.name | titleCase }}"
+      }
+    }{% if not loop.last %},{% endif %}
+    {% endfor %}
+  ],
+  {% endif %}
+  
+  {% if schedule -%}
+  "hasCourseInstance": [
+    {% for instance in schedule -%}
+    {
+      "@type": "CourseInstance",
+      "name": "{{ instance.name | titleCase }}",
+      "startDate": "{{ instance.startDate | schemaDate }}",
+      "endDate": "{{ instance.endDate | schemaDate }}",
+      "courseMode": "{{ instance.mode | default('online') }}",
+      "location": {% if instance.location.type == 'online' -%}
+      {
+        "@type": "VirtualLocation",
+        "url": "{{ instance.location.url | rdfResource }}"
+      }
+      {% else -%}
+      {
+        "@type": "Place",
+        "name": "{{ instance.location.name | titleCase }}",
+        "address": {{ instance.location.address | schemaAddress | dump }}
+      }
+      {% endif -%},
+      "instructor": {
+        "@type": "Person",
+        "name": "{{ instance.instructor | titleCase }}"
+      }
+    }{% if not loop.last %},{% endif %}
+    {% endfor %}
+  ],
+  {% endif %}
+  
+  {% if competencies -%}
+  "competencyRequired": [
+    {% for competency in competencies -%}
+    {
+      "@type": "DefinedTerm",
+      "name": "{{ competency.name | titleCase }}",
+      "description": "{{ competency.description | escape }}"
+    }{% if not loop.last %},{% endif %}
+    {% endfor %}
+  ],
+  {% endif %}
+  
+  {% if assessments -%}
+  "assesses": [
+    {% for assessment in assessments -%}
+    {
+      "@type": "DefinedTerm",
+      "name": "{{ assessment.skill | titleCase }}",
+      "description": "{{ assessment.description | escape }}"
+    }{% if not loop.last %},{% endif %}
+    {% endfor %}
+  ],
+  {% endif %}
+  
+  {% if reviews -%}
+  "review": [
+    {% for review in reviews -%}
+    {
+      "@type": "Review",
+      "reviewRating": {
+        "@type": "Rating",
+        "ratingValue": "{{ review.rating }}",
+        "bestRating": "5",
+        "worstRating": "1"
+      },
+      "name": "{{ review.title | escape }}",
+      "reviewBody": "{{ review.body | escape }}",
+      "datePublished": "{{ review.date | schemaDate }}",
+      "author": {
+        "@type": "Person",
+        "name": "{{ review.author | titleCase }}"
+      }
+    }{% if not loop.last %},{% endif %}
+    {% endfor %}
+  ],
+  {% endif %}
+  
+  {% if aggregateRating -%}
+  "aggregateRating": {
+    "@type": "AggregateRating",
+    "ratingValue": "{{ aggregateRating.value | number(2) }}",
+    "reviewCount": "{{ aggregateRating.count | number }}",
+    "bestRating": "5",
+    "worstRating": "1"
+  },
+  {% endif %}
+  
+  "inLanguage": "{{ language | default('en') }}",
+  "audience": {
+    "@type": "EducationalAudience",
+    "audienceType": "{{ audienceType | default('student') }}"
+  },
+  
+  "dateCreated": "{{ created | default(now()) | schemaDate }}",
+  "dateModified": "{{ modified | default(now()) | schemaDate }}",
+  
+  "potentialAction": {
+    "@type": "RegisterAction",
+    "target": {
+      "@type": "EntryPoint",
+      "urlTemplate": "{{ enrollmentUrl | rdfResource }}",
+      "actionPlatform": [
+        "http://schema.org/DesktopWebPlatform", 
+        "http://schema.org/MobileWebPlatform"
+      ]
+    }
+  }
+}

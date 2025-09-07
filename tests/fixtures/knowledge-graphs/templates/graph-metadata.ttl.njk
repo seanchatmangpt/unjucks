@@ -1,0 +1,220 @@
+---
+to: "{{ outputDir || './output' }}/metadata/{{ domain | kebabCase }}-metadata.ttl"
+inject: false
+force: "{{ force || false }}"
+unless: "{{ skipIf }}"
+---
+@prefix kg: <{{ baseUri | default('http://example.org/kg') | rdfResource }}/{{ domain | kebabCase }}/> .
+@prefix schema: <http://schema.org/> .
+@prefix dct: <http://purl.org/dc/terms/> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix void: <http://rdfs.org/ns/void#> .
+@prefix dcat: <http://www.w3.org/ns/dcat#> .
+@prefix prov: <http://www.w3.org/ns/prov#> .
+@prefix vcard: <http://www.w3.org/2006/vcard/ns#> .
+@prefix foaf: <http://xmlns.com/foaf/0.1/> .
+
+# Dataset Provenance and Lineage
+kg:provenance a prov:Entity ;
+    dct:title "{{ domain | title }} Knowledge Graph Provenance" ;
+    prov:wasGeneratedBy kg:generationActivity ;
+    prov:generatedAtTime "{{ now() | formatDate('YYYY-MM-DDTHH:mm:ss') }}"^^xsd:dateTime ;
+    {% if sourceSystem %}prov:wasDerivedFrom <{{ sourceSystem }}> ;{% endif %}
+    prov:wasAttributedTo kg:agent .
+
+kg:generationActivity a prov:Activity ;
+    rdfs:label "Knowledge Graph Generation" ;
+    prov:startedAtTime "{{ startTime || now() | formatDate('YYYY-MM-DDTHH:mm:ss') }}"^^xsd:dateTime ;
+    prov:endedAtTime "{{ endTime || now() | formatDate('YYYY-MM-DDTHH:mm:ss') }}"^^xsd:dateTime ;
+    prov:wasAssociatedWith kg:agent ;
+    prov:used kg:sourceDataset ;
+    {% if generationPlan %}prov:hadPlan kg:{{ generationPlan | camelCase }} ;{% endif %}
+    {% if software %}prov:wasAssociatedWith kg:{{ software.name | slug }} .{% endif %}
+
+kg:agent a prov:Agent , prov:SoftwareAgent ;
+    rdfs:label "{{ agentName | default('Unjucks Knowledge Graph Pipeline') }}" ;
+    {% if agentVersion %}schema:softwareVersion "{{ agentVersion }}" ;{% endif %}
+    {% if agentUrl %}foaf:homepage <{{ agentUrl }}> ;{% endif %}
+    prov:actedOnBehalfOf kg:organization .
+
+{% if organization %}
+kg:organization a prov:Organization ;
+    rdfs:label "{{ organization.name }}" ;
+    {% if organization.website %}foaf:homepage <{{ organization.website }}> ;{% endif %}
+    {% if organization.email %}foaf:mbox <mailto:{{ organization.email }}> ;{% endif %}
+    {% if organization.address %}schema:address "{{ organization.address }}" .{% endif %}
+{% endif %}
+
+# Source Dataset Information
+{% if sourceSystems %}
+{{ sourceSystems | map(source => {
+    const sourceId = 'kg:source_' + (source.name | slug);
+    
+    let statements = [
+        sourceId + ' a prov:Entity , dcat:Dataset'
+    ];
+    
+    if (source.title) statements.push('dct:title "' + source.title + '"@en');
+    if (source.description) statements.push('dct:description "' + source.description + '"@en');
+    if (source.url) statements.push('dcat:landingPage <' + source.url + '>');
+    if (source.format) statements.push('dct:format "' + source.format + '"');
+    if (source.size) statements.push('dcat:byteSize "' + source.size + '"^^xsd:long');
+    if (source.lastModified) statements.push('dct:modified "' + source.lastModified + '"^^xsd:dateTime');
+    if (source.license) statements.push('dct:license <' + source.license + '>');
+    if (source.publisher) statements.push('dct:publisher "' + source.publisher + '"');
+    
+    // Data quality metrics
+    if (source.completeness) statements.push('kg:completeness "' + source.completeness + '"^^xsd:decimal');
+    if (source.accuracy) statements.push('kg:accuracy "' + source.accuracy + '"^^xsd:decimal');
+    if (source.consistency) statements.push('kg:consistency "' + source.consistency + '"^^xsd:decimal');
+    
+    return statements.join(' ;\n    ') + ' .';
+}) | join('\n\n') }}
+{% endif %}
+
+# Transformation and Processing Metadata
+{% if transformations %}
+{{ transformations | map(transform => {
+    const transformId = 'kg:transform_' + (transform.name | slug);
+    
+    let statements = [
+        transformId + ' a prov:Activity , kg:DataTransformation'
+    ];
+    
+    if (transform.description) statements.push('rdfs:label "' + transform.description + '"@en');
+    if (transform.type) statements.push('kg:transformationType kg:' + (transform.type | pascalCase));
+    if (transform.startTime) statements.push('prov:startedAtTime "' + transform.startTime + '"^^xsd:dateTime');
+    if (transform.endTime) statements.push('prov:endedAtTime "' + transform.endTime + '"^^xsd:dateTime');
+    if (transform.duration) statements.push('kg:processingDuration "' + transform.duration + '"^^xsd:duration');
+    
+    // Input/Output information
+    if (transform.inputRecords) statements.push('kg:inputRecords "' + transform.inputRecords + '"^^xsd:integer');
+    if (transform.outputRecords) statements.push('kg:outputRecords "' + transform.outputRecords + '"^^xsd:integer');
+    if (transform.errorRecords) statements.push('kg:errorRecords "' + transform.errorRecords + '"^^xsd:integer');
+    
+    // Transformation rules
+    if (transform.rules) {
+        transform.rules.forEach((rule, index) => {
+            const ruleId = transformId + '_rule' + index;
+            statements.push('kg:hasRule ' + ruleId);
+        });
+    }
+    
+    return statements.join(' ;\n    ') + ' .';
+}) | join('\n\n') }}
+{% endif %}
+
+# Quality Assessment Metrics
+kg:qualityAssessment a owl:NamedIndividual , kg:QualityReport ;
+    rdfs:label "Knowledge Graph Quality Assessment" ;
+    kg:assessmentDate "{{ now() | formatDate('YYYY-MM-DDTHH:mm:ss') }}"^^xsd:dateTime ;
+    
+    # Completeness Metrics
+    {% if qualityMetrics.completeness %}
+    kg:completenessScore "{{ qualityMetrics.completeness.overall | default(0) }}"^^xsd:decimal ;
+    kg:entityCompleteness "{{ qualityMetrics.completeness.entities | default(0) }}"^^xsd:decimal ;
+    kg:relationshipCompleteness "{{ qualityMetrics.completeness.relationships | default(0) }}"^^xsd:decimal ;
+    kg:attributeCompleteness "{{ qualityMetrics.completeness.attributes | default(0) }}"^^xsd:decimal ;
+    {% endif %}
+    
+    # Accuracy Metrics  
+    {% if qualityMetrics.accuracy %}
+    kg:accuracyScore "{{ qualityMetrics.accuracy.overall | default(0) }}"^^xsd:decimal ;
+    kg:syntacticAccuracy "{{ qualityMetrics.accuracy.syntactic | default(0) }}"^^xsd:decimal ;
+    kg:semanticAccuracy "{{ qualityMetrics.accuracy.semantic | default(0) }}"^^xsd:decimal ;
+    {% endif %}
+    
+    # Consistency Metrics
+    {% if qualityMetrics.consistency %}
+    kg:consistencyScore "{{ qualityMetrics.consistency.overall | default(0) }}"^^xsd:decimal ;
+    kg:logicalConsistency "{{ qualityMetrics.consistency.logical | default(0) }}"^^xsd:decimal ;
+    kg:representationalConsistency "{{ qualityMetrics.consistency.representational | default(0) }}"^^xsd:decimal ;
+    {% endif %}
+    
+    # Coverage Metrics
+    {% if qualityMetrics.coverage %}
+    kg:domainCoverage "{{ qualityMetrics.coverage.domain | default(0) }}"^^xsd:decimal ;
+    kg:temporalCoverage kg:{{ qualityMetrics.coverage.temporal | default('unknown') | pascalCase }} ;
+    kg:geographicCoverage kg:{{ qualityMetrics.coverage.geographic | default('unknown') | pascalCase }} ;
+    {% endif %}
+    
+    # Timeliness Metrics
+    {% if qualityMetrics.timeliness %}
+    kg:freshnessScore "{{ qualityMetrics.timeliness.freshness | default(0) }}"^^xsd:decimal ;
+    kg:updateFrequency "{{ qualityMetrics.timeliness.updateFrequency | default('unknown') }}" ;
+    kg:lastUpdateDate "{{ qualityMetrics.timeliness.lastUpdate || now() | formatDate('YYYY-MM-DD') }}"^^xsd:date ;
+    {% endif %}
+    
+    # Size and Complexity Metrics
+    kg:totalTriples {{ statistics.totalTriples || 0 }} ;
+    kg:totalEntities {{ statistics.totalEntities || 0 }} ;
+    kg:totalClasses {{ statistics.totalClasses || 0 }} ;
+    kg:totalProperties {{ statistics.totalProperties || 0 }} ;
+    kg:averageDegree "{{ statistics.averageDegree || 0 }}"^^xsd:decimal ;
+    kg:maxDegree {{ statistics.maxDegree || 0 }} ;
+    kg:clusteringCoefficient "{{ statistics.clusteringCoefficient || 0 }}"^^xsd:decimal ;
+    kg:averagePathLength "{{ statistics.averagePathLength || 0 }}"^^xsd:decimal .
+
+# Version Control and Change Tracking  
+{% if versions %}
+{{ versions | map(version => {
+    const versionId = 'kg:version_' + (version.number | replace('.', '_'));
+    
+    let statements = [
+        versionId + ' a prov:Entity , kg:GraphVersion'
+    ];
+    
+    statements.push('kg:versionNumber "' + version.number + '"');
+    if (version.releaseDate) statements.push('dct:issued "' + version.releaseDate + '"^^xsd:date');
+    if (version.description) statements.push('dct:description "' + version.description + '"@en');
+    if (version.changes) statements.push('kg:changeCount "' + version.changes + '"^^xsd:integer');
+    
+    // Previous version link
+    if (version.previousVersion) {
+        statements.push('prov:wasRevisionOf kg:version_' + (version.previousVersion | replace('.', '_')));
+    }
+    
+    // Change summary
+    if (version.additions) statements.push('kg:addedTriples "' + version.additions + '"^^xsd:integer');
+    if (version.deletions) statements.push('kg:deletedTriples "' + version.deletions + '"^^xsd:integer');
+    if (version.modifications) statements.push('kg:modifiedTriples "' + version.modifications + '"^^xsd:integer');
+    
+    return statements.join(' ;\n    ') + ' .';
+}) | join('\n\n') }}
+{% endif %}
+
+# Licensing and Rights Information
+kg:licenseInfo a dct:LicenseDocument ;
+    dct:title "{{ license.title | default('Knowledge Graph License') }}" ;
+    {% if license.url %}dct:identifier <{{ license.url }}> ;{% endif %}
+    {% if license.description %}dct:description "{{ license.description }}"@en ;{% endif %}
+    {% if license.permissions %}kg:permissions "{{ license.permissions | join(', ') }}" ;{% endif %}
+    {% if license.restrictions %}kg:restrictions "{{ license.restrictions | join(', ') }}" ;{% endif %}
+    {% if license.obligations %}kg:obligations "{{ license.obligations | join(', ') }}" .{% endif %}
+
+# Access and Usage Statistics
+{% if usageStats %}
+kg:usageStatistics a owl:NamedIndividual ;
+    rdfs:label "Knowledge Graph Usage Statistics" ;
+    kg:totalQueries {{ usageStats.totalQueries || 0 }} ;
+    kg:uniqueUsers {{ usageStats.uniqueUsers || 0 }} ;
+    kg:averageResponseTime "{{ usageStats.averageResponseTime || 0 }}"^^xsd:decimal ;
+    kg:mostQueriedEntity kg:{{ usageStats.mostQueriedEntity | slug }} ;
+    kg:peakUsageTime "{{ usageStats.peakUsageTime }}"^^xsd:time ;
+    kg:lastAccessed "{{ usageStats.lastAccessed || now() | formatDate('YYYY-MM-DDTHH:mm:ss') }}"^^xsd:dateTime .
+{% endif %}
+
+# Contact Information and Governance
+kg:contactPoint a vcard:Organization ;
+    vcard:fn "{{ contact.organizationName | default('Knowledge Graph Team') }}" ;
+    {% if contact.email %}vcard:hasEmail <mailto:{{ contact.email }}> ;{% endif %}
+    {% if contact.phone %}vcard:hasTelephone <tel:{{ contact.phone }}> ;{% endif %}
+    {% if contact.website %}vcard:hasURL <{{ contact.website }}> ;{% endif %}
+    {% if contact.address %}vcard:hasAddress [
+        a vcard:Address ;
+        vcard:street-address "{{ contact.address.street }}" ;
+        vcard:locality "{{ contact.address.city }}" ;
+        vcard:postal-code "{{ contact.address.postalCode }}" ;
+        vcard:country-name "{{ contact.address.country }}"
+    ] .{% endif %}

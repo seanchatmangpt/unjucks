@@ -1,0 +1,448 @@
+{
+  "performance": {
+    "responseTime": {
+      "simple": {
+        "target": 100,
+        "warning": 80,
+        "critical": 150,
+        "unit": "ms",
+        "description": "Response time for simple RDF operations"
+      },
+      "complex": {
+        "target": 1000,
+        "warning": 800,
+        "critical": 1500,
+        "unit": "ms",
+        "description": "Response time for complex SPARQL-like queries"
+      },
+      "bulk": {
+        "target": 30000,
+        "warning": 25000,
+        "critical": 45000,
+        "unit": "ms",
+        "description": "Response time for million+ record processing"
+      }
+    },
+    "memory": {
+      "baseline": {
+        "target": 50,
+        "warning": 40,
+        "critical": 75,
+        "unit": "MB",
+        "description": "Base memory footprint"
+      },
+      "perUser": {
+        "target": 10,
+        "warning": 8,
+        "critical": 15,
+        "unit": "MB",
+        "description": "Memory per concurrent user"
+      },
+      "maxHeap": {
+        "target": 2048,
+        "warning": 1638,
+        "critical": 3072,
+        "unit": "MB",
+        "description": "Maximum heap size"
+      },
+      "leakThreshold": {
+        "target": 5,
+        "warning": 3,
+        "critical": 10,
+        "unit": "MB/hour",
+        "description": "Memory leak detection threshold"
+      }
+    },
+    "throughput": {
+      "simpleOps": {
+        "target": 10000,
+        "warning": 8000,
+        "critical": 5000,
+        "unit": "ops/sec",
+        "description": "Simple RDF operations per second"
+      },
+      "complexQueries": {
+        "target": 1000,
+        "warning": 800,
+        "critical": 500,
+        "unit": "queries/sec",
+        "description": "Complex SPARQL queries per second"
+      },
+      "concurrentUsers": {
+        "target": 100,
+        "warning": 80,
+        "critical": 50,
+        "unit": "users",
+        "description": "Maximum concurrent users"
+      }
+    }
+  },
+  "scalability": {
+    "dataVolume": {
+      "smallDataset": {
+        "target": 10000,
+        "unit": "triples",
+        "description": "Small dataset processing"
+      },
+      "mediumDataset": {
+        "target": 100000,
+        "unit": "triples",
+        "description": "Medium dataset processing"
+      },
+      "largeDataset": {
+        "target": 1000000,
+        "unit": "triples",
+        "description": "Large dataset processing"
+      },
+      "enterpriseDataset": {
+        "target": 10000000,
+        "unit": "triples",
+        "description": "Enterprise-scale dataset processing"
+      }
+    },
+    "concurrency": {
+      "lightLoad": {
+        "users": 10,
+        "duration": 300,
+        "unit": "seconds"
+      },
+      "normalLoad": {
+        "users": 50,
+        "duration": 600,
+        "unit": "seconds"
+      },
+      "heavyLoad": {
+        "users": 100,
+        "duration": 900,
+        "unit": "seconds"
+      },
+      "stressLoad": {
+        "users": 500,
+        "duration": 300,
+        "unit": "seconds"
+      }
+    },
+    "peakLoadMultiplier": {
+      "target": 10,
+      "description": "System should handle 10x normal load"
+    }
+  },
+  "security": {
+    "vulnerabilities": {
+      "critical": {
+        "target": 0,
+        "description": "Critical security vulnerabilities allowed"
+      },
+      "high": {
+        "target": 0,
+        "description": "High security vulnerabilities allowed"
+      },
+      "medium": {
+        "target": 5,
+        "description": "Medium security vulnerabilities allowed"
+      }
+    },
+    "injectionPrevention": {
+      "rdfInjection": {
+        "target": 100,
+        "unit": "percent",
+        "description": "RDF injection prevention success rate"
+      },
+      "sparqlInjection": {
+        "target": 100,
+        "unit": "percent",
+        "description": "SPARQL injection prevention success rate"
+      },
+      "uriManipulation": {
+        "target": 100,
+        "unit": "percent",
+        "description": "URI manipulation prevention success rate"
+      }
+    },
+    "accessControl": {
+      "authenticationSuccess": {
+        "target": 99.9,
+        "unit": "percent",
+        "description": "Authentication success rate"
+      },
+      "authorizationAccuracy": {
+        "target": 100,
+        "unit": "percent",
+        "description": "Authorization accuracy rate"
+      }
+    }
+  },
+  "reliability": {
+    "availability": {
+      "uptime": {
+        "target": 99.9,
+        "warning": 99.5,
+        "critical": 99.0,
+        "unit": "percent",
+        "description": "System uptime SLA"
+      },
+      "mtbf": {
+        "target": 720,
+        "warning": 168,
+        "critical": 24,
+        "unit": "hours",
+        "description": "Mean time between failures"
+      },
+      "mttr": {
+        "target": 15,
+        "warning": 30,
+        "critical": 60,
+        "unit": "minutes",
+        "description": "Mean time to recovery"
+      }
+    },
+    "errorRates": {
+      "system": {
+        "target": 0.1,
+        "warning": 0.5,
+        "critical": 1.0,
+        "unit": "percent",
+        "description": "System error rate"
+      },
+      "dataCorruption": {
+        "target": 0,
+        "warning": 0,
+        "critical": 0.01,
+        "unit": "percent",
+        "description": "Data corruption rate"
+      }
+    },
+    "recovery": {
+      "backupSuccess": {
+        "target": 100,
+        "warning": 99.9,
+        "critical": 99.0,
+        "unit": "percent",
+        "description": "Backup success rate"
+      },
+      "restoreTime": {
+        "target": 30,
+        "warning": 60,
+        "critical": 120,
+        "unit": "minutes",
+        "description": "Data restore time"
+      }
+    }
+  },
+  "compatibility": {
+    "platforms": {
+      "linux": {
+        "required": true,
+        "versions": ["ubuntu-20.04", "ubuntu-22.04", "centos-8", "rhel-8"]
+      },
+      "windows": {
+        "required": false,
+        "versions": ["windows-2019", "windows-2022"]
+      },
+      "macos": {
+        "required": false,
+        "versions": ["macos-11", "macos-12", "macos-13"]
+      }
+    },
+    "nodeVersions": {
+      "supported": ["18.x", "20.x", "22.x"],
+      "recommended": "20.x",
+      "minimum": "18.0.0"
+    },
+    "browsers": {
+      "chrome": ">=90",
+      "firefox": ">=88",
+      "safari": ">=14",
+      "edge": ">=90"
+    }
+  },
+  "enterprise": {
+    "authentication": {
+      "saml": {
+        "required": true,
+        "versions": ["2.0"]
+      },
+      "oidc": {
+        "required": true,
+        "versions": ["1.0"]
+      },
+      "ldap": {
+        "required": true,
+        "versions": ["3"]
+      },
+      "oauth": {
+        "required": true,
+        "versions": ["2.0", "2.1"]
+      }
+    },
+    "integration": {
+      "apiGateway": {
+        "required": true,
+        "protocols": ["REST", "GraphQL"]
+      },
+      "serviceMesh": {
+        "required": false,
+        "supported": ["istio", "linkerd", "consul-connect"]
+      },
+      "monitoring": {
+        "required": true,
+        "systems": ["prometheus", "grafana", "elk", "splunk"]
+      }
+    },
+    "containerization": {
+      "docker": {
+        "required": true,
+        "minVersion": "20.10.0"
+      },
+      "kubernetes": {
+        "required": true,
+        "minVersion": "1.20.0",
+        "supportedVersions": ["1.24", "1.25", "1.26", "1.27"]
+      }
+    }
+  },
+  "compliance": {
+    "gdpr": {
+      "dataMinimization": {
+        "target": 100,
+        "unit": "percent",
+        "description": "Data minimization compliance rate"
+      },
+      "consentManagement": {
+        "target": 100,
+        "unit": "percent",
+        "description": "Consent management accuracy"
+      },
+      "rightToBeForgotten": {
+        "target": 100,
+        "unit": "percent",
+        "description": "Data deletion success rate"
+      },
+      "dataPortability": {
+        "target": 100,
+        "unit": "percent",
+        "description": "Data export accuracy"
+      }
+    },
+    "sox": {
+      "changeManagement": {
+        "target": 100,
+        "unit": "percent",
+        "description": "Change management compliance"
+      },
+      "accessControls": {
+        "target": 100,
+        "unit": "percent",
+        "description": "Access control effectiveness"
+      },
+      "auditTrail": {
+        "target": 100,
+        "unit": "percent",
+        "description": "Audit trail completeness"
+      }
+    },
+    "hipaa": {
+      "encryption": {
+        "target": 100,
+        "unit": "percent",
+        "description": "Data encryption compliance"
+      },
+      "accessLogging": {
+        "target": 100,
+        "unit": "percent",
+        "description": "Access logging completeness"
+      }
+    },
+    "iso27001": {
+      "securityControls": {
+        "target": 100,
+        "unit": "percent",
+        "description": "Security controls implementation"
+      },
+      "riskAssessment": {
+        "target": 100,
+        "unit": "percent",
+        "description": "Risk assessment coverage"
+      }
+    }
+  },
+  "monitoring": {
+    "metrics": {
+      "collection": {
+        "target": 99.9,
+        "unit": "percent",
+        "description": "Metrics collection reliability"
+      },
+      "retention": {
+        "target": 90,
+        "unit": "days",
+        "description": "Metrics retention period"
+      },
+      "granularity": {
+        "target": 15,
+        "unit": "seconds",
+        "description": "Metrics collection interval"
+      }
+    },
+    "alerting": {
+      "responseTime": {
+        "target": 60,
+        "warning": 120,
+        "critical": 300,
+        "unit": "seconds",
+        "description": "Alert response time"
+      },
+      "falsePositiveRate": {
+        "target": 5,
+        "warning": 10,
+        "critical": 20,
+        "unit": "percent",
+        "description": "False positive alert rate"
+      }
+    },
+    "dashboards": {
+      "loadTime": {
+        "target": 3,
+        "warning": 5,
+        "critical": 10,
+        "unit": "seconds",
+        "description": "Dashboard load time"
+      },
+      "updateFrequency": {
+        "target": 30,
+        "unit": "seconds",
+        "description": "Dashboard update interval"
+      }
+    }
+  },
+  "deployment": {
+    "buildTime": {
+      "target": 300,
+      "warning": 600,
+      "critical": 1200,
+      "unit": "seconds",
+      "description": "Build process duration"
+    },
+    "deploymentTime": {
+      "target": 600,
+      "warning": 1200,
+      "critical": 1800,
+      "unit": "seconds",
+      "description": "Deployment process duration"
+    },
+    "rollbackTime": {
+      "target": 300,
+      "warning": 600,
+      "critical": 900,
+      "unit": "seconds",
+      "description": "Rollback process duration"
+    },
+    "healthCheckTime": {
+      "target": 30,
+      "warning": 60,
+      "critical": 120,
+      "unit": "seconds",
+      "description": "Health check response time"
+    }
+  }
+}

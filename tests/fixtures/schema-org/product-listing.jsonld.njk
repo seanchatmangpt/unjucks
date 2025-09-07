@@ -1,0 +1,209 @@
+---
+to: "{{ destDir }}/{{ sku | slug }}-product.json"
+inject: false
+---
+{
+  "@context": "https://schema.org/",
+  "@type": "{{ productType | default('Product') | schemaOrg }}",
+  "@id": "{{ baseUrl | rdfResource }}/product/{{ sku | slug }}",
+  
+  "name": "{{ name | titleCase }}",
+  "description": "{{ description | truncate(300) | escape }}",
+  "sku": "{{ sku | upper }}",
+  "gtin": "{{ gtin }}",
+  "mpn": "{{ mpn }}",
+  "identifier": "{{ productId | upper }}",
+  "url": "{{ productUrl | rdfResource }}",
+  
+  "brand": {
+    "@type": "{{ brandType | default('Brand') | schemaOrg }}",
+    "name": "{{ brand.name | titleCase }}",
+    "url": "{{ brand.website | rdfResource }}",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "{{ brand.logo | rdfResource }}"
+    }
+  },
+  
+  "manufacturer": {
+    "@type": "{{ manufacturerType | default('Organization') | schemaOrg }}",
+    "name": "{{ manufacturer.name | titleCase }}",
+    "url": "{{ manufacturer.website | rdfResource }}"
+  },
+  
+  "model": "{{ model }}",
+  "color": "{{ color | titleCase }}",
+  "material": "{{ material | titleCase }}",
+  "category": "{{ category | titleCase }}",
+  
+  "image": [
+    {% for image in images -%}
+    {
+      "@type": "ImageObject",
+      "url": "{{ image.url | rdfResource }}",
+      "contentUrl": "{{ image.url | rdfResource }}",
+      "width": {{ image.width | default(800) }},
+      "height": {{ image.height | default(600) }},
+      "caption": "{{ image.caption | escape }}"
+    }{% if not loop.last %},{% endif %}
+    {% endfor %}
+  ],
+  
+  "offers": {
+    "@type": "{{ offerType | default('Offer') | schemaOrg }}",
+    "price": "{{ price | number(2) }}",
+    "priceCurrency": "{{ currency | default('USD') | upper }}",
+    "availability": "{{ availability | default('InStock') | schemaAvailability }}",
+    "condition": "https://schema.org/{{ condition | default('NewCondition') | schemaOrg }}",
+    "url": "{{ offerUrl | rdfResource }}",
+    
+    "seller": {
+      "@type": "{{ sellerType | default('Organization') | schemaOrg }}",
+      "name": "{{ seller.name | titleCase }}",
+      "url": "{{ seller.website | rdfResource }}"
+    },
+    
+    "priceValidUntil": "{{ priceValidUntil | schemaDate('date') }}",
+    "itemCondition": "https://schema.org/{{ itemCondition | default('NewCondition') }}",
+    
+    {% if shipping -%}
+    "shippingDetails": {
+      "@type": "OfferShippingDetails",
+      "shippingRate": {
+        "@type": "MonetaryAmount",
+        "value": "{{ shipping.cost | number(2) }}",
+        "currency": "{{ shipping.currency | default(currency) | upper }}"
+      },
+      "deliveryTime": {
+        "@type": "ShippingDeliveryTime",
+        "businessDays": {
+          "@type": "OpeningHoursSpecification",
+          "dayOfWeek": [
+            "https://schema.org/Monday",
+            "https://schema.org/Tuesday", 
+            "https://schema.org/Wednesday",
+            "https://schema.org/Thursday",
+            "https://schema.org/Friday"
+          ]
+        },
+        "handlingTime": {
+          "@type": "QuantitativeValue",
+          "minValue": {{ shipping.handlingDays.min | default(1) }},
+          "maxValue": {{ shipping.handlingDays.max | default(3) }},
+          "unitCode": "DAY"
+        },
+        "transitTime": {
+          "@type": "QuantitativeValue", 
+          "minValue": {{ shipping.transitDays.min | default(3) }},
+          "maxValue": {{ shipping.transitDays.max | default(7) }},
+          "unitCode": "DAY"
+        }
+      }
+    },
+    {% endif %}
+    
+    "validFrom": "{{ validFrom | schemaDate }}",
+    "eligibleRegion": {
+      "@type": "GeoShape",
+      "addressCountry": "{{ eligibleCountry | default('US') | upper }}"
+    }
+  },
+  
+  {% if reviews and reviews.length > 0 -%}
+  "review": [
+    {% for review in reviews -%}
+    {
+      "@type": "Review",
+      "reviewRating": {
+        "@type": "Rating",
+        "ratingValue": "{{ review.rating | number(1) }}",
+        "bestRating": "{{ review.maxRating | default(5) }}",
+        "worstRating": "{{ review.minRating | default(1) }}"
+      },
+      "name": "{{ review.title | escape }}",
+      "reviewBody": "{{ review.body | truncate(500) | escape }}",
+      "datePublished": "{{ review.date | schemaDate }}",
+      "author": {
+        "@type": "Person",
+        "name": "{{ review.author | titleCase }}"
+      }
+    }{% if not loop.last %},{% endif %}
+    {% endfor %}
+  ],
+  {% endif %}
+  
+  {% if aggregateRating -%}
+  "aggregateRating": {
+    "@type": "AggregateRating",
+    "ratingValue": "{{ aggregateRating.value | number(2) }}",
+    "reviewCount": "{{ aggregateRating.count | number }}",
+    "bestRating": "{{ aggregateRating.best | default(5) }}",
+    "worstRating": "{{ aggregateRating.worst | default(1) }}"
+  },
+  {% endif %}
+  
+  {% if dimensions -%}
+  "width": {
+    "@type": "QuantitativeValue",
+    "value": "{{ dimensions.width | number(2) }}",
+    "unitCode": "{{ dimensions.unit | default('CM') | upper }}"
+  },
+  "height": {
+    "@type": "QuantitativeValue", 
+    "value": "{{ dimensions.height | number(2) }}",
+    "unitCode": "{{ dimensions.unit | default('CM') | upper }}"
+  },
+  "depth": {
+    "@type": "QuantitativeValue",
+    "value": "{{ dimensions.depth | number(2) }}",
+    "unitCode": "{{ dimensions.unit | default('CM') | upper }}"
+  },
+  {% endif %}
+  
+  {% if weight -%}
+  "weight": {
+    "@type": "QuantitativeValue",
+    "value": "{{ weight.value | number(2) }}",
+    "unitCode": "{{ weight.unit | default('KG') | upper }}"
+  },
+  {% endif %}
+  
+  {% if additionalProperties -%}
+  "additionalProperty": [
+    {% for prop in additionalProperties -%}
+    {
+      "@type": "PropertyValue",
+      "name": "{{ prop.name | titleCase }}",
+      "value": "{{ prop.value }}"
+    }{% if not loop.last %},{% endif %}
+    {% endfor %}
+  ],
+  {% endif %}
+  
+  {% if isRelatedTo -%}
+  "isRelatedTo": [
+    {% for related in isRelatedTo -%}
+    {
+      "@type": "{{ related.type | default('Product') | schemaOrg }}",
+      "name": "{{ related.name | titleCase }}",
+      "url": "{{ related.url | rdfResource }}"
+    }{% if not loop.last %},{% endif %}
+    {% endfor %}
+  ],
+  {% endif %}
+  
+  "dateCreated": "{{ created | default(now()) | schemaDate }}",
+  "dateModified": "{{ modified | default(now()) | schemaDate }}",
+  
+  "potentialAction": {
+    "@type": "BuyAction",
+    "target": {
+      "@type": "EntryPoint",
+      "urlTemplate": "{{ baseUrl }}/buy?product={{ sku | slug }}",
+      "actionPlatform": [
+        "http://schema.org/DesktopWebPlatform",
+        "http://schema.org/MobileWebPlatform"
+      ]
+    }
+  }
+}

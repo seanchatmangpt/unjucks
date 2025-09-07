@@ -1,0 +1,410 @@
+---
+to: "provenance/{{ resourceId | slug }}-provenance.ttl"
+inject: true
+skipIf: "{{ skipExisting | default(false) }}"
+chmod: "644"
+---
+@base <{{ baseUri | rdfResource }}> .
+@prefix prov: <http://www.w3.org/ns/prov#> .
+@prefix dct: <http://purl.org/dc/terms/> .
+@prefix foaf: <http://xmlns.com/foaf/0.1/> .
+@prefix schema: <http://schema.org/> .
+@prefix void: <http://rdfs.org/ns/void#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix adms: <http://www.w3.org/ns/adms#> .
+@prefix oa: <http://www.w3.org/ns/oa#> .
+
+# Comprehensive Provenance Chain for {{ resourceTitle | titleCase }}
+# Following W3C PROV-O (Provenance Ontology) recommendations
+
+# Main Resource Entity
+<{{ resourceId | slug }}> a prov:Entity , {{ resourceType | schemaOrg }} ;
+    
+    # Basic identification
+    dct:title {{ resourceTitle | titleCase | rdfLiteral('en') }} ;
+    dct:identifier {{ resourceId | upper | rdfLiteral('string') }} ;
+    {% if resourceDescription -%}
+    dct:description {{ resourceDescription | rdfLiteral('en') }} ;
+    {% endif -%}
+    
+    # Temporal entity properties
+    {% if created -%}
+    prov:generatedAtTime {{ created | isoDate | rdfLiteral('dateTime') }} ;
+    dct:created {{ created | isoDate | rdfLiteral('dateTime') }} ;
+    {% endif -%}
+    {% if modified -%}
+    prov:invalidatedAtTime {{ modified | isoDate | rdfLiteral('dateTime') }} ;
+    dct:modified {{ modified | isoDate | rdfLiteral('dateTime') }} ;
+    {% endif -%}
+    
+    # Generation activity
+    prov:wasGeneratedBy <{{ resourceId | slug }}/generation/{{ generationId | default(uuid()) }}> ;
+    
+    # Attribution to agents
+    {% if creator -%}
+    prov:wasAttributedTo <{{ creator | slug }}> ;
+    dct:creator <{{ creator | slug }}> ;
+    {% endif -%}
+    {% if contributors -%}
+    {% for contributor in contributors -%}
+    prov:wasAttributedTo <{{ contributor | slug }}>{% if not loop.last %} ,{% endif %}
+    {% endfor %} ;
+    {% endif -%}
+    
+    # Derivation from other entities
+    {% if derivedFrom -%}
+    {% for source in derivedFrom -%}
+    prov:wasDerivedFrom <{{ source.entityId | slug }}>{% if not loop.last %} ,{% endif %}
+    {% endfor %} ;
+    {% endif -%}
+    
+    # Revision chain
+    {% if previousVersion -%}
+    prov:wasRevisionOf <{{ previousVersion | slug }}> ;
+    adms:prev <{{ previousVersion | slug }}> ;
+    {% endif -%}
+    {% if nextVersion -%}
+    adms:next <{{ nextVersion | slug }}> ;
+    {% endif -%}
+    
+    # Quality and validation
+    {% if validatedBy -%}
+    {% for validator in validatedBy -%}
+    prov:wasInfluencedBy <{{ validator.activityId | slug }}>{% if not loop.last %} ,{% endif %}
+    {% endfor %} ;
+    {% endif -%}
+    
+    # Specialization and alternatives
+    {% if specializationOf -%}
+    prov:specializationOf <{{ specializationOf | slug }}> ;
+    {% endif -%}
+    {% if alternateOf -%}
+    prov:alternateOf <{{ alternateOf | slug }}> ;
+    {% endif -%}
+    .
+
+# Generation Activity
+<{{ resourceId | slug }}/generation/{{ generationId | default(uuid()) }}> a prov:Activity ;
+    
+    # Activity identification
+    dct:title {{ ('Generation of ' + resourceTitle) | titleCase | rdfLiteral('en') }} ;
+    dct:description {{ ('Activity that generated the resource: ' + resourceTitle) | rdfLiteral('en') }} ;
+    
+    # Temporal bounds
+    {% if generationStarted -%}
+    prov:startedAtTime {{ generationStarted | isoDate | rdfLiteral('dateTime') }} ;
+    {% endif -%}
+    {% if generationEnded -%}
+    prov:endedAtTime {{ generationEnded | isoDate | rdfLiteral('dateTime') }} ;
+    {% else -%}
+    prov:endedAtTime {{ now() | isoDate | rdfLiteral('dateTime') }} ;
+    {% endif -%}
+    
+    # Generated entity
+    prov:generated <{{ resourceId | slug }}> ;
+    
+    # Associated agents
+    {% if generatingAgent -%}
+    prov:wasAssociatedWith <{{ generatingAgent | slug }}> ;
+    {% endif -%}
+    {% if generatingPerson -%}
+    prov:wasAssociatedWith <{{ generatingPerson | slug }}> ;
+    {% endif -%}
+    {% if generatingOrganization -%}
+    prov:wasAssociatedWith <{{ generatingOrganization | slug }}> ;
+    {% endif -%}
+    {% if generatingSoftware -%}
+    prov:wasAssociatedWith <{{ generatingSoftware | slug }}> ;
+    {% endif -%}
+    
+    # Used entities (inputs)
+    {% if usedEntities -%}
+    {% for entity in usedEntities -%}
+    prov:used <{{ entity.entityId | slug }}>{% if not loop.last %} ,{% endif %}
+    {% endfor %} ;
+    {% endif -%}
+    
+    # Plans and workflows
+    {% if plan -%}
+    prov:qualifiedAssociation [
+        a prov:Association ;
+        prov:agent <{{ generatingAgent | default(generatingSoftware) | slug }}> ;
+        prov:hadPlan <{{ plan.planId | slug }}> ;
+        {% if plan.role -%}
+        prov:hadRole <{{ plan.role | expandUri }}> ;
+        {% endif -%}
+    ] ;
+    {% endif -%}
+    
+    # Location and environment
+    {% if location -%}
+    prov:atLocation <{{ location | slug }}> ;
+    {% endif -%}
+    
+    # Communication with other activities
+    {% if communicatedWith -%}
+    {% for activity in communicatedWith -%}
+    prov:wasInformedBy <{{ activity.activityId | slug }}>{% if not loop.last %} ,{% endif %}
+    {% endfor %} ;
+    {% endif -%}
+    
+    # Activity type and category
+    {% if activityType -%}
+    dct:type <{{ activityType | expandUri }}> ;
+    {% endif -%}
+    prov:hadRole <{{ activityRole | default('http://www.w3.org/ns/prov#Create') | expandUri }}> ;
+    .
+
+# Software Agent (if applicable)
+{% if generatingSoftware %}
+<{{ generatingSoftware | slug }}> a prov:SoftwareAgent , foaf:Agent ;
+    foaf:name {{ softwareName | default('Unjucks Generator') | rdfLiteral('en') }} ;
+    schema:version {{ softwareVersion | default('1.0.0') | rdfLiteral('string') }} ;
+    {% if softwareUrl -%}
+    foaf:homepage <{{ softwareUrl }}> ;
+    {% endif -%}
+    {% if softwareLicense -%}
+    dct:license <{{ softwareLicense | licenseUri }}> ;
+    {% endif -%}
+    
+    # Capabilities and configuration
+    {% if capabilities -%}
+    {% for capability in capabilities -%}
+    schema:applicationCategory {{ capability | rdfLiteral('en') }}{% if not loop.last %} ,{% endif %}
+    {% endfor %} ;
+    {% endif -%}
+    {% if configuration -%}
+    prov:hadPlan [
+        a prov:Plan ;
+        dct:title {{ 'Software Configuration' | rdfLiteral('en') }} ;
+        dct:description {{ configuration.description | default('Configuration used for generation') | rdfLiteral('en') }} ;
+        {% if configuration.parameters -%}
+        {% for param, value in configuration.parameters -%}
+        prov:value [
+            schema:name {{ param | rdfLiteral('string') }} ;
+            schema:value {{ value | rdfLiteral }} ;
+        ]{% if not loop.last %} ,{% endif %}
+        {% endfor %} ;
+        {% endif -%}
+    ] ;
+    {% endif -%}
+    .
+{% endif %}
+
+# Human Agent (if applicable)
+{% if generatingPerson %}
+<{{ generatingPerson | slug }}> a prov:Person , foaf:Person ;
+    foaf:name {{ personName | rdfLiteral('en') }} ;
+    {% if personEmail -%}
+    foaf:mbox <mailto:{{ personEmail }}> ;
+    {% endif -%}
+    {% if personOrcid -%}
+    owl:sameAs <https://orcid.org/{{ personOrcid }}> ;
+    {% endif -%}
+    {% if personAffiliation -%}
+    schema:affiliation <{{ personAffiliation | slug }}> ;
+    {% endif -%}
+    {% if personRole -%}
+    schema:jobTitle {{ personRole | rdfLiteral('en') }} ;
+    {% endif -%}
+    .
+{% endif %}
+
+# Organizational Agent (if applicable)
+{% if generatingOrganization %}
+<{{ generatingOrganization | slug }}> a prov:Organization , foaf:Organization ;
+    foaf:name {{ orgName | rdfLiteral('en') }} ;
+    {% if orgUrl -%}
+    foaf:homepage <{{ orgUrl }}> ;
+    {% endif -%}
+    {% if orgType -%}
+    dct:type <{{ orgType | expandUri }}> ;
+    {% endif -%}
+    {% if orgAddress -%}
+    schema:address {{ orgAddress | rdfLiteral('en') }} ;
+    {% endif -%}
+    .
+{% endif %}
+
+# Input Entities
+{% if usedEntities %}
+{% for entity in usedEntities %}
+<{{ entity.entityId | slug }}> a prov:Entity ;
+    dct:title {{ entity.title | default('Input Entity') | rdfLiteral('en') }} ;
+    {% if entity.description -%}
+    dct:description {{ entity.description | rdfLiteral('en') }} ;
+    {% endif -%}
+    {% if entity.type -%}
+    dct:type <{{ entity.type | expandUri }}> ;
+    {% endif -%}
+    {% if entity.format -%}
+    dct:format {{ entity.format | contentType | rdfLiteral('string') }} ;
+    {% endif -%}
+    {% if entity.source -%}
+    dct:source <{{ entity.source }}> ;
+    {% endif -%}
+    {% if entity.created -%}
+    dct:created {{ entity.created | isoDate | rdfLiteral('dateTime') }} ;
+    {% endif -%}
+    {% if entity.checksum -%}
+    prov:value {{ entity.checksum | rdfLiteral('string') }} ;
+    {% endif -%}
+    .
+
+# Usage relationship
+<{{ resourceId | slug }}/generation/{{ generationId | default(uuid()) }}> prov:qualifiedUsage [
+    a prov:Usage ;
+    prov:entity <{{ entity.entityId | slug }}> ;
+    {% if entity.usedAt -%}
+    prov:atTime {{ entity.usedAt | isoDate | rdfLiteral('dateTime') }} ;
+    {% endif -%}
+    {% if entity.role -%}
+    prov:hadRole <{{ entity.role | expandUri }}> ;
+    {% endif -%}
+] .
+
+{% endfor %}
+{% endif %}
+
+# Derivation Details
+{% if derivedFrom %}
+{% for source in derivedFrom %}
+<{{ resourceId | slug }}> prov:qualifiedDerivation [
+    a prov:Derivation ;
+    prov:entity <{{ source.entityId | slug }}> ;
+    {% if source.derivationType -%}
+    prov:hadActivity <{{ source.derivationActivity | slug }}> ;
+    {% endif -%}
+    {% if source.derivedAt -%}
+    prov:atTime {{ source.derivedAt | isoDate | rdfLiteral('dateTime') }} ;
+    {% endif -%}
+    {% if source.derivationMethod -%}
+    dct:type <{{ source.derivationMethod | expandUri }}> ;
+    {% endif -%}
+] .
+
+{% endfor %}
+{% endif %}
+
+# Plan and Workflow
+{% if plan %}
+<{{ plan.planId | slug }}> a prov:Plan ;
+    dct:title {{ plan.title | default('Generation Plan') | rdfLiteral('en') }} ;
+    {% if plan.description -%}
+    dct:description {{ plan.description | rdfLiteral('en') }} ;
+    {% endif -%}
+    {% if plan.version -%}
+    schema:version {{ plan.version | rdfLiteral('string') }} ;
+    {% endif -%}
+    
+    # Plan steps
+    {% if plan.steps -%}
+    {% for step in plan.steps -%}
+    prov:hadPrimarySource [
+        a prov:Entity ;
+        dct:title {{ step.title | rdfLiteral('en') }} ;
+        schema:position {{ loop.index | rdfLiteral('integer') }} ;
+        {% if step.description -%}
+        dct:description {{ step.description | rdfLiteral('en') }} ;
+        {% endif -%}
+        {% if step.tool -%}
+        prov:wasGeneratedBy <{{ step.tool | slug }}> ;
+        {% endif -%}
+    ]{% if not loop.last %} ,{% endif %}
+    {% endfor %} ;
+    {% endif -%}
+    
+    # Plan provenance
+    {% if plan.creator -%}
+    prov:wasAttributedTo <{{ plan.creator | slug }}> ;
+    {% endif -%}
+    {% if plan.created -%}
+    prov:generatedAtTime {{ plan.created | isoDate | rdfLiteral('dateTime') }} ;
+    {% endif -%}
+    .
+{% endif %}
+
+# Quality Assurance and Validation
+{% if qualityAssurance %}
+{% for qa in qualityAssurance %}
+<{{ qa.activityId | slug }}> a prov:Activity ;
+    dct:title {{ qa.title | default('Quality Assurance Activity') | rdfLiteral('en') }} ;
+    prov:startedAtTime {{ qa.started | isoDate | rdfLiteral('dateTime') }} ;
+    prov:endedAtTime {{ qa.ended | default(now() | isoDate) | isoDate | rdfLiteral('dateTime') }} ;
+    
+    # QA agent
+    {% if qa.agent -%}
+    prov:wasAssociatedWith <{{ qa.agent | slug }}> ;
+    {% endif -%}
+    
+    # QA results
+    {% if qa.results -%}
+    prov:generated [
+        a prov:Entity , oa:Annotation ;
+        dct:title {{ 'Quality Assessment Results' | rdfLiteral('en') }} ;
+        oa:hasTarget <{{ resourceId | slug }}> ;
+        {% for result in qa.results -%}
+        oa:hasBody [
+            oa:bodyValue {{ result.description | rdfLiteral('en') }} ;
+            schema:ratingValue {{ result.score | rdfLiteral('decimal') }} ;
+            {% if result.category -%}
+            dct:type <{{ result.category | expandUri }}> ;
+            {% endif -%}
+        ]{% if not loop.last %} ,{% endif %}
+        {% endfor %} ;
+    ] ;
+    {% endif -%}
+    
+    # Influenced the main entity
+    prov:influenced <{{ resourceId | slug }}> ;
+    .
+
+{% endfor %}
+{% endif %}
+
+# Bundle for complete provenance record
+<{{ resourceId | slug }}/provenance-bundle> a prov:Bundle ;
+    dct:title {{ ('Complete Provenance Record for ' + resourceTitle) | titleCase | rdfLiteral('en') }} ;
+    dct:description {{ 'Comprehensive provenance information following W3C PROV-O specifications' | rdfLiteral('en') }} ;
+    
+    # Bundle contents
+    prov:hadMember 
+        <{{ resourceId | slug }}> ,
+        <{{ resourceId | slug }}/generation/{{ generationId | default(uuid()) }}>
+        {% if generatingSoftware -%}
+        , <{{ generatingSoftware | slug }}>
+        {% endif -%}
+        {% if generatingPerson -%}
+        , <{{ generatingPerson | slug }}>
+        {% endif -%}
+        {% if generatingOrganization -%}
+        , <{{ generatingOrganization | slug }}>
+        {% endif -%}
+        {% if plan -%}
+        , <{{ plan.planId | slug }}>
+        {% endif -%}
+        {% if usedEntities -%}
+        {% for entity in usedEntities -%}
+        , <{{ entity.entityId | slug }}>
+        {% endfor -%}
+        {% endif -%}
+        {% if qualityAssurance -%}
+        {% for qa in qualityAssurance -%}
+        , <{{ qa.activityId | slug }}>
+        {% endfor -%}
+        {% endif -%}
+        ;
+    
+    # Bundle metadata
+    dct:created {{ now() | isoDate | rdfLiteral('dateTime') }} ;
+    dct:format {{ 'text/turtle' | contentType | rdfLiteral('string') }} ;
+    prov:wasAttributedTo <{{ generator | default('unjucks-provenance-generator') | slug }}> ;
+    
+    # Integrity and signatures
+    {% if bundleSignature -%}
+    prov:hasProvenanceSignature {{ bundleSignature | rdfLiteral('string') }} ;
+    {% endif -%}
+    {% if bundleChecksum -%}
+    prov:value {{ bundleChecksum | rdfLiteral('string') }} ;
+    {% endif -%}
+    .
