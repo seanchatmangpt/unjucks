@@ -1,6 +1,6 @@
 {
   "name": "@seanchatmangpt/unjucks",
-  "version": "2025.9.7",
+  "version": "2025.09.07.15.45",
   "type": "module",
   "description": "Nunjucks + Hygen style scaffolding with RDF/Turtle support",
   "main": "./src/cli/index.js",
@@ -20,6 +20,8 @@
     "LICENSE"
   ],
   "scripts": {
+    "docs:update": "automd",
+    "docs:check": "automd --check",
     "test:production": "node scripts/production-test-runner.js",
     "test:production:quick": "node scripts/production-test-runner.js --level quick",
     "test:production:full": "node scripts/production-test-runner.js --level full",
@@ -135,10 +137,12 @@
     "confbox": "^0.2.2",
     "consola": "^3.4.2",
     "dayjs": "^1.11.18",
+    "@faker-js/faker": "^9.9.0",
     "fs-extra": "^11.3.1",
     "glob": "^10.3.10",
     "gray-matter": "^4.0.3",
     "inquirer": "^12.9.4",
+    "n3": "^1.26.0",
     "nunjucks": "^3.2.4",
     "ora": "^8.2.0",
     "yaml": "^2.4.1",
@@ -146,12 +150,11 @@
   },
   "devDependencies": {
     "@amiceli/vitest-cucumber": "^5.2.1",
-    "@faker-js/faker": "^9.9.0",
     "@vitejs/plugin-vue": "^6.0.1",
     "@vitest/ui": "^3.2.4",
+    "automd": "^0.3.8",
     "eslint": "^9.0.0",
     "eslint-plugin-import": "^2.32.0",
-    "n3": "^1.26.0",
     "sparqljs": "^3.7.3",
     "unbuild": "^3.6.1",
     "vite": "^7.1.4",
