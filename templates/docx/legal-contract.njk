@@ -1,0 +1,203 @@
+{# @metadata {
+  "name": "Legal Contract Template",
+  "description": "Professional legal contract template with proper formatting",
+  "version": "1.0.0",
+  "author": "Unjucks",
+  "category": "legal",
+  "variables": {
+    "title": "Contract title",
+    "parties": "Array of contracting parties",
+    "effective_date": "Contract effective date",
+    "terms": "Contract terms and conditions",
+    "signatures": "Signature block information"
+  }
+} #}
+
+[
+  {
+    "type": "paragraph",
+    "text": "{{ firm_name | default('LAW FIRM NAME') }}",
+    "alignment": "center",
+    "runs": [{
+      "text": "{{ firm_name | default('LAW FIRM NAME') }}",
+      "font": "Times New Roman",
+      "fontSize": 14,
+      "bold": true
+    }]
+  },
+  {
+    "type": "paragraph",
+    "text": "{{ firm_address | default('Firm Address') }}",
+    "alignment": "center",
+    "runs": [{
+      "text": "{{ firm_address | default('Firm Address') }}",
+      "font": "Times New Roman", 
+      "fontSize": 12
+    }]
+  },
+  {
+    "type": "paragraph",
+    "text": "",
+    "spacing": { "after": 240 }
+  },
+  {
+    "type": "heading",
+    "level": 1,
+    "text": "{{ title | default('CONTRACT AGREEMENT') }}",
+    "font": "Times New Roman",
+    "alignment": "center"
+  },
+  {
+    "type": "paragraph", 
+    "text": "",
+    "spacing": { "after": 120 }
+  },
+  {
+    "type": "paragraph",
+    "text": "This Agreement is entered into on {{ effective_date | dateFormat('MMMM DD, YYYY') | default('_________') }}, between:",
+    "spacing": { "after": 120 }
+  },
+  {% for party in parties %}
+  {
+    "type": "paragraph",
+    "text": "{{ loop.index }}. {{ party.name | default('Party Name') }}{% if party.title %}, {{ party.title }}{% endif %}",
+    "indent": { "left": 360 },
+    "spacing": { "after": 60 }
+  },
+  {% if party.address %}
+  {
+    "type": "paragraph", 
+    "text": "Address: {{ party.address }}",
+    "indent": { "left": 720 },
+    "spacing": { "after": 60 }
+  },
+  {% endif %}
+  {% endfor %}
+  {
+    "type": "paragraph",
+    "text": "Collectively referred to as \"the Parties.\"",
+    "spacing": { "after": 240 }
+  },
+  {
+    "type": "heading",
+    "level": 2, 
+    "text": "RECITALS"
+  },
+  {
+    "type": "paragraph",
+    "text": "WHEREAS, {{ recitals | default('the parties desire to enter into this agreement') }};",
+    "spacing": { "after": 120 }
+  },
+  {
+    "type": "paragraph",
+    "text": "NOW, THEREFORE, in consideration of the mutual covenants contained herein, the parties agree as follows:",
+    "spacing": { "after": 240 }
+  },
+  {% for term in terms %}
+  {
+    "type": "heading",
+    "level": 2,
+    "text": "{{ loop.index }}. {{ term.title | upper }}"
+  },
+  {% if term.subsections %}
+    {% for subsection in term.subsections %}
+    {
+      "type": "paragraph",
+      "text": "{{ loop.index }}.{{ loop.index0 + 1 }} {{ subsection.text }}",
+      "indent": { "left": 360 },
+      "spacing": { "after": 120 }
+    },
+    {% endfor %}
+  {% else %}
+  {
+    "type": "paragraph",
+    "text": "{{ term.text }}",
+    "spacing": { "after": 240 }
+  },
+  {% endif %}
+  {% endfor %}
+  {
+    "type": "heading",
+    "level": 2,
+    "text": "GENERAL PROVISIONS"
+  },
+  {
+    "type": "paragraph",
+    "text": "This Agreement shall be governed by the laws of {{ governing_law | default('[STATE/JURISDICTION]') }}.",
+    "spacing": { "after": 120 }
+  },
+  {
+    "type": "paragraph", 
+    "text": "This Agreement constitutes the entire agreement between the parties and supersedes all prior negotiations, representations, or agreements relating to the subject matter hereof.",
+    "spacing": { "after": 240 }
+  },
+  {
+    "type": "paragraph",
+    "text": "IN WITNESS WHEREOF, the parties have executed this Agreement as of the date first written above.",
+    "spacing": { "before": 240, "after": 240 }
+  },
+  {% for signature in signatures %}
+  {
+    "type": "table",
+    "width": 100,
+    "borders": false,
+    "rows": [
+      ["{{ signature.party }}", "Date: ________________"],
+      ["", ""],
+      ["_________________________________", ""],
+      ["{{ signature.name }}{% if signature.title %}, {{ signature.title }}{% endif %}", ""]
+    ]
+  },
+  {% endfor %}
+  {
+    "type": "paragraph",
+    "text": "",
+    "spacing": { "before": 240 }
+  },
+  {% if notarization %}
+  {
+    "type": "heading",
+    "level": 3,
+    "text": "NOTARIZATION"
+  },
+  {
+    "type": "paragraph",
+    "text": "State of ________________",
+    "spacing": { "after": 60 }
+  },
+  {
+    "type": "paragraph", 
+    "text": "County of ________________",
+    "spacing": { "after": 120 }
+  },
+  {
+    "type": "paragraph",
+    "text": "On this _____ day of ____________, 20___, before me personally appeared {{ notary_names | join(', ') | default('the above named persons') }}, who proved to me on the basis of satisfactory evidence to be the persons whose names are subscribed to the within instrument and acknowledged to me that they executed the same in their authorized capacity, and that by their signature on the instrument the persons, or the entity upon behalf of which the persons acted, executed the instrument.",
+    "spacing": { "after": 120 }
+  },
+  {
+    "type": "paragraph",
+    "text": "I certify under PENALTY OF PERJURY under the laws of {{ notary_state | default('[State]') }} that the foregoing paragraph is true and correct.",
+    "spacing": { "after": 120 }
+  },
+  {
+    "type": "paragraph",
+    "text": "WITNESS my hand and official seal.",
+    "spacing": { "after": 240 }
+  },
+  {
+    "type": "paragraph",
+    "text": "_________________________________",
+    "spacing": { "after": 60 }
+  },
+  {
+    "type": "paragraph",
+    "text": "Signature of Notary Public",
+    "runs": [{
+      "text": "Signature of Notary Public",
+      "fontSize": 10,
+      "italic": true
+    }]
+  }
+  {% endif %}
+]

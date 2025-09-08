@@ -1,0 +1,148 @@
+{
+  "name": "Alex Johnson",
+  "jobTitle": "Senior Full Stack Developer",
+  "email": "alex.johnson@email.com",
+  "phone": "+1 (555) 123-4567",
+  "location": "San Francisco, CA",
+  "linkedin": "linkedin.com/in/alexjohnson",
+  "website": "alexjohnson.dev",
+  "summary": "Experienced Full Stack Developer with 8+ years of expertise in building scalable web applications and leading development teams. Proven track record of delivering high-quality software solutions using modern technologies including React, Node.js, and cloud platforms. Passionate about clean code, performance optimization, and mentoring junior developers.",
+  "experience": [
+    {
+      "title": "Senior Full Stack Developer",
+      "company": "TechCorp Solutions",
+      "location": "San Francisco, CA",
+      "startDate": "Jan 2021",
+      "endDate": null,
+      "description": "Lead development of enterprise-level web applications serving over 100K users. Architect and implement scalable microservices using Node.js and React.",
+      "achievements": [
+        "Improved application performance by 40% through code optimization and caching strategies",
+        "Led a team of 5 developers in delivering 3 major product releases on schedule",
+        "Implemented CI/CD pipeline reducing deployment time by 60%",
+        "Mentored 8 junior developers, with 6 receiving promotions within 18 months"
+      ]
+    },
+    {
+      "title": "Full Stack Developer",
+      "company": "Innovate Labs",
+      "location": "Palo Alto, CA",
+      "startDate": "Mar 2019",
+      "endDate": "Dec 2020",
+      "description": "Developed and maintained multiple client-facing applications using React, Express.js, and PostgreSQL. Collaborated closely with design and product teams.",
+      "achievements": [
+        "Built responsive web applications serving 50K+ daily active users",
+        "Reduced API response times by 35% through database optimization",
+        "Implemented real-time features using WebSocket technology",
+        "Contributed to 15+ successful product launches"
+      ]
+    },
+    {
+      "title": "Frontend Developer",
+      "company": "StartupXYZ",
+      "location": "San Jose, CA",
+      "startDate": "Jun 2016",
+      "endDate": "Feb 2019",
+      "description": "Focused on creating intuitive user interfaces and implementing modern frontend architectures. Worked in an agile environment with rapid iteration cycles.",
+      "achievements": [
+        "Developed mobile-first responsive designs increasing mobile engagement by 25%",
+        "Integrated third-party APIs and payment systems",
+        "Improved code quality by implementing automated testing suites",
+        "Collaborated with UX designers to improve user satisfaction scores by 30%"
+      ]
+    }
+  ],
+  "skills": {
+    "Frontend": ["React", "Vue.js", "TypeScript", "JavaScript", "HTML5", "CSS3", "Sass", "Tailwind CSS"],
+    "Backend": ["Node.js", "Express.js", "Python", "Django", "FastAPI", "RESTful APIs", "GraphQL"],
+    "Database": ["PostgreSQL", "MongoDB", "Redis", "MySQL", "Elasticsearch"],
+    "Cloud & DevOps": ["AWS", "Docker", "Kubernetes", "CI/CD", "Jenkins", "Terraform"],
+    "Tools & Others": ["Git", "Webpack", "Jest", "Cypress", "Figma", "Jira", "Agile/Scrum"]
+  },
+  "education": [
+    {
+      "degree": "Bachelor of Science in Computer Science",
+      "institution": "University of California, Berkeley",
+      "location": "Berkeley, CA",
+      "graduationDate": "2016",
+      "gpa": "3.8/4.0",
+      "honors": ["Magna Cum Laude", "Dean's List"]
+    }
+  ],
+  "projects": [
+    {
+      "name": "E-commerce Platform Redesign",
+      "technologies": ["React", "Node.js", "PostgreSQL", "AWS"],
+      "description": "Led the complete redesign and development of a high-traffic e-commerce platform with focus on performance and user experience.",
+      "achievements": [
+        "Increased conversion rate by 28% through improved UX design",
+        "Reduced page load times by 50% using performance optimization techniques",
+        "Implemented advanced search and filtering capabilities"
+      ]
+    },
+    {
+      "name": "Real-time Analytics Dashboard",
+      "technologies": ["Vue.js", "D3.js", "WebSocket", "Python"],
+      "description": "Built a comprehensive analytics dashboard providing real-time insights for business stakeholders with interactive data visualizations.",
+      "achievements": [
+        "Processed and visualized 1M+ data points in real-time",
+        "Created 20+ interactive charts and reports",
+        "Improved decision-making speed by 40% for management team"
+      ]
+    },
+    {
+      "name": "Mobile-First Social Platform",
+      "technologies": ["React Native", "Firebase", "Redux"],
+      "description": "Developed a cross-platform social networking application with real-time messaging and content sharing features.",
+      "achievements": [
+        "Achieved 95% code reuse between iOS and Android platforms",
+        "Implemented offline-first architecture with data synchronization",
+        "Supported 10K+ concurrent users with real-time messaging"
+      ]
+    }
+  ],
+  "certifications": [
+    {
+      "name": "AWS Certified Solutions Architect",
+      "date": "2023"
+    },
+    {
+      "name": "Google Cloud Professional Developer",
+      "date": "2022"
+    },
+    {
+      "name": "React Developer Certification",
+      "date": "2021"
+    }
+  ],
+  "languages": [
+    {
+      "name": "English",
+      "proficiency": "Native"
+    },
+    {
+      "name": "Spanish",
+      "proficiency": "Conversational"
+    },
+    {
+      "name": "Japanese",
+      "proficiency": "Basic"
+    }
+  ],
+  "awards": [
+    {
+      "title": "Developer of the Year",
+      "organization": "TechCorp Solutions",
+      "date": "2023"
+    },
+    {
+      "title": "Innovation Award",
+      "organization": "Innovate Labs",
+      "date": "2020"
+    },
+    {
+      "title": "Best Senior Project",
+      "organization": "UC Berkeley CS Department",
+      "date": "2016"
+    }
+  ]
+}

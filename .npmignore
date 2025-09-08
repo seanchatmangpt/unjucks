@@ -1,0 +1,141 @@
+# Development and test files
+tests/
+test/
+*.test.js
+*.test.ts
+*.spec.js
+*.spec.ts
+coverage/
+test-results.xml
+final-test/
+bdd-test/
+
+# Documentation that's not needed in package
+docs/temp/
+docs/testing/
+docs/conversion/
+docs/architecture/
+docs/*.md
+!docs/README.md
+
+# Build artifacts and temporary files
+dist/
+build/
+.output/
+temp/
+.latex-cache/
+*.log
+*.aux
+*.fdb_latexmk
+*.fls
+*.synctex.gz
+.unjucks-cache/
+*.tgz
+
+# Configuration files for development
+vitest*.config.js
+cucumber*.config.*
+eslint.config.mjs
+.eslintrc*
+automd.config.ts
+nuxt.config.js
+pnpm-workspace.yaml
+.prettierrc
+.editorconfig
+
+# Environment and secrets - CRITICAL: Never include in package
+.env
+.env.*
+.env.local
+.env.production
+.env.development
+.env.test
+!.env.example
+*.pem
+*.key
+secrets/
+config/secrets*
+private/
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Git and version control
+.git/
+.gitignore
+.githooks/
+.github/
+
+# Cache directories
+.cache/
+node_modules/.cache/
+.npm/
+.pnpm/
+.yarn/
+
+# Claude and AI development tools
+.claude/
+.claude-flow/
+.hive-mind/
+.lh/
+.swarm/
+claude-flow*
+.mcp.json
+CLAUDE.md
+
+# Docker development
+docker/
+Dockerfile*
+docker-compose*
+
+# Reports and analysis
+reports/
+performance-reports/
+performance-optimization-report.json
+compatibility-matrix.json
+master-cli-test-report.json
+SPEC_VALIDATION_IMPLEMENTATION.md
+CHANGELOG.md
+
+# Examples and generated content
+examples/
+generated/
+templates/
+features/
+
+# VS Code extension development
+vscode-extension/
+
+# Homebrew formula
+homebrew/
+
+# Memory and hive data
+memory/
+hive/
+
+# Schema files
+schema/
+model.jsonld
+
+# Renovation and maintenance
+renovate.json
+
+# Skip esbuild workarounds
+skip-esbuild-install.js
+
+# LaTeX build outputs
+*.pdf
+*.tex
+
+# Testing outputs
+tests/output/
+tests/integration/*/temp/
+tests/fixtures/

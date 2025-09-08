@@ -1,0 +1,161 @@
+# Multi-stage Docker build for Unjucks cleanroom testing
+# This container provides an isolated environment for testing package functionality
+
+# Stage 1: Base environment with Node.js and build tools
+FROM node:18-alpine AS base
+
+# Install system dependencies
+RUN apk add --no-cache \
+    bash \
+    curl \
+    git \
+    build-base \
+    python3 \
+    python3-dev \
+    py3-pip \
+    && rm -rf /var/cache/apk/*
+
+# Set working directory
+WORKDIR /app
+
+# Create non-root user for testing
+RUN addgroup -g 1001 -S nodejs && \
+    adduser -S testuser -u 1001 -G nodejs
+
+# Stage 2: Verdaccio registry setup
+FROM base AS registry
+
+# Install Verdaccio globally
+RUN npm install -g verdaccio@latest
+
+# Copy Verdaccio configuration
+COPY config/verdaccio.yaml /app/verdaccio.yaml
+
+# Create necessary directories
+RUN mkdir -p /app/verdaccio-storage /app/logs && \
+    chown -R testuser:nodejs /app
+
+# Expose Verdaccio port
+EXPOSE 4873
+
+# Stage 3: Testing environment
+FROM base AS testing
+
+# Copy package files
+COPY package*.json ./
+COPY bin/ ./bin/
+COPY src/ ./src/
+COPY _templates/ ./_templates/
+COPY scripts/ ./scripts/
+COPY config/ ./config/
+
+# Install dependencies
+RUN npm ci --only=production
+
+# Make CLI executable
+RUN chmod +x bin/unjucks.cjs src/cli/index.js
+
+# Create test directories
+RUN mkdir -p /app/test-workspace /app/test-results && \
+    chown -R testuser:nodejs /app
+
+# Stage 4: Complete cleanroom environment
+FROM testing AS cleanroom
+
+# Install additional testing tools
+RUN npm install -g \
+    npm-check-updates \
+    npm-audit-html \
+    npm-license-checker \
+    clinic \
+    0x
+
+# Copy cleanroom test scripts
+COPY scripts/cleanroom-test.sh /app/cleanroom-test.sh
+COPY scripts/validation-checklist.js /app/validation-checklist.js
+
+# Make scripts executable
+RUN chmod +x /app/cleanroom-test.sh /app/validation-checklist.js
+
+# Set up environment variables
+ENV NODE_ENV=test
+ENV CLEANROOM_MODE=docker
+ENV VERDACCIO_PORT=4873
+ENV NPM_REGISTRY=http://localhost:4873/
+
+# Create cleanroom test script wrapper
+RUN cat > /app/run-cleanroom-tests.sh << 'EOF'
+#!/bin/bash
+set -euo pipefail
+
+echo "Starting Unjucks Cleanroom Test Environment"
+echo "==========================================="
+
+# Start Verdaccio in background
+echo "Starting Verdaccio registry..."
+verdaccio --config /app/verdaccio.yaml --listen 0.0.0.0:4873 &
+VERDACCIO_PID=$!
+
+# Wait for Verdaccio to be ready
+echo "Waiting for Verdaccio to start..."
+timeout=60
+count=0
+while ! curl -s http://localhost:4873 >/dev/null 2>&1; do
+    if [ $count -ge $timeout ]; then
+        echo "ERROR: Verdaccio failed to start within $timeout seconds"
+        kill $VERDACCIO_PID 2>/dev/null || true
+        exit 1
+    fi
+    sleep 1
+    ((count++))
+done
+
+echo "Verdaccio started successfully"
+
+# Set up npm to use local registry
+npm config set registry http://localhost:4873/
+
+# Run cleanroom tests
+echo "Running cleanroom tests..."
+if /app/cleanroom-test.sh docker; then
+    echo "✅ All cleanroom tests passed!"
+    TEST_RESULT=0
+else
+    echo "❌ Some cleanroom tests failed"
+    TEST_RESULT=1
+fi
+
+# Cleanup
+echo "Cleaning up..."
+kill $VERDACCIO_PID 2>/dev/null || true
+
+# Copy results to output directory
+mkdir -p /output
+cp -r /app/temp/cleanroom-*/reports/* /output/ 2>/dev/null || true
+cp -r /app/temp/cleanroom-*/logs/* /output/ 2>/dev/null || true
+cp /app/temp/cleanroom-*/validation-report.json /output/ 2>/dev/null || true
+
+echo "Results copied to /output/"
+exit $TEST_RESULT
+EOF
+
+RUN chmod +x /app/run-cleanroom-tests.sh
+
+# Switch to non-root user
+USER testuser
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost:4873/ || exit 1
+
+# Default command
+CMD ["/app/run-cleanroom-tests.sh"]
+
+# Labels for metadata
+LABEL maintainer="Unjucks Team"
+LABEL description="Cleanroom testing environment for Unjucks"
+LABEL version="1.0.0"
+LABEL org.opencontainers.image.title="Unjucks Cleanroom"
+LABEL org.opencontainers.image.description="Isolated testing environment for Unjucks package validation"
+LABEL org.opencontainers.image.vendor="Unjucks"
+LABEL org.opencontainers.image.licenses="MIT"

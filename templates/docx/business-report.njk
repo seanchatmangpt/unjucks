@@ -1,0 +1,428 @@
+{# @metadata {
+  "name": "Business Report Template",
+  "description": "Professional business report template with executive summary and charts",
+  "version": "1.0.0",
+  "author": "Unjucks",
+  "category": "business",
+  "variables": {
+    "title": "Report title",
+    "company": "Company name",
+    "date": "Report date", 
+    "author": "Report author",
+    "executive_summary": "Executive summary content",
+    "sections": "Report sections"
+  }
+} #}
+
+[
+  {
+    "type": "paragraph",
+    "text": "{{ company | default('COMPANY NAME') }}",
+    "alignment": "center",
+    "runs": [{
+      "text": "{{ company | default('COMPANY NAME') }}",
+      "font": "Calibri",
+      "fontSize": 16,
+      "bold": true,
+      "color": "1f4e79"
+    }],
+    "spacing": { "after": 120 }
+  },
+  {
+    "type": "paragraph",
+    "text": "",
+    "spacing": { "after": 240 }
+  },
+  {
+    "type": "paragraph",
+    "text": "{{ title }}",
+    "alignment": "center",
+    "runs": [{
+      "text": "{{ title }}",
+      "font": "Calibri", 
+      "fontSize": 20,
+      "bold": true,
+      "color": "2e3440"
+    }],
+    "spacing": { "after": 360 }
+  },
+  {
+    "type": "paragraph",
+    "text": "{{ subtitle | default('') }}",
+    "alignment": "center",
+    "runs": [{
+      "text": "{{ subtitle | default('') }}",
+      "font": "Calibri",
+      "fontSize": 14,
+      "color": "5b9bd5"
+    }],
+    "spacing": { "after": 480 }
+  },
+  {
+    "type": "table",
+    "borders": false,
+    "rows": [
+      ["Prepared by:", "{{ author | default('Report Author') }}"],
+      ["Date:", "{{ date | dateFormat('MMMM DD, YYYY') | default(now | dateFormat('MMMM DD, YYYY')) }}"],
+      ["Department:", "{{ department | default('') }}"],
+      ["Version:", "{{ version | default('1.0') }}"]
+    ]
+  },
+  {
+    "type": "pageBreak"
+  },
+  {
+    "type": "heading",
+    "level": 1,
+    "text": "Table of Contents",
+    "font": "Calibri"
+  },
+  {
+    "type": "paragraph",
+    "text": "Executive Summary ......................................................... 3",
+    "spacing": { "after": 60 }
+  },
+  {% for section in sections %}
+  {
+    "type": "paragraph",
+    "text": "{{ section.title }} ......................................................... {{ loop.index + 3 }}",
+    "spacing": { "after": 60 }
+  },
+  {% if section.subsections %}
+    {% for subsection in section.subsections %}
+    {
+      "type": "paragraph",
+      "text": "    {{ subsection.title }} ......................................................... {{ loop.index + 3 }}",
+      "spacing": { "after": 30 },
+      "indent": { "left": 360 }
+    },
+    {% endfor %}
+  {% endif %}
+  {% endfor %}
+  {
+    "type": "pageBreak"
+  },
+  {
+    "type": "heading",
+    "level": 1,
+    "text": "Executive Summary",
+    "font": "Calibri"
+  },
+  {
+    "type": "paragraph",
+    "text": "{{ executive_summary }}",
+    "alignment": "justify",
+    "runs": [{
+      "text": "{{ executive_summary }}",
+      "font": "Calibri",
+      "fontSize": 11
+    }],
+    "spacing": { "after": 240 }
+  },
+  {% if key_findings %}
+  {
+    "type": "heading",
+    "level": 2,
+    "text": "Key Findings",
+    "font": "Calibri"
+  },
+  {% for finding in key_findings %}
+  {
+    "type": "paragraph",
+    "text": "• {{ finding }}",
+    "runs": [{
+      "text": "• {{ finding }}",
+      "font": "Calibri",
+      "fontSize": 11
+    }],
+    "indent": { "left": 360 },
+    "spacing": { "after": 120 }
+  },
+  {% endfor %}
+  {% endif %}
+  {% if recommendations %}
+  {
+    "type": "heading",
+    "level": 2,
+    "text": "Recommendations",
+    "font": "Calibri"
+  },
+  {% for recommendation in recommendations %}
+  {
+    "type": "paragraph",
+    "text": "{{ loop.index }}. {{ recommendation.title }}",
+    "runs": [{
+      "text": "{{ loop.index }}. {{ recommendation.title }}",
+      "font": "Calibri",
+      "fontSize": 11,
+      "bold": true
+    }],
+    "spacing": { "after": 60 }
+  },
+  {
+    "type": "paragraph",
+    "text": "{{ recommendation.description }}",
+    "runs": [{
+      "text": "{{ recommendation.description }}",
+      "font": "Calibri",
+      "fontSize": 11
+    }],
+    "indent": { "left": 360 },
+    "spacing": { "after": 120 }
+  },
+  {% endfor %}
+  {% endif %}
+  {
+    "type": "pageBreak"
+  },
+  {% for section in sections %}
+  {
+    "type": "heading",
+    "level": 1,
+    "text": "{{ section.title }}",
+    "font": "Calibri"
+  },
+  {% if section.overview %}
+  {
+    "type": "paragraph",
+    "text": "{{ section.overview }}",
+    "alignment": "justify",
+    "runs": [{
+      "text": "{{ section.overview }}",
+      "font": "Calibri",
+      "fontSize": 11
+    }],
+    "spacing": { "after": 240 }
+  },
+  {% endif %}
+  {% if section.content %}
+    {% if section.content is string %}
+    {
+      "type": "paragraph",
+      "text": "{{ section.content }}",
+      "alignment": "justify",
+      "runs": [{
+        "text": "{{ section.content }}",
+        "font": "Calibri",
+        "fontSize": 11
+      }],
+      "spacing": { "after": 240 }
+    },
+    {% else %}
+      {% for paragraph in section.content %}
+      {
+        "type": "paragraph",
+        "text": "{{ paragraph.text if paragraph.text else paragraph }}",
+        "alignment": "justify",
+        "runs": [{
+          "text": "{{ paragraph.text if paragraph.text else paragraph }}",
+          "font": "Calibri",
+          "fontSize": 11
+        }],
+        "spacing": { "after": 120 }
+      },
+      {% endfor %}
+    {% endif %}
+  {% endif %}
+  {% if section.metrics %}
+  {
+    "type": "heading",
+    "level": 2,
+    "text": "Key Metrics",
+    "font": "Calibri"
+  },
+  {
+    "type": "table",
+    "headers": ["Metric", "Current", "Target", "Status"],
+    "rows": [
+      {% for metric in section.metrics %}
+      ["{{ metric.name }}", "{{ metric.current }}", "{{ metric.target }}", "{{ metric.status }}"]{% if not loop.last %},{% endif %}
+      {% endfor %}
+    ],
+    "width": 100
+  },
+  {
+    "type": "paragraph",
+    "text": "",
+    "spacing": { "after": 240 }
+  },
+  {% endif %}
+  {% if section.chart %}
+  {
+    "type": "paragraph",
+    "text": "Chart {{ section.chart.number }}. {{ section.chart.title }}",
+    "alignment": "center",
+    "runs": [{
+      "text": "Chart {{ section.chart.number }}. {{ section.chart.title }}",
+      "font": "Calibri",
+      "fontSize": 10,
+      "bold": true,
+      "color": "1f4e79"
+    }],
+    "spacing": { "before": 240, "after": 120 }
+  },
+  {% if section.chart.image %}
+  {
+    "type": "image",
+    "path": "{{ section.chart.image }}",
+    "width": {{ section.chart.width | default(500) }},
+    "height": {{ section.chart.height | default(300) }},
+    "alignment": "center"
+  },
+  {% endif %}
+  {
+    "type": "paragraph",
+    "text": "{{ section.chart.description | default('') }}",
+    "alignment": "center",
+    "runs": [{
+      "text": "{{ section.chart.description | default('') }}",
+      "font": "Calibri",
+      "fontSize": 9,
+      "italic": true
+    }],
+    "spacing": { "before": 60, "after": 240 }
+  },
+  {% endif %}
+  {% if section.subsections %}
+    {% for subsection in section.subsections %}
+    {
+      "type": "heading",
+      "level": 2,
+      "text": "{{ subsection.title }}",
+      "font": "Calibri"
+    },
+    {
+      "type": "paragraph",
+      "text": "{{ subsection.content }}",
+      "alignment": "justify",
+      "runs": [{
+        "text": "{{ subsection.content }}",
+        "font": "Calibri",
+        "fontSize": 11
+      }],
+      "spacing": { "after": 240 }
+    },
+    {% if subsection.data %}
+    {
+      "type": "table",
+      "headers": {{ subsection.data.headers | dump }},
+      "rows": {{ subsection.data.rows | dump }},
+      "width": 100
+    },
+    {
+      "type": "paragraph",
+      "text": "",
+      "spacing": { "after": 240 }
+    },
+    {% endif %}
+    {% endfor %}
+  {% endif %}
+  {% if not loop.last %}
+  {
+    "type": "pageBreak"
+  },
+  {% endif %}
+  {% endfor %}
+  {% if conclusion %}
+  {
+    "type": "pageBreak"
+  },
+  {
+    "type": "heading",
+    "level": 1,
+    "text": "Conclusion",
+    "font": "Calibri"
+  },
+  {
+    "type": "paragraph",
+    "text": "{{ conclusion }}",
+    "alignment": "justify",
+    "runs": [{
+      "text": "{{ conclusion }}",
+      "font": "Calibri",
+      "fontSize": 11
+    }],
+    "spacing": { "after": 240 }
+  },
+  {% endif %}
+  {% if next_steps %}
+  {
+    "type": "heading",
+    "level": 2,
+    "text": "Next Steps",
+    "font": "Calibri"
+  },
+  {% for step in next_steps %}
+  {
+    "type": "paragraph",
+    "text": "{{ loop.index }}. {{ step.action }}",
+    "runs": [{
+      "text": "{{ loop.index }}. {{ step.action }}",
+      "font": "Calibri",
+      "fontSize": 11,
+      "bold": true
+    }],
+    "spacing": { "after": 60 }
+  },
+  {
+    "type": "paragraph",
+    "text": "Timeline: {{ step.timeline }} | Owner: {{ step.owner }}",
+    "runs": [{
+      "text": "Timeline: {{ step.timeline }} | Owner: {{ step.owner }}",
+      "font": "Calibri",
+      "fontSize": 10,
+      "italic": true
+    }],
+    "indent": { "left": 360 },
+    "spacing": { "after": 120 }
+  },
+  {% endfor %}
+  {% endif %}
+  {% if appendices %}
+  {
+    "type": "pageBreak"
+  },
+  {
+    "type": "heading",
+    "level": 1,
+    "text": "Appendices",
+    "font": "Calibri"
+  },
+  {% for appendix in appendices %}
+  {
+    "type": "heading",
+    "level": 2,
+    "text": "Appendix {{ appendix.id | upper }}. {{ appendix.title }}",
+    "font": "Calibri"
+  },
+  {
+    "type": "paragraph",
+    "text": "{{ appendix.content }}",
+    "alignment": "justify",
+    "runs": [{
+      "text": "{{ appendix.content }}",
+      "font": "Calibri",
+      "fontSize": 10
+    }],
+    "spacing": { "after": 240 }
+  },
+  {% endfor %}
+  {% endif %}
+  {
+    "type": "paragraph",
+    "text": "",
+    "spacing": { "after": 480 }
+  },
+  {
+    "type": "paragraph",
+    "text": "This report is confidential and proprietary to {{ company }}.",
+    "alignment": "center",
+    "runs": [{
+      "text": "This report is confidential and proprietary to {{ company }}.",
+      "font": "Calibri",
+      "fontSize": 8,
+      "italic": true,
+      "color": "666666"
+    }]
+  }
+]

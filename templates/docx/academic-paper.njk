@@ -1,0 +1,314 @@
+{# @metadata {
+  "name": "Academic Paper Template",
+  "description": "Standard academic paper template with proper formatting and citations",
+  "version": "1.0.0",
+  "author": "Unjucks", 
+  "category": "academic",
+  "variables": {
+    "title": "Paper title",
+    "author": "Author name(s)",
+    "institution": "Academic institution",
+    "abstract": "Paper abstract",
+    "keywords": "Keywords array",
+    "sections": "Paper sections",
+    "references": "Bibliography references"
+  }
+} #}
+
+[
+  {
+    "type": "paragraph",
+    "text": "{{ title }}",
+    "alignment": "center",
+    "runs": [{
+      "text": "{{ title }}",
+      "font": "Times New Roman",
+      "fontSize": 14,
+      "bold": true
+    }],
+    "spacing": { "after": 240 }
+  },
+  {
+    "type": "paragraph",
+    "text": "{{ author | join(', ') if author is iterable else author }}",
+    "alignment": "center", 
+    "runs": [{
+      "text": "{{ author | join(', ') if author is iterable else author }}",
+      "font": "Times New Roman",
+      "fontSize": 12
+    }],
+    "spacing": { "after": 120 }
+  },
+  {
+    "type": "paragraph",
+    "text": "{{ institution }}",
+    "alignment": "center",
+    "runs": [{
+      "text": "{{ institution }}",
+      "font": "Times New Roman",
+      "fontSize": 11,
+      "italic": true
+    }],
+    "spacing": { "after": 240 }
+  },
+  {% if email %}
+  {
+    "type": "paragraph",
+    "text": "Email: {{ email }}",
+    "alignment": "center",
+    "runs": [{
+      "text": "Email: {{ email }}",
+      "font": "Times New Roman",
+      "fontSize": 10
+    }],
+    "spacing": { "after": 360 }
+  },
+  {% endif %}
+  {
+    "type": "heading",
+    "level": 2,
+    "text": "Abstract",
+    "font": "Times New Roman"
+  },
+  {
+    "type": "paragraph",
+    "text": "{{ abstract }}",
+    "alignment": "justify",
+    "runs": [{
+      "text": "{{ abstract }}",
+      "font": "Times New Roman",
+      "fontSize": 12
+    }],
+    "spacing": { "after": 120 }
+  },
+  {% if keywords %}
+  {
+    "type": "paragraph",
+    "text": "Keywords: {{ keywords | join(', ') }}",
+    "runs": [{
+      "text": "Keywords: ",
+      "font": "Times New Roman",
+      "fontSize": 12,
+      "bold": true
+    }, {
+      "text": "{{ keywords | join(', ') }}",
+      "font": "Times New Roman",
+      "fontSize": 12,
+      "italic": true
+    }],
+    "spacing": { "after": 360 }
+  },
+  {% endif %}
+  {
+    "type": "pageBreak"
+  },
+  {% for section in sections %}
+  {
+    "type": "heading",
+    "level": {{ section.level | default(2) }},
+    "text": "{{ section.title }}",
+    "font": "Times New Roman"
+  },
+  {% if section.content %}
+    {% if section.content is string %}
+    {
+      "type": "paragraph",
+      "text": "{{ section.content }}",
+      "alignment": "justify",
+      "runs": [{
+        "text": "{{ section.content }}",
+        "font": "Times New Roman",
+        "fontSize": 12
+      }],
+      "spacing": { "line": 480, "after": 240 }
+    },
+    {% else %}
+      {% for paragraph in section.content %}
+      {
+        "type": "paragraph",
+        "text": "{{ paragraph.text if paragraph.text else paragraph }}",
+        "alignment": "justify",
+        "runs": [{
+          "text": "{{ paragraph.text if paragraph.text else paragraph }}",
+          "font": "Times New Roman",
+          "fontSize": 12
+        }],
+        "spacing": { "line": 480, "after": 240 }
+      },
+      {% if paragraph.citation %}
+      {
+        "type": "paragraph", 
+        "text": "{{ paragraph.citation }}",
+        "alignment": "right",
+        "runs": [{
+          "text": "{{ paragraph.citation }}",
+          "font": "Times New Roman",
+          "fontSize": 10,
+          "italic": true
+        }],
+        "spacing": { "after": 120 }
+      },
+      {% endif %}
+      {% endfor %}
+    {% endif %}
+  {% endif %}
+  {% if section.subsections %}
+    {% for subsection in section.subsections %}
+    {
+      "type": "heading",
+      "level": {{ subsection.level | default(3) }},
+      "text": "{{ subsection.title }}",
+      "font": "Times New Roman"
+    },
+    {
+      "type": "paragraph",
+      "text": "{{ subsection.content }}",
+      "alignment": "justify",
+      "runs": [{
+        "text": "{{ subsection.content }}",
+        "font": "Times New Roman", 
+        "fontSize": 12
+      }],
+      "spacing": { "line": 480, "after": 240 }
+    },
+    {% endfor %}
+  {% endif %}
+  {% if section.figure %}
+  {
+    "type": "paragraph",
+    "text": "",
+    "spacing": { "after": 120 }
+  },
+  {
+    "type": "image",
+    "path": "{{ section.figure.path }}",
+    "width": {{ section.figure.width | default(400) }},
+    "height": {{ section.figure.height | default(300) }},
+    "alignment": "center"
+  },
+  {
+    "type": "paragraph",
+    "text": "Figure {{ section.figure.number }}. {{ section.figure.caption }}",
+    "alignment": "center",
+    "runs": [{
+      "text": "Figure {{ section.figure.number }}. {{ section.figure.caption }}",
+      "font": "Times New Roman",
+      "fontSize": 10,
+      "italic": true
+    }],
+    "spacing": { "before": 60, "after": 240 }
+  },
+  {% endif %}
+  {% if section.table %}
+  {
+    "type": "paragraph",
+    "text": "Table {{ section.table.number }}. {{ section.table.title }}",
+    "alignment": "center", 
+    "runs": [{
+      "text": "Table {{ section.table.number }}. {{ section.table.title }}",
+      "font": "Times New Roman",
+      "fontSize": 10,
+      "bold": true
+    }],
+    "spacing": { "before": 240, "after": 120 }
+  },
+  {
+    "type": "table",
+    "headers": {{ section.table.headers | dump }},
+    "rows": {{ section.table.rows | dump }},
+    "width": 100,
+    "borders": {
+      "top": { "style": "single", "size": 1, "color": "000000" },
+      "bottom": { "style": "single", "size": 1, "color": "000000" },
+      "insideHorizontal": { "style": "single", "size": 1, "color": "000000" }
+    }
+  },
+  {
+    "type": "paragraph",
+    "text": "{{ section.table.note | default('') }}",
+    "alignment": "left",
+    "runs": [{
+      "text": "{{ section.table.note | default('') }}",
+      "font": "Times New Roman",
+      "fontSize": 9,
+      "italic": true
+    }],
+    "spacing": { "before": 60, "after": 240 }
+  },
+  {% endif %}
+  {% endfor %}
+  {
+    "type": "pageBreak"
+  },
+  {
+    "type": "heading",
+    "level": 2,
+    "text": "References",
+    "font": "Times New Roman"
+  },
+  {% for reference in references %}
+  {
+    "type": "paragraph",
+    "text": "{{ reference.authors }}. ({{ reference.year }}). {{ reference.title }}. {% if reference.journal %}{{ reference.journal }}{% if reference.volume %}, {{ reference.volume }}{% endif %}{% if reference.issue %}({{ reference.issue }}){% endif %}{% if reference.pages %}, {{ reference.pages }}{% endif %}.{% elif reference.publisher %}{{ reference.publisher }}.{% endif %}{% if reference.doi %} doi:{{ reference.doi }}{% endif %}",
+    "runs": [{
+      "text": "{{ reference.authors }}. ({{ reference.year }}). {{ reference.title }}. {% if reference.journal %}{{ reference.journal }}{% if reference.volume %}, {{ reference.volume }}{% endif %}{% if reference.issue %}({{ reference.issue }}){% endif %}{% if reference.pages %}, {{ reference.pages }}{% endif %}.{% elif reference.publisher %}{{ reference.publisher }}.{% endif %}{% if reference.doi %} doi:{{ reference.doi }}{% endif %}",
+      "font": "Times New Roman",
+      "fontSize": 12
+    }],
+    "indent": { "left": 360, "firstLine": -360 },
+    "spacing": { "line": 480, "after": 120 }
+  },
+  {% endfor %}
+  {% if appendices %}
+  {
+    "type": "pageBreak"
+  },
+  {
+    "type": "heading",
+    "level": 1, 
+    "text": "Appendices",
+    "font": "Times New Roman"
+  },
+  {% for appendix in appendices %}
+  {
+    "type": "heading",
+    "level": 2,
+    "text": "Appendix {{ appendix.letter | default(loop.index | char) }}. {{ appendix.title }}",
+    "font": "Times New Roman"
+  },
+  {
+    "type": "paragraph",
+    "text": "{{ appendix.content }}",
+    "alignment": "justify",
+    "runs": [{
+      "text": "{{ appendix.content }}",
+      "font": "Times New Roman",
+      "fontSize": 12
+    }],
+    "spacing": { "line": 480, "after": 240 }
+  },
+  {% endfor %}
+  {% endif %}
+  {% if acknowledgments %}
+  {
+    "type": "pageBreak"
+  },
+  {
+    "type": "heading",
+    "level": 2,
+    "text": "Acknowledgments", 
+    "font": "Times New Roman"
+  },
+  {
+    "type": "paragraph",
+    "text": "{{ acknowledgments }}",
+    "alignment": "justify",
+    "runs": [{
+      "text": "{{ acknowledgments }}",
+      "font": "Times New Roman",
+      "fontSize": 12
+    }],
+    "spacing": { "line": 480, "after": 240 }
+  }
+  {% endif %}
+]

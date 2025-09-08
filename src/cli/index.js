@@ -18,6 +18,9 @@ import { helpCommand as advancedHelpCommand } from '../commands/help.js';
 import { latexCommand } from '../commands/latex.js';
 import { perfCommand } from '../commands/perf.js';
 import { specifyCommand } from '../commands/specify.js';
+import { exportCommand } from '../commands/export.js';
+import pdfCommand from '../commands/pdf.js';
+import exportDocxCommand from './commands/export-docx.js';
 
 // All commands now imported from their respective modules
 
@@ -59,7 +62,7 @@ const preprocessArgs = () => {
   }
   
   // Don't transform if already using explicit commands (optimized lookup)
-  const explicitCommands = new Set(['generate', 'new', 'preview', 'help', 'list', 'init', 'inject', 'version', 'semantic', 'swarm', 'workflow', 'perf', 'github', 'knowledge', 'neural', 'migrate', 'latex', 'specify']);
+  const explicitCommands = new Set(['generate', 'new', 'preview', 'help', 'list', 'init', 'inject', 'version', 'semantic', 'swarm', 'workflow', 'perf', 'github', 'knowledge', 'neural', 'migrate', 'latex', 'specify', 'export', 'export-docx', 'pdf']);
   if (explicitCommands.has(firstArg)) {
     return rawArgs;
   }
@@ -133,6 +136,9 @@ const main = defineCommand({
     latex: latexCommand,
     perf: perfCommand,
     specify: specifyCommand,
+    export: exportCommand,
+    'export-docx': exportDocxCommand,
+    pdf: pdfCommand,
   },
   /**
    * @param {{ args: any }} params - Command parameters
@@ -142,7 +148,7 @@ const main = defineCommand({
     // don't show the main help to avoid confusion
     const originalArgs = process.argv.slice(2);
     const hasSubcommand = originalArgs.length > 0 && 
-      ['semantic', 'github', 'neural', 'workflow', 'perf', 'knowledge', 'migrate', 'swarm', 'specify', 'latex'].includes(originalArgs[0]) &&
+      ['semantic', 'github', 'neural', 'workflow', 'perf', 'knowledge', 'migrate', 'swarm', 'specify', 'latex', 'export', 'export-docx', 'pdf'].includes(originalArgs[0]) &&
       !originalArgs.includes('--help') && !originalArgs.includes('-h');
     
     if (hasSubcommand) {

@@ -1,0 +1,252 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{microtype}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{geometry}
+\usepackage{fancyhdr}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{parskip}
+\usepackage{titlesec}
+\usepackage{authblk}
+\usepackage{abstract}
+\usepackage{natbib}
+\usepackage{url}
+\usepackage{hyperref}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{amsthm}
+\usepackage{algorithm}
+\usepackage{algorithmic}
+\usepackage{listings}
+\usepackage{float}
+
+% Page layout
+\geometry{
+    left=2.5cm,
+    right=2.5cm,
+    top=2.5cm,
+    bottom=2.5cm,
+    headheight=14pt
+}
+
+% Header and footer
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\textit{ {{ shortTitle  or  title[:50] + "..." if title|length > 50 else title }} }}
+\fancyhead[R]{\textit{ {{ authors[0].lastName if authors and authors|length > 0 else "Author" }} et al.}}
+\fancyfoot[C]{\thepage}
+
+% Title formatting
+\titleformat{\section}
+  {\Large\bfseries}
+  {\thesection}
+  {1em}
+  {}
+\titleformat{\subsection}
+  {\large\bfseries}
+  {\thesubsection}
+  {1em}
+  {}
+
+% Abstract formatting
+\renewcommand{\abstractname}{Abstract}
+\setlength{\absleftindent}{0mm}
+\setlength{\absrightindent}{0mm}
+
+% Hyperlink setup
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    filecolor=magenta,      
+    urlcolor=cyan,
+    citecolor=blue
+}
+
+% Theorem environments
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{example}[theorem]{Example}
+
+% Code listings setup
+\lstset{
+    basicstyle=\ttfamily\footnotesize,
+    breaklines=true,
+    frame=single,
+    numbers=left,
+    numberstyle=\tiny,
+    stepnumber=1,
+    showstringspaces=false,
+    tabsize=2,
+    language=Python,
+    backgroundcolor=\color{gray!10},
+    commentstyle=\color{green!60!black},
+    keywordstyle=\color{blue!70!black},
+    stringstyle=\color{red!70!black}
+}
+
+\begin{document}
+
+% Title and authors
+\title{\textbf{ {{ title }} } {% if subtitle %}\\[0.5em] \large {{ subtitle }}{% endif %}}
+
+{% for author in authors %}
+\author[{{ loop.index }}]{ {{ author.firstName }} {{ author.lastName }} }
+{% endfor %}
+
+{% for affiliation in affiliations %}
+\affil[{{ loop.index }}]{ {{ affiliation }} }
+{% endfor %}
+
+\date{ {{ date or "\\today" }} }
+
+\maketitle
+
+% Abstract
+\begin{abstract}
+{{ abstract }}
+
+\vspace{0.5em}
+\noindent \textbf{Keywords:} {{ keywords.join(', ') if keywords else 'keyword1, keyword2, keyword3' }}
+\end{abstract}
+
+\thispagestyle{fancy}
+
+% Main content sections
+{% for section in sections %}
+\section{ {{ section.title }} }
+{% if section.label %}\label{ {{ section.label }} }{% endif %}
+
+{{ section.content }}
+
+{% if section.subsections %}
+{% for subsection in section.subsections %}
+\subsection{ {{ subsection.title }} }
+{% if subsection.label %}\label{ {{ subsection.label }} }{% endif %}
+
+{{ subsection.content }}
+
+{% if subsection.equation %}
+\begin{equation}
+{% if subsection.equation.label %}\label{ {{ subsection.equation.label }} }{% endif %}
+{{ subsection.equation.latex }}
+\end{equation}
+{% endif %}
+
+{% if subsection.algorithm %}
+\begin{algorithm}[H]
+\caption{ {{ subsection.algorithm.title }} }
+{% if subsection.algorithm.label %}\label{ {{ subsection.algorithm.label }} }{% endif %}
+\begin{algorithmic}[1]
+{% for step in subsection.algorithm.steps %}
+\STATE {{ step }}
+{% endfor %}
+\end{algorithmic}
+\end{algorithm}
+{% endif %}
+
+{% if subsection.code %}
+\begin{lstlisting}[caption={ {{ subsection.code.caption or "Code Example" }} }, language={{ subsection.code.language or "Python" }}{% if subsection.code.label %}, label={{ subsection.code.label }}{% endif %}]
+{{ subsection.code.content }}
+\end{lstlisting}
+{% endif %}
+
+{% endfor %}
+{% endif %}
+
+{% if section.table %}
+\begin{table}[H]
+\centering
+\caption{ {{ section.table.caption }} }
+{% if section.table.label %}\label{ {{ section.table.label }} }{% endif %}
+\begin{tabular}{ {{ section.table.alignment or ('l' * section.table.headers|length) }} }
+\toprule
+{% for header in section.table.headers %}{{ header }}{% if not loop.last %} & {% endif %}{% endfor %} \\
+\midrule
+{% for row in section.table.rows %}
+{% for cell in row %}{{ cell }}{% if not loop.last %} & {% endif %}{% endfor %} \\
+{% endfor %}
+\bottomrule
+\end{tabular}
+\end{table}
+{% endif %}
+
+{% if section.figure %}
+\begin{figure}[H]
+\centering
+{% if section.figure.includegraphics %}
+\includegraphics[width={{ section.figure.width or "0.8\\textwidth" }}]{ {{ section.figure.path }} }
+{% else %}
+% Figure placeholder - replace with actual figure
+\fbox{\parbox{0.8\textwidth}{\centering \vspace{2cm} \textit{Figure: {{ section.figure.caption }}} \vspace{2cm}}}
+{% endif %}
+\caption{ {{ section.figure.caption }} }
+{% if section.figure.label %}\label{ {{ section.figure.label }} }{% endif %}
+\end{figure}
+{% endif %}
+
+{% if section.theorem %}
+\begin{theorem}{% if section.theorem.label %}\label{ {{ section.theorem.label }} }{% endif %}
+{{ section.theorem.statement }}
+\end{theorem}
+
+{% if section.theorem.proof %}
+\begin{proof}
+{{ section.theorem.proof }}
+\end{proof}
+{% endif %}
+{% endif %}
+
+{% if section.definition %}
+\begin{definition}{% if section.definition.label %}\label{ {{ section.definition.label }} }{% endif %}
+{{ section.definition.content }}
+\end{definition}
+{% endif %}
+
+{% if section.example %}
+\begin{example}{% if section.example.label %}\label{ {{ section.example.label }} }{% endif %}
+{{ section.example.content }}
+\end{example}
+{% endif %}
+
+{% endfor %}
+
+% References
+{% if bibliography %}
+\section{References}
+\bibliographystyle{{{ bibliographyStyle or "plain" }}}
+\bibliography{ {{ bibliography }} }
+{% else %}
+\begin{thebibliography}{99}
+
+{% for reference in references %}
+\bibitem{ {{ reference.key }} }
+{{ reference.authors.join(', ') if reference.authors else 'Author' }}.
+\textit{ {{ reference.title }} }.
+{% if reference.journal %}{{ reference.journal }}{% endif %}{% if reference.volume %}, {{ reference.volume }}{% endif %}{% if reference.pages %}:{{ reference.pages }}{% endif %}, {{ reference.year }}.
+{% if reference.url %}\url{ {{ reference.url }} }{% endif %}
+{% endfor %}
+
+\end{thebibliography}
+{% endif %}
+
+% Appendices
+{% if appendices %}
+\appendix
+{% for appendix in appendices %}
+\section{ {{ appendix.title }} }
+{% if appendix.label %}\label{ {{ appendix.label }} }{% endif %}
+
+{{ appendix.content }}
+
+{% endfor %}
+{% endif %}
+
+\end{document}

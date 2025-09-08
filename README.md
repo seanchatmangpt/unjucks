@@ -40,6 +40,35 @@ Unjucks v2025 is a **revolutionary AI-native code generation platform** featurin
 
 ## ✨ Revolutionary Capabilities
 
+### 📄 **Advanced Document Export**
+
+Professional document generation with 7 output formats and enterprise-grade templates:
+
+```bash
+# Export to PDF with academic formatting
+unjucks export document.md --format pdf --template academic --toc --bibliography
+
+# Batch export all documentation to HTML
+unjucks export "docs/**/*.md" --all --format html --template modern --responsive
+
+# Convert between formats seamlessly
+unjucks export convert thesis.tex thesis.pdf
+
+# Use predefined presets for common workflows
+unjucks export document.md --preset academic  # PDF with bibliography & TOC
+unjucks export document.md --preset web       # HTML with responsive design
+unjucks export document.md --preset report    # DOCX with corporate styling
+```
+
+**Supported Export Formats:**
+- **PDF** - Via LaTeX with professional templates (academic, article, report, book, slides)
+- **DOCX** - Microsoft Word with corporate templates and styling
+- **HTML** - Web-ready with responsive templates (modern, bootstrap, minimal, dark)
+- **Markdown** - GitHub/GitLab compatible with extended features
+- **LaTeX** - Professional typesetting source files
+- **RTF** - Rich Text Format for cross-platform compatibility
+- **TXT** - Clean plain text extraction
+
 ### 🧠 **Semantic Code Generation**
 
 Generate enterprise applications from semantic data sources:
@@ -330,7 +359,11 @@ unjucks mcp status  # Shows: claude-flow ✅, ruv-swarm ✅, flow-nexus ✅
 # 3. Initialize 12-agent AI swarm
 unjucks swarm init --topology mesh --agents 12 --neural-acceleration
 
-# 4. Now Claude AI can directly generate code:
+# 4. Export documentation with professional formatting
+unjucks export README.md --format pdf --template academic --toc
+unjucks export "docs/**/*.md" --all --format html --template modern
+
+# 5. Now Claude AI can directly generate code:
 # Human: "Build a complete user management API with authentication, 
 #         authorization, audit logging, and GDPR compliance"
 # 
@@ -338,6 +371,7 @@ unjucks swarm init --topology mesh --agents 12 --neural-acceleration
 # → unjucks_list (discover templates)
 # → swarm_orchestrate (coordinate 5 agents) 
 # → unjucks_generate (create 15+ files)
+# → unjucks_export (generate documentation)
 # → workflow_execute (run tests + deployment)
 ```
 
@@ -461,6 +495,7 @@ Enterprise Unjucks MCP Ecosystem (95.7% Test Success Rate)
 │   └── Multi-operation file processing
 ├── 🔧 Enterprise CLI
 │   ├── Dynamic command generation
+│   ├── Professional document export (7 formats)
 │   ├── AI swarm orchestration commands
 │   ├── Workflow automation commands
 │   ├── Performance analysis commands
@@ -532,6 +567,10 @@ Unjucks v2025 includes extensive documentation for enterprise adoption:
 - [**Template Filters (65+)**](docs/filters/README.md) - Comprehensive filter documentation
 - [**Filter Reference**](docs/filters/filters-reference.md) - Complete catalog of all filters
 - [**LaTeX Documentation**](docs/latex/) - Complete LaTeX document generation guide
+- [**Export Documentation**](docs/export/README.md) - Professional document export guide (7 formats)
+- [**Export Troubleshooting**](docs/export/troubleshooting.md) - Export issue resolution
+- [**Migration Guide**](docs/export/migration-guide.md) - Migrate from Pandoc, LaTeX, Word
+- [**Performance Benchmarks**](docs/export/performance-benchmarks.md) - Export performance analysis
 - [**Configuration**](docs/configuration.md) - Enterprise configuration management
 
 ### 🏢 **Enterprise Guides**

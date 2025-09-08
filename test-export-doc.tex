@@ -1,0 +1,74 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath,amsfonts,amssymb}
+\usepackage{graphicx}
+\usepackage[margin=1in]{geometry}
+\usepackage{hyperref}
+
+\title{Test Document}
+\author{Export Commander}
+\date{2025-09-08 09:04:34}
+
+\begin{document}
+\maketitle
+
+\tableofcontents
+\newpage
+
+
+
+\# Comprehensive Export Test
+
+This is a **test document** to verify export functionality.
+
+\#\# Features Tested
+
+- PDF export with LaTeX compilation
+- DOCX export with template selection  
+- HTML export with styling options
+- Markdown format preservation
+- Batch export capabilities
+- Format conversion
+- Export presets
+
+\#\#\# Code Example
+
+```javascript
+const exporter = new ExportEngine();
+const result = await exporter.exportFile('input.md', {
+  format: 'pdf',
+  template: 'academic',
+  preset: 'report'
+});
+```
+
+\#\# Export Commands
+
+\#\#\# Single File Export
+- `unjucks export document.md --format pdf`
+- `unjucks export pdf document.md --template academic`
+- `unjucks export docx document.md --template corporate`
+
+\#\#\# Batch Export
+- `unjucks export "*.md" --all --format html`
+- `unjucks export "docs/*.md" --all --format pdf --preset academic`
+
+\#\#\# Format Conversion
+- `unjucks export convert input.tex output.pdf`
+- `unjucks export convert document.md report.docx`
+
+\#\# Export Presets
+
+- **academic**: PDF with bibliography and TOC
+- **report**: DOCX with headers and footers
+- **web**: HTML with responsive design
+- **documentation**: Markdown with GitHub styling
+
+\#\# Conclusion
+
+The export system provides comprehensive document conversion capabilities with proper error handling and user feedback.
+
+
+
+\end{document}

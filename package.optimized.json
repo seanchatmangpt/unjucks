@@ -47,10 +47,6 @@
     "prepublishOnly": "npm run build:enhanced",
     "publish:safe": "npm run prepublishOnly && npm publish",
     "publish:dry": "npm run prepublishOnly && npm publish --dry-run",
-    "package:audit": "node scripts/package-audit.js",
-    "package:prep": "node scripts/final-package-prep.js",
-    "package:validate": "node scripts/production-validation.js",
-    "registry:local": "node scripts/setup-local-registry.js",
     "version:patch": "npm version patch && git push --tags",
     "version:minor": "npm version minor && git push --tags",
     "version:major": "npm version major && git push --tags",
@@ -86,7 +82,6 @@
   },
   "homepage": "https://unjucks.dev",
   "dependencies": {
-    "@seanchatmangpt/unjucks": "file:seanchatmangpt-unjucks-2025.9.8.tgz",
     "chalk": "^4.1.2",
     "citty": "^0.1.6",
     "cli-table3": "^0.6.5",
@@ -149,6 +144,5 @@
       "import": "./src/lib/export/latex.js",
       "require": "./dist/lib/export/latex.cjs"
     }
-  },
-  "bundleDependencies": []
+  }
 }

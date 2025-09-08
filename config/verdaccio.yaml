@@ -1,0 +1,112 @@
+# Verdaccio Configuration for Unjucks Cleanroom Testing
+storage: ./verdaccio-storage
+
+# Authentication
+auth:
+  htpasswd:
+    file: ./htpasswd
+    max_users: 1000
+
+# Security settings
+security:
+  api:
+    legacy: true
+    jwt:
+      sign:
+        expiresIn: 60d
+        notBefore: 1
+  web:
+    sign:
+      expiresIn: 7d
+
+# Web interface configuration
+web:
+  enable: true
+  title: Unjucks Cleanroom Registry
+  logo: https://unjucks.dev/logo.png
+  primary_color: "#4b5563"
+  gravatar: true
+  scope: "@seanchatmangpt"
+  sort_packages: asc
+
+# Uplinks to external registries
+uplinks:
+  npmjs:
+    url: https://registry.npmjs.org/
+    timeout: 10s
+    maxage: 2m
+    max_fails: 5
+    fail_timeout: 5m
+    cache: true
+
+# Package access control
+packages:
+  # Scoped packages for Unjucks
+  '@seanchatmangpt/*':
+    access: $all
+    publish: $all
+    unpublish: $all
+    proxy: npmjs
+
+  # Unjucks related packages  
+  'unjucks*':
+    access: $all
+    publish: $all
+    unpublish: $all
+    proxy: npmjs
+
+  # All other packages
+  '@*/*':
+    access: $all
+    publish: $authenticated
+    unpublish: $authenticated
+    proxy: npmjs
+
+  '**':
+    access: $all
+    publish: $authenticated
+    unpublish: $authenticated
+    proxy: npmjs
+
+# Server configuration
+server:
+  keepAliveTimeout: 60
+
+# Listen on all interfaces for cleanroom testing
+listen:
+  - 0.0.0.0:4873
+
+# Middleware configuration
+middlewares:
+  audit:
+    enabled: true
+
+# Logging configuration
+logs: { type: stdout, format: pretty, level: info }
+
+# Storage plugin configuration
+store:
+  memory:
+    limit: 1000
+
+# Maximum size of JSON documents
+max_body_size: 10mb
+
+# Configuration for package metadata cache
+cache:
+  ttl: 300 # 5 minutes
+
+# Rate limiting (for testing)
+ratelimit:
+  ttl: 60 # 1 minute
+  max: 1000 # requests per minute
+
+# Experiments (optional features)
+experiments:
+  search: true
+  token: true
+  tarball: true
+
+# Publish settings
+publish:
+  allow_offline: false

@@ -1,0 +1,40 @@
+{
+  "name": "export-quality-validator",
+  "version": "1.0.0",
+  "description": "Comprehensive export quality validation suite for PDF, HTML, DOCX, and Markdown formats",
+  "type": "module",
+  "main": "export-quality-test-suite.js",
+  "bin": {
+    "export-quality-tests": "./run-export-quality-tests.js"
+  },
+  "scripts": {
+    "test": "node run-export-quality-tests.js",
+    "test:pdf": "node run-export-quality-tests.js --only-pdf",
+    "test:html": "node run-export-quality-tests.js --only-html",
+    "test:docx": "node run-export-quality-tests.js --only-docx",
+    "test:markdown": "node run-export-quality-tests.js --only-markdown",
+    "test:quick": "node run-export-quality-tests.js --no-performance --no-cross-format",
+    "test:verbose": "node run-export-quality-tests.js --verbose",
+    "clean": "rm -rf test-outputs test-suite-outputs",
+    "help": "node run-export-quality-tests.js --help"
+  },
+  "keywords": [
+    "export",
+    "quality",
+    "validation",
+    "pdf",
+    "html",
+    "docx",
+    "markdown",
+    "testing",
+    "qa"
+  ],
+  "author": "Export Quality Validator Team",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "fs-extra": "^11.0.0"
+  }
+}
