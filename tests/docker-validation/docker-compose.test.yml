@@ -1,0 +1,88 @@
+version: '3.8'
+
+services:
+  # Primary test container with standard limits
+  unjucks-test:
+    build:
+      context: ../..
+      dockerfile: tests/docker-validation/Dockerfile.test
+    container_name: unjucks-resource-test
+    mem_limit: 512m
+    cpus: 1.0
+    ulimits:
+      nofile:
+        soft: 1024
+        hard: 2048
+    environment:
+      - NODE_ENV=test
+      - MEMORY_LIMIT=512
+      - CPU_LIMIT=1.0
+      - MAX_FILE_HANDLES=1024
+      - FULL_RESOURCE_TESTS=true
+    volumes:
+      - ./test-results:/app/test-results
+    command: ["npm", "run", "test:resource-validation"]
+
+  # Memory constrained container for leak testing
+  unjucks-memory-stress:
+    build:
+      context: ../..
+      dockerfile: tests/docker-validation/Dockerfile.test
+    container_name: unjucks-memory-stress
+    mem_limit: 256m
+    cpus: 0.5
+    environment:
+      - NODE_ENV=test
+      - MEMORY_LIMIT=256
+      - CPU_LIMIT=0.5
+      - TEST_TYPE=memory-stress
+    volumes:
+      - ./test-results:/app/test-results
+    command: ["npm", "run", "test:memory-stress"]
+
+  # High concurrency container
+  unjucks-concurrency-test:
+    build:
+      context: ../..
+      dockerfile: tests/docker-validation/Dockerfile.test
+    container_name: unjucks-concurrency
+    mem_limit: 1g
+    cpus: 2.0
+    ulimits:
+      nofile:
+        soft: 2048
+        hard: 4096
+    environment:
+      - NODE_ENV=test
+      - MEMORY_LIMIT=1024
+      - CPU_LIMIT=2.0
+      - TEST_TYPE=concurrency
+      - MAX_CONCURRENT_OPERATIONS=100
+    volumes:
+      - ./test-results:/app/test-results
+    command: ["npm", "run", "test:concurrency-stress"]
+
+  # Minimal resources container for degradation testing
+  unjucks-minimal:
+    build:
+      context: ../..
+      dockerfile: tests/docker-validation/Dockerfile.test
+    container_name: unjucks-minimal
+    mem_limit: 128m
+    cpus: 0.25
+    ulimits:
+      nofile:
+        soft: 256
+        hard: 512
+    environment:
+      - NODE_ENV=test
+      - MEMORY_LIMIT=128
+      - CPU_LIMIT=0.25
+      - TEST_TYPE=minimal-resources
+    volumes:
+      - ./test-results:/app/test-results
+    command: ["npm", "run", "test:minimal-resources"]
+
+volumes:
+  test-results:
+    driver: local

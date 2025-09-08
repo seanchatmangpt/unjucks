@@ -1,0 +1,79 @@
+version: '3.8'
+
+services:
+  # Main test orchestrator
+  unjucks-test:
+    build:
+      context: ../../
+      dockerfile: tests/docker-validation/Dockerfile
+    container_name: unjucks-master-test
+    volumes:
+      - ./reports:/app/tests/docker-validation/reports
+      - ./artifacts:/app/tests/docker-validation/artifacts
+    environment:
+      - NODE_ENV=test
+      - CI=true
+      - FORCE_COLOR=1
+    networks:
+      - test-network
+    profiles:
+      - main
+
+  # Parallel test execution service
+  unjucks-test-parallel:
+    build:
+      context: ../../
+      dockerfile: tests/docker-validation/Dockerfile
+    container_name: unjucks-parallel-test
+    command: ["node", "tests/docker-validation/run-parallel-tests.js"]
+    volumes:
+      - ./reports:/app/tests/docker-validation/reports
+      - ./artifacts:/app/tests/docker-validation/artifacts
+    environment:
+      - NODE_ENV=test
+      - CI=true
+      - PARALLEL_EXECUTION=true
+    networks:
+      - test-network
+    profiles:
+      - parallel
+
+  # Performance benchmark service
+  unjucks-benchmark:
+    build:
+      context: ../../
+      dockerfile: tests/docker-validation/Dockerfile
+    container_name: unjucks-benchmark
+    command: ["node", "tests/docker-validation/run-benchmarks.js"]
+    volumes:
+      - ./reports:/app/tests/docker-validation/reports
+      - ./artifacts:/app/tests/docker-validation/artifacts
+    environment:
+      - NODE_ENV=test
+      - BENCHMARK_MODE=true
+    networks:
+      - test-network
+    profiles:
+      - benchmark
+
+  # Security validation service
+  unjucks-security:
+    build:
+      context: ../../
+      dockerfile: tests/docker-validation/Dockerfile
+    container_name: unjucks-security
+    command: ["node", "tests/docker-validation/run-security-tests.js"]
+    volumes:
+      - ./reports:/app/tests/docker-validation/reports
+      - ./artifacts:/app/tests/docker-validation/artifacts
+    environment:
+      - NODE_ENV=test
+      - SECURITY_MODE=true
+    networks:
+      - test-network
+    profiles:
+      - security
+
+networks:
+  test-network:
+    driver: bridge

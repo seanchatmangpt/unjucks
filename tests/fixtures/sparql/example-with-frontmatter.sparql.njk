@@ -1,0 +1,73 @@
+---
+to: "{{ dest }}/queries/{{ queryName }}.sparql"
+inject: false
+sparql: |
+  SELECT ?person ?name ?age
+  WHERE {
+    ?person a schema:Person .
+    ?person schema:name ?name .
+    ?person schema:age ?age .
+    FILTER(?age > 21)
+  }
+  ORDER BY ?name
+  LIMIT 10
+rdf:
+  prefixes:
+    - "foaf: http://xmlns.com/foaf/0.1/"
+    - "schema: http://schema.org/"
+---
+PREFIX ex: <{{ baseUri }}/>
+PREFIX schema: <http://schema.org/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX foaf: <http://xmlns.com/foaf/0.1/>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+
+SELECT{% if distinct %} DISTINCT{% endif %} {% for var in variables %}{{ var | sparqlVar }}{% if not loop.last %} {% endif %}{% endfor %}
+WHERE {
+  {% for pattern in patterns %}
+  {{ pattern.subject | sparqlVar }} {{ pattern.predicate | rdfProperty }} {{ pattern.object | sparqlValue }} .
+  {% endfor %}
+  
+  {% if filters %}
+  {% for filter in filters %}
+  FILTER({{ filter | sparqlFilter }})
+  {% endfor %}
+  {% endif %}
+  
+  {% if optionalPatterns %}
+  {% for optional in optionalPatterns %}
+  OPTIONAL {
+    {{ optional.subject | sparqlVar }} {{ optional.predicate | rdfProperty }} {{ optional.object | sparqlValue }} .
+  }
+  {% endfor %}
+  {% endif %}
+  
+  {% if unionPatterns %}
+  {
+    {% for union in unionPatterns %}
+    {% if not loop.first %}UNION{% endif %}
+    {
+      {% for pattern in union %}
+      {{ pattern.subject | sparqlVar }} {{ pattern.predicate | rdfProperty }} {{ pattern.object | sparqlValue }} .
+      {% endfor %}
+    }
+    {% endfor %}
+  }
+  {% endif %}
+}
+{% if groupBy %}
+GROUP BY {% for var in groupBy %}{{ var | sparqlVar }}{% if not loop.last %} {% endif %}{% endfor %}
+{% endif %}
+{% if having %}
+HAVING {{ having | sparqlFilter }}
+{% endif %}
+{% if orderBy %}
+ORDER BY {% for order in orderBy %}{{ order | sparqlOrderBy }}{% if not loop.last %} {% endif %}{% endfor %}
+{% endif %}
+{% if limit %}
+LIMIT {{ limit }}
+{% endif %}
+{% if offset %}
+OFFSET {{ offset }}
+{% endif %}

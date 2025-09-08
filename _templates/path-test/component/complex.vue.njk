@@ -1,0 +1,8 @@
+---
+to: src/{{ category | kebabCase }}/{{ type | snakeCase }}/{{ name | pascalCase }}.vue
+---
+<template>
+  <div class="{{ name | kebabCase }}-{{ category | kebabCase }}">
+    {{ name | titleCase }}
+  </div>
+</template>

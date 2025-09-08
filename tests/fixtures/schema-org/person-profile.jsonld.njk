@@ -4,7 +4,7 @@ inject: false
 ---
 {
   "@context": "https://schema.org/",
-  "@type": "{{ entityType | default('Person') }}",
+  "@type": "{{ entityType | default('Person') | schemaOrg }}",
   "@id": "{{ baseUrl }}/person/{{ id | slug }}",
   
   "name": "{{ fullName | titleCase }}",
@@ -28,7 +28,7 @@ inject: false
   
   "jobTitle": "{{ jobTitle | titleCase }}",
   "worksFor": {
-    "@type": "{{ organizationType | default('Organization') }}",
+    "@type": "{{ organizationType | default('Organization') | schemaOrg }}",
     "name": "{{ company | titleCase }}",
     "url": "{{ companyWebsite }}"
   },
@@ -74,7 +74,7 @@ inject: false
   "alumniOf": [
     {% for school in education -%}
     {
-      "@type": "{{ school.type | default('EducationalOrganization') }}",
+      "@type": "{{ school.type | default('EducationalOrganization') | schemaOrg }}",
       "name": "{{ school.name | titleCase }}",
       "url": "{{ school.url }}"
     }{% if not loop.last %},{% endif %}
@@ -82,16 +82,22 @@ inject: false
   ],
   {% endif %}
   
+  {% if birthDate -%}
   "birthDate": "{{ birthDate | schemaDate('date') }}",
+  {% endif %}
+  {% if birthPlace -%}
   "birthPlace": {
     "@type": "Place",
     "name": "{{ birthPlace | titleCase }}"
   },
+  {% endif %}
   
+  {% if nationality -%}
   "nationality": {
     "@type": "Country",
     "name": "{{ nationality | titleCase }}"
   },
+  {% endif %}
   
   {% if languages -%}
   "knowsLanguage": [

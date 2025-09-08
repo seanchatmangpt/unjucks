@@ -1,0 +1,178 @@
+{
+  "timestamp": "2025-09-08T21:55:32.281Z",
+  "summary": {
+    "totalDependencies": 36,
+    "vulnerableDependencies": 12,
+    "critical": 2,
+    "high": 2,
+    "moderate": 7,
+    "low": 1,
+    "info": 5
+  },
+  "vulnerabilities": [
+    {
+      "package": "@seanchatmangpt/unjucks",
+      "severity": "high",
+      "title": "Unknown vulnerability",
+      "url": "",
+      "range": "",
+      "fixAvailable": false,
+      "source": "npm-audit"
+    },
+    {
+      "package": "@vitest/mocker",
+      "severity": "moderate",
+      "title": "Unknown vulnerability",
+      "url": "",
+      "range": "<=3.0.0-beta.4",
+      "fixAvailable": {
+        "name": "vitest",
+        "version": "3.2.4",
+        "isSemVerMajor": true
+      },
+      "source": "npm-audit"
+    },
+    {
+      "package": "esbuild",
+      "severity": "moderate",
+      "title": "esbuild enables any website to send any requests to the development server and read the response",
+      "url": "https://github.com/advisories/GHSA-67mh-4wv8-2f99",
+      "range": "<=0.24.2",
+      "fixAvailable": {
+        "name": "vitest",
+        "version": "3.2.4",
+        "isSemVerMajor": true
+      },
+      "source": "npm-audit"
+    },
+    {
+      "package": "form-data",
+      "severity": "critical",
+      "title": "form-data uses unsafe random function in form-data for choosing boundary",
+      "url": "https://github.com/advisories/GHSA-fjxv-7rqg-78g4",
+      "range": "<2.5.4",
+      "fixAvailable": false,
+      "source": "npm-audit"
+    },
+    {
+      "package": "markdown-pdf",
+      "severity": "high",
+      "title": "markdown-pdf vulnerable to local file read via server side cross-site scripting (XSS)",
+      "url": "https://github.com/advisories/GHSA-qghr-877h-f9jh",
+      "range": "*",
+      "fixAvailable": false,
+      "source": "npm-audit"
+    },
+    {
+      "package": "phantomjs-prebuilt",
+      "severity": "moderate",
+      "title": "Unknown vulnerability",
+      "url": "",
+      "range": "*",
+      "fixAvailable": false,
+      "source": "npm-audit"
+    },
+    {
+      "package": "request",
+      "severity": "critical",
+      "title": "Server-Side Request Forgery in Request",
+      "url": "https://github.com/advisories/GHSA-p8p7-x288-28g6",
+      "range": "*",
+      "fixAvailable": false,
+      "source": "npm-audit"
+    },
+    {
+      "package": "tmp",
+      "severity": "low",
+      "title": "tmp allows arbitrary temporary file / directory write via symbolic link `dir` parameter",
+      "url": "https://github.com/advisories/GHSA-52f5-9888-hmc6",
+      "range": "<=0.2.3",
+      "fixAvailable": false,
+      "source": "npm-audit"
+    },
+    {
+      "package": "tough-cookie",
+      "severity": "moderate",
+      "title": "tough-cookie Prototype Pollution vulnerability",
+      "url": "https://github.com/advisories/GHSA-72xf-g2v4-qvf3",
+      "range": "<4.1.3",
+      "fixAvailable": false,
+      "source": "npm-audit"
+    },
+    {
+      "package": "vite",
+      "severity": "moderate",
+      "title": "Unknown vulnerability",
+      "url": "",
+      "range": "0.11.0 - 6.1.6",
+      "fixAvailable": {
+        "name": "vitest",
+        "version": "3.2.4",
+        "isSemVerMajor": true
+      },
+      "source": "npm-audit"
+    },
+    {
+      "package": "vite-node",
+      "severity": "moderate",
+      "title": "Unknown vulnerability",
+      "url": "",
+      "range": "<=2.2.0-beta.2",
+      "fixAvailable": {
+        "name": "vitest",
+        "version": "3.2.4",
+        "isSemVerMajor": true
+      },
+      "source": "npm-audit"
+    },
+    {
+      "package": "vitest",
+      "severity": "moderate",
+      "title": "Unknown vulnerability",
+      "url": "",
+      "range": "0.0.1 - 0.0.12 || 0.0.29 - 0.0.122 || 0.3.3 - 3.0.0-beta.4",
+      "fixAvailable": {
+        "name": "vitest",
+        "version": "3.2.4",
+        "isSemVerMajor": true
+      },
+      "source": "npm-audit"
+    },
+    {
+      "package": "@seanchatmangpt/unjucks",
+      "severity": "info",
+      "title": "Scoped package - verify publisher authenticity",
+      "pattern": "scoped-package",
+      "source": "pattern-analysis"
+    },
+    {
+      "package": "@rollup/rollup-darwin-arm64",
+      "severity": "info",
+      "title": "Scoped package - verify publisher authenticity",
+      "pattern": "scoped-package",
+      "source": "pattern-analysis"
+    },
+    {
+      "package": "@typescript-eslint/eslint-plugin",
+      "severity": "info",
+      "title": "Scoped package - verify publisher authenticity",
+      "pattern": "scoped-package",
+      "source": "pattern-analysis"
+    },
+    {
+      "package": "@typescript-eslint/parser",
+      "severity": "info",
+      "title": "Scoped package - verify publisher authenticity",
+      "pattern": "scoped-package",
+      "source": "pattern-analysis"
+    },
+    {
+      "package": "@faker-js/faker",
+      "severity": "info",
+      "title": "Scoped package - verify publisher authenticity",
+      "pattern": "scoped-package",
+      "source": "pattern-analysis"
+    }
+  ],
+  "riskScore": 100
+}

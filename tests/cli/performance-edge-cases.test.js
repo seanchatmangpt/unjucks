@@ -3,32 +3,49 @@
  * Testing CLI performance under stress and unusual conditions
  */
 
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { execFile } from 'child_process';
-import { promisify } from 'util';
-import * from 'path';
-import * from 'fs/promises';
+import { spawn } from 'child_process';
+import path from 'path';
+import fs from 'fs/promises';
 import { tmpdir } from 'os';
+import { fileURLToPath } from 'url';
 
-const execFileAsync = promisify(execFile);
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 const CLI_PATH = path.resolve(__dirname, '../../bin/unjucks.cjs');
 
-async function runCLI(args = [], cwd?, timeout = 30000) {
-  const startTime = Date.now();
-  try {
-    const { stdout, stderr } = await execFileAsync('node', [CLI_PATH, ...args], { cwd),
-      timeout,
-      maxBuffer });
-    return { stdout, 
-      stderr, 
-      exitCode };
-  } catch (error) { return {
-      stdout };
-  }
+async function runCLI(args = [], cwd) {
+  return new Promise((resolve) => {
+    const child = spawn('node', [CLI_PATH, ...args], {
+      cwd: cwd || process.cwd(),
+      env: { ...process.env, NODE_ENV: 'test' },
+      timeout: 30000
+    });
+
+    let stdout = '';
+    let stderr = '';
+
+    child.stdout?.on('data', (data) => {
+      stdout += data.toString();
+    });
+
+    child.stderr?.on('data', (data) => {
+      stderr += data.toString();
+    });
+
+    child.on('close', (exitCode) => {
+      resolve({ stdout, stderr, exitCode: exitCode || 0 });
+    });
+
+    child.on('error', (error) => {
+      resolve({ stdout, stderr: error.message, exitCode: 1 });
+    });
+  });
 }
 
 describe('Performance and Edge Cases', () => {
-  let tempDir => {
+  let tempDir, originalCwd;
+
+  beforeEach(async () => {
     originalCwd = process.cwd();
     tempDir = await fs.mkdtemp(path.join(tmpdir(), 'unjucks-perf-'));
     process.chdir(tempDir);
@@ -36,12 +53,14 @@ describe('Performance and Edge Cases', () => {
     await createPerformanceTestEnvironment();
   });
 
-  afterEach(async () => { process.chdir(originalCwd);
+  afterEach(async () => {
+    process.chdir(originalCwd);
     await fs.rm(tempDir, { recursive: true, force });
   });
 
-  async function createPerformanceTestEnvironment() { // Large template with many variables and complex logic
-    await fs.mkdir('_templates/perf', { recursive });
+  async function createPerformanceTestEnvironment() {
+     // Large template with many variables and complex logic
+    await fs.mkdir('_templates/perf', { recursive: true });
     
     // Template with many variables for stress testing
     const manyVariables = [];
@@ -160,10 +179,10 @@ declare module '{{name}}' {
     id);
 
     // Create output directories
-    await fs.mkdir('output', { recursive });
-    await fs.mkdir('src', { recursive });
-    await fs.mkdir('tests', { recursive });
-    await fs.mkdir('types', { recursive });
+    await fs.mkdir('output', { recursive: true });
+    await fs.mkdir('src', { recursive: true });
+    await fs.mkdir('tests', { recursive: true });
+    await fs.mkdir('types', { recursive: true });
   }
 
   describe('Performance Benchmarks', () => {
@@ -331,7 +350,7 @@ declare module '{{name}}' {
   });
 
   describe('Edge Case Handling', () => { it('should handle empty template directories', async () => {
-      await fs.mkdir('_templates/empty', { recursive });
+      await fs.mkdir('_templates/empty', { recursive: true });
       // Create empty directory with no templates
       
       const result = await runCLI(['list', 'empty']);
@@ -406,7 +425,7 @@ declare module '{{name}}' {
       expect(result.exitCode).toBe(1); // Timeout error
       
       // No temporary files should remain
-      const files = await fs.readdir('.', { recursive });
+      const files = await fs.readdir('.', { recursive: true });
       const tempFiles = files.filter(f => 
         f.toString().includes('.tmp') || 
         f.toString().includes('temp') ||
@@ -431,7 +450,7 @@ declare module '{{name}}' {
     });
 
     it('should handle file system permission changes during execution', async () => { // Create output directory with normal permissions
-      await fs.mkdir('restricted-output', { recursive });
+      await fs.mkdir('restricted-output', { recursive: true });
       
       // Create file first
       const result1 = await runCLI([

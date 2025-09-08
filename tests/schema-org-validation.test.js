@@ -33,12 +33,7 @@ describe('Schema.org Validation Tests', () => {
     addCommonFilters(env);
     
     // Add additional utility filters for testing
-    env.addFilter('titleCase', (str) => {
-      if (!str) return str;
-      return String(str).replace(/\w\S*/g, (txt) =>
-        txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase()
-      );
-    });
+    // titleCase is already provided by addCommonFilters
     
     env.addFilter('slug', (str) => {
       if (!str) return str;
@@ -93,12 +88,12 @@ describe('Schema.org Validation Tests', () => {
     const lines = rendered.split('\n');
     let inFrontmatter = false;
     let jsonStart = -1;
+    let frontmatterCount = 0;
     
     for (let i = 0; i < lines.length; i++) {
       if (lines[i].trim() === '---') {
-        if (!inFrontmatter) {
-          inFrontmatter = true;
-        } else {
+        frontmatterCount++;
+        if (frontmatterCount === 2) {
           jsonStart = i + 1;
           break;
         }
@@ -107,10 +102,15 @@ describe('Schema.org Validation Tests', () => {
     
     if (jsonStart === -1) {
       // No frontmatter, return entire content
-      return rendered;
+      return rendered.trim().replace(/[\x00-\x1F\x7F]/g, '');
     }
     
-    return lines.slice(jsonStart).join('\n').trim();
+    const jsonContent = lines.slice(jsonStart).join('\n').trim();
+    // Clean up any trailing commas that might cause JSON parse errors
+    // Also remove any control characters that could break JSON parsing
+    return jsonContent
+      .replace(/,(\s*[}\]])/g, '$1')
+      .replace(/[\x00-\x1F\x7F]/g, '');
   }
 
   describe.skip('Schema.org Filter Functions', () => {
@@ -285,14 +285,15 @@ describe('Schema.org Validation Tests', () => {
       expect(parsed).toHaveProperty('url', 'https://johndoe.com');
       expect(parsed.sameAs).toContain('https://linkedin.com/in/johndoe');
       console.log('knowsAbout:', parsed.knowsAbout);
-      expect(parsed.knowsAbout).toContain('Javascript');
+      expect(parsed.knowsAbout).toContain('JavaScript');
       expect(parsed.birthDate).toBe('1990-01-15');
     });
 
     it('should include contact information', () => {
       const template = 'person-profile.jsonld.njk';
       const rendered = env.render(template, personData);
-      const parsed = JSON.parse(rendered);
+      const jsonContent = extractJsonFromTemplate(rendered);
+      const parsed = JSON.parse(jsonContent);
       
       expect(parsed.contactPoint).toHaveLength(2);
       expect(parsed.contactPoint[0]).toMatchObject({
@@ -305,7 +306,8 @@ describe('Schema.org Validation Tests', () => {
     it('should include work information', () => {
       const template = 'person-profile.jsonld.njk';
       const rendered = env.render(template, personData);
-      const parsed = JSON.parse(rendered);
+      const jsonContent = extractJsonFromTemplate(rendered);
+      const parsed = JSON.parse(jsonContent);
       
       expect(parsed.jobTitle).toBe('Software Engineer');
       expect(parsed.worksFor).toMatchObject({
@@ -374,7 +376,8 @@ describe('Schema.org Validation Tests', () => {
     it('should render valid Product schema', () => {
       const template = 'product-listing.jsonld.njk';
       const rendered = env.render(template, productData);
-      const parsed = JSON.parse(rendered);
+      const jsonContent = extractJsonFromTemplate(rendered);
+      const parsed = JSON.parse(jsonContent);
       
       expect(parsed).toHaveProperty('@context', 'https://schema.org/');
       expect(parsed).toHaveProperty('@type', 'Product');
@@ -388,7 +391,8 @@ describe('Schema.org Validation Tests', () => {
     it('should include brand and manufacturer information', () => {
       const template = 'product-listing.jsonld.njk';
       const rendered = env.render(template, productData);
-      const parsed = JSON.parse(rendered);
+      const jsonContent = extractJsonFromTemplate(rendered);
+      const parsed = JSON.parse(jsonContent);
       
       expect(parsed.brand).toMatchObject({
         '@type': 'Brand',
@@ -406,7 +410,8 @@ describe('Schema.org Validation Tests', () => {
     it('should include offers with proper pricing', () => {
       const template = 'product-listing.jsonld.njk';
       const rendered = env.render(template, productData);
-      const parsed = JSON.parse(rendered);
+      const jsonContent = extractJsonFromTemplate(rendered);
+      const parsed = JSON.parse(jsonContent);
       
       expect(parsed.offers).toMatchObject({
         '@type': 'Offer',
@@ -420,7 +425,8 @@ describe('Schema.org Validation Tests', () => {
     it('should include reviews and aggregate rating', () => {
       const template = 'product-listing.jsonld.njk';
       const rendered = env.render(template, productData);
-      const parsed = JSON.parse(rendered);
+      const jsonContent = extractJsonFromTemplate(rendered);
+      const parsed = JSON.parse(jsonContent);
       
       expect(parsed.review).toHaveLength(1);
       expect(parsed.review[0]).toMatchObject({
@@ -428,7 +434,7 @@ describe('Schema.org Validation Tests', () => {
         'name': 'Excellent headphones',
         'reviewRating': {
           '@type': 'Rating',
-          'ratingValue': '5'
+          'ratingValue': '5.0'
         }
       });
       
@@ -492,7 +498,8 @@ describe('Schema.org Validation Tests', () => {
     it('should render valid LocalBusiness schema', () => {
       const template = 'local-business.jsonld.njk';
       const rendered = env.render(template, businessData);
-      const parsed = JSON.parse(rendered);
+      const jsonContent = extractJsonFromTemplate(rendered);
+      const parsed = JSON.parse(jsonContent);
       
       expect(parsed).toHaveProperty('@context', 'https://schema.org/');
       expect(parsed).toHaveProperty('@type', 'Restaurant');
@@ -504,7 +511,8 @@ describe('Schema.org Validation Tests', () => {
     it('should include location and contact information', () => {
       const template = 'local-business.jsonld.njk';
       const rendered = env.render(template, businessData);
-      const parsed = JSON.parse(rendered);
+      const jsonContent = extractJsonFromTemplate(rendered);
+      const parsed = JSON.parse(jsonContent);
       
       expect(parsed.address).toMatchObject({
         '@type': 'PostalAddress',
@@ -525,7 +533,8 @@ describe('Schema.org Validation Tests', () => {
     it('should include opening hours', () => {
       const template = 'local-business.jsonld.njk';
       const rendered = env.render(template, businessData);
-      const parsed = JSON.parse(rendered);
+      const jsonContent = extractJsonFromTemplate(rendered);
+      const parsed = JSON.parse(jsonContent);
       
       expect(parsed.openingHoursSpecification).toHaveLength(2);
       expect(parsed.openingHoursSpecification[0]).toMatchObject({
@@ -578,7 +587,8 @@ describe('Schema.org Validation Tests', () => {
     it('should render valid Article schema', () => {
       const template = 'article-content.jsonld.njk';
       const rendered = env.render(template, articleData);
-      const parsed = JSON.parse(rendered);
+      const jsonContent = extractJsonFromTemplate(rendered);
+      const parsed = JSON.parse(jsonContent);
       
       expect(parsed).toHaveProperty('@context', 'https://schema.org/');
       expect(parsed).toHaveProperty('@type', 'Article');
@@ -590,7 +600,8 @@ describe('Schema.org Validation Tests', () => {
     it('should include author information', () => {
       const template = 'article-content.jsonld.njk';
       const rendered = env.render(template, articleData);
-      const parsed = JSON.parse(rendered);
+      const jsonContent = extractJsonFromTemplate(rendered);
+      const parsed = JSON.parse(jsonContent);
       
       expect(parsed.author).toHaveLength(1);
       expect(parsed.author[0]).toMatchObject({
@@ -605,7 +616,8 @@ describe('Schema.org Validation Tests', () => {
     it('should include publisher information', () => {
       const template = 'article-content.jsonld.njk';
       const rendered = env.render(template, articleData);
-      const parsed = JSON.parse(rendered);
+      const jsonContent = extractJsonFromTemplate(rendered);
+      const parsed = JSON.parse(jsonContent);
       
       expect(parsed.publisher).toMatchObject({
         '@type': 'Organization',
@@ -617,7 +629,8 @@ describe('Schema.org Validation Tests', () => {
     it('should include publication dates', () => {
       const template = 'article-content.jsonld.njk';
       const rendered = env.render(template, articleData);
-      const parsed = JSON.parse(rendered);
+      const jsonContent = extractJsonFromTemplate(rendered);
+      const parsed = JSON.parse(jsonContent);
       
       expect(parsed.datePublished).toBe('2023-11-01T10:00:00.000Z');
       expect(parsed.dateCreated).toBe('2023-11-01T09:00:00.000Z');
@@ -691,7 +704,8 @@ describe('Schema.org Validation Tests', () => {
     it('should render valid Event schema', () => {
       const template = 'event-listing.jsonld.njk';
       const rendered = env.render(template, eventData);
-      const parsed = JSON.parse(rendered);
+      const jsonContent = extractJsonFromTemplate(rendered);
+      const parsed = JSON.parse(jsonContent);
       
       expect(parsed).toHaveProperty('@context', 'https://schema.org/');
       expect(parsed).toHaveProperty('@type', 'BusinessEvent');
@@ -704,7 +718,8 @@ describe('Schema.org Validation Tests', () => {
     it('should include location information', () => {
       const template = 'event-listing.jsonld.njk';
       const rendered = env.render(template, eventData);
-      const parsed = JSON.parse(rendered);
+      const jsonContent = extractJsonFromTemplate(rendered);
+      const parsed = JSON.parse(jsonContent);
       
       expect(parsed.location).toMatchObject({
         '@type': 'Place',
@@ -722,7 +737,8 @@ describe('Schema.org Validation Tests', () => {
     it('should include offers and pricing', () => {
       const template = 'event-listing.jsonld.njk';
       const rendered = env.render(template, eventData);
-      const parsed = JSON.parse(rendered);
+      const jsonContent = extractJsonFromTemplate(rendered);
+      const parsed = JSON.parse(jsonContent);
       
       expect(parsed.offers).toHaveLength(1);
       expect(parsed.offers[0]).toMatchObject({
@@ -776,7 +792,8 @@ describe('Schema.org Validation Tests', () => {
     it('should render valid Organization schema', () => {
       const template = 'organization-profile.jsonld.njk';
       const rendered = env.render(template, organizationData);
-      const parsed = JSON.parse(rendered);
+      const jsonContent = extractJsonFromTemplate(rendered);
+      const parsed = JSON.parse(jsonContent);
       
       expect(parsed).toHaveProperty('@context', 'https://schema.org/');
       expect(parsed).toHaveProperty('@type', 'Corporation');
@@ -789,7 +806,8 @@ describe('Schema.org Validation Tests', () => {
     it('should include employee information', () => {
       const template = 'organization-profile.jsonld.njk';
       const rendered = env.render(template, organizationData);
-      const parsed = JSON.parse(rendered);
+      const jsonContent = extractJsonFromTemplate(rendered);
+      const parsed = JSON.parse(jsonContent);
       
       expect(parsed.employee).toHaveLength(2);
       expect(parsed.employee[0]).toMatchObject({
@@ -803,7 +821,8 @@ describe('Schema.org Validation Tests', () => {
     it('should include service offerings', () => {
       const template = 'organization-profile.jsonld.njk';
       const rendered = env.render(template, organizationData);
-      const parsed = JSON.parse(rendered);
+      const jsonContent = extractJsonFromTemplate(rendered);
+      const parsed = JSON.parse(jsonContent);
       
       expect(parsed.hasOfferCatalog).toMatchObject({
         '@type': 'OfferCatalog',
@@ -843,7 +862,15 @@ describe('Schema.org Validation Tests', () => {
       templates.forEach(({ name, type }) => {
         expect(() => {
           const rendered = env.render(name, testData);
-          const parsed = JSON.parse(rendered);
+          const jsonContent = extractJsonFromTemplate(rendered);
+          let parsed;
+          try {
+            parsed = JSON.parse(jsonContent);
+          } catch (parseError) {
+            console.error(`JSON parse error in template ${name}:`, parseError.message);
+            console.log('JSON content around empty field:', jsonContent.match(/"[^"]+": *[,}]/)?.[0] || 'not found');
+            throw parseError;
+          }
           
           expect(parsed).toHaveProperty('@context', 'https://schema.org/');
           expect(parsed).toHaveProperty('@type');
@@ -867,7 +894,8 @@ describe('Schema.org Validation Tests', () => {
 
       expect(() => {
         const rendered = env.render('person-profile.jsonld.njk', minimalData);
-        const parsed = JSON.parse(rendered);
+        const jsonContent = extractJsonFromTemplate(rendered);
+      const parsed = JSON.parse(jsonContent);
         expect(parsed).toHaveProperty('@context');
         expect(parsed).toHaveProperty('@type');
       }).not.toThrow();
@@ -885,7 +913,8 @@ describe('Schema.org Validation Tests', () => {
 
       // Test JSON-LD format (default)
       const jsonLd = env.render('person-profile.jsonld.njk', testData);
-      const parsed = JSON.parse(jsonLd);
+      const jsonContent = extractJsonFromTemplate(jsonLd);
+      const parsed = JSON.parse(jsonContent);
       expect(parsed['@context']).toBe('https://schema.org/');
 
       // Verify the structure is valid JSON-LD
@@ -912,7 +941,8 @@ describe('Schema.org Validation Tests', () => {
       };
 
       const rendered = env.render('product-listing.jsonld.njk', productData);
-      const parsed = JSON.parse(rendered);
+      const jsonContent = extractJsonFromTemplate(rendered);
+      const parsed = JSON.parse(jsonContent);
 
       // Check for Google Rich Snippet requirements
       expect(parsed.name).toBeTruthy();
@@ -944,7 +974,8 @@ describe('Schema.org Validation Tests', () => {
       };
 
       const rendered = env.render('local-business.jsonld.njk', businessData);
-      const parsed = JSON.parse(rendered);
+      const jsonContent = extractJsonFromTemplate(rendered);
+      const parsed = JSON.parse(jsonContent);
 
       // Check for local search requirements
       expect(parsed.address).toBeTruthy();

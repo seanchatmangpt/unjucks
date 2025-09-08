@@ -1,0 +1,290 @@
+name: PR Validation & Quality Gate
+
+on:
+  pull_request:
+    branches: [main, develop]
+    types: [opened, synchronize, reopened, ready_for_review]
+
+env:
+  NODE_VERSION: '20'
+
+jobs:
+  # Quick validation first
+  quick-checks:
+    name: Quick Quality Checks
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.draft == false
+    
+    steps:
+      - name: Checkout PR
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint check
+        run: npm run lint
+
+      - name: Quick smoke tests
+        run: npm run test:smoke
+
+      - name: Check build
+        run: npm run build:validate
+
+  # Comprehensive security and performance validation
+  security-validation:
+    name: Security & Performance Validation
+    runs-on: ubuntu-latest
+    needs: quick-checks
+    
+    steps:
+      - name: Checkout PR
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Security analysis
+        run: npm run security:sast
+
+      - name: Dependency vulnerability scan
+        run: npm run security:deps
+
+      - name: LaTeX security validation
+        run: npm run validate:latex
+
+      - name: Performance benchmarks
+        run: npm run benchmark:full
+
+      - name: Upload security artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-reports
+          path: |
+            tests/sast-report.json
+            tests/dependency-report.json
+            tests/security-report.json
+            benchmarks/results.json
+
+  # Template and functionality testing
+  template-testing:
+    name: Template System Testing
+    runs-on: ubuntu-latest
+    needs: quick-checks
+    strategy:
+      matrix:
+        test-type: [unit, integration, chaos]
+    
+    steps:
+      - name: Checkout PR
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run unit tests
+        if: matrix.test-type == 'unit'
+        run: npm run test:latex-filters
+
+      - name: Run integration tests
+        if: matrix.test-type == 'integration'
+        run: npm run test:integration
+
+      - name: Run chaos engineering tests
+        if: matrix.test-type == 'chaos'
+        run: npm run test:chaos
+
+      - name: Template validation
+        run: npm run validate:templates
+
+  # Cross-platform compatibility
+  cross-platform:
+    name: Cross-Platform Testing
+    runs-on: ${{ matrix.os }}
+    needs: quick-checks
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        node-version: [18, 20]
+    
+    steps:
+      - name: Checkout PR
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run core tests
+        run: npm test
+
+      - name: Test CLI functionality
+        run: npm run test:cli
+
+  # Quality gate checks
+  quality-gate:
+    name: Quality Gate
+    runs-on: ubuntu-latest
+    needs: [security-validation, template-testing, cross-platform]
+    if: always()
+    
+    steps:
+      - name: Checkout PR
+        uses: actions/checkout@v4
+
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: security-reports
+          path: ./reports
+
+      - name: Quality gate analysis
+        run: |
+          echo "🔍 Analyzing quality gate results..."
+          
+          # Check if security reports exist and contain issues
+          CRITICAL_ISSUES=0
+          HIGH_ISSUES=0
+          
+          if [ -f "./reports/sast-report.json" ]; then
+            CRITICAL_ISSUES=$(jq '.summary.critical // 0' ./reports/sast-report.json)
+            HIGH_ISSUES=$(jq '.summary.high // 0' ./reports/sast-report.json)
+          fi
+          
+          echo "Critical security issues: $CRITICAL_ISSUES"
+          echo "High security issues: $HIGH_ISSUES"
+          
+          # Quality gate decision
+          if [ "$CRITICAL_ISSUES" -gt 0 ]; then
+            echo "❌ Quality gate FAILED: Critical security issues found"
+            exit 1
+          elif [ "$HIGH_ISSUES" -gt 5 ]; then
+            echo "⚠️  Quality gate WARNING: High number of security issues ($HIGH_ISSUES)"
+            # Don't fail for warnings, but log them
+          else
+            echo "✅ Quality gate PASSED: Security requirements met"
+          fi
+
+      - name: Check job statuses
+        run: |
+          echo "Checking overall job results..."
+          
+          # This will be populated by GitHub Actions context
+          echo "Security validation: ${{ needs.security-validation.result }}"
+          echo "Template testing: ${{ needs.template-testing.result }}"
+          echo "Cross-platform: ${{ needs.cross-platform.result }}"
+          
+          if [[ "${{ needs.security-validation.result }}" == "failure" ]]; then
+            echo "❌ Security validation failed"
+            exit 1
+          fi
+          
+          if [[ "${{ needs.template-testing.result }}" == "failure" ]]; then
+            echo "❌ Template testing failed"
+            exit 1
+          fi
+          
+          # Cross-platform can have some failures without blocking
+          if [[ "${{ needs.cross-platform.result }}" == "failure" ]]; then
+            echo "⚠️  Cross-platform testing had failures - review required"
+          fi
+
+  # PR readiness check
+  pr-readiness:
+    name: PR Readiness Assessment
+    runs-on: ubuntu-latest
+    needs: quality-gate
+    if: always()
+    
+    steps:
+      - name: PR readiness summary
+        run: |
+          echo "📋 PR Readiness Assessment"
+          echo "=========================="
+          
+          if [[ "${{ needs.quality-gate.result }}" == "success" ]]; then
+            echo "✅ Quality gate: PASSED"
+            echo "🎉 PR is ready for review and merge"
+            echo "READY_FOR_MERGE=true" >> $GITHUB_ENV
+          else
+            echo "❌ Quality gate: FAILED"
+            echo "🚫 PR requires fixes before merge"
+            echo "READY_FOR_MERGE=false" >> $GITHUB_ENV
+          fi
+
+      - name: Update PR status
+        if: always()
+        run: |
+          if [[ "${{ env.READY_FOR_MERGE }}" == "true" ]]; then
+            echo "✅ All quality checks passed - PR ready for merge"
+          else
+            echo "❌ Quality checks failed - address issues before merge"
+            exit 1
+          fi
+
+  # Auto-comment on PR with results
+  pr-comment:
+    name: PR Results Comment
+    runs-on: ubuntu-latest
+    needs: [quality-gate, pr-readiness]
+    if: always() && github.event_name == 'pull_request'
+    
+    steps:
+      - name: Comment PR results
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const status = '${{ needs.quality-gate.result }}' === 'success' ? '✅ PASSED' : '❌ FAILED';
+            const readyStatus = '${{ needs.pr-readiness.result }}' === 'success' ? '🎉 Ready for merge' : '🚫 Needs fixes';
+            
+            const body = `## 🤖 Automated Quality Gate Results
+            
+            **Overall Status:** ${status}
+            **PR Status:** ${readyStatus}
+            
+            ### 📊 Test Results
+            - **Security Validation:** ${{ needs.security-validation.result }}
+            - **Template Testing:** ${{ needs.template-testing.result }}  
+            - **Cross-Platform:** ${{ needs.cross-platform.result }}
+            - **Quality Gate:** ${{ needs.quality-gate.result }}
+            
+            ### 📈 Reports
+            Security and performance reports are available in the workflow artifacts.
+            
+            ---
+            _This comment was automatically generated by the PR validation workflow._`;
+            
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: body
+            });

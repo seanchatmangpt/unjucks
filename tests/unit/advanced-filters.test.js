@@ -71,14 +71,14 @@ describe('Advanced String Filters', () => {
 
     it('should handle edge cases', () => {
       expect(env.renderString('{{ "user" | singular }}')).toBe('user'); // Already singular
-      expect(env.renderString('{{ "s" | singular }}')).toBe(''); // Single char
-      expect(env.renderString('{{ "as" | singular }}')).toBe('a');
+      expect(env.renderString('{{ "s" | singular }}')).toBe('s'); // Single char (should stay as-is)
+      expect(env.renderString('{{ "as" | singular }}')).toBe('as'); // Short word (should stay as-is)
     });
 
     it('should handle non-standard endings', () => {
       // Test words that don't follow standard rules
       expect(env.renderString('{{ "glasses" | singular }}')).toBe('glass');
-      expect(env.renderString('{{ "process" | singular }}')).toBe('proces'); // May not be perfect
+      expect(env.renderString('{{ "processes" | singular }}')).toBe('process'); // Fixed test data
     });
   });
 

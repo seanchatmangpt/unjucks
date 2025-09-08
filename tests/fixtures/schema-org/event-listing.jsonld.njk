@@ -40,7 +40,7 @@ inject: false
     "geo": {{ location.coordinates | schemaGeo | dump }},
     "url": "{{ location.url | rdfResource }}",
     "telephone": "{{ location.phone }}",
-    "maximumAttendeeCapacity": {{ location.capacity }}
+    {% if location.capacity %}"maximumAttendeeCapacity": {{ location.capacity }}{% else %}"maximumAttendeeCapacity": null{% endif %}
   },
   
   "organizer": {
@@ -164,8 +164,8 @@ inject: false
   ],
   {% endif %}
   
-  "maximumAttendeeCapacity": {{ maxCapacity }},
-  "remainingAttendeeCapacity": {{ remainingCapacity }},
+  {% if maxCapacity %}"maximumAttendeeCapacity": {{ maxCapacity }},{% else %}"maximumAttendeeCapacity": null,{% endif %}
+  {% if remainingCapacity %}"remainingAttendeeCapacity": {{ remainingCapacity }},{% else %}"remainingAttendeeCapacity": null,{% endif %}
   
   {% if workFeatured -%}
   "workFeatured": [

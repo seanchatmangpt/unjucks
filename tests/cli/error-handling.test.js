@@ -3,35 +3,56 @@
  * Comprehensive testing of error scenarios and input validation
  */
 
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { execFile } from 'child_process';
-import { promisify } from 'util';
-import * from 'path';
-import * from 'fs/promises';
+import { spawn } from 'child_process';
+import path from 'path';
+import fs from 'fs/promises';
 import { tmpdir } from 'os';
+import { fileURLToPath } from 'url';
 
-const execFileAsync = promisify(execFile);
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 const CLI_PATH = path.resolve(__dirname, '../../bin/unjucks.cjs');
 
-async function runCLI(args = [], cwd?) {
-  try {
-    const { stdout, stderr } = await execFileAsync('node', [CLI_PATH, ...args], { cwd),
-      timeout }
+async function runCLI(args = [], cwd) {
+  return new Promise((resolve) => {
+    const child = spawn('node', [CLI_PATH, ...args], {
+      cwd: cwd || process.cwd(),
+      env: { ...process.env, NODE_ENV: 'test' },
+      timeout: 30000
     });
-    return { stdout, stderr, exitCode };
-  } catch (error) { return {
-      stdout };
-  }
+
+    let stdout = '';
+    let stderr = '';
+
+    child.stdout?.on('data', (data) => {
+      stdout += data.toString();
+    });
+
+    child.stderr?.on('data', (data) => {
+      stderr += data.toString();
+    });
+
+    child.on('close', (exitCode) => {
+      resolve({ stdout, stderr, exitCode: exitCode || 0 });
+    });
+
+    child.on('error', (error) => {
+      resolve({ stdout, stderr: error.message, exitCode: 1 });
+    });
+  });
 }
 
 describe('Error Handling and Validation', () => {
-  let tempDir => {
+  let tempDir, originalCwd;
+
+  beforeEach(async () => {
     originalCwd = process.cwd();
     tempDir = await fs.mkdtemp(path.join(tmpdir(), 'unjucks-errors-'));
     process.chdir(tempDir);
   });
 
-  afterEach(async () => { process.chdir(originalCwd);
+  afterEach(async () => {
+    process.chdir(originalCwd);
     await fs.rm(tempDir, { recursive: true, force });
   });
 
@@ -44,7 +65,7 @@ describe('Error Handling and Validation', () => {
     });
 
     it('should suggest available generators when generator not found', async () => { // Create some generators first
-      await fs.mkdir('_templates/component', { recursive });
+      await fs.mkdir('_templates/component', { recursive: true });
       await fs.writeFile('_templates/component/new.tsx.njk', '---\nto);
       
       const result = await runCLI(['invalid-gen', 'new', 'Test']);
@@ -53,7 +74,7 @@ describe('Error Handling and Validation', () => {
       expect(result.stderr).toContain('Error');
     });
 
-    it('should handle empty _templates directory', async () => { await fs.mkdir('_templates', { recursive });
+    it('should handle empty _templates directory', async () => { await fs.mkdir('_templates', { recursive: true });
       
       const result = await runCLI(['list']);
       
@@ -71,7 +92,7 @@ describe('Error Handling and Validation', () => {
   });
 
   describe('Template Not Found Errors', () => { beforeEach(async () => {
-      await fs.mkdir('_templates/component', { recursive });
+      await fs.mkdir('_templates/component', { recursive: true });
       await fs.writeFile(
         '_templates/component/new.tsx.njk',
         '---\nto);
@@ -93,7 +114,7 @@ describe('Error Handling and Validation', () => {
   });
 
   describe('Malformed Template Errors', () => { beforeEach(async () => {
-      await fs.mkdir('_templates/broken', { recursive });
+      await fs.mkdir('_templates/broken', { recursive: true });
     });
 
     it('should handle templates with invalid frontmatter', async () => {
@@ -148,12 +169,12 @@ describe('Error Handling and Validation', () => {
   });
 
   describe('File System Permission Errors', () => { it('should handle read-only destination directories', async () => {
-      await fs.mkdir('_templates/component', { recursive });
+      await fs.mkdir('_templates/component', { recursive: true });
       await fs.writeFile(
         '_templates/component/new.tsx.njk',
         '---\nto);
       
-      await fs.mkdir('readonly-dest', { recursive });
+      await fs.mkdir('readonly-dest', { recursive: true });
       await fs.chmod('readonly-dest', 0o444); // Read-only
 
       const result = await runCLI(['component', 'new', 'Test', '--dest', 'readonly-dest']);
@@ -165,7 +186,7 @@ describe('Error Handling and Validation', () => {
       expect(result.stderr).toContain('Error');
     });
 
-    it('should handle invalid destination paths', async () => { await fs.mkdir('_templates/component', { recursive });
+    it('should handle invalid destination paths', async () => { await fs.mkdir('_templates/component', { recursive: true });
       await fs.writeFile(
         '_templates/component/new.tsx.njk',
         '---\nto);
@@ -176,7 +197,7 @@ describe('Error Handling and Validation', () => {
       expect(result.stderr).toContain('Error');
     });
 
-    it('should handle corrupted template files', async () => { await fs.mkdir('_templates/component', { recursive });
+    it('should handle corrupted template files', async () => { await fs.mkdir('_templates/component', { recursive: true });
       
       // Create a file with invalid encoding
       const buffer = Buffer.from([0xFF, 0xFE, 0x00, 0x00]);
@@ -189,7 +210,7 @@ describe('Error Handling and Validation', () => {
   });
 
   describe('Argument Validation Errors', () => { beforeEach(async () => {
-      await fs.mkdir('_templates/validation', { recursive });
+      await fs.mkdir('_templates/validation', { recursive: true });
       await fs.writeFile(
         '_templates/validation/test.tsx.njk',
         '---\nto: {{name}}.tsx\nvariables:\n  - name: name\n    type: string\n    required: true\n  - name: type\n    type: string\n    choices: ["component", "page", "layout"]\n    required);
@@ -229,7 +250,7 @@ describe('Error Handling and Validation', () => {
 
   describe('Network and External Dependency Errors', () => { it('should handle network timeouts gracefully', async () => {
       // Test with a template that might try to fetch external resources
-      await fs.mkdir('_templates/network', { recursive });
+      await fs.mkdir('_templates/network', { recursive: true });
       await fs.writeFile(
         '_templates/network/test.tsx.njk',
         '---\nto);
@@ -250,7 +271,7 @@ describe('Error Handling and Validation', () => {
   });
 
   describe('Memory and Resource Limits', () => { it('should handle extremely large template files', async () => {
-      await fs.mkdir('_templates/large', { recursive });
+      await fs.mkdir('_templates/large', { recursive: true });
       
       // Create a large template (1MB of repeated content)
       const largeContent = 'x'.repeat(1024 * 1024);
@@ -265,7 +286,7 @@ describe('Error Handling and Validation', () => {
     });
 
     it('should handle deep directory nesting', async () => { const deepPath = 'a/'.repeat(100); // Very deep nesting
-      await fs.mkdir('_templates/deep', { recursive });
+      await fs.mkdir('_templates/deep', { recursive: true });
       await fs.writeFile(
         '_templates/deep/nested.txt.njk',
         `---\nto);
@@ -278,7 +299,7 @@ describe('Error Handling and Validation', () => {
   });
 
   describe('Concurrent Access Errors', () => { it('should handle file locks and concurrent access', async () => {
-      await fs.mkdir('_templates/concurrent', { recursive });
+      await fs.mkdir('_templates/concurrent', { recursive: true });
       await fs.writeFile(
         '_templates/concurrent/test.txt.njk',
         '---\nto);
@@ -320,7 +341,7 @@ describe('Error Handling and Validation', () => {
   });
 
   describe('Recovery and Cleanup', () => { it('should clean up temporary files on error', async () => {
-      await fs.mkdir('_templates/cleanup', { recursive });
+      await fs.mkdir('_templates/cleanup', { recursive: true });
       await fs.writeFile(
         '_templates/cleanup/failing.txt.njk',
         '---\nto)}}'
@@ -336,7 +357,7 @@ describe('Error Handling and Validation', () => {
       expect(tempFiles).toHaveLength(0);
     });
 
-    it('should preserve existing files on generation failure', async () => { await fs.mkdir('_templates/preserve', { recursive });
+    it('should preserve existing files on generation failure', async () => { await fs.mkdir('_templates/preserve', { recursive: true });
       await fs.writeFile(
         '_templates/preserve/test.txt.njk',
         '---\nto);
@@ -364,7 +385,7 @@ describe('Error Handling and Validation', () => {
       expect(result.stderr.length).toBeGreaterThan(10);
     });
 
-    it('should provide suggestions for common mistakes', async () => { await fs.mkdir('_templates/component', { recursive });
+    it('should provide suggestions for common mistakes', async () => { await fs.mkdir('_templates/component', { recursive: true });
       await fs.writeFile('_templates/component/new.tsx.njk', '---\nto);
       
       const result = await runCLI(['componnet', 'new', 'Test']); // Typo

@@ -1,6 +1,7 @@
 /**
- * LaTeX Command Module
- * Provides LaTeX document generation, compilation, and management
+ * SECURITY-HARDENED LaTeX Command Module
+ * Provides secure LaTeX document generation, compilation, and management
+ * WITH COMPREHENSIVE INPUT VALIDATION AND INJECTION PREVENTION
  */
 import { defineCommand } from 'citty';
 import { promises as fs } from 'fs';
@@ -11,6 +12,67 @@ import { LaTeXCompiler } from '../lib/latex/compiler.js';
 import { LaTeXConfig } from '../lib/latex/config.js';
 import LaTeXBuildIntegration from '../lib/latex/build-integration.js';
 import { DockerLaTeXSupport } from '../lib/latex/docker-support.js';
+import { validateFilePath, sanitizeInput, validateSecurityThreats } from '../lib/latex/validator.js';
+
+/**
+ * CRITICAL SECURITY: Validates all CLI arguments for injection attacks
+ * @param {Object} args - CLI arguments to validate
+ * @param {string} command - Command name for context
+ * @returns {Object} Validation result
+ */
+function validateCliArguments(args, command) {
+  const violations = [];
+  
+  // Validate file paths
+  const pathFields = ['input', 'output', 'dockerfile', 'config'];
+  for (const field of pathFields) {
+    if (args[field]) {
+      const sanitized = sanitizeInput(args[field]);
+      const pathValidation = validateFilePath(sanitized);
+      
+      if (!pathValidation.isValid) {
+        violations.push({
+          field,
+          error: pathValidation.error,
+          violation: pathValidation.violation,
+          severity: 'critical'
+        });
+      } else {
+        args[field] = pathValidation.sanitized;
+      }
+    }
+  }
+  
+  // Validate LaTeX engine
+  if (args.engine) {
+    const allowedEngines = ['pdflatex', 'xelatex', 'lualatex'];
+    if (!allowedEngines.includes(args.engine)) {
+      violations.push({
+        field: 'engine',
+        error: `Invalid LaTeX engine: ${args.engine}. Allowed: ${allowedEngines.join(', ')}`,
+        severity: 'high'
+      });
+    }
+  }
+  
+  // Validate template type
+  if (args.template) {
+    const allowedTemplates = ['article', 'book', 'report', 'letter', 'presentation'];
+    if (!allowedTemplates.includes(args.template)) {
+      violations.push({
+        field: 'template',
+        error: `Invalid template type: ${args.template}. Allowed: ${allowedTemplates.join(', ')}`,
+        severity: 'high'
+      });
+    }
+  }
+  
+  return {
+    isValid: violations.filter(v => v.severity === 'critical' || v.severity === 'high').length === 0,
+    violations,
+    sanitizedArgs: args
+  };
+}
 
 export const latexCommand = defineCommand({
   meta: {
@@ -67,6 +129,22 @@ export const latexCommand = defineCommand({
       },
       async run({ args }) {
         try {
+          // CRITICAL SECURITY: Validate all CLI arguments
+          const validation = validateCliArguments(args, 'compile');
+          if (!validation.isValid) {
+            const criticalViolations = validation.violations.filter(v => 
+              v.severity === 'critical' || v.severity === 'high'
+            );
+            consola.error('🚨 SECURITY VIOLATION: Invalid arguments detected');
+            criticalViolations.forEach(v => {
+              consola.error(`  ${v.field}: ${v.error}`);
+            });
+            return { success: false, error: 'Security validation failed', violations: criticalViolations };
+          }
+          
+          // Use sanitized arguments
+          args = validation.sanitizedArgs;
+          
           const config = new LaTeXConfig();
           const latexConfig = await config.load();
           
@@ -253,24 +331,51 @@ export const latexCommand = defineCommand({
       },
       async run({ args }) {
         try {
+          // CRITICAL SECURITY: Validate template generation arguments
+          const validation = validateCliArguments(args, 'generate');
+          if (!validation.isValid) {
+            consola.error('🚨 SECURITY: Template generation blocked');
+            validation.violations.forEach(v => consola.error(`  ${v.error}`));
+            return { success: false, error: 'Security validation failed' };
+          }
+          args = validation.sanitizedArgs;
+          
           // Import template generator class at runtime
           const { LaTeXTemplateGenerator } = await import('../lib/latex/template-generator.js');
           const generator = new LaTeXTemplateGenerator();
           
+          // Sanitize all user inputs
           let templateConfig = {
-            type: args.template,
-            title: args.title,
-            author: args.author,
-            bibliography: args.bibliography,
-            packages: args.packages?.split(',').map(p => p.trim()) || []
+            type: sanitizeInput(args.template),
+            title: sanitizeInput(args.title || ''),
+            author: sanitizeInput(args.author || ''),
+            bibliography: Boolean(args.bibliography),
+            packages: args.packages ? 
+              args.packages.split(',').map(p => sanitizeInput(p.trim())).filter(Boolean) : []
           };
 
           if (args.interactive) {
             templateConfig = await generator.interactiveGeneration(templateConfig);
           }
 
+          // SECURITY: Validate template content before writing
           const content = generator.generateTemplate(templateConfig);
-          await fs.writeFile(args.output, content);
+          const contentValidation = validateSecurityThreats(content);
+          
+          if (!contentValidation.isSafe) {
+            consola.error('🚨 SECURITY: Generated template contains dangerous patterns');
+            contentValidation.violations.forEach(v => consola.error(`  ${v.message}`));
+            return { success: false, error: 'Template security validation failed' };
+          }
+          
+          // Secure file write with path validation
+          const pathValidation = validateFilePath(args.output);
+          if (!pathValidation.isValid) {
+            consola.error(`🚨 SECURITY: ${pathValidation.error}`);
+            return { success: false, error: 'Output path validation failed' };
+          }
+          
+          await fs.writeFile(pathValidation.sanitized, content);
 
           consola.success(`LaTeX document generated: ${chalk.green(args.output)}`);
           

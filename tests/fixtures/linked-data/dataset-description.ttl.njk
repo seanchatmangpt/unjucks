@@ -39,8 +39,8 @@ chmod: "644"
     # Keywords and subjects
     {% if keywords -%}
     {% for keyword in keywords -%}
-    dcat:keyword {{ keyword | rdfLiteral('en') }}{% if not loop.last %} ,{% endif %}
-    {% endfor %} ;
+    dcat:keyword {{ keyword | rdfLiteral('en') }}{% if not loop.last %} ,{% else %} ;{% endif %}
+    {% endfor -%}
     {% endif -%}
     {% if subjects -%}
     {% for subject in subjects -%}

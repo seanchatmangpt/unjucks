@@ -1,0 +1,25 @@
+{
+  "name": "unjucks-master-test-orchestrator",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Master test orchestrator that validates complete system readiness",
+  "main": "run-all-tests.js",
+  "scripts": {
+    "test": "node run-all-tests.js",
+    "test:production": "node run-all-tests.js --production",
+    "test:quick": "node run-all-tests.js --quick",
+    "clean": "rm -rf reports artifacts",
+    "docker:build": "docker build -t unjucks-test .",
+    "docker:run": "docker run --rm unjucks-test",
+    "docker:test": "npm run docker:build && npm run docker:run"
+  },
+  "keywords": [
+    "testing",
+    "orchestration",
+    "validation",
+    "production-readiness"
+  ],
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

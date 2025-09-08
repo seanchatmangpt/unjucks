@@ -3,30 +3,43 @@
  * End-to-end testing of complete development workflows
  */
 
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { execFile } from 'child_process';
-import { promisify } from 'util';
-import * as path from 'path';
-import * as fs from 'fs/promises';
+import { spawn } from 'child_process';
+import path from 'path';
+import fs from 'fs/promises';
 import { tmpdir } from 'os';
+import { fileURLToPath } from 'url';
 
-const execFileAsync = promisify(execFile);
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 const CLI_PATH = path.resolve(__dirname, '../../bin/unjucks.cjs');
 
 async function runCLI(args = [], cwd) {
-  try {
-    const { stdout, stderr } = await execFileAsync('node', [CLI_PATH, ...args], { 
-      cwd,
-      timeout: 10000 
+  return new Promise((resolve) => {
+    const child = spawn('node', [CLI_PATH, ...args], {
+      cwd: cwd || process.cwd(),
+      env: { ...process.env, NODE_ENV: 'test' },
+      timeout: 30000
     });
-    return { stdout, stderr, exitCode: 0 };
-  } catch (error) { 
-    return {
-      stdout: error.stdout || '',
-      stderr: error.stderr || '',
-      exitCode: error.code || 1
-    };
-  }
+
+    let stdout = '';
+    let stderr = '';
+
+    child.stdout?.on('data', (data) => {
+      stdout += data.toString();
+    });
+
+    child.stderr?.on('data', (data) => {
+      stderr += data.toString();
+    });
+
+    child.on('close', (exitCode) => {
+      resolve({ stdout, stderr, exitCode: exitCode || 0 });
+    });
+
+    child.on('error', (error) => {
+      resolve({ stdout, stderr: error.message, exitCode: 1 });
+    });
+  });
 }
 
 async function fileExists(filePath) {
@@ -48,17 +61,14 @@ async function verifyFileContent(filePath, expectedContent) {
 }
 
 describe('Full CLI Workflow Integration Tests', () => {
-  let tempDir;
-  let originalCwd;
+  let tempDir, originalCwd;
 
   beforeEach(async () => {
-    originalCwd = process.cwd();
     tempDir = await fs.mkdtemp(path.join(tmpdir(), 'unjucks-workflow-'));
-    process.chdir(tempDir);
+    // Don't change directory, use cwd option in runCLI instead
   });
 
   afterEach(async () => {
-    process.chdir(originalCwd);
     if (tempDir) {
       try {
         await fs.rmdir(tempDir, { recursive: true });
@@ -70,7 +80,7 @@ describe('Full CLI Workflow Integration Tests', () => {
 
   describe('Workflow Command Tests', () => {
     it('should show workflow help', async () => {
-      const result = await runCLI(['workflow', '--help']);
+      const result = await runCLI(['workflow', '--help'], tempDir);
       
       expect(result.exitCode).toBe(0);
       expect(result.stdout).toContain('workflow');

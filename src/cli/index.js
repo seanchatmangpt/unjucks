@@ -158,6 +158,10 @@ const main = defineCommand({
     // Handle --version flag
     if (args.version) {
       console.log(getVersion());
+      // Ensure output is flushed
+      if (process.stdout.isTTY === false) {
+        process.stdout.write('');
+      }
       return { success: true, action: 'version' };
     }
 
@@ -206,6 +210,10 @@ const main = defineCommand({
       console.log(chalk.gray("  unjucks perf benchmark --suite all    # Run performance benchmarks"));
       console.log(chalk.gray("  unjucks github analyze --repo owner/repo # Analyze repository"));
       console.log(chalk.gray("  unjucks specify init my-project --type api # Spec-driven project setup"));
+      // Ensure output is flushed
+      if (process.stdout.isTTY === false) {
+        process.stdout.write('');
+      }
       return { success: true, action: 'help' };
     }
 

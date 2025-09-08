@@ -179,7 +179,7 @@ inject: false
   },
   {% endif %}
   
-  "copyrightYear": {{ copyrightYear | default(published | formatDate('YYYY')) }},
+  "copyrightYear": {% if copyrightYear %}{{ copyrightYear }}{% elif published %}{{ published | formatDate('YYYY') }}{% else %}2025{% endif %},
   
   {% if breadcrumbs -%}
   "breadcrumb": {{ breadcrumbs | schemaBreadcrumbs | dump }},

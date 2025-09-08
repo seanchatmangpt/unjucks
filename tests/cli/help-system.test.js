@@ -3,28 +3,49 @@
  * Comprehensive testing of help functionality and documentation
  */
 
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { execFile } from 'child_process';
-import { promisify } from 'util';
-import * from 'path';
-import * from 'fs/promises';
+import { spawn } from 'child_process';
+import path from 'path';
+import fs from 'fs/promises';
 import { tmpdir } from 'os';
+import { fileURLToPath } from 'url';
 
-const execFileAsync = promisify(execFile);
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 const CLI_PATH = path.resolve(__dirname, '../../bin/unjucks.cjs');
 
-async function runCLI(args = [], cwd?) {
-  try {
-    const { stdout, stderr } = await execFileAsync('node', [CLI_PATH, ...args], { cwd),
-      timeout });
-    return { stdout, stderr, exitCode };
-  } catch (error) { return {
-      stdout };
-  }
+async function runCLI(args = [], cwd) {
+  return new Promise((resolve) => {
+    const child = spawn('node', [CLI_PATH, ...args], {
+      cwd: cwd || process.cwd(),
+      env: { ...process.env, NODE_ENV: 'test' },
+      timeout: 30000
+    });
+
+    let stdout = '';
+    let stderr = '';
+
+    child.stdout?.on('data', (data) => {
+      stdout += data.toString();
+    });
+
+    child.stderr?.on('data', (data) => {
+      stderr += data.toString();
+    });
+
+    child.on('close', (exitCode) => {
+      resolve({ stdout, stderr, exitCode: exitCode || 0 });
+    });
+
+    child.on('error', (error) => {
+      resolve({ stdout, stderr: error.message, exitCode: 1 });
+    });
+  });
 }
 
 describe('Help System', () => {
-  let tempDir => {
+  let tempDir, originalCwd;
+
+  beforeEach(async () => {
     originalCwd = process.cwd();
     tempDir = await fs.mkdtemp(path.join(tmpdir(), 'unjucks-help-'));
     process.chdir(tempDir);
@@ -33,12 +54,14 @@ describe('Help System', () => {
     await createTestTemplates();
   });
 
-  afterEach(async () => { process.chdir(originalCwd);
+  afterEach(async () => {
+    process.chdir(originalCwd);
     await fs.rm(tempDir, { recursive: true, force });
   });
 
-  async function createTestTemplates() { // Component with comprehensive variables
-    await fs.mkdir('_templates/component', { recursive });
+  async function createTestTemplates() {
+     // Component with comprehensive variables
+    await fs.mkdir('_templates/component', { recursive: true });
     await fs.writeFile(
       '_templates/component/new.tsx.njk',
       `---
@@ -75,7 +98,7 @@ export function {{name}}({{#if withProps}}props) {
     );
 
     // API with complex variables
-    await fs.mkdir('_templates/api', { recursive });
+    await fs.mkdir('_templates/api', { recursive: true });
     await fs.writeFile(
       '_templates/api/endpoint.ts.njk',
       `---
@@ -117,7 +140,7 @@ export default {{name | lower}}Router;
     );
 
     // Service with positional and optional parameters
-    await fs.mkdir('_templates/service', { recursive });
+    await fs.mkdir('_templates/service', { recursive: true });
     await fs.writeFile(
       '_templates/service/class.ts.njk',
       `---
@@ -166,7 +189,7 @@ export class {{name}}Service{{#if withInterface}} implements I{{name}}Service{{/
     );
 
     // Template with minimal configuration
-    await fs.mkdir('_templates/simple', { recursive });
+    await fs.mkdir('_templates/simple', { recursive: true });
     await fs.writeFile(
       '_templates/simple/file.txt.njk',
       `---

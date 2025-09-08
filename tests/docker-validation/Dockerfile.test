@@ -1,0 +1,44 @@
+FROM node:18-alpine
+
+# Set resource limits for testing
+ENV MEMORY_LIMIT=512
+ENV CPU_LIMIT=1.0
+ENV MAX_FILE_HANDLES=1024
+
+# Add resource monitoring tools
+RUN apk add --no-cache \
+    procfs-ng \
+    util-linux \
+    bash
+
+# Create app directory
+WORKDIR /app
+
+# Copy package files
+COPY package*.json ./
+
+# Install dependencies
+RUN npm ci --only=production
+
+# Copy source code
+COPY . .
+
+# Create test user with limited privileges
+RUN addgroup -g 1001 -S nodejs && \
+    adduser -S testuser -u 1001 -G nodejs
+
+# Set ownership
+RUN chown -R testuser:nodejs /app
+
+# Switch to test user
+USER testuser
+
+# Set memory limit via cgroup (if supported)
+RUN echo "512M" > /tmp/memory_limit 2>/dev/null || true
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD node -e "console.log('Container healthy')" || exit 1
+
+# Run tests with resource constraints
+CMD ["npm", "run", "test:docker"]

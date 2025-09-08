@@ -47,13 +47,12 @@ chmod: "644"
     
     # Generated metadata
     dct:created {{ now() | isoDate | rdfLiteral('dateTime') }} ;
-    dct:format {{ 'text/turtle' | contentType | rdfLiteral('string') }} ;
+    dct:format {{ 'text/turtle' | contentType | rdfLiteral('string') }}{% if pagination.items and pagination.items.length > 0 %} ;
     
     # Members on this page
     {% for item in pagination.items -%}
-    rdfs:member <{{ item.id | slug }}>{% if not loop.last %} ,{% endif %}
-    {% endfor %} ;
-    .
+    rdfs:member <{{ item.id | slug }}>{% if not loop.last %} ,{% else %} .{% endif %}
+    {% endfor -%}{% else %} .{% endif %}
 
 # Collection-level metadata
 <{{ collectionId | kebabCase }}> a hydra:Collection , schema:Collection , void:Dataset ;

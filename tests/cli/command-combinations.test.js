@@ -3,31 +3,44 @@
  * Testing complex interactions between different CLI features
  */
 
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { execFile } from 'child_process';
-import { promisify } from 'util';
-import * as path from 'path';
-import * as fs from 'fs/promises';
+import { spawn } from 'child_process';
+import path from 'path';
+import fs from 'fs/promises';
 import { tmpdir } from 'os';
+import { fileURLToPath } from 'url';
 
-const execFileAsync = promisify(execFile);
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 const CLI_PATH = path.resolve(__dirname, '../../bin/unjucks.cjs');
 
 async function runCLI(args = [], cwd) {
-  try {
-    const { stdout, stderr } = await execFileAsync('node', [CLI_PATH, ...args], { 
-      cwd,
-      timeout: 10000 
+  return new Promise((resolve) => {
+    const child = spawn('node', [CLI_PATH, ...args], {
+      cwd: cwd || process.cwd(),
+      env: { ...process.env, NODE_ENV: 'test' },
+      timeout: 30000
     });
-    return { stdout, stderr, exitCode };
-  } catch (error) { 
-    return {
-      stdout: error.stdout || '',
-      stderr: error.stderr || '',
-      exitCode: error.code || 1
-    };
-  }
-  }
+
+    let stdout = '';
+    let stderr = '';
+
+    child.stdout?.on('data', (data) => {
+      stdout += data.toString();
+    });
+
+    child.stderr?.on('data', (data) => {
+      stderr += data.toString();
+    });
+
+    child.on('close', (exitCode) => {
+      resolve({ stdout, stderr, exitCode: exitCode || 0 });
+    });
+
+    child.on('error', (error) => {
+      resolve({ stdout, stderr: error.message, exitCode: 1 });
+    });
+  });
+}
 }
 
 async function fileExists(filePath) {
@@ -40,8 +53,7 @@ async function fileExists(filePath) {
 }
 
 describe('Command Combinations and Integration', () => {
-  let tempDir;
-  let originalCwd;
+  let tempDir, originalCwd;
 
   beforeEach(async () => {
     originalCwd = process.cwd();
@@ -51,12 +63,13 @@ describe('Command Combinations and Integration', () => {
     await createIntegrationTestEnvironment();
   });
 
-  afterEach(async () => { 
+  afterEach(async () => {
     process.chdir(originalCwd);
     await fs.rm(tempDir, { recursive: true, force: true });
   });
 
-  async function createIntegrationTestEnvironment() { 
+  async function createIntegrationTestEnvironment() {
+     
     // Full-stack application templates
     await fs.mkdir('_templates/app', { recursive: true });
     
@@ -250,7 +263,7 @@ variables:
     );
 
     // Multi-generator template
-    await fs.mkdir('_templates/full-stack', { recursive });
+    await fs.mkdir('_templates/full-stack', { recursive: true });
     await fs.writeFile(
       '_templates/full-stack/feature.ts.njk',
       `---
@@ -281,10 +294,10 @@ export { {{name}} } from './{{name}}.jsx.js';
     );
 
     // Create directories
-    await fs.mkdir('src/api', { recursive });
-    await fs.mkdir('src/components', { recursive });
-    await fs.mkdir('src/features', { recursive });
-    await fs.mkdir('src/utils', { recursive });
+    await fs.mkdir('src/api', { recursive: true });
+    await fs.mkdir('src/components', { recursive: true });
+    await fs.mkdir('src/features', { recursive: true });
+    await fs.mkdir('src/utils', { recursive: true });
   }
 
   describe('Sequential Command Execution', () => {
@@ -576,7 +589,7 @@ export { {{name}} } from './{{name}}.jsx.js';
       expect(result.exitCode).toBe(1);
       
       // No partial files should be left
-      const files = await fs.readdir('src/components', { recursive });
+      const files = await fs.readdir('src/components', { recursive: true });
       const errorFiles = files.filter(f => f.toString().includes('ErrorTest'));
       expect(errorFiles).toHaveLength(0);
     });

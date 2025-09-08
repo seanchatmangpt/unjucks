@@ -3,24 +3,43 @@
  * Testing file generation, modification, and dry-run functionality
  */
 
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { execFile } from 'child_process';
-import { promisify } from 'util';
-import * from 'path';
-import * from 'fs/promises';
+import { spawn } from 'child_process';
+import path from 'path';
+import fs from 'fs/promises';
 import { tmpdir } from 'os';
+import { fileURLToPath } from 'url';
 
-const execFileAsync = promisify(execFile);
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 const CLI_PATH = path.resolve(__dirname, '../../bin/unjucks.cjs');
 
-async function runCLI(args = [], cwd?) {
-  try {
-    const { stdout, stderr } = await execFileAsync('node', [CLI_PATH, ...args], { cwd),
-      timeout });
-    return { stdout, stderr, exitCode };
-  } catch (error) { return {
-      stdout };
-  }
+async function runCLI(args = [], cwd) {
+  return new Promise((resolve) => {
+    const child = spawn('node', [CLI_PATH, ...args], {
+      cwd: cwd || process.cwd(),
+      env: { ...process.env, NODE_ENV: 'test' },
+      timeout: 30000
+    });
+
+    let stdout = '';
+    let stderr = '';
+
+    child.stdout?.on('data', (data) => {
+      stdout += data.toString();
+    });
+
+    child.stderr?.on('data', (data) => {
+      stderr += data.toString();
+    });
+
+    child.on('close', (exitCode) => {
+      resolve({ stdout, stderr, exitCode: exitCode || 0 });
+    });
+
+    child.on('error', (error) => {
+      resolve({ stdout, stderr: error.message, exitCode: 1 });
+    });
+  });
 }
 
 async function fileExists(filePath) {
@@ -41,7 +60,9 @@ async function readFileContent(filePath) {
 }
 
 describe('File Operations and Dry-Run Tests', () => {
-  let tempDir => {
+  let tempDir, originalCwd;
+
+  beforeEach(async () => {
     originalCwd = process.cwd();
     tempDir = await fs.mkdtemp(path.join(tmpdir(), 'unjucks-files-'));
     process.chdir(tempDir);
@@ -49,12 +70,14 @@ describe('File Operations and Dry-Run Tests', () => {
     await createFileOperationTemplates();
   });
 
-  afterEach(async () => { process.chdir(originalCwd);
+  afterEach(async () => {
+    process.chdir(originalCwd);
     await fs.rm(tempDir, { recursive: true, force });
   });
 
-  async function createFileOperationTemplates() { // Basic file creation template
-    await fs.mkdir('_templates/file', { recursive });
+  async function createFileOperationTemplates() {
+     // Basic file creation template
+    await fs.mkdir('_templates/file', { recursive: true });
     await fs.writeFile(
       '_templates/file/create.txt.njk',
       `---
@@ -78,7 +101,7 @@ export interface {{name}} { id }} = { id };
     );
 
     // Injection templates
-    await fs.mkdir('_templates/inject', { recursive });
+    await fs.mkdir('_templates/inject', { recursive: true });
     await fs.writeFile(
       '_templates/inject/append.ts.njk',
       `---
@@ -143,7 +166,7 @@ to) {
       `---
 to);
 
-    await fs.mkdir('src', { recursive });
+    await fs.mkdir('src', { recursive: true });
   }
 
   describe('Basic File Creation', () => {
@@ -296,7 +319,7 @@ to);
 
   describe('File Overwriting and Force Mode', () => { it('should prompt when file exists (non-interactive test)', async () => {
       // Create initial file
-      await fs.mkdir('output', { recursive });
+      await fs.mkdir('output', { recursive: true });
       await fs.writeFile('output/ExistingFile.txt', 'Original content');
       
       const result = await runCLI([
@@ -316,7 +339,7 @@ to);
     });
 
     it('should overwrite files with --force flag', async () => { // Create initial file
-      await fs.mkdir('output', { recursive });
+      await fs.mkdir('output', { recursive: true });
       await fs.writeFile('output/ForceTest.txt', 'Original content');
       
       const result = await runCLI([
@@ -334,7 +357,7 @@ to);
     });
 
     it('should preserve existing files without --force', async () => { // Create initial file
-      await fs.mkdir('output', { recursive });
+      await fs.mkdir('output', { recursive: true });
       await fs.writeFile('output/PreserveTest.txt', 'Original content');
       
       const result = await runCLI([
@@ -448,7 +471,7 @@ export const existing = 'value';
     });
 
     it('should handle permission errors', async () => { // Create read-only directory
-      await fs.mkdir('readonly', { recursive });
+      await fs.mkdir('readonly', { recursive: true });
       await fs.chmod('readonly', 0o444);
       
       const result = await runCLI([
@@ -484,7 +507,7 @@ export const existing = 'value';
       expect(result.exitCode).toBe(1);
       
       // Check that no partial files were left
-      const files = await fs.readdir('.', { recursive });
+      const files = await fs.readdir('.', { recursive: true });
       const partialFiles = files.filter(f => f.toString().includes('CleanupTest'));
       expect(partialFiles).toHaveLength(0);
     });

@@ -1,10 +1,10 @@
 {
-  "timestamp": "2025-09-07T23:20:05.834Z",
-  "duration": 20026,
+  "timestamp": "2025-09-08T21:55:25.539Z",
+  "duration": 22991,
   "environment": {
     "node_version": "v22.12.0",
     "platform": "darwin",
-    "cli_version": "2025.9.071605"
+    "cli_version": "2025.9.8"
   },
   "comprehensive_tests": null,
   "advanced_tests": null,

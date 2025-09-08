@@ -1,0 +1,45 @@
+---
+to: "{{ dest }}/queries/language-{{ queryName }}.sparql"
+inject: false
+sparql: |
+  SELECT ?person ?nameEn ?nameFr
+  WHERE {
+    ?person a schema:Person .
+    ?person rdfs:label ?nameEn .
+    FILTER(lang(?nameEn) = "en")
+    OPTIONAL {
+      ?person rdfs:label ?nameFr .
+      FILTER(lang(?nameFr) = "fr")
+    }
+  }
+rdf:
+  prefixes:
+    - "schema: http://schema.org/"
+    - "rdfs: http://www.w3.org/2000/01/rdf-schema#"
+---
+PREFIX schema: <http://schema.org/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+
+SELECT {{ variables | map('sparqlVar') | join(' ') }}
+WHERE {
+  {% for pattern in patterns %}
+  {{ pattern.subject | sparqlVar }} {{ pattern.predicate | rdfProperty }} {{ pattern.object | sparqlValue }} .
+  {% endfor %}
+  
+  {% if languageFilters %}
+  {% for langFilter in languageFilters %}
+  FILTER(lang({{ langFilter.variable | sparqlVar }}) = "{{ langFilter.language }}")
+  {% endfor %}
+  {% endif %}
+  
+  {% if optionalPatterns %}
+  {% for optional in optionalPatterns %}
+  OPTIONAL {
+    {{ optional.subject | sparqlVar }} {{ optional.predicate | rdfProperty }} {{ optional.object | sparqlValue }} .
+    {% if optional.languageFilter %}
+    FILTER(lang({{ optional.languageFilter.variable | sparqlVar }}) = "{{ optional.languageFilter.language }}")
+    {% endif %}
+  }
+  {% endfor %}
+  {% endif %}
+}

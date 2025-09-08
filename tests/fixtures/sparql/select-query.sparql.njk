@@ -47,7 +47,6 @@ GROUP BY {% for var in groupBy %}{{ var | sparqlVar }}{% if not loop.last %} {% 
 {% endif %}
 {% if having %}
 HAVING {{ having | sparqlFilter }}
-
 {% endif %}
 {% if orderBy %}
 ORDER BY {% for order in orderBy %}{{ order | sparqlOrderBy }}{% if not loop.last %} {% endif %}{% endfor %}

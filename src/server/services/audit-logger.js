@@ -1,5 +1,6 @@
 import { dbManager } from '../config/database.js';
 import { env } from '../config/environment.js';
+import crypto from 'crypto';
 
 /**
  * @typedef {Object} AuditEvent
@@ -59,6 +60,20 @@ class AuditLogger {
     const auditEvent = {
       ...event,
       timestamp: new Date(),
+    };
+
+    // Add integrity checksum
+    const eventData = JSON.stringify({
+      tenantId: auditEvent.tenantId,
+      userId: auditEvent.userId,
+      action: auditEvent.action,
+      resource: auditEvent.resource,
+      timestamp: auditEvent.timestamp.toISOString(),
+      details: auditEvent.details
+    });
+    auditEvent.metadata = {
+      ...auditEvent.metadata,
+      checksum: crypto.createHash('sha256').update(eventData).digest('hex')
     };
 
     try {
@@ -228,7 +243,7 @@ class AuditLogger {
     await this.log({
       tenantId: tenant.tenantId,
       userId: user.id,
-      action: 'authenticate',
+      action: 'authentication',
       resource: 'user_session',
       details: {
         provider: user.provider,
@@ -258,10 +273,10 @@ class AuditLogger {
     await this.log({
       tenantId: tenant.tenantId,
       userId: user.id,
-      action,
+      action: 'data_access',
       resource,
       resourceId,
-      details,
+      details: { ...details, dataAction: action },
       ipAddress: this.getClientIP(req),
       userAgent: req.get('User-Agent') || 'unknown',
       severity: this.getDataAccessSeverity(action),
@@ -285,10 +300,10 @@ class AuditLogger {
     await this.log({
       tenantId: tenant.tenantId,
       userId: user.id,
-      action,
+      action: 'admin_action',
       resource,
       resourceId,
-      details,
+      details: { ...details, adminAction: action },
       ipAddress: this.getClientIP(req),
       userAgent: req.get('User-Agent') || 'unknown',
       severity: 'high',
@@ -310,9 +325,9 @@ class AuditLogger {
     await this.log({
       tenantId,
       userId,
-      action,
+      action: 'security_event',
       resource: 'security',
-      details,
+      details: { ...details, securityAction: action },
       ipAddress: this.getClientIP(req),
       userAgent: req.get('User-Agent') || 'unknown',
       severity,

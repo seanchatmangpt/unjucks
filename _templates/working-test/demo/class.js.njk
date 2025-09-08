@@ -1,0 +1,19 @@
+---
+to: output/{{ name | pascalCase }}.js
+inject: false
+---
+// Generated from: {{ name }}
+export class {{ name | pascalCase }} {
+  constructor() {
+    this.{{ name | camelCase }} = '{{ name | kebabCase }}';
+    this.constant = '{{ name | constantCase }}';
+  }
+  
+  get{{ name | pascalCase }}Data() {
+    return {
+      snake: '{{ name | snakeCase }}',
+      plural: '{{ name | pluralize }}',
+      singular: '{{ name | singular }}'
+    };
+  }
+}

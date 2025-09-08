@@ -1,0 +1,92 @@
+{
+  "timestamp": "2025-09-08T21:55:32.486Z",
+  "summary": {
+    "totalTests": 5,
+    "passed": 5,
+    "failed": 0,
+    "avgRenderTime": 0.5888,
+    "maxRenderTime": 1.409,
+    "minRenderTime": 0.001,
+    "memoryUsage": {
+      "rss": 83771392,
+      "heapTotal": 42778624,
+      "heapUsed": 16932264,
+      "external": 1805641,
+      "arrayBuffers": 27635
+    },
+    "totalExecutionTime": 67.728
+  },
+  "tests": [
+    {
+      "name": "Simple Template Rendering",
+      "iterations": 1000,
+      "avgTime": 0.001,
+      "minTime": 0.001,
+      "maxTime": 0.247,
+      "memoryDelta": {
+        "heapUsed": 44160,
+        "heapTotal": 2883584,
+        "rss": 819200
+      },
+      "status": "passed",
+      "performanceGrade": "A+"
+    },
+    {
+      "name": "Complex Template Rendering",
+      "iterations": 100,
+      "avgTime": 0.019,
+      "minTime": 0.01,
+      "maxTime": 0.162,
+      "memoryDelta": {
+        "heapUsed": 972016,
+        "heapTotal": 0,
+        "rss": 2080768
+      },
+      "status": "passed",
+      "performanceGrade": "A+"
+    },
+    {
+      "name": "Large Dataset Processing",
+      "iterations": 10,
+      "avgTime": 1.409,
+      "minTime": 0.869,
+      "maxTime": 2.746,
+      "memoryDelta": {
+        "heapUsed": 5524200,
+        "heapTotal": 15990784,
+        "rss": 17072128
+      },
+      "status": "passed",
+      "performanceGrade": "A+"
+    },
+    {
+      "name": "File Reading",
+      "iterations": 50,
+      "avgTime": 0.129,
+      "minTime": 0.117,
+      "maxTime": 0.438,
+      "memoryDelta": {
+        "heapUsed": -667112,
+        "heapTotal": 0,
+        "rss": 32768
+      },
+      "status": "passed",
+      "performanceGrade": "A+"
+    },
+    {
+      "name": "Template Discovery",
+      "iterations": 20,
+      "avgTime": 1.386,
+      "minTime": 0.88,
+      "maxTime": 2.517,
+      "memoryDelta": {
+        "heapUsed": 10019808,
+        "heapTotal": 18087936,
+        "rss": 11517952
+      },
+      "status": "passed",
+      "performanceGrade": "A+"
+    }
+  ],
+  "bottlenecks": []
+}

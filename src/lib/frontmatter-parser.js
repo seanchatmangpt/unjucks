@@ -20,12 +20,14 @@ export class FrontmatterParser {
 
   /**
    * Parse template content with frontmatter and optional semantic validation
+   * Enhanced to handle SPARQL/RDF content properly
    * @param {string} templateContent - Template content to parse
    * @param {boolean} [enableSemanticValidation=false] - Enable semantic validation
    * @returns {Promise<{frontmatter: Object, content: string, hasValidFrontmatter: boolean, validationResult?: Object}>}
    */
   async parse(templateContent, enableSemanticValidation = false) {
-    const frontmatterRegex = /^---\s*\n([\s\S]*?)\n---\s*\n([\s\S]*)$/;
+    // Enhanced frontmatter regex that properly handles SPARQL content
+    const frontmatterRegex = /^---\s*\n([\s\S]*?)\n---\s*\n?([\s\S]*)$/;
     const match = templateContent.match(frontmatterRegex);
 
     if (!match) {
@@ -37,11 +39,21 @@ export class FrontmatterParser {
     }
 
     try {
-      const frontmatter = yaml.parse(match[1]) || {};
-      const content = match[2];
+      // Pre-process frontmatter to handle SPARQL queries safely
+      const processedFrontmatterText = this.preprocessSparqlFrontmatter(match[1]);
+      
+      const frontmatter = yaml.parse(processedFrontmatterText, {
+        keepUndefined: true,
+        strict: false
+      }) || {};
+      
+      // Post-process to restore SPARQL content
+      const processedFrontmatter = this.postprocessSparqlFrontmatter(frontmatter);
+      
+      const content = match[2].trim();
 
       const result = {
-        frontmatter: frontmatter || {},
+        frontmatter: processedFrontmatter || {},
         content,
         hasValidFrontmatter: true,
       };
@@ -50,12 +62,12 @@ export class FrontmatterParser {
       if (
         enableSemanticValidation &&
         this.semanticValidator &&
-        this.hasRDFConfig(frontmatter)
+        this.hasRDFConfig(processedFrontmatter)
       ) {
         try {
           // This would require RDFDataLoader to get actual data for validation
           // For now, just validate the configuration structure
-          const configValidation = this.validate(frontmatter);
+          const configValidation = this.validate(processedFrontmatter);
           if (!configValidation.valid) {
             result.validationResult = {
               valid: false,
@@ -80,6 +92,77 @@ export class FrontmatterParser {
         hasValidFrontmatter: false,
       };
     }
+  }
+
+  /**
+   * Pre-process frontmatter to safely handle SPARQL queries in YAML
+   * @param {string} frontmatterText - Raw frontmatter text
+   * @returns {string} Processed frontmatter safe for YAML parsing
+   */
+  preprocessSparqlFrontmatter(frontmatterText) {
+    // Handle multiline SPARQL queries using literal block scalar (|)
+    // This preserves line breaks and special characters
+    return frontmatterText.replace(
+      /^(\s*(?:sparql|query|rdf|turtle):\s*)([\s\S]*?)(?=^\s*[a-zA-Z_]|\s*$)/gm,
+      (match, header, content) => {
+        // If content doesn't start with | or >, add | for literal block
+        if (!content.trim().startsWith('|') && !content.trim().startsWith('>')) {
+          // Check if content looks like a SPARQL query
+          const trimmedContent = content.trim();
+          if (this.isSparqlLikeContent(trimmedContent)) {
+            return header + '|\n' + content.split('\n').map(line => 
+              line.trim() ? '  ' + line : line
+            ).join('\n');
+          }
+        }
+        return match;
+      }
+    );
+  }
+
+  /**
+   * Post-process parsed frontmatter to restore SPARQL content
+   * @param {object} frontmatter - Parsed YAML frontmatter
+   * @returns {object} Processed frontmatter with clean SPARQL content
+   */
+  postprocessSparqlFrontmatter(frontmatter) {
+    const result = { ...frontmatter };
+    
+    // Clean up SPARQL/RDF content
+    ['sparql', 'query', 'rdf', 'turtle'].forEach(key => {
+      if (typeof result[key] === 'string') {
+        result[key] = result[key].trim();
+      }
+    });
+
+    // Handle RDF prefixes array
+    if (result.rdf && typeof result.rdf === 'object') {
+      if (Array.isArray(result.rdf.prefixes)) {
+        result.rdf.prefixes = result.rdf.prefixes.map(prefix => {
+          if (typeof prefix === 'string') {
+            return prefix.trim();
+          }
+          return prefix;
+        });
+      }
+    }
+
+    return result;
+  }
+
+  /**
+   * Check if content looks like SPARQL
+   * @param {string} content - Content to check
+   * @returns {boolean} Whether content appears to be SPARQL
+   */
+  isSparqlLikeContent(content) {
+    const sparqlKeywords = [
+      'SELECT', 'CONSTRUCT', 'ASK', 'DESCRIBE', 'INSERT', 'DELETE',
+      'PREFIX', 'WHERE', 'FILTER', 'OPTIONAL', 'UNION', 'GRAPH'
+    ];
+    
+    const upperContent = content.toUpperCase();
+    return sparqlKeywords.some(keyword => upperContent.includes(keyword));
   }
 
   /**
@@ -132,14 +215,19 @@ export class FrontmatterParser {
 
     // Validate RDF configuration
     if (frontmatter.rdf && typeof frontmatter.rdf === "object") {
-      if (!frontmatter.rdf.source) {
-        errors.push("RDF configuration requires a 'source' property");
+      if (!frontmatter.rdf.source && !frontmatter.rdf.prefixes) {
+        errors.push("RDF configuration requires a 'source' property or 'prefixes' array");
       }
       if (
         frontmatter.rdf.type &&
         !["file", "inline", "uri"].includes(frontmatter.rdf.type)
       ) {
         errors.push("RDF type must be 'file', 'inline', or 'uri'");
+      }
+      
+      // Validate prefixes array
+      if (frontmatter.rdf.prefixes && !Array.isArray(frontmatter.rdf.prefixes)) {
+        errors.push("RDF prefixes must be an array");
       }
     }
 
@@ -152,6 +240,14 @@ export class FrontmatterParser {
         !["file", "inline", "uri"].includes(frontmatter.turtle.type)
       ) {
         errors.push("Turtle type must be 'file', 'inline', or 'uri'");
+      }
+    }
+
+    // Validate inline SPARQL queries
+    if (frontmatter.sparql && typeof frontmatter.sparql === "string") {
+      const sparqlContent = frontmatter.sparql.trim();
+      if (sparqlContent && !this.isValidSparqlSyntax(sparqlContent)) {
+        errors.push("Invalid SPARQL query syntax in frontmatter");
       }
     }
 
@@ -176,8 +272,33 @@ export class FrontmatterParser {
       frontmatter.rdf ||
       frontmatter.turtle ||
       frontmatter.turtleData ||
-      frontmatter.rdfData
+      frontmatter.rdfData ||
+      frontmatter.sparql ||
+      frontmatter.query
     );
+  }
+
+  /**
+   * Basic SPARQL syntax validation
+   * @param {string} sparqlQuery - SPARQL query to validate
+   * @returns {boolean} Whether the query has basic valid syntax
+   */
+  isValidSparqlSyntax(sparqlQuery) {
+    if (!sparqlQuery || typeof sparqlQuery !== 'string') return false;
+    
+    const query = sparqlQuery.trim().toUpperCase();
+    
+    // Check for basic SPARQL query structure
+    const hasQueryType = /^(SELECT|CONSTRUCT|ASK|DESCRIBE|INSERT|DELETE)/.test(query);
+    if (!hasQueryType) return false;
+    
+    // For SELECT/CONSTRUCT queries, check for WHERE clause
+    if (query.startsWith('SELECT') || query.startsWith('CONSTRUCT')) {
+      return query.includes('WHERE');
+    }
+    
+    // For UPDATE queries (INSERT/DELETE), they're valid without WHERE
+    return true;
   }
 
   /**

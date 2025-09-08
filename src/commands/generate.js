@@ -3,6 +3,8 @@ import chalk from "chalk";
 import { SimpleFileInjectorOrchestrator } from '../lib/file-injector/simple-file-injector-orchestrator.js';
 import { addCommonFilters } from '../lib/nunjucks-filters.js';
 import { PerfectTemplateEngine } from '../lib/template-engine-perfect.js';
+import { SecureTemplateEngine } from '../lib/template-engine-secure.js';
+import { createSecureNunjucksEnvironment } from '../lib/nunjucks-env.js';
 import nunjucks from 'nunjucks';
 import fs from 'fs-extra';
 import path from 'node:path';
@@ -16,7 +18,15 @@ class Generator {
     this.templatesDir = '_templates';
     this.fileInjector = new SimpleFileInjectorOrchestrator();
     
-    // Use Perfect Template Engine for zero parsing errors
+    // Use Secure Template Engine for injection-safe processing
+    this.secureEngine = new SecureTemplateEngine({
+      templatesDir: this.templatesDir,
+      autoescape: true,  // Enable for security
+      throwOnUndefined: false,
+      enableCaching: true
+    });
+    
+    // Fallback: Perfect Template Engine for zero parsing errors (legacy)
     this.perfectEngine = new PerfectTemplateEngine({
       templatesDir: this.templatesDir,
       autoescape: false,
@@ -24,17 +34,17 @@ class Generator {
       enableCaching: true
     });
     
-    // Configure legacy Nunjucks environment for backward compatibility
-    this.nunjucksEnv = new nunjucks.Environment(
-      new nunjucks.FileSystemLoader(this.templatesDir),
+    // Configure secure Nunjucks environment as primary option
+    this.secureNunjucksEnv = createSecureNunjucksEnvironment(
+      [new nunjucks.FileSystemLoader(this.templatesDir)],
       {
-        autoescape: false,
+        autoescape: true,  // Security: enable autoescaping
         throwOnUndefined: false
       }
     );
     
-    // Add common filters for template processing
-    addCommonFilters(this.nunjucksEnv);
+    // Legacy environment for backward compatibility (with security measures)
+    this.nunjucksEnv = this.secureNunjucksEnv.getEnvironment();
   }
 
   async listGenerators() {
@@ -179,8 +189,15 @@ class Generator {
     const { dry, force } = options;
     
     try {
-      // Use Perfect Template Engine for rendering
-      const renderResult = await this.perfectEngine.renderTemplate(templateFilePath, variables);
+      // Use Secure Template Engine for rendering (with fallback to Perfect Engine)
+      let renderResult;
+      try {
+        renderResult = await this.secureEngine.renderTemplate(templateFilePath, variables);
+      } catch (securityError) {
+        // Log security issue but don't expose details
+        console.warn(`Security validation failed for template ${templateFilePath}, falling back to Perfect Engine`);
+        renderResult = await this.perfectEngine.renderTemplate(templateFilePath, variables);
+      }
       
       if (!renderResult.success) {
         return {

@@ -21,6 +21,27 @@ export default defineConfig({
       "tests/linked-data-validation.test.js",
       "tests/linked-data-performance.test.js",
       "tests/linked-data-dereferencing.test.js",
+      "tests/latex-error-recovery.test.js", // LaTeX error recovery tests
+      "tests/docker-validation/error-recovery-validation.test.js", // Docker error recovery validation
+      "tests/docker-validation/api-validation.test.js", // Comprehensive API validation tests
+      "tests/docker-validation/compliance-validation.test.js", // Security compliance validation
+      "tests/docker-validation/resource-validation.test.js", // Production resource validation
+      "tests/docker-validation/docker-stress.test.js", // Docker stress testing
+      "tests/docker-validation/template-validation-simple.test.js", // Simple template validation
+      "tests/docker-validation/filter-validation.test.js", // Filter functionality validation
+      
+      // Fixed CLI tests
+      "tests/cli/core-cli.test.js",
+      "tests/unit/cli-core.test.js",
+      "tests/cli/argument-parsing.test.js",
+      "tests/cli/command-combinations.test.js",
+      "tests/cli/error-handling.test.js",
+      "tests/cli/file-operations.test.js",
+      "tests/cli/full-workflows.test.js",
+      "tests/cli/help-system.test.js",
+      "tests/cli/performance-edge-cases.test.js",
+      "tests/cli/semantic-commands.test.js",
+      
       // "tests/atomic-operations.test.js", // Has syntax issues
       // "tests/template-scanner.test.js", // Has syntax issues
     ],
@@ -40,7 +61,8 @@ export default defineConfig({
       "tests/validation/**",
       "tests/benchmarks/**",
       "tests/regression/**",
-      "tests/cli/**",
+      // Most CLI tests excluded except our fixed ones
+      "tests/cli/!(core-cli|argument-parsing|command-combinations|error-handling|file-operations|full-workflows|help-system|performance-edge-cases|semantic-commands).test.js",
       "tests/**/*.bak*",
       "tests/**/*.spec.js",
     ],

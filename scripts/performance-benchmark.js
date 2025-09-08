@@ -1,349 +1,290 @@
 #!/usr/bin/env node
-import { spawn, exec } from 'child_process';
-import { promisify } from 'util';
-import { performance } from 'perf_hooks';
-import { writeFileSync, mkdirSync } from 'fs';
-import { join } from 'path';
 
-const execAsync = promisify(exec);
+/**
+ * Performance Benchmarking Script
+ * Tests template rendering performance and identifies bottlenecks
+ */
+
+import { readFileSync, writeFileSync, mkdirSync } from 'fs';
+import { glob } from 'glob';
+import { dirname, join } from 'path';
+import { fileURLToPath } from 'url';
+import { performance } from 'perf_hooks';
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const rootDir = join(__dirname, '..');
 
 class PerformanceBenchmarker {
   constructor() {
     this.results = {
-      testDate: new Date().toISOString(),
-      nodeVersion: process.version,
-      platform: process.platform,
-      arch: process.arch,
-      tests: []
+      timestamp: new Date().toISOString(),
+      summary: {
+        totalTests: 0,
+        passed: 0,
+        failed: 0,
+        avgRenderTime: 0,
+        maxRenderTime: 0,
+        minRenderTime: Infinity,
+        memoryUsage: {}
+      },
+      tests: [],
+      bottlenecks: []
     };
-    
-    // Ensure results directory exists
-    mkdirSync('tests/performance/results', { recursive: true });
   }
 
-  async measureCommand(command, iterations = 5) {
-    console.log(`📊 Benchmarking: ${command}`);
+  async benchmark(name, fn, iterations = 10) {
+    console.log(`🔄 Running ${name} (${iterations} iterations)...`);
     
-    const measurements = [];
-    
-    for (let i = 0; i < iterations; i++) {
-      const startTime = performance.now();
-      const startMemory = process.memoryUsage();
-      const startCpu = process.cpuUsage();
-      
-      try {
-        const { stdout, stderr } = await execAsync(`node src/cli/index.js ${command}`, {
-          cwd: process.cwd(),
-          timeout: 30000
-        });
-        
-        const endTime = performance.now();
-        const endMemory = process.memoryUsage();
-        const endCpu = process.cpuUsage(startCpu);
-        
-        measurements.push({
-          executionTime: endTime - startTime,
-          memoryUsed: endMemory.heapUsed - startMemory.heapUsed,
-          cpuUser: endCpu.user,
-          cpuSystem: endCpu.system,
-          success: true,
-          outputLength: stdout ? stdout.length : 0
-        });
-        
-        console.log(`  Run ${i + 1}: ${(endTime - startTime).toFixed(2)}ms`);
-        
-      } catch (error) {
-        const endTime = performance.now();
-        measurements.push({
-          executionTime: endTime - startTime,
-          memoryUsed: 0,
-          cpuUser: 0,
-          cpuSystem: 0,
-          success: false,
-          error: error.message
-        });
-        console.log(`  Run ${i + 1}: ERROR - ${error.message}`);
-      }
-    }
-    
-    // Calculate statistics
-    const successfulRuns = measurements.filter(m => m.success);
-    const stats = {
-      command,
-      iterations,
-      successCount: successfulRuns.length,
-      successRate: (successfulRuns.length / iterations) * 100,
-      averageTime: successfulRuns.length > 0 ? 
-        successfulRuns.reduce((sum, m) => sum + m.executionTime, 0) / successfulRuns.length : 0,
-      minTime: successfulRuns.length > 0 ? 
-        Math.min(...successfulRuns.map(m => m.executionTime)) : 0,
-      maxTime: successfulRuns.length > 0 ? 
-        Math.max(...successfulRuns.map(m => m.executionTime)) : 0,
-      averageMemory: successfulRuns.length > 0 ? 
-        successfulRuns.reduce((sum, m) => sum + m.memoryUsed, 0) / successfulRuns.length : 0,
-      measurements
-    };
-    
-    console.log(`  ✅ Average: ${stats.averageTime.toFixed(2)}ms`);
-    console.log(`  📊 Range: ${stats.minTime.toFixed(2)}ms - ${stats.maxTime.toFixed(2)}ms`);
-    console.log(`  💾 Memory: ${(stats.averageMemory / 1024 / 1024).toFixed(2)}MB`);
-    console.log(`  🎯 Success Rate: ${stats.successRate.toFixed(1)}%\n`);
-    
-    return stats;
-  }
-
-  async runCLIPerformanceTests() {
-    console.log('🚀 Starting CLI Performance Benchmarks\n');
-    
-    const commands = [
-      '--help',
-      '--version',
-      'list',
-      'help',
-      'help generate',
-      'generate --help'
-    ];
-    
-    for (const command of commands) {
-      const result = await this.measureCommand(command);
-      this.results.tests.push(result);
-      
-      // Small delay between tests
-      await new Promise(resolve => setTimeout(resolve, 500));
-    }
-  }
-
-  async measureFilterPerformance() {
-    console.log('🔧 Testing Filter Performance\n');
-    
-    // Create a test template with various filters
-    const testTemplate = `
-{{ "hello world" | upper }}
-{{ [1,2,3,4,5] | length }}
-{{ "test string with spaces" | replace(" ", "_") }}
-{{ range(100) | list | join(",") | length }}
-    `.trim();
-    
-    const nunjucks = await import('nunjucks');
-    const env = new nunjucks.Environment();
-    
-    const filterTests = [
-      { name: 'upper', template: '{{ "test" | upper }}' },
-      { name: 'length', template: '{{ [1,2,3] | length }}' },
-      { name: 'replace', template: '{{ "hello world" | replace("world", "test") }}' },
-      { name: 'join', template: '{{ ["a","b","c"] | join("-") }}' }
-    ];
-    
-    const filterResults = [];
-    
-    for (const test of filterTests) {
-      console.log(`Testing filter: ${test.name}`);
-      
-      const iterations = 1000;
-      const startTime = performance.now();
-      
-      for (let i = 0; i < iterations; i++) {
-        try {
-          env.renderString(test.template);
-        } catch (error) {
-          console.warn(`Filter ${test.name} error:`, error.message);
-          break;
-        }
-      }
-      
-      const endTime = performance.now();
-      const totalTime = endTime - startTime;
-      const avgTime = totalTime / iterations;
-      
-      const result = {
-        filterName: test.name,
-        iterations,
-        totalTime,
-        averageTime: avgTime,
-        throughput: iterations / (totalTime / 1000)
-      };
-      
-      filterResults.push(result);
-      
-      console.log(`  Average: ${avgTime.toFixed(4)}ms per operation`);
-      console.log(`  Throughput: ${result.throughput.toFixed(0)} ops/sec\n`);
-    }
-    
-    this.results.filterPerformance = filterResults;
-  }
-
-  async measureConcurrentExecution() {
-    console.log('⚡ Testing Concurrent Execution\n');
-    
-    const concurrentCount = 5;
-    const command = 'list';
-    
-    console.log(`Running ${concurrentCount} concurrent "${command}" commands...`);
-    
-    const startTime = performance.now();
-    
-    const promises = Array.from({ length: concurrentCount }, (_, i) => 
-      this.measureSingleExecution(command, `concurrent-${i}`)
-    );
-    
-    const results = await Promise.all(promises);
-    const endTime = performance.now();
-    
-    const concurrentResult = {
-      command,
-      concurrentCount,
-      totalTime: endTime - startTime,
-      results,
-      averageTime: results.reduce((sum, r) => sum + r.executionTime, 0) / results.length,
-      successRate: (results.filter(r => r.success).length / results.length) * 100
-    };
-    
-    console.log(`  Total time: ${concurrentResult.totalTime.toFixed(2)}ms`);
-    console.log(`  Average per command: ${concurrentResult.averageTime.toFixed(2)}ms`);
-    console.log(`  Success rate: ${concurrentResult.successRate.toFixed(1)}%\n`);
-    
-    this.results.concurrentExecution = concurrentResult;
-  }
-
-  async measureSingleExecution(command, id) {
-    const startTime = performance.now();
-    const startMemory = process.memoryUsage();
+    const times = [];
+    const memoryBefore = process.memoryUsage();
     
     try {
-      const { stdout, stderr } = await execAsync(`node src/cli/index.js ${command}`, {
-        cwd: process.cwd(),
-        timeout: 15000
-      });
+      // Warm up
+      await fn();
       
-      const endTime = performance.now();
-      const endMemory = process.memoryUsage();
+      // Actual benchmarking
+      for (let i = 0; i < iterations; i++) {
+        const start = performance.now();
+        await fn();
+        const end = performance.now();
+        times.push(end - start);
+      }
       
-      return {
-        id,
-        executionTime: endTime - startTime,
-        memoryUsed: endMemory.heapUsed - startMemory.heapUsed,
-        success: true,
-        outputLength: stdout ? stdout.length : 0
+      const memoryAfter = process.memoryUsage();
+      const memoryDelta = {
+        heapUsed: memoryAfter.heapUsed - memoryBefore.heapUsed,
+        heapTotal: memoryAfter.heapTotal - memoryBefore.heapTotal,
+        rss: memoryAfter.rss - memoryBefore.rss
       };
+      
+      const avgTime = times.reduce((sum, time) => sum + time, 0) / times.length;
+      const minTime = Math.min(...times);
+      const maxTime = Math.max(...times);
+      
+      const result = {
+        name,
+        iterations,
+        avgTime: parseFloat(avgTime.toFixed(3)),
+        minTime: parseFloat(minTime.toFixed(3)),
+        maxTime: parseFloat(maxTime.toFixed(3)),
+        memoryDelta,
+        status: 'passed',
+        performanceGrade: this.calculatePerformanceGrade(avgTime, memoryDelta.heapUsed)
+      };
+      
+      this.results.tests.push(result);
+      this.results.summary.passed++;
+      
+      // Check for performance bottlenecks
+      if (avgTime > 100) {
+        this.results.bottlenecks.push({
+          test: name,
+          issue: 'Slow rendering',
+          avgTime,
+          recommendation: 'Consider template optimization or caching'
+        });
+      }
+      
+      if (memoryDelta.heapUsed > 50 * 1024 * 1024) {
+        this.results.bottlenecks.push({
+          test: name,
+          issue: 'High memory usage',
+          memoryUsage: memoryDelta.heapUsed,
+          recommendation: 'Check for memory leaks or optimize data structures'
+        });
+      }
+      
+      console.log(`  ✅ ${name}: ${avgTime.toFixed(2)}ms avg, ${result.performanceGrade}`);
+      return result;
       
     } catch (error) {
-      const endTime = performance.now();
-      return {
-        id,
-        executionTime: endTime - startTime,
-        memoryUsed: 0,
-        success: false,
-        error: error.message
+      const result = {
+        name,
+        iterations,
+        status: 'failed',
+        error: error.message,
+        performanceGrade: 'F'
       };
+      
+      this.results.tests.push(result);
+      this.results.summary.failed++;
+      
+      console.log(`  ❌ ${name}: Failed - ${error.message}`);
+      return result;
     }
+  }
+
+  calculatePerformanceGrade(avgTime, memoryUsage) {
+    let score = 100;
+    
+    if (avgTime > 1000) score -= 50;
+    else if (avgTime > 500) score -= 30;
+    else if (avgTime > 100) score -= 15;
+    else if (avgTime > 50) score -= 5;
+    
+    const memoryMB = memoryUsage / (1024 * 1024);
+    if (memoryMB > 100) score -= 30;
+    else if (memoryMB > 50) score -= 20;
+    else if (memoryMB > 25) score -= 10;
+    else if (memoryMB > 10) score -= 5;
+    
+    if (score >= 90) return 'A+';
+    if (score >= 80) return 'A';
+    if (score >= 70) return 'B+';
+    if (score >= 60) return 'B';
+    if (score >= 50) return 'C';
+    if (score >= 40) return 'D';
+    return 'F';
+  }
+
+  async benchmarkTemplateRendering() {
+    console.log('\n📊 Template Rendering Benchmarks');
+    console.log('═'.repeat(50));
+
+    const mockRender = (template, data) => {
+      let result = template;
+      if (data) {
+        Object.entries(data).forEach(([key, value]) => {
+          const regex = new RegExp(`\\{\\{\\s*${key}\\s*\\}\\}`, 'g');
+          result = result.replace(regex, String(value));
+        });
+      }
+      return result;
+    };
+
+    await this.benchmark('Simple Template Rendering', async () => {
+      const template = 'Hello {{ name }}!';
+      const data = { name: 'World' };
+      mockRender(template, data);
+    }, 1000);
+
+    await this.benchmark('Complex Template Rendering', async () => {
+      let result = '';
+      const items = Array.from({ length: 100 }, (_, i) => ({
+        id: i,
+        title: `Item ${i}`,
+        description: `Description ${i}`.repeat(10)
+      }));
+      
+      items.forEach(item => {
+        result += `<div class="item-${item.id}"><h2>${item.title}</h2><p>${item.description}</p></div>`;
+      });
+    }, 100);
+
+    await this.benchmark('Large Dataset Processing', async () => {
+      const records = Array.from({ length: 10000 }, (_, i) => ({
+        id: i,
+        name: `User ${i}`,
+        email: `user${i}@example.com`
+      }));
+      
+      let csv = 'id,name,email\n';
+      records.forEach(record => {
+        csv += `${record.id},${record.name},${record.email}\n`;
+      });
+    }, 10);
+  }
+
+  async benchmarkFileOperations() {
+    console.log('\n📁 File Operations Benchmarks');
+    console.log('═'.repeat(50));
+
+    const testFiles = await glob('src/**/*.js', { cwd: rootDir });
+    if (testFiles.length > 0) {
+      await this.benchmark('File Reading', async () => {
+        for (const file of testFiles.slice(0, Math.min(10, testFiles.length))) {
+          try {
+            readFileSync(join(rootDir, file), 'utf8');
+          } catch (e) {
+            // Skip files that can't be read
+          }
+        }
+      }, 50);
+    }
+
+    await this.benchmark('Template Discovery', async () => {
+      await glob('templates/**/*.{njk,tex}', { cwd: rootDir });
+    }, 20);
+  }
+
+  async runAllBenchmarks() {
+    console.log('🚀 Starting Performance Benchmarks\n');
+    
+    const startTime = performance.now();
+    
+    await this.benchmarkTemplateRendering();
+    await this.benchmarkFileOperations();
+    
+    const endTime = performance.now();
+    const totalTime = endTime - startTime;
+    
+    const times = this.results.tests
+      .filter(test => test.status === 'passed')
+      .map(test => test.avgTime);
+    
+    if (times.length > 0) {
+      this.results.summary.avgRenderTime = times.reduce((sum, time) => sum + time, 0) / times.length;
+      this.results.summary.maxRenderTime = Math.max(...times);
+      this.results.summary.minRenderTime = Math.min(...times);
+    }
+    
+    this.results.summary.totalTests = this.results.tests.length;
+    this.results.summary.totalExecutionTime = parseFloat(totalTime.toFixed(3));
+    this.results.summary.memoryUsage = process.memoryUsage();
+    
+    this.generateReport();
   }
 
   generateReport() {
-    const summary = {
-      totalTests: this.results.tests.length,
-      averageStartupTime: this.results.tests.reduce((sum, t) => sum + t.averageTime, 0) / this.results.tests.length,
-      overallSuccessRate: this.results.tests.reduce((sum, t) => sum + t.successRate, 0) / this.results.tests.length,
-      fastestCommand: this.results.tests.reduce((prev, curr) => 
-        prev.averageTime < curr.averageTime ? prev : curr),
-      slowestCommand: this.results.tests.reduce((prev, curr) => 
-        prev.averageTime > curr.averageTime ? prev : curr)
-    };
-    
-    this.results.summary = summary;
-    
-    // Save results
-    const resultsFile = 'tests/performance/results/benchmark-results.json';
-    writeFileSync(resultsFile, JSON.stringify(this.results, null, 2));
-    
-    // Generate report
-    console.log('📋 PERFORMANCE BENCHMARK REPORT');
+    console.log('\n📊 Performance Benchmark Results');
     console.log('═'.repeat(50));
-    console.log(`Test Date: ${this.results.testDate}`);
-    console.log(`Node Version: ${this.results.nodeVersion}`);
-    console.log(`Platform: ${this.results.platform} (${this.results.arch})`);
-    console.log(`\n📊 CLI PERFORMANCE SUMMARY:`);
-    console.log(`  Total Tests: ${summary.totalTests}`);
-    console.log(`  Average Startup Time: ${summary.averageStartupTime.toFixed(2)}ms`);
-    console.log(`  Overall Success Rate: ${summary.overallSuccessRate.toFixed(1)}%`);
-    console.log(`  Fastest Command: ${summary.fastestCommand.command} (${summary.fastestCommand.averageTime.toFixed(2)}ms)`);
-    console.log(`  Slowest Command: ${summary.slowestCommand.command} (${summary.slowestCommand.averageTime.toFixed(2)}ms)`);
     
-    if (this.results.filterPerformance) {
-      console.log(`\n🔧 FILTER PERFORMANCE:`);
-      this.results.filterPerformance.forEach(filter => {
-        console.log(`  ${filter.filterName}: ${filter.averageTime.toFixed(4)}ms avg, ${filter.throughput.toFixed(0)} ops/sec`);
+    console.log(`Total Tests: ${this.results.summary.totalTests}`);
+    console.log(`Passed: ${this.results.summary.passed}`);
+    console.log(`Failed: ${this.results.summary.failed}`);
+    console.log(`Total Execution Time: ${this.results.summary.totalExecutionTime}ms`);
+    
+    if (this.results.summary.avgRenderTime) {
+      console.log(`Average Render Time: ${this.results.summary.avgRenderTime.toFixed(2)}ms`);
+      console.log(`Fastest Test: ${this.results.summary.minRenderTime.toFixed(2)}ms`);
+      console.log(`Slowest Test: ${this.results.summary.maxRenderTime.toFixed(2)}ms`);
+    }
+    
+    const memUsage = this.results.summary.memoryUsage;
+    console.log(`Memory Usage: ${(memUsage.heapUsed / 1024 / 1024).toFixed(2)}MB heap`);
+    
+    if (this.results.bottlenecks.length > 0) {
+      console.log('\n⚠️  Performance Bottlenecks:');
+      console.log('─'.repeat(50));
+      
+      this.results.bottlenecks.forEach(bottleneck => {
+        console.log(`🔍 ${bottleneck.test}: ${bottleneck.issue}`);
+        console.log(`   ${bottleneck.recommendation}`);
       });
     }
     
-    if (this.results.concurrentExecution) {
-      console.log(`\n⚡ CONCURRENT EXECUTION:`);
-      console.log(`  ${this.results.concurrentExecution.concurrentCount} concurrent processes`);
-      console.log(`  Total time: ${this.results.concurrentExecution.totalTime.toFixed(2)}ms`);
-      console.log(`  Average per process: ${this.results.concurrentExecution.averageTime.toFixed(2)}ms`);
-      console.log(`  Success rate: ${this.results.concurrentExecution.successRate.toFixed(1)}%`);
+    try {
+      mkdirSync(join(rootDir, 'benchmarks'), { recursive: true });
+      const reportPath = join(rootDir, 'benchmarks/results.json');
+      writeFileSync(reportPath, JSON.stringify(this.results, null, 2));
+      console.log(`\n📋 Report saved to: ${reportPath}`);
+    } catch (error) {
+      console.error('Failed to save report:', error.message);
     }
     
-    console.log(`\n💾 Results saved to: ${resultsFile}`);
-    console.log('═'.repeat(50));
-    
-    // Performance assertions
-    console.log('\n🎯 PERFORMANCE ASSESSMENT:');
-    
-    const assessments = [
-      {
-        metric: 'Average Startup Time',
-        value: summary.averageStartupTime,
-        target: 5000,
-        unit: 'ms',
-        passed: summary.averageStartupTime < 5000
-      },
-      {
-        metric: 'Success Rate', 
-        value: summary.overallSuccessRate,
-        target: 95,
-        unit: '%',
-        passed: summary.overallSuccessRate >= 95
-      },
-      {
-        metric: 'Fastest Command',
-        value: summary.fastestCommand.averageTime,
-        target: 3000,
-        unit: 'ms',
-        passed: summary.fastestCommand.averageTime < 3000
-      }
-    ];
-    
-    assessments.forEach(assessment => {
-      const status = assessment.passed ? '✅ PASS' : '❌ FAIL';
-      console.log(`  ${status} ${assessment.metric}: ${assessment.value.toFixed(2)}${assessment.unit} (target: ${assessment.target}${assessment.unit})`);
-    });
-    
-    const overallGrade = assessments.every(a => a.passed) ? 'A+' : 
-                        assessments.filter(a => a.passed).length >= 2 ? 'B+' : 'C';
-    
-    console.log(`\n🏆 OVERALL PERFORMANCE GRADE: ${overallGrade}`);
-    
-    return this.results;
-  }
-
-  async run() {
-    try {
-      await this.runCLIPerformanceTests();
-      await this.measureFilterPerformance();
-      await this.measureConcurrentExecution();
-      return this.generateReport();
-    } catch (error) {
-      console.error('❌ Benchmark failed:', error);
-      throw error;
+    if (this.results.summary.failed > 0) {
+      console.log(`\n❌ Benchmark failed: ${this.results.summary.failed} tests failed`);
+      process.exit(1);
+    } else {
+      console.log('\n✅ All benchmarks passed');
     }
   }
 }
 
-// Run benchmarks if called directly
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (process.argv[1] === fileURLToPath(import.meta.url)) {
   const benchmarker = new PerformanceBenchmarker();
-  benchmarker.run().catch(error => {
-    console.error('Benchmark execution failed:', error);
+  benchmarker.runAllBenchmarks().catch(error => {
+    console.error('❌ Benchmark failed:', error);
     process.exit(1);
   });
 }

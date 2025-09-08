@@ -3,28 +3,49 @@
  * Tests the semantic CLI commands for RDF/OWL integration
  */
 
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { execFile } from 'child_process';
-import { promisify } from 'util';
-import * from 'path';
-import * from 'fs/promises';
+import { spawn } from 'child_process';
+import path from 'path';
+import fs from 'fs/promises';
 import { tmpdir } from 'os';
+import { fileURLToPath } from 'url';
 
-const execFileAsync = promisify(execFile);
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 const CLI_PATH = path.resolve(__dirname, '../../bin/unjucks.cjs');
 
-async function runCLI(args = [], cwd?) {
-  try {
-    const { stdout, stderr } = await execFileAsync('node', [CLI_PATH, ...args], { cwd),
-      timeout });
-    return { stdout, stderr, exitCode };
-  } catch (error) { return {
-      stdout };
-  }
+async function runCLI(args = [], cwd) {
+  return new Promise((resolve) => {
+    const child = spawn('node', [CLI_PATH, ...args], {
+      cwd: cwd || process.cwd(),
+      env: { ...process.env, NODE_ENV: 'test' },
+      timeout: 30000
+    });
+
+    let stdout = '';
+    let stderr = '';
+
+    child.stdout?.on('data', (data) => {
+      stdout += data.toString();
+    });
+
+    child.stderr?.on('data', (data) => {
+      stderr += data.toString();
+    });
+
+    child.on('close', (exitCode) => {
+      resolve({ stdout, stderr, exitCode: exitCode || 0 });
+    });
+
+    child.on('error', (error) => {
+      resolve({ stdout, stderr: error.message, exitCode: 1 });
+    });
+  });
 }
 
 describe('Semantic Commands Integration', () => {
-  let tempDir => {
+  let tempDir, originalCwd;
+
+  beforeEach(async () => {
     originalCwd = process.cwd();
     tempDir = await fs.mkdtemp(path.join(tmpdir(), 'unjucks-semantic-'));
     process.chdir(tempDir);
@@ -32,11 +53,13 @@ describe('Semantic Commands Integration', () => {
     await createSemanticTestStructure();
   });
 
-  afterEach(async () => { process.chdir(originalCwd);
+  afterEach(async () => {
+    process.chdir(originalCwd);
     await fs.rm(tempDir, { recursive: true, force });
   });
 
-  async function createSemanticTestStructure() { // Create sample RDF/Turtle ontology
+  async function createSemanticTestStructure() {
+     // Create sample RDF/Turtle ontology
     await fs.writeFile('sample.ttl', `
 @prefix rdf });
     
@@ -125,9 +148,9 @@ const {{className | lower}}Router = Router();
 export default {{className | lower}}Router;
     `);
 
-    await fs.mkdir('types', { recursive });
-    await fs.mkdir('schemas', { recursive });
-    await fs.mkdir('api', { recursive });
+    await fs.mkdir('types', { recursive: true });
+    await fs.mkdir('schemas', { recursive: true });
+    await fs.mkdir('api', { recursive: true });
   }
 
   describe('Semantic Command Structure', () => {

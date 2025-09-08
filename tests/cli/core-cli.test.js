@@ -6,34 +6,60 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { spawn } from 'child_process';
 import { promisify } from 'util';
-import * from 'path';
-import * from 'fs/promises';
+import path from 'path';
+import fs from 'fs/promises';
 import { tmpdir } from 'os';
+import { fileURLToPath } from 'url';
 
-const execFile = promisify(require('child_process').execFile);
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 const CLI_PATH = path.resolve(__dirname, '../../bin/unjucks.cjs');
+
+const execFile = promisify(spawn);
 
 /**
  * Execute CLI command and return result
  */
-async function runCLI(args = [], cwd?) {
-  try {
-    const { stdout, stderr } = await execFile('node', [CLI_PATH, ...args], { cwd),
-      timeout });
-    return { stdout, stderr, exitCode };
-  } catch (error) { return {
-      stdout };
-  }
+async function runCLI(args = [], cwd) {
+  return new Promise((resolve) => {
+    const child = spawn('node', [CLI_PATH, ...args], {
+      cwd: cwd || process.cwd(),
+      env: { ...process.env, NODE_ENV: 'test' },
+      timeout: 30000
+    });
+
+    let stdout = '';
+    let stderr = '';
+
+    child.stdout?.on('data', (data) => {
+      stdout += data.toString();
+    });
+
+    child.stderr?.on('data', (data) => {
+      stderr += data.toString();
+    });
+
+    child.on('close', (exitCode) => {
+      resolve({ stdout, stderr, exitCode: exitCode || 0 });
+    });
+
+    child.on('error', (error) => {
+      resolve({ stdout, stderr: error.message, exitCode: 1 });
+    });
+  });
 }
 
 describe('Core CLI Functionality', () => {
-  let tempDir => { originalCwd = process.cwd();
+  let tempDir, originalCwd;
+
+  beforeEach(async () => {
+    originalCwd = process.cwd();
     tempDir = await fs.mkdtemp(path.join(tmpdir(), 'unjucks-test-'));
     process.chdir(tempDir);
     
     // Create basic test structure
-    await fs.mkdir('_templates', { recursive });
-    await fs.mkdir('_templates/component', { recursive });
+    await fs.mkdir('_templates', { recursive: true });
+    await fs.mkdir('_templates/component', { recursive: true });
     
     // Create a basic template
     await fs.writeFile(
@@ -50,15 +76,19 @@ export function {{name}}({ children }) {
     );
   });
 
-  afterEach(async () => { process.chdir(originalCwd);
+  afterEach(async () => {
+    process.chdir(originalCwd);
     await fs.rm(tempDir, { recursive: true, force });
   });
 
-  describe('Basic Command Structure', () => { it('should show help when no arguments provided', async () => {
+  describe('Basic Command Structure', () => {
+    it('should show help when no arguments provided', async () => {
       const result = await runCLI([]);
       
       expect(result.stdout).toContain('Unjucks CLI');
-      expect(result.stdout).toContain('Usage });
+      expect(result.stdout).toContain('Usage:');
+      expect(result.exitCode).toBe(0);
+    });
 
     it('should show version with --version flag', async () => {
       const result = await runCLI(['--version']);
@@ -74,10 +104,13 @@ export function {{name}}({ children }) {
       expect(result.exitCode).toBe(0);
     });
 
-    it('should show help with --help flag', async () => { const result = await runCLI(['--help']);
+    it('should show help with --help flag', async () => {
+      const result = await runCLI(['--help']);
       
       expect(result.stdout).toContain('Unjucks CLI');
-      expect(result.stdout).toContain('USAGE });
+      expect(result.stdout).toContain('USAGE:');
+      expect(result.exitCode).toBe(0);
+    });
 
     it('should show help with -h flag', async () => {
       const result = await runCLI(['-h']);
@@ -209,8 +242,9 @@ export function {{name}}({ children }) {
     });
   });
 
-  describe('Flag Processing', () => { it('should process --dest flag correctly', async () => {
-      await fs.mkdir('custom-dest', { recursive });
+  describe('Flag Processing', () => {
+    it('should process --dest flag correctly', async () => {
+      await fs.mkdir('custom-dest', { recursive: true });
       
       const result = await runCLI(['component', 'new', 'TestComponent', '--dest', 'custom-dest', '--dry']);
       

@@ -1,0 +1,51 @@
+# Clean Docker test environment for Unjucks
+FROM node:18-alpine
+
+# Set working directory
+WORKDIR /app
+
+# Install system dependencies for testing
+RUN apk add --no-cache \
+    git \
+    bash \
+    curl \
+    jq \
+    python3 \
+    make \
+    g++ \
+    && rm -rf /var/cache/apk/*
+
+# Create non-root user for security
+RUN addgroup -g 1001 -S testuser && \
+    adduser -S testuser -u 1001 -G testuser
+
+# Set up test environment
+ENV NODE_ENV=test
+ENV CI=true
+ENV FORCE_COLOR=0
+
+# Copy package files first for better caching
+COPY --chown=testuser:testuser package*.json ./
+
+# Install dependencies fresh (no cache)
+RUN npm ci --only=dev --no-cache --production=false && \
+    npm cache clean --force
+
+# Create directories for test artifacts
+RUN mkdir -p /app/test-results /app/coverage /app/logs && \
+    chown -R testuser:testuser /app
+
+# Switch to non-root user
+USER testuser
+
+# Health check to ensure test environment is ready
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD node -e "console.log('Test environment ready')" || exit 1
+
+# Default command runs tests
+CMD ["npm", "test"]
+
+# Labels for container identification
+LABEL maintainer="unjucks-test"
+LABEL version="1.0"
+LABEL description="Clean test environment for Unjucks template generator"

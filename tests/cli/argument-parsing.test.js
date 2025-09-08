@@ -6,25 +6,50 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { execFile } from 'child_process';
 import { promisify } from 'util';
-import * from 'path';
-import * from 'fs/promises';
+import path from 'path';
+import fs from 'fs/promises';
 import { tmpdir } from 'os';
+import { fileURLToPath } from 'url';
+import { spawn } from 'child_process';
 
-const execFileAsync = promisify(execFile);
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 const CLI_PATH = path.resolve(__dirname, '../../bin/unjucks.cjs');
 
-async function runCLI(args = [], cwd?) {
-  try {
-    const { stdout, stderr } = await execFileAsync('node', [CLI_PATH, ...args], { cwd),
-      timeout });
-    return { stdout, stderr, exitCode };
-  } catch (error) { return {
-      stdout };
-  }
+async function runCLI(args = [], cwd) {
+  return new Promise((resolve) => {
+    const child = spawn('node', [CLI_PATH, ...args], {
+      cwd: cwd || process.cwd(),
+      env: { ...process.env, NODE_ENV: 'test' },
+      timeout: 30000
+    });
+
+    let stdout = '';
+    let stderr = '';
+
+    child.stdout?.on('data', (data) => {
+      stdout += data.toString();
+    });
+
+    child.stderr?.on('data', (data) => {
+      stderr += data.toString();
+    });
+
+    child.on('close', (exitCode) => {
+      resolve({ stdout, stderr, exitCode: exitCode || 0 });
+    });
+
+    child.on('error', (error) => {
+      resolve({ stdout, stderr: error.message, exitCode: 1 });
+    });
+  });
+}
 }
 
 describe('Argument Parsing Edge Cases', () => {
-  let tempDir => {
+  let tempDir, originalCwd;
+
+  beforeEach(async () => {
     originalCwd = process.cwd();
     tempDir = await fs.mkdtemp(path.join(tmpdir(), 'unjucks-parsing-'));
     process.chdir(tempDir);
@@ -32,12 +57,14 @@ describe('Argument Parsing Edge Cases', () => {
     await createComplexTestTemplates();
   });
 
-  afterEach(async () => { process.chdir(originalCwd);
+  afterEach(async () => {
+    process.chdir(originalCwd);
     await fs.rm(tempDir, { recursive: true, force });
   });
 
-  async function createComplexTestTemplates() { // Template with complex variable definitions
-    await fs.mkdir('_templates/complex', { recursive });
+  async function createComplexTestTemplates() {
+    // Template with complex variable definitions
+    await fs.mkdir('_templates/complex', { recursive: true });
     await fs.writeFile(
       '_templates/complex/variables.tsx.njk',
       `---

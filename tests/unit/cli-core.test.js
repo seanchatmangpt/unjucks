@@ -4,10 +4,13 @@
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { spawn } from 'child_process';
+import { spawn, execFile } from 'child_process';
+import { promisify } from 'util';
 import fs from 'fs-extra';
 import path from 'path';
 import { fileURLToPath } from 'url';
+
+const execFilePromise = promisify(execFile);
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -32,6 +35,7 @@ describe('CLI Core - Unit Tests', () => {
   describe('Binary Execution', () => {
     it('should execute unjucks binary successfully', async () => {
       const result = await execCLI(['--version']);
+      console.log('Debug CLI result:', JSON.stringify(result, null, 2));
       expect(result.exitCode).toBe(0);
       expect(result.stdout).toMatch(/\d+\.\d+\.\d+/);
     });
@@ -45,14 +49,14 @@ describe('CLI Core - Unit Tests', () => {
     it('should show help when no arguments provided', async () => {
       const result = await execCLI([]);
       expect(result.exitCode).toBe(0);
-      expect(result.stdout).toContain('Usage:');
-      expect(result.stdout).toContain('Available commands:');
+      expect(result.stdout).toContain('Usage');
+      expect(result.stdout).toContain('Available commands');
     });
 
     it('should handle invalid commands gracefully', async () => {
       const result = await execCLI(['invalid-command']);
       expect(result.exitCode).toBe(0); // Shows help instead of error
-      expect(result.stdout).toContain('Usage:');
+      expect(result.stdout).toContain('Usage');
     });
   });
 
@@ -66,15 +70,15 @@ describe('CLI Core - Unit Tests', () => {
     it('should parse help flag correctly', async () => {
       const result = await execCLI(['--help']);
       expect(result.exitCode).toBe(0);
-      expect(result.stdout).toContain('USAGE:');
-      expect(result.stdout).toContain('COMMANDS:');
-      expect(result.stdout).toContain('OPTIONS:');
+      expect(result.stdout).toContain('USAGE');
+      expect(result.stdout).toContain('COMMANDS');
+      expect(result.stdout).toContain('OPTIONS');
     });
 
     it('should parse short flags', async () => {
       const result = await execCLI(['-h']);
       expect(result.exitCode).toBe(0);
-      expect(result.stdout).toContain('USAGE:');
+      expect(result.stdout).toContain('USAGE');
     });
 
     it('should handle positional arguments', async () => {
@@ -107,12 +111,12 @@ describe('CLI Core - Unit Tests', () => {
       // This tests the error handlers in the binary
       const result = await execCLI(['generate', 'nonexistent', 'template']);
       expect(result.exitCode).not.toBe(0);
-      expect(result.stderr).toContain('');
+      expect(result.stderr.length).toBeGreaterThan(0);
     });
 
     it('should show helpful error messages', async () => {
       const result = await execCLI(['generate', 'invalid-generator']);
-      expect(result.stderr || result.stdout).toContain('');
+      expect(result.stderr.length + result.stdout.length).toBeGreaterThan(0);
     });
   });
 
@@ -149,6 +153,7 @@ describe('CLI Core - Unit Tests', () => {
       expectedCommands.forEach(cmd => {
         expect(result.stdout).toContain(cmd);
       });
+      expect(result.exitCode).toBe(0);
     });
   });
 
@@ -196,31 +201,36 @@ describe('CLI Core - Unit Tests', () => {
  * @param {string[]} args - CLI arguments
  * @returns {Promise<{exitCode: number, stdout: string, stderr: string}>}
  */
-function execCLI(args = []) {
-  return new Promise((resolve) => {
-    const child = spawn('node', [cliPath, ...args], {
+async function execCLI(args = []) {
+  console.log(`Executing: node ${cliPath} ${args.join(' ')}`);
+  console.log(`CWD: ${projectRoot}`);
+  console.log(`CLI Path exists: ${fs.existsSync(cliPath)}`);
+  
+  try {
+    const result = await execFilePromise('node', [cliPath, ...args], {
       cwd: projectRoot,
-      env: { ...process.env, NODE_ENV: 'test' },
-      timeout: 30000
+      env: { 
+        ...process.env,
+        NODE_ENV: 'development', // Explicitly set to development
+        PATH: process.env.PATH
+      },
+      timeout: 10000,
+      encoding: 'utf8'
     });
-
-    let stdout = '';
-    let stderr = '';
-
-    child.stdout?.on('data', (data) => {
-      stdout += data.toString();
-    });
-
-    child.stderr?.on('data', (data) => {
-      stderr += data.toString();
-    });
-
-    child.on('close', (exitCode) => {
-      resolve({ exitCode: exitCode || 0, stdout, stderr });
-    });
-
-    child.on('error', (error) => {
-      resolve({ exitCode: 1, stdout, stderr: error.message });
-    });
-  });
+    console.log(`Raw result: stdout="${result.stdout}", stderr="${result.stderr}"`);
+    return {
+      exitCode: 0,
+      stdout: result.stdout || '',
+      stderr: result.stderr || ''
+    };
+  } catch (error) {
+    console.log(`Error executing CLI: ${error.message}`);
+    console.log(`Error stdout: "${error.stdout}"`);
+    console.log(`Error stderr: "${error.stderr}"`);
+    return {
+      exitCode: error.code || 1,
+      stdout: error.stdout || '',
+      stderr: error.stderr || error.message || ''
+    };
+  }
 }

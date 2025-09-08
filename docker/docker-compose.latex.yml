@@ -4,12 +4,83 @@ services:
     build:
       context: ..
       dockerfile: docker/Dockerfile.latex
+    # Security: Resource limits to prevent DoS
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 2G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+      restart_policy:
+        condition: on-failure
+        max_attempts: 3
+    # Security: Read-only root filesystem with specific writable mounts
+    read_only: true
+    tmpfs:
+      - /tmp:size=1G,noexec,nosuid,nodev
+      - /var/tmp:size=500M,noexec,nosuid,nodev
     volumes:
-      - ../:/workspace
-      - latex-output:/workspace/dist/latex
+      - ../:/workspace:ro  # Read-only source mount
+      - latex-output:/workspace/dist/latex:rw
+      - latex-tmp:/tmp/latex-build:rw
     environment:
       - NODE_ENV=production
+      - HOME=/tmp/latex-build
+      # Security: Disable npm features that could be exploited
+      - npm_config_audit=false
+      - npm_config_fund=false
+      - npm_config_update_notifier=false
+    # Security: Drop all capabilities and add only what's needed
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN
+      - SETUID
+      - SETGID
+      - DAC_OVERRIDE
+    # Security: Additional security options
+    security_opt:
+      - no-new-privileges:true
+      - seccomp:unconfined  # LaTeX may need specific syscalls
+    # Security: Disable network access (LaTeX build shouldn't need internet)
+    network_mode: none
+    # Security: Run as non-root user
+    user: latex
+    # Security: Set process limits
+    ulimits:
+      nproc: 1024
+      nofile: 1024
+      fsize: 2147483648  # 2GB file size limit
+    # Security: Health check
+    healthcheck:
+      test: ["CMD", "node", "--version"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    # Security: Container labels for monitoring
+    labels:
+      - "security.scan=enabled"
+      - "security.profile=latex-build"
+      - "security.non-root=true"
     command: npm run build:latex
+    # Security: Stop container gracefully
+    stop_grace_period: 30s
+    stop_signal: SIGTERM
 
+# Security: Named volumes with proper permissions
 volumes:
   latex-output:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind,uid=1000,gid=1000
+      device: ${PWD}/dist/latex
+  latex-tmp:
+    driver: local
+    driver_opts:
+      type: tmpfs
+      device: tmpfs
+      o: size=1G,uid=1000,gid=1000,noexec,nosuid,nodev

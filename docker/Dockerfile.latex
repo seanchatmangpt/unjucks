@@ -1,34 +1,79 @@
-# LaTeX Build Environment
+# LaTeX Build Environment - Production Hardened
 FROM texlive/texlive:latest
 
-# Install Node.js for build integration
+# Security: Update packages and install minimal requirements
 RUN apt-get update && \
-    apt-get install -y curl && \
+    apt-get install -y --no-install-recommends \
+        curl \
+        ca-certificates \
+        gnupg \
+        dumb-init && \
     curl -fsSL https://deb.nodesource.com/setup_18.x | bash - && \
-    apt-get install -y nodejs
+    apt-get install -y --no-install-recommends nodejs && \
+    # Security: Clean package cache and remove vulnerable packages
+    apt-get purge -y curl gnupg && \
+    apt-get autoremove -y && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* && \
+    # Security: Remove setuid/setgid permissions from potential attack vectors
+    find /usr/bin /usr/sbin -perm /6000 -type f -exec chmod -s {} \; && \
+    # Security: Remove package manager configs that could leak info
+    rm -rf /root/.npm /usr/lib/node_modules/npm/node_modules/node-gyp
 
-# Install additional LaTeX packages if needed
+# Install additional LaTeX packages with minimal attack surface
 RUN tlmgr update --self && \
     tlmgr install \
       collection-fontsrecommended \
       collection-latexextra \
       collection-mathscience \
-      collection-bibtexextra
+      collection-bibtexextra && \
+    # Security: Clean LaTeX package cache and all temporary files
+    tlmgr conf auxtrees remove && \
+    rm -rf /tmp/* /var/tmp/* /tmp/texlive* /var/tmp/texlive*
+
+# Security: Create non-root user with minimal privileges
+RUN groupadd -r latex && \
+    useradd -r -g latex -d /workspace -s /sbin/nologin \
+    -c "LaTeX Build User" latex && \
+    # Create necessary directories with proper ownership
+    mkdir -p /workspace /tmp/latex-build && \
+    chown -R latex:latex /workspace /tmp/latex-build && \
+    chmod 755 /workspace && \
+    chmod 1777 /tmp/latex-build
 
 # Set working directory
 WORKDIR /workspace
 
-# Copy package files
-COPY package*.json ./
+# Security: Copy package files as root, then change ownership
+COPY --chown=latex:latex package*.json ./
 
-# Install npm dependencies
-RUN npm ci --only=production
+# Switch to non-root user for npm install (security best practice)
+USER latex
 
-# Copy source files
-COPY . .
+# Install npm dependencies with security flags
+RUN npm ci --only=production \
+    --no-audit \
+    --no-fund \
+    --ignore-scripts && \
+    # Security: Remove npm cache and temp files
+    npm cache clean --force && \
+    rm -rf ~/.npm /tmp/*
 
-# Set permissions
-RUN chmod +x scripts/*.js
+# Copy source files with proper ownership
+COPY --chown=latex:latex . .
 
-# Build command
+# Security: Set restrictive permissions on executable scripts
+USER root
+RUN find scripts/ -name "*.js" -type f -exec chmod 750 {} \; && \
+    chown root:latex scripts/*.js
+USER latex
+
+# Security: Add health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD node --version || exit 1
+
+# Security: Use dumb-init to handle signals properly and prevent zombie processes
+ENTRYPOINT ["/usr/bin/dumb-init", "--"]
+
+# Build command with security context
 CMD ["npm", "run", "build:latex"]

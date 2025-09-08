@@ -3,28 +3,49 @@
  * Ensures existing Hygen-style workflows continue to work
  */
 
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { execFile } from 'child_process';
-import { promisify } from 'util';
-import * from 'path';
-import * from 'fs/promises';
+import { spawn } from 'child_process';
+import path from 'path';
+import fs from 'fs/promises';
 import { tmpdir } from 'os';
+import { fileURLToPath } from 'url';
 
-const execFileAsync = promisify(execFile);
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 const CLI_PATH = path.resolve(__dirname, '../../bin/unjucks.cjs');
 
-async function runCLI(args = [], cwd?) {
-  try {
-    const { stdout, stderr } = await execFileAsync('node', [CLI_PATH, ...args], { cwd),
-      timeout });
-    return { stdout, stderr, exitCode };
-  } catch (error) { return {
-      stdout };
-  }
+async function runCLI(args = [], cwd) {
+  return new Promise((resolve) => {
+    const child = spawn('node', [CLI_PATH, ...args], {
+      cwd: cwd || process.cwd(),
+      env: { ...process.env, NODE_ENV: 'test' },
+      timeout: 30000
+    });
+
+    let stdout = '';
+    let stderr = '';
+
+    child.stdout?.on('data', (data) => {
+      stdout += data.toString();
+    });
+
+    child.stderr?.on('data', (data) => {
+      stderr += data.toString();
+    });
+
+    child.on('close', (exitCode) => {
+      resolve({ stdout, stderr, exitCode: exitCode || 0 });
+    });
+
+    child.on('error', (error) => {
+      resolve({ stdout, stderr: error.message, exitCode: 1 });
+    });
+  });
 }
 
 describe('Backward Compatibility with Hygen', () => {
-  let tempDir => {
+  let tempDir, originalCwd;
+
+  beforeEach(async () => {
     originalCwd = process.cwd();
     tempDir = await fs.mkdtemp(path.join(tmpdir(), 'unjucks-compat-'));
     process.chdir(tempDir);
@@ -33,12 +54,14 @@ describe('Backward Compatibility with Hygen', () => {
     await createHygenCompatibleStructure();
   });
 
-  afterEach(async () => { process.chdir(originalCwd);
+  afterEach(async () => {
+    process.chdir(originalCwd);
     await fs.rm(tempDir, { recursive: true, force });
   });
 
-  async function createHygenCompatibleStructure() { // Component generator
-    await fs.mkdir('_templates/component', { recursive });
+  async function createHygenCompatibleStructure() {
+     // Component generator
+    await fs.mkdir('_templates/component', { recursive: true });
     await fs.writeFile(
       '_templates/component/new.tsx.njk',
       `---
@@ -67,7 +90,7 @@ export function {{name}}({{ '{' }}{{#if withProps}} title, {{/if}}children {{ '}
     );
 
     // API generator
-    await fs.mkdir('_templates/api', { recursive });
+    await fs.mkdir('_templates/api', { recursive: true });
     await fs.writeFile(
       '_templates/api/new.ts.njk',
       `---
@@ -99,7 +122,7 @@ export default {{name | lower}}Router;
     );
 
     // Service generator with complex variables
-    await fs.mkdir('_templates/service', { recursive });
+    await fs.mkdir('_templates/service', { recursive: true });
     await fs.writeFile(
       '_templates/service/new.ts.njk',
       `---
@@ -138,9 +161,9 @@ export class {{name}}Service {{#if withInterface}}implements I{{name}}Service {{
     );
 
     // Create src directory
-    await fs.mkdir('src/components', { recursive });
-    await fs.mkdir('src/api', { recursive });
-    await fs.mkdir('src/services', { recursive });
+    await fs.mkdir('src/components', { recursive: true });
+    await fs.mkdir('src/api', { recursive: true });
+    await fs.mkdir('src/services', { recursive: true });
   }
 
   describe('Classic Hygen Patterns', () => {
@@ -201,7 +224,7 @@ export class {{name}}Service {{#if withInterface}}implements I{{name}}Service {{
 
   describe('Traditional Hygen Command Patterns', () => { it('should support multiple word generators', async () => {
       // Create multi-word generator
-      await fs.mkdir('_templates/react-component', { recursive });
+      await fs.mkdir('_templates/react-component', { recursive: true });
       await fs.writeFile(
         '_templates/react-component/new.tsx.njk',
         `---
@@ -217,7 +240,7 @@ to) {
       expect(result.stdout).toContain('TestComponent');
     });
 
-    it('should support dash-separated generators', async () => { await fs.mkdir('_templates/express-route', { recursive });
+    it('should support dash-separated generators', async () => { await fs.mkdir('_templates/express-route', { recursive: true });
       await fs.writeFile(
         '_templates/express-route/new.js.njk',
         `---
@@ -238,7 +261,7 @@ module.exports = router;
       expect(result.stdout).toContain('routes/users.js');
     });
 
-    it('should support nested template names', async () => { await fs.mkdir('_templates/component/form', { recursive });
+    it('should support nested template names', async () => { await fs.mkdir('_templates/component/form', { recursive: true });
       await fs.writeFile(
         '_templates/component/form.tsx.njk',
         `---

@@ -18,7 +18,7 @@ chmod: "644"
 <sitemap> a schema:SiteNavigationElement , void:Dataset ;
     
     # Basic identification
-    dct:title {{ 'Semantic Sitemap for ' + siteTitle | titleCase | rdfLiteral('en') }} ;
+    dct:title {{ ('Semantic Sitemap for ' + siteTitle) | titleCase | rdfLiteral('en') }} ;
     dct:description {{ 'RDF-based site structure and navigation for linked data resources' | rdfLiteral('en') }} ;
     
     # Site metadata
@@ -37,10 +37,9 @@ chmod: "644"
     # Navigation structure
     {% if mainNavigation -%}
     {% for navItem in mainNavigation -%}
-    schema:hasPart <{{ navItem.id | slug }}>{% if not loop.last %} ,{% endif %}
-    {% endfor %} ;
+    schema:hasPart <{{ navItem.id | slug }}>{% if not loop.last %} ,{% else %} .{% endif %}
+    {% endfor -%}
     {% endif -%}
-    .
 
 # Site root and home page
 <> a schema:WebSite , foaf:Document ;

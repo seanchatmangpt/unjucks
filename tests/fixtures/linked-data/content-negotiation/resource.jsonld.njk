@@ -259,8 +259,7 @@ chmod: "644"
   "wasGeneratedBy": {
     "@type": "prov:Activity",
     "startedAtTime": "{{ now() | isoDate }}",
-    "wasAssociatedWith": "{{ generator | default('unjucks-system') | slug }}",
-    {% if generatorVersion -%}
+    "wasAssociatedWith": "{{ generator | default('unjucks-system') | slug }}"{% if generatorVersion %},
     "used": {
       "@type": "prov:SoftwareAgent", 
       "version": "{{ generatorVersion }}"

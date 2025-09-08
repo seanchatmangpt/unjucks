@@ -112,10 +112,10 @@ inject: false
   ],
   {% endif %}
   
-  "numberOfEmployees": {
+  {% if employeeCount %}"numberOfEmployees": {
     "@type": "QuantitativeValue",
     "value": {{ employeeCount }}
-  },
+  },{% endif %}
   
   {% if leadership -%}
   "member": [
