@@ -1,22 +1,22 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import nunjucks from 'nunjucks';
-import { sparqlFilters } from '../../../src/lib/filters/sparql';
+import { TemplateEngine } from '../../../src/lib/template-engine.js';
+import { sparqlFilters } from '../../../src/lib/filters/sparql.js';
 import { Parser as SparqlParser } from 'sparqljs';
 import fs from 'fs/promises';
 import path from 'path';
 
 describe('SPARQL Template Rendering', () => {
-  let env: nunjucks.Environment;
+  let templateEngine: TemplateEngine;
   let parser: SparqlParser;
 
   beforeEach(() => {
-    env = new nunjucks.Environment(
-      new nunjucks.FileSystemLoader('tests/fixtures/sparql')
-    );
+    templateEngine = new TemplateEngine({
+      templateDirs: ['tests/fixtures/sparql']
+    });
     
     // Register all SPARQL filters
     Object.entries(sparqlFilters).forEach(([name, filter]) => {
-      env.addFilter(name, filter);
+      templateEngine.environment.addFilter(name, filter);
     });
 
     parser = new SparqlParser();
@@ -36,13 +36,14 @@ describe('SPARQL Template Rendering', () => {
         limit: 10
       };
 
-      const result = await env.render('select-query.sparql.njk', data);
+      const result = await templateEngine.render('select-query.sparql.njk', data);
+      const sparqlContent = result.content;
       
-      expect(() => parser.parse(result)).not.toThrow();
-      expect(result).toContain('SELECT ?person ?name ?age');
-      expect(result).toContain('?person a schema:Person');
-      expect(result).toContain('ORDER BY ?name');
-      expect(result).toContain('LIMIT 10');
+      expect(() => parser.parse(sparqlContent)).not.toThrow();
+      expect(sparqlContent).toContain('SELECT ?person ?name ?age');
+      expect(sparqlContent).toContain('?person a schema:Person');
+      expect(sparqlContent).toContain('ORDER BY ?name');
+      expect(sparqlContent).toContain('LIMIT 10');
     });
 
     it('should render SELECT query with filters', async () => {
@@ -63,14 +64,15 @@ describe('SPARQL Template Rendering', () => {
         limit: 20
       };
 
-      const result = await env.render('select-query.sparql.njk', data);
+      const result = await templateEngine.render('select-query.sparql.njk', data);
+      const sparqlContent = result.content;
       
-      expect(() => parser.parse(result)).not.toThrow();
-      expect(result).toContain('SELECT DISTINCT');
-      expect(result).toContain('FILTER(?age > 18)');
-      expect(result).toContain('FILTER(contains(?name, "John"))');
-      expect(result).toContain('ORDER BY DESC(?age)');
-      expect(result).toContain('LIMIT 20');
+      expect(() => parser.parse(sparqlContent)).not.toThrow();
+      expect(sparqlContent).toContain('SELECT DISTINCT');
+      expect(sparqlContent).toContain('FILTER(?age > 18)');
+      expect(sparqlContent).toContain('FILTER(contains(?name, "John"))');
+      expect(sparqlContent).toContain('ORDER BY DESC(?age)');
+      expect(sparqlContent).toContain('LIMIT 20');
     });
 
     it('should render SELECT query with OPTIONAL patterns', async () => {
@@ -87,11 +89,12 @@ describe('SPARQL Template Rendering', () => {
         limit: 10
       };
 
-      const result = await env.render('select-query.sparql.njk', data);
+      const result = await templateEngine.render('select-query.sparql.njk', data);
+      const sparqlContent = result.content;
       
-      expect(() => parser.parse(result)).not.toThrow();
-      expect(result).toContain('OPTIONAL {');
-      expect(result).toContain('?person schema:email ?email');
+      expect(() => parser.parse(sparqlContent)).not.toThrow();
+      expect(sparqlContent).toContain('OPTIONAL {');
+      expect(sparqlContent).toContain('?person schema:email ?email');
     });
 
     it('should render SELECT query with UNION patterns', async () => {
@@ -108,12 +111,13 @@ describe('SPARQL Template Rendering', () => {
         limit: 10
       };
 
-      const result = await env.render('select-query.sparql.njk', data);
+      const result = await templateEngine.render('select-query.sparql.njk', data);
+      const sparqlContent = result.content;
       
-      expect(() => parser.parse(result)).not.toThrow();
-      expect(result).toContain('UNION');
-      expect(result).toContain('schema:email');
-      expect(result).toContain('schema:telephone');
+      expect(() => parser.parse(sparqlContent)).not.toThrow();
+      expect(sparqlContent).toContain('UNION');
+      expect(sparqlContent).toContain('schema:email');
+      expect(sparqlContent).toContain('schema:telephone');
     });
 
     it('should render SELECT query with GROUP BY and HAVING', async () => {
@@ -129,12 +133,13 @@ describe('SPARQL Template Rendering', () => {
         orderBy: [{ variable: 'employeeCount', direction: 'DESC' }]
       };
 
-      const result = await env.render('select-query.sparql.njk', data);
+      const result = await templateEngine.render('select-query.sparql.njk', data);
+      const sparqlContent = result.content;
       
-      expect(() => parser.parse(result)).not.toThrow();
-      expect(result).toContain('GROUP BY ?department');
-      expect(result).toContain('HAVING');
-      expect(result).toContain('COUNT(?person) > 5');
+      expect(() => parser.parse(sparqlContent)).not.toThrow();
+      expect(sparqlContent).toContain('GROUP BY ?department');
+      expect(sparqlContent).toContain('HAVING');
+      expect(sparqlContent).toContain('COUNT(?person) > 5');
     });
   });
 
@@ -152,13 +157,14 @@ describe('SPARQL Template Rendering', () => {
         ]
       };
 
-      const result = await env.render('construct-query.sparql.njk', data);
+      const result = await templateEngine.render('construct-query.sparql.njk', data);
+      const sparqlContent = result.content;
       
-      expect(() => parser.parse(result)).not.toThrow();
-      expect(result).toContain('CONSTRUCT {');
-      expect(result).toContain('?person a ex:Person');
-      expect(result).toContain('WHERE {');
-      expect(result).toContain('?person a foaf:Person');
+      expect(() => parser.parse(sparqlContent)).not.toThrow();
+      expect(sparqlContent).toContain('CONSTRUCT {');
+      expect(sparqlContent).toContain('?person a ex:Person');
+      expect(sparqlContent).toContain('WHERE {');
+      expect(sparqlContent).toContain('?person a foaf:Person');
     });
 
     it('should render CONSTRUCT query with derived triples', async () => {
@@ -175,11 +181,12 @@ describe('SPARQL Template Rendering', () => {
         ]
       };
 
-      const result = await env.render('construct-query.sparql.njk', data);
+      const result = await templateEngine.render('construct-query.sparql.njk', data);
+      const sparqlContent = result.content;
       
-      expect(() => parser.parse(result)).not.toThrow();
-      expect(result).toContain('?person a ex:Human');
-      expect(result).toContain('rdfs:label "Human Entity"');
+      expect(() => parser.parse(sparqlContent)).not.toThrow();
+      expect(sparqlContent).toContain('?person a ex:Human');
+      expect(sparqlContent).toContain('rdfs:label "Human Entity"');
     });
 
     it('should render CONSTRUCT query with subqueries', async () => {
@@ -201,11 +208,12 @@ describe('SPARQL Template Rendering', () => {
         ]
       };
 
-      const result = await env.render('construct-query.sparql.njk', data);
+      const result = await templateEngine.render('construct-query.sparql.njk', data);
+      const sparqlContent = result.content;
       
-      expect(() => parser.parse(result)).not.toThrow();
-      expect(result).toContain('SELECT ?averageAge');
-      expect(result).toContain('?p schema:age ?age');
+      expect(() => parser.parse(sparqlContent)).not.toThrow();
+      expect(sparqlContent).toContain('SELECT ?averageAge');
+      expect(sparqlContent).toContain('?p schema:age ?age');
     });
   });
 
@@ -274,21 +282,22 @@ describe('SPARQL Template Rendering', () => {
         limit: 50
       };
 
-      const result = await env.render('complex-query.sparql.njk', data);
+      const result = await templateEngine.render('complex-query.sparql.njk', data);
+      const sparqlContent = result.content;
       
-      expect(() => parser.parse(result)).not.toThrow();
-      expect(result).toContain('GRAPH <http://example.com/graph1>');
-      expect(result).toContain('schema:address/schema:addressLocality');
-      expect(result).toContain('regex(?name, "^John.*", "i")');
-      expect(result).toContain('lang(?name) = "en"');
-      expect(result).toContain('datatype(?age) = xsd:integer');
-      expect(result).toContain('bound(?email)');
-      expect(result).toContain('EXISTS {');
-      expect(result).toContain('SERVICE SILENT <http://dbpedia.org/sparql>');
-      expect(result).toContain('GROUP BY ?location');
-      expect(result).toContain('HAVING COUNT(?person) > 10');
-      expect(result).toContain('ORDER BY DESC(?count)');
-      expect(result).toContain('LIMIT 50');
+      expect(() => parser.parse(sparqlContent)).not.toThrow();
+      expect(sparqlContent).toContain('GRAPH <http://example.com/graph1>');
+      expect(sparqlContent).toContain('schema:address/schema:addressLocality');
+      expect(sparqlContent).toContain('regex(?name, "^John.*", "i")');
+      expect(sparqlContent).toContain('lang(?name) = "en"');
+      expect(sparqlContent).toContain('datatype(?age) = xsd:integer');
+      expect(sparqlContent).toContain('bound(?email)');
+      expect(sparqlContent).toContain('EXISTS {');
+      expect(sparqlContent).toContain('SERVICE SILENT <http://dbpedia.org/sparql>');
+      expect(sparqlContent).toContain('GROUP BY ?location');
+      expect(sparqlContent).toContain('HAVING COUNT(?person) > 10');
+      expect(sparqlContent).toContain('ORDER BY DESC(?count)');
+      expect(sparqlContent).toContain('LIMIT 50');
     });
   });
 
@@ -327,14 +336,15 @@ describe('SPARQL Template Rendering', () => {
         limit: 20
       };
 
-      const result = await env.render('federated-query.sparql.njk', data);
+      const result = await templateEngine.render('federated-query.sparql.njk', data);
+      const sparqlContent = result.content;
       
-      expect(() => parser.parse(result)).not.toThrow();
-      expect(result).toContain('SERVICE <http://dbpedia.org/sparql>');
-      expect(result).toContain('FILTER(?dbpediaResource = "name")');
-      expect(result).toContain('FILTER(?name = ?dbpediaInfo)');
-      expect(result).toContain('OPTIONAL {');
-      expect(result).toContain('SERVICE <http://wikidata.org/sparql>');
+      expect(() => parser.parse(sparqlContent)).not.toThrow();
+      expect(sparqlContent).toContain('SERVICE <http://dbpedia.org/sparql>');
+      expect(sparqlContent).toContain('FILTER(?dbpediaResource = "name")');
+      expect(sparqlContent).toContain('FILTER(?name = ?dbpediaInfo)');
+      expect(sparqlContent).toContain('OPTIONAL {');
+      expect(sparqlContent).toContain('SERVICE <http://wikidata.org/sparql>');
     });
   });
 
@@ -349,12 +359,13 @@ describe('SPARQL Template Rendering', () => {
         ]
       };
 
-      const result = await env.render('update-query.sparql.njk', data);
+      const result = await templateEngine.render('update-query.sparql.njk', data);
+      const sparqlContent = result.content;
       
-      expect(() => parser.parse(result)).not.toThrow();
-      expect(result).toContain('INSERT DATA {');
-      expect(result).toContain('<http://example.com/person/1> a schema:Person');
-      expect(result).toContain('schema:name "John Doe"');
+      expect(() => parser.parse(sparqlContent)).not.toThrow();
+      expect(sparqlContent).toContain('INSERT DATA {');
+      expect(sparqlContent).toContain('<http://example.com/person/1> a schema:Person');
+      expect(sparqlContent).toContain('schema:name "John Doe"');
     });
 
     it('should render DELETE/INSERT query', async () => {
@@ -376,13 +387,14 @@ describe('SPARQL Template Rendering', () => {
         ]
       };
 
-      const result = await env.render('update-query.sparql.njk', data);
+      const result = await templateEngine.render('update-query.sparql.njk', data);
+      const sparqlContent = result.content;
       
-      expect(() => parser.parse(result)).not.toThrow();
-      expect(result).toContain('DELETE {');
-      expect(result).toContain('INSERT {');
-      expect(result).toContain('WHERE {');
-      expect(result).toContain('FILTER(?person = <http://example.com/person/1>)');
+      expect(() => parser.parse(sparqlContent)).not.toThrow();
+      expect(sparqlContent).toContain('DELETE {');
+      expect(sparqlContent).toContain('INSERT {');
+      expect(sparqlContent).toContain('WHERE {');
+      expect(sparqlContent).toContain('FILTER(?person = <http://example.com/person/1>)');
     });
 
     it('should render graph management queries', async () => {
@@ -396,15 +408,16 @@ describe('SPARQL Template Rendering', () => {
       ];
 
       for (const data of operations) {
-        const result = await env.render('update-query.sparql.njk', data);
+        const result = await templateEngine.render('update-query.sparql.njk', data);
+      const sparqlContent = result.content;
         
-        expect(() => parser.parse(result)).not.toThrow();
-        expect(result).toContain(data.operation);
+        expect(() => parser.parse(sparqlContent)).not.toThrow();
+        expect(sparqlContent).toContain(data.operation);
         if (data.graphUri) {
-          expect(result).toContain(`<${data.graphUri}>`);
+          expect(sparqlContent).toContain(`<${data.graphUri}>`);
         }
         if (data.silent) {
-          expect(result).toContain('SILENT');
+          expect(sparqlContent).toContain('SILENT');
         }
       }
     });
@@ -424,12 +437,13 @@ describe('SPARQL Template Rendering', () => {
         ]
       };
 
-      const result = await env.render('select-query.sparql.njk', data);
+      const result = await templateEngine.render('select-query.sparql.njk', data);
+      const sparqlContent = result.content;
       
       // Jena-specific validation
-      expect(result).not.toContain('UNDEF');  // Jena doesn't support UNDEF
-      expect(result).toContain('regex(?name, ".*John.*")');
-      expect(() => parser.parse(result)).not.toThrow();
+      expect(sparqlContent).not.toContain('UNDEF');  // Jena doesn't support UNDEF
+      expect(sparqlContent).toContain('regex(?name, ".*John.*")');
+      expect(() => parser.parse(sparqlContent)).not.toThrow();
     });
 
     it('should generate queries compatible with Virtuoso', async () => {
@@ -443,10 +457,11 @@ describe('SPARQL Template Rendering', () => {
         limit: 1000  // Virtuoso has different default limits
       };
 
-      const result = await env.render('select-query.sparql.njk', data);
+      const result = await templateEngine.render('select-query.sparql.njk', data);
+      const sparqlContent = result.content;
       
-      expect(result).toContain('LIMIT 1000');
-      expect(() => parser.parse(result)).not.toThrow();
+      expect(sparqlContent).toContain('LIMIT 1000');
+      expect(() => parser.parse(sparqlContent)).not.toThrow();
     });
   });
 
@@ -468,13 +483,14 @@ describe('SPARQL Template Rendering', () => {
         limit: 10
       };
 
-      const result = await env.render('select-query.sparql.njk', data);
+      const result = await templateEngine.render('select-query.sparql.njk', data);
+      const sparqlContent = result.content;
       
       const endTime = Date.now();
       const duration = endTime - startTime;
 
-      expect(() => parser.parse(result)).not.toThrow();
-      expect(result).toContain('schema:property99');
+      expect(() => parser.parse(sparqlContent)).not.toThrow();
+      expect(sparqlContent).toContain('schema:property99');
       expect(duration).toBeLessThan(500); // Should render in less than 500ms
     });
   });

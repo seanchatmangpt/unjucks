@@ -1,0 +1,339 @@
+{# Thesis/Dissertation Template #}
+{%- extends "base/document.njk" -%}
+
+{%- block documentHeader -%}
+{%- if institution.logo -%}
+{{ institution.logo }}
+{%- endif -%}
+
+{{ institution.name | upper }}
+{{ department | upper }}
+{%- endblock -%}
+
+{%- block documentTitle -%}
+{{ title | upper }}
+{%- endblock -%}
+
+{%- block documentSubtitle -%}
+{%- if degreeType %}
+A {{ degreeType }} SUBMITTED TO THE {{ department | upper }}
+IN PARTIAL FULFILLMENT OF THE REQUIREMENTS
+FOR THE DEGREE OF {{ degree | upper }}
+{%- endif %}
+{%- endblock -%}
+
+{%- block authorInfo -%}
+BY
+{{ author.name | upper }}
+{%- if author.previousDegrees %}
+{%- for degree in author.previousDegrees %}
+{{ degree }}
+{%- endfor %}
+{%- endif %}
+
+{{ submissionDate | dateFormat }}
+{%- if defenseDate %}
+
+DEFENSE DATE: {{ defenseDate | dateFormat }}
+{%- endif %}
+{%- endblock -%}
+
+{%- block documentBody -%}
+
+{%- if copyright %}
+COPYRIGHT NOTICE
+================
+
+© {{ currentYear }} {{ author.name }}
+{{ copyright.statement | default("All Rights Reserved") }}
+
+{%- if copyright.license %}
+License: {{ copyright.license }}
+{%- endif %}
+{%- endif %}
+
+{%- if approvalPage %}
+APPROVAL PAGE
+=============
+
+This {{ degreeType | lower }} has been approved by:
+
+{%- if committee %}
+{%- for member in committee %}
+{{ member.name }}{% if member.title %}, {{ member.title }}{% endif %}
+{{ member.role | capitalize }}
+{%- if member.department %}
+{{ member.department }}
+{%- endif %}
+{%- if member.institution and member.institution != institution.name %}
+{{ member.institution }}
+{%- endif %}
+
+Signature: _________________________ Date: _________
+
+{%- endfor %}
+{%- endif %}
+
+{%- if deanApproval %}
+{{ deanApproval.name }}, {{ deanApproval.title }}
+Dean of Graduate Studies
+
+Signature: _________________________ Date: _________
+{%- endif %}
+{%- endif %}
+
+{%- if dedication %}
+DEDICATION
+==========
+
+{{ dedication }}
+{%- endif %}
+
+{%- if acknowledgments %}
+ACKNOWLEDGMENTS
+===============
+
+{{ acknowledgments }}
+{%- endif %}
+
+{%- if abstract %}
+ABSTRACT
+========
+
+{{ author.name }}
+{{ title }}
+{%- if degreeType %}
+{{ degreeType }}, {{ submissionDate | dateFormat }}
+{%- endif %}
+{%- if wordLimit %}
+({{ wordLimit }} words)
+{%- endif %}
+
+{{ abstract }}
+
+{%- if keywords %}
+**Keywords:** {{ keywords | join(", ") }}
+{%- endif %}
+{%- endif %}
+
+TABLE OF CONTENTS
+=================
+
+{%- if chapters %}
+{%- for chapter in chapters %}
+Chapter {{ loop.index }}: {{ chapter.title }} ........................ {{ chapter.pageNumber | default("TBD") }}
+{%- if chapter.sections %}
+{%- for section in chapter.sections %}
+    {{ loop.index }}.{{ section.number }}: {{ section.title }} ................ {{ section.pageNumber | default("TBD") }}
+{%- endfor %}
+{%- endif %}
+{%- endfor %}
+
+{%- if references %}
+References .................................................... {{ referencesPageNumber | default("TBD") }}
+{%- endif %}
+
+{%- if appendices %}
+{%- for appendix in appendices %}
+Appendix {{ "ABCDEFGHIJKLMNOPQRSTUVWXYZ"[loop.index0] }}: {{ appendix.title }} .................. {{ appendix.pageNumber | default("TBD") }}
+{%- endfor %}
+{%- endif %}
+{%- endif %}
+
+{%- if figures %}
+
+LIST OF FIGURES
+===============
+
+{%- for figure in figures %}
+Figure {{ figure.number }}: {{ figure.title }} ........................ {{ figure.pageNumber | default("TBD") }}
+{%- endfor %}
+{%- endif %}
+
+{%- if tables %}
+
+LIST OF TABLES
+==============
+
+{%- for table in tables %}
+Table {{ table.number }}: {{ table.title }} .......................... {{ table.pageNumber | default("TBD") }}
+{%- endfor %}
+{%- endif %}
+
+{%- if abbreviations %}
+
+LIST OF ABBREVIATIONS
+=====================
+
+{%- for abbrev in abbreviations %}
+{{ abbrev.short }} .... {{ abbrev.full }}
+{%- endfor %}
+{%- endif %}
+
+{%- if chapters %}
+
+{%- for chapter in chapters %}
+
+CHAPTER {{ loop.index }}: {{ chapter.title | upper }}
+{{ "=".repeat(chapter.title | length + 12) }}
+
+{%- if chapter.introduction %}
+{{ chapter.introduction }}
+{%- endif %}
+
+{%- if chapter.sections %}
+{%- for section in chapter.sections %}
+
+{{ loop.index }}.{{ section.number }} {{ section.title }}
+{{ "-".repeat(section.title | length + 8) }}
+
+{{ section.content }}
+
+{%- if section.subsections %}
+{%- for subsection in section.subsections %}
+
+{{ loop.index }}.{{ section.number }}.{{ subsection.number }} {{ subsection.title }}
+{% set underlineChar = "~" if loop.depth > 2 else "^" %}
+{{ underlineChar.repeat(subsection.title | length + 12) }}
+
+{{ subsection.content }}
+
+{%- endfor %}
+{%- endif %}
+
+{%- endfor %}
+{%- endif %}
+
+{%- if chapter.conclusion %}
+
+{{ loop.index }}.{{ (chapter.sections | length) + 1 }} Chapter Summary
+{{ "-".repeat(15) }}
+
+{{ chapter.conclusion }}
+{%- endif %}
+
+{%- endfor %}
+{%- endif %}
+
+{%- if conclusion %}
+
+CONCLUSION
+==========
+
+{{ conclusion.summary }}
+
+{%- if conclusion.contributions %}
+
+Key Contributions
+-----------------
+{%- for contribution in conclusion.contributions %}
+{{ loop.index }}. {{ contribution }}
+{%- endfor %}
+{%- endif %}
+
+{%- if conclusion.limitations %}
+
+Limitations
+-----------
+{{ conclusion.limitations }}
+{%- endif %}
+
+{%- if conclusion.futureWork %}
+
+Future Research Directions
+--------------------------
+{{ conclusion.futureWork }}
+{%- endif %}
+{%- endif %}
+
+{%- if references %}
+
+REFERENCES
+==========
+
+{%- for ref in references %}
+{{ ref.key }}. {% if ref.authors %}{{ ref.authors | join(", ") }}{% if ref.year %} ({{ ref.year }}){% endif %}. {% endif %}"{{ ref.title }}"{% if ref.journal %}, *{{ ref.journal }}*{% endif %}{% if ref.volume %}, vol. {{ ref.volume }}{% endif %}{% if ref.number %}, no. {{ ref.number }}{% endif %}{% if ref.pages %}, pp. {{ ref.pages }}{% endif %}{% if ref.publisher %}, {{ ref.publisher }}{% endif %}{% if ref.doi %}. DOI: {{ ref.doi }}{% endif %}{% if ref.url %}. Retrieved from {{ ref.url }}{% endif %}.
+{%- endfor %}
+{%- endif %}
+
+{%- endblock -%}
+
+{%- block appendix -%}
+{%- if appendices %}
+
+{%- for appendix in appendices %}
+
+APPENDIX {{ "ABCDEFGHIJKLMNOPQRSTUVWXYZ"[loop.index0] }}: {{ appendix.title | upper }}
+{{ "=".repeat(appendix.title | length + 12) }}
+
+{%- if appendix.description %}
+{{ appendix.description }}
+{%- endif %}
+
+{{ appendix.content }}
+
+{%- if appendix.code %}
+
+**Code Listings:**
+{%- for code in appendix.code %}
+
+*{{ code.title }}:*
+```{{ code.language | default("text") }}
+{{ code.content }}
+```
+{%- endfor %}
+{%- endif %}
+
+{%- if appendix.data %}
+
+**Data Tables:**
+{%- for dataset in appendix.data %}
+
+*{{ dataset.title }}:*
+{%- if dataset.description %}
+{{ dataset.description }}
+{%- endif %}
+
+{%- if dataset.table %}
+{%- if dataset.table.headers %}
+| {{ dataset.table.headers | join(" | ") }} |
+| {{ dataset.table.headers | map("length") | map("range") | map("join", "-") | join(" | ") }} |
+{%- endif %}
+{%- for row in dataset.table.rows %}
+| {{ row | join(" | ") }} |
+{%- endfor %}
+{%- endif %}
+
+{%- endfor %}
+{%- endif %}
+
+{%- if appendix.figures %}
+
+**Additional Figures:**
+{%- for figure in appendix.figures %}
+
+Figure {{ appendix.id }}.{{ loop.index }}: {{ figure.caption }}
+{%- if figure.description %}
+{{ figure.description }}
+{%- endif %}
+
+{%- endfor %}
+{%- endif %}
+
+{%- endfor %}
+{%- endif %}
+{%- endblock -%}
+
+{%- block documentFooter -%}
+{%- if includeFooter !== false -%}
+
+---
+Generated by {{ templateEngine }}
+Institution: {{ institution.name }}
+Department: {{ department }}
+{%- if wordCount %}
+Approximate Word Count: {{ (chapters | map("sections") | flatten | map("content") | join(" ")) | wordCount }} words
+{%- endif %}
+Submission Date: {{ submissionDate | dateFormat }}
+{%- endif -%}
+{%- endblock -%}

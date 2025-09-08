@@ -43,9 +43,9 @@ if (!fs.existsSync(cliPath)) {
 }
 
 // Import and run the CLI application directly from source
-try {
-  // Import using dynamic import to support ES modules
-  (async () => {
+async function loadAndRunCLI() {
+  try {
+    // Import using dynamic import to support ES modules
     const fullPath = path.resolve(__dirname, '../src/cli/index.js');
     const { pathToFileURL } = require('url');
     const cliModule = await import(pathToFileURL(fullPath));
@@ -71,15 +71,19 @@ try {
       
       process.exit(1);
     });
-  })().catch((error) => {
+  } catch (error) {
     console.error('❌ Failed to import CLI module:', error.message);
+    console.error('\n💡 This usually means a missing dependency or module resolution issue.');
+    console.error('   Please check that all dependencies are installed');
     process.exit(1);
-  });
-  
-} catch (error) {
+  }
+}
+
+// Call the async function
+loadAndRunCLI().catch((error) => {
   console.error('❌ Failed to load Unjucks CLI');
   console.error('   Error:', error.message);
   console.error('\n💡 This usually means the package is corrupted.');
   console.error('   Please reinstall: npm uninstall -g unjucks && npm install -g unjucks@latest');
   process.exit(1);
-}
+});

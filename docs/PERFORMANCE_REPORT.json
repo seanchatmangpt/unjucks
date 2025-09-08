@@ -1,0 +1,202 @@
+{
+  "timestamp": "2025-09-08T06:25:55.539Z",
+  "summary": {
+    "totalBenchmarks": 4,
+    "targetsValidation": {
+      "passed": 4,
+      "failed": 0,
+      "results": {
+        "cliStartup": {
+          "target": "<100ms",
+          "actual": "53.15ms",
+          "passed": true
+        },
+        "templateGeneration": {
+          "target": "<50ms",
+          "actual": "18.71ms",
+          "passed": true
+        },
+        "memoryUsage": {
+          "target": "<50MB",
+          "actual": "6.34MB",
+          "passed": true
+        },
+        "bundleSize": {
+          "target": "<100MB",
+          "actual": "0MB",
+          "passed": true
+        }
+      },
+      "success": true,
+      "score": "4/4"
+    },
+    "performanceScore": "4/4"
+  },
+  "results": {
+    "cliStartup": {
+      "original": {
+        "times": [
+          277.369208,
+          273.408709,
+          276.42766700000004,
+          282.5720410000001,
+          277.82791700000007,
+          274.11854199999993,
+          274.94666700000016,
+          274.9043330000002,
+          275.39479200000005,
+          274.39629200000036
+        ],
+        "average": 276.13661680000007,
+        "median": 275.39479200000005,
+        "min": 273.408709,
+        "max": 282.5720410000001,
+        "p95": 282.5720410000001,
+        "p99": 282.5720410000001,
+        "stdDev": 2.527979776087058
+      },
+      "optimized": {
+        "times": [
+          53.4227920000003,
+          53.11408299999994,
+          53.168458999999984,
+          53.281790999999885,
+          52.891791999999896,
+          53.31654199999957,
+          53.3181669999999,
+          52.872957999999926,
+          53.592457999999624,
+          52.53220800000008
+        ],
+        "average": 53.15112499999991,
+        "median": 53.281790999999885,
+        "min": 52.53220800000008,
+        "max": 53.592457999999624,
+        "p95": 53.592457999999624,
+        "p99": 53.592457999999624,
+        "stdDev": 0.29500483182036596
+      },
+      "improvement": {
+        "absolute": 222.98549180000015,
+        "percentage": "80.8",
+        "speedup": "5.20"
+      }
+    },
+    "templateGeneration": {
+      "component/new": {
+        "times": [
+          19.311333000000104,
+          11.172084000000268,
+          22.268874999999753,
+          13.299415999999837,
+          14.413167000000158
+        ],
+        "average": 16.092975000000024,
+        "min": 11.172084000000268,
+        "max": 22.268874999999753
+      },
+      "api/new": {
+        "times": [
+          13.371791999999914,
+          18.212290999999823,
+          15.151124999999865,
+          27.35341699999981,
+          19.342833000000155
+        ],
+        "average": 18.68629159999991,
+        "min": 13.371791999999914,
+        "max": 27.35341699999981
+      },
+      "database/migration": {
+        "times": [
+          17.12541599999986,
+          27.1111249999999,
+          11.163583000000017,
+          26.145709000000352,
+          13.10591599999998
+        ],
+        "average": 18.930349800000023,
+        "min": 11.163583000000017,
+        "max": 27.1111249999999
+      },
+      "semantic/ontology": {
+        "times": [
+          29.110959000000094,
+          14.110041999999794,
+          24.112458999999944,
+          24.14712499999996,
+          14.1072079999999
+        ],
+        "average": 21.11755859999994,
+        "min": 14.1072079999999,
+        "max": 29.110959000000094
+      }
+    },
+    "memoryUsage": {
+      "baseline": {
+        "rss": 50905088,
+        "heapTotal": 7127040,
+        "heapUsed": 5136224,
+        "external": 1852046,
+        "arrayBuffers": 10575
+      },
+      "peaks": [
+        5594528,
+        5686792,
+        6644760,
+        5786080
+      ],
+      "snapshots": [
+        {
+          "operation": "module-loading",
+          "rss": 51003392,
+          "heapTotal": 7389184,
+          "heapUsed": 5594528,
+          "external": 1852086,
+          "arrayBuffers": 10515,
+          "heapUsedMB": 5.34
+        },
+        {
+          "operation": "template-parsing",
+          "rss": 51249152,
+          "heapTotal": 9748480,
+          "heapUsed": 5686792,
+          "external": 1852026,
+          "arrayBuffers": 10515,
+          "heapUsedMB": 5.42
+        },
+        {
+          "operation": "file-generation",
+          "rss": 52101120,
+          "heapTotal": 9748480,
+          "heapUsed": 6644760,
+          "external": 1852026,
+          "arrayBuffers": 10515,
+          "heapUsedMB": 6.34
+        },
+        {
+          "operation": "cleanup",
+          "rss": 52641792,
+          "heapTotal": 9748480,
+          "heapUsed": 5786080,
+          "external": 1852026,
+          "arrayBuffers": 10515,
+          "heapUsedMB": 5.52
+        }
+      ],
+      "peakMemory": 6644760,
+      "peakMemoryMB": 6.34
+    },
+    "bundleSize": {
+      "nodeModules": 0,
+      "sourceCode": 0,
+      "templates": 0,
+      "total": 0,
+      "nodeModulesMB": 0,
+      "sourceCodeMB": 0,
+      "templatesMB": 0,
+      "totalMB": 0
+    }
+  },
+  "recommendations": []
+}

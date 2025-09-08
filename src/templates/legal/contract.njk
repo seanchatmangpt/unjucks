@@ -1,0 +1,220 @@
+{# Legal Contract Template #}
+{%- extends "base/document.njk" -%}
+
+{%- block documentHeader -%}
+LEGAL CONTRACT
+{% if confidential %}CONFIDENTIAL{% endif %}
+{%- endblock -%}
+
+{%- block documentTitle -%}
+{{ contractTitle | upper | default("SERVICE AGREEMENT") }}
+{%- endblock -%}
+
+{%- block documentSubtitle -%}
+{%- if contractNumber -%}
+Contract No.: {{ contractNumber }}
+{%- endif -%}
+{%- endblock -%}
+
+{%- block authorInfo -%}
+Effective Date: {{ effectiveDate | dateFormat | default(currentDate | dateFormat) }}
+{%- if expirationDate -%}
+Expiration Date: {{ expirationDate | dateFormat }}
+{%- endif -%}
+{%- endblock -%}
+
+{%- block documentBody -%}
+
+PARTIES
+=======
+
+This {{ contractTitle | default("Service Agreement") }} ("Agreement") is entered into on {{ effectiveDate | dateFormat | default(currentDate | dateFormat) }} between:
+
+**PARTY A** ({{ partyA.role | default("Client") | capitalize }}):
+{{ partyA.name }}
+{{ partyA.address }}
+{%- if partyA.email %}
+Email: {{ partyA.email }}
+{%- endif %}
+{%- if partyA.phone %}
+Phone: {{ partyA.phone }}
+{%- endif %}
+
+**PARTY B** ({{ partyB.role | default("Service Provider") | capitalize }}):
+{{ partyB.name }}
+{{ partyB.address }}
+{%- if partyB.email %}
+Email: {{ partyB.email }}
+{%- endif %}
+{%- if partyB.phone %}
+Phone: {{ partyB.phone }}
+{%- endif %}
+
+{%- if witnesses %}
+
+**WITNESSES**:
+{%- for witness in witnesses %}
+{{ loop.index }}. {{ witness.name }}
+   {{ witness.address }}
+{%- endfor %}
+{%- endif %}
+
+RECITALS
+========
+
+WHEREAS, {{ partyA.name }} desires to {{ partyA.intent | default("engage services") }};
+
+WHEREAS, {{ partyB.name }} has the expertise and capability to {{ partyB.capability | default("provide such services") }};
+
+NOW, THEREFORE, in consideration of the mutual covenants and agreements contained herein, the parties agree as follows:
+
+TERMS AND CONDITIONS
+===================
+
+{%- if services %}
+
+1. SERVICES
+-----------
+{{ partyB.name }} agrees to provide the following services:
+
+{%- for service in services %}
+{{ loop.index | legalNumber("alpha") }} {{ service.description }}
+   {%- if service.deliverables %}
+   Deliverables: {{ service.deliverables | join(", ") }}
+   {%- endif %}
+   {%- if service.timeline %}
+   Timeline: {{ service.timeline }}
+   {%- endif %}
+{%- endfor %}
+{%- endif %}
+
+{%- if compensation %}
+
+2. COMPENSATION
+---------------
+{%- if compensation.type == "fixed" %}
+Total compensation: {{ compensation.amount | currency(compensation.currency) }}
+{%- elif compensation.type == "hourly" %}
+Hourly rate: {{ compensation.rate | currency(compensation.currency) }} per hour
+{%- if compensation.estimatedHours %}
+Estimated hours: {{ compensation.estimatedHours }}
+{%- endif %}
+{%- elif compensation.type == "milestone" %}
+Payment schedule based on milestones:
+{%- for milestone in compensation.milestones %}
+{{ loop.index | legalNumber }} {{ milestone.description }}: {{ milestone.amount | currency(compensation.currency) }}
+{%- endfor %}
+{%- endif %}
+
+{%- if compensation.paymentTerms %}
+Payment Terms: {{ compensation.paymentTerms }}
+{%- endif %}
+{%- endif %}
+
+{%- if terms %}
+
+{%- for term in terms %}
+
+{{ loop.index + 2 }}. {{ term.title | upper }}
+{{ "-".repeat(term.title | length + 4) }}
+{{ term.content }}
+{%- endfor %}
+{%- endif %}
+
+{%- if standardClauses %}
+
+STANDARD PROVISIONS
+==================
+
+{%- if standardClauses.includes("termination") %}
+
+TERMINATION
+-----------
+Either party may terminate this Agreement with {{ terminationNotice | default("30 days") }} written notice.
+{%- endif %}
+
+{%- if standardClauses.includes("confidentiality") %}
+
+CONFIDENTIALITY
+---------------
+Both parties agree to maintain confidentiality of all proprietary information shared during the term of this Agreement.
+{%- endif %}
+
+{%- if standardClauses.includes("liability") %}
+
+LIMITATION OF LIABILITY
+-----------------------
+Except for gross negligence or willful misconduct, neither party shall be liable for indirect, incidental, or consequential damages.
+{%- endif %}
+
+{%- if standardClauses.includes("governing_law") %}
+
+GOVERNING LAW
+-------------
+This Agreement shall be governed by the laws of {{ governingLaw | default("the State of [STATE]") }}.
+{%- endif %}
+
+{%- if standardClauses.includes("entire_agreement") %}
+
+ENTIRE AGREEMENT
+----------------
+This Agreement constitutes the entire agreement between the parties and supersedes all prior negotiations, representations, or agreements.
+{%- endif %}
+{%- endif %}
+
+SIGNATURES
+==========
+
+By signing below, the parties agree to be bound by the terms of this Agreement.
+
+**{{ partyA.name }}**
+
+Signature: _________________________    Date: ___________
+{{ partyA.signatory | default("Authorized Representative") }}
+{%- if partyA.title %}
+Title: {{ partyA.title }}
+{%- endif %}
+
+
+**{{ partyB.name }}**
+
+Signature: _________________________    Date: ___________
+{{ partyB.signatory | default("Authorized Representative") }}
+{%- if partyB.title %}
+Title: {{ partyB.title }}
+{%- endif %}
+
+{%- if witnesses %}
+
+**WITNESSES**:
+{%- for witness in witnesses %}
+
+{{ witness.name }}
+Signature: _________________________    Date: ___________
+{%- endfor %}
+{%- endif %}
+
+{%- if notarization %}
+
+**NOTARIZATION**
+
+State of {{ notarization.state }}
+County of {{ notarization.county }}
+
+[Notary section - to be completed by notary public]
+{%- endif %}
+
+{%- endblock -%}
+
+{%- block documentFooter -%}
+{%- if includeFooter !== false -%}
+
+---
+This contract was generated using {{ templateEngine }}
+Contract ID: {{ contractId | default("AUTO-" + currentDateTime) }}
+Legal Review Status: {{ legalReview | default("PENDING REVIEW") }}
+{%- if contractVersion %}
+Contract Version: {{ contractVersion }}
+{%- endif %}
+{%- endif -%}
+{%- endblock -%}

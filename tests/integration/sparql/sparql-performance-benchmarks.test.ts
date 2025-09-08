@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import nunjucks from 'nunjucks';
-import { sparqlFilters } from '../../../src/lib/filters/sparql';
+import { sparqlFilters } from '../../../src/lib/filters/sparql.js';
+import { addCommonFilters } from '../../../src/lib/nunjucks-filters.js';
 import { Parser as SparqlParser } from 'sparqljs';
 import { performance } from 'perf_hooks';
 
@@ -12,6 +13,9 @@ describe('SPARQL Performance Benchmarks', () => {
     env = new nunjucks.Environment(
       new nunjucks.FileSystemLoader('tests/fixtures/sparql')
     );
+    
+    // Add all common filters (includes map, join, etc.)
+    addCommonFilters(env);
     
     // Register all SPARQL filters
     Object.entries(sparqlFilters).forEach(([name, filter]) => {

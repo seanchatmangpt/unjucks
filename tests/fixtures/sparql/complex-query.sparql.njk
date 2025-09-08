@@ -1,5 +1,5 @@
 ---
-to: <%= dest %>/queries/complex-<%= queryName %>.sparql
+to: "{{ dest }}/queries/complex-{{ queryName }}.sparql"
 inject: false
 ---
 PREFIX ex: <{{ baseUri | rdfResource }}/>

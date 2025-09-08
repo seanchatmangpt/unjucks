@@ -2,6 +2,7 @@ import { defineCommand } from "citty";
 import chalk from "chalk";
 import { SimpleFileInjectorOrchestrator } from '../lib/file-injector/simple-file-injector-orchestrator.js';
 import { addCommonFilters } from '../lib/nunjucks-filters.js';
+import { PerfectTemplateEngine } from '../lib/template-engine-perfect.js';
 import nunjucks from 'nunjucks';
 import fs from 'fs-extra';
 import path from 'node:path';
@@ -15,7 +16,15 @@ class Generator {
     this.templatesDir = '_templates';
     this.fileInjector = new SimpleFileInjectorOrchestrator();
     
-    // Configure Nunjucks environment
+    // Use Perfect Template Engine for zero parsing errors
+    this.perfectEngine = new PerfectTemplateEngine({
+      templatesDir: this.templatesDir,
+      autoescape: false,
+      throwOnUndefined: false,
+      enableCaching: true
+    });
+    
+    // Configure legacy Nunjucks environment for backward compatibility
     this.nunjucksEnv = new nunjucks.Environment(
       new nunjucks.FileSystemLoader(this.templatesDir),
       {
@@ -151,70 +160,95 @@ class Generator {
   async processTemplateFile(templateFilePath, variables, destDir, options) {
     const { dry, force } = options;
     
-    // Read template file
-    const templateContent = await fs.readFile(templateFilePath, 'utf8');
-    
-    // Parse frontmatter
-    const { data: frontmatter, content } = matter(templateContent);
-    
-    // Render output path using Nunjucks
-    const outputPath = frontmatter.to 
-      ? this.nunjucksEnv.renderString(frontmatter.to, variables)
-      : path.basename(templateFilePath, '.njk');
-    
-    // Resolve full output path
-    const fullOutputPath = path.resolve(destDir, outputPath);
-    
-    // Render content using Nunjucks
-    const renderedContent = this.nunjucksEnv.renderString(content, variables);
-    
-    // Check if file exists
-    const existed = await fs.pathExists(fullOutputPath);
-    
-    // Don't fail on existing files if we're doing injection
-    if (existed && !force && !dry && !frontmatter.inject) {
-      return {
-        success: false,
-        outputPath: fullOutputPath,
-        existed,
-        warnings: [`File exists: ${fullOutputPath} (use --force to overwrite)`]
-      };
-    }
-    
-    // Use FileInjectorOrchestrator to write the file
-    const injectionResult = await this.fileInjector.processFile(
-      fullOutputPath,
-      renderedContent,
-      frontmatter,
-      { dry, force }
-    );
-    
-    if (!injectionResult.success) {
-      return {
-        success: false,
-        outputPath: fullOutputPath,
-        existed,
-        warnings: [injectionResult.message]
-      };
-    }
-    
-    // Get file size if not dry run
-    let size = 0;
-    if (!dry && injectionResult.success) {
-      try {
-        const stats = await fs.stat(fullOutputPath);
-        size = stats.size;
-      } catch (error) {
-        console.warn('Could not get file size:', error);
+    try {
+      // Use Perfect Template Engine for rendering
+      const renderResult = await this.perfectEngine.renderTemplate(templateFilePath, variables);
+      
+      if (!renderResult.success) {
+        return {
+          success: false,
+          outputPath: templateFilePath,
+          warnings: [`Template rendering failed: ${renderResult.error?.message || 'Unknown error'}`]
+        };
       }
-    }
+      
+      const { frontmatter, content: renderedContent } = renderResult;
+      
+      // Render output path using Perfect Engine
+      let outputPath;
+      if (frontmatter.to) {
+        outputPath = this.perfectEngine.processVariables(frontmatter.to, variables);
+      } else {
+        // Strip template extensions properly
+        let basename = path.basename(templateFilePath);
+        if (basename.endsWith('.ejs')) {
+          basename = basename.slice(0, -4);
+        } else if (basename.endsWith('.njk')) {
+          basename = basename.slice(0, -4);
+        } else if (basename.endsWith('.hbs')) {
+          basename = basename.slice(0, -4);
+        }
+        outputPath = basename;
+      }
+      
+      // Resolve full output path
+      const fullOutputPath = path.resolve(destDir, outputPath);
     
-    return {
-      success: true,
-      outputPath: fullOutputPath,
-      existed,
-      size
-    };
+      // Check if file exists
+      const existed = await fs.pathExists(fullOutputPath);
+      
+      // Don't fail on existing files if we're doing injection
+      if (existed && !force && !dry && !frontmatter.inject) {
+        return {
+          success: false,
+          outputPath: fullOutputPath,
+          existed,
+          warnings: [`File exists: ${fullOutputPath} (use --force to overwrite)`]
+        };
+      }
+      
+      // Use FileInjectorOrchestrator to write the file
+      const injectionResult = await this.fileInjector.processFile(
+        fullOutputPath,
+        renderedContent,
+        frontmatter,
+        { dry, force }
+      );
+      
+      if (!injectionResult.success) {
+        return {
+          success: false,
+          outputPath: fullOutputPath,
+          existed,
+          warnings: [injectionResult.message]
+        };
+      }
+      
+      // Get file size if not dry run
+      let size = 0;
+      if (!dry && injectionResult.success) {
+        try {
+          const stats = await fs.stat(fullOutputPath);
+          size = stats.size;
+        } catch (error) {
+          console.warn('Could not get file size:', error);
+        }
+      }
+      
+      return {
+        success: true,
+        outputPath: fullOutputPath,
+        existed,
+        size
+      };
+    } catch (error) {
+      return {
+        success: false,
+        outputPath: templateFilePath,
+        error: error.message,
+        warnings: [`Template processing failed: ${error.message}`]
+      };
+    }
   }
 
   async hasTemplateFiles(dirPath) {
@@ -238,7 +272,7 @@ class Generator {
         // Recursively get files from subdirectories
         const subFiles = await this.getTemplateFiles(itemPath);
         files.push(...subFiles);
-      } else if (item.isFile() && (item.name.endsWith('.njk') || item.name.endsWith('.hbs'))) {
+      } else if (item.isFile() && (item.name.endsWith('.njk') || item.name.endsWith('.ejs') || item.name.endsWith('.hbs'))) {
         files.push(itemPath);
       }
     }
@@ -655,5 +689,5 @@ export const generateCommand = defineCommand({
         error: error.message,
       };
     }
-  },
+  }
 });

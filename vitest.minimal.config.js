@@ -11,6 +11,7 @@ export default defineConfig({
       "tests/unit/configuration-loader.test.js",
       "tests/unit/nunjucks-filters.test.js",
       "tests/unit/advanced-filters.test.js",
+      "tests/unit/latex-parser.test.js",
       "tests/integration/template-rendering.test.js",
       "tests/integration/frontmatter-filters.test.js",
       "tests/integration/sparql/**/*.test.ts",

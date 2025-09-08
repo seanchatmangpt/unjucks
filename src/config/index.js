@@ -1,4 +1,4 @@
-require('dotenv').config();
+import 'dotenv/config';
 
 const config = {
   // Server configuration
@@ -7,16 +7,15 @@ const config = {
   version: process.env.VERSION || '1.0.0',
   
   // Service identification
-  serviceName: '',
-  apiVersion: '',
+  serviceName: process.env.SERVICE_NAME || 'unjucks-service',
+  apiVersion: process.env.API_VERSION || 'v1',
   
   // Database configuration
   database: {
-    
     type: 'postgresql',
     host: process.env.DB_HOST || 'localhost',
     port: parseInt(process.env.DB_PORT) || 5432,
-    database: process.env.DB_NAME || '_db',
+    database: process.env.DB_NAME || 'unjucks_db',
     username: process.env.DB_USER || 'postgres',
     password: process.env.DB_PASSWORD || 'password',
     ssl: process.env.DB_SSL === 'true',
@@ -24,10 +23,7 @@ const config = {
       min: parseInt(process.env.DB_POOL_MIN) || 2,
       max: parseInt(process.env.DB_POOL_MAX) || 10
     }
-    
   },
-
-  
 
   // CORS configuration
   cors: {
@@ -36,27 +32,19 @@ const config = {
       ['http://localhost:3000', 'http://localhost:3001']
   },
 
-  
-
   // Logging configuration
   logging: {
     level: process.env.LOG_LEVEL || 'info',
     format: process.env.LOG_FORMAT || 'json',
     maxFileSize: process.env.LOG_MAX_SIZE || '20m',
     maxFiles: parseInt(process.env.LOG_MAX_FILES) || 7,
-    
   },
-
-  
-
-  
 
   // Health check configuration
   health: {
     timeout: parseInt(process.env.HEALTH_TIMEOUT) || 5000,
     checks: [
       'database',
-      
       'memory',
       'disk'
     ]
@@ -72,14 +60,8 @@ const config = {
     requestSizeLimit: process.env.REQUEST_SIZE_LIMIT || '10mb'
   },
 
-  
-
   // Feature flags
   features: {
-    
-    
-    
-    
     swagger: process.env.ENABLE_SWAGGER !== 'false',
     metrics: process.env.ENABLE_METRICS !== 'false'
   }
@@ -104,4 +86,4 @@ if (config.environment === 'production') {
   }
 }
 
-module.exports = config;
+export default config;

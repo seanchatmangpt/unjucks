@@ -3,24 +3,18 @@
 import { defineCommand, runMain as cittyRunMain } from "citty";
 import chalk from "chalk";
 
-// Import all commands (corrected paths)
+// Import all commands (fixed paths - CLI is in src/cli/, commands in src/commands/)
 import { generateCommand } from '../commands/generate.js';
 import { listCommand } from '../commands/list.js';
 import { injectCommand } from '../commands/inject.js';
 import { initCommand } from '../commands/init.js';
 import { semanticCommand } from '../commands/semantic.js';
 import { migrateCommand } from '../commands/migrate.js';
-// import { versionCommand } from '../commands/version.js'; // Temporarily commented out
-// import { newCommand } from '../commands/new.js'; // Temporarily commented out
-// import { previewCommand } from '../commands/preview.js'; // Temporarily commented out
-
-// Import NEW enhanced commands
-// import { swarmCommand } from '../commands/swarm.js'; // Temporarily commented out
-// import { workflowCommand } from '../commands/workflow.js'; // Temporarily commented out
-// import { perfCommand } from '../commands/perf.js'; // Temporarily commented out
 import { githubCommand } from '../commands/github.js';
-// import { knowledgeCommand } from '../commands/knowledge.js'; // Temporarily commented out
-// import { neuralCommand } from '../commands/neural.js'; // Temporarily commented out
+import { versionCommand } from '../commands/version.js';
+import { newCommand } from '../commands/new.js';
+import { previewCommand } from '../commands/preview.js';
+import { helpCommand as advancedHelpCommand } from '../commands/help.js';
 
 // All commands now imported from their respective modules
 
@@ -40,11 +34,12 @@ const helpCommand = defineCommand({
 
 // All other commands are now imported from their respective modules
 
-// Import unified version resolver
-import { getVersion } from '../lib/version-resolver.js';
+// Import fast version resolver
+import { getVersion } from '../lib/fast-version-resolver.js';
 
 /**
  * Enhanced pre-process arguments to handle comprehensive Hygen-style positional syntax
+ * Optimized for performance with early returns
  * @returns {string[]} Processed arguments
  */
 const preprocessArgs = () => {
@@ -60,8 +55,9 @@ const preprocessArgs = () => {
     return rawArgs;
   }
   
-  // Don't transform if already using explicit commands
-  if (['generate', 'new', 'preview', 'help', 'list', 'init', 'inject', 'version', 'semantic', 'swarm', 'workflow', 'perf', 'github', 'knowledge', 'neural', 'migrate'].includes(firstArg)) {
+  // Don't transform if already using explicit commands (optimized lookup)
+  const explicitCommands = new Set(['generate', 'new', 'preview', 'help', 'list', 'init', 'inject', 'version', 'semantic', 'swarm', 'workflow', 'perf', 'github', 'knowledge', 'neural', 'migrate']);
+  if (explicitCommands.has(firstArg)) {
     return rawArgs;
   }
   
@@ -114,27 +110,22 @@ const main = defineCommand({
   },
   subCommands: {
     // PRIMARY UNIFIED COMMANDS
-    // new: newCommand,        // Primary command - clear intent
-    // preview: previewCommand, // Safe exploration
-    help: helpCommand,      // Context-sensitive help
+    new: newCommand,            // Primary command - clear intent
+    preview: previewCommand,    // Safe exploration
+    help: advancedHelpCommand,  // Context-sensitive help
     
     // SECONDARY COMMANDS
     list: listCommand,
     init: initCommand,
     inject: injectCommand,
-    // version: versionCommand,
+    version: versionCommand,
     
     // LEGACY SUPPORT
-    generate: generateCommand, // Legacy command with deprecation warnings
+    generate: generateCommand,  // Legacy command with deprecation warnings
     
     // ADVANCED FEATURES
     semantic: semanticCommand,
-    // swarm: swarmCommand,
-    // workflow: workflowCommand,
-    // perf: perfCommand,
     github: githubCommand,
-    // knowledge: knowledgeCommand,
-    // neural: neuralCommand,
     migrate: migrateCommand,
   },
   /**

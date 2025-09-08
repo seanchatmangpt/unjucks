@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import nunjucks from 'nunjucks';
-import { sparqlFilters } from '../../../src/lib/filters/sparql';
+import { sparqlFilters } from '../../../src/lib/filters/sparql.js';
+import { addCommonFilters } from '../../../src/lib/nunjucks-filters.js';
 import { Parser as SparqlParser } from 'sparqljs';
 
 describe('SPARQL Filter Validation', () => {
@@ -10,14 +11,13 @@ describe('SPARQL Filter Validation', () => {
   beforeEach(() => {
     env = new nunjucks.Environment();
     
+    // Add all common filters (includes map, join, etc.)
+    addCommonFilters(env);
+    
     // Register all SPARQL filters
     Object.entries(sparqlFilters).forEach(([name, filter]) => {
       env.addFilter(name, filter);
     });
-    
-    // Add built-in Nunjucks filters that we use
-    env.addFilter('map', (arr, prop) => arr.map(item => typeof prop === 'string' ? item[prop] : prop(item)));
-    env.addFilter('join', (arr, sep) => arr.join(sep || ''));
 
     parser = new SparqlParser({
       // Set a base IRI to resolve relative IRIs
