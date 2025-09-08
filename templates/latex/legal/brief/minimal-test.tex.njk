@@ -1,0 +1,28 @@
+---
+to: "test-output.tex"
+---
+% Minimal Legal Brief Test
+\documentclass[12pt,letterpaper]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{setspace}
+
+\doublespacing
+
+\begin{document}
+
+\begin{center}
+{{ courtName }}
+
+Case No. {{ caseNumber }}
+
+{{ briefTitle }}
+
+{{ attorney.name }}
+{{ attorney.firm }}
+\end{center}
+
+\section{Test Section}
+
+This is a test of the {{ briefType }} template.
+
+\end{document}

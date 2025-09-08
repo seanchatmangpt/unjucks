@@ -1,0 +1,98 @@
+% Signature Blocks Component for Legal Documents
+% Reusable component for contract signatures
+
+IN WITNESS WHEREOF, the parties have executed this Agreement as of the date first written above.
+
+\vspace{0.5in}
+
+\begin{minipage}[t]{0.45\textwidth}
+\textbf{{{ partyA.name | default('PARTY A') }}}
+
+\vspace{1in}
+
+By: \rule{3in}{0.5pt}\\
+Name: {{ partyA.signatoryName | default('[Name]') }}\\
+Title: {{ partyA.signatoryTitle | default('[Title]') }}\\
+Date: \rule{2in}{0.5pt}
+
+{% if partyA.requiresWitness %}
+\vspace{0.5in}
+
+Witness:
+
+\vspace{0.75in}
+
+\rule{3in}{0.5pt}\\
+Signature of Witness\\
+
+\rule{3in}{0.5pt}\\
+Print Name of Witness\\
+Date: \rule{2in}{0.5pt}
+{% endif %}
+
+{% if partyA.requiresNotarization %}
+\vspace{0.5in}
+
+\begin{center}
+\textbf{NOTARIZATION}
+\end{center}
+
+State of {{ partyA.notaryState | default('_____________') }}\\
+County of {{ partyA.notaryCounty | default('_____________') }}
+
+On this \_\_\_\_ day of \_\_\_\_\_\_\_\_\_\_\_\_\_, 20\_\_\_, before me personally appeared {{ partyA.signatoryName | default('[Name]') }}, who proved to me on the basis of satisfactory evidence to be the person whose name is subscribed to the within instrument and acknowledged to me that he/she executed the same in his/her authorized capacity, and that by his/her signature on the instrument the person, or the entity upon behalf of which the person acted, executed the instrument.
+
+\vspace{0.5in}
+
+\rule{3in}{0.5pt}\\
+Notary Public\\
+My commission expires: \_\_\_\_\_\_\_\_\_\_\_\_\_\_
+{% endif %}
+
+\end{minipage}
+\hfill
+\begin{minipage}[t]{0.45\textwidth}
+\textbf{{{ partyB.name | default('PARTY B') }}}
+
+\vspace{1in}
+
+By: \rule{3in}{0.5pt}\\
+Name: {{ partyB.signatoryName | default('[Name]') }}\\
+Title: {{ partyB.signatoryTitle | default('[Title]') }}\\
+Date: \rule{2in}{0.5pt}
+
+{% if partyB.requiresWitness %}
+\vspace{0.5in}
+
+Witness:
+
+\vspace{0.75in}
+
+\rule{3in}{0.5pt}\\
+Signature of Witness\\
+
+\rule{3in}{0.5pt}\\
+Print Name of Witness\\
+Date: \rule{2in}{0.5pt}
+{% endif %}
+
+{% if partyB.requiresNotarization %}
+\vspace{0.5in}
+
+\begin{center}
+\textbf{NOTARIZATION}
+\end{center}
+
+State of {{ partyB.notaryState | default('_____________') }}\\
+County of {{ partyB.notaryCounty | default('_____________') }}
+
+On this \_\_\_\_ day of \_\_\_\_\_\_\_\_\_\_\_\_\_, 20\_\_\_, before me personally appeared {{ partyB.signatoryName | default('[Name]') }}, who proved to me on the basis of satisfactory evidence to be the person whose name is subscribed to the within instrument and acknowledged to me that he/she executed the same in his/her authorized capacity, and that by his/her signature on the instrument the person, or the entity upon behalf of which the person acted, executed the instrument.
+
+\vspace{0.5in}
+
+\rule{3in}{0.5pt}\\
+Notary Public\\
+My commission expires: \_\_\_\_\_\_\_\_\_\_\_\_\_\_
+{% endif %}
+
+\end{minipage}

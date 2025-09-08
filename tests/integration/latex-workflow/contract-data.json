@@ -1,0 +1,24 @@
+{
+  "contractName": "Service Agreement", 
+  "contractType": "Service",
+  "partyA": {
+    "name": "ABC Corp",
+    "entityType": "corporation", 
+    "jurisdiction": "Delaware",
+    "address": "123 Main St, Anytown, USA",
+    "shortName": "Company"
+  },
+  "partyB": {
+    "name": "XYZ Services", 
+    "entityType": "limited liability company",
+    "jurisdiction": "California", 
+    "address": "456 Oak Ave, Another City, USA",
+    "shortName": "Provider"
+  },
+  "effectiveDate": "January 1, 2025",
+  "jurisdiction": "california",
+  "governingLaw": "the State of California",
+  "includeArbitration": true,
+  "includeLiquidatedDamages": false,
+  "includeNonCompete": false
+}

@@ -1,0 +1,541 @@
+---
+to: "{{ planName | paramCase }}/TECHNICAL_PLAN.md"
+inject: false
+skipIf: "{{ skipExisting }}"
+chmod: "0644"
+---
+# <%= planName %> - Technical Architecture Plan
+
+**Generated:** <%= new Date().toISOString() %>  
+**Architect:** <%= architect || 'System' %>  
+**Version:** <%= version || '1.0.0' %>  
+**Phase:** <%= phase || 'Design' %>
+
+## Executive Summary
+
+<%= summary || 'Technical architecture plan for implementing the specified requirements.' %>
+
+**Key Decisions:**
+<% if (keyDecisions && keyDecisions.length > 0) { -%>
+<% keyDecisions.forEach(function(decision) { -%>
+- <%= decision %>
+<% }); -%>
+<% } else { -%>
+- Technology stack selection
+- Architecture pattern adoption
+- Data storage strategy
+- Integration approach
+<% } -%>
+
+## System Architecture
+
+### High-Level Architecture
+
+<% if (architecture) { -%>
+**Pattern:** <%= architecture.pattern || 'Microservices' %>  
+**Style:** <%= architecture.style || 'Event-driven' %>
+
+<%= architecture.description || 'System architecture overview' %>
+<% } else { -%>
+**Pattern:** Microservices  
+**Style:** Event-driven  
+
+The system follows a distributed microservices architecture with event-driven communication patterns to ensure scalability, maintainability, and fault tolerance.
+<% } -%>
+
+### System Components
+
+<% if (components && components.length > 0) { -%>
+<% components.forEach(function(component, index) { -%>
+#### <%= component.name %>
+
+**Type:** <%= component.type || 'Service' %>  
+**Responsibility:** <%= component.responsibility || 'Component responsibility' %>
+
+<% if (component.technologies && component.technologies.length > 0) { -%>
+**Technologies:**
+<% component.technologies.forEach(function(tech) { -%>
+- <%= tech %>
+<% }); -%>
+<% } -%>
+
+<% if (component.interfaces && component.interfaces.length > 0) { -%>
+**Interfaces:**
+<% component.interfaces.forEach(function(iface) { -%>
+- <%= iface %>
+<% }); -%>
+<% } -%>
+
+<% if (component.dependencies && component.dependencies.length > 0) { -%>
+**Dependencies:**
+<% component.dependencies.forEach(function(dep) { -%>
+- <%= dep %>
+<% }); -%>
+<% } -%>
+
+<% }); -%>
+<% } else { -%>
+#### API Gateway
+**Type:** Infrastructure  
+**Responsibility:** Request routing, authentication, rate limiting
+
+#### Core Service
+**Type:** Business Logic  
+**Responsibility:** Main business operations and rules
+
+#### Data Layer
+**Type:** Persistence  
+**Responsibility:** Data storage and retrieval
+
+#### Message Queue
+**Type:** Communication  
+**Responsibility:** Asynchronous message handling
+<% } -%>
+
+## Technology Stack
+
+### Core Technologies
+
+<% if (technologies) { -%>
+- **Runtime:** <%= technologies.runtime || 'Node.js 18+' %>
+- **Framework:** <%= technologies.framework || 'Express.js' %>
+- **Database:** <%= technologies.database || 'PostgreSQL' %>
+- **Cache:** <%= technologies.cache || 'Redis' %>
+- **Message Queue:** <%= technologies.messageQueue || 'RabbitMQ' %>
+- **Container:** <%= technologies.container || 'Docker' %>
+- **Orchestration:** <%= technologies.orchestration || 'Kubernetes' %>
+<% } else { -%>
+- **Runtime:** Node.js 18+ / TypeScript
+- **Framework:** Express.js / Fastify
+- **Database:** PostgreSQL / MongoDB
+- **Cache:** Redis
+- **Message Queue:** RabbitMQ / Apache Kafka
+- **Container:** Docker
+- **Orchestration:** Kubernetes
+<% } -%>
+
+### Development Tools
+
+<% if (devTools && devTools.length > 0) { -%>
+<% devTools.forEach(function(tool) { -%>
+- **<%= tool.category %>:** <%= tool.name %> - <%= tool.purpose || 'Development tool' %>
+<% }); -%>
+<% } else { -%>
+- **IDE:** VS Code with extensions
+- **Version Control:** Git with GitFlow
+- **CI/CD:** GitHub Actions / GitLab CI
+- **Testing:** Jest, Cypress, K6
+- **Code Quality:** ESLint, Prettier, SonarQube
+- **Documentation:** TypeDoc, OpenAPI
+- **Monitoring:** Prometheus, Grafana, Jaeger
+<% } -%>
+
+## Data Architecture
+
+### Data Models
+
+<% if (dataModels && dataModels.length > 0) { -%>
+<% dataModels.forEach(function(model) { -%>
+#### <%= model.name %>
+
+**Storage:** <%= model.storage || 'Primary Database' %>  
+**Pattern:** <%= model.pattern || 'CRUD' %>
+
+```sql
+<% if (model.schema) { -%>
+<%= model.schema %>
+<% } else { -%>
+CREATE TABLE <%= model.name.toLowerCase() %>s (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  -- Add fields based on specification
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+<% } -%>
+```
+
+<% if (model.indexes && model.indexes.length > 0) { -%>
+**Indexes:**
+<% model.indexes.forEach(function(index) { -%>
+- <%= index %>
+<% }); -%>
+<% } -%>
+
+<% }); -%>
+<% } else { -%>
+*Data models will be derived from the specification requirements*
+<% } -%>
+
+### Data Flow
+
+<% if (dataFlow) { -%>
+<%= dataFlow %>
+<% } else { -%>
+1. **Input Layer:** API requests and event ingestion
+2. **Validation Layer:** Schema validation and business rules
+3. **Processing Layer:** Business logic and transformations
+4. **Persistence Layer:** Database operations and caching
+5. **Output Layer:** Response formatting and event publishing
+<% } -%>
+
+### Caching Strategy
+
+<% if (caching) { -%>
+- **L1 Cache:** <%= caching.l1 || 'Application memory' %>
+- **L2 Cache:** <%= caching.l2 || 'Redis distributed cache' %>
+- **CDN:** <%= caching.cdn || 'CloudFlare for static assets' %>
+- **Database Cache:** <%= caching.database || 'Connection pooling and query cache' %>
+<% } else { -%>
+- **Application Cache:** In-memory caching for frequently accessed data
+- **Distributed Cache:** Redis for session and temporary data
+- **Database Cache:** Connection pooling and prepared statements
+- **CDN:** Content delivery for static assets
+<% } -%>
+
+## Security Architecture
+
+### Authentication & Authorization
+
+<% if (auth) { -%>
+- **Method:** <%= auth.method || 'JWT with OAuth 2.0' %>
+- **Provider:** <%= auth.provider || 'Auth0 / AWS Cognito' %>
+- **Session Management:** <%= auth.sessions || 'Stateless JWT tokens' %>
+- **Role-Based Access:** <%= auth.rbac ? 'Yes' : 'No' %>
+<% } else { -%>
+- **Authentication:** JWT tokens with refresh mechanism
+- **Authorization:** Role-based access control (RBAC)
+- **Session Management:** Stateless token-based sessions
+- **Multi-factor Authentication:** Time-based OTP support
+<% } -%>
+
+### Data Security
+
+<% if (dataSecurity && dataSecurity.length > 0) { -%>
+<% dataSecurity.forEach(function(measure) { -%>
+- <%= measure %>
+<% }); -%>
+<% } else { -%>
+- **Encryption at Rest:** AES-256 database encryption
+- **Encryption in Transit:** TLS 1.3 for all communications
+- **API Security:** Rate limiting and input validation
+- **Secrets Management:** HashiCorp Vault / AWS Secrets Manager
+- **Audit Logging:** Comprehensive security event logging
+<% } -%>
+
+## Scalability & Performance
+
+### Horizontal Scaling
+
+<% if (scaling) { -%>
+- **Load Balancing:** <%= scaling.loadBalancer || 'Application Load Balancer' %>
+- **Auto Scaling:** <%= scaling.autoScaling || 'Kubernetes HPA' %>
+- **Database Scaling:** <%= scaling.database || 'Read replicas and sharding' %>
+- **Cache Scaling:** <%= scaling.cache || 'Redis Cluster' %>
+<% } else { -%>
+- **Application Tier:** Kubernetes horizontal pod autoscaler
+- **Database Tier:** Read replicas and connection pooling
+- **Cache Tier:** Redis cluster with consistent hashing
+- **Load Balancer:** Application load balancer with health checks
+<% } -%>
+
+### Performance Targets
+
+<% if (performance) { -%>
+- **Response Time:** <%= performance.responseTime || '< 200ms P95' %>
+- **Throughput:** <%= performance.throughput || '10,000 RPS' %>
+- **Availability:** <%= performance.availability || '99.95%' %>
+- **Scalability:** <%= performance.scalability || 'Handle 10x traffic spikes' %>
+<% } else { -%>
+- **API Response Time:** < 200ms for 95th percentile
+- **Database Queries:** < 100ms for complex operations
+- **Cache Hit Ratio:** > 95% for frequently accessed data
+- **Concurrent Users:** Support 10,000+ concurrent connections
+<% } -%>
+
+## Integration Architecture
+
+### Internal Services
+
+<% if (internalIntegrations && internalIntegrations.length > 0) { -%>
+<% internalIntegrations.forEach(function(integration) { -%>
+#### <%= integration.name %>
+
+**Protocol:** <%= integration.protocol || 'HTTP/REST' %>  
+**Authentication:** <%= integration.auth || 'Service-to-service JWT' %>  
+**Data Format:** <%= integration.format || 'JSON' %>
+
+<% if (integration.endpoints && integration.endpoints.length > 0) { -%>
+**Endpoints:**
+<% integration.endpoints.forEach(function(endpoint) { -%>
+- `<%= endpoint.method %> <%= endpoint.path %>` - <%= endpoint.description %>
+<% }); -%>
+<% } -%>
+
+<% }); -%>
+<% } else { -%>
+*Internal service integrations based on microservices communication patterns*
+<% } -%>
+
+### External Services
+
+<% if (externalIntegrations && externalIntegrations.length > 0) { -%>
+<% externalIntegrations.forEach(function(integration) { -%>
+#### <%= integration.name %>
+
+**Provider:** <%= integration.provider || 'Third-party service' %>  
+**Protocol:** <%= integration.protocol || 'HTTPS/REST' %>  
+**SLA:** <%= integration.sla || 'TBD' %>  
+**Fallback:** <%= integration.fallback || 'Circuit breaker pattern' %>
+
+<% }); -%>
+<% } else { -%>
+*External integrations will be implemented with circuit breaker and retry patterns*
+<% } -%>
+
+## Deployment Architecture
+
+### Environment Strategy
+
+<% if (environments && environments.length > 0) { -%>
+<% environments.forEach(function(env) { -%>
+#### <%= env.name %>
+
+**Purpose:** <%= env.purpose || 'Environment purpose' %>  
+**Infrastructure:** <%= env.infrastructure || 'Cloud infrastructure' %>  
+**Deployment:** <%= env.deployment || 'Automated deployment' %>
+
+<% if (env.config && env.config.length > 0) { -%>
+**Configuration:**
+<% env.config.forEach(function(config) { -%>
+- <%= config %>
+<% }); -%>
+<% } -%>
+
+<% }); -%>
+<% } else { -%>
+#### Development
+**Purpose:** Feature development and unit testing  
+**Infrastructure:** Local development with Docker Compose  
+**Deployment:** Manual deployment with hot reloading
+
+#### Staging
+**Purpose:** Integration testing and UAT  
+**Infrastructure:** Kubernetes cluster (reduced scale)  
+**Deployment:** Automated via CI/CD pipeline
+
+#### Production
+**Purpose:** Live system serving users  
+**Infrastructure:** High-availability Kubernetes cluster  
+**Deployment:** Blue-green deployment strategy
+<% } -%>
+
+### CI/CD Pipeline
+
+<% if (cicd) { -%>
+1. **Source:** <%= cicd.source || 'Git repository with branch protection' %>
+2. **Build:** <%= cicd.build || 'Docker image creation and scanning' %>
+3. **Test:** <%= cicd.test || 'Unit, integration, and security tests' %>
+4. **Deploy:** <%= cicd.deploy || 'Automated deployment with rollback' %>
+5. **Monitor:** <%= cicd.monitor || 'Health checks and performance monitoring' %>
+<% } else { -%>
+1. **Code Commit:** Trigger pipeline on merge to main branch
+2. **Build Phase:** Compile, test, and create Docker images
+3. **Security Scan:** Static code analysis and vulnerability scanning
+4. **Deploy to Staging:** Automated deployment for integration testing
+5. **Production Deploy:** Blue-green deployment with automated rollback
+<% } -%>
+
+## Monitoring & Observability
+
+### Application Monitoring
+
+<% if (monitoring) { -%>
+- **Metrics:** <%= monitoring.metrics || 'Prometheus with Grafana dashboards' %>
+- **Logging:** <%= monitoring.logging || 'Centralized logging with ELK stack' %>
+- **Tracing:** <%= monitoring.tracing || 'Distributed tracing with Jaeger' %>
+- **Alerting:** <%= monitoring.alerting || 'PagerDuty for critical alerts' %>
+<% } else { -%>
+- **Application Metrics:** Custom metrics with Prometheus
+- **Infrastructure Metrics:** Node and pod resource monitoring
+- **Business Metrics:** Key performance indicators tracking
+- **Error Tracking:** Centralized error logging and alerting
+<% } -%>
+
+### Health Checks
+
+<% if (healthChecks && healthChecks.length > 0) { -%>
+<% healthChecks.forEach(function(check) { -%>
+- **<%= check.name %>:** <%= check.description || 'Health check description' %> (Interval: <%= check.interval || '30s' %>)
+<% }); -%>
+<% } else { -%>
+- **Liveness Probe:** Basic application responsiveness
+- **Readiness Probe:** Service dependencies availability
+- **Database Health:** Connection pool and query performance
+- **External Services:** Third-party service availability
+<% } -%>
+
+## Risk Assessment & Mitigation
+
+### Technical Risks
+
+<% if (technicalRisks && technicalRisks.length > 0) { -%>
+<% technicalRisks.forEach(function(risk) { -%>
+#### <%= risk.name %>
+
+**Impact:** <%= risk.impact || 'Medium' %>  
+**Probability:** <%= risk.probability || 'Medium' %>
+
+**Description:** <%= risk.description || 'Risk description' %>
+
+**Mitigation:**
+<% if (risk.mitigation && risk.mitigation.length > 0) { -%>
+<% risk.mitigation.forEach(function(action) { -%>
+- <%= action %>
+<% }); -%>
+<% } else { -%>
+- Risk mitigation strategy to be defined
+<% } -%>
+
+<% }); -%>
+<% } else { -%>
+#### Scalability Bottlenecks
+**Impact:** High **Probability:** Medium  
+**Mitigation:** Performance testing, horizontal scaling, caching strategy
+
+#### Data Consistency Issues
+**Impact:** High **Probability:** Low  
+**Mitigation:** ACID transactions, event sourcing, compensation patterns
+
+#### Security Vulnerabilities
+**Impact:** Critical **Probability:** Medium  
+**Mitigation:** Security scanning, penetration testing, secure coding practices
+<% } -%>
+
+### Operational Risks
+
+<% if (operationalRisks && operationalRisks.length > 0) { -%>
+<% operationalRisks.forEach(function(risk) { -%>
+#### <%= risk.name %>
+
+**Impact:** <%= risk.impact || 'Medium' %>  
+**Probability:** <%= risk.probability || 'Medium' %>
+
+**Mitigation:** <%= risk.mitigation || 'Risk mitigation strategy' %>
+
+<% }); -%>
+<% } else { -%>
+#### Deployment Failures
+**Impact:** High **Probability:** Low  
+**Mitigation:** Blue-green deployments, automated rollback, comprehensive testing
+
+#### Data Loss
+**Impact:** Critical **Probability:** Low  
+**Mitigation:** Regular backups, replication, disaster recovery procedures
+
+#### Service Outages
+**Impact:** High **Probability:** Medium  
+**Mitigation:** High availability architecture, monitoring, incident response
+<% } -%>
+
+## Implementation Phases
+
+<% if (phases && phases.length > 0) { -%>
+<% phases.forEach(function(phase, index) { -%>
+### Phase <%= index + 1 %>: <%= phase.name %>
+
+**Duration:** <%= phase.duration || 'TBD' %>  
+**Dependencies:** <%= phase.dependencies || 'None' %>
+
+<% if (phase.deliverables && phase.deliverables.length > 0) { -%>
+**Deliverables:**
+<% phase.deliverables.forEach(function(deliverable) { -%>
+- <%= deliverable %>
+<% }); -%>
+<% } -%>
+
+<% if (phase.risks && phase.risks.length > 0) { -%>
+**Phase Risks:**
+<% phase.risks.forEach(function(risk) { -%>
+- <%= risk %>
+<% }); -%>
+<% } -%>
+
+<% }); -%>
+<% } else { -%>
+### Phase 1: Foundation (Weeks 1-2)
+**Deliverables:**
+- Infrastructure setup and CI/CD pipeline
+- Core service templates and database schema
+- Authentication and authorization framework
+
+### Phase 2: Core Features (Weeks 3-6)
+**Deliverables:**
+- Primary business logic implementation
+- API endpoints and data models
+- Unit and integration test coverage
+
+### Phase 3: Integration (Weeks 7-8)
+**Deliverables:**
+- External service integrations
+- End-to-end testing
+- Performance optimization
+
+### Phase 4: Deployment (Weeks 9-10)
+**Deliverables:**
+- Production deployment
+- Monitoring and alerting setup
+- Documentation and knowledge transfer
+<% } -%>
+
+## Quality Assurance
+
+### Code Quality Standards
+
+<% if (codeQuality && codeQuality.length > 0) { -%>
+<% codeQuality.forEach(function(standard) { -%>
+- <%= standard %>
+<% }); -%>
+<% } else { -%>
+- **Test Coverage:** Minimum 80% code coverage
+- **Code Review:** All changes require peer review
+- **Static Analysis:** Automated code quality checks
+- **Documentation:** API documentation and code comments
+- **Security:** Regular security scanning and auditing
+<% } -%>
+
+### Performance Criteria
+
+<% if (performanceCriteria && performanceCriteria.length > 0) { -%>
+<% performanceCriteria.forEach(function(criteria) { -%>
+- <%= criteria %>
+<% }); -%>
+<% } else { -%>
+- API response times under 200ms (95th percentile)
+- Database query performance under 100ms
+- Memory usage within allocated limits
+- Zero memory leaks in production
+<% } -%>
+
+## Documentation Requirements
+
+<% if (documentation && documentation.length > 0) { -%>
+<% documentation.forEach(function(doc) { -%>
+- **<%= doc.type %>:** <%= doc.description %> (Owner: <%= doc.owner || 'TBD' %>)
+<% }); -%>
+<% } else { -%>
+- **API Documentation:** OpenAPI specification with examples
+- **Architecture Documentation:** System design and component interactions
+- **Deployment Guide:** Step-by-step deployment procedures
+- **Operations Runbook:** Troubleshooting and maintenance procedures
+- **Developer Guide:** Local setup and development workflows
+<% } -%>
+
+---
+
+**Document Control:**
+- **Created:** <%= new Date().toISOString() %>
+- **Architect:** <%= architect || 'System Architect' %>
+- **Review Date:** <%= reviewDate || 'TBD' %>
+- **Approved By:** <%= approvedBy || 'TBD' %>
+
+*This technical plan will be updated as implementation progresses and requirements evolve.*

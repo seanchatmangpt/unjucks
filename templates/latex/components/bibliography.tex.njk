@@ -1,0 +1,51 @@
+---
+to: false
+inject: true
+before: "\\begin{document}"
+skipIf: "\\usepackage.*bib"
+---
+% Bibliography management component
+{% if bib_backend == 'biblatex' %}
+\usepackage[
+  backend={{ bib_engine || 'biber' }},
+  style={{ bib_style || 'alphabetic' }},
+  sorting={{ bib_sorting || 'ynt' }},
+  {% if max_names %}maxnames={{ max_names }},{% endif %}
+  {% if min_names %}minnames={{ min_names }},{% endif %}
+  {% if max_bibnames %}maxbibnames={{ max_bibnames }},{% endif %}
+  {% if min_bibnames %}minbibnames={{ min_bibnames }},{% endif %}
+  {% if url_date %}urldate=comp,{% endif %}
+  {% if doi %}doi=true,{% else %}doi=false,{% endif %}
+  {% if url %}url=true,{% else %}url=false,{% endif %}
+  {% if isbn %}isbn=true,{% else %}isbn=false,{% endif %}
+  {% if eprint %}eprint=true,{% else %}eprint=false,{% endif %}
+]{biblatex}
+
+{% if bib_files %}
+  {% for bib_file in bib_files %}
+\addbibresource{{ '{' }}{{ bib_file }}{{ '}' }}
+  {% endfor %}
+{% else %}
+\addbibresource{{ '{' }}{{ bib_file || 'references.bib' }}{{ '}' }}
+{% endif %}
+
+{% if custom_bib_commands %}
+% Custom bibliography commands
+{{ custom_bib_commands }}
+{% endif %}
+
+{% else %}
+% Traditional BibTeX
+{% if natbib %}
+\usepackage[{{ natbib_options || 'numbers,sort&compress' }}]{natbib}
+{% endif %}
+
+% Bibliography style will be set at the end of document
+% \bibliographystyle{{ '{' }}{{ bib_style || 'plain' }}{{ '}' }}
+{% endif %}
+
+{% if url_formatting %}
+% URL formatting
+\usepackage{url}
+\urlstyle{{ '{' }}{{ url_style || 'same' }}{{ '}' }}
+{% endif %}

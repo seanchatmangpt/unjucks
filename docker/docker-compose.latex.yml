@@ -1,0 +1,15 @@
+version: '3.8'
+services:
+  latex-builder:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.latex
+    volumes:
+      - ../:/workspace
+      - latex-output:/workspace/dist/latex
+    environment:
+      - NODE_ENV=production
+    command: npm run build:latex
+
+volumes:
+  latex-output:

@@ -1,0 +1,59 @@
+---
+to: <%= output || 'document.tex' %>
+---
+\documentclass[<%= fontSize || '12pt' %>,<%= paperSize || 'a4paper' %>]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+<% if (mathSupport !== false) { %>
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+<% } %>
+<% if (graphics !== false) { %>
+\usepackage{graphicx}
+<% } %>
+\usepackage[left=<%= marginLeft || '2cm' %>,right=<%= marginRight || '2cm' %>,top=<%= marginTop || '2cm' %>,bottom=<%= marginBottom || '2cm' %>]{geometry}
+<% if (customPackages) { %>
+<% customPackages.forEach(pkg => { %>
+\usepackage{<%= pkg %>}
+<% }); %>
+<% } %>
+
+\title{<%= title %>}
+\author{<%= author %>}
+<% if (date !== false) { %>
+\date{<%= date || '\\today' %>}
+<% } %>
+
+\begin{document}
+
+\maketitle
+
+<% if (abstract) { %>
+\begin{abstract}
+<%= abstract %>
+\end{abstract}
+<% } %>
+
+<% if (tableOfContents) { %>
+\tableofcontents
+\newpage
+<% } %>
+
+\section{Introduction}
+<%= introduction || 'Introduction content here.' %>
+
+\section{Main Content}
+<%= mainContent || 'Main content here.' %>
+
+<% if (conclusion !== false) { %>
+\section{Conclusion}
+<%= conclusion || 'Conclusion content here.' %>
+<% } %>
+
+<% if (bibliography !== false) { %>
+\bibliographystyle{<%= bibliographyStyle || 'plain' %>}
+\bibliography{<%= bibliographyFile || 'references' %>}
+<% } %>
+
+\end{document}

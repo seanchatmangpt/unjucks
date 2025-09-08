@@ -1,0 +1,60 @@
+% Sample LaTeX Document for Testing
+\documentclass[11pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{graphicx}
+\usepackage{hyperref}
+
+\title{Unjucks LaTeX Integration Test}
+\author{Build System Test}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\section{Introduction}
+This is a sample LaTeX document created to test the Unjucks LaTeX build integration system.
+
+\section{Mathematical Expressions}
+Here are some mathematical expressions to test LaTeX compilation:
+
+\begin{equation}
+E = mc^2
+\end{equation}
+
+\begin{align}
+\sum_{i=1}^{n} i &= \frac{n(n+1)}{2} \\
+\int_{0}^{\infty} e^{-x} dx &= 1
+\end{align}
+
+\section{Lists}
+\subsection{Unordered List}
+\begin{itemize}
+    \item First item
+    \item Second item
+    \item Third item
+\end{itemize}
+
+\subsection{Ordered List}
+\begin{enumerate}
+    \item First step
+    \item Second step
+    \item Third step
+\end{enumerate}
+
+\section{Code Block}
+Here's a simple code example:
+
+\begin{verbatim}
+function hello() {
+    console.log("Hello from LaTeX!");
+}
+\end{verbatim}
+
+\section{Conclusion}
+If you can see this PDF, the LaTeX build integration is working correctly!
+
+\end{document}

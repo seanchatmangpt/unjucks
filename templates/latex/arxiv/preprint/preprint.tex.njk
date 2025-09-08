@@ -1,0 +1,244 @@
+---
+to: "{{ dest }}/{{ filename || 'preprint' }}.tex"
+---
+{% set documentclass = documentclass || 'article' %}
+{% set bibliography = bibliography || 'bibtex' %}
+{% set packages = packages || [] %}
+{% set theorems = theorems || false %}
+{% set algorithms = algorithms || false %}
+{% set msc_codes = msc_codes || '' %}
+{% set pacs_codes = pacs_codes || '' %}
+{% set keywords = keywords || '' %}
+{% set arxiv_id = arxiv_id || '' %}
+{% set subjects = subjects || '' %}
+
+% arXiv preprint template
+{% if documentclass == 'revtex' %}
+\documentclass[{{ revtex_options || 'aps,prd,preprint,10pt' }}]{revtex4-2}
+{% elif documentclass == 'amsart' %}
+\documentclass[{{ ams_options || '11pt,reqno' }}]{amsart}
+{% else %}
+\documentclass[{{ article_options || '11pt,letterpaper' }}]{article}
+{% endif %}
+
+% arXiv specific formatting
+\usepackage[letterpaper,margin=1in]{geometry}
+\usepackage{setspace}
+\onehalfspacing
+
+% Essential packages for arXiv
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath,amsfonts,amssymb}
+\usepackage{mathrsfs,mathtools}
+\usepackage{graphicx}
+\usepackage[dvipsnames]{xcolor}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue,anchorcolor=blue]{hyperref}
+\usepackage{url}
+\usepackage{cleveref}
+
+% arXiv recommended packages
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{multirow}
+\usepackage{subfig}
+
+{% if bibliography == 'biblatex' %}
+\usepackage[backend=biber,style={{ bibstyle || 'alphabetic' }},sorting={{ sorting || 'ynt' }}]{biblatex}
+\addbibresource{{ bibfile || 'references.bib' }}
+{% endif %}
+
+{% if algorithms %}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\usepackage{algorithmicx}
+{% endif %}
+
+{% if theorems %}
+% Theorem environments with arXiv styling
+\usepackage{amsthm}
+\usepackage{thmtools}
+
+\declaretheoremstyle[
+  headfont=\normalfont\bfseries,
+  bodyfont=\normalfont,
+  headpunct={.},
+  postheadspace=5pt plus 1pt minus 1pt,
+]{arxivplain}
+
+\declaretheoremstyle[
+  headfont=\normalfont\bfseries,
+  bodyfont=\normalfont,
+  headpunct={.},
+  postheadspace=5pt plus 1pt minus 1pt,
+]{arxivdef}
+
+\declaretheorem[style=arxivplain,numberwithin=section]{theorem}
+\declaretheorem[style=arxivplain,sibling=theorem]{lemma}
+\declaretheorem[style=arxivplain,sibling=theorem]{proposition}
+\declaretheorem[style=arxivplain,sibling=theorem]{corollary}
+
+\declaretheorem[style=arxivdef,sibling=theorem]{definition}
+\declaretheorem[style=arxivdef,sibling=theorem]{example}
+\declaretheorem[style=arxivdef,sibling=theorem]{remark}
+
+\declaretheorem[style=remark,numbered=no]{note}
+{% endif %}
+
+% Additional packages
+{% for package in packages %}
+\usepackage{{ '{' }}{{ package }}{{ '}' }}
+{% endfor %}
+
+% arXiv specific commands
+\newcommand{\arxivid}[1]{\texttt{arXiv:#1}}
+{% if custom_commands %}
+{{ custom_commands }}
+{% endif %}
+
+% Enhanced title formatting for arXiv
+\title{{ '{' }}%
+  {{ title }}%
+  {% if subtitle %}\\ \large {{ subtitle }}{% endif %}%
+{{ '}' }}
+
+\author{{ '{' }}%
+  {% if authors %}
+    {% for author in authors %}
+      {{ author.name }}{% if author.affiliation %}\thanks{{ '{' }}{{ author.affiliation }}{% if author.email %}. Email: \texttt{{ '{' }}{{ author.email }}{{ '}' }}{% endif %}{{ '}' }}{% endif %}%
+      {% if not loop.last %} \and {% endif %}
+    {% endfor %}
+  {% else %}
+    {{ author }}{% if affiliation %}\thanks{{ '{' }}{{ affiliation }}{% if email %}. Email: \texttt{{ '{' }}{{ email }}{{ '}' }}{% endif %}{{ '}' }}{% endif %}
+  {% endif %}%
+{{ '}' }}
+
+\date{{ '{' }}{{ date || '\\today' }}{{ '}' }}
+
+% arXiv abstract with classification
+{% if abstract %}
+\renewcommand{\abstractname}{Abstract}
+\makeatletter
+\def\@abstract{%
+  \centerline{\large\bfseries Abstract}
+  \vspace{0.5em}
+  {{ abstract }}
+  
+  {% if keywords or subjects or msc_codes or pacs_codes %}
+  \vspace{1em}
+  {% endif %}
+  
+  {% if subjects %}
+  \noindent\textbf{Subject Classifications:} {{ subjects }}
+  {% endif %}
+  
+  {% if keywords %}
+  \noindent\textbf{Keywords:} {{ keywords }}
+  {% endif %}
+  
+  {% if msc_codes %}
+  \noindent\textbf{2020 Mathematics Subject Classification:} {{ msc_codes }}
+  {% endif %}
+  
+  {% if pacs_codes %}
+  \noindent\textbf{PACS numbers:} {{ pacs_codes }}
+  {% endif %}
+  
+  {% if arxiv_id %}
+  \noindent\textbf{arXiv:} \arxivid{{ '{' }}{{ arxiv_id }}{{ '}' }}
+  {% endif %}
+}
+\makeatother
+{% endif %}
+
+\begin{document}
+
+\maketitle
+
+{% if abstract %}
+\begin{abstract}
+\@abstract
+\end{abstract}
+{% endif %}
+
+{% if include_toc %}
+\tableofcontents
+\newpage
+{% endif %}
+
+\section{Introduction}
+\label{sec:introduction}
+{% if introduction %}
+{{ introduction }}
+{% else %}
+% Add your introduction here
+% Provide background, motivation, and overview of contributions
+{% endif %}
+
+{% if sections %}
+{% for section in sections %}
+\section{{ '{' }}{{ section.title }}{{ '}' }}
+{% if section.label %}
+\label{{ '{' }}{{ section.label }}{{ '}' }}
+{% else %}
+\label{{ '{' }}sec:{{ section.title | lower | replace(' ', '_') }}{{ '}' }}
+{% endif %}
+
+{{ section.content }}
+
+{% endfor %}
+{% else %}
+\section{Problem Statement}
+\label{sec:problem}
+% Define the problem you are addressing
+
+\section{Main Results}
+\label{sec:results}
+% Present your main theoretical or experimental results
+
+\section{Methodology}
+\label{sec:methodology}
+% Describe your approach and methods
+
+\section{Analysis}
+\label{sec:analysis}
+% Provide detailed analysis of your results
+
+\section{Related Work}
+\label{sec:related}
+% Compare with existing literature
+
+\section{Conclusion}
+\label{sec:conclusion}
+% Summarize contributions and future work
+{% endif %}
+
+{% if acknowledgments %}
+\section*{Acknowledgments}
+{{ acknowledgments }}
+{% endif %}
+
+{% if appendices %}
+\appendix
+{% for appendix in appendices %}
+\section{{ '{' }}{{ appendix.title }}{{ '}' }}
+{% if appendix.label %}
+\label{{ '{' }}{{ appendix.label }}{{ '}' }}
+{% else %}
+\label{{ '{' }}app:{{ appendix.title | lower | replace(' ', '_') }}{{ '}' }}
+{% endif %}
+
+{{ appendix.content }}
+
+{% endfor %}
+{% endif %}
+
+% Bibliography
+{% if bibliography == 'biblatex' %}
+\printbibliography
+{% else %}
+\bibliographystyle{{ '{' }}{{ bibstyle || 'abbrv' }}{{ '}' }}
+\bibliography{{ '{' }}{{ bibfile || 'references' }}{{ '}' }}
+{% endif %}
+
+\end{document}

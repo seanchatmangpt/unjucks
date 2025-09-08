@@ -1,0 +1,300 @@
+---
+to: "{{ componentName | paramCase }}/src/<%= componentName.replace(/\s+/g, '') %>.ts"
+inject: false
+skipIf: "{{ skipExisting }}"
+chmod: "0644"
+---
+<% if (includeHeader !== false) { -%>
+/**
+ * <%= componentName %>
+ * Generated from specification: <%= specName || 'Unnamed Specification' %>
+ * 
+ * @description <%= description || 'Component implementation based on specification requirements' %>
+ * @version <%= version || '1.0.0' %>
+ * @author <%= author || 'System Generated' %>
+ * @created <%= new Date().toISOString() %>
+ */
+
+<% } -%>
+<% if (imports && imports.length > 0) { -%>
+// External imports
+<% imports.forEach(function(imp) { -%>
+<% if (imp.default) { -%>
+import <%= imp.default %><% if (imp.named && imp.named.length > 0) { %>, { <%= imp.named.join(', ') %> }<% } %> from '<%= imp.from %>';
+<% } else if (imp.named && imp.named.length > 0) { -%>
+import { <%= imp.named.join(', ') %> } from '<%= imp.from %>';
+<% } else { -%>
+import '<%= imp.from %>';
+<% } -%>
+<% }); -%>
+
+<% } -%>
+<% if (interfaces && interfaces.length > 0) { -%>
+// Type definitions
+<% interfaces.forEach(function(iface) { -%>
+<% if (iface.description) { -%>
+/**
+ * <%= iface.description %>
+ */
+<% } -%>
+export interface <%= iface.name %><% if (iface.extends) { %> extends <%= iface.extends %><% } %> {
+<% if (iface.properties && iface.properties.length > 0) { -%>
+<% iface.properties.forEach(function(prop) { -%>
+<% if (prop.description) { -%>
+  /** <%= prop.description %> */
+<% } -%>
+  <%= prop.name %><%= prop.optional ? '?' : '' %>: <%= prop.type %>;
+<% }); -%>
+<% } else { -%>
+  // Properties to be defined based on specification
+<% } -%>
+}
+
+<% }); -%>
+<% } -%>
+<% if (enums && enums.length > 0) { -%>
+// Enumerations
+<% enums.forEach(function(enumDef) { -%>
+<% if (enumDef.description) { -%>
+/**
+ * <%= enumDef.description %>
+ */
+<% } -%>
+export enum <%= enumDef.name %> {
+<% if (enumDef.values && enumDef.values.length > 0) { -%>
+<% enumDef.values.forEach(function(value, index) { -%>
+  <%= value.key %> = '<%= value.value %>'<%= index < enumDef.values.length - 1 ? ',' : '' %>
+<% }); -%>
+<% } else { -%>
+  // Values to be defined
+<% } -%>
+}
+
+<% }); -%>
+<% } -%>
+<% if (constants && constants.length > 0) { -%>
+// Constants
+<% constants.forEach(function(constant) { -%>
+<% if (constant.description) { -%>
+/** <%= constant.description %> */
+<% } -%>
+export const <%= constant.name %><% if (constant.type) { %>: <%= constant.type %><% } %> = <%= constant.value %>;
+<% }); -%>
+
+<% } -%>
+<% if (componentType === 'class' || !componentType) { -%>
+<% if (classConfig && classConfig.description) { -%>
+/**
+ * <%= classConfig.description %>
+<% if (classConfig.example) { -%>
+ * 
+ * @example
+ * ```typescript
+ * <%= classConfig.example %>
+ * ```
+<% } -%>
+ */
+<% } -%>
+export class <%= componentName.replace(/\s+/g, '') %><% if (classConfig && classConfig.implements) { %> implements <%= classConfig.implements.join(', ') %><% } %> {
+<% if (classConfig && classConfig.properties && classConfig.properties.length > 0) { -%>
+  // Properties
+<% classConfig.properties.forEach(function(prop) { -%>
+<% if (prop.description) { -%>
+  /** <%= prop.description %> */
+<% } -%>
+  <% if (prop.visibility) { %><%= prop.visibility %> <% } %><% if (prop.readonly) { %>readonly <% } %><%= prop.name %><%= prop.optional ? '?' : '' %>: <%= prop.type %><% if (prop.initialValue) { %> = <%= prop.initialValue %><% } %>;
+<% }); -%>
+
+<% } -%>
+<% if (classConfig && classConfig.constructor) { -%>
+  /**
+   * <%= classConfig.constructor.description || 'Constructor for ' + componentName %>
+<% if (classConfig.constructor.parameters && classConfig.constructor.parameters.length > 0) { -%>
+<% classConfig.constructor.parameters.forEach(function(param) { -%>
+   * @param <%= param.name %> <%= param.description || 'Constructor parameter' %>
+<% }); -%>
+<% } -%>
+   */
+  constructor(<% if (classConfig.constructor.parameters && classConfig.constructor.parameters.length > 0) { %><% classConfig.constructor.parameters.forEach(function(param, index) { %><%= param.name %><%= param.optional ? '?' : '' %>: <%= param.type %><%= index < classConfig.constructor.parameters.length - 1 ? ', ' : '' %><% }); %><% } %>) {
+<% if (classConfig.constructor.body) { -%>
+<%= classConfig.constructor.body %>
+<% } else { -%>
+    // Constructor implementation based on specification
+<% if (classConfig.constructor.parameters && classConfig.constructor.parameters.length > 0) { -%>
+<% classConfig.constructor.parameters.forEach(function(param) { -%>
+    this.<%= param.name %> = <%= param.name %>;
+<% }); -%>
+<% } -%>
+<% } -%>
+  }
+
+<% } -%>
+<% if (methods && methods.length > 0) { -%>
+  // Methods
+<% methods.forEach(function(method) { -%>
+<% if (method.description || method.parameters || method.returns) { -%>
+  /**
+<% if (method.description) { -%>
+   * <%= method.description %>
+<% } -%>
+<% if (method.parameters && method.parameters.length > 0) { -%>
+<% method.parameters.forEach(function(param) { -%>
+   * @param <%= param.name %> <%= param.description || 'Method parameter' %>
+<% }); -%>
+<% } -%>
+<% if (method.returns) { -%>
+   * @returns <%= method.returns.description || 'Method return value' %>
+<% } -%>
+<% if (method.throws && method.throws.length > 0) { -%>
+<% method.throws.forEach(function(throwsDef) { -%>
+   * @throws <%= throwsDef %>
+<% }); -%>
+<% } -%>
+   */
+<% } -%>
+  <% if (method.visibility) { %><%= method.visibility %> <% } %><% if (method.static) { %>static <% } %><% if (method.async) { %>async <% } %><%= method.name %>(<% if (method.parameters && method.parameters.length > 0) { %><% method.parameters.forEach(function(param, index) { %><%= param.name %><%= param.optional ? '?' : '' %>: <%= param.type %><%= index < method.parameters.length - 1 ? ', ' : '' %><% }); %><% } %>)<% if (method.returns) { %>: <%= method.async ? 'Promise<' + method.returns.type + '>' : method.returns.type %><% } %> {
+<% if (method.body) { -%>
+<%= method.body %>
+<% } else { -%>
+<% if (method.async && method.returns) { -%>
+    // Async method implementation
+    return new Promise((<% if (method.returns.type !== 'void') { %>resolve, reject<% } else { %>resolve<% } %>) => {
+      try {
+        // Implementation based on specification requirements
+<% if (method.returns.type !== 'void') { -%>
+        const result: <%= method.returns.type %> = {} as <%= method.returns.type %>;
+        resolve(result);
+<% } else { -%>
+        // Perform operation
+        resolve();
+<% } -%>
+      } catch (error) {
+        reject(error);
+      }
+    });
+<% } else if (method.returns && method.returns.type !== 'void') { -%>
+    // Method implementation based on specification
+    return {} as <%= method.returns.type %>;
+<% } else { -%>
+    // Method implementation based on specification
+<% } -%>
+<% } -%>
+  }
+
+<% }); -%>
+<% } else { -%>
+  // Methods to be implemented based on specification requirements
+  
+<% } -%>
+}
+
+<% } else if (componentType === 'function') { -%>
+<% if (functionConfig && functionConfig.description) { -%>
+/**
+ * <%= functionConfig.description %>
+<% if (functionConfig.parameters && functionConfig.parameters.length > 0) { -%>
+<% functionConfig.parameters.forEach(function(param) { -%>
+ * @param <%= param.name %> <%= param.description || 'Function parameter' %>
+<% }); -%>
+<% } -%>
+<% if (functionConfig.returns) { -%>
+ * @returns <%= functionConfig.returns.description || 'Function return value' %>
+<% } -%>
+<% if (functionConfig.example) { -%>
+ * 
+ * @example
+ * ```typescript
+ * <%= functionConfig.example %>
+ * ```
+<% } -%>
+ */
+<% } -%>
+export <% if (functionConfig && functionConfig.async) { %>async <% } %>function <%= componentName.replace(/\s+/g, '') %>(<% if (functionConfig && functionConfig.parameters && functionConfig.parameters.length > 0) { %><% functionConfig.parameters.forEach(function(param, index) { %><%= param.name %><%= param.optional ? '?' : '' %>: <%= param.type %><%= index < functionConfig.parameters.length - 1 ? ', ' : '' %><% }); %><% } %>)<% if (functionConfig && functionConfig.returns) { %>: <%= functionConfig.async ? 'Promise<' + functionConfig.returns.type + '>' : functionConfig.returns.type %><% } %> {
+<% if (functionConfig && functionConfig.body) { -%>
+<%= functionConfig.body %>
+<% } else { -%>
+<% if (functionConfig && functionConfig.async && functionConfig.returns) { -%>
+  // Async function implementation
+  return new Promise((<% if (functionConfig.returns.type !== 'void') { %>resolve, reject<% } else { %>resolve<% } %>) => {
+    try {
+      // Implementation based on specification requirements
+<% if (functionConfig.returns.type !== 'void') { -%>
+      const result: <%= functionConfig.returns.type %> = {} as <%= functionConfig.returns.type %>;
+      resolve(result);
+<% } else { -%>
+      // Perform operation
+      resolve();
+<% } -%>
+    } catch (error) {
+      reject(error);
+    }
+  });
+<% } else if (functionConfig && functionConfig.returns && functionConfig.returns.type !== 'void') { -%>
+  // Function implementation based on specification
+  return {} as <%= functionConfig.returns.type %>;
+<% } else { -%>
+  // Function implementation based on specification
+<% } -%>
+<% } -%>
+}
+
+<% } -%>
+<% if (utilityFunctions && utilityFunctions.length > 0) { -%>
+// Utility functions
+<% utilityFunctions.forEach(function(util) { -%>
+<% if (util.description) { -%>
+/**
+ * <%= util.description %>
+<% if (util.parameters && util.parameters.length > 0) { -%>
+<% util.parameters.forEach(function(param) { -%>
+ * @param <%= param.name %> <%= param.description || 'Parameter' %>
+<% }); -%>
+<% } -%>
+<% if (util.returns) { -%>
+ * @returns <%= util.returns.description || 'Return value' %>
+<% } -%>
+ */
+<% } -%>
+<% if (util.export !== false) { %>export <% } %><% if (util.async) { %>async <% } %>function <%= util.name %>(<% if (util.parameters && util.parameters.length > 0) { %><% util.parameters.forEach(function(param, index) { %><%= param.name %><%= param.optional ? '?' : '' %>: <%= param.type %><%= index < util.parameters.length - 1 ? ', ' : '' %><% }); %><% } %>)<% if (util.returns) { %>: <%= util.async ? 'Promise<' + util.returns.type + '>' : util.returns.type %><% } %> {
+<% if (util.body) { -%>
+<%= util.body %>
+<% } else { -%>
+  // Utility function implementation
+<% if (util.returns && util.returns.type !== 'void') { -%>
+  return {} as <%= util.returns.type %>;
+<% } -%>
+<% } -%>
+}
+
+<% }); -%>
+<% } -%>
+<% if (exports && exports.length > 0) { -%>
+// Additional exports
+<% exports.forEach(function(exp) { -%>
+export { <%= exp.name %><% if (exp.alias) { %> as <%= exp.alias %><% } %> }<% if (exp.from) { %> from '<%= exp.from %>'<% } %>;
+<% }); -%>
+
+<% } -%>
+<% if (defaultExport) { -%>
+// Default export
+export default <%= defaultExport %>;
+<% } -%>
+<% if (includeFooter !== false) { -%>
+
+/**
+ * Component specification compliance:
+<% if (specCompliance && specCompliance.length > 0) { -%>
+<% specCompliance.forEach(function(item) { -%>
+ * - <%= item %>
+<% }); -%>
+<% } else { -%>
+ * - Implements all required interfaces
+ * - Follows specified error handling patterns
+ * - Meets performance requirements
+ * - Includes comprehensive type definitions
+<% } -%>
+ * 
+ * Generated: <%= new Date().toISOString() %>
+ * Specification: <%= specName || 'Unnamed' %>
+ */
+<% } -%>

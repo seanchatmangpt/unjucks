@@ -1,0 +1,324 @@
+---
+to: "{{ specName | paramCase }}/SPECIFICATION.md"
+inject: false
+skipIf: "{{ skipExisting }}"
+chmod: "0644"
+---
+# <%= specName %> - Specification
+
+**Generated:** <%= new Date().toISOString() %>  
+**Author:** <%= author || 'System' %>  
+**Version:** <%= version || '1.0.0' %>  
+**Status:** <%= status || 'Draft' %>
+
+## Overview
+
+<%= description || 'Brief description of what this specification covers.' %>
+
+## Objectives
+
+<% if (objectives && objectives.length > 0) { -%>
+<% objectives.forEach(function(objective) { -%>
+- <%= objective %>
+<% }); -%>
+<% } else { -%>
+- Define clear requirements and acceptance criteria
+- Establish technical constraints and dependencies
+- Outline implementation approach
+- Identify risks and mitigation strategies
+<% } -%>
+
+## Functional Requirements
+
+### Core Features
+
+<% if (features && features.length > 0) { -%>
+<% features.forEach(function(feature, index) { -%>
+#### FR<%= (index + 1).toString().padStart(2, '0') %> - <%= feature.name %>
+
+**Priority:** <%= feature.priority || 'Medium' %>  
+**Complexity:** <%= feature.complexity || 'Medium' %>
+
+<%= feature.description || 'Feature description.' %>
+
+**Acceptance Criteria:**
+<% if (feature.acceptanceCriteria && feature.acceptanceCriteria.length > 0) { -%>
+<% feature.acceptanceCriteria.forEach(function(criteria) { -%>
+- <%= criteria %>
+<% }); -%>
+<% } else { -%>
+- [ ] Given [context], when [action], then [expected outcome]
+- [ ] Edge case handling is implemented
+- [ ] Error scenarios are properly managed
+<% } -%>
+
+<% }); -%>
+<% } else { -%>
+#### FR01 - Core Functionality
+
+**Priority:** High  
+**Complexity:** Medium
+
+Main feature description and requirements.
+
+**Acceptance Criteria:**
+- [ ] Given [context], when [action], then [expected outcome]
+- [ ] Performance meets specified requirements
+- [ ] Error handling is comprehensive
+<% } -%>
+
+## Non-Functional Requirements
+
+### Performance Requirements
+
+<% if (performance) { -%>
+- **Response Time:** <%= performance.responseTime || 'TBD' %>
+- **Throughput:** <%= performance.throughput || 'TBD' %>
+- **Concurrent Users:** <%= performance.concurrentUsers || 'TBD' %>
+- **Memory Usage:** <%= performance.memoryUsage || 'TBD' %>
+<% } else { -%>
+- **Response Time:** < 500ms for typical operations
+- **Throughput:** Handle expected load without degradation
+- **Scalability:** Horizontally scalable architecture
+- **Resource Usage:** Efficient memory and CPU utilization
+<% } -%>
+
+### Security Requirements
+
+<% if (security && security.length > 0) { -%>
+<% security.forEach(function(req) { -%>
+- <%= req %>
+<% }); -%>
+<% } else { -%>
+- Authentication and authorization mechanisms
+- Input validation and sanitization
+- Secure data transmission and storage
+- Audit logging for compliance
+<% } -%>
+
+### Reliability Requirements
+
+<% if (reliability) { -%>
+- **Availability:** <%= reliability.availability || '99.9%' %>
+- **Recovery Time:** <%= reliability.recoveryTime || 'RTO < 4 hours' %>
+- **Data Loss:** <%= reliability.dataLoss || 'RPO < 1 hour' %>
+<% } else { -%>
+- **Availability:** 99.9% uptime
+- **Fault Tolerance:** Graceful degradation under failure
+- **Data Integrity:** ACID compliance where applicable
+<% } -%>
+
+## Technical Constraints
+
+<% if (constraints && constraints.length > 0) { -%>
+<% constraints.forEach(function(constraint) { -%>
+- <%= constraint %>
+<% }); -%>
+<% } else { -%>
+- Technology stack limitations
+- Integration requirements
+- Compliance and regulatory requirements
+- Budget and timeline constraints
+<% } -%>
+
+## Dependencies
+
+<% if (dependencies && dependencies.length > 0) { -%>
+<% dependencies.forEach(function(dep) { -%>
+- **<%= dep.name %>**: <%= dep.description %> (Impact: <%= dep.impact || 'Medium' %>)
+<% }); -%>
+<% } else { -%>
+- External services and APIs
+- Third-party libraries and frameworks
+- Infrastructure components
+- Team dependencies and skill requirements
+<% } -%>
+
+## Data Requirements
+
+### Data Models
+
+<% if (dataModels && dataModels.length > 0) { -%>
+<% dataModels.forEach(function(model) { -%>
+#### <%= model.name %>
+
+<% if (model.fields && model.fields.length > 0) { -%>
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+<% model.fields.forEach(function(field) { -%>
+| <%= field.name %> | <%= field.type %> | <%= field.required ? 'Yes' : 'No' %> | <%= field.description || 'N/A' %> |
+<% }); -%>
+<% } else { -%>
+*Data model structure to be defined*
+<% } -%>
+
+<% }); -%>
+<% } else { -%>
+*Data models and schemas to be defined during implementation*
+<% } -%>
+
+### Data Flow
+
+<% if (dataFlow) { -%>
+<%= dataFlow %>
+<% } else { -%>
+1. Data input and validation
+2. Processing and transformation
+3. Storage and persistence
+4. Output and presentation
+<% } -%>
+
+## API Specifications
+
+<% if (apiEndpoints && apiEndpoints.length > 0) { -%>
+<% apiEndpoints.forEach(function(endpoint) { -%>
+### <%= endpoint.method.toUpperCase() %> <%= endpoint.path %>
+
+**Description:** <%= endpoint.description || 'API endpoint description' %>
+
+**Parameters:**
+<% if (endpoint.parameters && endpoint.parameters.length > 0) { -%>
+<% endpoint.parameters.forEach(function(param) { -%>
+- `<%= param.name %>` (<%= param.type %><%= param.required ? ', required' : ', optional' %>): <%= param.description || 'Parameter description' %>
+<% }); -%>
+<% } else { -%>
+*No parameters*
+<% } -%>
+
+**Response:**
+```json
+<%= JSON.stringify(endpoint.response || { "status": "success", "data": {} }, null, 2) %>
+```
+
+<% }); -%>
+<% } else { -%>
+*API specifications to be defined during design phase*
+<% } -%>
+
+## User Interface Requirements
+
+<% if (uiRequirements && uiRequirements.length > 0) { -%>
+<% uiRequirements.forEach(function(req) { -%>
+- <%= req %>
+<% }); -%>
+<% } else { -%>
+- Responsive design for multiple devices
+- Accessibility compliance (WCAG 2.1 AA)
+- Intuitive user experience
+- Performance optimization for fast loading
+<% } -%>
+
+## Testing Strategy
+
+### Test Categories
+
+<% if (testStrategy) { -%>
+- **Unit Tests:** <%= testStrategy.unit || 'Component-level testing' %>
+- **Integration Tests:** <%= testStrategy.integration || 'API and service integration testing' %>
+- **System Tests:** <%= testStrategy.system || 'End-to-end functionality testing' %>
+- **Performance Tests:** <%= testStrategy.performance || 'Load and stress testing' %>
+- **Security Tests:** <%= testStrategy.security || 'Security vulnerability testing' %>
+<% } else { -%>
+- **Unit Tests:** Minimum 80% code coverage
+- **Integration Tests:** API contract testing
+- **E2E Tests:** Critical user journey testing
+- **Performance Tests:** Load testing under expected traffic
+- **Security Tests:** OWASP security testing
+<% } -%>
+
+### Test Data
+
+<% if (testData) { -%>
+<%= testData %>
+<% } else { -%>
+- Synthetic test data generation
+- Anonymized production data (where applicable)
+- Edge case scenarios
+- Negative test cases
+<% } -%>
+
+## Deployment Requirements
+
+<% if (deployment) { -%>
+- **Environment:** <%= deployment.environment || 'Cloud-native' %>
+- **Scaling:** <%= deployment.scaling || 'Auto-scaling based on load' %>
+- **Monitoring:** <%= deployment.monitoring || 'Comprehensive observability' %>
+- **Backup:** <%= deployment.backup || 'Regular automated backups' %>
+<% } else { -%>
+- Cloud-native deployment strategy
+- Container orchestration (Docker/Kubernetes)
+- CI/CD pipeline integration
+- Infrastructure as Code (IaC)
+- Monitoring and alerting
+<% } -%>
+
+## Risks and Mitigation
+
+<% if (risks && risks.length > 0) { -%>
+<% risks.forEach(function(risk) { -%>
+### <%= risk.name %>
+
+**Probability:** <%= risk.probability || 'Medium' %>  
+**Impact:** <%= risk.impact || 'Medium' %>
+
+**Description:** <%= risk.description || 'Risk description' %>
+
+**Mitigation:**
+<% if (risk.mitigation && risk.mitigation.length > 0) { -%>
+<% risk.mitigation.forEach(function(action) { -%>
+- <%= action %>
+<% }); -%>
+<% } else { -%>
+- Risk mitigation strategies to be defined
+<% } -%>
+
+<% }); -%>
+<% } else { -%>
+### Technical Risks
+
+- **Integration Complexity:** Thorough API testing and documentation
+- **Performance Issues:** Early performance testing and optimization
+- **Security Vulnerabilities:** Security-first development approach
+- **Scope Creep:** Clear requirements management and change control
+
+### Business Risks
+
+- **Timeline Delays:** Agile development with regular stakeholder feedback
+- **Budget Overruns:** Regular cost monitoring and scope management
+- **User Adoption:** User-centered design and early user testing
+<% } -%>
+
+## Success Criteria
+
+<% if (successCriteria && successCriteria.length > 0) { -%>
+<% successCriteria.forEach(function(criteria) { -%>
+- <%= criteria %>
+<% }); -%>
+<% } else { -%>
+- All functional requirements implemented and tested
+- Performance benchmarks met or exceeded
+- Security requirements validated
+- User acceptance testing passed
+- Production deployment successful
+- Documentation complete and reviewed
+<% } -%>
+
+## Glossary
+
+<% if (glossary && Object.keys(glossary).length > 0) { -%>
+<% Object.keys(glossary).forEach(function(term) { -%>
+- **<%= term %>**: <%= glossary[term] %>
+<% }); -%>
+<% } else { -%>
+*Terms and definitions to be added as needed*
+<% } -%>
+
+---
+
+**Document Control:**
+- **Created:** <%= new Date().toISOString() %>
+- **Last Modified:** <%= new Date().toISOString() %>
+- **Review Date:** <%= reviewDate || 'TBD' %>
+- **Approved By:** <%= approvedBy || 'TBD' %>
+
+*This specification is a living document and will be updated as requirements evolve.*

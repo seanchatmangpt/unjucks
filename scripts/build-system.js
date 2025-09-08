@@ -11,6 +11,22 @@ import path from 'path';
 import chalk from 'chalk';
 import { fileURLToPath } from 'url';
 
+
+// LaTeX Build Integration
+import { LaTeXBuildIntegration } from '../src/lib/latex/build-integration.js';
+
+async function buildLatexDocuments() {
+  try {
+    const latexIntegration = new LaTeXBuildIntegration();
+    await latexIntegration.initialize();
+    await latexIntegration.buildAllDocuments();
+    console.log('✓ LaTeX documents built successfully');
+  } catch (error) {
+    console.warn('LaTeX build failed:', error.message);
+    // Non-blocking error - continue with other build steps
+  }
+}
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const rootDir = path.resolve(__dirname, '..');

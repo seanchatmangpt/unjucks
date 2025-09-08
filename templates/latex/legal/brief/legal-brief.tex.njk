@@ -1,0 +1,318 @@
+---
+to: "{{ briefTitle | lower | replace(' ', '-') }}-brief.tex"
+inject: false
+skipIf: exists
+variables:
+  - briefTitle: string
+  - briefType: string
+  - courtName: string
+  - caseNumber: string
+  - plaintiff: string
+  - defendant: string
+  - attorney: object
+  - jurisdiction: string
+  - briefingSchedule: object
+  - pageLimit: number
+  - includeTableOfContents: boolean
+  - includeTableOfAuthorities: boolean
+---
+% Legal Brief LaTeX Template
+% Generated with Unjucks
+\documentclass[12pt,letterpaper]{article}
+
+% Required packages for legal briefs
+\usepackage[margin=1in]{geometry}
+\usepackage{setspace}
+\usepackage{fancyhdr}
+\usepackage{titlesec}
+\usepackage{enumitem}
+\usepackage{array}
+\usepackage{tabularx}
+\usepackage{longtable}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{ifthen}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{tocloft}
+
+% Court formatting requirements
+{% if jurisdiction == 'federal' %}
+\doublespacing
+{% else %}
+{% if jurisdiction == 'california' %}
+\doublespacing
+{% else %}
+{% if jurisdiction == 'newyork' %}
+\doublespacing
+{% else %}
+\doublespacing
+{% endif %}
+{% endif %}
+{% endif %}
+
+\setlength{\parindent}{0.5in}
+\setlength{\parskip}{0pt}
+
+% Header and footer setup
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[C]{{ briefTitle | title }}
+\fancyfoot[C]{\thepage}
+\renewcommand{\headrulewidth}{0pt}
+\renewcommand{\footrulewidth}{0pt}
+
+% Section formatting for legal briefs
+\titleformat{\section}[block]{\normalfont\large\bfseries\centering}{}{0em}{}
+\titleformat{\subsection}[block]{\normalfont\normalsize\bfseries}{}{0em}{}
+\titleformat{\subsubsection}[runin]{\normalfont\normalsize\bfseries}{}{0em}{}[.]
+
+% Custom commands for legal brief formatting
+\newcommand{\party}[1]{\textsc{#1}}
+\newcommand{\case}[1]{\textit{#1}}
+\newcommand{\statute}[1]{\textsc{#1}}
+\newcommand{\emphasis}[1]{\textbf{#1}}
+\newcommand{\legalcite}[1]{#1}
+
+% Bluebook citation commands
+\newcommand{\casecite}[4]{\textit{#1}, #2 #3 (#4)}
+\newcommand{\statutecite}[2]{#1 \S\ #2}
+\newcommand{\constitutionalcite}[2]{\textsc{#1} #2}
+\newcommand{\regulationcite}[2]{#1 \S\ #2}
+\newcommand{\treatisecite}[3]{#1, \textsc{#2} #3}
+\newcommand{\lawarticlecite}[4]{#1, \textit{#2}, #3 #4}
+
+% Court-specific formatting
+{% if jurisdiction == 'federal' %}
+\newcommand{\courtformat}[1]{\textsc{#1}}
+\newcommand{\judgeformat}[1]{\textsc{#1}}
+{% else %}
+{% if jurisdiction == 'supreme' %}
+\newcommand{\courtformat}[1]{\textsc{#1}}
+\newcommand{\judgeformat}[1]{\textsc{#1}}
+{% else %}
+\newcommand{\courtformat}[1]{#1}
+\newcommand{\judgeformat}[1]{#1}
+{% endif %}
+{% endif %}
+
+% Page limit warning
+{% if pageLimit %}
+\newcommand{\pagelimitwarning}{\textcolor{red}{\textbf{WARNING: This brief has a {{ pageLimit }}-page limit}}
+{% endif %}
+
+\begin{document}
+
+% Title page
+\begin{center}
+\vspace*{1in}
+
+\courtformat{{ courtName }}
+
+\vspace{0.5in}
+
+\begin{tabular}{l}
+{{ plaintiff }}, \\
+\hspace{2in} Plaintiff, \\
+\\
+v. \hspace{3in} Case No. {{ caseNumber }} \\
+\\
+{{ defendant }}, \\
+\hspace{2in} Defendant. \\
+\end{tabular}
+
+\vspace{1in}
+
+{\Large\textbf{{ briefTitle | title }}}
+
+\vspace{1in}
+
+\begin{flushleft}
+{{ attorney.name }}\\
+{{ attorney.barNumber | default('') }}\\
+{{ attorney.firm }}\\
+{{ attorney.address }}\\
+{{ attorney.city }}, {{ attorney.state }} {{ attorney.zip }}\\
+{{ attorney.phone }}\\
+{{ attorney.email }}\\
+\\
+Attorney for {{ attorney.represents | default('Plaintiff') }}
+\end{flushleft}
+
+\vspace{\fill}
+
+{% if briefingSchedule.dueDate %}
+Due: {{ briefingSchedule.dueDate }}
+{% endif %}
+
+{% if pageLimit %}
+\pagelimitwarning
+{% endif %}
+
+\end{center}
+
+\newpage
+
+{% if includeTableOfContents %}
+% Table of Contents
+\renewcommand{\cftsecleader}{\cftdotfill{\cftdotsep}}
+\tableofcontents
+\newpage
+{% endif %}
+
+{% if includeTableOfAuthorities %}
+% Table of Authorities
+\section*{TABLE OF AUTHORITIES}
+
+\subsection*{Cases}
+\begin{longtable}[l]{p{0.7\textwidth}p{0.2\textwidth}}
+\textit{Case citations will be automatically generated} & Page(s) \\
+\hline
+\end{longtable}
+
+\subsection*{Statutes}
+\begin{longtable}[l]{p{0.7\textwidth}p{0.2\textwidth}}
+Statute citations will be automatically generated & Page(s) \\
+\hline
+\end{longtable}
+
+\subsection*{Constitutional Provisions}
+\begin{longtable}[l]{p{0.7\textwidth}p{0.2\textwidth}}
+Constitutional citations will be automatically generated & Page(s) \\
+\hline
+\end{longtable}
+
+\subsection*{Rules}
+\begin{longtable}[l]{p{0.7\textwidth}p{0.2\textwidth}}
+Rules citations will be automatically generated & Page(s) \\
+\hline
+\end{longtable}
+
+\subsection*{Secondary Authorities}
+\begin{longtable}[l]{p{0.7\textwidth}p{0.2\textwidth}}
+Secondary authority citations will be automatically generated & Page(s) \\
+\hline
+\end{longtable}
+
+\newpage
+{% endif %}
+
+% Brief content begins here
+\section{{% if briefType == 'motion' %}INTRODUCTION{% else %}{% if briefType == 'appellate' %}STATEMENT OF THE CASE{% else %}PRELIMINARY STATEMENT{% endif %}{% endif %}}
+
+{{ introduction | default('This brief addresses the key legal and factual issues presented in this matter.') }}
+
+{% if briefType == 'appellate' %}
+\section{STATEMENT OF THE CASE}
+
+\subsection{Nature of the Case}
+{{ statementOfCase.nature | default('This is an appeal from...') }}
+
+\subsection{Course of Proceedings}
+{{ statementOfCase.proceedings | default('The procedural history is as follows...') }}
+
+\subsection{Disposition Below}
+{{ statementOfCase.disposition | default('The court below ruled...') }}
+
+\section{STATEMENT OF FACTS}
+
+{{ statementOfFacts | default('The relevant facts are as follows...') }}
+
+{% else %}
+{% if briefType == 'motion' %}
+\section{STATEMENT OF FACTS}
+
+{{ statementOfFacts | default('The following facts are relevant to this motion...') }}
+
+{% endif %}
+{% endif %}
+
+\section{{% if briefType == 'appellate' %}QUESTIONS PRESENTED{% else %}LEGAL STANDARD{% endif %}}
+
+{% if briefType == 'appellate' %}
+{{ questionsPresented | default('The questions presented for review are...') }}
+
+\section{SUMMARY OF ARGUMENT}
+
+{{ summaryOfArgument | default('This brief will demonstrate that...') }}
+
+{% else %}
+{{ legalStandard | default('The applicable legal standard is...') }}
+
+{% endif %}
+
+\section{ARGUMENT}
+
+\subsection{{ argumentHeading1 | default('First Main Argument') }}
+
+{{ argument1 | default('The first argument demonstrates that...') }}
+
+\subsubsection{{ subargument1_1 | default('Supporting Point A') }}
+
+{{ subargument1_1_text | default('This supporting point shows...') }}
+
+\subsubsection{{ subargument1_2 | default('Supporting Point B') }}
+
+{{ subargument1_2_text | default('This additional point establishes...') }}
+
+\subsection{{ argumentHeading2 | default('Second Main Argument') }}
+
+{{ argument2 | default('The second argument establishes that...') }}
+
+\subsubsection{{ subargument2_1 | default('Supporting Point A') }}
+
+{{ subargument2_1_text | default('This supporting analysis demonstrates...') }}
+
+\subsubsection{{ subargument2_2 | default('Supporting Point B') }}
+
+{{ subargument2_2_text | default('Furthermore, the evidence shows...') }}
+
+{% if argument3 %}
+\subsection{{ argumentHeading3 }}
+
+{{ argument3 }}
+
+{% if subargument3_1 %}
+\subsubsection{{ subargument3_1_heading | default('Supporting Point A') }}
+
+{{ subargument3_1 }}
+{% endif %}
+
+{% if subargument3_2 %}
+\subsubsection{{ subargument3_2_heading | default('Supporting Point B') }}
+
+{{ subargument3_2 }}
+{% endif %}
+
+{% endif %}
+
+\section{CONCLUSION}
+
+{{ conclusion | default('For the foregoing reasons, this Court should grant the relief requested.') }}
+
+\vspace{0.5in}
+
+Respectfully submitted,
+
+\vspace{1in}
+
+\begin{flushleft}
+\rule{3in}{0.5pt}\\
+{{ attorney.name }}\\
+{{ attorney.barNumber | default('') }}\\
+{{ attorney.firm }}\\
+{{ attorney.address }}\\
+{{ attorney.city }}, {{ attorney.state }} {{ attorney.zip }}\\
+{{ attorney.phone }}\\
+{{ attorney.email }}\\
+\\
+Attorney for {{ attorney.represents | default('Plaintiff') }}
+\end{flushleft}
+
+% Certificate of service
+{% if includeCertificateOfService %}
+\newpage
+\input{../components/certificate-of-service}
+{% endif %}
+
+\end{document}

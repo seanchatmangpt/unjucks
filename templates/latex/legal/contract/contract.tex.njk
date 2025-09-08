@@ -1,0 +1,209 @@
+---
+to: {{ contractName | lower | replace(' ', '-') }}-contract.tex
+inject: false
+skipIf: exists
+variables:
+  - contractName: string
+  - contractType: string
+  - partyA: object
+  - partyB: object
+  - effectiveDate: string
+  - jurisdiction: string
+  - governingLaw: string
+  - includeArbitration: boolean
+  - includeLiquidatedDamages: boolean
+  - includeNonCompete: boolean
+---
+% Legal Contract LaTeX Template
+% Generated with Unjucks
+\documentclass[12pt,letterpaper]{article}
+
+% Required packages for legal documents
+\usepackage[margin=1in]{geometry}
+\usepackage{setspace}
+\usepackage{fancyhdr}
+\usepackage{titlesec}
+\usepackage{enumitem}
+\usepackage{array}
+\usepackage{tabularx}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{ifthen}
+\usepackage{xcolor}
+\usepackage{hyperref}
+
+% Legal document formatting
+\doublespacing
+\setlength{\parindent}{0.5in}
+\setlength{\parskip}{6pt}
+
+% Header and footer setup
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{{ contractName | title }}
+\fancyhead[R]{\thepage}
+\renewcommand{\headrulewidth}{0pt}
+
+% Section formatting for legal documents
+\titleformat{\section}[block]{\normalfont\large\bfseries\centering}{\thesection.}{1em}{}
+\titleformat{\subsection}[block]{\normalfont\normalsize\bfseries}{\thesubsection}{1em}{}
+\titleformat{\subsubsection}[runin]{\normalfont\normalsize\bfseries}{\thesubsubsection}{1em}{}[.]
+
+% Custom commands for legal formatting
+\newcommand{\party}[1]{\textbf{#1}}
+\newcommand{\define}[1]{\textbf{``#1''}}
+\newcommand{\legalref}[1]{\textsc{#1}}
+\newcommand{\contractdate}[1]{\underline{\hspace{2in}} day of \underline{\hspace{2in}}, 20\underline{\hspace{1in}}}
+
+% Jurisdiction-specific formatting
+{% if jurisdiction == 'federal' %}
+\newcommand{\courtformat}[1]{\textsc{#1}}
+{% elif jurisdiction == 'california' %}
+\newcommand{\courtformat}[1]{\textbf{#1}}
+{% else %}
+\newcommand{\courtformat}[1]{#1}
+{% endif %}
+
+% Bluebook citation support
+\newcommand{\cite}[2]{\textit{#1}, #2}
+\newcommand{\statute}[2]{#1 \S\ #2}
+\newcommand{\case}[3]{\textit{#1} #2 (#3)}
+
+\begin{document}
+
+% Title page
+\begin{center}
+{\Large\textbf{{{ contractName | title }}}}\\[0.5in]
+{\large {{ contractType | title }} Agreement}\\[0.25in]
+Between\\[0.25in]
+{\large\textbf{{{ partyA.name }}}}\\
+and\\
+{\large\textbf{{{ partyB.name }}}}\\[0.5in]
+Effective Date: {{ effectiveDate }}
+\end{center}
+
+\newpage
+
+% Contract body
+\section{PARTIES}
+
+This {{ contractType | lower }} agreement (this \define{Agreement}) is entered into on {{ effectiveDate }} (the \define{Effective Date}) between:
+
+\begin{enumerate}[label=(\alph*)]
+\item \party{{{ partyA.name }}}, a {{ partyA.entityType | default('corporation') }} organized under the laws of {{ partyA.jurisdiction | default(jurisdiction) }}, with its principal place of business at {{ partyA.address }} (\define{{{ partyA.shortName | default('Party A') }}}); and
+
+\item \party{{{ partyB.name }}}, a {{ partyB.entityType | default('corporation') }} organized under the laws of {{ partyB.jurisdiction | default(jurisdiction) }}, with its principal place of business at {{ partyB.address }} (\define{{{ partyB.shortName | default('Party B') }}}).
+\end{enumerate}
+
+\section{RECITALS}
+
+WHEREAS, {{ partyA.shortName | default('Party A') }} {{ recitalA | default('desires to enter into this agreement') }};
+
+WHEREAS, {{ partyB.shortName | default('Party B') }} {{ recitalB | default('agrees to the terms set forth herein') }};
+
+WHEREAS, the parties wish to set forth their mutual agreements, covenants, and understandings;
+
+NOW, THEREFORE, in consideration of the mutual covenants and agreements contained herein, and for other good and valuable consideration, the receipt and sufficiency of which are hereby acknowledged, the parties agree as follows:
+
+\section{DEFINITIONS}
+
+For purposes of this Agreement, the following terms shall have the meanings set forth below:
+
+\begin{enumerate}[label=\textbf{\arabic*.}]
+\item \define{Agreement} means this {{ contractType | lower }} agreement, as it may be amended, modified, or supplemented from time to time in accordance with the terms hereof.
+
+\item \define{Effective Date} means {{ effectiveDate }}.
+
+{% if additionalDefinitions %}
+{% for definition in additionalDefinitions %}
+\item \define{{{ definition.term }}} means {{ definition.definition }}.
+{% endfor %}
+{% endif %}
+\end{enumerate}
+
+\section{SCOPE OF WORK}
+
+{{ scopeOfWork | default('The parties shall perform the work as mutually agreed upon.') }}
+
+\section{CONSIDERATION}
+
+In consideration for the performance of obligations under this Agreement:
+
+\begin{enumerate}[label=(\alph*)]
+\item {{ considerationA | default('Party A shall provide the agreed consideration.') }}
+\item {{ considerationB | default('Party B shall provide the agreed consideration.') }}
+\end{enumerate}
+
+\section{TERM AND TERMINATION}
+
+\subsection{Term}
+This Agreement shall commence on the Effective Date and shall continue for a period of {{ termLength | default('one (1) year') }}, unless earlier terminated in accordance with the provisions hereof.
+
+\subsection{Termination}
+This Agreement may be terminated:
+
+\begin{enumerate}[label=(\alph*)]
+\item By mutual written consent of the parties;
+\item By either party upon {{ terminationNotice | default('thirty (30) days') }} written notice to the other party;
+\item Immediately by either party upon material breach by the other party that remains uncured for {{ cureperiod | default('fifteen (15) days') }} after written notice of such breach.
+\end{enumerate}
+
+{% if includeNonCompete %}
+\section{NON-COMPETE}
+
+During the term of this Agreement and for a period of {{ nonCompetePeriod | default('one (1) year') }} following termination, {{ nonCompeteParty | default('Party B') }} shall not, directly or indirectly, engage in any business that competes with {{ nonCompeteScope | default('the business of Party A') }} within {{ nonCompeteTerritory | default('the geographic area served by Party A') }}.
+
+{% endif %}
+
+{% if includeArbitration %}
+\section{DISPUTE RESOLUTION}
+
+\subsection{Arbitration}
+Any dispute, claim, or controversy arising under or relating to this Agreement shall be resolved by binding arbitration administered by the American Arbitration Association under its Commercial Arbitration Rules. The arbitration shall be conducted in {{ arbitrationVenue | default(jurisdiction) }}.
+
+\subsection{Governing Law}
+This Agreement shall be governed by and construed in accordance with the laws of {{ governingLaw }}, without regard to its conflict of laws principles.
+
+{% else %}
+\section{GOVERNING LAW AND JURISDICTION}
+
+This Agreement shall be governed by and construed in accordance with the laws of {{ governingLaw }}, without regard to its conflict of laws principles. The parties consent to the exclusive jurisdiction of the courts of {{ jurisdiction }} for any disputes arising under this Agreement.
+
+{% endif %}
+
+{% if includeLiquidatedDamages %}
+\section{LIQUIDATED DAMAGES}
+
+The parties acknowledge that actual damages for breach of certain provisions of this Agreement would be difficult to ascertain. Therefore, in the event of breach of {{ liquidatedDamagesClauses | default('confidentiality or non-compete provisions') }}, the breaching party shall pay liquidated damages in the amount of {{ liquidatedDamagesAmount | default('$10,000') }}.
+
+{% endif %}
+
+\section{MISCELLANEOUS}
+
+\subsection{Entire Agreement}
+This Agreement constitutes the entire agreement between the parties and supersedes all prior negotiations, representations, or agreements relating to the subject matter hereof.
+
+\subsection{Amendment}
+This Agreement may be amended only by a written instrument signed by both parties.
+
+\subsection{Severability}
+If any provision of this Agreement is held to be invalid or unenforceable, the remaining provisions shall remain in full force and effect.
+
+\subsection{Assignment}
+Neither party may assign this Agreement without the prior written consent of the other party.
+
+\subsection{Notices}
+All notices required hereunder shall be in writing and shall be deemed given when delivered personally, sent by certified mail, return receipt requested, or sent by overnight courier to the addresses set forth above.
+
+% Signature blocks
+\vspace{1in}
+
+\input{../components/signature-blocks}
+
+% Certificate of service (if required)
+{% if includeCertificateOfService %}
+\newpage
+\input{../components/certificate-of-service}
+{% endif %}
+
+\end{document}

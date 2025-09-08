@@ -1,0 +1,25 @@
+---
+message: |
+  I'll help you create a LaTeX research paper template. Please provide the following information:
+
+  **Required:**
+  - title: Your paper title
+  - author: Author name(s) and affiliation(s)
+  
+  **Optional:**
+  - documentclass: article (default), revtex, or amsart
+  - abstract: Paper abstract
+  - keywords: Keywords for your paper
+  - msc_codes: Mathematics Subject Classification codes
+  - pacs_codes: Physics and Astronomy Classification codes
+  - bibliography: bibtex (default) or biblatex
+  - theorems: true/false - Include theorem environments
+  - algorithms: true/false - Include algorithm packages
+  - sections: Array of {title, content} objects
+  - custom_commands: Additional LaTeX commands
+  
+  **Example usage:**
+  ```bash
+  unjucks generate latex/arxiv/paper --title "Deep Learning Applications" --author "John Doe" --abstract "This paper presents..." --theorems true --algorithms true
+  ```
+---

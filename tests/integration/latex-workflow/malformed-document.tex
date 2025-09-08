@@ -1,0 +1,23 @@
+\documentclass[12pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+
+\title{Malformed Test Document}
+\author{Test Author}
+
+\begin{document}
+
+\maketitle
+
+\section{Test Section}
+This is a test with \unknown{malformed command}
+
+% Missing end brace
+\textbf{This text has missing closing brace
+
+\section{Another Section
+% Missing closing brace in section title
+
+Some content here.
+
+% Missing \end{document} intentionally

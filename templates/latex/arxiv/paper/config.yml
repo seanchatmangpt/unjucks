@@ -1,0 +1,186 @@
+name: arXiv Research Paper Template
+description: Generate LaTeX research papers formatted for arXiv submission
+version: "1.0.0"
+author: Unjucks LaTeX Generator
+category: academic
+
+variables:
+  title:
+    type: string
+    description: Paper title
+    required: true
+    example: "Deep Learning Applications in Computer Vision"
+    
+  author:
+    type: string
+    description: Author name or names
+    required: true
+    example: "Jane Smith"
+    
+  filename:
+    type: string
+    description: Output filename (without extension)
+    default: "paper"
+    example: "my-research-paper"
+    
+  dest:
+    type: string
+    description: Output directory
+    default: "."
+    example: "./output"
+    
+  documentclass:
+    type: string
+    description: Document class
+    default: "article"
+    enum: ["article", "revtex", "amsart"]
+    
+  affiliation:
+    type: string
+    description: Author affiliation
+    required: false
+    example: "Stanford University"
+    
+  email:
+    type: string
+    description: Author email
+    required: false
+    example: "jane@stanford.edu"
+    
+  abstract:
+    type: string
+    description: Paper abstract
+    required: false
+    example: "This paper presents a novel approach..."
+    
+  keywords:
+    type: string
+    description: Paper keywords
+    required: false
+    example: "machine learning, computer vision, deep learning"
+    
+  msc_codes:
+    type: string
+    description: Mathematics Subject Classification codes
+    required: false
+    example: "68T07, 68T45"
+    
+  pacs_codes:
+    type: string
+    description: Physics and Astronomy Classification codes
+    required: false
+    example: "02.50.Sk, 05.45.Tp"
+    
+  bibliography:
+    type: string
+    description: Bibliography system
+    default: "bibtex"
+    enum: ["bibtex", "biblatex"]
+    
+  theorems:
+    type: boolean
+    description: Include theorem environments
+    default: false
+    
+  algorithms:
+    type: boolean
+    description: Include algorithm packages
+    default: false
+    
+  sections:
+    type: array
+    description: Paper sections
+    items:
+      type: object
+      properties:
+        title:
+          type: string
+          description: Section title
+        label:
+          type: string
+          description: Section label
+        content:
+          type: string
+          description: Section content
+    example:
+      - title: "Methodology"
+        label: "sec:methodology"
+        content: "We propose a novel approach..."
+        
+  acknowledgments:
+    type: string
+    description: Acknowledgments text
+    required: false
+    
+  appendices:
+    type: array
+    description: Paper appendices
+    items:
+      type: object
+      properties:
+        title:
+          type: string
+        label:
+          type: string
+        content:
+          type: string
+          
+  packages:
+    type: array
+    description: Additional LaTeX packages
+    items:
+      type: string
+    example: ["natbib", "cleveref"]
+    
+  custom_commands:
+    type: string
+    description: Custom LaTeX commands
+    required: false
+    
+  include_toc:
+    type: boolean
+    description: Include table of contents
+    default: false
+    
+  introduction:
+    type: string
+    description: Introduction section content
+    required: false
+    
+  bibfile:
+    type: string
+    description: Bibliography file name
+    default: "references.bib"
+    
+  bibstyle:
+    type: string
+    description: Bibliography style
+    default: "plain"
+    enum: ["plain", "abbrv", "alpha", "unsrt", "ieeetr"]
+    
+  date:
+    type: string
+    description: Paper date
+    default: "\\today"
+
+templates:
+  - name: paper.tex.njk
+    description: Main arXiv research paper template
+
+examples:
+  ai_paper:
+    title: "Novel Approaches to Artificial Intelligence"
+    author: "Dr. Alice Cooper"
+    affiliation: "MIT CSAIL"
+    email: "alice@mit.edu"
+    abstract: "We present breakthrough methods in AI..."
+    keywords: "artificial intelligence, machine learning, neural networks"
+    theorems: true
+    algorithms: true
+    
+  physics_paper:
+    title: "Quantum Mechanics in High Energy Physics"
+    author: "Prof. Bob Einstein"
+    documentclass: "revtex"
+    pacs_codes: "03.65.Ta, 11.30.Er"
+    abstract: "This work investigates quantum phenomena..."

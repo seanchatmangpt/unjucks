@@ -1,0 +1,72 @@
+% Proof of Service Component
+% For motions and other court filings
+
+\section*{PROOF OF SERVICE}
+
+I am a citizen of the United States and am employed in {{ county | default('the County of [COUNTY]') }}, {{ state | default('State of [STATE]') }}. I am over the age of eighteen years and am not a party to the within action. My business address is {{ businessAddress | default('[BUSINESS ADDRESS]') }}.
+
+On {{ serviceDate | default('[DATE]') }}, I served the within {{ documentType | default('MOTION') }} on the interested parties in this action by the following method(s):
+
+{% if serviceMethod == 'personal' %}
+$\boxtimes$ \textbf{BY PERSONAL SERVICE:} I personally delivered a true and correct copy of the document(s) to the person(s) served at the address(es) set forth below.
+
+{% elif serviceMethod == 'mail' %}
+$\boxtimes$ \textbf{BY MAIL:} I am readily familiar with this office's practice of collection and processing correspondence for mailing with the United States Postal Service. In accordance with that practice, correspondence placed in the internal mail collection system at this office is deposited with the United States Postal Service that same day in the ordinary course of business. I deposited a true and correct copy of the document(s) in a sealed envelope with postage thereon fully prepaid in the internal mail system of this office addressed to the person(s) at the address(es) set forth below.
+
+{% elif serviceMethod == 'overnight' %}
+$\boxtimes$ \textbf{BY OVERNIGHT DELIVERY:} I caused to be delivered via overnight delivery service a true and correct copy of the document(s) to the person(s) at the address(es) set forth below.
+
+{% elif serviceMethod == 'email' %}
+$\boxtimes$ \textbf{BY ELECTRONIC MAIL:} I caused to be transmitted via electronic mail a true and correct copy of the document(s) to the person(s) at the electronic mail address(es) set forth below. The document(s) were served electronically by agreement of the parties.
+
+{% elif serviceMethod == 'ecf' %}
+$\boxtimes$ \textbf{BY ECF FILING:} I caused the document(s) to be filed electronically with the Court's Case Management/Electronic Case Files system, which will automatically serve all registered participants.
+
+{% else %}
+$\square$ BY PERSONAL SERVICE\\
+$\square$ BY MAIL\\
+$\square$ BY OVERNIGHT DELIVERY\\
+$\square$ BY ELECTRONIC MAIL\\
+$\square$ BY ECF FILING\\
+$\square$ OTHER: {{ serviceMethod | default('[DESCRIBE METHOD]') }}
+{% endif %}
+
+\vspace{0.25in}
+
+The document(s) were served on the following person(s):
+
+\vspace{0.25in}
+
+{% if serviceList %}
+{% for service in serviceList %}
+\textbf{{{ service.name }}}{% if service.title %}, {{ service.title }}{% endif %}\\
+{% if service.firm %}{{ service.firm }}\\{% endif %}
+{{ service.address }}\\
+{{ service.city }}, {{ service.state }} {{ service.zip }}\\
+{% if service.email and (serviceMethod == 'email' or serviceMethod == 'ecf') %}Email: {{ service.email }}\\{% endif %}
+
+\vspace{0.25in}
+
+{% endfor %}
+{% else %}
+\textbf{[NAME], [TITLE]}\\
+[FIRM NAME]\\
+[ADDRESS]\\
+[CITY], [STATE] [ZIP]\\
+{% if serviceMethod == 'email' or serviceMethod == 'ecf' %}Email: [EMAIL ADDRESS]{% endif %}
+{% endif %}
+
+{% if jurisdiction == 'federal' %}
+I declare under penalty of perjury under the laws of the United States that the above is true and correct.
+{% else %}
+I declare under penalty of perjury under the laws of {{ state | default('the State of [STATE]') }} that the above is true and correct.
+{% endif %}
+
+\vspace{0.5in}
+
+Executed on {{ serviceDate | default('[DATE]') }}, at {{ serviceLocation | default('[CITY], [STATE]') }}.
+
+\vspace{1in}
+
+\rule{3in}{0.5pt}\\
+{{ serverName | default('[SERVER NAME]') }}

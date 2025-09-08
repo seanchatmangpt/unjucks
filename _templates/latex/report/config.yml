@@ -1,0 +1,196 @@
+name: LaTeX Report Template
+description: Generate LaTeX report documents with chapters and advanced formatting
+version: "1.0.0"
+author: Unjucks LaTeX Generator
+category: document
+
+variables:
+  title:
+    type: string
+    description: Report title
+    required: true
+    example: "Technical Report"
+    
+  author:
+    type: string
+    description: Report author(s)
+    required: true
+    example: "Research Team"
+    
+  output:
+    type: string
+    description: Output filename
+    default: "report.tex"
+    example: "technical-report.tex"
+    
+  fontSize:
+    type: string
+    description: Font size
+    default: "12pt"
+    enum: ["10pt", "11pt", "12pt", "14pt"]
+    
+  paperSize:
+    type: string
+    description: Paper size
+    default: "a4paper"
+    enum: ["a4paper", "letterpaper", "legalpaper"]
+    
+  mathSupport:
+    type: boolean
+    description: Include math packages
+    default: true
+    
+  graphics:
+    type: boolean
+    description: Include graphicx package
+    default: true
+    
+  headerFooter:
+    type: boolean
+    description: Include fancy headers and footers
+    default: true
+    
+  abstract:
+    type: string
+    description: Report abstract
+    required: false
+    
+  tableOfContents:
+    type: boolean
+    description: Include table of contents
+    default: true
+    
+  listOfFigures:
+    type: boolean
+    description: Include list of figures
+    default: false
+    
+  listOfTables:
+    type: boolean
+    description: Include list of tables
+    default: false
+    
+  introduction:
+    type: string
+    description: Introduction chapter content
+    required: false
+    
+  methodology:
+    type: string
+    description: Methodology chapter content
+    required: false
+    
+  results:
+    type: string
+    description: Results chapter content
+    required: false
+    
+  discussion:
+    type: string
+    description: Discussion chapter content
+    required: false
+    
+  conclusion:
+    type: string
+    description: Conclusion chapter content
+    required: false
+    
+  chapters:
+    type: array
+    description: Additional chapters
+    items:
+      type: object
+      properties:
+        title:
+          type: string
+          description: Chapter title
+        content:
+          type: string
+          description: Chapter content
+    example:
+      - title: "Literature Review"
+        content: "Previous research shows..."
+        
+  appendix:
+    type: array
+    description: Appendix sections
+    items:
+      type: object
+      properties:
+        title:
+          type: string
+          description: Appendix title
+        content:
+          type: string
+          description: Appendix content
+          
+  bibliography:
+    type: boolean
+    description: Include bibliography
+    default: false
+    
+  bibliographyStyle:
+    type: string
+    description: Bibliography style
+    default: "plain"
+    enum: ["plain", "abbrv", "alpha", "unsrt", "ieeetr"]
+    
+  bibliographyFile:
+    type: string
+    description: Bibliography file name
+    default: "references"
+    
+  customPackages:
+    type: array
+    description: Additional LaTeX packages
+    items:
+      type: string
+    example: ["natbib", "hyperref"]
+    
+  marginLeft:
+    type: string
+    description: Left margin
+    default: "3cm"
+    
+  marginRight:
+    type: string
+    description: Right margin
+    default: "3cm"
+    
+  marginTop:
+    type: string
+    description: Top margin
+    default: "3cm"
+    
+  marginBottom:
+    type: string
+    description: Bottom margin
+    default: "3cm"
+    
+  date:
+    type: string
+    description: Report date
+    default: "\\today"
+
+templates:
+  - name: report.tex.ejs
+    description: Main LaTeX report template
+
+examples:
+  basic:
+    title: "Annual Report"
+    author: "Company Research Division"
+    abstract: "This report summarizes..."
+    
+  technical:
+    title: "Technical Analysis Report"
+    author: "Engineering Team"
+    tableOfContents: true
+    listOfFigures: true
+    listOfTables: true
+    bibliography: true
+    chapters:
+      - title: "System Architecture"
+        content: "The system is designed with..."
+      - title: "Performance Analysis"
+        content: "Benchmarks show that..."

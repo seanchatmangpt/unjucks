@@ -2,6 +2,9 @@ import { defineCommand } from "citty";
 import chalk from "chalk";
 import fs from 'fs-extra';
 import path from 'node:path';
+import { SpecPerformanceOptimizer } from '../performance/spec-performance-optimizer.js';
+import { SpecBenchmarker } from '../performance/spec-benchmarker.js';
+import { performance } from 'perf_hooks';
 
 /**
  * PerformanceAnalyzer - Manages performance benchmarking and monitoring
@@ -263,6 +266,96 @@ export const perfCommand = defineCommand({
     description: "Performance analysis and optimization tools",
   },
   subCommands: {
+    // Spec-driven performance analysis
+    spec: defineCommand({
+      meta: {
+        name: "spec",
+        description: "Spec-driven development performance analysis and optimization",
+      },
+      args: {
+        action: {
+          type: "string",
+          description: "Action: analyze, benchmark, optimize, warmup, report",
+          default: "analyze",
+        },
+        templates: {
+          type: "string", 
+          description: "Templates directory path",
+          default: "_templates",
+        },
+        target: {
+          type: "number",
+          description: "Target generation time in milliseconds",
+          default: 200,
+        },
+        iterations: {
+          type: "number",
+          description: "Number of benchmark iterations",
+          default: 10,
+        },
+        output: {
+          type: "string",
+          description: "Output file for reports",
+        },
+        verbose: {
+          type: "boolean",
+          description: "Enable verbose output",
+          default: false,
+        },
+        cache: {
+          type: "boolean",
+          description: "Enable performance caching",
+          default: true,
+        }
+      },
+      async run({ args }) {
+        console.log(chalk.blue.bold(`🚀 Spec Performance ${args.action.charAt(0).toUpperCase() + args.action.slice(1)}`));
+        console.log(chalk.gray(`Target: Sub-${args.target}ms generation times`));
+        console.log();
+
+        const optimizer = new SpecPerformanceOptimizer({
+          enableCaching: args.cache,
+          targetGenerationTime: args.target,
+          enableMetrics: true
+        });
+
+        const benchmarker = new SpecBenchmarker({
+          targetGenerationTime: args.target,
+          benchmarkIterations: args.iterations,
+          enableProfiling: true
+        });
+
+        try {
+          switch (args.action) {
+            case 'analyze':
+              await runSpecAnalysis(optimizer, args);
+              break;
+            case 'benchmark':
+              await runSpecBenchmark(benchmarker, args);
+              break;
+            case 'optimize':
+              await runSpecOptimization(optimizer, args);
+              break;
+            case 'warmup':
+              await runSpecWarmup(optimizer, args);
+              break;
+            case 'report':
+              await generateSpecReport(optimizer, benchmarker, args);
+              break;
+            default:
+              console.error(chalk.red(`Unknown action: ${args.action}`));
+              console.log(chalk.gray('Available actions: analyze, benchmark, optimize, warmup, report'));
+              process.exit(1);
+          }
+        } catch (error) {
+          console.error(chalk.red('Spec performance operation failed:'), error.message);
+          if (args.verbose) {
+            console.error(error.stack);
+          }
+          process.exit(1);
+        }
+      }
+    }),
     benchmark: defineCommand({
       meta: {
         name: "benchmark",
@@ -824,29 +917,332 @@ export const perfCommand = defineCommand({
     console.log(chalk.cyan("Performance analysis and optimization tools"));
     console.log();
     console.log(chalk.yellow("Available subcommands:"));
+    console.log(chalk.gray("  spec       - Spec-driven development performance analysis"));
     console.log(chalk.gray("  benchmark  - Run performance benchmarks with configurable suites"));
     console.log(chalk.gray("  analyze    - Analyze performance bottlenecks and generate reports"));
     console.log(chalk.gray("  monitor    - Real-time performance monitoring"));
     console.log(chalk.gray("  profile    - CPU and memory profiling"));
     console.log();
     console.log(chalk.blue("Examples:"));
+    console.log(chalk.gray("  unjucks perf spec analyze --target 150 --verbose"));
+    console.log(chalk.gray("  unjucks perf spec benchmark --iterations 20 --cache"));
+    console.log(chalk.gray("  unjucks perf spec optimize --templates _templates"));
     console.log(chalk.gray("  unjucks perf benchmark --suite comprehensive --iterations 50"));
     console.log(chalk.gray("  unjucks perf analyze --detailed --format console"));
-    console.log(chalk.gray("  unjucks perf monitor --interval 1 --duration 60"));
-    console.log(chalk.gray("  unjucks perf profile --type cpu --duration 30"));
     console.log();
-    console.log(chalk.yellow("Benchmark Suites:"));
-    console.log(chalk.gray("  basic         - Essential performance tests"));
-    console.log(chalk.gray("  comprehensive - Full performance test suite"));
-    console.log(chalk.gray("  template      - Template-specific benchmarks"));
-    console.log(chalk.gray("  file          - File operation benchmarks"));
-    console.log(chalk.gray("  network       - Network performance tests"));
+    console.log(chalk.yellow("Spec Performance Actions:"));
+    console.log(chalk.gray("  analyze   - Profile spec parsing, validation, and generation"));
+    console.log(chalk.gray("  benchmark - Comprehensive benchmarking with sub-200ms targets"));
+    console.log(chalk.gray("  optimize  - Apply performance optimizations and caching"));
+    console.log(chalk.gray("  warmup    - Warm up caches for optimal performance"));
+    console.log(chalk.gray("  report    - Generate comprehensive performance reports"));
     console.log();
     console.log(chalk.yellow("Features:"));
-    console.log(chalk.gray("  • Configurable benchmark suites with realistic test scenarios"));
-    console.log(chalk.gray("  • Automated bottleneck detection and optimization suggestions"));
-    console.log(chalk.gray("  • Real-time system monitoring with health indicators"));
-    console.log(chalk.gray("  • Comprehensive CPU and memory profiling"));
-    console.log(chalk.gray("  • Historical performance tracking and comparison"));
+    console.log(chalk.gray("  • Sub-200ms generation time optimization"));
+    console.log(chalk.gray("  • Intelligent template and spec caching"));
+    console.log(chalk.gray("  • Lazy loading and parallel processing"));
+    console.log(chalk.gray("  • Bottleneck detection and recommendations"));
+    console.log(chalk.gray("  • Memory efficiency analysis"));
   },
 });
+
+// Spec Performance Helper Functions
+
+/**
+ * Run spec-driven performance analysis
+ */
+async function runSpecAnalysis(optimizer, args) {
+  console.log(chalk.blue('📊 Analyzing spec-driven performance...'));
+  
+  const startTime = performance.now();
+  
+  // Test template discovery performance
+  console.log(chalk.gray('Testing template discovery...'));
+  const discoveryStart = performance.now();
+  const templates = await optimizer.discoverTemplatesOptimized(args.templates);
+  const discoveryTime = performance.now() - discoveryStart;
+  
+  console.log(chalk.green(`✓ Discovered ${templates.length} templates in ${discoveryTime.toFixed(2)}ms`));
+  
+  // Test parsing performance on sample templates
+  console.log(chalk.gray('Testing template parsing...'));
+  const sampleTemplates = templates.slice(0, Math.min(5, templates.length));
+  const parseResults = [];
+  
+  for (const template of sampleTemplates) {
+    const parseStart = performance.now();
+    try {
+      await optimizer.parseTemplateOptimized(template.path);
+      const parseTime = performance.now() - parseStart;
+      parseResults.push({ path: template.relativePath, time: parseTime });
+      if (args.verbose) {
+        console.log(chalk.gray(`  ${template.relativePath}: ${parseTime.toFixed(2)}ms`));
+      }
+    } catch (error) {
+      console.warn(chalk.yellow(`  Warning: Could not parse ${template.relativePath}: ${error.message}`));
+    }
+  }
+  
+  // Test template matching performance
+  console.log(chalk.gray('Testing template matching...'));
+  const matchStart = performance.now();
+  const matches = await optimizer.matchTemplateOptimized('component', templates);
+  const matchTime = performance.now() - matchStart;
+  
+  console.log(chalk.green(`✓ Pattern matching completed in ${matchTime.toFixed(2)}ms (${matches.length} matches)`));
+  
+  const totalTime = performance.now() - startTime;
+  
+  // Display analysis results
+  console.log();
+  console.log(chalk.blue.bold('📈 Performance Analysis Results'));
+  console.log(chalk.gray('━'.repeat(50)));
+  
+  displayMetric('Template Discovery', discoveryTime, args.target * 0.1);
+  displayMetric('Average Parse Time', average(parseResults.map(r => r.time)), args.target * 0.3);
+  displayMetric('Pattern Matching', matchTime, args.target * 0.1);
+  displayMetric('Total Analysis Time', totalTime, args.target);
+  
+  console.log();
+  
+  // Show cache statistics
+  const report = optimizer.generatePerformanceReport();
+  displayCacheStats(report.cacheStats);
+  
+  // Show recommendations
+  if (report.recommendations.length > 0) {
+    console.log(chalk.blue.bold('💡 Recommendations'));
+    console.log(chalk.gray('━'.repeat(50)));
+    for (const rec of report.recommendations) {
+      const icon = rec.priority === 'high' ? '🔴' : rec.priority === 'medium' ? '🟡' : '🟢';
+      console.log(chalk.gray(`${icon} ${rec.message}`));
+    }
+    console.log();
+  }
+}
+
+/**
+ * Run comprehensive spec benchmarking
+ */
+async function runSpecBenchmark(benchmarker, args) {
+  console.log(chalk.blue('🏃‍♂️ Running comprehensive spec benchmarks...'));
+  
+  try {
+    const report = await benchmarker.runComprehensiveBenchmark(args.templates);
+    
+    console.log();
+    console.log(chalk.blue.bold('📊 Benchmark Results'));
+    console.log(chalk.gray('━'.repeat(60)));
+    
+    // Display summary
+    console.log(chalk.green(`Performance Grade: ${report.summary.performanceGrade}`));
+    console.log(chalk.gray(`Overall Score: ${report.summary.overallScore.toFixed(1)}%`));
+    console.log(chalk.gray(`Targets Met: ${report.summary.targetsMet}/${report.summary.totalCategories}`));
+    
+    console.log();
+    
+    // Display category results
+    for (const [category, results] of Object.entries(report.benchmarks)) {
+      const status = results.targetMet ? chalk.green('✓') : chalk.red('✗');
+      console.log(`${status} ${category.replace(/_/g, ' ').toUpperCase()}`);
+      
+      if (results.stats && results.stats.end_to_end) {
+        const stats = results.stats.end_to_end;
+        console.log(chalk.gray(`  Avg: ${stats.avg.toFixed(2)}ms, P95: ${stats.p95.toFixed(2)}ms`));
+      } else if (results.stats) {
+        const keys = Object.keys(results.stats);
+        const firstKey = keys[0];
+        if (firstKey && results.stats[firstKey].avg !== undefined) {
+          const stats = results.stats[firstKey];
+          console.log(chalk.gray(`  Avg: ${stats.avg.toFixed(2)}ms, P95: ${stats.p95.toFixed(2)}ms`));
+        }
+      }
+    }
+    
+    // Display recommendations
+    if (report.recommendations.length > 0) {
+      console.log();
+      console.log(chalk.blue.bold('💡 Optimization Recommendations'));
+      console.log(chalk.gray('━'.repeat(60)));
+      for (const rec of report.recommendations) {
+        const icon = rec.priority === 'critical' ? '🔴' : rec.priority === 'high' ? '🟠' : '🟡';
+        console.log(`${icon} [${rec.category.toUpperCase()}] ${rec.suggestion}`);
+      }
+    }
+    
+    // Save results if output specified
+    if (args.output) {
+      await benchmarker.saveBenchmarkResults(report, path.dirname(args.output));
+    }
+    
+  } catch (error) {
+    console.error(chalk.red('Benchmark failed:'), error.message);
+    if (args.verbose) {
+      console.error(error.stack);
+    }
+  }
+}
+
+/**
+ * Run spec optimization
+ */
+async function runSpecOptimization(optimizer, args) {
+  console.log(chalk.blue('⚡ Running spec performance optimizations...'));
+  
+  // Warm up caches
+  console.log(chalk.gray('Warming up performance caches...'));
+  await optimizer.warmupCaches(args.templates);
+  
+  // Pre-compile common templates
+  console.log(chalk.gray('Pre-compiling templates...'));
+  const templates = await optimizer.discoverTemplatesOptimized(args.templates);
+  
+  let compiled = 0;
+  for (const template of templates.slice(0, 10)) { // Limit for demonstration
+    try {
+      await optimizer.parseTemplateOptimized(template.path);
+      compiled++;
+    } catch (error) {
+      if (args.verbose) {
+        console.warn(chalk.yellow(`Warning: Could not pre-compile ${template.relativePath}`));
+      }
+    }
+  }
+  
+  console.log(chalk.green(`✓ Pre-compiled ${compiled} templates`));
+  
+  // Generate optimization report
+  const report = optimizer.generatePerformanceReport();
+  console.log();
+  console.log(chalk.blue.bold('📈 Optimization Results'));
+  console.log(chalk.gray('━'.repeat(50)));
+  
+  console.log(chalk.gray(`Cache Hit Ratio: ${chalk.green((report.cacheStats.cacheHitRatio * 100).toFixed(1) + '%')}`));
+  console.log(chalk.gray(`Total Cache Entries: ${chalk.green(report.cacheStats.totalCacheEntries.toString())}`));
+  console.log(chalk.gray(`Target Achievement: ${chalk.green(report.summary.targetAchievement.toFixed(1) + '%')}`));
+  
+  console.log();
+  console.log(chalk.green('✓ Optimization completed'));
+}
+
+/**
+ * Run cache warmup
+ */
+async function runSpecWarmup(optimizer, args) {
+  console.log(chalk.blue('🔥 Warming up spec performance caches...'));
+  
+  const startTime = performance.now();
+  await optimizer.warmupCaches(args.templates);
+  const duration = performance.now() - startTime;
+  
+  const report = optimizer.generatePerformanceReport();
+  
+  console.log();
+  console.log(chalk.blue.bold('🔥 Warmup Results'));
+  console.log(chalk.gray('━'.repeat(50)));
+  console.log(chalk.gray(`Duration: ${chalk.green(duration.toFixed(2) + 'ms')}`));
+  console.log(chalk.gray(`Templates Cached: ${chalk.green(report.cacheStats.templateCacheSize.toString())}`));
+  console.log(chalk.gray(`Specs Cached: ${chalk.green(report.cacheStats.specCacheSize.toString())}`));
+  console.log(chalk.gray(`Total Entries: ${chalk.green(report.cacheStats.totalCacheEntries.toString())}`));
+  
+  console.log();
+  console.log(chalk.green('✓ Cache warmup completed'));
+}
+
+/**
+ * Generate comprehensive spec performance report
+ */
+async function generateSpecReport(optimizer, benchmarker, args) {
+  console.log(chalk.blue('📋 Generating comprehensive spec performance report...'));
+  
+  // Run analysis to gather metrics
+  await runSpecAnalysis(optimizer, { ...args, verbose: false });
+  
+  // Run benchmarks
+  const benchmarkReport = await benchmarker.runComprehensiveBenchmark(args.templates);
+  const optimizerReport = optimizer.generatePerformanceReport();
+  
+  console.log();
+  console.log(chalk.blue.bold('📊 Comprehensive Spec Performance Report'));
+  console.log(chalk.gray('━'.repeat(60)));
+  console.log(chalk.gray(`Generated: ${new Date().toISOString()}`));
+  console.log();
+  
+  // Performance Summary
+  console.log(chalk.blue.bold('Performance Summary'));
+  console.log(chalk.gray(`Overall Grade: ${benchmarkReport.summary.performanceGrade}`));
+  console.log(chalk.gray(`Score: ${benchmarkReport.summary.overallScore.toFixed(1)}%`));
+  console.log(chalk.gray(`Cache Hit Ratio: ${(optimizerReport.summary.cacheHitRatio * 100).toFixed(1)}%`));
+  console.log(chalk.gray(`Target Achievement: ${optimizerReport.summary.targetAchievement.toFixed(1)}%`));
+  console.log();
+  
+  // Key Metrics
+  console.log(chalk.blue.bold('Key Performance Metrics'));
+  console.log(chalk.gray(`Average Parse Time: ${optimizerReport.summary.averageParseTime.toFixed(2)}ms`));
+  console.log(chalk.gray(`Average Render Time: ${optimizerReport.summary.averageRenderTime.toFixed(2)}ms`));
+  console.log(chalk.gray(`P95 Parse Time: ${optimizerReport.summary.p95ParseTime.toFixed(2)}ms`));
+  console.log(chalk.gray(`P95 Render Time: ${optimizerReport.summary.p95RenderTime.toFixed(2)}ms`));
+  console.log();
+  
+  // Recommendations
+  const allRecommendations = [...benchmarkReport.recommendations, ...optimizerReport.recommendations];
+  if (allRecommendations.length > 0) {
+    console.log(chalk.blue.bold('Optimization Recommendations'));
+    for (const rec of allRecommendations) {
+      const icon = rec.priority === 'critical' ? '🔴' : rec.priority === 'high' ? '🟠' : '🟡';
+      const message = rec.message || rec.suggestion;
+      console.log(chalk.gray(`${icon} ${message}`));
+    }
+    console.log();
+  }
+  
+  // Save combined report if requested
+  if (args.output) {
+    const combinedReport = {
+      timestamp: new Date().toISOString(),
+      benchmark: benchmarkReport,
+      optimizer: optimizerReport,
+      summary: {
+        overallGrade: benchmarkReport.summary.performanceGrade,
+        overallScore: benchmarkReport.summary.overallScore,
+        cacheEfficiency: optimizerReport.summary.cacheHitRatio,
+        targetAchievement: optimizerReport.summary.targetAchievement
+      }
+    };
+    
+    const outputPath = path.resolve(args.output);
+    await fs.writeFile(outputPath, JSON.stringify(combinedReport, null, 2));
+    console.log(chalk.green(`✓ Report saved to ${outputPath}`));
+  }
+}
+
+/**
+ * Display performance metric with status
+ */
+function displayMetric(name, value, target) {
+  const status = value <= target ? chalk.green('✓') : chalk.red('✗');
+  const color = value <= target ? chalk.green : chalk.yellow;
+  console.log(chalk.gray(`${status} ${name}: ${color(value.toFixed(2) + 'ms')} (Target: ${target.toFixed(2)}ms)`));
+}
+
+/**
+ * Display cache statistics
+ */
+function displayCacheStats(stats) {
+  console.log(chalk.blue.bold('💾 Cache Statistics'));
+  console.log(chalk.gray('━'.repeat(50)));
+  console.log(chalk.gray(`Template Cache: ${chalk.green(stats.templateCacheSize.toString())} entries`));
+  console.log(chalk.gray(`Spec Cache: ${chalk.green(stats.specCacheSize.toString())} entries`));
+  console.log(chalk.gray(`Pattern Cache: ${chalk.green(stats.patternCacheSize.toString())} entries`));
+  console.log(chalk.gray(`AST Cache: ${chalk.green(stats.astCacheSize.toString())} entries`));
+  console.log(chalk.gray(`Hit Ratio: ${chalk.green((stats.cacheHitRatio * 100).toFixed(1) + '%')}`));
+}
+
+/**
+ * Calculate average of array
+ */
+function average(arr) {
+  return arr.length > 0 ? arr.reduce((a, b) => a + b, 0) / arr.length : 0;
+}
+
+export default perfCommand;

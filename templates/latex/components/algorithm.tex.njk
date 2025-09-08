@@ -1,0 +1,55 @@
+---
+to: false
+inject: true
+before: "\\begin{document}"
+skipIf: "\\usepackage.*algorithm"
+---
+% Algorithm environments component
+{% if algorithm_style == 'algorithmic' %}
+\usepackage{algorithm}
+\usepackage{algorithmic}
+
+% Customize algorithmic
+\renewcommand{\algorithmicrequire}{\textbf{Input:}}
+\renewcommand{\algorithmicensure}{\textbf{Output:}}
+\renewcommand{\algorithmicif}{\textbf{if}}
+\renewcommand{\algorithmicthen}{\textbf{then}}
+\renewcommand{\algorithmicelse}{\textbf{else}}
+\renewcommand{\algorithmicfor}{\textbf{for}}
+\renewcommand{\algorithmicwhile}{\textbf{while}}
+\renewcommand{\algorithmicdo}{\textbf{do}}
+\renewcommand{\algorithmicrepeat}{\textbf{repeat}}
+\renewcommand{\algorithmicuntil}{\textbf{until}}
+
+{% elif algorithm_style == 'algpseudocode' %}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+
+% Customize algpseudocode
+\algrenewcommand\algorithmicrequire{\textbf{Input:}}
+\algrenewcommand\algorithmicensure{\textbf{Output:}}
+\algrenewcommand\algorithmicif{\textbf{if}}
+\algrenewcommand\algorithmicthen{\textbf{then}}
+\algrenewcommand\algorithmicelse{\textbf{else}}
+\algrenewcommand\algorithmicfor{\textbf{for}}
+\algrenewcommand\algorithmicwhile{\textbf{while}}
+\algrenewcommand\algorithmicdo{\textbf{do}}
+\algrenewcommand\algorithmicrepeat{\textbf{repeat}}
+\algrenewcommand\algorithmicuntil{\textbf{until}}
+
+{% else %}
+% Default: both packages available
+\usepackage{algorithm}
+\usepackage{algorithmic}
+\usepackage{algpseudocode}
+{% endif %}
+
+{% if custom_algorithm_commands %}
+% Custom algorithm commands
+{{ custom_algorithm_commands }}
+{% endif %}
+
+{% if line_numbering %}
+% Enable line numbering
+\algrenewcommand\alglinenumber[1]{\footnotesize #1:}
+{% endif %}

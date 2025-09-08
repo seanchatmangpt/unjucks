@@ -15,6 +15,9 @@ import { versionCommand } from '../commands/version.js';
 import { newCommand } from '../commands/new.js';
 import { previewCommand } from '../commands/preview.js';
 import { helpCommand as advancedHelpCommand } from '../commands/help.js';
+import { latexCommand } from '../commands/latex.js';
+import { perfCommand } from '../commands/perf.js';
+import { specifyCommand } from '../commands/specify.js';
 
 // All commands now imported from their respective modules
 
@@ -56,7 +59,7 @@ const preprocessArgs = () => {
   }
   
   // Don't transform if already using explicit commands (optimized lookup)
-  const explicitCommands = new Set(['generate', 'new', 'preview', 'help', 'list', 'init', 'inject', 'version', 'semantic', 'swarm', 'workflow', 'perf', 'github', 'knowledge', 'neural', 'migrate']);
+  const explicitCommands = new Set(['generate', 'new', 'preview', 'help', 'list', 'init', 'inject', 'version', 'semantic', 'swarm', 'workflow', 'perf', 'github', 'knowledge', 'neural', 'migrate', 'latex', 'specify']);
   if (explicitCommands.has(firstArg)) {
     return rawArgs;
   }
@@ -127,6 +130,9 @@ const main = defineCommand({
     semantic: semanticCommand,
     github: githubCommand,
     migrate: migrateCommand,
+    latex: latexCommand,
+    perf: perfCommand,
+    specify: specifyCommand,
   },
   /**
    * @param {{ args: any }} params - Command parameters
@@ -136,7 +142,7 @@ const main = defineCommand({
     // don't show the main help to avoid confusion
     const originalArgs = process.argv.slice(2);
     const hasSubcommand = originalArgs.length > 0 && 
-      ['semantic', 'github', 'neural', 'workflow', 'perf', 'knowledge', 'migrate', 'swarm'].includes(originalArgs[0]) &&
+      ['semantic', 'github', 'neural', 'workflow', 'perf', 'knowledge', 'migrate', 'swarm', 'specify', 'latex'].includes(originalArgs[0]) &&
       !originalArgs.includes('--help') && !originalArgs.includes('-h');
     
     if (hasSubcommand) {
@@ -174,6 +180,8 @@ const main = defineCommand({
       console.log(chalk.gray("  knowledge RDF/OWL ontology and semantic knowledge management"));
       console.log(chalk.gray("  neural    AI/ML neural network training and inference"));
       console.log(chalk.gray("  migrate   Database and project migration utilities"));
+      console.log(chalk.gray("  latex     LaTeX document generation, compilation, and management"));
+      console.log(chalk.gray("  specify   Specification-driven development tools and workflows"));
       console.log(chalk.gray("  version   Show version information"));
       console.log();
       console.log(chalk.yellow("OPTIONS:"));
@@ -191,6 +199,7 @@ const main = defineCommand({
       console.log(chalk.gray("  unjucks workflow create --name api-dev # Create development workflow"));
       console.log(chalk.gray("  unjucks perf benchmark --suite all    # Run performance benchmarks"));
       console.log(chalk.gray("  unjucks github analyze --repo owner/repo # Analyze repository"));
+      console.log(chalk.gray("  unjucks specify init my-project --type api # Spec-driven project setup"));
       return { success: true, action: 'help' };
     }
 
@@ -218,6 +227,8 @@ const main = defineCommand({
     console.log(chalk.gray("  knowledge RDF/OWL ontology and semantic knowledge management"));
     console.log(chalk.gray("  neural    AI/ML neural network training and inference"));
     console.log(chalk.gray("  migrate   Database and project migration utilities"));
+    console.log(chalk.gray("  latex     LaTeX document generation, compilation, and management"));
+    console.log(chalk.gray("  specify   Specification-driven development tools and workflows"));
     console.log(chalk.gray("  version   Show version information"));
     console.log();
     console.log(chalk.yellow("Examples:"));
@@ -231,6 +242,9 @@ const main = defineCommand({
     console.log(chalk.gray("  unjucks workflow create --name api-dev # Create development workflow"));
     console.log(chalk.gray("  unjucks perf benchmark --suite all    # Run performance benchmarks"));
     console.log(chalk.gray("  unjucks github analyze --repo owner/repo # Analyze repository"));
+    console.log(chalk.gray("  unjucks latex generate --template article --interactive # Generate LaTeX document"));
+    console.log(chalk.gray("  unjucks latex compile document.tex      # Compile to PDF"));
+    console.log(chalk.gray("  unjucks specify init my-project --type api # Spec-driven project setup"));
     console.log();
     console.log(chalk.gray("Use --help with any command for more information."));
     return { success: true, action: 'help' };

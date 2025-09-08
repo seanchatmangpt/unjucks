@@ -1,0 +1,319 @@
+{
+  "specification_examples": {
+    "basic_spec": {
+      "specName": "User Authentication Service",
+      "author": "Development Team",
+      "version": "1.0.0",
+      "description": "Secure user authentication and authorization system with JWT tokens",
+      "objectives": [
+        "Implement secure user login and registration",
+        "Support multiple authentication providers",
+        "Ensure scalable session management",
+        "Maintain GDPR compliance"
+      ],
+      "features": [
+        {
+          "name": "User Registration",
+          "priority": "High",
+          "complexity": "Medium",
+          "description": "Allow users to create new accounts with email verification",
+          "acceptanceCriteria": [
+            "User can register with email and password",
+            "Email verification is required before activation",
+            "Passwords must meet security requirements",
+            "Duplicate registrations are prevented"
+          ]
+        },
+        {
+          "name": "JWT Authentication",
+          "priority": "High",
+          "complexity": "High",
+          "description": "Implement JWT-based authentication with refresh tokens",
+          "acceptanceCriteria": [
+            "Generate secure JWT tokens on successful login",
+            "Support token refresh mechanism",
+            "Implement token blacklisting for logout",
+            "Tokens expire after configured time"
+          ]
+        }
+      ],
+      "performance": {
+        "responseTime": "< 200ms",
+        "throughput": "1000 RPS",
+        "concurrentUsers": "10,000",
+        "memoryUsage": "< 512MB"
+      },
+      "security": [
+        "Passwords hashed with bcrypt",
+        "JWT tokens signed with RS256",
+        "Rate limiting on authentication endpoints",
+        "Input validation and sanitization"
+      ]
+    },
+    
+    "e_commerce_spec": {
+      "specName": "E-commerce Product Catalog",
+      "author": "Product Team",
+      "version": "2.1.0",
+      "description": "Product catalog management system with search and filtering capabilities",
+      "features": [
+        {
+          "name": "Product Search",
+          "priority": "High",
+          "complexity": "High",
+          "description": "Full-text search with filters and sorting",
+          "acceptanceCriteria": [
+            "Search by product name, description, and tags",
+            "Filter by category, price range, and availability",
+            "Sort by price, popularity, and ratings",
+            "Support pagination and infinite scroll"
+          ]
+        }
+      ],
+      "dataModels": [
+        {
+          "name": "Product",
+          "fields": [
+            {"name": "id", "type": "UUID", "required": true, "description": "Unique product identifier"},
+            {"name": "name", "type": "string", "required": true, "description": "Product name"},
+            {"name": "price", "type": "decimal", "required": true, "description": "Product price"},
+            {"name": "category_id", "type": "UUID", "required": true, "description": "Category reference"}
+          ]
+        }
+      ],
+      "apiEndpoints": [
+        {
+          "method": "GET",
+          "path": "/api/products",
+          "description": "Search and list products",
+          "parameters": [
+            {"name": "q", "type": "string", "required": false, "description": "Search query"},
+            {"name": "category", "type": "string", "required": false, "description": "Category filter"},
+            {"name": "page", "type": "number", "required": false, "description": "Page number"}
+          ],
+          "response": {
+            "products": [],
+            "pagination": {"page": 1, "total": 100, "hasNext": true}
+          }
+        }
+      ]
+    }
+  },
+
+  "technical_plan_examples": {
+    "microservices_plan": {
+      "planName": "E-commerce Microservices Architecture",
+      "architect": "System Architect",
+      "version": "1.0.0",
+      "architecture": {
+        "pattern": "Microservices",
+        "style": "Event-driven",
+        "description": "Event-driven microservices with CQRS pattern for high scalability"
+      },
+      "technologies": {
+        "runtime": "Node.js 18+",
+        "framework": "Fastify",
+        "database": "PostgreSQL",
+        "cache": "Redis",
+        "messageQueue": "Apache Kafka",
+        "container": "Docker",
+        "orchestration": "Kubernetes"
+      },
+      "components": [
+        {
+          "name": "API Gateway",
+          "type": "Infrastructure",
+          "responsibility": "Request routing, authentication, rate limiting",
+          "technologies": ["Kong", "NGINX"],
+          "interfaces": ["REST API", "GraphQL"],
+          "dependencies": ["Auth Service", "Rate Limiter"]
+        },
+        {
+          "name": "User Service",
+          "type": "Business Logic",
+          "responsibility": "User management and authentication",
+          "technologies": ["Node.js", "PostgreSQL", "JWT"],
+          "interfaces": ["REST API", "Event Publisher"],
+          "dependencies": ["Database", "Message Queue"]
+        }
+      ],
+      "scaling": {
+        "loadBalancer": "Application Load Balancer",
+        "autoScaling": "Kubernetes HPA",
+        "database": "Read replicas with connection pooling",
+        "cache": "Redis Cluster"
+      }
+    }
+  },
+
+  "task_breakdown_examples": {
+    "agile_project": {
+      "projectName": "Customer Support Portal",
+      "projectManager": "Scrum Master",
+      "estimationMethod": "Story Points",
+      "epics": [
+        {
+          "name": "Ticket Management System",
+          "description": "Core ticket creation, assignment, and tracking functionality",
+          "businessValue": "High",
+          "effort": "34",
+          "stories": [
+            {
+              "title": "Create Support Ticket",
+              "persona": "customer",
+              "want": "to submit a support ticket",
+              "benefit": "I can get help with my issues",
+              "priority": "High",
+              "effort": "8",
+              "sprint": "Sprint 1",
+              "acceptanceCriteria": [
+                "Customer can fill out ticket form with category selection",
+                "File attachments are supported up to 10MB",
+                "Automatic ticket ID generation and email confirmation",
+                "Ticket is routed to appropriate support team"
+              ],
+              "tasks": [
+                {"description": "Design ticket form UI", "effort": "4", "assignee": "Frontend Developer"},
+                {"description": "Implement backend API", "effort": "6", "assignee": "Backend Developer"},
+                {"description": "Add file upload functionality", "effort": "4", "assignee": "Full Stack Developer"},
+                {"description": "Write unit tests", "effort": "3", "assignee": "QA Engineer"}
+              ]
+            }
+          ]
+        }
+      ],
+      "sprints": [
+        {
+          "name": "Sprint 1",
+          "duration": "2 weeks",
+          "capacity": "40",
+          "goals": [
+            "Establish core ticket creation functionality",
+            "Set up development environment and CI/CD",
+            "Complete user authentication system"
+          ]
+        }
+      ]
+    }
+  },
+
+  "implementation_examples": {
+    "class_component": {
+      "componentName": "PaymentProcessor",
+      "specName": "Payment Processing System",
+      "componentType": "class",
+      "interfaces": [
+        {
+          "name": "PaymentProvider",
+          "description": "Interface for payment provider implementations",
+          "properties": [
+            {"name": "id", "type": "string", "description": "Provider identifier"},
+            {"name": "name", "type": "string", "description": "Provider display name"},
+            {"name": "supportedCurrencies", "type": "string[]", "description": "Supported currency codes"}
+          ]
+        },
+        {
+          "name": "PaymentRequest",
+          "properties": [
+            {"name": "amount", "type": "number", "description": "Payment amount in cents"},
+            {"name": "currency", "type": "string", "description": "ISO currency code"},
+            {"name": "customerId", "type": "string", "description": "Customer identifier"},
+            {"name": "paymentMethodId", "type": "string", "description": "Payment method reference"}
+          ]
+        }
+      ],
+      "classConfig": {
+        "description": "Handles payment processing with multiple providers",
+        "implements": ["PaymentProvider"],
+        "constructor": {
+          "description": "Initialize payment processor with configuration",
+          "parameters": [
+            {"name": "config", "type": "PaymentConfig", "description": "Payment processor configuration"}
+          ]
+        },
+        "properties": [
+          {"name": "config", "type": "PaymentConfig", "visibility": "private", "readonly": true},
+          {"name": "providers", "type": "Map<string, PaymentProvider>", "visibility": "private", "initialValue": "new Map()"}
+        ]
+      },
+      "methods": [
+        {
+          "name": "processPayment",
+          "description": "Process a payment through the configured provider",
+          "async": true,
+          "parameters": [
+            {"name": "request", "type": "PaymentRequest", "description": "Payment request details"}
+          ],
+          "returns": {
+            "type": "PaymentResult",
+            "description": "Payment processing result"
+          },
+          "throws": ["PaymentError", "ValidationError"]
+        },
+        {
+          "name": "refundPayment",
+          "description": "Refund a processed payment",
+          "async": true,
+          "parameters": [
+            {"name": "paymentId", "type": "string", "description": "Original payment identifier"},
+            {"name": "amount", "type": "number", "optional": true, "description": "Partial refund amount"}
+          ],
+          "returns": {
+            "type": "RefundResult",
+            "description": "Refund processing result"
+          }
+        }
+      ],
+      "testFramework": "jest",
+      "acceptanceCriteria": [
+        {
+          "description": "Process payments successfully with valid requests",
+          "given": "valid payment request",
+          "when": "processPayment is called",
+          "then": "payment is processed and result returned"
+        },
+        {
+          "description": "Handle payment failures gracefully",
+          "given": "invalid payment details",
+          "when": "processPayment is called",
+          "then": "appropriate error is thrown with details"
+        }
+      ]
+    },
+
+    "function_component": {
+      "componentName": "validateUserInput",
+      "specName": "Input Validation Library",
+      "componentType": "function",
+      "functionConfig": {
+        "description": "Validates user input against defined schema rules",
+        "async": false,
+        "parameters": [
+          {"name": "input", "type": "unknown", "description": "User input to validate"},
+          {"name": "schema", "type": "ValidationSchema", "description": "Validation rules"}
+        ],
+        "returns": {
+          "type": "ValidationResult",
+          "description": "Validation result with errors if any"
+        },
+        "example": "const result = validateUserInput({email: 'user@example.com'}, emailSchema);"
+      },
+      "interfaces": [
+        {
+          "name": "ValidationSchema",
+          "properties": [
+            {"name": "rules", "type": "ValidationRule[]", "description": "Array of validation rules"},
+            {"name": "required", "type": "string[]", "optional": true, "description": "Required field names"}
+          ]
+        },
+        {
+          "name": "ValidationResult",
+          "properties": [
+            {"name": "isValid", "type": "boolean", "description": "Whether input is valid"},
+            {"name": "errors", "type": "ValidationError[]", "description": "Array of validation errors"}
+          ]
+        }
+      ]
+    }
+  }
+}

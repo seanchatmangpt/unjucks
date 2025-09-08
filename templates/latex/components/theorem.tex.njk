@@ -1,0 +1,78 @@
+---
+to: false
+inject: true
+before: "\\begin{document}"
+skipIf: "\\newtheorem"
+---
+% Theorem environments component
+\usepackage{amsthm}
+
+{% if theorem_style == 'numbered' %}
+% Numbered theorems
+\theoremstyle{plain}
+\newtheorem{theorem}{Theorem}[{{ counter || 'section' }}]
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{corollary}[theorem]{Corollary}
+
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{example}[theorem]{Example}
+\newtheorem{exercise}[theorem]{Exercise}
+
+\theoremstyle{remark}
+\newtheorem{remark}[theorem]{Remark}
+\newtheorem{note}[theorem]{Note}
+\newtheorem{case}[theorem]{Case}
+
+{% elif theorem_style == 'unnumbered' %}
+% Unnumbered theorems
+\theoremstyle{plain}
+\newtheorem*{theorem*}{Theorem}
+\newtheorem*{lemma*}{Lemma}
+\newtheorem*{proposition*}{Proposition}
+\newtheorem*{corollary*}{Corollary}
+
+\theoremstyle{definition}
+\newtheorem*{definition*}{Definition}
+\newtheorem*{example*}{Example}
+\newtheorem*{exercise*}{Exercise}
+
+\theoremstyle{remark}
+\newtheorem*{remark*}{Remark}
+\newtheorem*{note*}{Note}
+\newtheorem*{case*}{Case}
+
+{% else %}
+% Both numbered and unnumbered
+\theoremstyle{plain}
+\newtheorem{theorem}{Theorem}[{{ counter || 'section' }}]
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem*{theorem*}{Theorem}
+\newtheorem*{lemma*}{Lemma}
+\newtheorem*{proposition*}{Proposition}
+\newtheorem*{corollary*}{Corollary}
+
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{example}[theorem]{Example}
+\newtheorem{exercise}[theorem]{Exercise}
+\newtheorem*{definition*}{Definition}
+\newtheorem*{example*}{Example}
+\newtheorem*{exercise*}{Exercise}
+
+\theoremstyle{remark}
+\newtheorem{remark}[theorem]{Remark}
+\newtheorem{note}[theorem]{Note}
+\newtheorem{case}[theorem]{Case}
+\newtheorem*{remark*}{Remark}
+\newtheorem*{note*}{Note}
+\newtheorem*{case*}{Case}
+{% endif %}
+
+{% if include_proof %}
+% Proof environment (already included in amsthm but customizable)
+\renewcommand{\qedsymbol}{$\blacksquare$}
+{% endif %}

@@ -1,0 +1,94 @@
+name: LaTeX Components
+description: Reusable LaTeX components for injection into documents
+version: "1.0.0"
+author: Unjucks LaTeX Generator
+category: components
+
+components:
+  - name: theorem
+    description: Theorem environments component
+    file: theorem.tex.njk
+    variables:
+      theorem_style:
+        type: string
+        description: Theorem style
+        default: "mixed"
+        enum: ["numbered", "unnumbered", "mixed"]
+      counter:
+        type: string
+        description: Counter for numbered theorems
+        default: "section"
+        enum: ["section", "chapter", "subsection"]
+      include_proof:
+        type: boolean
+        description: Customize proof environment
+        default: false
+        
+  - name: algorithm
+    description: Algorithm environments component
+    file: algorithm.tex.njk
+    variables:
+      algorithm_style:
+        type: string
+        description: Algorithm package style
+        default: "both"
+        enum: ["algorithmic", "algpseudocode", "both"]
+      custom_algorithm_commands:
+        type: string
+        description: Custom algorithm commands
+        required: false
+      line_numbering:
+        type: boolean
+        description: Enable line numbering
+        default: false
+        
+  - name: bibliography
+    description: Bibliography component
+    file: bibliography.tex.njk
+    variables:
+      bib_style:
+        type: string
+        description: Bibliography style
+        default: "plain"
+        enum: ["plain", "abbrv", "alpha", "unsrt", "ieeetr", "apalike"]
+      bib_file:
+        type: string
+        description: Bibliography file
+        default: "references.bib"
+      natbib:
+        type: boolean
+        description: Use natbib package
+        default: false
+      biblatex:
+        type: boolean
+        description: Use biblatex instead of bibtex
+        default: false
+      biblatex_style:
+        type: string
+        description: Biblatex style
+        default: "alphabetic"
+        enum: ["alphabetic", "numeric", "authoryear", "authortitle", "verbose"]
+
+usage:
+  injection: true
+  description: "These components are designed to be injected into existing LaTeX documents"
+  
+examples:
+  theorem_injection:
+    component: theorem
+    variables:
+      theorem_style: "numbered"
+      counter: "section"
+      include_proof: true
+      
+  algorithm_injection:
+    component: algorithm
+    variables:
+      algorithm_style: "algpseudocode"
+      line_numbering: true
+      
+  bibliography_injection:
+    component: bibliography
+    variables:
+      bib_style: "ieeetr"
+      natbib: true

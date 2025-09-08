@@ -1,0 +1,64 @@
+% Certificate of Service Component
+% For legal briefs and pleadings
+
+\section*{CERTIFICATE OF SERVICE}
+
+I hereby certify that a true and correct copy of the foregoing {{ documentType | default('document') }} was served upon the following parties in the manner indicated below:
+
+\vspace{0.25in}
+
+{% if serviceList %}
+{% for service in serviceList %}
+\textbf{{{ service.name }}}\\
+{{ service.firm | default('') }}\\
+{{ service.address }}\\
+{{ service.city }}, {{ service.state }} {{ service.zip }}\\
+{% if service.email %}Email: {{ service.email }}\\{% endif %}
+
+Service Method: 
+{% if service.method == 'email' %}
+$\square$ By electronic mail (email)
+{% elif service.method == 'mail' %}
+$\square$ By first-class mail, postage prepaid
+{% elif service.method == 'personal' %}
+$\square$ By personal service
+{% elif service.method == 'overnight' %}
+$\square$ By overnight courier
+{% elif service.method == 'ecf' %}
+$\square$ By filing with the Court's electronic filing system, which will automatically serve registered participants
+{% else %}
+$\square$ {{ service.method }}
+{% endif %}
+
+\vspace{0.25in}
+
+{% endfor %}
+{% else %}
+\textbf{[NAME]}\\
+[FIRM]\\
+[ADDRESS]\\
+[CITY], [STATE] [ZIP]\\
+Email: [EMAIL]
+
+Service Method: $\square$ By electronic mail (email)\\
+\phantom{Service Method: } $\square$ By first-class mail, postage prepaid\\
+\phantom{Service Method: } $\square$ By personal service\\
+\phantom{Service Method: } $\square$ By overnight courier\\
+\phantom{Service Method: } $\square$ By ECF filing
+{% endif %}
+
+{% if jurisdiction == 'federal' %}
+I declare under penalty of perjury under the laws of the United States that the foregoing is true and correct.
+{% else %}
+I declare under penalty of perjury under the laws of {{ jurisdiction | default('the State of [STATE]') }} that the foregoing is true and correct.
+{% endif %}
+
+\vspace{0.5in}
+
+Executed on {{ serviceDate | default('\rule{2in}{0.5pt}') }}, at {{ serviceLocation | default('\rule{2in}{0.5pt}') }}.
+
+\vspace{1in}
+
+\rule{3in}{0.5pt}\\
+{{ attorney.name | default('[ATTORNEY NAME]') }}\\
+Attorney for {{ attorney.represents | default('[PARTY]') }}

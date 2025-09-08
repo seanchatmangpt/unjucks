@@ -1,0 +1,195 @@
+name: LaTeX Thesis Template
+description: Generate academic thesis documents with comprehensive formatting
+version: "1.0.0"
+author: Unjucks LaTeX Generator
+category: academic
+
+variables:
+  title:
+    type: string
+    description: Thesis title
+    required: true
+    example: "Machine Learning Applications in Natural Language Processing"
+    
+  author:
+    type: string
+    description: Author name
+    required: true
+    example: "John Doe"
+    
+  degree:
+    type: string
+    description: Degree type
+    required: false
+    example: "Doctor of Philosophy"
+    enum: ["Doctor of Philosophy", "Master of Science", "Master of Arts", "Bachelor of Science", "Bachelor of Arts"]
+    
+  department:
+    type: string
+    description: Department name
+    required: false
+    example: "Computer Science"
+    
+  university:
+    type: string
+    description: University name
+    required: false
+    example: "Stanford University"
+    
+  advisor:
+    type: string
+    description: Thesis advisor name
+    required: false
+    example: "Dr. Jane Smith"
+    
+  output:
+    type: string
+    description: Output filename
+    default: "thesis.tex"
+    
+  abstract:
+    type: string
+    description: Thesis abstract
+    required: false
+    example: "This thesis explores..."
+    
+  acknowledgments:
+    type: string
+    description: Acknowledgments text
+    required: false
+    
+  researchArea:
+    type: string
+    description: Research area classification
+    required: false
+    example: "artificial intelligence"
+    
+  semanticDomain:
+    type: string
+    description: Semantic domain
+    default: "academic"
+    
+  aiEnhanced:
+    type: boolean
+    description: AI-enhanced document features
+    default: false
+    
+  documentOptions:
+    type: object
+    description: Document formatting options
+    properties:
+      fontsize:
+        type: string
+        default: "12pt"
+        enum: ["10pt", "11pt", "12pt"]
+      papersize:
+        type: string
+        default: "a4paper"
+        enum: ["a4paper", "letterpaper"]
+      documentclass:
+        type: string
+        default: "report"
+        enum: ["report", "book"]
+      bibliography:
+        type: boolean
+        default: true
+      figures:
+        type: boolean
+        default: true
+      tables:
+        type: boolean
+        default: true
+        
+  packages:
+    type: array
+    description: Additional LaTeX packages
+    items:
+      type: string
+    example: ["natbib", "hyperref", "cleveref"]
+    
+  chapters:
+    type: array
+    description: Thesis chapters
+    items:
+      type: object
+      properties:
+        title:
+          type: string
+          description: Chapter title
+        content:
+          type: string
+          description: Chapter content
+        sections:
+          type: array
+          description: Chapter sections
+          items:
+            type: object
+            properties:
+              title:
+                type: string
+              content:
+                type: string
+              subsections:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    title:
+                      type: string
+                    content:
+                      type: string
+    example:
+      - title: "Introduction"
+        content: "This chapter introduces..."
+        sections:
+          - title: "Background"
+            content: "The research background..."
+          - title: "Problem Statement"
+            content: "This thesis addresses..."
+            
+  appendices:
+    type: array
+    description: Thesis appendices
+    items:
+      type: object
+      properties:
+        title:
+          type: string
+        id:
+          type: string
+        content:
+          type: string
+          
+  date:
+    type: string
+    description: Thesis date
+    default: "2025"
+
+templates:
+  - name: index.ejs.t
+    description: Main thesis template with comprehensive structure
+
+examples:
+  phd_thesis:
+    title: "Advanced Machine Learning Techniques for Natural Language Understanding"
+    author: "Alice Johnson"
+    degree: "Doctor of Philosophy"
+    department: "Computer Science"
+    university: "MIT"
+    advisor: "Dr. Robert Smith"
+    abstract: "This dissertation presents novel approaches..."
+    aiEnhanced: true
+    researchArea: "machine learning"
+    
+  masters_thesis:
+    title: "Sustainable Energy Systems Analysis"
+    author: "Bob Wilson"
+    degree: "Master of Science"
+    department: "Environmental Engineering"
+    university: "CalTech"
+    advisor: "Dr. Sarah Lee"
+    chapters:
+      - title: "Literature Review"
+        content: "Previous research in sustainable energy..."
+      - title: "Methodology"
+        content: "This study employs..."

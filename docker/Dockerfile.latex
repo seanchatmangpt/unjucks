@@ -1,0 +1,34 @@
+# LaTeX Build Environment
+FROM texlive/texlive:latest
+
+# Install Node.js for build integration
+RUN apt-get update && \
+    apt-get install -y curl && \
+    curl -fsSL https://deb.nodesource.com/setup_18.x | bash - && \
+    apt-get install -y nodejs
+
+# Install additional LaTeX packages if needed
+RUN tlmgr update --self && \
+    tlmgr install \
+      collection-fontsrecommended \
+      collection-latexextra \
+      collection-mathscience \
+      collection-bibtexextra
+
+# Set working directory
+WORKDIR /workspace
+
+# Copy package files
+COPY package*.json ./
+
+# Install npm dependencies
+RUN npm ci --only=production
+
+# Copy source files
+COPY . .
+
+# Set permissions
+RUN chmod +x scripts/*.js
+
+# Build command
+CMD ["npm", "run", "build:latex"]

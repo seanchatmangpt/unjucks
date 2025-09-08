@@ -1,0 +1,103 @@
+---
+to: <%= output || 'report.tex' %>
+---
+\documentclass[<%= fontSize || '12pt' %>,<%= paperSize || 'a4paper' %>]{report}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+<% if (mathSupport !== false) { %>
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+<% } %>
+<% if (graphics !== false) { %>
+\usepackage{graphicx}
+<% } %>
+\usepackage[left=<%= marginLeft || '3cm' %>,right=<%= marginRight || '3cm' %>,top=<%= marginTop || '3cm' %>,bottom=<%= marginBottom || '3cm' %>]{geometry}
+\usepackage{fancyhdr}
+<% if (customPackages) { %>
+<% customPackages.forEach(pkg => { %>
+\usepackage{<%= pkg %>}
+<% }); %>
+<% } %>
+
+\title{<%= title %>}
+\author{<%= author %>}
+\date{<%= date || '\\today' %>}
+
+<% if (headerFooter !== false) { %>
+\pagestyle{fancy}
+\fancyhf{}
+\rhead{<%= title %>}
+\lhead{\leftmark}
+\rfoot{\thepage}
+<% } %>
+
+\begin{document}
+
+\maketitle
+<% if (tableOfContents !== false) { %>
+\tableofcontents
+\newpage
+<% } %>
+
+<% if (listOfFigures) { %>
+\listoffigures
+\newpage
+<% } %>
+
+<% if (listOfTables) { %>
+\listoftables
+\newpage
+<% } %>
+
+<% if (abstract) { %>
+\chapter*{Abstract}
+\addcontentsline{toc}{chapter}{Abstract}
+<%= abstract %>
+\newpage
+<% } %>
+
+\chapter{Introduction}
+<%= introduction || 'Introduction content here.' %>
+
+<% if (methodology !== false) { %>
+\chapter{Methodology}
+<%= methodology || 'Methodology content here.' %>
+<% } %>
+
+<% if (results !== false) { %>
+\chapter{Results}
+<%= results || 'Results content here.' %>
+<% } %>
+
+<% if (discussion !== false) { %>
+\chapter{Discussion}
+<%= discussion || 'Discussion content here.' %>
+<% } %>
+
+<% if (chapters && chapters.length > 0) { %>
+<% chapters.forEach(chapter => { %>
+\chapter{<%= chapter.title %>}
+<%= chapter.content %>
+<% }); %>
+<% } %>
+
+<% if (conclusion !== false) { %>
+\chapter{Conclusion}
+<%= conclusion || 'Conclusion content here.' %>
+<% } %>
+
+<% if (appendix) { %>
+\appendix
+<% appendix.forEach((app, index) => { %>
+\chapter{<%= app.title %>}
+<%= app.content %>
+<% }); %>
+<% } %>
+
+<% if (bibliography !== false) { %>
+\bibliographystyle{<%= bibliographyStyle || 'plain' %>}
+\bibliography{<%= bibliographyFile || 'references' %>}
+<% } %>
+
+\end{document}

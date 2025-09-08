@@ -1,0 +1,80 @@
+---
+to: <%= output || 'presentation.tex' %>
+---
+\documentclass{beamer}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+<% if (mathSupport !== false) { %>
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+<% } %>
+\usepackage{graphicx}
+
+\usetheme{<%= theme || 'Madrid' %>}
+<% if (colorTheme) { %>
+\usecolortheme{<%= colorTheme %>}
+<% } %>
+
+\title{<%= title %>}
+<% if (subtitle) { %>
+\subtitle{<%= subtitle %>}
+<% } %>
+\author{<%= author %>}
+<% if (institute) { %>
+\institute{<%= institute %>}
+<% } %>
+\date{<%= date || '\\today' %>}
+
+\begin{document}
+
+\frame{\titlepage}
+
+<% if (outline !== false) { %>
+\begin{frame}
+\frametitle{Outline}
+\tableofcontents
+\end{frame}
+<% } %>
+
+\section{Introduction}
+\begin{frame}
+\frametitle{Introduction}
+<%= introduction || 'Introduction slide content.' %>
+\end{frame}
+
+\section{Main Content}
+\begin{frame}
+\frametitle{Main Content}
+<%= mainContent || 'Main content slide.' %>
+\end{frame}
+
+<% if (sections && sections.length > 0) { %>
+<% sections.forEach(section => { %>
+\section{<%= section.title %>}
+\begin{frame}
+\frametitle{<%= section.title %>}
+<%= section.content %>
+\end{frame}
+<% }); %>
+<% } %>
+
+<% if (conclusion !== false) { %>
+\section{Conclusion}
+\begin{frame}
+\frametitle{Conclusion}
+<%= conclusion || 'Conclusion slide content.' %>
+\end{frame}
+<% } %>
+
+<% if (questions !== false) { %>
+\begin{frame}
+\frametitle{Questions?}
+\centering
+\Large Thank you for your attention!\\
+\vspace{1cm}
+Questions?
+\end{frame}
+<% } %>
+
+\end{document}

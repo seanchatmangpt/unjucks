@@ -1,0 +1,249 @@
+---
+to: {{ motionType | lower | replace(' ', '-') }}-motion.tex
+inject: false
+skipIf: exists
+variables:
+  - motionType: string
+  - courtName: string
+  - caseNumber: string
+  - plaintiff: string
+  - defendant: string
+  - attorney: object
+  - jurisdiction: string
+  - hearingDate: string
+  - reliefSought: string
+  - isEmergency: boolean
+  - supportingDeclarations: array
+---
+% Legal Motion LaTeX Template
+% Generated with Unjucks
+\documentclass[12pt,letterpaper]{article}
+
+% Required packages for legal motions
+\usepackage[margin=1in]{geometry}
+\usepackage{setspace}
+\usepackage{fancyhdr}
+\usepackage{titlesec}
+\usepackage{enumitem}
+\usepackage{array}
+\usepackage{tabularx}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{ifthen}
+\usepackage{xcolor}
+\usepackage{hyperref}
+
+% Motion formatting
+\doublespacing
+\setlength{\parindent}{0.5in}
+\setlength{\parskip}{6pt}
+
+% Header and footer setup
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{{ motionType | title }}
+\fancyhead[R]{Case No. {{ caseNumber }}
+\fancyfoot[C]{\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\footrulewidth}{0pt}
+
+% Section formatting for motions
+\titleformat{\section}[block]{\normalfont\large\bfseries\centering}{}{0em}{}
+\titleformat{\subsection}[block]{\normalfont\normalsize\bfseries}{}{0em}{}
+\titleformat{\subsubsection}[runin]{\normalfont\normalsize\bfseries}{}{0em}{}[.]
+
+% Custom commands for motion formatting
+\newcommand{\party}[1]{\textsc{#1}}
+\newcommand{\case}[1]{\textit{#1}}
+\newcommand{\statute}[1]{\textsc{#1}}
+\newcommand{\emphasis}[1]{\textbf{#1}}
+\newcommand{\motionrelief}[1]{\textbf{#1}}
+
+% Emergency motion formatting
+{% if isEmergency %}
+\newcommand{\emergency}{\textcolor{red}{\textbf{EMERGENCY MOTION}}
+\newcommand{\urgentnotice}{\textcolor{red}{\textbf{URGENT - EXPEDITED CONSIDERATION REQUESTED}}
+{% else %}
+\newcommand{\emergency}{}
+\newcommand{\urgentnotice}{}
+{% endif %}
+
+% Bluebook citation support
+\newcommand{\casecite}[4]{\textit{#1}, #2 #3 (#4)}
+\newcommand{\statutecite}[2]{#1 \S\ #2}
+\newcommand{\rulecite}[2]{#1 #2}
+
+% Court-specific formatting
+{% if jurisdiction == 'federal' %}
+\newcommand{\courtformat}[1]{\textsc{#1}}
+{% elif jurisdiction == 'california' %}
+\newcommand{\courtformat}[1]{\textbf{#1}}
+{% else %}
+\newcommand{\courtformat}[1]{#1}
+{% endif %}
+
+\begin{document}
+
+% Caption
+\begin{center}
+\courtformat{{ courtName }}
+
+\vspace{0.25in}
+
+\begin{tabular}{l}
+{{ plaintiff }}, \\
+\hspace{2in} Plaintiff, \\
+\\
+v. \hspace{3in} Case No. {{ caseNumber }} \\
+\\
+{{ defendant }}, \\
+\hspace{2in} Defendant. \\
+\end{tabular}
+
+\vspace{0.5in}
+
+\emergency
+
+{\Large\textbf{{ motionType | title }}}
+
+\urgentnotice
+
+{% if hearingDate %}
+\vspace{0.25in}
+\textbf{Hearing Date:} {{ hearingDate }}\\
+\textbf{Time:} {{ hearingTime | default('To be determined') }}\\
+\textbf{Department:} {{ department | default('To be assigned') }}
+{% endif %}
+
+\end{center}
+
+\vspace{0.5in}
+
+TO THE HONORABLE COURT:
+
+{% if isEmergency %}
+\section{EMERGENCY RELIEF REQUESTED}
+
+This is an emergency motion seeking immediate relief. The exigent circumstances requiring emergency consideration are as follows: {{ emergencyCircumstances | default('Immediate and irreparable harm will result without prompt judicial intervention.') }}
+
+{% endif %}
+
+\section{NOTICE OF MOTION AND MOTION}
+
+TO ALL PARTIES AND THEIR ATTORNEYS OF RECORD:
+
+PLEASE TAKE NOTICE that on {{ hearingDate | default('[DATE]') }}, at {{ hearingTime | default('8:30 a.m.') }}, or as soon thereafter as the matter may be heard, in Department {{ department | default('[DEPT]') }} of the above-entitled Court, located at {{ courtAddress | default('[COURT ADDRESS]') }}, {{ attorney.represents | default('Plaintiff') }} will and hereby does move this Court for an order:
+
+\begin{enumerate}
+\item {{ reliefSought }};
+{% if additionalRelief %}
+{% for relief in additionalRelief %}
+\item {{ relief }};
+{% endfor %}
+{% endif %}
+\item For such other and further relief as this Court deems just and proper.
+\end{enumerate}
+
+This motion is made on the grounds that {{ motionGrounds | default('the facts and law support the relief requested') }}.
+
+This motion is based on this Notice of Motion and Motion, the attached Memorandum of Points and Authorities, {% if supportingDeclarations %}the Declaration{{ supportingDeclarations | length > 1 and 's' or '' }} of {% for declaration in supportingDeclarations %}{{ declaration.declarant }}{% if not loop.last %}{% if loop.index == supportingDeclarations.length - 1 %}, and {% else %}, {% endif %}{% endif %}{% endfor %}{% endif %}{{ supportingDocuments | default('') }}{% if supportingDocuments %}, {% endif %}and the entire record on file herein.
+
+\section{MEMORANDUM OF POINTS AND AUTHORITIES}
+
+\subsection{Introduction}
+
+{{ introduction | default('This motion seeks relief that is both warranted by the law and supported by the evidence.') }}
+
+\subsection{Statement of Facts}
+
+{{ statementOfFacts | default('The relevant facts are as follows:') }}
+
+\subsection{Legal Standard}
+
+{{ legalStandard | default('The applicable legal standard for this motion is established by statute and case law.') }}
+
+{% if motionType == 'Summary Judgment' %}
+\subsubsection{Summary Judgment Standard}
+
+A motion for summary judgment shall be granted if it appears from the pleadings, depositions, answers to interrogatories, and admissions on file, together with the affidavits, if any, that there is no genuine issue as to any material fact and that the moving party is entitled to judgment as a matter of law. {{ casecite('Celotex Corp. v. Catrett', '477', 'U.S. 317, 322', '1986') }}.
+
+{% elif motionType == 'Dismiss' %}
+\subsubsection{Motion to Dismiss Standard}
+
+To survive a motion to dismiss for failure to state a claim upon which relief can be granted, a complaint must contain sufficient factual matter, accepted as true, to state a claim to relief that is plausible on its face. {{ casecite('Ashcroft v. Iqbal', '556', 'U.S. 662, 678', '2009') }}.
+
+{% elif motionType == 'Preliminary Injunction' %}
+\subsubsection{Preliminary Injunction Standard}
+
+A preliminary injunction may be granted upon a showing that: (1) the plaintiff is likely to succeed on the merits; (2) the plaintiff is likely to suffer irreparable harm in the absence of preliminary relief; (3) the balance of equities tips in the plaintiff's favor; and (4) an injunction is in the public interest. {{ casecite('Winter v. Natural Resources Defense Council', '555', 'U.S. 7, 20', '2008') }}.
+
+{% endif %}
+
+\subsection{Argument}
+
+\subsubsection{{ argumentHeading1 | default('The Motion Should Be Granted Because the Law and Facts Support the Relief Requested') }}
+
+{{ argument1 | default('The first argument in support of this motion demonstrates that the applicable law requires granting the requested relief.') }}
+
+{% if legalAuthority1 %}
+{{ legalAuthority1 }}
+{% endif %}
+
+\subsubsection{{ argumentHeading2 | default('The Evidence Establishes the Factual Basis for Relief') }}
+
+{{ argument2 | default('The evidence on file clearly establishes the factual predicate for granting this motion.') }}
+
+{% if evidentiarySupport %}
+{{ evidentiarySupport }}
+{% endif %}
+
+{% if argument3 %}
+\subsubsection{{ argumentHeading3 | default('Additional Supporting Argument') }}
+
+{{ argument3 }}
+{% endif %}
+
+{% if opposingArguments %}
+\subsection{Response to Anticipated Opposition}
+
+{{ opposingArguments }}
+{% endif %}
+
+\section{CONCLUSION}
+
+For the foregoing reasons, {{ attorney.represents | default('Plaintiff') }} respectfully requests that this Court grant this motion and order:
+
+\begin{enumerate}
+\item {{ reliefSought }};
+{% if additionalRelief %}
+{% for relief in additionalRelief %}
+\item {{ relief }};
+{% endfor %}
+{% endif %}
+\item Such other and further relief as this Court deems just and proper.
+\end{enumerate}
+
+\vspace{0.5in}
+
+Dated: {{ currentDate | default('\rule{2in}{0.5pt}') }}
+
+\vspace{1in}
+
+\begin{flushleft}
+\rule{3in}{0.5pt}\\
+{{ attorney.name }}\\
+State Bar No. {{ attorney.barNumber }}\\
+{{ attorney.firm }}\\
+{{ attorney.address }}\\
+{{ attorney.city }}, {{ attorney.state }} {{ attorney.zip }}\\
+Telephone: {{ attorney.phone }}\\
+Email: {{ attorney.email }}\\
+\\
+Attorney for {{ attorney.represents | default('Plaintiff') }}
+\end{flushleft}
+
+% Proof of service
+\newpage
+\input{../components/proof-of-service}
+
+\end{document}

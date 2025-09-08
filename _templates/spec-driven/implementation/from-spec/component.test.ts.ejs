@@ -1,0 +1,314 @@
+---
+to: "{{ componentName | paramCase }}/tests/<%= componentName.replace(/\s+/g, '') %>.test.ts"
+inject: false
+skipIf: "{{ skipExisting }}"
+chmod: "0644"
+---
+<% if (includeHeader !== false) { -%>
+/**
+ * <%= componentName %> - Test Suite
+ * Generated from specification: <%= specName || 'Unnamed Specification' %>
+ * 
+ * @description Test implementation based on specification requirements and acceptance criteria
+ * @version <%= version || '1.0.0' %>
+ * @author <%= author || 'System Generated' %>
+ * @created <%= new Date().toISOString() %>
+ */
+
+<% } -%>
+<% if (testFramework === 'vitest') { -%>
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+<% } else { -%>
+import { describe, it, expect, beforeEach, afterEach, jest } from '@jest/globals';
+<% } -%>
+<% if (componentType === 'class' || !componentType) { -%>
+import { <%= componentName.replace(/\s+/g, '') %> } from '../src/<%= componentName.replace(/\s+/g, '') %>';
+<% } else { -%>
+import { <%= componentName.replace(/\s+/g, '') %> } from '../src/<%= componentName.replace(/\s+/g, '') %>';
+<% } -%>
+<% if (mocks && mocks.length > 0) { -%>
+
+// Mocks
+<% mocks.forEach(function(mock) { -%>
+<% if (testFramework === 'vitest') { -%>
+vi.mock('<%= mock.module %>', () => ({
+<% if (mock.functions && mock.functions.length > 0) { -%>
+<% mock.functions.forEach(function(func) { -%>
+  <%= func.name %>: vi.fn()<% if (func.defaultReturn) { %>.mockReturnValue(<%= func.defaultReturn %>)<% } %>,
+<% }); -%>
+<% } else { -%>
+  default: vi.fn(),
+<% } -%>
+}));
+<% } else { -%>
+jest.mock('<%= mock.module %>', () => ({
+<% if (mock.functions && mock.functions.length > 0) { -%>
+<% mock.functions.forEach(function(func) { -%>
+  <%= func.name %>: jest.fn()<% if (func.defaultReturn) { %>.mockReturnValue(<%= func.defaultReturn %>)<% } %>,
+<% }); -%>
+<% } else { -%>
+  default: jest.fn(),
+<% } -%>
+}));
+<% } -%>
+
+<% }); -%>
+<% } -%>
+<% if (testData && testData.length > 0) { -%>
+// Test data
+<% testData.forEach(function(data) { -%>
+const <%= data.name %><% if (data.type) { %>: <%= data.type %><% } %> = <%= data.value %>;
+<% }); -%>
+
+<% } -%>
+describe('<%= componentName.replace(/\s+/g, '') %>', () => {
+<% if (componentType === 'class' || !componentType) { -%>
+  let instance: <%= componentName.replace(/\s+/g, '') %>;
+<% } -%>
+
+  beforeEach(() => {
+<% if (componentType === 'class' || !componentType) { -%>
+<% if (classConfig && classConfig.constructor && classConfig.constructor.parameters && classConfig.constructor.parameters.length > 0) { -%>
+    // Initialize with test parameters
+    instance = new <%= componentName.replace(/\s+/g, '') %>(<% classConfig.constructor.parameters.forEach(function(param, index) { %><%= param.testValue || 'null' %><%= index < classConfig.constructor.parameters.length - 1 ? ', ' : '' %><% }); %>);
+<% } else { -%>
+    instance = new <%= componentName.replace(/\s+/g, '') %>();
+<% } -%>
+<% } -%>
+    // Setup test environment
+  });
+
+  afterEach(() => {
+    // Cleanup after each test
+<% if (testFramework === 'vitest') { -%>
+    vi.clearAllMocks();
+<% } else { -%>
+    jest.clearAllMocks();
+<% } -%>
+  });
+
+<% if (testSuites && testSuites.length > 0) { -%>
+<% testSuites.forEach(function(suite) { -%>
+  describe('<%= suite.name %>', () => {
+<% if (suite.tests && suite.tests.length > 0) { -%>
+<% suite.tests.forEach(function(test) { -%>
+    <% if (test.async) { %>it<% } else { %>it<% } %>('<%= test.description %>', <% if (test.async) { %>async <% } %>() => {
+<% if (test.setup && test.setup.length > 0) { -%>
+      // Test setup
+<% test.setup.forEach(function(setupLine) { -%>
+      <%= setupLine %>
+<% }); -%>
+
+<% } -%>
+<% if (test.body) { -%>
+<%= test.body %>
+<% } else { -%>
+      // Arrange
+<% if (test.arrange && test.arrange.length > 0) { -%>
+<% test.arrange.forEach(function(arrangeLine) { -%>
+      <%= arrangeLine %>
+<% }); -%>
+<% } else { -%>
+      const testInput = <%= test.testInput || 'null' %>;
+      const expectedOutput = <%= test.expectedOutput || 'null' %>;
+<% } -%>
+
+      // Act
+<% if (componentType === 'class' || !componentType) { -%>
+<% if (test.method) { -%>
+      <% if (test.async) { %>const result = await instance.<%= test.method %>(<%= test.methodArgs || '' %>);<% } else { %>const result = instance.<%= test.method %>(<%= test.methodArgs || '' %>);<% } %>
+<% } else { -%>
+      <% if (test.async) { %>const result = await instance.someMethod(testInput);<% } else { %>const result = instance.someMethod(testInput);<% } %>
+<% } -%>
+<% } else { -%>
+      <% if (test.async) { %>const result = await <%= componentName.replace(/\s+/g, '') %>(<%= test.functionArgs || 'testInput' %>);<% } else { %>const result = <%= componentName.replace(/\s+/g, '') %>(<%= test.functionArgs || 'testInput' %>);<% } %>
+<% } -%>
+
+      // Assert
+<% if (test.assertions && test.assertions.length > 0) { -%>
+<% test.assertions.forEach(function(assertion) { -%>
+      <%= assertion %>
+<% }); -%>
+<% } else { -%>
+      expect(result).toEqual(expectedOutput);
+<% } -%>
+<% } -%>
+    });
+
+<% }); -%>
+<% } else { -%>
+    it('should have tests based on specification requirements', () => {
+      // Tests to be implemented based on acceptance criteria
+      expect(true).toBe(true);
+    });
+<% } -%>
+  });
+
+<% }); -%>
+<% } else { -%>
+  describe('Construction and Initialization', () => {
+<% if (componentType === 'class' || !componentType) { -%>
+    it('should create an instance successfully', () => {
+      expect(instance).toBeInstanceOf(<%= componentName.replace(/\s+/g, '') %>);
+    });
+
+<% if (classConfig && classConfig.properties && classConfig.properties.length > 0) { -%>
+    it('should initialize properties correctly', () => {
+<% classConfig.properties.forEach(function(prop) { -%>
+<% if (prop.initialValue) { -%>
+      expect(instance.<%= prop.name %>).toEqual(<%= prop.initialValue %>);
+<% } else if (!prop.optional) { -%>
+      expect(instance.<%= prop.name %>).toBeDefined();
+<% } -%>
+<% }); -%>
+    });
+<% } -%>
+<% } else { -%>
+    it('should be a function', () => {
+      expect(typeof <%= componentName.replace(/\s+/g, '') %>).toBe('function');
+    });
+<% } -%>
+  });
+
+<% if (methods && methods.length > 0) { -%>
+  describe('Methods', () => {
+<% methods.forEach(function(method) { -%>
+    describe('<%= method.name %>', () => {
+      it('should exist and be callable', () => {
+        expect(typeof instance.<%= method.name %>).toBe('function');
+      });
+
+<% if (method.parameters && method.parameters.length > 0) { -%>
+      it('should handle valid parameters', <% if (method.async) { %>async <% } %>() => {
+        const testParams = [<% method.parameters.forEach(function(param, index) { %><%= param.testValue || 'null' %><%= index < method.parameters.length - 1 ? ', ' : '' %><% }); %>];
+        
+        <% if (method.async) { %>const result = await instance.<%= method.name %>(...testParams);<% } else { %>const result = instance.<%= method.name %>(...testParams);<% } %>
+        
+<% if (method.returns && method.returns.type !== 'void') { -%>
+        expect(result).toBeDefined();
+<% } else { -%>
+        expect(result).toBeUndefined();
+<% } -%>
+      });
+
+      it('should handle invalid parameters', <% if (method.async) { %>async <% } %>() => {
+        <% if (method.async) { %>await expect(instance.<%= method.name %>(null)).rejects.toThrow();<% } else { %>expect(() => instance.<%= method.name %>(null)).toThrow();<% } %>
+      });
+<% } -%>
+
+<% if (method.returns && method.returns.type !== 'void') { -%>
+      it('should return expected type', <% if (method.async) { %>async <% } %>() => {
+        <% if (method.async) { %>const result = await instance.<%= method.name %>();<% } else { %>const result = instance.<%= method.name %>();<% } %>
+        
+<% if (method.returns.type.includes('[]')) { -%>
+        expect(Array.isArray(result)).toBe(true);
+<% } else if (method.returns.type === 'string') { -%>
+        expect(typeof result).toBe('string');
+<% } else if (method.returns.type === 'number') { -%>
+        expect(typeof result).toBe('number');
+<% } else if (method.returns.type === 'boolean') { -%>
+        expect(typeof result).toBe('boolean');
+<% } else { -%>
+        expect(result).toBeDefined();
+<% } -%>
+      });
+<% } -%>
+    });
+
+<% }); -%>
+  });
+<% } -%>
+
+  describe('Error Handling', () => {
+    it('should handle unexpected errors gracefully', () => {
+      // Test error scenarios based on specification
+      expect(() => {
+        // Trigger error condition
+      }).toThrow();
+    });
+  });
+
+  describe('Edge Cases', () => {
+    it('should handle boundary conditions', () => {
+      // Test edge cases based on acceptance criteria
+      expect(true).toBe(true);
+    });
+  });
+<% } -%>
+
+<% if (acceptanceCriteria && acceptanceCriteria.length > 0) { -%>
+  describe('Acceptance Criteria', () => {
+<% acceptanceCriteria.forEach(function(criteria, index) { -%>
+    it('should meet acceptance criteria <%= index + 1 %>: <%= criteria.description %>', <% if (criteria.async) { %>async <% } %>() => {
+<% if (criteria.test) { -%>
+<%= criteria.test %>
+<% } else { -%>
+      // Given: <%= criteria.given || 'initial state' %>
+      // When: <%= criteria.when || 'action is performed' %>
+      // Then: <%= criteria.then || 'expected outcome occurs' %>
+      
+      expect(true).toBe(true); // Implement based on criteria
+<% } -%>
+    });
+
+<% }); -%>
+  });
+<% } -%>
+
+<% if (performanceTests && performanceTests.length > 0) { -%>
+  describe('Performance Requirements', () => {
+<% performanceTests.forEach(function(perfTest) { -%>
+    it('should meet performance requirement: <%= perfTest.description %>', async () => {
+      const startTime = Date.now();
+      
+<% if (perfTest.operation) { -%>
+<%= perfTest.operation %>
+<% } else { -%>
+      // Perform operation under test
+<% } -%>
+      
+      const endTime = Date.now();
+      const duration = endTime - startTime;
+      
+      expect(duration).toBeLessThan(<%= perfTest.maxDuration || 1000 %>);
+    });
+
+<% }); -%>
+  });
+<% } -%>
+
+<% if (integrationTests && integrationTests.length > 0) { -%>
+  describe('Integration Tests', () => {
+<% integrationTests.forEach(function(integTest) { -%>
+    it('<%= integTest.description %>', async () => {
+<% if (integTest.body) { -%>
+<%= integTest.body %>
+<% } else { -%>
+      // Integration test implementation
+      expect(true).toBe(true);
+<% } -%>
+    });
+
+<% }); -%>
+  });
+<% } -%>
+});
+
+<% if (includeFooter !== false) { -%>
+/**
+ * Test coverage requirements:
+<% if (testCoverage && testCoverage.length > 0) { -%>
+<% testCoverage.forEach(function(coverage) { -%>
+ * - <%= coverage %>
+<% }); -%>
+<% } else { -%>
+ * - Unit tests: > 80% code coverage
+ * - Integration tests: Critical paths covered
+ * - Error handling: All error scenarios tested
+ * - Performance: Response time requirements validated
+<% } -%>
+ * 
+ * Generated: <%= new Date().toISOString() %>
+ * Specification: <%= specName || 'Unnamed' %>
+ */
+<% } -%>

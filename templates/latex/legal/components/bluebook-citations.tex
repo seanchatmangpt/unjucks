@@ -1,0 +1,143 @@
+% Bluebook Citation Support Component
+% Comprehensive citation macros following Bluebook format
+
+% Case Citations
+\newcommand{\casecite}[4]{\textit{#1}, #2 #3 (#4)}
+\newcommand{\casecitepage}[5]{\textit{#1}, #2 #3, #4 (#5)}
+\newcommand{\caseciteid}[2]{\textit{#1} (#2)}
+\newcommand{\caseparallel}[6]{\textit{#1}, #2 #3, #4 #5 (#6)}
+
+% Statute Citations
+\newcommand{\statutecite}[2]{#1 \S\ #2}
+\newcommand{\statuteciterange}[3]{#1 \S\S\ #2--#3}
+\newcommand{\statutecitepage}[3]{#1 \S\ #2, at #3}
+\newcommand{\usc}[2]{#1 U.S.C. \S\ #2}
+\newcommand{\uscrange}[3]{#1 U.S.C. \S\S\ #2--#3}
+
+% Constitutional Citations
+\newcommand{\constitution}[2]{\textsc{U.S. Const.} #1, \S\ #2}
+\newcommand{\constitutionamend}[1]{\textsc{U.S. Const.} amend. #1}
+\newcommand{\stateconst}[3]{\textsc{#1 Const.} #2, \S\ #3}
+
+% Regulation Citations
+\newcommand{\cfr}[2]{#1 C.F.R. \S\ #2}
+\newcommand{\federalregister}[3]{#1, #2 Fed. Reg. #3}
+
+% Court Rules
+\newcommand{\frcp}[1]{Fed. R. Civ. P. #1}
+\newcommand{\frcrp}[1]{Fed. R. Crim. P. #1}
+\newcommand{\fre}[1]{Fed. R. Evid. #1}
+\newcommand{\frap}[1]{Fed. R. App. P. #1}
+\newcommand{\localrule}[2]{#1 L.R. #2}
+
+% Secondary Authorities
+\newcommand{\treatise}[3]{#1, \textsc{#2} #3}
+\newcommand{\treatisepage}[4]{#1, \textsc{#2} #3, at #4}
+\newcommand{\lawreview}[4]{#1, \textit{#2}, #3 #4}
+\newcommand{\lawreviewpage}[5]{#1, \textit{#2}, #3 #4, #5}
+
+% Restatements
+\newcommand{\restatement}[3]{\textsc{Restatement (#1) of #2} \S\ #3}
+\newcommand{\restatementpage}[4]{\textsc{Restatement (#1) of #2} \S\ #3, at #4}
+
+% Books and Treatises
+\newcommand{\book}[3]{#1, \textsc{#2} #3}
+\newcommand{\bookpage}[4]{#1, \textsc{#2} #3, at #4}
+
+% Administrative Decisions
+\newcommand{\admindecision}[4]{#1, #2 #3 (#4)}
+\newcommand{\sec}[3]{\textit{#1}, Securities Act Release No. #2 (#3)}
+
+% Internet Sources
+\newcommand{\websitecite}[3]{#1, #2, #3}
+\newcommand{\websitecitedate}[4]{#1, #2, #3 (#4)}
+
+% Short Form Citations
+\newcommand{\shortcite}[2]{\textit{#1}, #2}
+\newcommand{\supra}[2]{#1, \textit{supra} note #2}
+\newcommand{\suprapage}[3]{#1, \textit{supra} note #2, at #3}
+
+% Signal Words (formatted according to Bluebook)
+\newcommand{\see}{\textit{See}}
+\newcommand{\seealso}{\textit{See also}}
+\newcommand{\seeeg}{\textit{See, e.g.,}}
+\newcommand{\cf}{\textit{Cf.}}
+\newcommand{\compare}{\textit{Compare}}
+\newcommand{\with}{\textit{with}}
+\newcommand{\but}{\textit{But}}
+\newcommand{\butsee}{\textit{But see}}
+\newcommand{\butcf}{\textit{But cf.}}
+
+% Parenthetical Information
+\newcommand{\holding}[1]{(#1)}
+\newcommand{\explaining}[1]{(explaining #1)}
+\newcommand{\noting}[1]{(noting #1)}
+\newcommand{\emphasis}[1]{(emphasis added)}
+\newcommand{\alteration}[1]{(alteration in original)}
+
+% Pin Citations
+\newcommand{\at}[1]{, at #1}
+\newcommand{\pages}[2]{, at #1--#2}
+
+% Multiple Citations
+\newcommand{\accordsee}{\textit{Accord}}
+\newcommand{\citing}[1]{(citing #1)}
+\newcommand{\altholding}[1]{(holding #1)}
+
+% Id. Citations
+\newcommand{\id}{\textit{Id.}}
+\newcommand{\idat}[1]{\textit{Id.} at #1}
+
+% Ibid Citations (rarely used)
+\newcommand{\ibid}{\textit{Ibid.}}
+
+% String Citations
+\newcommand{\stringcite}[1]{#1}
+\newcommand{\semicolon}{; }
+
+% Date Formatting
+\newcommand{\decided}[3]{#1 #2, #3}
+\newcommand{\filed}[3]{filed #1 #2, #3}
+
+% Court Abbreviations (common ones)
+\newcommand{\scotus}{U.S.}
+\newcommand{\cadc}{D.C. Cir.}
+\newcommand{\ca}[1]{#1th Cir.}
+\newcommand{\ndcal}{N.D. Cal.}
+\newcommand{\sdny}{S.D.N.Y.}
+\newcommand{\edpa}{E.D. Pa.}
+
+% State Court Abbreviations (examples)
+\newcommand{\calsupreme}{Cal.}
+\newcommand{\calapp}[1]{Cal. App. #1d}
+\newcommand{\nysupreme}{N.Y.}
+\newcommand{\nyapp}{N.Y. App. Div.}
+
+% Special Formatting for Legal Documents
+\newcommand{\legalemph}[1]{\textit{#1}}
+\newcommand{\statuteemph}[1]{\textbf{#1}}
+\newcommand{\smallcaps}[1]{\textsc{#1}}
+
+% Quotation Formatting
+\newcommand{\legalquote}[1]{``#1''}
+\newcommand{\legalquotepage}[2]{``#1'' #2}
+
+% Cross-References
+\newcommand{\infra}[1]{\textit{infra} #1}
+\newcommand{\infrapart}[1]{\textit{infra} Part #1}
+\newcommand{\infrapage}[1]{\textit{infra} at #1}
+
+% Electronic Citations
+\newcommand{\westlaw}[1]{#1 WL}
+\newcommand{\lexis}[2]{#1 LEXIS #2}
+
+% Unpublished Opinions
+\newcommand{\unpublished}[4]{#1, No. #2, #3 (#4)}
+\newcommand{\unpublishedpage}[5]{#1, No. #2, #3, at *#4 (#5)}
+
+% ALR Citations
+\newcommand{\alr}[4]{#1, \textit{#2}, #3 A.L.R. #4}
+
+% CLE and Practice Guides
+\newcommand{\cle}[3]{#1, \textsc{#2} #3}
+\newcommand{\practiceguide}[3]{#1, \textsc{#2} #3}

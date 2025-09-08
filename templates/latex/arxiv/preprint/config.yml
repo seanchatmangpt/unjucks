@@ -1,0 +1,208 @@
+name: arXiv Preprint Template
+description: Generate LaTeX preprint documents optimized for arXiv submission
+version: "1.0.0"
+author: Unjucks LaTeX Generator
+category: academic
+
+variables:
+  title:
+    type: string
+    description: Preprint title
+    required: true
+    example: "Advances in Machine Learning Theory"
+    
+  authors:
+    type: array
+    description: Author information array
+    items:
+      type: object
+      properties:
+        name:
+          type: string
+          description: Author name
+        affiliation:
+          type: string
+          description: Author affiliation
+        email:
+          type: string
+          description: Author email
+    example:
+      - name: "Jane Smith"
+        affiliation: "Stanford University"
+        email: "jane@stanford.edu"
+      - name: "John Doe"
+        affiliation: "MIT"
+        email: "john@mit.edu"
+    
+  author:
+    type: string
+    description: Single author (fallback if authors array not provided)
+    required: false
+    example: "Jane Smith"
+    
+  filename:
+    type: string
+    description: Output filename
+    default: "preprint"
+    
+  dest:
+    type: string
+    description: Output directory
+    default: "."
+    
+  subtitle:
+    type: string
+    description: Preprint subtitle
+    required: false
+    
+  documentclass:
+    type: string
+    description: Document class
+    default: "article"
+    enum: ["article", "revtex", "amsart"]
+    
+  abstract:
+    type: string
+    description: Preprint abstract
+    required: false
+    example: "This preprint explores novel approaches..."
+    
+  keywords:
+    type: string
+    description: Keywords
+    required: false
+    example: "machine learning, deep learning, neural networks"
+    
+  subjects:
+    type: string
+    description: arXiv subject classifications
+    required: false
+    example: "cs.AI, stat.ML"
+    
+  msc_codes:
+    type: string
+    description: Mathematics Subject Classification codes
+    required: false
+    
+  pacs_codes:
+    type: string
+    description: Physics and Astronomy Classification codes
+    required: false
+    
+  arxiv_id:
+    type: string
+    description: arXiv identifier
+    required: false
+    example: "2301.12345"
+    
+  bibliography:
+    type: string
+    description: Bibliography system
+    default: "bibtex"
+    enum: ["bibtex", "biblatex"]
+    
+  theorems:
+    type: boolean
+    description: Include theorem environments
+    default: false
+    
+  algorithms:
+    type: boolean
+    description: Include algorithm packages
+    default: false
+    
+  sections:
+    type: array
+    description: Paper sections
+    items:
+      type: object
+      properties:
+        title:
+          type: string
+        label:
+          type: string
+        content:
+          type: string
+    example:
+      - title: "Problem Statement"
+        label: "sec:problem"
+        content: "We address the following problem..."
+        
+  acknowledgments:
+    type: string
+    description: Acknowledgments
+    required: false
+    
+  appendices:
+    type: array
+    description: Appendices
+    items:
+      type: object
+      properties:
+        title:
+          type: string
+        label:
+          type: string
+        content:
+          type: string
+          
+  packages:
+    type: array
+    description: Additional packages
+    items:
+      type: string
+    example: ["cleveref", "booktabs"]
+    
+  custom_commands:
+    type: string
+    description: Custom LaTeX commands
+    required: false
+    
+  include_toc:
+    type: boolean
+    description: Include table of contents
+    default: false
+    
+  introduction:
+    type: string
+    description: Introduction content
+    required: false
+    
+  bibfile:
+    type: string
+    description: Bibliography file
+    default: "references.bib"
+    
+  bibstyle:
+    type: string
+    description: Bibliography style
+    default: "abbrv"
+    
+  date:
+    type: string
+    description: Document date
+    default: "\\today"
+
+templates:
+  - name: preprint.tex.njk
+    description: Main arXiv preprint template with enhanced formatting
+
+examples:
+  cs_preprint:
+    title: "Novel Machine Learning Approach to Computer Vision"
+    authors:
+      - name: "Dr. Sarah Johnson"
+        affiliation: "Carnegie Mellon University"
+        email: "sarah@cmu.edu"
+    subjects: "cs.CV, cs.LG"
+    abstract: "We present a breakthrough method..."
+    theorems: false
+    algorithms: true
+    
+  math_preprint:
+    title: "Advances in Algebraic Topology"
+    author: "Prof. Michael Brown"
+    documentclass: "amsart"
+    msc_codes: "55N15, 18G30"
+    theorems: true
+    algorithms: false

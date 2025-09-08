@@ -1,0 +1,513 @@
+---
+to: "{{ projectName | paramCase }}/TASK_BREAKDOWN.md"
+inject: false
+skipIf: "{{ skipExisting }}"
+chmod: "0644"
+---
+# <%= projectName %> - Task Breakdown Structure
+
+**Generated:** <%= new Date().toISOString() %>  
+**Project Manager:** <%= projectManager || 'System' %>  
+**Sprint:** <%= sprint || 'Sprint 1' %>  
+**Estimation Method:** <%= estimationMethod || 'Story Points' %>
+
+## Project Overview
+
+<%= projectDescription || 'Project description and scope overview.' %>
+
+**Project Scope:**
+<% if (scope && scope.length > 0) { -%>
+<% scope.forEach(function(item) { -%>
+- <%= item %>
+<% }); -%>
+<% } else { -%>
+- Core feature implementation
+- Integration requirements
+- Testing and quality assurance
+- Documentation and deployment
+<% } -%>
+
+## Sprint Goals
+
+<% if (sprintGoals && sprintGoals.length > 0) { -%>
+<% sprintGoals.forEach(function(goal, index) { -%>
+### Goal <%= index + 1 %>: <%= goal.name %>
+
+**Priority:** <%= goal.priority || 'High' %>  
+**Success Criteria:**
+<% if (goal.criteria && goal.criteria.length > 0) { -%>
+<% goal.criteria.forEach(function(criteria) { -%>
+- <%= criteria %>
+<% }); -%>
+<% } else { -%>
+- Feature is fully implemented and tested
+- All acceptance criteria are met
+- Code passes quality gates
+<% } -%>
+
+<% }); -%>
+<% } else { -%>
+### Goal 1: Foundation Setup
+**Priority:** High  
+**Success Criteria:**
+- Development environment is configured
+- CI/CD pipeline is operational
+- Basic project structure is established
+
+### Goal 2: Core Implementation
+**Priority:** High  
+**Success Criteria:**
+- Main features are implemented
+- Unit tests are written and passing
+- Integration points are functional
+<% } -%>
+
+## Epic Breakdown
+
+<% if (epics && epics.length > 0) { -%>
+<% epics.forEach(function(epic, epicIndex) { -%>
+### Epic <%= epicIndex + 1 %>: <%= epic.name %>
+
+**Description:** <%= epic.description || 'Epic description' %>  
+**Business Value:** <%= epic.businessValue || 'High' %>  
+**Effort Estimate:** <%= epic.effort || 'TBD' %> <%= estimationMethod.toLowerCase() %>
+
+#### User Stories
+
+<% if (epic.stories && epic.stories.length > 0) { -%>
+<% epic.stories.forEach(function(story, storyIndex) { -%>
+##### US-<%= (epicIndex + 1).toString().padStart(2, '0') %>-<%= (storyIndex + 1).toString().padStart(2, '0') %>: <%= story.title %>
+
+**As a** <%= story.persona || 'user' %>,  
+**I want** <%= story.want || 'to perform an action' %>,  
+**So that** <%= story.benefit || 'I can achieve my goal' %>.
+
+**Priority:** <%= story.priority || 'Medium' %>  
+**Effort:** <%= story.effort || 'TBD' %> <%= estimationMethod.toLowerCase() %>  
+**Sprint:** <%= story.sprint || 'TBD' %>
+
+**Acceptance Criteria:**
+<% if (story.acceptanceCriteria && story.acceptanceCriteria.length > 0) { -%>
+<% story.acceptanceCriteria.forEach(function(criteria) { -%>
+- [ ] <%= criteria %>
+<% }); -%>
+<% } else { -%>
+- [ ] Given [precondition], when [action], then [expected result]
+- [ ] Error scenarios are handled appropriately
+- [ ] Performance requirements are met
+<% } -%>
+
+**Technical Tasks:**
+<% if (story.tasks && story.tasks.length > 0) { -%>
+<% story.tasks.forEach(function(task) { -%>
+- [ ] <%= task.description %> (Est: <%= task.effort || 'TBD' %> hrs) - <%= task.assignee || 'Unassigned' %>
+<% }); -%>
+<% } else { -%>
+- [ ] Design and implement core logic
+- [ ] Create unit tests
+- [ ] Implement integration tests
+- [ ] Update documentation
+<% } -%>
+
+**Dependencies:**
+<% if (story.dependencies && story.dependencies.length > 0) { -%>
+<% story.dependencies.forEach(function(dep) { -%>
+- <%= dep %>
+<% }); -%>
+<% } else { -%>
+- None identified
+<% } -%>
+
+**Definition of Done:**
+<% if (story.dod && story.dod.length > 0) { -%>
+<% story.dod.forEach(function(criteria) { -%>
+- [ ] <%= criteria %>
+<% }); -%>
+<% } else { -%>
+- [ ] Code is implemented and peer reviewed
+- [ ] Unit tests pass with adequate coverage
+- [ ] Integration tests pass
+- [ ] Documentation is updated
+- [ ] Feature is deployed to staging
+<% } -%>
+
+---
+
+<% }); -%>
+<% } else { -%>
+*User stories to be defined based on requirements*
+<% } -%>
+
+<% }); -%>
+<% } else { -%>
+### Epic 1: Core Development
+
+**Description:** Implement core system functionality  
+**Business Value:** High  
+**Effort Estimate:** 20-30 story points
+
+#### User Stories
+
+##### US-01-01: Basic Setup
+
+**As a** developer,  
+**I want** a properly configured development environment,  
+**So that** I can start implementing features efficiently.
+
+**Priority:** High **Effort:** 5 story points **Sprint:** Sprint 1
+
+**Acceptance Criteria:**
+- [ ] Development environment is set up with all required tools
+- [ ] CI/CD pipeline is configured and operational
+- [ ] Code quality gates are established
+
+**Technical Tasks:**
+- [ ] Set up project structure (2 hrs)
+- [ ] Configure build pipeline (3 hrs)
+- [ ] Set up testing framework (2 hrs)
+- [ ] Create documentation templates (1 hr)
+<% } -%>
+
+## Technical Tasks
+
+### Development Tasks
+
+<% if (developmentTasks && developmentTasks.length > 0) { -%>
+<% developmentTasks.forEach(function(task, index) { -%>
+#### DEV-<%= (index + 1).toString().padStart(3, '0') %>: <%= task.name %>
+
+**Category:** <%= task.category || 'Development' %>  
+**Priority:** <%= task.priority || 'Medium' %>  
+**Effort:** <%= task.effort || 'TBD' %> hours  
+**Assignee:** <%= task.assignee || 'Unassigned' %>  
+**Sprint:** <%= task.sprint || 'TBD' %>
+
+**Description:** <%= task.description || 'Task description' %>
+
+**Subtasks:**
+<% if (task.subtasks && task.subtasks.length > 0) { -%>
+<% task.subtasks.forEach(function(subtask) { -%>
+- [ ] <%= subtask.name %> (Est: <%= subtask.effort || 'TBD' %> hrs)
+<% }); -%>
+<% } else { -%>
+- [ ] Analysis and design
+- [ ] Implementation
+- [ ] Testing
+- [ ] Documentation
+<% } -%>
+
+**Dependencies:**
+<% if (task.dependencies && task.dependencies.length > 0) { -%>
+<% task.dependencies.forEach(function(dep) { -%>
+- <%= dep %>
+<% }); -%>
+<% } else { -%>
+- None
+<% } -%>
+
+**Acceptance Criteria:**
+<% if (task.acceptance && task.acceptance.length > 0) { -%>
+<% task.acceptance.forEach(function(criteria) { -%>
+- [ ] <%= criteria %>
+<% }); -%>
+<% } else { -%>
+- [ ] Implementation meets requirements
+- [ ] Code passes all quality checks
+- [ ] Tests are written and passing
+<% } -%>
+
+---
+
+<% }); -%>
+<% } else { -%>
+*Development tasks will be derived from user stories and technical requirements*
+<% } -%>
+
+### Infrastructure Tasks
+
+<% if (infrastructureTasks && infrastructureTasks.length > 0) { -%>
+<% infrastructureTasks.forEach(function(task, index) { -%>
+#### INFRA-<%= (index + 1).toString().padStart(3, '0') %>: <%= task.name %>
+
+**Priority:** <%= task.priority || 'Medium' %>  
+**Effort:** <%= task.effort || 'TBD' %> hours  
+**Assignee:** <%= task.assignee || 'Unassigned' %>
+
+**Description:** <%= task.description || 'Infrastructure task description' %>
+
+<% }); -%>
+<% } else { -%>
+#### INFRA-001: Environment Setup
+
+**Priority:** High **Effort:** 8 hours **Assignee:** DevOps Engineer
+
+**Description:** Set up development, staging, and production environments
+
+#### INFRA-002: CI/CD Pipeline
+
+**Priority:** High **Effort:** 6 hours **Assignee:** DevOps Engineer
+
+**Description:** Configure automated build, test, and deployment pipeline
+
+#### INFRA-003: Monitoring Setup
+
+**Priority:** Medium **Effort:** 4 hours **Assignee:** DevOps Engineer
+
+**Description:** Implement application and infrastructure monitoring
+<% } -%>
+
+## Testing Strategy
+
+### Test Categories
+
+<% if (testingTasks && testingTasks.length > 0) { -%>
+<% testingTasks.forEach(function(testCategory) { -%>
+#### <%= testCategory.name %>
+
+**Responsibility:** <%= testCategory.owner || 'QA Team' %>  
+**Coverage Target:** <%= testCategory.coverage || '80%' %>
+
+<% if (testCategory.tasks && testCategory.tasks.length > 0) { -%>
+**Tasks:**
+<% testCategory.tasks.forEach(function(task) { -%>
+- [ ] <%= task.name %> (Est: <%= task.effort || 'TBD' %> hrs) - <%= task.assignee || 'Unassigned' %>
+<% }); -%>
+<% } -%>
+
+<% }); -%>
+<% } else { -%>
+#### Unit Testing
+
+**Responsibility:** Development Team **Coverage Target:** 80%
+
+**Tasks:**
+- [ ] Set up testing framework (2 hrs)
+- [ ] Write unit tests for core components (8 hrs)
+- [ ] Mock external dependencies (3 hrs)
+- [ ] Achieve coverage targets (4 hrs)
+
+#### Integration Testing
+
+**Responsibility:** QA Team **Coverage Target:** Critical paths
+
+**Tasks:**
+- [ ] Design integration test scenarios (4 hrs)
+- [ ] Implement API contract tests (6 hrs)
+- [ ] Database integration tests (4 hrs)
+- [ ] External service mocking (3 hrs)
+
+#### End-to-End Testing
+
+**Responsibility:** QA Team **Coverage Target:** Main user journeys
+
+**Tasks:**
+- [ ] Identify critical user paths (2 hrs)
+- [ ] Implement E2E test automation (10 hrs)
+- [ ] Set up test data management (3 hrs)
+- [ ] Configure CI integration (2 hrs)
+<% } -%>
+
+## Risk Management
+
+### Identified Risks
+
+<% if (risks && risks.length > 0) { -%>
+<% risks.forEach(function(risk, index) { -%>
+#### RISK-<%= (index + 1).toString().padStart(2, '0') %>: <%= risk.name %>
+
+**Probability:** <%= risk.probability || 'Medium' %>  
+**Impact:** <%= risk.impact || 'Medium' %>  
+**Owner:** <%= risk.owner || 'Project Manager' %>
+
+**Description:** <%= risk.description || 'Risk description' %>
+
+**Mitigation Actions:**
+<% if (risk.mitigation && risk.mitigation.length > 0) { -%>
+<% risk.mitigation.forEach(function(action) { -%>
+- [ ] <%= action.task %> (Due: <%= action.dueDate || 'TBD' %>) - <%= action.assignee || 'Unassigned' %>
+<% }); -%>
+<% } else { -%>
+- [ ] Define mitigation strategy
+- [ ] Assign responsibility
+- [ ] Monitor and review regularly
+<% } -%>
+
+---
+
+<% }); -%>
+<% } else { -%>
+#### RISK-01: Technical Complexity
+
+**Probability:** Medium **Impact:** High **Owner:** Tech Lead
+
+**Description:** Complex integrations may cause delays
+
+**Mitigation Actions:**
+- [ ] Conduct proof of concept early (Due: Week 2)
+- [ ] Allocate buffer time for integration challenges
+- [ ] Have backup approaches ready
+
+#### RISK-02: Resource Availability
+
+**Probability:** Low **Impact:** High **Owner:** Project Manager
+
+**Description:** Key team members may become unavailable
+
+**Mitigation Actions:**
+- [ ] Cross-train team members on critical components
+- [ ] Document all decisions and approaches
+- [ ] Maintain flexible task assignments
+<% } -%>
+
+## Sprint Planning
+
+<% if (sprints && sprints.length > 0) { -%>
+<% sprints.forEach(function(sprint, index) { -%>
+### <%= sprint.name || 'Sprint ' + (index + 1) %>
+
+**Duration:** <%= sprint.duration || '2 weeks' %>  
+**Start Date:** <%= sprint.startDate || 'TBD' %>  
+**Capacity:** <%= sprint.capacity || 'TBD' %> <%= estimationMethod.toLowerCase() %>
+
+**Sprint Goals:**
+<% if (sprint.goals && sprint.goals.length > 0) { -%>
+<% sprint.goals.forEach(function(goal) { -%>
+- <%= goal %>
+<% }); -%>
+<% } else { -%>
+- Complete high-priority user stories
+- Maintain quality standards
+- Address technical debt
+<% } -%>
+
+**Planned Work:**
+<% if (sprint.stories && sprint.stories.length > 0) { -%>
+<% sprint.stories.forEach(function(story) { -%>
+- <%= story.id %>: <%= story.title %> (<%= story.effort %> <%= estimationMethod.toLowerCase() %>)
+<% }); -%>
+<% } else { -%>
+- Stories to be assigned during planning
+<% } -%>
+
+**Definition of Done:**
+<% if (sprint.dod && sprint.dod.length > 0) { -%>
+<% sprint.dod.forEach(function(criteria) { -%>
+- [ ] <%= criteria %>
+<% }); -%>
+<% } else { -%>
+- [ ] All planned stories are completed
+- [ ] Code is reviewed and merged
+- [ ] Tests pass and coverage targets met
+- [ ] Features are deployed to staging
+- [ ] Documentation is updated
+<% } -%>
+
+---
+
+<% }); -%>
+<% } else { -%>
+### Sprint 1
+
+**Duration:** 2 weeks **Capacity:** 40 story points
+
+**Sprint Goals:**
+- Establish project foundation
+- Implement core infrastructure
+- Set up development workflows
+
+**Planned Work:**
+- Foundation and setup stories
+- Initial feature implementation
+- Testing framework setup
+
+### Sprint 2
+
+**Duration:** 2 weeks **Capacity:** 45 story points
+
+**Sprint Goals:**
+- Complete primary features
+- Achieve test coverage targets
+- Begin integration work
+
+**Planned Work:**
+- Core feature development
+- API implementation
+- Unit test completion
+<% } -%>
+
+## Effort Summary
+
+<% if (effortSummary) { -%>
+### Total Estimates
+
+- **Development:** <%= effortSummary.development || 'TBD' %> hours
+- **Testing:** <%= effortSummary.testing || 'TBD' %> hours
+- **Infrastructure:** <%= effortSummary.infrastructure || 'TBD' %> hours
+- **Documentation:** <%= effortSummary.documentation || 'TBD' %> hours
+- **Project Management:** <%= effortSummary.management || 'TBD' %> hours
+
+**Total Project Effort:** <%= effortSummary.total || 'TBD' %> hours
+
+### By Sprint
+
+<% if (effortSummary.bySprint && effortSummary.bySprint.length > 0) { -%>
+<% effortSummary.bySprint.forEach(function(sprint) { -%>
+- **<%= sprint.name %>:** <%= sprint.effort %> <%= estimationMethod.toLowerCase() %>
+<% }); -%>
+<% } -%>
+<% } else { -%>
+*Effort estimates to be refined during sprint planning sessions*
+<% } -%>
+
+## Success Metrics
+
+<% if (successMetrics && successMetrics.length > 0) { -%>
+<% successMetrics.forEach(function(metric) { -%>
+- **<%= metric.name %>:** <%= metric.target %> (Current: <%= metric.current || 'TBD' %>)
+<% }); -%>
+<% } else { -%>
+- **Velocity:** Maintain consistent story point delivery
+- **Quality:** Zero critical bugs in production
+- **Code Coverage:** Maintain > 80% test coverage
+- **Sprint Goal Achievement:** Complete 90% of committed stories
+- **Technical Debt:** Keep debt ratio < 10%
+<% } -%>
+
+## Team Responsibilities
+
+<% if (teamMembers && teamMembers.length > 0) { -%>
+<% teamMembers.forEach(function(member) { -%>
+### <%= member.name %>
+
+**Role:** <%= member.role || 'Team Member' %>  
+**Primary Focus:** <%= member.focus || 'Development' %>  
+**Capacity:** <%= member.capacity || 'TBD' %> hours/sprint
+
+**Responsibilities:**
+<% if (member.responsibilities && member.responsibilities.length > 0) { -%>
+<% member.responsibilities.forEach(function(responsibility) { -%>
+- <%= responsibility %>
+<% }); -%>
+<% } else { -%>
+- Feature development and implementation
+- Code review and quality assurance
+- Testing and bug fixes
+- Documentation updates
+<% } -%>
+
+---
+
+<% }); -%>
+<% } else { -%>
+*Team member assignments and responsibilities to be defined*
+<% } -%>
+
+---
+
+**Document Control:**
+- **Created:** <%= new Date().toISOString() %>
+- **Project Manager:** <%= projectManager || 'Project Manager' %>
+- **Last Updated:** <%= new Date().toISOString() %>
+- **Next Review:** <%= nextReview || 'End of current sprint' %>
+
+*This task breakdown will be updated regularly as the project progresses and requirements evolve.*

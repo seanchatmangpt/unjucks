@@ -1,0 +1,96 @@
+name: Legal Contract Template
+description: Generate professional legal contract documents
+version: "1.0.0"
+author: Unjucks LaTeX Generator
+category: legal
+
+variables:
+  contract_type:
+    type: string
+    description: Type of contract
+    required: true
+    example: "Service Agreement"
+    
+  party_a_name:
+    type: string
+    description: First party name
+    required: true
+    example: "ABC Corporation"
+    
+  party_b_name:
+    type: string
+    description: Second party name
+    required: true
+    example: "XYZ Services LLC"
+    
+  effective_date:
+    type: string
+    description: Contract effective date
+    required: true
+    example: "January 1, 2025"
+    
+  jurisdiction:
+    type: string
+    description: Governing jurisdiction
+    required: true
+    example: "State of California"
+    
+  party_a_address:
+    type: string
+    description: First party address
+    required: false
+    
+  party_b_address:
+    type: string
+    description: Second party address
+    required: false
+    
+  terms:
+    type: array
+    description: Contract terms and conditions
+    items:
+      type: object
+      properties:
+        section:
+          type: string
+          description: Section title
+        content:
+          type: string
+          description: Section content
+    example:
+      - section: "Services"
+        content: "Party B agrees to provide..."
+      - section: "Payment"
+        content: "Party A agrees to pay..."
+        
+  signatures:
+    type: boolean
+    description: Include signature blocks
+    default: true
+    
+  witness_required:
+    type: boolean
+    description: Include witness signature lines
+    default: false
+    
+  notary_required:
+    type: boolean
+    description: Include notary section
+    default: false
+
+templates:
+  - name: contract.tex.njk
+    description: Main legal contract template
+
+examples:
+  service_contract:
+    contract_type: "Service Agreement"
+    party_a_name: "TechCorp Inc."
+    party_b_name: "Consulting Solutions LLC"
+    effective_date: "March 1, 2025"
+    jurisdiction: "State of Delaware"
+    terms:
+      - section: "Scope of Services"
+        content: "Consultant shall provide technical advisory services..."
+      - section: "Compensation"
+        content: "Client agrees to pay $10,000 monthly..."

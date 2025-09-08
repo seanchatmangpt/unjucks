@@ -1,0 +1,321 @@
+---
+apiVersion: "unjucks.dev/v1"
+kind: "ProjectSpecification"
+metadata:
+  name: "{{ projectName | kebabCase }}"
+  description: "{{ description }}"
+  version: "1.0.0"
+  tags: ["healthcare", "api", "fhir", "hipaa", "microservices"]
+  labels:
+    domain: "healthcare"
+    compliance: "hipaa"
+    template: "healthcare-api"
+  annotations:
+    template.unjucks.dev/version: "1.0.0"
+    template.unjucks.dev/author: "Unjucks Healthcare Templates"
+
+# Healthcare API Specification Template
+specification:
+  domain: "healthcare"
+  architecture: "microservices"
+  compliance: ["hipaa", "fhir-r4"]
+  
+  # Healthcare-specific requirements
+  requirements:
+    functional:
+      - id: "patient-management"
+        description: "Complete patient record management with FHIR R4 compliance"
+        priority: "critical"
+        acceptance:
+          - "Create, read, update, delete patient records"
+          - "Validate all data against FHIR R4 schemas" 
+          - "Support patient search by multiple criteria"
+          - "Maintain complete audit trail of all patient data access"
+        
+      - id: "provider-directory"
+        description: "Healthcare provider directory with credential validation"
+        priority: "high"
+        acceptance:
+          - "Manage healthcare provider profiles"
+          - "Validate professional licenses and credentials"
+          - "Support provider search and filtering"
+          - "Integrate with external credentialing systems"
+          
+      - id: "clinical-data"
+        description: "Clinical data management with standardized coding"
+        priority: "high"
+        acceptance:
+          - "Store and retrieve observations, diagnoses, procedures"
+          - "Support LOINC, SNOMED CT, ICD-10 coding systems"
+          - "Validate clinical data integrity"
+          - "Enable clinical decision support rules"
+
+    non-functional:
+      - id: "hipaa-compliance"
+        description: "Full HIPAA compliance for PHI handling"
+        priority: "critical"
+        metrics:
+          "data-encryption": "AES-256 at rest and in transit"
+          "access-control": "Role-based with minimum necessary principle"
+          "audit-logging": "Complete audit trail for all PHI access"
+          "data-retention": "Configurable retention with secure deletion"
+          
+      - id: "performance"
+        description: "Healthcare-grade performance requirements"
+        priority: "high"
+        metrics:
+          "response-time": "< 100ms for patient lookups"
+          "availability": "> 99.9% uptime"
+          "throughput": "> 10,000 requests/minute"
+          "data-consistency": "Strong consistency for clinical data"
+          
+      - id: "interoperability"
+        description: "Healthcare interoperability standards"
+        priority: "high"
+        metrics:
+          "fhir-compliance": "100% FHIR R4 compliance"
+          "hl7-support": "HL7 v2 message processing"
+          "integration-apis": "REST and SOAP API support"
+
+  # Technical architecture for healthcare systems
+  architecture:
+    pattern: "microservices"
+    database: "postgresql"
+    auth: "oauth2-with-smart-on-fhir"
+    api: "rest-fhir"
+    deployment: "kubernetes-hipaa"
+    messaging: "hl7-fhir-messaging"
+    
+    # Healthcare-specific configuration
+    configuration:
+      fhirVersion: "R4"
+      terminologyServer: "external"
+      auditLogging: "comprehensive"
+      dataClassification: "phi"
+      encryptionStandard: "{{ encryptionStandard | default('AES-256') }}"
+      
+  # Healthcare service components
+  components:
+    - name: "patient-service"
+      type: "fhir-service"
+      generator: "_templates/semantic/healthcare-service"
+      variables:
+        serviceName: "patient"
+        fhirResources: ["Patient", "Person", "RelatedPerson"]
+        complianceLevel: "{{ complianceLevel | default('high') }}"
+        auditRetention: "{{ auditRetention | default('7years') }}"
+        database: "{{ database | default('postgresql') }}"
+      dependencies: ["auth-service", "audit-service"]
+      
+    - name: "provider-service"
+      type: "fhir-service" 
+      generator: "_templates/semantic/healthcare-service"
+      variables:
+        serviceName: "provider"
+        fhirResources: ["Practitioner", "PractitionerRole", "Organization"]
+        complianceLevel: "{{ complianceLevel | default('standard') }}"
+        credentialValidation: true
+      dependencies: ["auth-service", "credential-service"]
+      
+    - name: "clinical-service"
+      type: "fhir-service"
+      generator: "_templates/semantic/healthcare-service"
+      variables:
+        serviceName: "clinical"
+        fhirResources: ["Observation", "DiagnosticReport", "Procedure", "Condition"]
+        complianceLevel: "{{ complianceLevel | default('high') }}"
+        terminologyValidation: true
+      dependencies: ["patient-service", "terminology-service"]
+      
+    - name: "auth-service"
+      type: "oauth2-service"
+      generator: "_templates/microservice/oauth2-auth"
+      variables:
+        serviceName: "healthcare-auth"
+        scopes: ["patient/*.read", "patient/*.write", "provider/*.read"]
+        smartOnFhir: true
+        mfa: true
+      
+    - name: "audit-service"
+      type: "audit-service"
+      generator: "_templates/compliance/hipaa-audit"
+      variables:
+        serviceName: "hipaa-audit"
+        retentionPeriod: "{{ auditRetention | default('7years') }}"
+        realTimeMonitoring: true
+        
+    - name: "terminology-service"
+      type: "terminology-service"
+      generator: "_templates/healthcare/terminology"
+      variables:
+        serviceName: "terminology"
+        supportedCodeSystems: ["LOINC", "SNOMED-CT", "ICD-10"]
+        
+    - name: "api-gateway"
+      type: "api-gateway"
+      generator: "_templates/microservice/api-gateway"
+      variables:
+        serviceName: "healthcare-gateway"
+        rateLimiting: true
+        authentication: "oauth2"
+        cors: "healthcare-origins"
+
+# Healthcare-specific generation configuration
+generation:
+  outputDir: "./generated/{{ projectName | kebabCase }}"
+  templatesDir: "_templates"
+  
+  # Phased deployment for healthcare compliance
+  phases:
+    - name: "security-foundation"
+      description: "Security and compliance infrastructure"
+      components: ["auth-service", "audit-service"]
+      
+    - name: "core-services"
+      description: "Core FHIR services"
+      components: ["patient-service", "provider-service", "clinical-service"]
+      dependsOn: ["security-foundation"]
+      
+    - name: "supporting-services" 
+      description: "Supporting healthcare services"
+      components: ["terminology-service", "api-gateway"]
+      dependsOn: ["security-foundation"]
+      
+    - name: "integration-layer"
+      description: "Integration and interoperability"
+      components: ["hl7-adapter", "fhir-facade"]
+      dependsOn: ["core-services", "supporting-services"]
+      
+    - name: "compliance-validation"
+      description: "Final compliance validation and testing"
+      components: ["compliance-tests", "security-scans"]
+      dependsOn: ["integration-layer"]
+
+# AI/MCP validation for healthcare compliance
+validation:
+  enabled: true
+  mcp:
+    - tool: "claude-flow"
+      mode: "healthcare-compliance-validation"
+      rules: ["hipaa-compliance", "fhir-validation", "clinical-safety"]
+      agents: ["healthcare-expert", "compliance-auditor"]
+      
+    - tool: "flow-nexus"
+      mode: "clinical-workflow-analysis"
+      agents: ["clinical-workflow-analyst", "interoperability-specialist"]
+      
+    - tool: "ruv-swarm"
+      mode: "healthcare-architecture-review"
+      agents: ["healthcare-architect", "security-specialist"]
+      
+  # Healthcare-specific validation rules
+  rules:
+    - "fhir-r4-compliance"
+    - "hipaa-safeguards-validation"
+    - "clinical-terminology-validation"
+    - "healthcare-interoperability-check"
+    - "phi-protection-validation"
+
+# Healthcare development lifecycle hooks
+hooks:
+  beforeGeneration:
+    - "validate-fhir-schemas"
+    - "check-hipaa-requirements"
+    - "verify-clinical-terminology"
+    
+  afterGeneration:
+    - "run-fhir-validation-tests"
+    - "perform-security-scans"
+    - "validate-hipaa-compliance"
+    - "test-clinical-workflows"
+    
+  beforePhase:
+    - "validate-phase-prerequisites"
+    - "check-compliance-requirements"
+    
+  afterPhase:
+    - "validate-phase-deliverables"
+    - "run-integration-tests"
+    - "update-compliance-documentation"
+
+# Healthcare template metadata
+template:
+  requiredVariables:
+    - name: "projectName"
+      type: "string"
+      description: "Healthcare project name"
+      validation: "^[a-zA-Z][a-zA-Z0-9-]*$"
+      
+    - name: "complianceLevel" 
+      type: "string"
+      description: "HIPAA compliance level"
+      options: ["basic", "standard", "high", "maximum"]
+      defaultValue: "high"
+      
+    - name: "fhirVersion"
+      type: "string"
+      description: "FHIR specification version"
+      options: ["R4", "R5"]
+      defaultValue: "R4"
+      
+    - name: "encryptionStandard"
+      type: "string"
+      description: "Encryption standard for PHI"
+      options: ["AES-128", "AES-256", "ChaCha20-Poly1305"]
+      defaultValue: "AES-256"
+      
+    - name: "auditRetention"
+      type: "string"
+      description: "Audit log retention period"
+      options: ["1year", "3years", "7years", "permanent"]
+      defaultValue: "7years"
+      
+    - name: "cloudProvider"
+      type: "string"
+      description: "HIPAA-compliant cloud provider"
+      options: ["aws-hipaa", "azure-hipaa", "gcp-hipaa", "on-premises"]
+      defaultValue: "aws-hipaa"
+      
+    - name: "database"
+      type: "string"
+      description: "HIPAA-compliant database"
+      options: ["postgresql", "mysql", "mongodb-enterprise"]
+      defaultValue: "postgresql"
+
+  optionalVariables:
+    - name: "organizationName"
+      type: "string"
+      description: "Healthcare organization name"
+      
+    - name: "contactEmail"
+      type: "string"
+      description: "Technical contact email"
+      validation: "^[\\w\\.-]+@[\\w\\.-]+\\.[a-zA-Z]{2,}$"
+      
+    - name: "enableTelemetry"
+      type: "boolean"
+      description: "Enable healthcare telemetry"
+      defaultValue: true
+      
+    - name: "multiTenancy"
+      type: "boolean"
+      description: "Enable multi-tenant architecture"
+      defaultValue: false
+
+  validation:
+    rules:
+      - name: "fhir-compliance"
+        type: "semantic"
+        description: "Validate FHIR R4 compliance requirements"
+        severity: "error"
+        
+      - name: "hipaa-requirements"
+        type: "compliance"
+        description: "Validate HIPAA compliance configuration"
+        severity: "error"
+        
+      - name: "clinical-safety"
+        type: "safety"
+        description: "Validate clinical safety requirements"
+        severity: "warning"
+---

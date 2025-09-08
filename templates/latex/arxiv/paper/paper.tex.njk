@@ -1,0 +1,162 @@
+---
+to: "{{ dest }}/{{ filename || 'paper' }}.tex"
+---
+{% set documentclass = documentclass || 'article' %}
+{% set bibliography = bibliography || 'bibtex' %}
+{% set packages = packages || [] %}
+{% set theorems = theorems || false %}
+{% set algorithms = algorithms || false %}
+{% set msc_codes = msc_codes || '' %}
+{% set pacs_codes = pacs_codes || '' %}
+{% set keywords = keywords || '' %}
+
+{% if documentclass == 'revtex' %}
+\documentclass[{{ revtex_options || 'aps,prd,10pt' }}]{revtex4-2}
+{% elif documentclass == 'amsart' %}
+\documentclass[{{ ams_options || '11pt' }}]{amsart}
+{% else %}
+\documentclass[{{ article_options || '11pt,a4paper' }}]{article}
+{% endif %}
+
+% Essential packages
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath,amsfonts,amssymb}
+\usepackage{graphicx}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+\usepackage{url}
+
+{% if bibliography == 'biblatex' %}
+\usepackage[backend=biber,style={{ bibstyle || 'alphabetic' }},sorting={{ sorting || 'ynt' }}]{biblatex}
+\addbibresource{{ bibfile || 'references.bib' }}
+{% endif %}
+
+{% if algorithms %}
+\usepackage{algorithm}
+\usepackage{algorithmic}
+{% endif %}
+
+{% if theorems %}
+% Theorem environments
+\usepackage{amsthm}
+\theoremstyle{plain}
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{corollary}[theorem]{Corollary}
+
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{example}[theorem]{Example}
+\newtheorem{remark}[theorem]{Remark}
+
+\theoremstyle{remark}
+\newtheorem*{note}{Note}
+{% endif %}
+
+% Additional packages
+{% for package in packages %}
+\usepackage{{ '{' }}{{ package }}{{ '}' }}
+{% endfor %}
+
+% Custom commands
+{% if custom_commands %}
+{{ custom_commands }}
+{% endif %}
+
+% Document metadata
+\title{{ '{' }}{{ title }}{{ '}' }}
+\author{{ '{' }}{{ author }}{{ '}' }}
+{% if affiliation %}
+\affiliation{{ '{' }}{{ affiliation }}{{ '}' }}
+{% endif %}
+{% if email %}
+\email{{ '{' }}{{ email }}{{ '}' }}
+{% endif %}
+\date{{ '{' }}{{ date || '\\today' }}{{ '}' }}
+
+% Abstract and keywords
+{% if abstract %}
+\begin{abstract}
+{{ abstract }}
+{% if keywords %}
+
+\noindent\textbf{Keywords:} {{ keywords }}
+{% endif %}
+{% if msc_codes %}
+
+\noindent\textbf{MSC2020:} {{ msc_codes }}
+{% endif %}
+{% if pacs_codes %}
+
+\noindent\textbf{PACS:} {{ pacs_codes }}
+{% endif %}
+\end{abstract}
+{% endif %}
+
+\begin{document}
+
+\maketitle
+
+{% if include_toc %}
+\tableofcontents
+{% endif %}
+
+\section{Introduction}
+{% if introduction %}
+{{ introduction }}
+{% else %}
+% TODO: Add your introduction here
+{% endif %}
+
+{% if sections %}
+{% for section in sections %}
+\section{{ '{' }}{{ section.title }}{{ '}' }}
+{% if section.label %}
+\label{{ '{' }}{{ section.label }}{{ '}' }}
+{% endif %}
+
+{{ section.content }}
+
+{% endfor %}
+{% else %}
+\section{Methodology}
+% TODO: Add your methodology here
+
+\section{Results}
+% TODO: Add your results here
+
+\section{Discussion}
+% TODO: Add your discussion here
+
+\section{Conclusion}
+% TODO: Add your conclusion here
+{% endif %}
+
+{% if acknowledgments %}
+\section*{Acknowledgments}
+{{ acknowledgments }}
+{% endif %}
+
+{% if appendices %}
+\appendix
+{% for appendix in appendices %}
+\section{{ '{' }}{{ appendix.title }}{{ '}' }}
+{% if appendix.label %}
+\label{{ '{' }}{{ appendix.label }}{{ '}' }}
+{% endif %}
+
+{{ appendix.content }}
+
+{% endfor %}
+{% endif %}
+
+% Bibliography
+{% if bibliography == 'biblatex' %}
+\printbibliography
+{% else %}
+\bibliographystyle{{ '{' }}{{ bibstyle || 'plain' }}{{ '}' }}
+\bibliography{{ '{' }}{{ bibfile || 'references' }}{{ '}' }}
+{% endif %}
+
+\end{document}

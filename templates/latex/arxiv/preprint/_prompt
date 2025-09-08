@@ -1,0 +1,29 @@
+---
+message: |
+  I'll help you create an arXiv preprint template. Please provide the following information:
+
+  **Required:**
+  - title: Your preprint title
+  - author: Author name(s) or authors array with {name, affiliation, email}
+  
+  **Optional:**
+  - subtitle: Paper subtitle
+  - documentclass: article (default), revtex, or amsart
+  - abstract: Paper abstract
+  - keywords: Keywords for your paper
+  - subjects: arXiv subject classifications (e.g., "cs.AI, stat.ML")
+  - msc_codes: Mathematics Subject Classification codes
+  - pacs_codes: Physics and Astronomy Classification codes
+  - arxiv_id: arXiv identifier (e.g., "2301.12345")
+  - bibliography: bibtex (default) or biblatex
+  - theorems: true/false - Include theorem environments
+  - algorithms: true/false - Include algorithm packages
+  - sections: Array of {title, content} objects
+  - acknowledgments: Acknowledgments text
+  - custom_commands: Additional LaTeX commands
+  
+  **Example usage:**
+  ```bash
+  unjucks generate latex/arxiv/preprint --title "Novel Machine Learning Approach" --authors '[{"name":"Jane Smith","affiliation":"MIT","email":"jane@mit.edu"}]' --subjects "cs.LG, stat.ML" --theorems true
+  ```
+---

@@ -1,0 +1,122 @@
+name: LaTeX Beamer Presentation Template
+description: Generate LaTeX Beamer presentation slides
+version: "1.0.0"
+author: Unjucks LaTeX Generator
+category: presentation
+
+variables:
+  title:
+    type: string
+    description: Presentation title
+    required: true
+    example: "My Presentation"
+    
+  subtitle:
+    type: string
+    description: Presentation subtitle
+    required: false
+    example: "A Brief Overview"
+    
+  author:
+    type: string
+    description: Presenter name(s)
+    required: true
+    example: "John Doe"
+    
+  institute:
+    type: string
+    description: Institution or organization
+    required: false
+    example: "University Name"
+    
+  output:
+    type: string
+    description: Output filename
+    default: "presentation.tex"
+    example: "my-slides.tex"
+    
+  theme:
+    type: string
+    description: Beamer theme
+    default: "Madrid"
+    enum: ["Madrid", "Warsaw", "Berlin", "Copenhagen", "Frankfurt", "Singapore", "CambridgeUS"]
+    
+  colorTheme:
+    type: string
+    description: Beamer color theme
+    required: false
+    enum: ["default", "albatross", "beaver", "beetle", "crane", "dolphin", "dove", "fly", "lily", "orchid", "rose", "seagull", "seahorse", "whale", "wolverine"]
+    
+  mathSupport:
+    type: boolean
+    description: Include math packages
+    default: true
+    
+  outline:
+    type: boolean
+    description: Include outline slide
+    default: true
+    
+  introduction:
+    type: string
+    description: Introduction slide content
+    required: false
+    
+  mainContent:
+    type: string
+    description: Main content slide
+    required: false
+    
+  conclusion:
+    type: string
+    description: Conclusion slide content
+    required: false
+    
+  questions:
+    type: boolean
+    description: Include questions slide at end
+    default: true
+    
+  sections:
+    type: array
+    description: Additional presentation sections
+    items:
+      type: object
+      properties:
+        title:
+          type: string
+          description: Section title
+        content:
+          type: string
+          description: Section content
+    example:
+      - title: "Methodology"
+        content: "Our approach consists of..."
+      - title: "Results"
+        content: "The findings show that..."
+        
+  date:
+    type: string
+    description: Presentation date
+    default: "\\today"
+
+templates:
+  - name: presentation.tex.ejs
+    description: Main Beamer presentation template
+
+examples:
+  conference:
+    title: "Research Findings"
+    subtitle: "Conference Presentation"
+    author: "Dr. Jane Smith"
+    institute: "Research University"
+    theme: "Madrid"
+    colorTheme: "dolphin"
+    
+  lecture:
+    title: "Course Lecture"
+    author: "Prof. John Doe"
+    institute: "Academic Department"
+    theme: "Warsaw"
+    outline: true
+    questions: false

@@ -1,0 +1,82 @@
+% Exhibits Component
+% For attaching exhibits to legal documents
+
+{% if exhibits %}
+\newpage
+\section*{EXHIBITS}
+
+{% for exhibit in exhibits %}
+\subsection*{EXHIBIT {{ exhibit.label | upper }}}
+
+{% if exhibit.title %}
+\begin{center}
+\textbf{{{ exhibit.title }}}
+\end{center}
+\vspace{0.25in}
+{% endif %}
+
+{% if exhibit.description %}
+\textit{{{ exhibit.description }}}
+\vspace{0.25in}
+{% endif %}
+
+{% if exhibit.type == 'image' %}
+\begin{center}
+\includegraphics[width=\textwidth]{{{ exhibit.file }}}
+\end{center}
+
+{% elif exhibit.type == 'table' %}
+\begin{center}
+\begin{tabular}{{{ exhibit.tableSpec | default('|c|c|c|') }}}
+\hline
+{% for row in exhibit.tableData %}
+{% for cell in row %}{{ cell }}{% if not loop.last %} & {% endif %}{% endfor %} \\
+{% if loop.first %}\hline{% endif %}
+{% endfor %}
+\hline
+\end{tabular}
+\end{center}
+
+{% elif exhibit.type == 'text' %}
+{{ exhibit.content }}
+
+{% elif exhibit.type == 'document' %}
+% Include external document
+\input{{{ exhibit.file }}}
+
+{% else %}
+% Default exhibit formatting
+{{ exhibit.content | default('[EXHIBIT CONTENT]') }}
+{% endif %}
+
+{% if not loop.last %}
+\vspace{1in}
+\rule{\textwidth}{0.5pt}
+\vspace{0.5in}
+{% endif %}
+
+{% endfor %}
+{% else %}
+% Template for manual exhibit insertion
+\newpage
+\section*{EXHIBIT A}
+
+\begin{center}
+\textbf{[EXHIBIT TITLE]}
+\end{center}
+
+\vspace{0.25in}
+
+[Insert exhibit content here]
+
+\newpage
+\section*{EXHIBIT B}
+
+\begin{center}
+\textbf{[EXHIBIT TITLE]}
+\end{center}
+
+\vspace{0.25in}
+
+[Insert exhibit content here]
+{% endif %}

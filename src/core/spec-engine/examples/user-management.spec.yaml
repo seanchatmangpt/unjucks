@@ -1,0 +1,296 @@
+# Example specification for User Management System
+name: User Management System
+version: 1.0.0
+description: A comprehensive system for managing users, profiles, and authentication
+metadata:
+  author: Spec Engine
+  category: business
+  priority: high
+  status: approved
+  tags:
+    - user-management
+    - authentication
+    - profiles
+
+entities:
+  - id: user-entity
+    name: User
+    type: model
+    properties:
+      - name: id
+        type: string
+        required: true
+        constraints:
+          - type: unique
+            value: true
+      - name: email
+        type: string
+        required: true
+        constraints:
+          - type: pattern
+            value: "^[^@]+@[^@]+\\.[^@]+$"
+          - type: unique
+            value: true
+      - name: username
+        type: string
+        required: true
+        constraints:
+          - type: length
+            value: { min: 3, max: 50 }
+          - type: unique
+            value: true
+      - name: firstName
+        type: string
+        required: true
+      - name: lastName
+        type: string
+        required: true
+      - name: hashedPassword
+        type: string
+        required: true
+      - name: isActive
+        type: boolean
+        required: true
+        defaultValue: true
+      - name: createdAt
+        type: Date
+        required: true
+      - name: updatedAt
+        type: Date
+        required: true
+    methods:
+      - name: validatePassword
+        parameters:
+          - name: password
+            type: string
+            required: true
+        returnType: boolean
+        visibility: public
+      - name: getFullName
+        parameters: []
+        returnType: string
+        visibility: public
+    annotations:
+      - name: Entity
+        parameters:
+          table: users
+
+  - id: profile-entity
+    name: UserProfile
+    type: model
+    properties:
+      - name: id
+        type: string
+        required: true
+      - name: userId
+        type: string
+        required: true
+      - name: bio
+        type: string
+        required: false
+      - name: avatar
+        type: string
+        required: false
+      - name: dateOfBirth
+        type: Date
+        required: false
+      - name: location
+        type: string
+        required: false
+      - name: website
+        type: string
+        required: false
+      - name: socialLinks
+        type: Record<string, string>
+        required: false
+    annotations:
+      - name: Entity
+        parameters:
+          table: user_profiles
+
+  - id: user-service
+    name: UserService
+    type: service
+    methods:
+      - name: createUser
+        parameters:
+          - name: userData
+            type: CreateUserDto
+            required: true
+        returnType: User
+        visibility: public
+      - name: getUserById
+        parameters:
+          - name: id
+            type: string
+            required: true
+        returnType: User | null
+        visibility: public
+      - name: getUserByEmail
+        parameters:
+          - name: email
+            type: string
+            required: true
+        returnType: User | null
+        visibility: public
+      - name: updateUser
+        parameters:
+          - name: id
+            type: string
+            required: true
+          - name: updateData
+            type: UpdateUserDto
+            required: true
+        returnType: User
+        visibility: public
+      - name: deleteUser
+        parameters:
+          - name: id
+            type: string
+            required: true
+        returnType: boolean
+        visibility: public
+      - name: authenticateUser
+        parameters:
+          - name: email
+            type: string
+            required: true
+          - name: password
+            type: string
+            required: true
+        returnType: User | null
+        visibility: public
+
+  - id: user-controller
+    name: UserController
+    type: controller
+    methods:
+      - name: register
+        parameters:
+          - name: body
+            type: CreateUserDto
+            required: true
+        returnType: ApiResponse<User>
+        visibility: public
+        annotations:
+          - name: Post
+            parameters:
+              path: "/register"
+      - name: login
+        parameters:
+          - name: body
+            type: LoginDto
+            required: true
+        returnType: ApiResponse<AuthResult>
+        visibility: public
+        annotations:
+          - name: Post
+            parameters:
+              path: "/login"
+      - name: getProfile
+        parameters:
+          - name: userId
+            type: string
+            required: true
+        returnType: ApiResponse<User>
+        visibility: public
+        annotations:
+          - name: Get
+            parameters:
+              path: "/profile/:userId"
+
+relationships:
+  - id: user-profile-rel
+    type: hasOne
+    source:
+      entityId: user-entity
+    target:
+      entityId: profile-entity
+    cardinality: "1:1"
+    annotations:
+      - name: ForeignKey
+        parameters:
+          column: userId
+
+constraints:
+  - id: email-unique
+    type: validation
+    description: Email addresses must be unique across all users
+    entities:
+      - user-entity
+    expression: "UNIQUE(email)"
+    severity: error
+
+  - id: username-format
+    type: validation
+    description: Username must contain only alphanumeric characters and underscores
+    entities:
+      - user-entity
+    expression: "username MATCHES '^[a-zA-Z0-9_]+$'"
+    severity: error
+
+  - id: password-strength
+    type: business
+    description: Passwords must be at least 8 characters with mixed case and numbers
+    entities:
+      - user-entity
+    expression: "LENGTH(password) >= 8 AND password MATCHES '.*[A-Z].*' AND password MATCHES '.*[a-z].*' AND password MATCHES '.*[0-9].*'"
+    severity: error
+
+context:
+  domain: user-management
+  technology:
+    language: typescript
+    framework: nestjs
+    database: postgresql
+    runtime: nodejs
+    dependencies:
+      - "@nestjs/common"
+      - "@nestjs/typeorm"
+      - "typeorm"
+      - "bcryptjs"
+      - "class-validator"
+      - "class-transformer"
+  patterns:
+    - name: Repository Pattern
+      type: repository
+      description: Data access layer abstraction
+      applications:
+        - user-entity
+        - profile-entity
+    - name: Service Layer
+      type: other
+      description: Business logic encapsulation
+      applications:
+        - user-service
+    - name: Controller Layer
+      type: mvc
+      description: HTTP request handling
+      applications:
+        - user-controller
+  requirements:
+    - id: req-user-registration
+      type: functional
+      description: Users must be able to register with email and password
+      priority: must
+      status: pending
+    - id: req-user-authentication
+      type: functional
+      description: Users must be able to authenticate with email and password
+      priority: must
+      status: pending
+    - id: req-profile-management
+      type: functional
+      description: Users must be able to manage their profiles
+      priority: should
+      status: pending
+    - id: req-password-security
+      type: security
+      description: Passwords must be securely hashed and validated
+      priority: must
+      status: pending
+    - id: req-performance
+      type: non-functional
+      description: System must handle 1000 concurrent users
+      priority: should
+      status: pending

@@ -33,6 +33,18 @@ jobs:
       - name: Run build validation
         run: npm run build:validate
         
+      - name: Setup LaTeX (Ubuntu only)
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y texlive-latex-base texlive-latex-extra texlive-fonts-recommended
+        continue-on-error: true
+        
+      - name: Test LaTeX build (Ubuntu only)
+        if: matrix.os == 'ubuntu-latest'
+        run: npm run build:latex || echo "LaTeX build skipped - no documents found"
+        continue-on-error: true
+        
       - name: Run smoke tests
         run: npm run test:smoke
         

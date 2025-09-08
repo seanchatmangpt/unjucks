@@ -1,6 +1,6 @@
 {
   "name": "@seanchatmangpt/unjucks",
-  "version": "2025.9.08.1",
+  "version": "2025.9.8",
   "type": "module",
   "description": "Nunjucks + Hygen style scaffolding with RDF/Turtle support",
   "main": "./src/cli/index.js",
@@ -25,11 +25,14 @@
   ],
   "packageManager": "pnpm@9.12.0",
   "scripts": {
-    "build": "chmod +x bin/unjucks.cjs && chmod +x src/cli/index.js && node scripts/build-system.js",
+    "build": "chmod +x bin/unjucks.cjs && chmod +x src/cli/index.js && node scripts/build-system.js && (npm run build:latex || echo \"LaTeX build skipped\")",
     "build:validate": "node scripts/build-system.js",
     "build:enhanced": "node scripts/enhanced-build-system.js",
     "build:prepare": "chmod +x bin/unjucks.cjs && chmod +x src/cli/index.js",
     "build:post": "echo 'Build post-processing complete'",
+    "build:latex": "node -e \"import('./src/lib/latex/build-integration.js').then(m => { const i = new m.LaTeXBuildIntegration(); i.initialize().then(() => i.buildAllDocuments()); })\"",
+    "watch:latex": "node -e \"import('./src/lib/latex/build-integration.js').then(m => { const i = new m.LaTeXBuildIntegration(); i.initialize().then(() => i.startWatchMode()); })\"",
+    "clean:latex": "rm -rf dist/latex temp/latex",
     "test": "vitest run --config vitest.minimal.config.js",
     "test:watch": "vitest --config vitest.minimal.config.js",
     "test:smoke": "node scripts/smoke-tests.js",
@@ -81,7 +84,7 @@
   "dependencies": {
     "@faker-js/faker": "^9.9.0",
     "axios": "^1.11.0",
-    "bcrypt": "^5.1.1",
+    "bcrypt": "^6.0.0",
     "chalk": "^4.1.2",
     "chokidar": "^3.6.0",
     "citty": "^0.1.6",
@@ -89,6 +92,7 @@
     "confbox": "^0.2.2",
     "consola": "^3.4.2",
     "dayjs": "^1.11.18",
+    "ejs": "^3.1.10",
     "fs-extra": "^11.3.1",
     "glob": "^10.4.5",
     "gray-matter": "^4.0.3",
@@ -96,18 +100,19 @@
     "n3": "^1.26.0",
     "nunjucks": "^3.2.4",
     "ora": "^8.2.0",
+    "uuid": "^12.0.0",
     "yaml": "^2.8.1",
     "zod": "^3.25.76"
   },
   "devDependencies": {
     "@rollup/rollup-darwin-arm64": "^4.50.1",
-    "sparqljs": "^3.7.3",
-    "vitest": "^3.2.4",
-    "eslint": "^8.57.0",
-    "@typescript-eslint/eslint-plugin": "^6.21.0",
-    "@typescript-eslint/parser": "^6.21.0",
-    "prettier": "^3.2.5",
+    "@typescript-eslint/eslint-plugin": "^8.42.0",
+    "@typescript-eslint/parser": "^3.10.1",
+    "eslint": "^0.6.2",
     "husky": "^9.0.11",
-    "lint-staged": "^15.2.2"
+    "lint-staged": "^5.0.0",
+    "prettier": "^3.2.5",
+    "sparqljs": "^3.7.3",
+    "vitest": "^0.12.6"
   }
 }

@@ -200,6 +200,7 @@ Unjucks extends Nunjucks with enterprise-grade features and comprehensive filter
 - **📅 Date/Time with Day.js (20+)**: `formatDate`, `dateAdd`, `dateSub`, `fromNow`, `dateStart`, `dateEnd`, `timezone`, `unix`
 - **🎲 Faker.js Data Generation (15+)**: `fakeName`, `fakeEmail`, `fakeUuid`, `fakePhone`, `fakeCompany`, `fakeDate`, `fakeSchema`
 - **🌐 Semantic RDF/Turtle (20+)**: `rdfResource`, `rdfProperty`, `rdfClass`, `rdfDatatype`, `sparqlVar`, `schemaOrg`, `dublinCore`
+- **📄 LaTeX Document Filters (15+)**: `texEscape`, `mathMode`, `citation`, `bluebook`, `arXivMeta`, `latexTable`, `latexFigure`, `usePackage`
 - **🔧 Utility Filters (10+)**: `dump`, `join`, `default`, `truncate`, `wrap`, `pad`, `repeat`, `reverse`
 
 #### **Semantic RDF Filters**
@@ -530,6 +531,7 @@ Unjucks v2025 includes extensive documentation for enterprise adoption:
 - [**Template Syntax**](docs/v1/templates/nunjucks-syntax.md) - Advanced templating guide
 - [**Template Filters (65+)**](docs/filters/README.md) - Comprehensive filter documentation
 - [**Filter Reference**](docs/filters/filters-reference.md) - Complete catalog of all filters
+- [**LaTeX Documentation**](docs/latex/) - Complete LaTeX document generation guide
 - [**Configuration**](docs/configuration.md) - Enterprise configuration management
 
 ### 🏢 **Enterprise Guides**
@@ -549,6 +551,7 @@ Unjucks v2025 includes extensive documentation for enterprise adoption:
 - [**Enterprise Examples**](examples/03-enterprise/) - Fortune 500 templates
 - [**Production Examples**](examples/production/) - High-scale deployment patterns
 - [**MCP Integration Examples**](examples/semantic-mcp/) - AI-driven generation
+- [**LaTeX Document Examples**](docs/latex/) - Academic papers, legal documents, scientific publications
 
 ## 🔄 Migration from Hygen
 
