@@ -1,0 +1,1307 @@
+<!DOCTYPE HTML>
+<html lang="en" class="navy" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Deployment Overview - Unjucks: Modern Code Generation in 2026</title>
+        <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+        <meta name="description" content="A comprehensive guide to modern code generation using the Unjucks framework, demonstrating declarative development patterns, AI integration, and advanced template design for productive software development.">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#0066cc"/>
+
+        <!-- Open Graph -->
+        <meta property="og:title" content="Deployment Overview - Unjucks: Modern Code Generation in 2026">
+        <meta property="og:description" content="A comprehensive guide to modern code generation using the Unjucks framework, demonstrating declarative development patterns, AI integration, and advanced template design for productive software development.">
+        <meta property="og:type" content="website">
+        <meta property="og:url" content="">
+        <meta property="og:image" content="unjucks-og.png">
+        
+        <!-- Twitter Card -->
+        <meta name="twitter:card" content="summary_large_image">
+        <meta name="twitter:title" content="Deployment Overview - Unjucks: Modern Code Generation in 2026">
+        <meta name="twitter:description" content="A comprehensive guide to modern code generation using the Unjucks framework, demonstrating declarative development patterns, AI integration, and advanced template design for productive software development.">
+        <meta name="twitter:image" content="unjucks-og.png">
+
+
+        <!-- Custom Unjucks Favicon -->
+        <link rel="icon" href="../../favicon.png">
+        <link rel="shortcut icon" href="../../favicon.png">
+
+        <!-- Fonts -->
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+
+        <link rel="stylesheet" href="../../css/variables.css">
+        <link rel="stylesheet" href="../../css/general.css">
+        <link rel="stylesheet" href="../../css/chrome.css">
+        <link rel="stylesheet" href="../../css/print.css" media="print">
+
+        <!-- Custom CSS -->
+
+        <!-- Custom head content -->
+
+        <!-- JSON-LD Structured Data -->
+        <script type="application/ld+json">
+        {
+            "@context": "https://schema.org",
+            "@type": "TechArticle",
+            "headline": "Deployment Overview - Unjucks: Modern Code Generation in 2026",
+            "description": "A comprehensive guide to modern code generation using the Unjucks framework, demonstrating declarative development patterns, AI integration, and advanced template design for productive software development.",
+            "author": {
+                "@type": "Organization",
+                "name": "Unjucks Development Team"
+            },
+            "publisher": {
+                "@type": "Organization",
+                "name": "Unjucks",
+                "logo": {
+                    "@type": "ImageObject",
+                    "url": "logo.png"
+                }
+            },
+            "url": "",
+            "mainEntityOfPage": "",
+            "datePublished": "",
+            "dateModified": "",
+            "inLanguage": "en",
+            "about": [
+                "Code Generation",
+                "Template Engine", 
+                "CLI Tools",
+                "Semantic Web",
+                "RDF",
+                "Software Development"
+            ]
+        }
+        </script>
+    </head>
+    <body>
+        <!-- Provide site root to javascript -->
+        <script type="text/javascript">
+            var path_to_root = "../../";
+            var default_theme = "navy";
+        </script>
+
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script type="text/javascript">
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme && theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar && sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script type="text/javascript">
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            var html = document.querySelector('html');
+            html.classList.remove('no-js')
+            html.classList.remove('light')
+            html.classList.remove('rust')
+            html.classList.remove('coal')
+            html.classList.remove('navy')
+            html.classList.remove('ayu')
+            html.classList.add(theme);
+            html.classList.add('js');
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script type="text/javascript">
+            var body = document.querySelector('body');
+            var sidebar = null;
+            var sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+            }
+            sidebar_toggle.checked = sidebar === 'visible';
+            body.classList.remove('sidebar-visible');
+            body.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <div class="sidebar-scrollbox">
+                <!-- Unjucks Logo -->
+                <div class="unjucks-logo" style="padding: 1rem; text-align: center; border-bottom: 1px solid #e1e5e9;">
+                    <h3 style="margin: 0; color: #0066cc; font-weight: 700;">🚀 Unjucks</h3>
+                    <p style="margin: 0.5rem 0 0 0; font-size: 0.8rem; color: #666;">Template Generation Platform</p>
+                </div>
+
+                <!-- TOC will be generated automatically by mdbook -->
+            </div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
+        </nav>
+
+        <!-- Page wrapper -->
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label for="sidebar-toggle-anchor" class="left" id="sidebar-toggle" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button left" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy (default)</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button left" type="button" title="Toggle Searchbar" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Unjucks: Modern Code Generation in 2026</h1>
+
+                    <div class="right-buttons">
+                        <a href="../../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+                        <a href="https://github.com/ruvnet/unjucks" title="Git repository" aria-label="Git repository">
+                            <i id="git-repository-button" class="fa fa-github"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script type="text/javascript">
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <!-- Breadcrumb Navigation -->
+                        <div class="breadcrumb-nav" style="margin-bottom: 1.5rem; font-size: 0.9rem; color: #666;">
+                            <a href="../../index.html">🏠 Home</a>
+                            <span> › </span>
+                            <span>Deployment Overview</span>
+                        </div>
+
+                        <h1 id="enterprise-deployment-architecture"><a class="header" href="#enterprise-deployment-architecture">Enterprise Deployment Architecture</a></h1>
+<h2 id="overview"><a class="header" href="#overview">Overview</a></h2>
+<p>Unjucks provides enterprise-grade deployment capabilities designed for Fortune 500 organizations requiring scalability, security, and high availability. This chapter covers comprehensive deployment patterns, multi-tenant architectures, and cloud-native strategies.</p>
+<h2 id="multi-tenant-architecture-patterns"><a class="header" href="#multi-tenant-architecture-patterns">Multi-Tenant Architecture Patterns</a></h2>
+<h3 id="tenant-isolation-strategies"><a class="header" href="#tenant-isolation-strategies">Tenant Isolation Strategies</a></h3>
+<h4 id="database-per-tenant-highest-isolation"><a class="header" href="#database-per-tenant-highest-isolation">Database Per Tenant (Highest Isolation)</a></h4>
+<pre><code class="language-typescript">// unjucks.config.ts
+export default defineUnjucksConfig({
+  enterprise: {
+    multiTenant: {
+      strategy: 'database-per-tenant',
+      isolation: 'complete',
+      tenantResolver: (context) =&gt; ({
+        database: `tenant_${context.tenantId}`,
+        schema: 'public',
+        connectionPool: {
+          min: 5,
+          max: 50
+        }
+      })
+    }
+  }
+})
+</code></pre>
+<h4 id="shared-database-schema-per-tenant-balanced"><a class="header" href="#shared-database-schema-per-tenant-balanced">Shared Database, Schema Per Tenant (Balanced)</a></h4>
+<pre><code class="language-typescript">export default defineUnjucksConfig({
+  enterprise: {
+    multiTenant: {
+      strategy: 'schema-per-tenant',
+      isolation: 'moderate',
+      tenantResolver: (context) =&gt; ({
+        database: 'enterprise_db',
+        schema: `tenant_${context.tenantId}`,
+        migrations: {
+          autoRun: true,
+          versioning: 'semantic'
+        }
+      })
+    }
+  }
+})
+</code></pre>
+<h4 id="row-level-security-cost-optimized"><a class="header" href="#row-level-security-cost-optimized">Row-Level Security (Cost Optimized)</a></h4>
+<pre><code class="language-typescript">export default defineUnjucksConfig({
+  enterprise: {
+    multiTenant: {
+      strategy: 'row-level-security',
+      isolation: 'logical',
+      security: {
+        rls: true,
+        tenantColumn: 'tenant_id',
+        policies: ['SELECT', 'INSERT', 'UPDATE', 'DELETE']
+      }
+    }
+  }
+})
+</code></pre>
+<h2 id="scalability-and-performance-characteristics"><a class="header" href="#scalability-and-performance-characteristics">Scalability and Performance Characteristics</a></h2>
+<h3 id="horizontal-scaling-architecture"><a class="header" href="#horizontal-scaling-architecture">Horizontal Scaling Architecture</a></h3>
+<pre><code class="language-mermaid">graph TB
+    LB[Load Balancer] --&gt; API1[API Gateway 1]
+    LB --&gt; API2[API Gateway 2]
+    LB --&gt; API3[API Gateway 3]
+    
+    API1 --&gt; UJ1[Unjucks Instance 1]
+    API2 --&gt; UJ2[Unjucks Instance 2]
+    API3 --&gt; UJ3[Unjucks Instance 3]
+    
+    UJ1 --&gt; CACHE[Redis Cluster]
+    UJ2 --&gt; CACHE
+    UJ3 --&gt; CACHE
+    
+    UJ1 --&gt; DB1[(Database Cluster)]
+    UJ2 --&gt; DB1
+    UJ3 --&gt; DB1
+    
+    CACHE --&gt; MONITOR[Monitoring Stack]
+    DB1 --&gt; MONITOR
+</code></pre>
+<h3 id="performance-benchmarks"><a class="header" href="#performance-benchmarks">Performance Benchmarks</a></h3>
+<div class="table-wrapper"><table><thead><tr><th>Deployment Pattern</th><th>Templates/sec</th><th>Memory (GB)</th><th>CPU Cores</th><th>Tenants</th></tr></thead><tbody>
+<tr><td>Single Tenant</td><td>10,000</td><td>4</td><td>2</td><td>1</td></tr>
+<tr><td>Multi-Tenant (100)</td><td>8,500</td><td>8</td><td>4</td><td>100</td></tr>
+<tr><td>Multi-Tenant (1K)</td><td>7,200</td><td>16</td><td>8</td><td>1,000</td></tr>
+<tr><td>Enterprise (10K)</td><td>6,000</td><td>32</td><td>16</td><td>10,000</td></tr>
+</tbody></table>
+</div>
+<h3 id="auto-scaling-configuration"><a class="header" href="#auto-scaling-configuration">Auto-Scaling Configuration</a></h3>
+<pre><code class="language-yaml"># kubernetes/unjucks-hpa.yaml
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: unjucks-enterprise
+  namespace: production
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: unjucks-deployment
+  minReplicas: 3
+  maxReplicas: 50
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 80
+  - type: Pods
+    pods:
+      metric:
+        name: templates_processed_per_second
+      target:
+        type: AverageValue
+        averageValue: "5000"
+</code></pre>
+<h2 id="cloud-native-deployment-strategies"><a class="header" href="#cloud-native-deployment-strategies">Cloud-Native Deployment Strategies</a></h2>
+<h3 id="aws-enterprise-deployment"><a class="header" href="#aws-enterprise-deployment">AWS Enterprise Deployment</a></h3>
+<h4 id="infrastructure-as-code-terraform"><a class="header" href="#infrastructure-as-code-terraform">Infrastructure as Code (Terraform)</a></h4>
+<pre><code class="language-hcl"># infrastructure/aws/main.tf
+module "unjucks_enterprise" {
+  source = "./modules/unjucks"
+  
+  environment = "production"
+  instance_type = "m5.2xlarge"
+  min_capacity = 3
+  max_capacity = 50
+  
+  database = {
+    engine = "postgresql"
+    version = "15.4"
+    instance_class = "db.r6g.2xlarge"
+    multi_az = true
+    encrypted = true
+    backup_retention = 30
+  }
+  
+  cache = {
+    engine = "redis"
+    version = "7.0"
+    node_type = "cache.r7g.xlarge"
+    num_cache_clusters = 3
+    transit_encryption = true
+    at_rest_encryption = true
+  }
+  
+  monitoring = {
+    cloudwatch_logs = true
+    x_ray_tracing = true
+    custom_metrics = true
+  }
+}
+</code></pre>
+<h4 id="container-configuration"><a class="header" href="#container-configuration">Container Configuration</a></h4>
+<pre><code class="language-dockerfile"># Dockerfile.enterprise
+FROM node:20-alpine AS builder
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci --production &amp;&amp; npm cache clean --force
+
+FROM node:20-alpine AS runtime
+RUN addgroup -g 1001 -S unjucks &amp;&amp; adduser -S unjucks -u 1001
+WORKDIR /app
+COPY --from=builder /app/node_modules ./node_modules
+COPY --chown=unjucks:unjucks . .
+
+# Security hardening
+RUN apk --no-cache add dumb-init
+RUN rm -rf /tmp/* /var/tmp/* /var/cache/apk/*
+
+USER unjucks
+EXPOSE 3000
+ENTRYPOINT ["dumb-init", "--"]
+CMD ["node", "dist/server.js"]
+
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
+  CMD curl -f http://localhost:3000/health || exit 1
+</code></pre>
+<h3 id="azure-enterprise-deployment"><a class="header" href="#azure-enterprise-deployment">Azure Enterprise Deployment</a></h3>
+<pre><code class="language-yaml"># azure/unjucks-deployment.yml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: unjucks-enterprise
+  namespace: production
+spec:
+  replicas: 5
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 2
+      maxUnavailable: 1
+  selector:
+    matchLabels:
+      app: unjucks-enterprise
+  template:
+    metadata:
+      labels:
+        app: unjucks-enterprise
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1001
+        fsGroup: 1001
+      containers:
+      - name: unjucks
+        image: unjucks-registry.azurecr.io/unjucks:v2.1.0
+        ports:
+        - containerPort: 3000
+        env:
+        - name: AZURE_TENANT_ID
+          valueFrom:
+            secretKeyRef:
+              name: azure-credentials
+              key: tenant-id
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: database-credentials
+              key: connection-string
+        resources:
+          requests:
+            memory: "1Gi"
+            cpu: "500m"
+          limits:
+            memory: "2Gi"
+            cpu: "1000m"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 3000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: 3000
+          initialDelaySeconds: 5
+          periodSeconds: 5
+</code></pre>
+<h3 id="google-cloud-enterprise-deployment"><a class="header" href="#google-cloud-enterprise-deployment">Google Cloud Enterprise Deployment</a></h3>
+<pre><code class="language-yaml"># gcp/unjucks-service.yaml
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  name: unjucks-enterprise
+  namespace: production
+  annotations:
+    run.googleapis.com/ingress: all
+    run.googleapis.com/vpc-access-connector: projects/PROJECT_ID/locations/us-central1/connectors/unjucks-connector
+spec:
+  template:
+    metadata:
+      annotations:
+        autoscaling.knative.dev/minScale: "3"
+        autoscaling.knative.dev/maxScale: "100"
+        run.googleapis.com/cpu-throttling: "false"
+        run.googleapis.com/memory: "2Gi"
+        run.googleapis.com/cpu: "2"
+    spec:
+      containerConcurrency: 80
+      containers:
+      - image: gcr.io/PROJECT_ID/unjucks:v2.1.0
+        ports:
+        - containerPort: 3000
+        env:
+        - name: GOOGLE_CLOUD_PROJECT
+          value: "PROJECT_ID"
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: database-secret
+              key: connection-string
+        resources:
+          limits:
+            memory: "2Gi"
+            cpu: "2000m"
+</code></pre>
+<h2 id="monitoring-and-observability"><a class="header" href="#monitoring-and-observability">Monitoring and Observability</a></h2>
+<h3 id="comprehensive-metrics-collection"><a class="header" href="#comprehensive-metrics-collection">Comprehensive Metrics Collection</a></h3>
+<pre><code class="language-typescript">// monitoring/metrics.ts
+import { createPrometheusMetrics } from '@unjucks/monitoring'
+
+export const metrics = createPrometheusMetrics({
+  // Business Metrics
+  templatesGenerated: {
+    type: 'counter',
+    help: 'Total templates generated',
+    labelNames: ['tenant', 'template_type', 'status']
+  },
+  
+  templateGenerationDuration: {
+    type: 'histogram',
+    help: 'Template generation duration',
+    buckets: [0.1, 0.5, 1, 2, 5, 10],
+    labelNames: ['tenant', 'template_type']
+  },
+  
+  // System Metrics
+  activeConnections: {
+    type: 'gauge',
+    help: 'Active database connections',
+    labelNames: ['tenant', 'database']
+  },
+  
+  memoryUsage: {
+    type: 'gauge',
+    help: 'Memory usage in bytes',
+    labelNames: ['component']
+  },
+  
+  // Security Metrics
+  authenticationAttempts: {
+    type: 'counter',
+    help: 'Authentication attempts',
+    labelNames: ['tenant', 'status', 'method']
+  },
+  
+  securityViolations: {
+    type: 'counter',
+    help: 'Security policy violations',
+    labelNames: ['tenant', 'violation_type', 'severity']
+  }
+})
+</code></pre>
+<h3 id="distributed-tracing-configuration"><a class="header" href="#distributed-tracing-configuration">Distributed Tracing Configuration</a></h3>
+<pre><code class="language-typescript">// tracing/setup.ts
+import { NodeTracer } from '@opentelemetry/node'
+import { getNodeAutoInstrumentations } from '@opentelemetry/auto-instrumentations-node'
+import { JaegerExporter } from '@opentelemetry/exporter-jaeger'
+
+const tracer = new NodeTracer({
+  instrumentations: [
+    getNodeAutoInstrumentations({
+      '@opentelemetry/instrumentation-http': {
+        requestHook: (span, request) =&gt; {
+          span.setAttributes({
+            'unjucks.tenant': request.headers['x-tenant-id'],
+            'unjucks.template_type': request.headers['x-template-type']
+          })
+        }
+      }
+    })
+  ],
+  exporter: new JaegerExporter({
+    endpoint: process.env.JAEGER_ENDPOINT || 'http://jaeger:14268/api/traces'
+  })
+})
+
+tracer.start()
+</code></pre>
+<h3 id="enterprise-monitoring-dashboard"><a class="header" href="#enterprise-monitoring-dashboard">Enterprise Monitoring Dashboard</a></h3>
+<pre><code class="language-yaml"># monitoring/grafana-dashboard.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: unjucks-enterprise-dashboard
+data:
+  unjucks-enterprise.json: |
+    {
+      "dashboard": {
+        "title": "Unjucks Enterprise Metrics",
+        "panels": [
+          {
+            "title": "Templates Generated/sec",
+            "type": "graph",
+            "targets": [
+              {
+                "expr": "rate(unjucks_templates_generated_total[5m])",
+                "legendFormat": "{{tenant}}"
+              }
+            ]
+          },
+          {
+            "title": "Response Time P95",
+            "type": "graph",
+            "targets": [
+              {
+                "expr": "histogram_quantile(0.95, unjucks_template_generation_duration_bucket)",
+                "legendFormat": "P95 Response Time"
+              }
+            ]
+          },
+          {
+            "title": "Active Tenants",
+            "type": "singlestat",
+            "targets": [
+              {
+                "expr": "count(count by (tenant)(unjucks_templates_generated_total))"
+              }
+            ]
+          }
+        ]
+      }
+    }
+</code></pre>
+<h2 id="disaster-recovery-and-high-availability"><a class="header" href="#disaster-recovery-and-high-availability">Disaster Recovery and High Availability</a></h2>
+<h3 id="multi-region-deployment-strategy"><a class="header" href="#multi-region-deployment-strategy">Multi-Region Deployment Strategy</a></h3>
+<pre><code class="language-typescript">// deployment/multi-region.ts
+export const multiRegionConfig = {
+  regions: [
+    {
+      name: 'us-east-1',
+      primary: true,
+      instances: 10,
+      database: {
+        replication: 'synchronous',
+        backups: 'cross-region'
+      }
+    },
+    {
+      name: 'us-west-2',
+      primary: false,
+      instances: 5,
+      database: {
+        replication: 'asynchronous',
+        readonly: true
+      }
+    },
+    {
+      name: 'eu-central-1',
+      primary: false,
+      instances: 5,
+      database: {
+        replication: 'asynchronous',
+        readonly: true
+      }
+    }
+  ],
+  
+  failover: {
+    automaticFailover: true,
+    healthCheckInterval: '30s',
+    failoverThreshold: 3,
+    recoveryTime: '120s'
+  }
+}
+</code></pre>
+<h2 id="cost-optimization-strategies"><a class="header" href="#cost-optimization-strategies">Cost Optimization Strategies</a></h2>
+<h3 id="resource-right-sizing"><a class="header" href="#resource-right-sizing">Resource Right-Sizing</a></h3>
+<div class="table-wrapper"><table><thead><tr><th>Tenant Size</th><th>Instance Type</th><th>Memory</th><th>CPU</th><th>Cost/Month</th></tr></thead><tbody>
+<tr><td>Small (1-10 users)</td><td>t3.small</td><td>2GB</td><td>2 vCPU</td><td>$15</td></tr>
+<tr><td>Medium (11-100 users)</td><td>t3.medium</td><td>4GB</td><td>2 vCPU</td><td>$30</td></tr>
+<tr><td>Large (101-1K users)</td><td>m5.large</td><td>8GB</td><td>2 vCPU</td><td>$70</td></tr>
+<tr><td>Enterprise (1K+ users)</td><td>m5.xlarge</td><td>16GB</td><td>4 vCPU</td><td>$140</td></tr>
+</tbody></table>
+</div>
+<h3 id="auto-scaling-economics"><a class="header" href="#auto-scaling-economics">Auto-Scaling Economics</a></h3>
+<pre><code class="language-typescript">// cost-optimization/scaling.ts
+export const scalingStrategy = {
+  scaleUp: {
+    cpuThreshold: 70,
+    memoryThreshold: 80,
+    responseTimeThreshold: '2s',
+    cooldown: '5m'
+  },
+  
+  scaleDown: {
+    cpuThreshold: 30,
+    memoryThreshold: 40,
+    responseTimeThreshold: '500ms',
+    cooldown: '15m'
+  },
+  
+  costOptimization: {
+    spotInstances: true,
+    reservedInstanceMix: 0.6,
+    rightSizingEnabled: true,
+    scheduleBasedScaling: {
+      businessHours: {
+        minInstances: 5,
+        maxInstances: 50
+      },
+      offHours: {
+        minInstances: 2,
+        maxInstances: 10
+      }
+    }
+  }
+}
+</code></pre>
+<h2 id="next-steps"><a class="header" href="#next-steps">Next Steps</a></h2>
+<ol>
+<li><strong>Security Architecture</strong>: Implement zero-trust security patterns</li>
+<li><strong>Compliance Frameworks</strong>: Ensure SOC2, HIPAA, PCI-DSS compliance</li>
+<li><strong>Multi-Tenant Architecture</strong>: Deep dive into tenant isolation strategies</li>
+<li><strong>Fortune 5 Patterns</strong>: Learn from enterprise implementations</li>
+</ol>
+<p>For detailed implementation guides, see the following chapters:</p>
+<ul>
+<li><a href="../security/architecture.html">Security Architecture</a></li>
+<li><a href="../architecture/multi-tenant.html">Multi-Tenant Architecture</a></li>
+<li><a href="../patterns/fortune-5.html">Fortune 5 Patterns</a></li>
+</ul>
+
+
+                        <!-- Page Footer -->
+                        <div class="page-footer" style="margin-top: 3rem; padding-top: 2rem; border-top: 1px solid #e1e5e9;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+                                <div class="footer-links" style="display: flex; gap: 1rem; font-size: 0.9rem;">
+                                    <a href="https://unjucks.dev" target="_blank">🌐 Website</a>
+                                    <a href="https://github.com/ruvnet/unjucks" target="_blank">💻 GitHub</a>
+                                    <a href="https://github.com/ruvnet/unjucks/issues" target="_blank">🐛 Issues</a>
+                                    <a href="https://github.com/ruvnet/unjucks/discussions" target="_blank">💬 Discussions</a>
+                                </div>
+                                <div class="footer-info" style="font-size: 0.8rem; color: #888; text-align: right;">
+                                    <p>Built with ❤️ using <a href="https://rust-lang.github.io/mdBook/" target="_blank">mdBook</a></p>
+                                    <p>© 2024 Unjucks Project</p>
+                                </div>
+                            </div>
+                        </div>
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                        <a href="../../" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                            <i class="fa fa-angle-left"></i>
+                        </a>
+
+                        <a href="../../" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                            <i class="fa fa-angle-right"></i>
+                        </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <!-- Desktop navigation -->
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                <a href="../../" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                    <i class="fa fa-angle-left"></i>
+                </a>
+
+                <a href="../../" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                    <i class="fa fa-angle-right"></i>
+                </a>
+            </nav>
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../../elasticlunr.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="../../mark.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="../../searcher.js" type="text/javascript" charset="utf-8"></script>
+
+        <script src="../../clipboard.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="../../highlight.js" type="text/javascript" charset="utf-8"></script>
+        <script src="../../book.js" type="text/javascript" charset="utf-8"></script>
+
+        <!-- Custom JS -->
+
+        <!-- Custom body content -->
+        <h1 id="enterprise-deployment-architecture-1"><a class="header" href="#enterprise-deployment-architecture-1">Enterprise Deployment Architecture</a></h1>
+<h2 id="overview-1"><a class="header" href="#overview-1">Overview</a></h2>
+<p>Unjucks provides enterprise-grade deployment capabilities designed for Fortune 500 organizations requiring scalability, security, and high availability. This chapter covers comprehensive deployment patterns, multi-tenant architectures, and cloud-native strategies.</p>
+<h2 id="multi-tenant-architecture-patterns-1"><a class="header" href="#multi-tenant-architecture-patterns-1">Multi-Tenant Architecture Patterns</a></h2>
+<h3 id="tenant-isolation-strategies-1"><a class="header" href="#tenant-isolation-strategies-1">Tenant Isolation Strategies</a></h3>
+<h4 id="database-per-tenant-highest-isolation-1"><a class="header" href="#database-per-tenant-highest-isolation-1">Database Per Tenant (Highest Isolation)</a></h4>
+<pre><code class="language-typescript">// unjucks.config.ts
+export default defineUnjucksConfig({
+  enterprise: {
+    multiTenant: {
+      strategy: 'database-per-tenant',
+      isolation: 'complete',
+      tenantResolver: (context) =&gt; ({
+        database: `tenant_${context.tenantId}`,
+        schema: 'public',
+        connectionPool: {
+          min: 5,
+          max: 50
+        }
+      })
+    }
+  }
+})
+</code></pre>
+<h4 id="shared-database-schema-per-tenant-balanced-1"><a class="header" href="#shared-database-schema-per-tenant-balanced-1">Shared Database, Schema Per Tenant (Balanced)</a></h4>
+<pre><code class="language-typescript">export default defineUnjucksConfig({
+  enterprise: {
+    multiTenant: {
+      strategy: 'schema-per-tenant',
+      isolation: 'moderate',
+      tenantResolver: (context) =&gt; ({
+        database: 'enterprise_db',
+        schema: `tenant_${context.tenantId}`,
+        migrations: {
+          autoRun: true,
+          versioning: 'semantic'
+        }
+      })
+    }
+  }
+})
+</code></pre>
+<h4 id="row-level-security-cost-optimized-1"><a class="header" href="#row-level-security-cost-optimized-1">Row-Level Security (Cost Optimized)</a></h4>
+<pre><code class="language-typescript">export default defineUnjucksConfig({
+  enterprise: {
+    multiTenant: {
+      strategy: 'row-level-security',
+      isolation: 'logical',
+      security: {
+        rls: true,
+        tenantColumn: 'tenant_id',
+        policies: ['SELECT', 'INSERT', 'UPDATE', 'DELETE']
+      }
+    }
+  }
+})
+</code></pre>
+<h2 id="scalability-and-performance-characteristics-1"><a class="header" href="#scalability-and-performance-characteristics-1">Scalability and Performance Characteristics</a></h2>
+<h3 id="horizontal-scaling-architecture-1"><a class="header" href="#horizontal-scaling-architecture-1">Horizontal Scaling Architecture</a></h3>
+<pre><code class="language-mermaid">graph TB
+    LB[Load Balancer] --&gt; API1[API Gateway 1]
+    LB --&gt; API2[API Gateway 2]
+    LB --&gt; API3[API Gateway 3]
+    
+    API1 --&gt; UJ1[Unjucks Instance 1]
+    API2 --&gt; UJ2[Unjucks Instance 2]
+    API3 --&gt; UJ3[Unjucks Instance 3]
+    
+    UJ1 --&gt; CACHE[Redis Cluster]
+    UJ2 --&gt; CACHE
+    UJ3 --&gt; CACHE
+    
+    UJ1 --&gt; DB1[(Database Cluster)]
+    UJ2 --&gt; DB1
+    UJ3 --&gt; DB1
+    
+    CACHE --&gt; MONITOR[Monitoring Stack]
+    DB1 --&gt; MONITOR
+</code></pre>
+<h3 id="performance-benchmarks-1"><a class="header" href="#performance-benchmarks-1">Performance Benchmarks</a></h3>
+<div class="table-wrapper"><table><thead><tr><th>Deployment Pattern</th><th>Templates/sec</th><th>Memory (GB)</th><th>CPU Cores</th><th>Tenants</th></tr></thead><tbody>
+<tr><td>Single Tenant</td><td>10,000</td><td>4</td><td>2</td><td>1</td></tr>
+<tr><td>Multi-Tenant (100)</td><td>8,500</td><td>8</td><td>4</td><td>100</td></tr>
+<tr><td>Multi-Tenant (1K)</td><td>7,200</td><td>16</td><td>8</td><td>1,000</td></tr>
+<tr><td>Enterprise (10K)</td><td>6,000</td><td>32</td><td>16</td><td>10,000</td></tr>
+</tbody></table>
+</div>
+<h3 id="auto-scaling-configuration-1"><a class="header" href="#auto-scaling-configuration-1">Auto-Scaling Configuration</a></h3>
+<pre><code class="language-yaml"># kubernetes/unjucks-hpa.yaml
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: unjucks-enterprise
+  namespace: production
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: unjucks-deployment
+  minReplicas: 3
+  maxReplicas: 50
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 80
+  - type: Pods
+    pods:
+      metric:
+        name: templates_processed_per_second
+      target:
+        type: AverageValue
+        averageValue: "5000"
+</code></pre>
+<h2 id="cloud-native-deployment-strategies-1"><a class="header" href="#cloud-native-deployment-strategies-1">Cloud-Native Deployment Strategies</a></h2>
+<h3 id="aws-enterprise-deployment-1"><a class="header" href="#aws-enterprise-deployment-1">AWS Enterprise Deployment</a></h3>
+<h4 id="infrastructure-as-code-terraform-1"><a class="header" href="#infrastructure-as-code-terraform-1">Infrastructure as Code (Terraform)</a></h4>
+<pre><code class="language-hcl"># infrastructure/aws/main.tf
+module "unjucks_enterprise" {
+  source = "./modules/unjucks"
+  
+  environment = "production"
+  instance_type = "m5.2xlarge"
+  min_capacity = 3
+  max_capacity = 50
+  
+  database = {
+    engine = "postgresql"
+    version = "15.4"
+    instance_class = "db.r6g.2xlarge"
+    multi_az = true
+    encrypted = true
+    backup_retention = 30
+  }
+  
+  cache = {
+    engine = "redis"
+    version = "7.0"
+    node_type = "cache.r7g.xlarge"
+    num_cache_clusters = 3
+    transit_encryption = true
+    at_rest_encryption = true
+  }
+  
+  monitoring = {
+    cloudwatch_logs = true
+    x_ray_tracing = true
+    custom_metrics = true
+  }
+}
+</code></pre>
+<h4 id="container-configuration-1"><a class="header" href="#container-configuration-1">Container Configuration</a></h4>
+<pre><code class="language-dockerfile"># Dockerfile.enterprise
+FROM node:20-alpine AS builder
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci --production &amp;&amp; npm cache clean --force
+
+FROM node:20-alpine AS runtime
+RUN addgroup -g 1001 -S unjucks &amp;&amp; adduser -S unjucks -u 1001
+WORKDIR /app
+COPY --from=builder /app/node_modules ./node_modules
+COPY --chown=unjucks:unjucks . .
+
+# Security hardening
+RUN apk --no-cache add dumb-init
+RUN rm -rf /tmp/* /var/tmp/* /var/cache/apk/*
+
+USER unjucks
+EXPOSE 3000
+ENTRYPOINT ["dumb-init", "--"]
+CMD ["node", "dist/server.js"]
+
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
+  CMD curl -f http://localhost:3000/health || exit 1
+</code></pre>
+<h3 id="azure-enterprise-deployment-1"><a class="header" href="#azure-enterprise-deployment-1">Azure Enterprise Deployment</a></h3>
+<pre><code class="language-yaml"># azure/unjucks-deployment.yml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: unjucks-enterprise
+  namespace: production
+spec:
+  replicas: 5
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 2
+      maxUnavailable: 1
+  selector:
+    matchLabels:
+      app: unjucks-enterprise
+  template:
+    metadata:
+      labels:
+        app: unjucks-enterprise
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1001
+        fsGroup: 1001
+      containers:
+      - name: unjucks
+        image: unjucks-registry.azurecr.io/unjucks:v2.1.0
+        ports:
+        - containerPort: 3000
+        env:
+        - name: AZURE_TENANT_ID
+          valueFrom:
+            secretKeyRef:
+              name: azure-credentials
+              key: tenant-id
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: database-credentials
+              key: connection-string
+        resources:
+          requests:
+            memory: "1Gi"
+            cpu: "500m"
+          limits:
+            memory: "2Gi"
+            cpu: "1000m"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 3000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: 3000
+          initialDelaySeconds: 5
+          periodSeconds: 5
+</code></pre>
+<h3 id="google-cloud-enterprise-deployment-1"><a class="header" href="#google-cloud-enterprise-deployment-1">Google Cloud Enterprise Deployment</a></h3>
+<pre><code class="language-yaml"># gcp/unjucks-service.yaml
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  name: unjucks-enterprise
+  namespace: production
+  annotations:
+    run.googleapis.com/ingress: all
+    run.googleapis.com/vpc-access-connector: projects/PROJECT_ID/locations/us-central1/connectors/unjucks-connector
+spec:
+  template:
+    metadata:
+      annotations:
+        autoscaling.knative.dev/minScale: "3"
+        autoscaling.knative.dev/maxScale: "100"
+        run.googleapis.com/cpu-throttling: "false"
+        run.googleapis.com/memory: "2Gi"
+        run.googleapis.com/cpu: "2"
+    spec:
+      containerConcurrency: 80
+      containers:
+      - image: gcr.io/PROJECT_ID/unjucks:v2.1.0
+        ports:
+        - containerPort: 3000
+        env:
+        - name: GOOGLE_CLOUD_PROJECT
+          value: "PROJECT_ID"
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: database-secret
+              key: connection-string
+        resources:
+          limits:
+            memory: "2Gi"
+            cpu: "2000m"
+</code></pre>
+<h2 id="monitoring-and-observability-1"><a class="header" href="#monitoring-and-observability-1">Monitoring and Observability</a></h2>
+<h3 id="comprehensive-metrics-collection-1"><a class="header" href="#comprehensive-metrics-collection-1">Comprehensive Metrics Collection</a></h3>
+<pre><code class="language-typescript">// monitoring/metrics.ts
+import { createPrometheusMetrics } from '@unjucks/monitoring'
+
+export const metrics = createPrometheusMetrics({
+  // Business Metrics
+  templatesGenerated: {
+    type: 'counter',
+    help: 'Total templates generated',
+    labelNames: ['tenant', 'template_type', 'status']
+  },
+  
+  templateGenerationDuration: {
+    type: 'histogram',
+    help: 'Template generation duration',
+    buckets: [0.1, 0.5, 1, 2, 5, 10],
+    labelNames: ['tenant', 'template_type']
+  },
+  
+  // System Metrics
+  activeConnections: {
+    type: 'gauge',
+    help: 'Active database connections',
+    labelNames: ['tenant', 'database']
+  },
+  
+  memoryUsage: {
+    type: 'gauge',
+    help: 'Memory usage in bytes',
+    labelNames: ['component']
+  },
+  
+  // Security Metrics
+  authenticationAttempts: {
+    type: 'counter',
+    help: 'Authentication attempts',
+    labelNames: ['tenant', 'status', 'method']
+  },
+  
+  securityViolations: {
+    type: 'counter',
+    help: 'Security policy violations',
+    labelNames: ['tenant', 'violation_type', 'severity']
+  }
+})
+</code></pre>
+<h3 id="distributed-tracing-configuration-1"><a class="header" href="#distributed-tracing-configuration-1">Distributed Tracing Configuration</a></h3>
+<pre><code class="language-typescript">// tracing/setup.ts
+import { NodeTracer } from '@opentelemetry/node'
+import { getNodeAutoInstrumentations } from '@opentelemetry/auto-instrumentations-node'
+import { JaegerExporter } from '@opentelemetry/exporter-jaeger'
+
+const tracer = new NodeTracer({
+  instrumentations: [
+    getNodeAutoInstrumentations({
+      '@opentelemetry/instrumentation-http': {
+        requestHook: (span, request) =&gt; {
+          span.setAttributes({
+            'unjucks.tenant': request.headers['x-tenant-id'],
+            'unjucks.template_type': request.headers['x-template-type']
+          })
+        }
+      }
+    })
+  ],
+  exporter: new JaegerExporter({
+    endpoint: process.env.JAEGER_ENDPOINT || 'http://jaeger:14268/api/traces'
+  })
+})
+
+tracer.start()
+</code></pre>
+<h3 id="enterprise-monitoring-dashboard-1"><a class="header" href="#enterprise-monitoring-dashboard-1">Enterprise Monitoring Dashboard</a></h3>
+<pre><code class="language-yaml"># monitoring/grafana-dashboard.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: unjucks-enterprise-dashboard
+data:
+  unjucks-enterprise.json: |
+    {
+      "dashboard": {
+        "title": "Unjucks Enterprise Metrics",
+        "panels": [
+          {
+            "title": "Templates Generated/sec",
+            "type": "graph",
+            "targets": [
+              {
+                "expr": "rate(unjucks_templates_generated_total[5m])",
+                "legendFormat": "{{tenant}}"
+              }
+            ]
+          },
+          {
+            "title": "Response Time P95",
+            "type": "graph",
+            "targets": [
+              {
+                "expr": "histogram_quantile(0.95, unjucks_template_generation_duration_bucket)",
+                "legendFormat": "P95 Response Time"
+              }
+            ]
+          },
+          {
+            "title": "Active Tenants",
+            "type": "singlestat",
+            "targets": [
+              {
+                "expr": "count(count by (tenant)(unjucks_templates_generated_total))"
+              }
+            ]
+          }
+        ]
+      }
+    }
+</code></pre>
+<h2 id="disaster-recovery-and-high-availability-1"><a class="header" href="#disaster-recovery-and-high-availability-1">Disaster Recovery and High Availability</a></h2>
+<h3 id="multi-region-deployment-strategy-1"><a class="header" href="#multi-region-deployment-strategy-1">Multi-Region Deployment Strategy</a></h3>
+<pre><code class="language-typescript">// deployment/multi-region.ts
+export const multiRegionConfig = {
+  regions: [
+    {
+      name: 'us-east-1',
+      primary: true,
+      instances: 10,
+      database: {
+        replication: 'synchronous',
+        backups: 'cross-region'
+      }
+    },
+    {
+      name: 'us-west-2',
+      primary: false,
+      instances: 5,
+      database: {
+        replication: 'asynchronous',
+        readonly: true
+      }
+    },
+    {
+      name: 'eu-central-1',
+      primary: false,
+      instances: 5,
+      database: {
+        replication: 'asynchronous',
+        readonly: true
+      }
+    }
+  ],
+  
+  failover: {
+    automaticFailover: true,
+    healthCheckInterval: '30s',
+    failoverThreshold: 3,
+    recoveryTime: '120s'
+  }
+}
+</code></pre>
+<h2 id="cost-optimization-strategies-1"><a class="header" href="#cost-optimization-strategies-1">Cost Optimization Strategies</a></h2>
+<h3 id="resource-right-sizing-1"><a class="header" href="#resource-right-sizing-1">Resource Right-Sizing</a></h3>
+<div class="table-wrapper"><table><thead><tr><th>Tenant Size</th><th>Instance Type</th><th>Memory</th><th>CPU</th><th>Cost/Month</th></tr></thead><tbody>
+<tr><td>Small (1-10 users)</td><td>t3.small</td><td>2GB</td><td>2 vCPU</td><td>$15</td></tr>
+<tr><td>Medium (11-100 users)</td><td>t3.medium</td><td>4GB</td><td>2 vCPU</td><td>$30</td></tr>
+<tr><td>Large (101-1K users)</td><td>m5.large</td><td>8GB</td><td>2 vCPU</td><td>$70</td></tr>
+<tr><td>Enterprise (1K+ users)</td><td>m5.xlarge</td><td>16GB</td><td>4 vCPU</td><td>$140</td></tr>
+</tbody></table>
+</div>
+<h3 id="auto-scaling-economics-1"><a class="header" href="#auto-scaling-economics-1">Auto-Scaling Economics</a></h3>
+<pre><code class="language-typescript">// cost-optimization/scaling.ts
+export const scalingStrategy = {
+  scaleUp: {
+    cpuThreshold: 70,
+    memoryThreshold: 80,
+    responseTimeThreshold: '2s',
+    cooldown: '5m'
+  },
+  
+  scaleDown: {
+    cpuThreshold: 30,
+    memoryThreshold: 40,
+    responseTimeThreshold: '500ms',
+    cooldown: '15m'
+  },
+  
+  costOptimization: {
+    spotInstances: true,
+    reservedInstanceMix: 0.6,
+    rightSizingEnabled: true,
+    scheduleBasedScaling: {
+      businessHours: {
+        minInstances: 5,
+        maxInstances: 50
+      },
+      offHours: {
+        minInstances: 2,
+        maxInstances: 10
+      }
+    }
+  }
+}
+</code></pre>
+<h2 id="next-steps-1"><a class="header" href="#next-steps-1">Next Steps</a></h2>
+<ol>
+<li><strong>Security Architecture</strong>: Implement zero-trust security patterns</li>
+<li><strong>Compliance Frameworks</strong>: Ensure SOC2, HIPAA, PCI-DSS compliance</li>
+<li><strong>Multi-Tenant Architecture</strong>: Deep dive into tenant isolation strategies</li>
+<li><strong>Fortune 5 Patterns</strong>: Learn from enterprise implementations</li>
+</ol>
+<p>For detailed implementation guides, see the following chapters:</p>
+<ul>
+<li><a href="../security/architecture.html">Security Architecture</a></li>
+<li><a href="../architecture/multi-tenant.html">Multi-Tenant Architecture</a></li>
+<li><a href="../patterns/fortune-5.html">Fortune 5 Patterns</a></li>
+</ul>
+
+
+        <!-- Performance monitoring -->
+        <script>
+            // Simple performance monitoring
+            window.addEventListener('load', function() {
+                if ('performance' in window) {
+                    setTimeout(function() {
+                        const loadTime = performance.timing.loadEventEnd - performance.timing.navigationStart;
+                        console.log('📊 Page loaded in ' + loadTime + 'ms');
+                    }, 0);
+                }
+            });
+        </script>
+
+        <!-- Service Worker for offline support -->
+        <script>
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.register('../../sw.js')
+                    .then(function(registration) {
+                        console.log('📱 SW registered with scope:', registration.scope);
+                    })
+                    .catch(function(error) {
+                        console.log('❌ SW registration failed:', error);
+                    });
+            }
+        </script>
+    </body>
+</html>

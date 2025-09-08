@@ -10,24 +10,24 @@
 
 {% if exhibit.title %}
 \begin{center}
-\textbf{{{ exhibit.title }}}
+\textbf{{ exhibit.title }}
 \end{center}
 \vspace{0.25in}
 {% endif %}
 
 {% if exhibit.description %}
-\textit{{{ exhibit.description }}}
+\textit{{ exhibit.description }}
 \vspace{0.25in}
 {% endif %}
 
 {% if exhibit.type == 'image' %}
 \begin{center}
-\includegraphics[width=\textwidth]{{{ exhibit.file }}}
+\includegraphics[width=\textwidth]{{ exhibit.file }}
 \end{center}
 
 {% elif exhibit.type == 'table' %}
 \begin{center}
-\begin{tabular}{{{ exhibit.tableSpec | default('|c|c|c|') }}}
+\begin{tabular}{{ exhibit.tableSpec | default('|c|c|c|') }}
 \hline
 {% for row in exhibit.tableData %}
 {% for cell in row %}{{ cell }}{% if not loop.last %} & {% endif %}{% endfor %} \\
@@ -42,7 +42,7 @@
 
 {% elif exhibit.type == 'document' %}
 % Include external document
-\input{{{ exhibit.file }}}
+\input{{ exhibit.file }}
 
 {% else %}
 % Default exhibit formatting

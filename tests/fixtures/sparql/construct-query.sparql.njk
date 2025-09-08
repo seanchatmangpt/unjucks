@@ -2,10 +2,12 @@
 to: "{{ dest }}/queries/construct-{{ queryName }}.sparql"
 inject: false
 ---
-PREFIX ex: <{{ baseUri | rdfResource }}/>
+PREFIX ex: <{{ baseUri }}/>
 PREFIX schema: <http://schema.org/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX foaf: <http://xmlns.com/foaf/0.1/>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 
 CONSTRUCT {
   {% for triple in constructTriples %}
@@ -14,7 +16,7 @@ CONSTRUCT {
   
   {% if derivedTriples %}
   {% for derived in derivedTriples %}
-  {{ derived.subject | sparqlVar }} a {{ derived.type | schemaOrg }} .
+  {{ derived.subject | sparqlVar }} a {{ derived.type }} .
   {{ derived.subject | sparqlVar }} rdfs:label "{{ derived.label | sparqlString }}" .
   {% endfor %}
   {% endif %}

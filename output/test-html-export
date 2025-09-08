@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>test-export</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; line-height: 1.6; margin: 2rem; }
+        h1, h2, h3 { color: #333; }
+        code { background: #f4f4f4; padding: 0.2rem 0.4rem; border-radius: 3px; }
+        pre { background: #f8f8f8; padding: 1rem; border-radius: 5px; overflow-x: auto; }
+      </style>
+</head>
+<body>
+    
+    
+    <main>
+        <p><h1>Test Document</h1></p><p>This is a comprehensive test of export functionality.</p><p><h2>Features Tested</h2></p><p><h3>Text Formatting</h3>
+- <strong>Bold text</strong>
+- <em>Italic text</em>
+- <code>Inline code</code></p><p><h3>Lists</h3>
+1. Numbered item
+2. Another item</p><p>- Bullet point
+- Another bullet</p><p><h3>Code Block</h3>
+<code>`</code>javascript
+console.log('Hello, World!');
+<code>`</code></p><p><h3>Links and Images</h3>
+[Test Link](https://example.com)
+![Test Image](https://via.placeholder.com/150)</p><p><h3>Table</h3>
+| Column 1 | Column 2 |
+|----------|----------|
+| Data 1   | Data 2   |
+| Data 3   | Data 4   |
+
+    </main>
+    
+    
+</body>
+</html>

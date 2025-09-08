@@ -1,0 +1,1553 @@
+<!DOCTYPE HTML>
+<html lang="en" class="navy" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Enterprise Ontologies - Unjucks: Modern Code Generation in 2026</title>
+        <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+        <meta name="description" content="A comprehensive guide to modern code generation using the Unjucks framework, demonstrating declarative development patterns, AI integration, and advanced template design for productive software development.">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#0066cc"/>
+
+        <!-- Open Graph -->
+        <meta property="og:title" content="Enterprise Ontologies - Unjucks: Modern Code Generation in 2026">
+        <meta property="og:description" content="A comprehensive guide to modern code generation using the Unjucks framework, demonstrating declarative development patterns, AI integration, and advanced template design for productive software development.">
+        <meta property="og:type" content="website">
+        <meta property="og:url" content="">
+        <meta property="og:image" content="unjucks-og.png">
+        
+        <!-- Twitter Card -->
+        <meta name="twitter:card" content="summary_large_image">
+        <meta name="twitter:title" content="Enterprise Ontologies - Unjucks: Modern Code Generation in 2026">
+        <meta name="twitter:description" content="A comprehensive guide to modern code generation using the Unjucks framework, demonstrating declarative development patterns, AI integration, and advanced template design for productive software development.">
+        <meta name="twitter:image" content="unjucks-og.png">
+
+
+        <!-- Custom Unjucks Favicon -->
+        <link rel="icon" href="../../favicon.png">
+        <link rel="shortcut icon" href="../../favicon.png">
+
+        <!-- Fonts -->
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+
+        <link rel="stylesheet" href="../../css/variables.css">
+        <link rel="stylesheet" href="../../css/general.css">
+        <link rel="stylesheet" href="../../css/chrome.css">
+        <link rel="stylesheet" href="../../css/print.css" media="print">
+
+        <!-- Custom CSS -->
+
+        <!-- Custom head content -->
+
+        <!-- JSON-LD Structured Data -->
+        <script type="application/ld+json">
+        {
+            "@context": "https://schema.org",
+            "@type": "TechArticle",
+            "headline": "Enterprise Ontologies - Unjucks: Modern Code Generation in 2026",
+            "description": "A comprehensive guide to modern code generation using the Unjucks framework, demonstrating declarative development patterns, AI integration, and advanced template design for productive software development.",
+            "author": {
+                "@type": "Organization",
+                "name": "Unjucks Development Team"
+            },
+            "publisher": {
+                "@type": "Organization",
+                "name": "Unjucks",
+                "logo": {
+                    "@type": "ImageObject",
+                    "url": "logo.png"
+                }
+            },
+            "url": "",
+            "mainEntityOfPage": "",
+            "datePublished": "",
+            "dateModified": "",
+            "inLanguage": "en",
+            "about": [
+                "Code Generation",
+                "Template Engine", 
+                "CLI Tools",
+                "Semantic Web",
+                "RDF",
+                "Software Development"
+            ]
+        }
+        </script>
+    </head>
+    <body>
+        <!-- Provide site root to javascript -->
+        <script type="text/javascript">
+            var path_to_root = "../../";
+            var default_theme = "navy";
+        </script>
+
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script type="text/javascript">
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme && theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar && sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script type="text/javascript">
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            var html = document.querySelector('html');
+            html.classList.remove('no-js')
+            html.classList.remove('light')
+            html.classList.remove('rust')
+            html.classList.remove('coal')
+            html.classList.remove('navy')
+            html.classList.remove('ayu')
+            html.classList.add(theme);
+            html.classList.add('js');
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script type="text/javascript">
+            var body = document.querySelector('body');
+            var sidebar = null;
+            var sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+            }
+            sidebar_toggle.checked = sidebar === 'visible';
+            body.classList.remove('sidebar-visible');
+            body.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <div class="sidebar-scrollbox">
+                <!-- Unjucks Logo -->
+                <div class="unjucks-logo" style="padding: 1rem; text-align: center; border-bottom: 1px solid #e1e5e9;">
+                    <h3 style="margin: 0; color: #0066cc; font-weight: 700;">🚀 Unjucks</h3>
+                    <p style="margin: 0.5rem 0 0 0; font-size: 0.8rem; color: #666;">Template Generation Platform</p>
+                </div>
+
+                <!-- TOC will be generated automatically by mdbook -->
+            </div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
+        </nav>
+
+        <!-- Page wrapper -->
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label for="sidebar-toggle-anchor" class="left" id="sidebar-toggle" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button left" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy (default)</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button left" type="button" title="Toggle Searchbar" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Unjucks: Modern Code Generation in 2026</h1>
+
+                    <div class="right-buttons">
+                        <a href="../../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+                        <a href="https://github.com/ruvnet/unjucks" title="Git repository" aria-label="Git repository">
+                            <i id="git-repository-button" class="fa fa-github"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script type="text/javascript">
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <!-- Breadcrumb Navigation -->
+                        <div class="breadcrumb-nav" style="margin-bottom: 1.5rem; font-size: 0.9rem; color: #666;">
+                            <a href="../../index.html">🏠 Home</a>
+                            <span> › </span>
+                            <span>Enterprise Ontologies</span>
+                        </div>
+
+                        <h1 id="enterprise-ontologies"><a class="header" href="#enterprise-ontologies">Enterprise Ontologies</a></h1>
+<h2 id="overview"><a class="header" href="#overview">Overview</a></h2>
+<p>Enterprise ontologies provide the semantic foundation for Fortune 5-scale code generation, enabling automatic compliance, regulatory adherence, and domain-specific intelligence. Unjucks integrates with major industry ontologies including FHIR (Healthcare), FIBO (Financial), GS1 (Supply Chain), and custom enterprise vocabularies to generate compliant, intelligent code that understands business context.</p>
+<h2 id="fortune-5-ontology-patterns"><a class="header" href="#fortune-5-ontology-patterns">Fortune 5 Ontology Patterns</a></h2>
+<h3 id="financial-services-fibo-integration"><a class="header" href="#financial-services-fibo-integration">Financial Services (FIBO Integration)</a></h3>
+<h4 id="basel-iii-capital-adequacy-framework"><a class="header" href="#basel-iii-capital-adequacy-framework">Basel III Capital Adequacy Framework</a></h4>
+<pre><code class="language-turtle">@prefix fibo: &lt;https://spec.edmcouncil.org/fibo/ontology/&gt; .
+@prefix basel: &lt;http://basel.bis.org/ontology/capital#&gt; .
+@prefix risk: &lt;http://enterprise.bank/risk#&gt; .
+
+# Basel III regulatory capital requirements
+fibo:CapitalRequirement a owl:Class ;
+    fibo:hasRiskWeight ?weight ;
+    fibo:hasCapitalRatio ?ratio ;
+    basel:tier1Requirement "6.0"^^xsd:decimal ;
+    basel:totalCapitalRequirement "8.0"^^xsd:decimal ;
+    basel:conservationBuffer "2.5"^^xsd:decimal .
+
+# Risk-weighted asset calculation
+fibo:RiskWeightedAsset a owl:Class ;
+    fibo:calculatedBy risk:StandardizedApproach ;
+    fibo:appliesTo fibo:TradingBookPosition, fibo:BankingBookPosition ;
+    fibo:riskWeight [
+        fibo:forInstrument fibo:GovernmentBond ;
+        fibo:weight "0"^^xsd:decimal
+    ], [
+        fibo:forInstrument fibo:CorporateBond ;
+        fibo:weight "100"^^xsd:decimal
+    ] .
+</code></pre>
+<p><strong>Template: Basel III Risk Calculator</strong></p>
+<pre><code class="language-yaml">---
+to: "risk/{{ riskType | kebabCase }}/basel-iii-calculator.ts"
+rdf: "https://spec.edmcouncil.org/fibo/ontology/FBC/FunctionalEntities/RegulatoryAgencies/CapitalAdequacyRequirements.ttl"
+rdfQuery: "?risk rdf:type fibo:CapitalRequirement"
+compliance: "Basel III"
+---
+</code></pre>
+<pre><code class="language-nunjucks">/**
+ * Basel III {{ riskType }} Risk Calculator
+ * Regulation: Basel Committee on Banking Supervision
+ * Implementation: {{ risk | rdfObject('fibo:implementationStandard') | first.value }}
+ * Last Updated: {{ risk | rdfObject('fibo:lastReviewDate') | first.value }}
+ */
+
+export class Basel{{ riskType }}Calculator implements RiskCalculator {
+  // Regulatory parameters from FIBO ontology
+  private static readonly BASEL_III_PARAMETERS = {
+    TIER_1_MINIMUM: {{ risk | rdfObject('basel:tier1Requirement') | first.value }}, // %
+    TOTAL_CAPITAL_MINIMUM: {{ risk | rdfObject('basel:totalCapitalRequirement') | first.value }}, // %
+    CONSERVATION_BUFFER: {{ risk | rdfObject('basel:conservationBuffer') | first.value }}, // %
+    {% if risk | rdfExists('basel:countercyclicalBuffer') %}
+    COUNTERCYCLICAL_BUFFER: {{ risk | rdfObject('basel:countercyclicalBuffer') | first.value }}, // %
+    {% endif %}
+  } as const;
+
+  // Risk weights by instrument category
+  private static readonly RISK_WEIGHTS = new Map([
+    {% set instruments = rdf.query("?inst fibo:hasRiskWeight ?weight") %}
+    {% for inst in instruments %}
+    ["{{ inst.inst.value | split('/') | last }}", {{ inst.weight.value }}],
+    {% endfor %}
+  ]);
+
+  calculate(exposure: ExposureData): BaselCapitalResult {
+    // 1. Determine risk weight
+    const riskWeight = this.getRiskWeight(exposure.instrumentType) / 100;
+    const riskWeightedAssets = exposure.exposureAmount * riskWeight;
+    
+    // 2. Calculate minimum capital requirements
+    const tier1Minimum = riskWeightedAssets * (Basel{{ riskType }}Calculator.BASEL_III_PARAMETERS.TIER_1_MINIMUM / 100);
+    const totalCapitalMinimum = riskWeightedAssets * (Basel{{ riskType }}Calculator.BASEL_III_PARAMETERS.TOTAL_CAPITAL_MINIMUM / 100);
+    
+    // 3. Add regulatory buffers
+    const conservationBuffer = riskWeightedAssets * (Basel{{ riskType }}Calculator.BASEL_III_PARAMETERS.CONSERVATION_BUFFER / 100);
+    {% if risk | rdfExists('basel:countercyclicalBuffer') %}
+    const countercyclicalBuffer = riskWeightedAssets * (Basel{{ riskType }}Calculator.BASEL_III_PARAMETERS.COUNTERCYCLICAL_BUFFER / 100);
+    {% endif %}
+
+    const totalRequiredCapital = totalCapitalMinimum + conservationBuffer{{ ' + countercyclicalBuffer' if risk | rdfExists('basel:countercyclicalBuffer') }};
+
+    return {
+      exposureAmount: exposure.exposureAmount,
+      riskWeight: riskWeight * 100,
+      riskWeightedAssets,
+      tier1MinimumCapital: tier1Minimum,
+      totalMinimumCapital: totalCapitalMinimum,
+      conservationBuffer,
+      {% if risk | rdfExists('basel:countercyclicalBuffer') %}
+      countercyclicalBuffer,
+      {% endif %}
+      totalRequiredCapital,
+      capitalAdequacyRatio: (exposure.availableCapital / totalRequiredCapital) * 100,
+      compliant: exposure.availableCapital &gt;= totalRequiredCapital,
+      regulatoryReference: "Basel III Framework - {{ risk | rdfObject('basel:regulatoryDocument') | first.value }}"
+    };
+  }
+
+  // Stress testing as per Basel III requirements
+  {% if risk | rdfExists('basel:stressTestingRequired') %}
+  async performStressTesting(scenarios: StressScenario[]): Promise&lt;StressTestResult[]&gt; {
+    const results: StressTestResult[] = [];
+    
+    {% set stressTests = risk | rdfObject('basel:stressTestScenario') %}
+    {% for scenario in stressTests %}
+    // {{ scenario.value | rdfLabel }} stress scenario
+    const stressedExposure = this.applyStressScenario(
+      exposure,
+      {
+        name: "{{ scenario.value | rdfLabel }}",
+        shockParameters: {
+          {% for param in scenario.value | rdfObject('basel:shockParameter') %}
+          {{ param.value | rdfObject('basel:parameterName') | first.value }}: {{ param.value | rdfObject('basel:shockValue') | first.value }},
+          {% endfor %}
+        }
+      }
+    );
+    
+    results.push(this.calculate(stressedExposure));
+    {% endfor %}
+    
+    return results;
+  }
+  {% endif %}
+}
+
+// Audit interface for regulatory reporting
+export interface BaselCapitalAuditRecord {
+  calculationId: string;
+  timestamp: Date;
+  regulatoryFramework: "Basel III";
+  riskType: "{{ riskType }}";
+  inputs: ExposureData;
+  outputs: BaselCapitalResult;
+  validator: string;
+  supervisoryApproval?: {
+    approver: string;
+    approvalDate: Date;
+    comments?: string;
+  };
+}
+</code></pre>
+<h3 id="healthcare-interoperability-fhir"><a class="header" href="#healthcare-interoperability-fhir">Healthcare Interoperability (FHIR)</a></h3>
+<h4 id="hl7-fhir-r4-resource-generation"><a class="header" href="#hl7-fhir-r4-resource-generation">HL7 FHIR R4 Resource Generation</a></h4>
+<pre><code class="language-turtle">@prefix fhir: &lt;http://hl7.org/fhir/&gt; .
+@prefix patient: &lt;http://enterprise.hospital/patient#&gt; .
+@prefix sct: &lt;http://snomed.info/sct/&gt; .
+
+# FHIR Patient resource with HIPAA compliance
+fhir:Patient a fhir:DomainResource ;
+    fhir:hasIdentifier fhir:MRN, fhir:SSN ;
+    fhir:hasName fhir:HumanName ;
+    fhir:hasBirthDate xsd:date ;
+    fhir:hasGender fhir:AdministrativeGender ;
+    fhir:hasAddress fhir:Address ;
+    fhir:hasTelecom fhir:ContactPoint ;
+    fhir:compliance "HIPAA", "HITECH", "21CFR11" ;
+    fhir:auditRequired "true"^^xsd:boolean .
+
+# Clinical decision support rules
+fhir:Patient fhir:hasBusinessRule [
+    fhir:ruleType "drug-interaction-check" ;
+    fhir:priority "critical" ;
+    fhir:condition "patient.medications.length &gt; 1" ;
+    fhir:action "checkInteractions(patient.medications)"
+] .
+</code></pre>
+<p><strong>Template: FHIR-Compliant Patient Service</strong></p>
+<pre><code class="language-yaml">---
+to: "fhir/services/{{ resourceType | kebabCase }}-service.ts"
+rdf: "http://hl7.org/fhir/R4/{{ resourceType | lower }}.ttl"
+rdfQuery: "?resource rdf:type fhir:{{ resourceType }}"
+compliance: ["HIPAA", "HITECH", "FHIR-R4"]
+---
+</code></pre>
+<pre><code class="language-nunjucks">/**
+ * FHIR {{ resourceType }} Service
+ * Conformance: HL7 FHIR R4
+ * Profile: {{ resource | rdfObject('fhir:profile') | first.value | default('base') }}
+ * Security: {{ resource | rdfObject('fhir:compliance') | map('value') | join(', ') }}
+ */
+
+import {
+  {{ resourceType }},
+  OperationOutcome,
+  Bundle,
+  {% set requiredTypes = resource | rdfObject('fhir:requiresType') %}
+  {% for type in requiredTypes %}
+  {{ type.value | split(':') | last }},
+  {% endfor %}
+} from '@types/fhir-r4';
+
+export class {{ resourceType }}Service {
+  {% if resource | rdfExists('fhir:auditRequired') %}
+  private auditLogger = new FHIRAuditLogger();
+  {% endif %}
+  
+  {% if resource | rdfExists('fhir:encryptionRequired') %}
+  private encryption = new HIPAAEncryptionService();
+  {% endif %}
+
+  // FHIR CRUD operations with compliance controls
+  async create{{ resourceType }}(resource: {{ resourceType }}): Promise&lt;{{ resourceType }}&gt; {
+    {% if resource | rdfExists('fhir:auditRequired') %}
+    await this.auditLogger.logResourceAccess('CREATE', '{{ resourceType }}', resource.id);
+    {% endif %}
+
+    // Validate FHIR resource against profile
+    const validationResult = await this.validateResource(resource);
+    if (!validationResult.valid) {
+      throw new FHIRValidationError(validationResult.issues);
+    }
+
+    {% if resource | rdfExists('fhir:encryptionRequired') %}
+    // Encrypt sensitive fields per HIPAA requirements
+    const encryptedResource = await this.encryption.encryptPII(resource);
+    const result = await this.repository.create(encryptedResource);
+    {% else %}
+    const result = await this.repository.create(resource);
+    {% endif %}
+
+    {% if resource | rdfExists('fhir:businessRule') %}
+    // Apply clinical decision support rules
+    await this.applyClinicalRules(result);
+    {% endif %}
+
+    return result;
+  }
+
+  async read{{ resourceType }}(id: string): Promise&lt;{{ resourceType }}&gt; {
+    {% if resource | rdfExists('fhir:auditRequired') %}
+    await this.auditLogger.logResourceAccess('READ', '{{ resourceType }}', id);
+    {% endif %}
+
+    const resource = await this.repository.findById(id);
+    if (!resource) {
+      throw new ResourceNotFoundException(id);
+    }
+
+    {% if resource | rdfExists('fhir:encryptionRequired') %}
+    return await this.encryption.decryptPII(resource);
+    {% else %}
+    return resource;
+    {% endif %}
+  }
+
+  {% if resource | rdfExists('fhir:businessRule') %}
+  // Clinical decision support implementation
+  {% set businessRules = resource | rdfObject('fhir:businessRule') %}
+  {% for rule in businessRules %}
+  private async apply{{ rule.value | rdfObject('fhir:ruleType') | first.value | pascalCase }}Rule(
+    resource: {{ resourceType }}
+  ): Promise&lt;ClinicalAlert[]&gt; {
+    const alerts: ClinicalAlert[] = [];
+    
+    // {{ rule.value | rdfObject('fhir:description') | first.value }}
+    {% set conditions = rule.value | rdfObject('fhir:condition') %}
+    {% for condition in conditions %}
+    if ({{ condition.value | rdfObject('fhir:expression') | first.value }}) {
+      alerts.push({
+        severity: '{{ condition.value | rdfObject('fhir:alertLevel') | first.value }}',
+        message: '{{ condition.value | rdfObject('fhir:alertMessage') | first.value }}',
+        code: '{{ condition.value | rdfObject('fhir:alertCode') | first.value }}',
+        source: 'clinical-decision-support'
+      });
+    }
+    {% endfor %}
+    
+    return alerts;
+  }
+  {% endfor %}
+  {% endif %}
+
+  // FHIR Bundle operations for efficient data exchange
+  async search{{ resourceType }}(criteria: SearchCriteria): Promise&lt;Bundle&lt;{{ resourceType }}&gt;&gt; {
+    {% if resource | rdfExists('fhir:auditRequired') %}
+    await this.auditLogger.logResourceSearch('{{ resourceType }}', criteria);
+    {% endif %}
+
+    const results = await this.repository.search(criteria);
+    
+    return {
+      resourceType: 'Bundle',
+      id: this.generateBundleId(),
+      type: 'searchset',
+      total: results.total,
+      entry: results.resources.map(resource =&gt; ({
+        fullUrl: `{{ resourceType }}/${resource.id}`,
+        resource: resource,
+        search: { mode: 'match' }
+      }))
+    };
+  }
+
+  // HIPAA compliance: Patient data access controls
+  {% if resource | rdfExists('fhir:requiresPatientConsent') %}
+  async checkPatientConsent(patientId: string, purpose: string): Promise&lt;boolean&gt; {
+    const consent = await this.consentService.getActiveConsent(patientId, purpose);
+    return consent &amp;&amp; !consent.withdrawn;
+  }
+  {% endif %}
+
+  // Data retention per healthcare regulations  
+  {% if resource | rdfExists('fhir:retentionPolicy') %}
+  async enforceDataRetention(): Promise&lt;RetentionResult&gt; {
+    const retentionPeriod = {{ resource | rdfObject('fhir:retentionPeriod') | first.value }}; // years
+    const cutoffDate = new Date();
+    cutoffDate.setFullYear(cutoffDate.getFullYear() - retentionPeriod);
+
+    const expiredResources = await this.repository.findExpiredResources(cutoffDate);
+    let processedCount = 0;
+
+    for (const resource of expiredResources) {
+      {% if resource | rdfObject('fhir:retentionAction') | first.value == 'anonymize' %}
+      await this.anonymizeResource(resource.id);
+      {% else %}
+      await this.secureDelete(resource.id);
+      {% endif %}
+      processedCount++;
+    }
+
+    return {
+      processedCount,
+      action: '{{ resource | rdfObject('fhir:retentionAction') | first.value }}',
+      cutoffDate,
+      complianceStatus: 'completed'
+    };
+  }
+  {% endif %}
+}
+
+// FHIR validation with clinical terminology
+interface FHIRValidationResult {
+  valid: boolean;
+  issues: OperationOutcomeIssue[];
+  profile: string;
+  terminology: {
+    {% set terminologies = resource | rdfObject('fhir:requiredTerminology') %}
+    {% for terminology in terminologies %}
+    {{ terminology.value | rdfObject('fhir:system') | first.value | split('/') | last }}: string;
+    {% endfor %}
+  };
+}
+</code></pre>
+<h3 id="supply-chain-gs1-standards"><a class="header" href="#supply-chain-gs1-standards">Supply Chain (GS1 Standards)</a></h3>
+<h4 id="global-trade-item-number-gtin-and-traceability"><a class="header" href="#global-trade-item-number-gtin-and-traceability">Global Trade Item Number (GTIN) and Traceability</a></h4>
+<pre><code class="language-turtle">@prefix gs1: &lt;https://gs1.org/voc/&gt; .
+@prefix trace: &lt;http://enterprise.supply/traceability#&gt; .
+
+# GS1 Product identification and traceability
+gs1:Product a rdfs:Class ;
+    gs1:hasGTIN ?gtin ;
+    gs1:hasGLN ?gln ;
+    gs1:hasSSCC ?sscc ;
+    gs1:requiresTraceability "true"^^xsd:boolean ;
+    gs1:complianceStandard "FDA21CFR", "EURegulation1169" .
+
+# Supply chain event tracking
+gs1:TraceabilityEvent a rdfs:Class ;
+    gs1:eventType gs1:ObjectEvent, gs1:AggregationEvent, gs1:TransformationEvent ;
+    gs1:whenOccurred xsd:dateTime ;
+    gs1:whereOccurred gs1:ReadPoint ;
+    gs1:whyOccurred gs1:BusinessStep ;
+    gs1:whatProduct gs1:Product .
+</code></pre>
+<p><strong>Template: GS1-Compliant Traceability System</strong></p>
+<pre><code class="language-yaml">---
+to: "supply-chain/{{ productCategory | kebabCase }}/traceability.ts"
+rdf: "https://gs1.org/voc/Supply-Chain-Traceability.ttl"
+rdfQuery: "?product rdf:type gs1:Product"
+standards: ["GS1", "EPCIS", "CBV"]
+---
+</code></pre>
+<pre><code class="language-nunjucks">/**
+ * GS1 Supply Chain Traceability for {{ productCategory }}
+ * Standards: {{ standards | join(', ') }}
+ * Product Category: {{ product | rdfObject('gs1:productCategory') | first | rdfLabel }}
+ * Regulatory Compliance: {{ product | rdfObject('gs1:complianceStandard') | map('value') | join(', ') }}
+ */
+
+export interface GS1ProductIdentification {
+  gtin: string;              // Global Trade Item Number
+  {% if product | rdfExists('gs1:hasGLN') %}
+  gln: string;               // Global Location Number
+  {% endif %}
+  {% if product | rdfExists('gs1:hasSSCC') %}
+  sscc: string;              // Serial Shipping Container Code
+  {% endif %}
+  {% if product | rdfExists('gs1:hasGSRN') %}
+  gsrn: string;              // Global Service Relation Number
+  {% endif %}
+}
+
+export class {{ productCategory }}TraceabilityService {
+  {% if product | rdfExists('gs1:requiresTraceability') %}
+  // EPCIS-compliant event processing
+  async recordSupplyChainEvent(event: TraceabilityEvent): Promise&lt;EPCISEvent&gt; {
+    // Validate GS1 identifiers
+    this.validateGS1Identifiers(event.products);
+    
+    const epcisEvent: EPCISEvent = {
+      eventTime: event.timestamp,
+      eventTimeZoneOffset: this.getTimezoneOffset(event.location),
+      
+      {% set eventTypes = product | rdfObject('gs1:supportedEventType') %}
+      {% for eventType in eventTypes %}
+      // {{ eventType.value | rdfLabel }} event processing
+      {% if eventType.value | split('#') | last == 'ObjectEvent' %}
+      ...(event.type === 'object' &amp;&amp; {
+        epcList: event.products.map(p =&gt; `urn:epc:id:sgtin:${p.gtin}`),
+        action: event.action, // ADD, OBSERVE, DELETE
+        bizStep: this.mapBusinessStep(event.businessStep),
+        disposition: this.mapDisposition(event.disposition),
+        readPoint: { id: event.location.gln },
+        bizLocation: { id: event.facility.gln }
+      }),
+      {% endif %}
+      {% endfor %}
+      
+      // Regulatory compliance tracking
+      {% set regulations = product | rdfObject('gs1:complianceStandard') %}
+      {% for regulation in regulations %}
+      {% if regulation.value == 'FDA21CFR' %}
+      fdaCompliance: {
+        facilityRegistration: event.facility.fdaRegistration,
+        processType: event.processType,
+        lotNumber: event.lotNumber
+      },
+      {% endif %}
+      {% if regulation.value == 'EURegulation1169' %}
+      euCompliance: {
+        allergenInfo: event.allergenDeclaration,
+        nutritionalInfo: event.nutritionalData,
+        originCountry: event.originCountry
+      },
+      {% endif %}
+      {% endfor %}
+    };
+
+    // Store in EPCIS repository
+    await this.epcisRepository.store(epcisEvent);
+    
+    // Trigger downstream notifications
+    await this.notifyTradePartners(epcisEvent);
+    
+    return epcisEvent;
+  }
+  {% endif %}
+
+  // Product recall capability
+  {% if product | rdfExists('gs1:recallCapable') %}
+  async initiateRecall(
+    gtin: string, 
+    lotNumbers: string[], 
+    reason: RecallReason
+  ): Promise&lt;RecallResult&gt; {
+    // Find all affected products in supply chain
+    const affectedProducts = await this.traceProductHistory(gtin, lotNumbers);
+    
+    // Generate recall notices per GS1 standards
+    const recallNotices = affectedProducts.map(product =&gt; ({
+      gtin: product.gtin,
+      lotNumber: product.lotNumber,
+      currentLocation: product.lastKnownLocation,
+      distributionPath: product.distributionHistory,
+      recallClass: this.determineRecallClass(reason),
+      urgency: reason.severity,
+      regulatoryNotification: {
+        {% for regulation in product | rdfObject('gs1:complianceStandard') %}
+        {% if regulation.value == 'FDA21CFR' %}
+        fda: {
+          reportingRequired: true,
+          reportingDeadline: this.calculateFDAReportingDeadline(reason.severity),
+          recallStrategy: reason.recallStrategy
+        },
+        {% endif %}
+        {% endfor %}
+      }
+    }));
+
+    // Execute recall process
+    const results = await Promise.all(
+      recallNotices.map(notice =&gt; this.executeRecallNotice(notice))
+    );
+
+    return {
+      totalAffected: affectedProducts.length,
+      notificationsSent: results.filter(r =&gt; r.success).length,
+      regulatoryFiled: results.some(r =&gt; r.regulatoryFiled),
+      estimatedRecoveryRate: this.estimateRecoveryRate(affectedProducts)
+    };
+  }
+  {% endif %}
+
+  // Sustainability tracking (ESG compliance)
+  {% if product | rdfExists('gs1:sustainabilityTracking') %}
+  async trackSustainabilityMetrics(gtin: string): Promise&lt;SustainabilityReport&gt; {
+    const product = await this.getProductByGTIN(gtin);
+    const supplyChainEvents = await this.getSupplyChainHistory(gtin);
+    
+    return {
+      productGTIN: gtin,
+      carbonFootprint: this.calculateCarbonFootprint(supplyChainEvents),
+      waterUsage: this.calculateWaterUsage(supplyChainEvents),
+      wasteGeneration: this.calculateWasteGeneration(supplyChainEvents),
+      sustainabilityCertifications: product.certifications,
+      {% if product | rdfExists('gs1:organicCertified') %}
+      organicCertification: {
+        certified: true,
+        certifyingBody: "{{ product | rdfObject('gs1:organicCertifyingBody') | first.value }}",
+        certificationNumber: "{{ product | rdfObject('gs1:organicCertNumber') | first.value }}"
+      },
+      {% endif %}
+      socialImpactScore: this.calculateSocialImpact(supplyChainEvents),
+      reportingPeriod: {
+        from: supplyChainEvents[0]?.timestamp,
+        to: supplyChainEvents[supplyChainEvents.length - 1]?.timestamp
+      }
+    };
+  }
+  {% endif %}
+}
+</code></pre>
+<h2 id="multi-tenant-namespace-management"><a class="header" href="#multi-tenant-namespace-management">Multi-Tenant Namespace Management</a></h2>
+<h3 id="tenant-specific-ontology-isolation"><a class="header" href="#tenant-specific-ontology-isolation">Tenant-Specific Ontology Isolation</a></h3>
+<pre><code class="language-typescript">class MultiTenantOntologyManager {
+  private tenantGraphs: Map&lt;string, Store&gt; = new Map();
+  private sharedOntologies: Store = new Store();
+  
+  async loadTenantOntology(
+    tenantId: string, 
+    ontologySource: string
+  ): Promise&lt;void&gt; {
+    // Create isolated namespace for tenant
+    const tenantNamespace = `http://tenant.${tenantId}.com/ontology/`;
+    const tenantGraph = new Store();
+    
+    // Load and namespace tenant-specific data
+    const rdfData = await this.loadRDFData(ontologySource);
+    const namespacedData = this.applyTenantNamespace(rdfData, tenantNamespace);
+    
+    tenantGraph.addQuads(namespacedData);
+    this.tenantGraphs.set(tenantId, tenantGraph);
+  }
+  
+  async queryTenantData(
+    tenantId: string,
+    query: SemanticQuery
+  ): Promise&lt;QueryResult[]&gt; {
+    // Combine tenant-specific and shared ontologies
+    const tenantGraph = this.tenantGraphs.get(tenantId);
+    if (!tenantGraph) {
+      throw new Error(`No ontology found for tenant: ${tenantId}`);
+    }
+    
+    // Execute federated query across tenant and shared graphs
+    return this.executeFederatedQuery(
+      [tenantGraph, this.sharedOntologies],
+      query
+    );
+  }
+}
+</code></pre>
+<h3 id="compliance-ontology-integration"><a class="header" href="#compliance-ontology-integration">Compliance Ontology Integration</a></h3>
+<pre><code class="language-yaml"># Multi-regulation compliance template
+---
+to: "compliance/{{ tenantId }}/{{ regulationType | kebabCase }}.ts"
+rdf:
+  - type: uri
+    source: "https://compliance.{{ tenantId }}.com/{{ regulationType }}.ttl"
+  - type: uri
+    source: "https://standards.org/{{ regulationType }}/requirements.ttl"
+rdfQuery: "?requirement rdf:type compliance:{{ regulationType }}Requirement"
+tenant_isolation: true
+---
+</code></pre>
+<pre><code class="language-nunjucks">/**
+ * {{ regulationType }} Compliance for Tenant {{ tenantId }}
+ * Jurisdiction: {{ requirement | rdfObject('compliance:jurisdiction') | first.value }}
+ * Effective Date: {{ requirement | rdfObject('compliance:effectiveDate') | first.value }}
+ * Next Review: {{ requirement | rdfObject('compliance:reviewDate') | first.value }}
+ */
+
+export class {{ tenantId }}{{ regulationType }}Compliance {
+  // Tenant-specific compliance requirements
+  private readonly requirements = {
+    {% set tenantReqs = rdf.query("?req compliance:appliesTo tenant:" + tenantId) %}
+    {% for req in tenantReqs %}
+    {{ req.req.value | split('/') | last }}: {
+      mandatory: {{ req.req.value | rdfObject('compliance:mandatory') | first.value }},
+      deadline: "{{ req.req.value | rdfObject('compliance:implementationDeadline') | first.value }}",
+      penalty: "{{ req.req.value | rdfObject('compliance:nonCompliancePenalty') | first.value }}",
+      verification: "{{ req.req.value | rdfObject('compliance:verificationMethod') | first.value }}"
+    },
+    {% endfor %}
+  } as const;
+
+  async validateCompliance(): Promise&lt;ComplianceReport&gt; {
+    const results: ComplianceCheckResult[] = [];
+    
+    {% for req in tenantReqs %}
+    // {{ req.req.value | rdfLabel }} validation
+    const {{ req.req.value | split('/') | last | camelCase }}Result = await this.validate{{ req.req.value | split('/') | last | pascalCase }}();
+    results.push({
+      requirement: "{{ req.req.value | rdfLabel }}",
+      status: {{ req.req.value | split('/') | last | camelCase }}Result.compliant ? 'COMPLIANT' : 'NON_COMPLIANT',
+      evidence: {{ req.req.value | split('/') | last | camelCase }}Result.evidence,
+      remediation: {{ req.req.value | split('/') | last | camelCase }}Result.remediation
+    });
+    {% endfor %}
+
+    return {
+      tenantId: "{{ tenantId }}",
+      regulationType: "{{ regulationType }}",
+      overallStatus: results.every(r =&gt; r.status === 'COMPLIANT') ? 'COMPLIANT' : 'NON_COMPLIANT',
+      checkResults: results,
+      reportGenerated: new Date(),
+      nextReviewDate: "{{ requirement | rdfObject('compliance:reviewDate') | first.value }}"
+    };
+  }
+}
+</code></pre>
+<p>This comprehensive enterprise ontology integration enables Fortune 5 organizations to generate code that automatically complies with industry standards, regulatory requirements, and business rules while maintaining tenant isolation and multi-jurisdictional compliance capabilities.</p>
+
+
+                        <!-- Page Footer -->
+                        <div class="page-footer" style="margin-top: 3rem; padding-top: 2rem; border-top: 1px solid #e1e5e9;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+                                <div class="footer-links" style="display: flex; gap: 1rem; font-size: 0.9rem;">
+                                    <a href="https://unjucks.dev" target="_blank">🌐 Website</a>
+                                    <a href="https://github.com/ruvnet/unjucks" target="_blank">💻 GitHub</a>
+                                    <a href="https://github.com/ruvnet/unjucks/issues" target="_blank">🐛 Issues</a>
+                                    <a href="https://github.com/ruvnet/unjucks/discussions" target="_blank">💬 Discussions</a>
+                                </div>
+                                <div class="footer-info" style="font-size: 0.8rem; color: #888; text-align: right;">
+                                    <p>Built with ❤️ using <a href="https://rust-lang.github.io/mdBook/" target="_blank">mdBook</a></p>
+                                    <p>© 2024 Unjucks Project</p>
+                                </div>
+                            </div>
+                        </div>
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                        <a href="../../" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                            <i class="fa fa-angle-left"></i>
+                        </a>
+
+                        <a href="../../" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                            <i class="fa fa-angle-right"></i>
+                        </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <!-- Desktop navigation -->
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                <a href="../../" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                    <i class="fa fa-angle-left"></i>
+                </a>
+
+                <a href="../../" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                    <i class="fa fa-angle-right"></i>
+                </a>
+            </nav>
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../../elasticlunr.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="../../mark.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="../../searcher.js" type="text/javascript" charset="utf-8"></script>
+
+        <script src="../../clipboard.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="../../highlight.js" type="text/javascript" charset="utf-8"></script>
+        <script src="../../book.js" type="text/javascript" charset="utf-8"></script>
+
+        <!-- Custom JS -->
+
+        <!-- Custom body content -->
+        <h1 id="enterprise-ontologies-1"><a class="header" href="#enterprise-ontologies-1">Enterprise Ontologies</a></h1>
+<h2 id="overview-1"><a class="header" href="#overview-1">Overview</a></h2>
+<p>Enterprise ontologies provide the semantic foundation for Fortune 5-scale code generation, enabling automatic compliance, regulatory adherence, and domain-specific intelligence. Unjucks integrates with major industry ontologies including FHIR (Healthcare), FIBO (Financial), GS1 (Supply Chain), and custom enterprise vocabularies to generate compliant, intelligent code that understands business context.</p>
+<h2 id="fortune-5-ontology-patterns-1"><a class="header" href="#fortune-5-ontology-patterns-1">Fortune 5 Ontology Patterns</a></h2>
+<h3 id="financial-services-fibo-integration-1"><a class="header" href="#financial-services-fibo-integration-1">Financial Services (FIBO Integration)</a></h3>
+<h4 id="basel-iii-capital-adequacy-framework-1"><a class="header" href="#basel-iii-capital-adequacy-framework-1">Basel III Capital Adequacy Framework</a></h4>
+<pre><code class="language-turtle">@prefix fibo: &lt;https://spec.edmcouncil.org/fibo/ontology/&gt; .
+@prefix basel: &lt;http://basel.bis.org/ontology/capital#&gt; .
+@prefix risk: &lt;http://enterprise.bank/risk#&gt; .
+
+# Basel III regulatory capital requirements
+fibo:CapitalRequirement a owl:Class ;
+    fibo:hasRiskWeight ?weight ;
+    fibo:hasCapitalRatio ?ratio ;
+    basel:tier1Requirement "6.0"^^xsd:decimal ;
+    basel:totalCapitalRequirement "8.0"^^xsd:decimal ;
+    basel:conservationBuffer "2.5"^^xsd:decimal .
+
+# Risk-weighted asset calculation
+fibo:RiskWeightedAsset a owl:Class ;
+    fibo:calculatedBy risk:StandardizedApproach ;
+    fibo:appliesTo fibo:TradingBookPosition, fibo:BankingBookPosition ;
+    fibo:riskWeight [
+        fibo:forInstrument fibo:GovernmentBond ;
+        fibo:weight "0"^^xsd:decimal
+    ], [
+        fibo:forInstrument fibo:CorporateBond ;
+        fibo:weight "100"^^xsd:decimal
+    ] .
+</code></pre>
+<p><strong>Template: Basel III Risk Calculator</strong></p>
+<pre><code class="language-yaml">---
+to: "risk/{{ riskType | kebabCase }}/basel-iii-calculator.ts"
+rdf: "https://spec.edmcouncil.org/fibo/ontology/FBC/FunctionalEntities/RegulatoryAgencies/CapitalAdequacyRequirements.ttl"
+rdfQuery: "?risk rdf:type fibo:CapitalRequirement"
+compliance: "Basel III"
+---
+</code></pre>
+<pre><code class="language-nunjucks">/**
+ * Basel III {{ riskType }} Risk Calculator
+ * Regulation: Basel Committee on Banking Supervision
+ * Implementation: {{ risk | rdfObject('fibo:implementationStandard') | first.value }}
+ * Last Updated: {{ risk | rdfObject('fibo:lastReviewDate') | first.value }}
+ */
+
+export class Basel{{ riskType }}Calculator implements RiskCalculator {
+  // Regulatory parameters from FIBO ontology
+  private static readonly BASEL_III_PARAMETERS = {
+    TIER_1_MINIMUM: {{ risk | rdfObject('basel:tier1Requirement') | first.value }}, // %
+    TOTAL_CAPITAL_MINIMUM: {{ risk | rdfObject('basel:totalCapitalRequirement') | first.value }}, // %
+    CONSERVATION_BUFFER: {{ risk | rdfObject('basel:conservationBuffer') | first.value }}, // %
+    {% if risk | rdfExists('basel:countercyclicalBuffer') %}
+    COUNTERCYCLICAL_BUFFER: {{ risk | rdfObject('basel:countercyclicalBuffer') | first.value }}, // %
+    {% endif %}
+  } as const;
+
+  // Risk weights by instrument category
+  private static readonly RISK_WEIGHTS = new Map([
+    {% set instruments = rdf.query("?inst fibo:hasRiskWeight ?weight") %}
+    {% for inst in instruments %}
+    ["{{ inst.inst.value | split('/') | last }}", {{ inst.weight.value }}],
+    {% endfor %}
+  ]);
+
+  calculate(exposure: ExposureData): BaselCapitalResult {
+    // 1. Determine risk weight
+    const riskWeight = this.getRiskWeight(exposure.instrumentType) / 100;
+    const riskWeightedAssets = exposure.exposureAmount * riskWeight;
+    
+    // 2. Calculate minimum capital requirements
+    const tier1Minimum = riskWeightedAssets * (Basel{{ riskType }}Calculator.BASEL_III_PARAMETERS.TIER_1_MINIMUM / 100);
+    const totalCapitalMinimum = riskWeightedAssets * (Basel{{ riskType }}Calculator.BASEL_III_PARAMETERS.TOTAL_CAPITAL_MINIMUM / 100);
+    
+    // 3. Add regulatory buffers
+    const conservationBuffer = riskWeightedAssets * (Basel{{ riskType }}Calculator.BASEL_III_PARAMETERS.CONSERVATION_BUFFER / 100);
+    {% if risk | rdfExists('basel:countercyclicalBuffer') %}
+    const countercyclicalBuffer = riskWeightedAssets * (Basel{{ riskType }}Calculator.BASEL_III_PARAMETERS.COUNTERCYCLICAL_BUFFER / 100);
+    {% endif %}
+
+    const totalRequiredCapital = totalCapitalMinimum + conservationBuffer{{ ' + countercyclicalBuffer' if risk | rdfExists('basel:countercyclicalBuffer') }};
+
+    return {
+      exposureAmount: exposure.exposureAmount,
+      riskWeight: riskWeight * 100,
+      riskWeightedAssets,
+      tier1MinimumCapital: tier1Minimum,
+      totalMinimumCapital: totalCapitalMinimum,
+      conservationBuffer,
+      {% if risk | rdfExists('basel:countercyclicalBuffer') %}
+      countercyclicalBuffer,
+      {% endif %}
+      totalRequiredCapital,
+      capitalAdequacyRatio: (exposure.availableCapital / totalRequiredCapital) * 100,
+      compliant: exposure.availableCapital &gt;= totalRequiredCapital,
+      regulatoryReference: "Basel III Framework - {{ risk | rdfObject('basel:regulatoryDocument') | first.value }}"
+    };
+  }
+
+  // Stress testing as per Basel III requirements
+  {% if risk | rdfExists('basel:stressTestingRequired') %}
+  async performStressTesting(scenarios: StressScenario[]): Promise&lt;StressTestResult[]&gt; {
+    const results: StressTestResult[] = [];
+    
+    {% set stressTests = risk | rdfObject('basel:stressTestScenario') %}
+    {% for scenario in stressTests %}
+    // {{ scenario.value | rdfLabel }} stress scenario
+    const stressedExposure = this.applyStressScenario(
+      exposure,
+      {
+        name: "{{ scenario.value | rdfLabel }}",
+        shockParameters: {
+          {% for param in scenario.value | rdfObject('basel:shockParameter') %}
+          {{ param.value | rdfObject('basel:parameterName') | first.value }}: {{ param.value | rdfObject('basel:shockValue') | first.value }},
+          {% endfor %}
+        }
+      }
+    );
+    
+    results.push(this.calculate(stressedExposure));
+    {% endfor %}
+    
+    return results;
+  }
+  {% endif %}
+}
+
+// Audit interface for regulatory reporting
+export interface BaselCapitalAuditRecord {
+  calculationId: string;
+  timestamp: Date;
+  regulatoryFramework: "Basel III";
+  riskType: "{{ riskType }}";
+  inputs: ExposureData;
+  outputs: BaselCapitalResult;
+  validator: string;
+  supervisoryApproval?: {
+    approver: string;
+    approvalDate: Date;
+    comments?: string;
+  };
+}
+</code></pre>
+<h3 id="healthcare-interoperability-fhir-1"><a class="header" href="#healthcare-interoperability-fhir-1">Healthcare Interoperability (FHIR)</a></h3>
+<h4 id="hl7-fhir-r4-resource-generation-1"><a class="header" href="#hl7-fhir-r4-resource-generation-1">HL7 FHIR R4 Resource Generation</a></h4>
+<pre><code class="language-turtle">@prefix fhir: &lt;http://hl7.org/fhir/&gt; .
+@prefix patient: &lt;http://enterprise.hospital/patient#&gt; .
+@prefix sct: &lt;http://snomed.info/sct/&gt; .
+
+# FHIR Patient resource with HIPAA compliance
+fhir:Patient a fhir:DomainResource ;
+    fhir:hasIdentifier fhir:MRN, fhir:SSN ;
+    fhir:hasName fhir:HumanName ;
+    fhir:hasBirthDate xsd:date ;
+    fhir:hasGender fhir:AdministrativeGender ;
+    fhir:hasAddress fhir:Address ;
+    fhir:hasTelecom fhir:ContactPoint ;
+    fhir:compliance "HIPAA", "HITECH", "21CFR11" ;
+    fhir:auditRequired "true"^^xsd:boolean .
+
+# Clinical decision support rules
+fhir:Patient fhir:hasBusinessRule [
+    fhir:ruleType "drug-interaction-check" ;
+    fhir:priority "critical" ;
+    fhir:condition "patient.medications.length &gt; 1" ;
+    fhir:action "checkInteractions(patient.medications)"
+] .
+</code></pre>
+<p><strong>Template: FHIR-Compliant Patient Service</strong></p>
+<pre><code class="language-yaml">---
+to: "fhir/services/{{ resourceType | kebabCase }}-service.ts"
+rdf: "http://hl7.org/fhir/R4/{{ resourceType | lower }}.ttl"
+rdfQuery: "?resource rdf:type fhir:{{ resourceType }}"
+compliance: ["HIPAA", "HITECH", "FHIR-R4"]
+---
+</code></pre>
+<pre><code class="language-nunjucks">/**
+ * FHIR {{ resourceType }} Service
+ * Conformance: HL7 FHIR R4
+ * Profile: {{ resource | rdfObject('fhir:profile') | first.value | default('base') }}
+ * Security: {{ resource | rdfObject('fhir:compliance') | map('value') | join(', ') }}
+ */
+
+import {
+  {{ resourceType }},
+  OperationOutcome,
+  Bundle,
+  {% set requiredTypes = resource | rdfObject('fhir:requiresType') %}
+  {% for type in requiredTypes %}
+  {{ type.value | split(':') | last }},
+  {% endfor %}
+} from '@types/fhir-r4';
+
+export class {{ resourceType }}Service {
+  {% if resource | rdfExists('fhir:auditRequired') %}
+  private auditLogger = new FHIRAuditLogger();
+  {% endif %}
+  
+  {% if resource | rdfExists('fhir:encryptionRequired') %}
+  private encryption = new HIPAAEncryptionService();
+  {% endif %}
+
+  // FHIR CRUD operations with compliance controls
+  async create{{ resourceType }}(resource: {{ resourceType }}): Promise&lt;{{ resourceType }}&gt; {
+    {% if resource | rdfExists('fhir:auditRequired') %}
+    await this.auditLogger.logResourceAccess('CREATE', '{{ resourceType }}', resource.id);
+    {% endif %}
+
+    // Validate FHIR resource against profile
+    const validationResult = await this.validateResource(resource);
+    if (!validationResult.valid) {
+      throw new FHIRValidationError(validationResult.issues);
+    }
+
+    {% if resource | rdfExists('fhir:encryptionRequired') %}
+    // Encrypt sensitive fields per HIPAA requirements
+    const encryptedResource = await this.encryption.encryptPII(resource);
+    const result = await this.repository.create(encryptedResource);
+    {% else %}
+    const result = await this.repository.create(resource);
+    {% endif %}
+
+    {% if resource | rdfExists('fhir:businessRule') %}
+    // Apply clinical decision support rules
+    await this.applyClinicalRules(result);
+    {% endif %}
+
+    return result;
+  }
+
+  async read{{ resourceType }}(id: string): Promise&lt;{{ resourceType }}&gt; {
+    {% if resource | rdfExists('fhir:auditRequired') %}
+    await this.auditLogger.logResourceAccess('READ', '{{ resourceType }}', id);
+    {% endif %}
+
+    const resource = await this.repository.findById(id);
+    if (!resource) {
+      throw new ResourceNotFoundException(id);
+    }
+
+    {% if resource | rdfExists('fhir:encryptionRequired') %}
+    return await this.encryption.decryptPII(resource);
+    {% else %}
+    return resource;
+    {% endif %}
+  }
+
+  {% if resource | rdfExists('fhir:businessRule') %}
+  // Clinical decision support implementation
+  {% set businessRules = resource | rdfObject('fhir:businessRule') %}
+  {% for rule in businessRules %}
+  private async apply{{ rule.value | rdfObject('fhir:ruleType') | first.value | pascalCase }}Rule(
+    resource: {{ resourceType }}
+  ): Promise&lt;ClinicalAlert[]&gt; {
+    const alerts: ClinicalAlert[] = [];
+    
+    // {{ rule.value | rdfObject('fhir:description') | first.value }}
+    {% set conditions = rule.value | rdfObject('fhir:condition') %}
+    {% for condition in conditions %}
+    if ({{ condition.value | rdfObject('fhir:expression') | first.value }}) {
+      alerts.push({
+        severity: '{{ condition.value | rdfObject('fhir:alertLevel') | first.value }}',
+        message: '{{ condition.value | rdfObject('fhir:alertMessage') | first.value }}',
+        code: '{{ condition.value | rdfObject('fhir:alertCode') | first.value }}',
+        source: 'clinical-decision-support'
+      });
+    }
+    {% endfor %}
+    
+    return alerts;
+  }
+  {% endfor %}
+  {% endif %}
+
+  // FHIR Bundle operations for efficient data exchange
+  async search{{ resourceType }}(criteria: SearchCriteria): Promise&lt;Bundle&lt;{{ resourceType }}&gt;&gt; {
+    {% if resource | rdfExists('fhir:auditRequired') %}
+    await this.auditLogger.logResourceSearch('{{ resourceType }}', criteria);
+    {% endif %}
+
+    const results = await this.repository.search(criteria);
+    
+    return {
+      resourceType: 'Bundle',
+      id: this.generateBundleId(),
+      type: 'searchset',
+      total: results.total,
+      entry: results.resources.map(resource =&gt; ({
+        fullUrl: `{{ resourceType }}/${resource.id}`,
+        resource: resource,
+        search: { mode: 'match' }
+      }))
+    };
+  }
+
+  // HIPAA compliance: Patient data access controls
+  {% if resource | rdfExists('fhir:requiresPatientConsent') %}
+  async checkPatientConsent(patientId: string, purpose: string): Promise&lt;boolean&gt; {
+    const consent = await this.consentService.getActiveConsent(patientId, purpose);
+    return consent &amp;&amp; !consent.withdrawn;
+  }
+  {% endif %}
+
+  // Data retention per healthcare regulations  
+  {% if resource | rdfExists('fhir:retentionPolicy') %}
+  async enforceDataRetention(): Promise&lt;RetentionResult&gt; {
+    const retentionPeriod = {{ resource | rdfObject('fhir:retentionPeriod') | first.value }}; // years
+    const cutoffDate = new Date();
+    cutoffDate.setFullYear(cutoffDate.getFullYear() - retentionPeriod);
+
+    const expiredResources = await this.repository.findExpiredResources(cutoffDate);
+    let processedCount = 0;
+
+    for (const resource of expiredResources) {
+      {% if resource | rdfObject('fhir:retentionAction') | first.value == 'anonymize' %}
+      await this.anonymizeResource(resource.id);
+      {% else %}
+      await this.secureDelete(resource.id);
+      {% endif %}
+      processedCount++;
+    }
+
+    return {
+      processedCount,
+      action: '{{ resource | rdfObject('fhir:retentionAction') | first.value }}',
+      cutoffDate,
+      complianceStatus: 'completed'
+    };
+  }
+  {% endif %}
+}
+
+// FHIR validation with clinical terminology
+interface FHIRValidationResult {
+  valid: boolean;
+  issues: OperationOutcomeIssue[];
+  profile: string;
+  terminology: {
+    {% set terminologies = resource | rdfObject('fhir:requiredTerminology') %}
+    {% for terminology in terminologies %}
+    {{ terminology.value | rdfObject('fhir:system') | first.value | split('/') | last }}: string;
+    {% endfor %}
+  };
+}
+</code></pre>
+<h3 id="supply-chain-gs1-standards-1"><a class="header" href="#supply-chain-gs1-standards-1">Supply Chain (GS1 Standards)</a></h3>
+<h4 id="global-trade-item-number-gtin-and-traceability-1"><a class="header" href="#global-trade-item-number-gtin-and-traceability-1">Global Trade Item Number (GTIN) and Traceability</a></h4>
+<pre><code class="language-turtle">@prefix gs1: &lt;https://gs1.org/voc/&gt; .
+@prefix trace: &lt;http://enterprise.supply/traceability#&gt; .
+
+# GS1 Product identification and traceability
+gs1:Product a rdfs:Class ;
+    gs1:hasGTIN ?gtin ;
+    gs1:hasGLN ?gln ;
+    gs1:hasSSCC ?sscc ;
+    gs1:requiresTraceability "true"^^xsd:boolean ;
+    gs1:complianceStandard "FDA21CFR", "EURegulation1169" .
+
+# Supply chain event tracking
+gs1:TraceabilityEvent a rdfs:Class ;
+    gs1:eventType gs1:ObjectEvent, gs1:AggregationEvent, gs1:TransformationEvent ;
+    gs1:whenOccurred xsd:dateTime ;
+    gs1:whereOccurred gs1:ReadPoint ;
+    gs1:whyOccurred gs1:BusinessStep ;
+    gs1:whatProduct gs1:Product .
+</code></pre>
+<p><strong>Template: GS1-Compliant Traceability System</strong></p>
+<pre><code class="language-yaml">---
+to: "supply-chain/{{ productCategory | kebabCase }}/traceability.ts"
+rdf: "https://gs1.org/voc/Supply-Chain-Traceability.ttl"
+rdfQuery: "?product rdf:type gs1:Product"
+standards: ["GS1", "EPCIS", "CBV"]
+---
+</code></pre>
+<pre><code class="language-nunjucks">/**
+ * GS1 Supply Chain Traceability for {{ productCategory }}
+ * Standards: {{ standards | join(', ') }}
+ * Product Category: {{ product | rdfObject('gs1:productCategory') | first | rdfLabel }}
+ * Regulatory Compliance: {{ product | rdfObject('gs1:complianceStandard') | map('value') | join(', ') }}
+ */
+
+export interface GS1ProductIdentification {
+  gtin: string;              // Global Trade Item Number
+  {% if product | rdfExists('gs1:hasGLN') %}
+  gln: string;               // Global Location Number
+  {% endif %}
+  {% if product | rdfExists('gs1:hasSSCC') %}
+  sscc: string;              // Serial Shipping Container Code
+  {% endif %}
+  {% if product | rdfExists('gs1:hasGSRN') %}
+  gsrn: string;              // Global Service Relation Number
+  {% endif %}
+}
+
+export class {{ productCategory }}TraceabilityService {
+  {% if product | rdfExists('gs1:requiresTraceability') %}
+  // EPCIS-compliant event processing
+  async recordSupplyChainEvent(event: TraceabilityEvent): Promise&lt;EPCISEvent&gt; {
+    // Validate GS1 identifiers
+    this.validateGS1Identifiers(event.products);
+    
+    const epcisEvent: EPCISEvent = {
+      eventTime: event.timestamp,
+      eventTimeZoneOffset: this.getTimezoneOffset(event.location),
+      
+      {% set eventTypes = product | rdfObject('gs1:supportedEventType') %}
+      {% for eventType in eventTypes %}
+      // {{ eventType.value | rdfLabel }} event processing
+      {% if eventType.value | split('#') | last == 'ObjectEvent' %}
+      ...(event.type === 'object' &amp;&amp; {
+        epcList: event.products.map(p =&gt; `urn:epc:id:sgtin:${p.gtin}`),
+        action: event.action, // ADD, OBSERVE, DELETE
+        bizStep: this.mapBusinessStep(event.businessStep),
+        disposition: this.mapDisposition(event.disposition),
+        readPoint: { id: event.location.gln },
+        bizLocation: { id: event.facility.gln }
+      }),
+      {% endif %}
+      {% endfor %}
+      
+      // Regulatory compliance tracking
+      {% set regulations = product | rdfObject('gs1:complianceStandard') %}
+      {% for regulation in regulations %}
+      {% if regulation.value == 'FDA21CFR' %}
+      fdaCompliance: {
+        facilityRegistration: event.facility.fdaRegistration,
+        processType: event.processType,
+        lotNumber: event.lotNumber
+      },
+      {% endif %}
+      {% if regulation.value == 'EURegulation1169' %}
+      euCompliance: {
+        allergenInfo: event.allergenDeclaration,
+        nutritionalInfo: event.nutritionalData,
+        originCountry: event.originCountry
+      },
+      {% endif %}
+      {% endfor %}
+    };
+
+    // Store in EPCIS repository
+    await this.epcisRepository.store(epcisEvent);
+    
+    // Trigger downstream notifications
+    await this.notifyTradePartners(epcisEvent);
+    
+    return epcisEvent;
+  }
+  {% endif %}
+
+  // Product recall capability
+  {% if product | rdfExists('gs1:recallCapable') %}
+  async initiateRecall(
+    gtin: string, 
+    lotNumbers: string[], 
+    reason: RecallReason
+  ): Promise&lt;RecallResult&gt; {
+    // Find all affected products in supply chain
+    const affectedProducts = await this.traceProductHistory(gtin, lotNumbers);
+    
+    // Generate recall notices per GS1 standards
+    const recallNotices = affectedProducts.map(product =&gt; ({
+      gtin: product.gtin,
+      lotNumber: product.lotNumber,
+      currentLocation: product.lastKnownLocation,
+      distributionPath: product.distributionHistory,
+      recallClass: this.determineRecallClass(reason),
+      urgency: reason.severity,
+      regulatoryNotification: {
+        {% for regulation in product | rdfObject('gs1:complianceStandard') %}
+        {% if regulation.value == 'FDA21CFR' %}
+        fda: {
+          reportingRequired: true,
+          reportingDeadline: this.calculateFDAReportingDeadline(reason.severity),
+          recallStrategy: reason.recallStrategy
+        },
+        {% endif %}
+        {% endfor %}
+      }
+    }));
+
+    // Execute recall process
+    const results = await Promise.all(
+      recallNotices.map(notice =&gt; this.executeRecallNotice(notice))
+    );
+
+    return {
+      totalAffected: affectedProducts.length,
+      notificationsSent: results.filter(r =&gt; r.success).length,
+      regulatoryFiled: results.some(r =&gt; r.regulatoryFiled),
+      estimatedRecoveryRate: this.estimateRecoveryRate(affectedProducts)
+    };
+  }
+  {% endif %}
+
+  // Sustainability tracking (ESG compliance)
+  {% if product | rdfExists('gs1:sustainabilityTracking') %}
+  async trackSustainabilityMetrics(gtin: string): Promise&lt;SustainabilityReport&gt; {
+    const product = await this.getProductByGTIN(gtin);
+    const supplyChainEvents = await this.getSupplyChainHistory(gtin);
+    
+    return {
+      productGTIN: gtin,
+      carbonFootprint: this.calculateCarbonFootprint(supplyChainEvents),
+      waterUsage: this.calculateWaterUsage(supplyChainEvents),
+      wasteGeneration: this.calculateWasteGeneration(supplyChainEvents),
+      sustainabilityCertifications: product.certifications,
+      {% if product | rdfExists('gs1:organicCertified') %}
+      organicCertification: {
+        certified: true,
+        certifyingBody: "{{ product | rdfObject('gs1:organicCertifyingBody') | first.value }}",
+        certificationNumber: "{{ product | rdfObject('gs1:organicCertNumber') | first.value }}"
+      },
+      {% endif %}
+      socialImpactScore: this.calculateSocialImpact(supplyChainEvents),
+      reportingPeriod: {
+        from: supplyChainEvents[0]?.timestamp,
+        to: supplyChainEvents[supplyChainEvents.length - 1]?.timestamp
+      }
+    };
+  }
+  {% endif %}
+}
+</code></pre>
+<h2 id="multi-tenant-namespace-management-1"><a class="header" href="#multi-tenant-namespace-management-1">Multi-Tenant Namespace Management</a></h2>
+<h3 id="tenant-specific-ontology-isolation-1"><a class="header" href="#tenant-specific-ontology-isolation-1">Tenant-Specific Ontology Isolation</a></h3>
+<pre><code class="language-typescript">class MultiTenantOntologyManager {
+  private tenantGraphs: Map&lt;string, Store&gt; = new Map();
+  private sharedOntologies: Store = new Store();
+  
+  async loadTenantOntology(
+    tenantId: string, 
+    ontologySource: string
+  ): Promise&lt;void&gt; {
+    // Create isolated namespace for tenant
+    const tenantNamespace = `http://tenant.${tenantId}.com/ontology/`;
+    const tenantGraph = new Store();
+    
+    // Load and namespace tenant-specific data
+    const rdfData = await this.loadRDFData(ontologySource);
+    const namespacedData = this.applyTenantNamespace(rdfData, tenantNamespace);
+    
+    tenantGraph.addQuads(namespacedData);
+    this.tenantGraphs.set(tenantId, tenantGraph);
+  }
+  
+  async queryTenantData(
+    tenantId: string,
+    query: SemanticQuery
+  ): Promise&lt;QueryResult[]&gt; {
+    // Combine tenant-specific and shared ontologies
+    const tenantGraph = this.tenantGraphs.get(tenantId);
+    if (!tenantGraph) {
+      throw new Error(`No ontology found for tenant: ${tenantId}`);
+    }
+    
+    // Execute federated query across tenant and shared graphs
+    return this.executeFederatedQuery(
+      [tenantGraph, this.sharedOntologies],
+      query
+    );
+  }
+}
+</code></pre>
+<h3 id="compliance-ontology-integration-1"><a class="header" href="#compliance-ontology-integration-1">Compliance Ontology Integration</a></h3>
+<pre><code class="language-yaml"># Multi-regulation compliance template
+---
+to: "compliance/{{ tenantId }}/{{ regulationType | kebabCase }}.ts"
+rdf:
+  - type: uri
+    source: "https://compliance.{{ tenantId }}.com/{{ regulationType }}.ttl"
+  - type: uri
+    source: "https://standards.org/{{ regulationType }}/requirements.ttl"
+rdfQuery: "?requirement rdf:type compliance:{{ regulationType }}Requirement"
+tenant_isolation: true
+---
+</code></pre>
+<pre><code class="language-nunjucks">/**
+ * {{ regulationType }} Compliance for Tenant {{ tenantId }}
+ * Jurisdiction: {{ requirement | rdfObject('compliance:jurisdiction') | first.value }}
+ * Effective Date: {{ requirement | rdfObject('compliance:effectiveDate') | first.value }}
+ * Next Review: {{ requirement | rdfObject('compliance:reviewDate') | first.value }}
+ */
+
+export class {{ tenantId }}{{ regulationType }}Compliance {
+  // Tenant-specific compliance requirements
+  private readonly requirements = {
+    {% set tenantReqs = rdf.query("?req compliance:appliesTo tenant:" + tenantId) %}
+    {% for req in tenantReqs %}
+    {{ req.req.value | split('/') | last }}: {
+      mandatory: {{ req.req.value | rdfObject('compliance:mandatory') | first.value }},
+      deadline: "{{ req.req.value | rdfObject('compliance:implementationDeadline') | first.value }}",
+      penalty: "{{ req.req.value | rdfObject('compliance:nonCompliancePenalty') | first.value }}",
+      verification: "{{ req.req.value | rdfObject('compliance:verificationMethod') | first.value }}"
+    },
+    {% endfor %}
+  } as const;
+
+  async validateCompliance(): Promise&lt;ComplianceReport&gt; {
+    const results: ComplianceCheckResult[] = [];
+    
+    {% for req in tenantReqs %}
+    // {{ req.req.value | rdfLabel }} validation
+    const {{ req.req.value | split('/') | last | camelCase }}Result = await this.validate{{ req.req.value | split('/') | last | pascalCase }}();
+    results.push({
+      requirement: "{{ req.req.value | rdfLabel }}",
+      status: {{ req.req.value | split('/') | last | camelCase }}Result.compliant ? 'COMPLIANT' : 'NON_COMPLIANT',
+      evidence: {{ req.req.value | split('/') | last | camelCase }}Result.evidence,
+      remediation: {{ req.req.value | split('/') | last | camelCase }}Result.remediation
+    });
+    {% endfor %}
+
+    return {
+      tenantId: "{{ tenantId }}",
+      regulationType: "{{ regulationType }}",
+      overallStatus: results.every(r =&gt; r.status === 'COMPLIANT') ? 'COMPLIANT' : 'NON_COMPLIANT',
+      checkResults: results,
+      reportGenerated: new Date(),
+      nextReviewDate: "{{ requirement | rdfObject('compliance:reviewDate') | first.value }}"
+    };
+  }
+}
+</code></pre>
+<p>This comprehensive enterprise ontology integration enables Fortune 5 organizations to generate code that automatically complies with industry standards, regulatory requirements, and business rules while maintaining tenant isolation and multi-jurisdictional compliance capabilities.</p>
+
+
+        <!-- Performance monitoring -->
+        <script>
+            // Simple performance monitoring
+            window.addEventListener('load', function() {
+                if ('performance' in window) {
+                    setTimeout(function() {
+                        const loadTime = performance.timing.loadEventEnd - performance.timing.navigationStart;
+                        console.log('📊 Page loaded in ' + loadTime + 'ms');
+                    }, 0);
+                }
+            });
+        </script>
+
+        <!-- Service Worker for offline support -->
+        <script>
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.register('../../sw.js')
+                    .then(function(registration) {
+                        console.log('📱 SW registered with scope:', registration.scope);
+                    })
+                    .catch(function(error) {
+                        console.log('❌ SW registration failed:', error);
+                    });
+            }
+        </script>
+    </body>
+</html>

@@ -1,0 +1,9 @@
+\documentclass{article}
+\newcounter{loopcounter}
+\setcounter{loopcounter}{-1}
+\begin{document}
+\whiledo{\value{loopcounter} < 0}{
+  \stepcounter{loopcounter}
+  \addtocounter{loopcounter}{-1}  % Never ends
+}
+\end{document}

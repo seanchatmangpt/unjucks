@@ -12,6 +12,7 @@ export default defineConfig({
       "tests/unit/nunjucks-filters.test.js",
       "tests/unit/advanced-filters.test.js",
       "tests/unit/latex-parser.test.js",
+      "tests/unit/string-filters.test.js", // New string filter tests
       "tests/integration/template-rendering.test.js",
       "tests/integration/frontmatter-filters.test.js",
       "tests/integration/sparql/**/*.test.ts",

@@ -39,7 +39,7 @@ The document(s) were served on the following person(s):
 
 {% if serviceList %}
 {% for service in serviceList %}
-\textbf{{{ service.name }}}{% if service.title %}, {{ service.title }}{% endif %}\\
+\textbf{{ service.name }}{% if service.title %}, {{ service.title }}{% endif %}\\
 {% if service.firm %}{{ service.firm }}\\{% endif %}
 {{ service.address }}\\
 {{ service.city }}, {{ service.state }} {{ service.zip }}\\

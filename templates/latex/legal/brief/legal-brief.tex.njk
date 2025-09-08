@@ -142,7 +142,7 @@ Attorney for {{ attorney.represents | default('Plaintiff') }}
 \vspace{\fill}
 
 {% if briefingSchedule.dueDate %}
-Due: {{ briefingSchedule.dueDate }}
+Due: {{ briefingSchedule.dueDate | legalDate(jurisdiction, 'brief') }}
 {% endif %}
 
 {% if pageLimit %}

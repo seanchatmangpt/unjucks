@@ -1,0 +1,357 @@
+<!DOCTYPE HTML>
+<html lang="en" class="navy" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Preface - Unjucks: Modern Code Generation in 2026</title>
+        <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+        <meta name="description" content="A comprehensive guide to modern code generation using the Unjucks framework, demonstrating declarative development patterns, AI integration, and advanced template design for productive software development.">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#0066cc"/>
+
+        <!-- Open Graph -->
+        <meta property="og:title" content="Preface - Unjucks: Modern Code Generation in 2026">
+        <meta property="og:description" content="A comprehensive guide to modern code generation using the Unjucks framework, demonstrating declarative development patterns, AI integration, and advanced template design for productive software development.">
+        <meta property="og:type" content="website">
+        <meta property="og:url" content="">
+        <meta property="og:image" content="unjucks-og.png">
+        
+        <!-- Twitter Card -->
+        <meta name="twitter:card" content="summary_large_image">
+        <meta name="twitter:title" content="Preface - Unjucks: Modern Code Generation in 2026">
+        <meta name="twitter:description" content="A comprehensive guide to modern code generation using the Unjucks framework, demonstrating declarative development patterns, AI integration, and advanced template design for productive software development.">
+        <meta name="twitter:image" content="unjucks-og.png">
+
+
+        <!-- Custom Unjucks Favicon -->
+        <link rel="icon" href="favicon.png">
+        <link rel="shortcut icon" href="favicon.png">
+
+        <!-- Fonts -->
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+
+        <link rel="stylesheet" href="css/variables.css">
+        <link rel="stylesheet" href="css/general.css">
+        <link rel="stylesheet" href="css/chrome.css">
+        <link rel="stylesheet" href="css/print.css" media="print">
+
+        <!-- Custom CSS -->
+
+        <!-- Custom head content -->
+
+        <!-- JSON-LD Structured Data -->
+        <script type="application/ld+json">
+        {
+            "@context": "https://schema.org",
+            "@type": "TechArticle",
+            "headline": "Preface - Unjucks: Modern Code Generation in 2026",
+            "description": "A comprehensive guide to modern code generation using the Unjucks framework, demonstrating declarative development patterns, AI integration, and advanced template design for productive software development.",
+            "author": {
+                "@type": "Organization",
+                "name": "Unjucks Development Team"
+            },
+            "publisher": {
+                "@type": "Organization",
+                "name": "Unjucks",
+                "logo": {
+                    "@type": "ImageObject",
+                    "url": "logo.png"
+                }
+            },
+            "url": "",
+            "mainEntityOfPage": "",
+            "datePublished": "",
+            "dateModified": "",
+            "inLanguage": "en",
+            "about": [
+                "Code Generation",
+                "Template Engine", 
+                "CLI Tools",
+                "Semantic Web",
+                "RDF",
+                "Software Development"
+            ]
+        }
+        </script>
+    </head>
+    <body>
+        <!-- Provide site root to javascript -->
+        <script type="text/javascript">
+            var path_to_root = "";
+            var default_theme = "navy";
+        </script>
+
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script type="text/javascript">
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme && theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar && sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script type="text/javascript">
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            var html = document.querySelector('html');
+            html.classList.remove('no-js')
+            html.classList.remove('light')
+            html.classList.remove('rust')
+            html.classList.remove('coal')
+            html.classList.remove('navy')
+            html.classList.remove('ayu')
+            html.classList.add(theme);
+            html.classList.add('js');
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script type="text/javascript">
+            var body = document.querySelector('body');
+            var sidebar = null;
+            var sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+            }
+            sidebar_toggle.checked = sidebar === 'visible';
+            body.classList.remove('sidebar-visible');
+            body.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <div class="sidebar-scrollbox">
+                <!-- Unjucks Logo -->
+                <div class="unjucks-logo" style="padding: 1rem; text-align: center; border-bottom: 1px solid #e1e5e9;">
+                    <h3 style="margin: 0; color: #0066cc; font-weight: 700;">🚀 Unjucks</h3>
+                    <p style="margin: 0.5rem 0 0 0; font-size: 0.8rem; color: #666;">Template Generation Platform</p>
+                </div>
+
+                <!-- TOC will be generated automatically by mdbook -->
+            </div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
+        </nav>
+
+        <!-- Page wrapper -->
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label for="sidebar-toggle-anchor" class="left" id="sidebar-toggle" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button left" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy (default)</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button left" type="button" title="Toggle Searchbar" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Unjucks: Modern Code Generation in 2026</h1>
+
+                    <div class="right-buttons">
+                        <a href="print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+                        <a href="https://github.com/ruvnet/unjucks" title="Git repository" aria-label="Git repository">
+                            <i id="git-repository-button" class="fa fa-github"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script type="text/javascript">
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <!-- Breadcrumb Navigation -->
+                        <div class="breadcrumb-nav" style="margin-bottom: 1.5rem; font-size: 0.9rem; color: #666;">
+                            <a href="index.html">🏠 Home</a>
+                            <span> › </span>
+                            <span>Preface</span>
+                        </div>
+
+                        <h1 id="preface"><a class="header" href="#preface">Preface</a></h1>
+<p>This book explores the revolutionary intersection of artificial intelligence and software development through the lens of specification-driven development. As AI tools become increasingly sophisticated and accessible, developers are discovering new paradigms that fundamentally change how we approach software creation.</p>
+<h2 id="why-this-book-matters"><a class="header" href="#why-this-book-matters">Why This Book Matters</a></h2>
+<p>The traditional software development lifecycle has been evolving rapidly with the introduction of AI-powered tools. This book presents a structured approach to leveraging these tools effectively through the SPARC (Specification, Pseudocode, Architecture, Refinement, Completion) methodology, demonstrated through a comprehensive case study of the Unjucks v2 refactor.</p>
+<h2 id="who-should-read-this-book"><a class="header" href="#who-should-read-this-book">Who Should Read This Book</a></h2>
+<ul>
+<li>Software developers interested in AI-assisted development</li>
+<li>Technical architects designing modern development workflows</li>
+<li>Project managers overseeing AI-enhanced development teams</li>
+<li>Engineering leaders planning digital transformation initiatives</li>
+<li>Students learning modern software development practices</li>
+</ul>
+<h2 id="how-to-use-this-book"><a class="header" href="#how-to-use-this-book">How to Use This Book</a></h2>
+<p>This book is structured to take you from foundational concepts to advanced implementation strategies. Each chapter builds upon previous concepts while providing practical examples and actionable insights. The Unjucks v2 case study runs throughout the book, providing concrete examples of concepts in practice.</p>
+<h2 id="acknowledgments"><a class="header" href="#acknowledgments">Acknowledgments</a></h2>
+<p>This work represents the collaborative efforts of human developers and AI systems, demonstrating the very principles it teaches. Special recognition goes to the open-source community and the researchers advancing AI-assisted development tools.</p>
+<h2 id="convention-and-terminology"><a class="header" href="#convention-and-terminology">Convention and Terminology</a></h2>
+<p>Throughout this book, we use specific terminology and conventions:</p>
+<ul>
+<li><strong>SPARC</strong>: Our core methodology (Specification, Pseudocode, Architecture, Refinement, Completion)</li>
+<li><strong>AI Agent</strong>: Specialized AI assistants with specific roles and capabilities</li>
+<li><strong>Template System</strong>: Code generation frameworks like Unjucks</li>
+<li><strong>Multi-Agent Workflow</strong>: Coordinated AI systems working on complex tasks</li>
+</ul>
+<p>Ready to transform your development process? Let's begin.</p>
+
+
+                        <!-- Page Footer -->
+                        <div class="page-footer" style="margin-top: 3rem; padding-top: 2rem; border-top: 1px solid #e1e5e9;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+                                <div class="footer-links" style="display: flex; gap: 1rem; font-size: 0.9rem;">
+                                    <a href="https://unjucks.dev" target="_blank">🌐 Website</a>
+                                    <a href="https://github.com/ruvnet/unjucks" target="_blank">💻 GitHub</a>
+                                    <a href="https://github.com/ruvnet/unjucks/issues" target="_blank">🐛 Issues</a>
+                                    <a href="https://github.com/ruvnet/unjucks/discussions" target="_blank">💬 Discussions</a>
+                                </div>
+                                <div class="footer-info" style="font-size: 0.8rem; color: #888; text-align: right;">
+                                    <p>Built with ❤️ using <a href="https://rust-lang.github.io/mdBook/" target="_blank">mdBook</a></p>
+                                    <p>© 2024 Unjucks Project</p>
+                                </div>
+                            </div>
+                        </div>
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                        <a href="" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                            <i class="fa fa-angle-left"></i>
+                        </a>
+
+                        <a href="" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                            <i class="fa fa-angle-right"></i>
+                        </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <!-- Desktop navigation -->
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                <a href="" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                    <i class="fa fa-angle-left"></i>
+                </a>
+
+                <a href="" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                    <i class="fa fa-angle-right"></i>
+                </a>
+            </nav>
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="elasticlunr.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="mark.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="searcher.js" type="text/javascript" charset="utf-8"></script>
+
+        <script src="clipboard.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="highlight.js" type="text/javascript" charset="utf-8"></script>
+        <script src="book.js" type="text/javascript" charset="utf-8"></script>
+
+        <!-- Custom JS -->
+
+        <!-- Custom body content -->
+        <h1 id="preface-1"><a class="header" href="#preface-1">Preface</a></h1>
+<p>This book explores the revolutionary intersection of artificial intelligence and software development through the lens of specification-driven development. As AI tools become increasingly sophisticated and accessible, developers are discovering new paradigms that fundamentally change how we approach software creation.</p>
+<h2 id="why-this-book-matters-1"><a class="header" href="#why-this-book-matters-1">Why This Book Matters</a></h2>
+<p>The traditional software development lifecycle has been evolving rapidly with the introduction of AI-powered tools. This book presents a structured approach to leveraging these tools effectively through the SPARC (Specification, Pseudocode, Architecture, Refinement, Completion) methodology, demonstrated through a comprehensive case study of the Unjucks v2 refactor.</p>
+<h2 id="who-should-read-this-book-1"><a class="header" href="#who-should-read-this-book-1">Who Should Read This Book</a></h2>
+<ul>
+<li>Software developers interested in AI-assisted development</li>
+<li>Technical architects designing modern development workflows</li>
+<li>Project managers overseeing AI-enhanced development teams</li>
+<li>Engineering leaders planning digital transformation initiatives</li>
+<li>Students learning modern software development practices</li>
+</ul>
+<h2 id="how-to-use-this-book-1"><a class="header" href="#how-to-use-this-book-1">How to Use This Book</a></h2>
+<p>This book is structured to take you from foundational concepts to advanced implementation strategies. Each chapter builds upon previous concepts while providing practical examples and actionable insights. The Unjucks v2 case study runs throughout the book, providing concrete examples of concepts in practice.</p>
+<h2 id="acknowledgments-1"><a class="header" href="#acknowledgments-1">Acknowledgments</a></h2>
+<p>This work represents the collaborative efforts of human developers and AI systems, demonstrating the very principles it teaches. Special recognition goes to the open-source community and the researchers advancing AI-assisted development tools.</p>
+<h2 id="convention-and-terminology-1"><a class="header" href="#convention-and-terminology-1">Convention and Terminology</a></h2>
+<p>Throughout this book, we use specific terminology and conventions:</p>
+<ul>
+<li><strong>SPARC</strong>: Our core methodology (Specification, Pseudocode, Architecture, Refinement, Completion)</li>
+<li><strong>AI Agent</strong>: Specialized AI assistants with specific roles and capabilities</li>
+<li><strong>Template System</strong>: Code generation frameworks like Unjucks</li>
+<li><strong>Multi-Agent Workflow</strong>: Coordinated AI systems working on complex tasks</li>
+</ul>
+<p>Ready to transform your development process? Let's begin.</p>
+
+
+        <!-- Performance monitoring -->
+        <script>
+            // Simple performance monitoring
+            window.addEventListener('load', function() {
+                if ('performance' in window) {
+                    setTimeout(function() {
+                        const loadTime = performance.timing.loadEventEnd - performance.timing.navigationStart;
+                        console.log('📊 Page loaded in ' + loadTime + 'ms');
+                    }, 0);
+                }
+            });
+        </script>
+
+        <!-- Service Worker for offline support -->
+        <script>
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.register('sw.js')
+                    .then(function(registration) {
+                        console.log('📱 SW registered with scope:', registration.scope);
+                    })
+                    .catch(function(error) {
+                        console.log('❌ SW registration failed:', error);
+                    });
+            }
+        </script>
+    </body>
+</html>

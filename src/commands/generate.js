@@ -40,24 +40,30 @@ class Generator {
   async listGenerators() {
     try {
       const generators = [];
-      const templatesPath = path.resolve(this.templatesDir);
+      const templatePaths = [
+        path.resolve(this.templatesDir),
+        path.resolve('node_modules/@seanchatmangpt/unjucks/_templates')
+      ];
       
-      if (!(await fs.pathExists(templatesPath))) {
-        return [];
-      }
-      
-      const items = await fs.readdir(templatesPath, { withFileTypes: true });
-      
-      for (const item of items) {
-        if (item.isDirectory()) {
-          const generatorPath = path.join(templatesPath, item.name);
-          const hasTemplates = await this.hasTemplateFiles(generatorPath);
-          
-          if (hasTemplates) {
-            generators.push({
-              name: item.name,
-              description: `Generator for ${item.name}`
-            });
+      for (const templatesPath of templatePaths) {
+        if (!(await fs.pathExists(templatesPath))) {
+          continue;
+        }
+        
+        const items = await fs.readdir(templatesPath, { withFileTypes: true });
+        
+        for (const item of items) {
+          if (item.isDirectory()) {
+            const generatorPath = path.join(templatesPath, item.name);
+            const hasTemplates = await this.hasTemplateFiles(generatorPath);
+            
+            if (hasTemplates && !generators.find(g => g.name === item.name)) {
+              generators.push({
+                name: item.name,
+                description: `Generator for ${item.name}`,
+                path: templatesPath
+              });
+            }
           }
         }
       }
@@ -105,12 +111,24 @@ class Generator {
     try {
       const { generator: generatorName, template: templateName, dest, variables = {}, dry = false, force = false } = options;
       
-      const templatePath = path.resolve(this.templatesDir, generatorName, templateName);
+      // Try to find template in multiple locations
+      const templatePaths = [
+        path.resolve(this.templatesDir, generatorName, templateName),
+        path.resolve('node_modules/@seanchatmangpt/unjucks/_templates', generatorName, templateName)
+      ];
       
-      if (!(await fs.pathExists(templatePath))) {
+      let templatePath = null;
+      for (const tryPath of templatePaths) {
+        if (await fs.pathExists(tryPath)) {
+          templatePath = tryPath;
+          break;
+        }
+      }
+      
+      if (!templatePath) {
         return {
           success: false,
-          message: `Template not found: ${generatorName}/${templateName}`,
+          message: `Template not found: ${generatorName}/${templateName}. Searched in: ${templatePaths.join(', ')}`,
           files: [],
           warnings: []
         };
@@ -174,10 +192,16 @@ class Generator {
       
       const { frontmatter, content: renderedContent } = renderResult;
       
-      // Render output path using Perfect Engine
+      // Render output path using Perfect Engine - CRITICAL FIX
       let outputPath;
       if (frontmatter.to) {
-        outputPath = this.perfectEngine.processVariables(frontmatter.to, variables);
+        // Use renderString instead of processVariables for full template processing
+        try {
+          outputPath = this.perfectEngine.nunjucksEnv.renderString(frontmatter.to, variables);
+        } catch (error) {
+          console.warn('Failed to render output path, using processVariables fallback:', error.message);
+          outputPath = this.perfectEngine.processVariables(frontmatter.to, variables);
+        }
       } else {
         // Strip template extensions properly
         let basename = path.basename(templateFilePath);
@@ -508,13 +532,30 @@ export const generateCommand = defineCommand({
         templateVariables.name = args.name;
       }
 
+      // CRITICAL FIX: Map serviceName to name for template compatibility
+      if (args.serviceName && !templateVariables.name) {
+        templateVariables.name = args.serviceName;
+      }
+      
+      // Map other common arguments to 'name' if not already set
+      if (!templateVariables.name) {
+        // Try common naming patterns
+        for (const key of ['componentName', 'modelName', 'entityName', 'className']) {
+          if (args[key]) {
+            templateVariables.name = args[key];
+            break;
+          }
+        }
+      }
+
       // Interactive mode if no generator/template specified
       if (!generatorName) {
         if (args.skipPrompts) {
           console.error(chalk.red("\n❌ Generator name required when using --skip-prompts"));
-          console.log(chalk.blue("\n💡 Suggestions:"));
-          console.log(chalk.blue("  • Specify a generator: unjucks generate <generator> <template>"));
-          console.log(chalk.blue("  • Use 'unjucks list' to see available generators"));
+          console.log(chalk.blue("\n💡 Quick fixes:"));
+          console.log(chalk.blue("  • Run: unjucks list                    (see all generators)"));
+          console.log(chalk.blue("  • Try: unjucks component react Button  (example usage)"));
+          console.log(chalk.blue("  • Or:  unjucks generate component react Button"));
           return { success: false, message: "Generator name required", files: [] };
         }
 
@@ -562,10 +603,11 @@ export const generateCommand = defineCommand({
       if (!args.quiet) {
         console.log(chalk.green(`\n🚀 Generating ${generatorName}/${templateName}`));
         if (args.verbose) {
-          console.log(chalk.gray("Template variables:"), {
+          const finalVariables = {
             ...extractFlagVariables(args),
             ...templateVariables,
-          });
+          };
+          console.log(chalk.gray("Template variables:"), finalVariables);
         }
       }
 
@@ -575,16 +617,19 @@ export const generateCommand = defineCommand({
         console.log(chalk.cyan(message));
       }
 
+      const finalVariables = {
+        ...extractFlagVariables(args), // Flag-based variables first
+        ...templateVariables, // Positional args override flags (higher precedence)
+      };
+
+
       const result = await generator.generate({
         generator: generatorName,
         template: templateName,
         dest: args.dest,
         force: args.force,
         dry: args.dry,
-        variables: {
-          ...extractFlagVariables(args), // Flag-based variables first
-          ...templateVariables, // Positional args override flags (higher precedence)
-        },
+        variables: finalVariables,
       });
 
       // Display results

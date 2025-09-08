@@ -182,10 +182,23 @@ async function exportDocument(args) {
     await exporter.initialize();
 
     // Get input content
-    let content;
+    let content = '';
     if (args.input) {
       if (await fileExists(args.input)) {
-        content = await fs.readFile(args.input, 'utf8');
+        try {
+          content = await fs.readFile(args.input, 'utf8');
+          if (args.verbose) {
+            consola.info(`Successfully read ${content.length} characters from ${args.input}`);
+          }
+          
+          // CRITICAL FIX: Validate content was actually read
+          if (content.length === 0) {
+            consola.warn(`File ${args.input} exists but contains 0 characters`);
+          }
+        } catch (error) {
+          consola.error(`Failed to read file ${args.input}:`, error.message);
+          throw error;
+        }
         
         // Auto-detect format if not specified
         if (args.format === 'auto') {
@@ -401,7 +414,7 @@ function detectFormat(filename, content) {
     return 'html';
   }
   
-  if (content.match(/^#{1,6}\s/) || content.includes('**') || content.includes('*')) {
+  if (content.match(/^#{1,6}\s/m) || content.includes('**') || content.includes('*') || content.includes('```')) {
     return 'markdown';
   }
   
@@ -416,7 +429,8 @@ function detectFormat(filename, content) {
     return 'nunjucks';
   }
 
-  return 'text';
+  // Default to markdown for most text content
+  return 'markdown';
 }
 
 function formatFileSize(bytes) {

@@ -9,7 +9,7 @@ I hereby certify that a true and correct copy of the foregoing {{ documentType |
 
 {% if serviceList %}
 {% for service in serviceList %}
-\textbf{{{ service.name }}}\\
+\textbf{{ service.name }}\\
 {{ service.firm | default('') }}\\
 {{ service.address }}\\
 {{ service.city }}, {{ service.state }} {{ service.zip }}\\

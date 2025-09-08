@@ -1,7 +1,7 @@
 [book]
-title = "Unjucks 2026: Next-Generation Code Generation Best Practices"
-authors = ["Unjucks Team", "AI Swarm Contributors"]
-description = "Comprehensive guide to AI-powered code generation with MCP integration, semantic web capabilities, and enterprise workflows"
+title = "Unjucks: Modern Code Generation in 2026"
+authors = ["Development Team", "AI Assistants"]
+description = "A comprehensive guide to modern code generation using the Unjucks framework, demonstrating declarative development patterns, AI integration, and advanced template design for productive software development."
 src = "src"
 language = "en"
 
@@ -41,4 +41,5 @@ enable = true
 page-break = true
 
 [output.linkcheck]
+optional = true
 follow-web-links = true

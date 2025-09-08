@@ -1,0 +1,638 @@
+# YAML Specification Examples for Unjucks v2
+# These examples demonstrate the complete specification format for code generation
+
+# =============================================================================
+# Basic Component Specification
+# =============================================================================
+apiVersion: unjucks/v2
+kind: ComponentSpec
+metadata:
+  name: user-authentication-service
+  description: "Complete user authentication service with JWT tokens"
+  version: "1.0.0"
+  author: "Unjucks Team"
+  tags:
+    - authentication
+    - jwt
+    - microservice
+
+spec:
+  # Template selection and configuration
+  template:
+    generator: "service/auth"
+    version: "2.1.0"
+    source: "_templates/services/authentication"
+  
+  # Variable definitions with validation
+  variables:
+    serviceName:
+      type: string
+      required: true
+      default: "UserAuthService"
+      pattern: "^[A-Z][a-zA-Z0-9]*$"
+      description: "Pascal case service class name"
+    
+    databaseType:
+      type: enum
+      values: ["postgresql", "mysql", "mongodb", "sqlite"]
+      default: "postgresql"
+      description: "Database engine for user storage"
+    
+    jwtSecret:
+      type: string
+      required: true
+      env: "JWT_SECRET"
+      description: "JWT signing secret (from environment)"
+    
+    enableTwoFactor:
+      type: boolean
+      default: false
+      description: "Enable two-factor authentication"
+    
+    supportedProviders:
+      type: array
+      items:
+        type: string
+        enum: ["local", "google", "github", "facebook"]
+      default: ["local"]
+      description: "Authentication providers to enable"
+
+  # Output configuration
+  output:
+    baseDir: "./src/services"
+    structure:
+      - path: "auth/"
+        type: "directory"
+      - path: "auth/{{serviceName}}.ts"
+        type: "file"
+        template: "service.ts.njk"
+      - path: "auth/{{serviceName}}.test.ts"
+        type: "file"
+        template: "service.test.ts.njk"
+      - path: "auth/middleware/"
+        type: "directory"
+      - path: "auth/middleware/jwt.middleware.ts"
+        type: "file"
+        template: "jwt.middleware.ts.njk"
+
+  # Code generation hooks
+  hooks:
+    pre-generate:
+      - script: "npm run lint:check"
+        description: "Validate existing code before generation"
+    
+    post-generate:
+      - script: "npm run format"
+        description: "Format generated code"
+      - script: "npm run test:unit -- {{serviceName}}"
+        description: "Run unit tests for generated service"
+
+  # Dependencies and integrations
+  dependencies:
+    npm:
+      - name: "jsonwebtoken"
+        version: "^9.0.0"
+        dev: false
+      - name: "bcrypt"
+        version: "^5.1.0"
+        dev: false
+      - name: "@types/jsonwebtoken"
+        version: "^9.0.0"
+        dev: true
+    
+    imports:
+      - from: "../database/connection"
+        import: ["DatabaseConnection"]
+      - from: "../utils/logger"
+        import: ["Logger"]
+
+  # Validation rules
+  validation:
+    rules:
+      - field: "serviceName"
+        rule: "unique"
+        scope: "project"
+        message: "Service name must be unique within project"
+      
+      - field: "databaseType"
+        rule: "compatible"
+        with: "project.database.type"
+        message: "Database type must match project configuration"
+
+---
+
+# =============================================================================
+# Advanced API Generator Specification
+# =============================================================================
+apiVersion: unjucks/v2
+kind: APISpec
+metadata:
+  name: rest-api-generator
+  description: "Generate complete REST API with OpenAPI documentation"
+  version: "2.0.0"
+
+spec:
+  template:
+    generator: "api/rest"
+    extends: "base/typescript-service"
+  
+  variables:
+    apiName:
+      type: string
+      required: true
+      transform: "pascalCase"
+      description: "API service name"
+    
+    version:
+      type: string
+      pattern: "^\\d+\\.\\d+\\.\\d+$"
+      default: "1.0.0"
+      description: "API version (semantic versioning)"
+    
+    entities:
+      type: array
+      required: true
+      items:
+        type: object
+        properties:
+          name:
+            type: string
+            required: true
+          fields:
+            type: array
+            items:
+              type: object
+              properties:
+                name: { type: string, required: true }
+                type: { type: string, enum: ["string", "number", "boolean", "date"] }
+                required: { type: boolean, default: true }
+                validation: { type: object }
+      
+      example:
+        - name: "User"
+          fields:
+            - name: "email"
+              type: "string"
+              required: true
+              validation:
+                format: "email"
+            - name: "age"
+              type: "number"
+              required: false
+              validation:
+                min: 0
+                max: 120
+
+  # Multi-file generation with complex routing
+  output:
+    baseDir: "./api/{{apiName | lower}}"
+    templates:
+      # Main API entry point
+      - source: "api.main.ts.njk"
+        target: "index.ts"
+        
+      # Entity models
+      - source: "model.ts.njk"
+        target: "models/{{entity.name}}.ts"
+        foreach: "entities"
+        
+      # Controllers for each entity
+      - source: "controller.ts.njk"
+        target: "controllers/{{entity.name | lower}}.controller.ts"
+        foreach: "entities"
+        
+      # Routes
+      - source: "routes.ts.njk"
+        target: "routes/{{entity.name | lower}}.routes.ts"
+        foreach: "entities"
+        
+      # OpenAPI documentation
+      - source: "openapi.yml.njk"
+        target: "docs/openapi.yml"
+        
+      # Docker configuration
+      - source: "Dockerfile.njk"
+        target: "Dockerfile"
+        condition: "deployment.docker === true"
+
+  # Environment-specific configuration
+  environments:
+    development:
+      variables:
+        debug: true
+        cors: "*"
+        rateLimit: false
+    
+    production:
+      variables:
+        debug: false
+        cors: "https://yourdomain.com"
+        rateLimit: true
+        rateLimitMax: 100
+
+  # Plugin system integration
+  plugins:
+    - name: "swagger-generator"
+      version: "^1.2.0"
+      config:
+        outputPath: "docs/api"
+    
+    - name: "test-generator"
+      version: "^2.0.0"
+      config:
+        framework: "jest"
+        coverage: 90
+
+---
+
+# =============================================================================
+# Database Migration Specification
+# =============================================================================
+apiVersion: unjucks/v2
+kind: MigrationSpec
+metadata:
+  name: database-schema-migration
+  description: "Generate database migrations with rollback support"
+
+spec:
+  template:
+    generator: "database/migration"
+  
+  variables:
+    migrationName:
+      type: string
+      required: true
+      pattern: "^[a-z][a-z0-9_]*$"
+      description: "Snake case migration name"
+    
+    tables:
+      type: array
+      items:
+        type: object
+        properties:
+          name: { type: string, required: true }
+          action: { type: string, enum: ["create", "alter", "drop"] }
+          columns:
+            type: array
+            items:
+              type: object
+              properties:
+                name: { type: string }
+                type: { type: string }
+                constraints: { type: array }
+    
+    indexes:
+      type: array
+      items:
+        type: object
+        properties:
+          name: { type: string }
+          table: { type: string }
+          columns: { type: array }
+          unique: { type: boolean, default: false }
+
+  # Migration file generation
+  output:
+    baseDir: "./migrations"
+    naming: "{{timestamp}}_{{migrationName}}"
+    templates:
+      - source: "migration.sql.njk"
+        target: "{{timestamp}}_{{migrationName}}_up.sql"
+      - source: "rollback.sql.njk"
+        target: "{{timestamp}}_{{migrationName}}_down.sql"
+
+  # Validation for database consistency
+  validation:
+    rules:
+      - field: "tables"
+        rule: "foreign-key-exists"
+        message: "Referenced tables must exist"
+      
+      - field: "columns"
+        rule: "valid-type"
+        scope: "database.{{databaseType}}"
+        message: "Column type must be valid for selected database"
+
+---
+
+# =============================================================================
+# Frontend Component Specification
+# =============================================================================
+apiVersion: unjucks/v2
+kind: ComponentSpec
+metadata:
+  name: react-component-generator
+  description: "Generate React components with TypeScript and testing"
+
+spec:
+  template:
+    generator: "react/component"
+  
+  variables:
+    componentName:
+      type: string
+      required: true
+      transform: "pascalCase"
+      description: "Component name in PascalCase"
+    
+    componentType:
+      type: enum
+      values: ["functional", "class", "hook"]
+      default: "functional"
+      description: "Type of React component"
+    
+    styling:
+      type: enum
+      values: ["css-modules", "styled-components", "emotion", "tailwind"]
+      default: "css-modules"
+      description: "Styling approach"
+    
+    props:
+      type: array
+      items:
+        type: object
+        properties:
+          name: { type: string, required: true }
+          type: { type: string, required: true }
+          required: { type: boolean, default: true }
+          defaultValue: { type: string }
+      
+      example:
+        - name: "title"
+          type: "string"
+          required: true
+        - name: "onClick"
+          type: "(event: MouseEvent) => void"
+          required: false
+
+  output:
+    baseDir: "./src/components/{{componentName}}"
+    templates:
+      # Main component file
+      - source: "component.tsx.njk"
+        target: "{{componentName}}.tsx"
+        
+      # Styling file
+      - source: "styles.module.css.njk"
+        target: "{{componentName}}.module.css"
+        condition: "styling === 'css-modules'"
+        
+      # Stories for Storybook
+      - source: "component.stories.tsx.njk"
+        target: "{{componentName}}.stories.tsx"
+        
+      # Unit tests
+      - source: "component.test.tsx.njk"
+        target: "{{componentName}}.test.tsx"
+        
+      # Index file for clean imports
+      - source: "index.ts.njk"
+        target: "index.ts"
+
+  # Integration with development tools
+  integrations:
+    storybook:
+      enabled: true
+      config:
+        controls: true
+        docs: true
+    
+    testing:
+      framework: "react-testing-library"
+      coverage: true
+    
+    linting:
+      eslint: true
+      prettier: true
+
+---
+
+# =============================================================================
+# Microservice Architecture Specification
+# =============================================================================
+apiVersion: unjucks/v2
+kind: ArchitectureSpec
+metadata:
+  name: microservice-architecture
+  description: "Generate complete microservice with Docker, K8s, and monitoring"
+
+spec:
+  template:
+    generator: "architecture/microservice"
+  
+  variables:
+    serviceName:
+      type: string
+      required: true
+      description: "Microservice name"
+    
+    port:
+      type: number
+      default: 3000
+      minimum: 1000
+      maximum: 65535
+      description: "Service port number"
+    
+    database:
+      type: object
+      properties:
+        type: { type: string, enum: ["postgresql", "mongodb", "redis"] }
+        host: { type: string, default: "localhost" }
+        port: { type: number }
+        name: { type: string }
+    
+    features:
+      type: array
+      items:
+        type: string
+        enum: ["auth", "logging", "metrics", "health-check", "swagger", "rate-limiting"]
+      default: ["logging", "health-check"]
+
+  # Comprehensive output structure
+  output:
+    baseDir: "./services/{{serviceName}}"
+    structure:
+      # Application code
+      - path: "src/"
+        templates:
+          - source: "app.ts.njk"
+            target: "app.ts"
+          - source: "server.ts.njk"
+            target: "server.ts"
+          - source: "config/index.ts.njk"
+            target: "config/index.ts"
+      
+      # Docker configuration
+      - path: "docker/"
+        templates:
+          - source: "Dockerfile.njk"
+            target: "Dockerfile"
+          - source: "docker-compose.yml.njk"
+            target: "docker-compose.yml"
+      
+      # Kubernetes manifests
+      - path: "k8s/"
+        templates:
+          - source: "deployment.yml.njk"
+            target: "deployment.yml"
+          - source: "service.yml.njk"
+            target: "service.yml"
+          - source: "configmap.yml.njk"
+            target: "configmap.yml"
+      
+      # CI/CD pipeline
+      - path: ".github/workflows/"
+        templates:
+          - source: "ci.yml.njk"
+            target: "ci.yml"
+          - source: "deploy.yml.njk"
+            target: "deploy.yml"
+
+  # Advanced plugin system
+  plugins:
+    - name: "monitoring-setup"
+      type: "post-generate"
+      config:
+        prometheus: true
+        grafana: true
+        alerting: true
+    
+    - name: "security-scanner"
+      type: "validation"
+      config:
+        dockerfile: true
+        dependencies: true
+        secrets: true
+
+  # Multi-environment support
+  environments:
+    development:
+      variables:
+        debug: true
+        replicas: 1
+      resources:
+        cpu: "100m"
+        memory: "128Mi"
+    
+    staging:
+      variables:
+        debug: false
+        replicas: 2
+      resources:
+        cpu: "200m"
+        memory: "256Mi"
+    
+    production:
+      variables:
+        debug: false
+        replicas: 3
+      resources:
+        cpu: "500m"
+        memory: "512Mi"
+
+---
+
+# =============================================================================
+# AI/ML Model Integration Specification
+# =============================================================================
+apiVersion: unjucks/v2
+kind: MLSpec
+metadata:
+  name: ml-model-service
+  description: "Generate ML model serving infrastructure with monitoring"
+
+spec:
+  template:
+    generator: "ml/model-service"
+  
+  variables:
+    modelName:
+      type: string
+      required: true
+      description: "Machine learning model name"
+    
+    modelType:
+      type: enum
+      values: ["classification", "regression", "nlp", "computer-vision", "recommendation"]
+      required: true
+      description: "Type of ML model"
+    
+    framework:
+      type: enum
+      values: ["tensorflow", "pytorch", "scikit-learn", "huggingface"]
+      required: true
+      description: "ML framework used"
+    
+    inputSchema:
+      type: object
+      description: "Model input schema definition"
+      example:
+        type: "object"
+        properties:
+          text:
+            type: "string"
+            description: "Input text for NLP model"
+          max_length:
+            type: "number"
+            default: 512
+    
+    outputSchema:
+      type: object
+      description: "Model output schema definition"
+      example:
+        type: "object"
+        properties:
+          predictions:
+            type: "array"
+            items:
+              type: "object"
+              properties:
+                label: { type: "string" }
+                confidence: { type: "number" }
+
+  output:
+    baseDir: "./ml-services/{{modelName}}"
+    templates:
+      # Model serving API
+      - source: "api/model_server.py.njk"
+        target: "api/model_server.py"
+      
+      # Model loading and inference
+      - source: "model/inference.py.njk"
+        target: "model/inference.py"
+      
+      # Data preprocessing
+      - source: "preprocessing/pipeline.py.njk"
+        target: "preprocessing/pipeline.py"
+      
+      # Monitoring and metrics
+      - source: "monitoring/metrics.py.njk"
+        target: "monitoring/metrics.py"
+      
+      # Container configuration
+      - source: "Dockerfile.ml.njk"
+        target: "Dockerfile"
+      
+      # Model validation tests
+      - source: "tests/test_model.py.njk"
+        target: "tests/test_model.py"
+
+  # ML-specific integrations
+  integrations:
+    monitoring:
+      prometheus: true
+      grafana: true
+      custom_metrics:
+        - "model_prediction_latency"
+        - "model_accuracy_score"
+        - "model_drift_detection"
+    
+    mlops:
+      experiment_tracking: "mlflow"
+      model_registry: "mlflow"
+      data_validation: "great_expectations"
+    
+    deployment:
+      kubernetes: true
+      auto_scaling: true
+      blue_green: true

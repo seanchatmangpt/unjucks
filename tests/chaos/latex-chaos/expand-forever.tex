@@ -1,0 +1,5 @@
+\documentclass{article}
+\def\expandforever#1{#1\expandforever{#1#1}}
+\begin{document}
+\expandforever{a}  % Exponential expansion
+\end{document}

@@ -1,0 +1,12 @@
+\documentclass{article}
+\usepackage{hyperref}
+\begin{document}
+\section{Introduction}\label{intro}
+With hyperref, broken links become more problematic.
+
+See \hyperref[nonexistent]{this broken link}.
+\autoref{missing} and \nameref{also-missing}.
+
+\href{http://broken-url}{Broken external link}
+\url{not-a-valid-url-format}
+\end{document}

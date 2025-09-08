@@ -2,14 +2,16 @@
 to: "{{ dest }}/queries/complex-{{ queryName }}.sparql"
 inject: false
 ---
-PREFIX ex: <{{ baseUri | rdfResource }}/>
+PREFIX ex: <{{ baseUri }}/>
 PREFIX schema: <http://schema.org/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 PREFIX geo: <http://www.w3.org/2003/01/geo/wgs84_pos#>
+PREFIX foaf: <http://xmlns.com/foaf/0.1/>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX dbo: <http://dbpedia.org/ontology/>
 
-SELECT {{ variables | map('sparqlVar') | join(' ') }}
-       {{ aggregations | map('sparqlAggregation') | join(' ') }}
+SELECT {% for var in variables %}{{ var | sparqlVar }}{% if not loop.last %} {% endif %}{% endfor %}{% if aggregations and variables %} {% endif %}{% if aggregations %}{% for agg in aggregations %}{{ agg | sparqlAggregation }}{% if not loop.last %} {% endif %}{% endfor %}{% endif %}
 WHERE {
   {% if namedGraphs %}
   {% for graph in namedGraphs %}
@@ -69,7 +71,7 @@ WHERE {
   {% endfor %}
   {% endif %}
 }
-GROUP BY {{ groupBy | map('sparqlVar') | join(' ') }}
-HAVING {{ havingConditions | map('sparqlFilter') | join(' && ') }}
-ORDER BY {{ orderBy | map('sparqlOrderBy') | join(' ') }}
+{% if groupBy %}GROUP BY {% for var in groupBy %}{{ var | sparqlVar }}{% if not loop.last %} {% endif %}{% endfor %}{% endif %}
+{% if havingConditions %}HAVING {{ havingConditions | map('sparqlFilter') | join(' && ') }}{% endif %}
+{% if orderBy %}ORDER BY {% for order in orderBy %}{{ order | sparqlOrderBy }}{% if not loop.last %} {% endif %}{% endfor %}{% endif %}
 LIMIT {{ limit | default(100) }}

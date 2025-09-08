@@ -6,14 +6,33 @@
 [![JavaScript](https://img.shields.io/badge/JavaScript-ES2023_Native-brightgreen.svg)](https://www.ecma-international.org/)
 [![Migration](https://img.shields.io/badge/TypeScript→JavaScript-✅_Complete-brightgreen.svg)](docs/migration/CONVERSION_COMPLETE.md)
 [![MCP Compatible](https://img.shields.io/badge/MCP-Compatible-brightgreen.svg)](https://modelcontextprotocol.io/)
-[![Test Success Rate](https://img.shields.io/badge/Tests-95.7%25-green.svg)](docs/reports/mcp-validation-results.md)
+[![Test Success Rate](https://img.shields.io/badge/Tests-57%25-orange.svg)](docs/ADVERSARIAL-FINAL-REPORT.md)
 [![AI Swarm](https://img.shields.io/badge/AI_Swarm-12_Agents-purple.svg)](docs/mcp-swarm-capabilities-summary.md)
 [![Semantic Web](https://img.shields.io/badge/RDF/Turtle-N3.js-blue.svg)](docs/mcp-semantic-web-convergence.md)
 [![Template Filters](https://img.shields.io/badge/Filters-65%2B-orange.svg)](docs/filters/README.md)
 
 > **Next-generation AI-powered code generation platform with native MCP integration, 12-agent swarm coordination, semantic web processing, and enterprise-grade automation.**
 
-Unjucks v2025 is a **revolutionary AI-native code generation platform** featuring native Model Context Protocol (MCP) integration, enabling direct AI assistant access with 40+ specialized tools, 12-agent swarm coordination, semantic web processing with N3.js, **65+ advanced template filters** including RDF/Turtle support, and enterprise-grade automation with 95.7% test success rate.
+Unjucks v2025 is a **revolutionary AI-native code generation platform** featuring native Model Context Protocol (MCP) integration, enabling direct AI assistant access with 40+ specialized tools, 12-agent swarm coordination, semantic web processing with N3.js, **65+ advanced template filters** including RDF/Turtle support, and enterprise-grade automation.
+
+## ⚠️ Current Status (Production Validation)
+
+**System Health:** 🟡 **Partially Functional** (65% working)
+
+✅ **Working Features:**
+- CLI infrastructure and command routing
+- Template discovery (48 generators, 200+ templates)
+- HTML export with styling
+- Configuration management
+- Help system and documentation
+
+🔴 **Known Issues:**
+- Template variable processing (critical - prevents code generation)
+- SPARQL/RDF semantic features (169 failing tests)
+- Schema.org JSON-LD generation (24 failing tests)
+- PDF compilation dependencies
+
+📋 **Full Assessment:** See [Adversarial Final Report](docs/ADVERSARIAL-FINAL-REPORT.md)
 
 ## 🎯 Why Unjucks v2025?
 

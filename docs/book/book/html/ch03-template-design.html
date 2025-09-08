@@ -1,0 +1,2061 @@
+<!DOCTYPE HTML>
+<html lang="en" class="navy" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Chapter 3: Template Design - Modern Template Architecture - Unjucks: Modern Code Generation in 2026</title>
+        <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+        <meta name="description" content="A comprehensive guide to modern code generation using the Unjucks framework, demonstrating declarative development patterns, AI integration, and advanced template design for productive software development.">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#0066cc"/>
+
+        <!-- Open Graph -->
+        <meta property="og:title" content="Chapter 3: Template Design - Modern Template Architecture - Unjucks: Modern Code Generation in 2026">
+        <meta property="og:description" content="A comprehensive guide to modern code generation using the Unjucks framework, demonstrating declarative development patterns, AI integration, and advanced template design for productive software development.">
+        <meta property="og:type" content="website">
+        <meta property="og:url" content="">
+        <meta property="og:image" content="unjucks-og.png">
+        
+        <!-- Twitter Card -->
+        <meta name="twitter:card" content="summary_large_image">
+        <meta name="twitter:title" content="Chapter 3: Template Design - Modern Template Architecture - Unjucks: Modern Code Generation in 2026">
+        <meta name="twitter:description" content="A comprehensive guide to modern code generation using the Unjucks framework, demonstrating declarative development patterns, AI integration, and advanced template design for productive software development.">
+        <meta name="twitter:image" content="unjucks-og.png">
+
+
+        <!-- Custom Unjucks Favicon -->
+        <link rel="icon" href="favicon.png">
+        <link rel="shortcut icon" href="favicon.png">
+
+        <!-- Fonts -->
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+
+        <link rel="stylesheet" href="css/variables.css">
+        <link rel="stylesheet" href="css/general.css">
+        <link rel="stylesheet" href="css/chrome.css">
+        <link rel="stylesheet" href="css/print.css" media="print">
+
+        <!-- Custom CSS -->
+
+        <!-- Custom head content -->
+
+        <!-- JSON-LD Structured Data -->
+        <script type="application/ld+json">
+        {
+            "@context": "https://schema.org",
+            "@type": "TechArticle",
+            "headline": "Chapter 3: Template Design - Modern Template Architecture - Unjucks: Modern Code Generation in 2026",
+            "description": "A comprehensive guide to modern code generation using the Unjucks framework, demonstrating declarative development patterns, AI integration, and advanced template design for productive software development.",
+            "author": {
+                "@type": "Organization",
+                "name": "Unjucks Development Team"
+            },
+            "publisher": {
+                "@type": "Organization",
+                "name": "Unjucks",
+                "logo": {
+                    "@type": "ImageObject",
+                    "url": "logo.png"
+                }
+            },
+            "url": "",
+            "mainEntityOfPage": "",
+            "datePublished": "",
+            "dateModified": "",
+            "inLanguage": "en",
+            "about": [
+                "Code Generation",
+                "Template Engine", 
+                "CLI Tools",
+                "Semantic Web",
+                "RDF",
+                "Software Development"
+            ]
+        }
+        </script>
+    </head>
+    <body>
+        <!-- Provide site root to javascript -->
+        <script type="text/javascript">
+            var path_to_root = "";
+            var default_theme = "navy";
+        </script>
+
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script type="text/javascript">
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme && theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar && sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script type="text/javascript">
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            var html = document.querySelector('html');
+            html.classList.remove('no-js')
+            html.classList.remove('light')
+            html.classList.remove('rust')
+            html.classList.remove('coal')
+            html.classList.remove('navy')
+            html.classList.remove('ayu')
+            html.classList.add(theme);
+            html.classList.add('js');
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script type="text/javascript">
+            var body = document.querySelector('body');
+            var sidebar = null;
+            var sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+            }
+            sidebar_toggle.checked = sidebar === 'visible';
+            body.classList.remove('sidebar-visible');
+            body.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <div class="sidebar-scrollbox">
+                <!-- Unjucks Logo -->
+                <div class="unjucks-logo" style="padding: 1rem; text-align: center; border-bottom: 1px solid #e1e5e9;">
+                    <h3 style="margin: 0; color: #0066cc; font-weight: 700;">🚀 Unjucks</h3>
+                    <p style="margin: 0.5rem 0 0 0; font-size: 0.8rem; color: #666;">Template Generation Platform</p>
+                </div>
+
+                <!-- TOC will be generated automatically by mdbook -->
+            </div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
+        </nav>
+
+        <!-- Page wrapper -->
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label for="sidebar-toggle-anchor" class="left" id="sidebar-toggle" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button left" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy (default)</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button left" type="button" title="Toggle Searchbar" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Unjucks: Modern Code Generation in 2026</h1>
+
+                    <div class="right-buttons">
+                        <a href="print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+                        <a href="https://github.com/ruvnet/unjucks" title="Git repository" aria-label="Git repository">
+                            <i id="git-repository-button" class="fa fa-github"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script type="text/javascript">
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <!-- Breadcrumb Navigation -->
+                        <div class="breadcrumb-nav" style="margin-bottom: 1.5rem; font-size: 0.9rem; color: #666;">
+                            <a href="index.html">🏠 Home</a>
+                            <span> › </span>
+                            <span>Chapter 3: Template Design - Modern Template Architecture</span>
+                        </div>
+
+                        <h1 id="chapter-3-template-design---modern-template-architecture"><a class="header" href="#chapter-3-template-design---modern-template-architecture">Chapter 3: Template Design - Modern Template Architecture</a></h1>
+<h2 id="the-art-and-science-of-template-design"><a class="header" href="#the-art-and-science-of-template-design">The Art and Science of Template Design</a></h2>
+<p>Template design in 2026 is both an art and a science. It requires creativity to envision the perfect developer experience while applying scientific principles to ensure reliability, maintainability, and scalability. This chapter explores the modern approach to template architecture, where templates are not just text files but sophisticated programs that understand context, adapt to environments, and evolve with your codebase.</p>
+<blockquote>
+<p><strong>🏗️ Unjucks v2 Case Study: Template Architecture Revolution</strong></p>
+<p>The Unjucks v2 refactor represents a complete reimagining of template architecture. This transformation demonstrates every principle covered in this chapter through real-world application.</p>
+<p><strong>The Challenge:</strong> Legacy v1 templates were monolithic, fragile, and difficult to maintain:</p>
+<pre><code class="language-javascript">// Legacy v1: Monolithic template approach
+const componentTemplate = `
+import React from 'react';
+{{#if withState}}
+import { useState } from 'react';
+{{/if}}
+{{#if withRouter}}
+import { useRouter } from 'next/router';
+{{/if}}
+
+export const {{name}} = ({{#each props}}{{name}}{{#unless @last}}, {{/unless}}{{/each}}) =&gt; {
+  {{#if withState}}
+  const [state, setState] = useState(null);
+  {{/if}}
+  {{#if withRouter}}
+  const router = useRouter();
+  {{/if}}
+  
+  return &lt;div&gt;{/* Implementation */}&lt;/div&gt;;
+};
+`;
+</code></pre>
+<p><strong>Problems Identified:</strong></p>
+<ul>
+<li>Monolithic templates (500+ lines common)</li>
+<li>No composition or reuse patterns</li>
+<li>Brittle conditional logic</li>
+<li>No validation or type safety</li>
+<li>Manual dependency management</li>
+</ul>
+<p><strong>The Solution:</strong> Modern v2 embraces sophisticated template architecture principles covered in this chapter.</p>
+</blockquote>
+<h2 id="architectural-principles-for-modern-templates"><a class="header" href="#architectural-principles-for-modern-templates">Architectural Principles for Modern Templates</a></h2>
+<h3 id="1-single-responsibility-principle-srp-for-templates"><a class="header" href="#1-single-responsibility-principle-srp-for-templates">1. Single Responsibility Principle (SRP) for Templates</a></h3>
+<p>Just as functions and classes should have a single responsibility, templates should focus on one specific generation task. This creates more maintainable, testable, and composable templates.</p>
+<pre><code class="language-yaml"># ❌ Bad: Monolithic template
+---
+name: "everything-component"
+to: "src/components/{{ pascalCase name }}/index.ts"
+---
+// Component + Tests + Stories + Docs + API + Styles all in one template
+</code></pre>
+<pre><code class="language-yaml"># ✅ Good: Focused templates
+---
+name: "component-base"
+to: "src/components/{{ pascalCase name }}/{{ pascalCase name }}.tsx"
+---
+import React from 'react';
+import { {{ pascalCase name }}Props } from './types';
+
+export const {{ pascalCase name }}: React.FC&lt;{{ pascalCase name }}Props&gt; = (props) =&gt; {
+  return &lt;div&gt;{/* Implementation */}&lt;/div&gt;;
+};
+</code></pre>
+<pre><code class="language-yaml"># ✅ Good: Separate test template
+---
+name: "component-test"
+to: "src/components/{{ pascalCase name }}/{{ pascalCase name }}.test.tsx"
+---
+import { render, screen } from '@testing-library/react';
+import { {{ pascalCase name }} } from './{{ pascalCase name }}';
+
+describe('{{ pascalCase name }}', () =&gt; {
+  it('renders correctly', () =&gt; {
+    render(&lt;{{ pascalCase name }} /&gt;);
+    // Test implementation
+  });
+});
+</code></pre>
+<h3 id="2-openclosed-principle-for-templates"><a class="header" href="#2-openclosed-principle-for-templates">2. Open/Closed Principle for Templates</a></h3>
+<p>Templates should be open for extension but closed for modification. This is achieved through inheritance, composition, and plugin systems.</p>
+<pre><code class="language-yaml"># Base template - closed for modification
+---
+name: "base-component"
+abstract: true
+schema:
+  name:
+    type: string
+    required: true
+  props:
+    type: array
+    default: []
+---
+import React from 'react';
+
+export const {{ pascalCase name }}: React.FC&lt;{% block props_type %}{{ pascalCase name }}Props{% endblock %}&gt; = ({
+  {% for prop in props %}{{ prop.name }}{% if not loop.last %}, {% endif %}{% endfor %}
+}) =&gt; {
+  {% block hooks %}{% endblock %}
+  
+  {% block render %}
+  return (
+    &lt;div className="{{ kebabCase name }}"&gt;
+      {% block content %}{{ name }} Component{% endblock %}
+    &lt;/div&gt;
+  );
+  {% endblock %}
+};
+</code></pre>
+<pre><code class="language-yaml"># Extended template - open for extension
+---
+name: "form-component"
+extends: "base-component"
+schema:
+  validation:
+    type: object
+    default: {}
+  onSubmit:
+    type: string
+    default: "handleSubmit"
+---
+{% block hooks %}
+const [formData, setFormData] = useState({});
+const [errors, setErrors] = useState({});
+
+{% if validation %}
+const validate = (data: any) =&gt; {
+  // Validation logic based on {{ validation }}
+};
+{% endif %}
+{% endblock %}
+
+{% block render %}
+return (
+  &lt;form onSubmit={{ onSubmit }} className="{{ kebabCase name }}-form"&gt;
+    {% block content %}
+    {/* Form fields */}
+    {% endblock %}
+  &lt;/form&gt;
+);
+{% endblock %}
+</code></pre>
+<h3 id="3-dependency-inversion-for-templates"><a class="header" href="#3-dependency-inversion-for-templates">3. Dependency Inversion for Templates</a></h3>
+<p>High-level templates should not depend on low-level details. Instead, both should depend on abstractions.</p>
+<pre><code class="language-typescript">// Abstract interface for data sources
+interface DataSource {
+  getSchema(): Promise&lt;Schema&gt;;
+  getRecords(): Promise&lt;Record[]&gt;;
+  getRelationships(): Promise&lt;Relationship[]&gt;;
+}
+
+// Template depends on abstraction, not concrete implementation
+interface TemplateContext {
+  dataSource: DataSource;
+  outputFormat: 'typescript' | 'javascript' | 'graphql';
+  conventions: NamingConventions;
+}
+</code></pre>
+<pre><code class="language-yaml"># Template uses abstraction
+---
+name: "api-endpoint"
+dependencies:
+  - dataSource: "interface:DataSource"
+  - logger: "interface:Logger"
+---
+{% set schema = dataSource.getSchema() %}
+{% set relationships = dataSource.getRelationships() %}
+
+export const {{ camelCase name }}API = {
+  {% for operation in schema.operations %}
+  {{ operation.name }}: async ({{ operation.params | join(', ') }}) =&gt; {
+    logger.debug('Executing {{ operation.name }}');
+    // Implementation
+  },
+  {% endfor %}
+};
+</code></pre>
+<h2 id="template-composition-patterns"><a class="header" href="#template-composition-patterns">Template Composition Patterns</a></h2>
+<blockquote>
+<p><strong>🧩 Unjucks v2 Case Study: Composition Revolution</strong></p>
+<p>The v2 refactor completely transformed how templates are composed, moving from monolithic files to sophisticated composition patterns.</p>
+<p><strong>Legacy v1 Approach: Duplication Everywhere</strong></p>
+<pre><code>templates/
+├── react-component.hbs        # 347 lines
+├── vue-component.hbs          # 289 lines  (80% duplication)
+├── angular-component.hbs      # 412 lines  (75% duplication)
+└── component-with-state.hbs   # 423 lines  (85% duplication)
+</code></pre>
+<p><strong>Modern v2 Approach: Composable Architecture</strong></p>
+<pre><code>templates/
+├── base/
+│   ├── component.njk          # 15 lines - core structure
+│   ├── imports.njk            # 8 lines - import management  
+│   └── exports.njk            # 6 lines - export patterns
+├── mixins/
+│   ├── with-state.njk         # 12 lines - state management
+│   ├── with-router.njk        # 9 lines - routing integration
+│   ├── with-form.njk          # 18 lines - form handling
+│   └── with-query.njk         # 14 lines - data fetching
+├── frameworks/
+│   ├── react.njk              # 23 lines - React-specific
+│   ├── vue.njk                # 21 lines - Vue-specific
+│   └── angular.njk            # 26 lines - Angular-specific
+└── generators/
+    ├── component.js           # 45 lines - composition logic
+    ├── page.js                # 38 lines - page generator  
+    └── service.js             # 41 lines - service generator
+</code></pre>
+<p><strong>Composition Results:</strong></p>
+<ul>
+<li><strong>Reduced duplication</strong>: From 85% to 3% duplicate code</li>
+<li><strong>Modular templates</strong>: Average 18 lines vs 347 lines</li>
+<li><strong>Consistent patterns</strong>: 100% reuse of base components</li>
+<li><strong>Maintainable architecture</strong>: Single change updates all variants</li>
+</ul>
+</blockquote>
+<h3 id="1-mixin-pattern"><a class="header" href="#1-mixin-pattern">1. Mixin Pattern</a></h3>
+<p>Mixins allow templates to share common functionality without inheritance hierarchies:</p>
+<pre><code class="language-yaml"># Mixin: Loading state functionality
+---
+name: "with-loading-state"
+type: mixin
+---
+const [isLoading, setIsLoading] = useState(false);
+
+const withLoadingWrapper = (asyncFn: (...args: any[]) =&gt; Promise&lt;any&gt;) =&gt; {
+  return async (...args: any[]) =&gt; {
+    setIsLoading(true);
+    try {
+      return await asyncFn(...args);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+};
+</code></pre>
+<pre><code class="language-yaml"># Mixin: Error handling functionality
+---
+name: "with-error-handling"
+type: mixin
+---
+const [error, setError] = useState&lt;Error | null&gt;(null);
+
+const withErrorHandling = (fn: (...args: any[]) =&gt; any) =&gt; {
+  return (...args: any[]) =&gt; {
+    try {
+      setError(null);
+      return fn(...args);
+    } catch (err) {
+      setError(err instanceof Error ? err : new Error(String(err)));
+      throw err;
+    }
+  };
+};
+</code></pre>
+<pre><code class="language-yaml"># Component using mixins
+---
+name: "async-component"
+mixins:
+  - "with-loading-state"
+  - "with-error-handling"
+---
+import React, { useState } from 'react';
+
+export const {{ pascalCase name }}: React.FC = () =&gt; {
+  &lt;!-- Mixin: with-loading-state --&gt;
+  &lt;!-- Mixin: with-error-handling --&gt;
+  
+  const fetchData = withErrorHandling(withLoadingWrapper(async () =&gt; {
+    // Data fetching logic
+  }));
+
+  if (isLoading) return &lt;div&gt;Loading...&lt;/div&gt;;
+  if (error) return &lt;div&gt;Error: {error.message}&lt;/div&gt;;
+  
+  return (
+    &lt;div&gt;
+      {/* Component content */}
+    &lt;/div&gt;
+  );
+};
+</code></pre>
+<h3 id="2-decorator-pattern"><a class="header" href="#2-decorator-pattern">2. Decorator Pattern</a></h3>
+<p>Decorators add functionality to templates without modifying their core structure:</p>
+<pre><code class="language-typescript">// Decorator interface
+interface TemplateDecorator {
+  name: string;
+  priority: number;
+  transform(template: string, context: any): string;
+}
+
+// TypeScript decorator
+class TypeScriptDecorator implements TemplateDecorator {
+  name = 'typescript';
+  priority = 100;
+  
+  transform(template: string, context: any): string {
+    if (context.language === 'typescript') {
+      return template
+        .replace(/\.js/g, '.ts')
+        .replace(/\.jsx/g, '.tsx')
+        .replace(/export default/g, 'export default')
+        .replace(/React\.FC/g, 'React.FC');
+    }
+    return template;
+  }
+}
+
+// Testing decorator
+class TestDecorator implements TemplateDecorator {
+  name = 'testing';
+  priority = 50;
+  
+  transform(template: string, context: any): string {
+    if (context.withTests) {
+      return template + '\n\n' + this.generateTests(context);
+    }
+    return template;
+  }
+  
+  private generateTests(context: any): string {
+    return `
+describe('${context.name}', () =&gt; {
+  it('should render without crashing', () =&gt; {
+    // Test implementation
+  });
+});`;
+  }
+}
+</code></pre>
+<h3 id="3-strategy-pattern"><a class="header" href="#3-strategy-pattern">3. Strategy Pattern</a></h3>
+<p>Different generation strategies for different contexts:</p>
+<pre><code class="language-yaml"># Strategy configuration
+strategies:
+  react:
+    component: "react-component.njk"
+    test: "react-test.njk"
+    story: "react-story.njk"
+  
+  vue:
+    component: "vue-component.njk"
+    test: "vue-test.njk"
+    story: "vue-story.njk"
+  
+  angular:
+    component: "angular-component.njk"
+    test: "angular-test.njk"
+    story: "angular-story.njk"
+</code></pre>
+<pre><code class="language-typescript">// Strategy selector
+const selectStrategy = (context: GenerationContext): TemplateStrategy =&gt; {
+  if (context.framework === 'react') return new ReactStrategy();
+  if (context.framework === 'vue') return new VueStrategy();
+  if (context.framework === 'angular') return new AngularStrategy();
+  
+  throw new Error(`Unsupported framework: ${context.framework}`);
+};
+</code></pre>
+<h2 id="advanced-template-features"><a class="header" href="#advanced-template-features">Advanced Template Features</a></h2>
+<h3 id="1-conditional-generation-with-smart-guards"><a class="header" href="#1-conditional-generation-with-smart-guards">1. Conditional Generation with Smart Guards</a></h3>
+<p>Modern templates use sophisticated conditional logic to generate contextually appropriate code:</p>
+<pre><code class="language-yaml">---
+name: "smart-component"
+to: "src/components/{{ pascalCase name }}/{{ pascalCase name }}.{% if typescript %}tsx{% else %}jsx{% endif %}"
+guards:
+  - condition: "{{ framework === 'react' }}"
+    error: "This template requires React framework"
+  - condition: "{{ name | length &gt; 2 }}"
+    error: "Component name must be at least 3 characters"
+---
+{% if typescript %}
+import React{% if withState %}, { useState }{% endif %}{% if withEffect %}, { useEffect }{% endif %} from 'react';
+{% if withRouter %}
+import { useRouter } from '{% if framework.version &gt;= "13" %}next/navigation{% else %}next/router{% endif %}';
+{% endif %}
+
+interface {{ pascalCase name }}Props {
+  {% for prop in props %}
+  {{ prop.name }}{% if prop.optional %}?{% endif %}: {{ prop.type }};
+  {% endfor %}
+}
+{% else %}
+import React{% if withState %}, { useState }{% endif %}{% if withEffect %}, { useEffect }{% endif %} from 'react';
+{% if withRouter %}
+import { useRouter } from 'next/router';
+{% endif %}
+{% endif %}
+
+{% if typescript %}
+export const {{ pascalCase name }}: React.FC&lt;{{ pascalCase name }}Props&gt; = ({
+{% else %}
+export const {{ pascalCase name }} = ({
+{% endif %}
+  {% for prop in props %}{{ prop.name }}{% if not loop.last %}, {% endif %}{% endfor %}
+{% if typescript %}
+}: {{ pascalCase name }}Props) =&gt; {
+{% else %}
+}) =&gt; {
+{% endif %}
+  {% if withState %}
+  const [state, setState] = useState({% if stateDefault %}{{ stateDefault }}{% else %}null{% endif %});
+  {% endif %}
+  
+  {% if withEffect %}
+  useEffect(() =&gt; {
+    // Effect logic
+  }, []);
+  {% endif %}
+  
+  {% if withRouter %}
+  const router = useRouter();
+  {% endif %}
+
+  return (
+    &lt;div className="{{ kebabCase name }}{% if styling.module %}-module{% endif %}"&gt;
+      {/* Component implementation */}
+    &lt;/div&gt;
+  );
+};
+</code></pre>
+<h3 id="2-dynamic-path-generation"><a class="header" href="#2-dynamic-path-generation">2. Dynamic Path Generation</a></h3>
+<p>Templates can generate dynamic paths based on context and conventions:</p>
+<pre><code class="language-yaml">---
+name: "feature-module"
+paths:
+  component: "src/{% if features %}features/{{ kebabCase feature }}/{% endif %}components/{{ pascalCase name }}/index.{% if typescript %}tsx{% else %}jsx{% endif %}"
+  test: "src/{% if features %}features/{{ kebabCase feature }}/{% endif %}components/{{ pascalCase name }}/{{ pascalCase name }}.test.{% if typescript %}tsx{% else %}jsx{% endif %}"
+  story: "src/{% if features %}features/{{ kebabCase feature }}/{% endif %}components/{{ pascalCase name }}/{{ pascalCase name }}.stories.{% if typescript %}tsx{% else %}jsx{% endif %}"
+  styles: "src/{% if features %}features/{{ kebabCase feature }}/{% endif %}components/{{ pascalCase name }}/{{ kebabCase name }}.{% if styling.preprocessor %}{{ styling.preprocessor }}{% else %}css{% endif %}"
+---
+</code></pre>
+<h3 id="3-context-aware-imports"><a class="header" href="#3-context-aware-imports">3. Context-Aware Imports</a></h3>
+<p>Templates intelligently manage imports based on usage and context:</p>
+<pre><code class="language-yaml">---
+name: "smart-imports"
+imports:
+  react:
+    default: "React"
+    named:
+      - condition: "{{ withState }}"
+        import: "useState"
+      - condition: "{{ withEffect }}"
+        import: "useEffect"
+      - condition: "{{ withCallback }}"
+        import: "useCallback"
+      - condition: "{{ withMemo }}"
+        import: "useMemo"
+  
+  next:
+    - condition: "{{ withRouter }}"
+      from: "{% if nextVersion &gt;= 13 %}next/navigation{% else %}next/router{% endif %}"
+      import: "useRouter"
+    
+    - condition: "{{ withImage }}"
+      from: "next/image"
+      import: "Image"
+  
+  external:
+    {% for dep in dependencies %}
+    - from: "{{ dep.package }}"
+      {% if dep.default %}default: "{{ dep.default }}"{% endif %}
+      {% if dep.named %}named: {{ dep.named | list }}{% endif %}
+    {% endfor %}
+---
+{# Generate imports based on usage #}
+import React{% if imports.react.named %}, { {{ imports.react.named | join(', ') }} }{% endif %} from 'react';
+{% for imp in imports.next %}
+import { {{ imp.import }} } from '{{ imp.from }}';
+{% endfor %}
+{% for imp in imports.external %}
+{% if imp.default %}import {{ imp.default }}{% if imp.named %}, { {{ imp.named | join(', ') }} }{% endif %} from '{{ imp.from }}';{% else %}import { {{ imp.named | join(', ') }} } from '{{ imp.from }}';{% endif %}
+{% endfor %}
+</code></pre>
+<h2 id="template-testing-and-validation"><a class="header" href="#template-testing-and-validation">Template Testing and Validation</a></h2>
+<h3 id="1-schema-driven-validation"><a class="header" href="#1-schema-driven-validation">1. Schema-Driven Validation</a></h3>
+<p>Define schemas for template variables to ensure type safety and completeness:</p>
+<pre><code class="language-typescript">// JSON Schema for component template
+const componentSchema = {
+  type: 'object',
+  required: ['name'],
+  properties: {
+    name: {
+      type: 'string',
+      pattern: '^[A-Z][a-zA-Z0-9]*$',
+      description: 'Component name in PascalCase'
+    },
+    props: {
+      type: 'array',
+      items: {
+        type: 'object',
+        required: ['name', 'type'],
+        properties: {
+          name: { type: 'string' },
+          type: { type: 'string' },
+          optional: { type: 'boolean', default: false },
+          description: { type: 'string' }
+        }
+      }
+    },
+    features: {
+      type: 'object',
+      properties: {
+        state: { type: 'boolean', default: false },
+        effect: { type: 'boolean', default: false },
+        router: { type: 'boolean', default: false },
+        testing: { type: 'boolean', default: true }
+      }
+    }
+  }
+};
+
+// Template validation
+const validateTemplate = (variables: any): ValidationResult =&gt; {
+  const ajv = new Ajv();
+  const validate = ajv.compile(componentSchema);
+  const valid = validate(variables);
+  
+  return {
+    valid,
+    errors: validate.errors || []
+  };
+};
+</code></pre>
+<h3 id="2-generated-code-testing"><a class="header" href="#2-generated-code-testing">2. Generated Code Testing</a></h3>
+<p>Test that generated code meets quality standards:</p>
+<pre><code class="language-typescript">// Test suite for template output
+describe('ComponentTemplate', () =&gt; {
+  it('generates valid TypeScript', async () =&gt; {
+    const variables = {
+      name: 'TestComponent',
+      typescript: true,
+      props: [
+        { name: 'title', type: 'string', optional: false },
+        { name: 'onClick', type: '() =&gt; void', optional: true }
+      ]
+    };
+    
+    const result = await generateTemplate('component', variables);
+    
+    // Syntax validation
+    expect(() =&gt; parse(result.content, { sourceType: 'module' })).not.toThrow();
+    
+    // TypeScript validation
+    const diagnostics = await validateTypeScript(result.content);
+    expect(diagnostics).toHaveLength(0);
+    
+    // ESLint validation
+    const lintResults = await lint(result.content);
+    expect(lintResults.errorCount).toBe(0);
+  });
+  
+  it('includes required imports', async () =&gt; {
+    const variables = {
+      name: 'TestComponent',
+      withState: true,
+      withRouter: true
+    };
+    
+    const result = await generateTemplate('component', variables);
+    
+    expect(result.content).toMatch(/import React, { useState } from 'react'/);
+    expect(result.content).toMatch(/import { useRouter } from/);
+  });
+  
+  it('follows naming conventions', async () =&gt; {
+    const variables = { name: 'MyTestComponent' };
+    const result = await generateTemplate('component', variables);
+    
+    expect(result.content).toMatch(/export const MyTestComponent:/);
+    expect(result.content).toMatch(/className="my-test-component"/);
+  });
+});
+</code></pre>
+<h3 id="3-template-performance-testing"><a class="header" href="#3-template-performance-testing">3. Template Performance Testing</a></h3>
+<p>Ensure templates perform well with various inputs:</p>
+<pre><code class="language-typescript">describe('Template Performance', () =&gt; {
+  it('handles large prop lists efficiently', async () =&gt; {
+    const variables = {
+      name: 'LargeComponent',
+      props: Array.from({ length: 100 }, (_, i) =&gt; ({
+        name: `prop${i}`,
+        type: 'string',
+        optional: i % 2 === 0
+      }))
+    };
+    
+    const startTime = performance.now();
+    const result = await generateTemplate('component', variables);
+    const endTime = performance.now();
+    
+    expect(endTime - startTime).toBeLessThan(100); // Should complete in &lt;100ms
+    expect(result.content).toMatch(/prop99: string;/);
+  });
+  
+  it('scales with template complexity', async () =&gt; {
+    const complexVariables = {
+      name: 'ComplexComponent',
+      mixins: ['with-loading', 'with-errors', 'with-validation'],
+      features: {
+        state: true,
+        effect: true,
+        router: true,
+        query: true,
+        mutation: true
+      },
+      props: Array.from({ length: 50 }, (_, i) =&gt; ({
+        name: `prop${i}`,
+        type: 'ComplexType&lt;GenericParam&gt;',
+        optional: true
+      }))
+    };
+    
+    const startTime = performance.now();
+    await generateTemplate('complex-component', complexVariables);
+    const endTime = performance.now();
+    
+    expect(endTime - startTime).toBeLessThan(200);
+  });
+});
+</code></pre>
+<h2 id="template-documentation-and-metadata"><a class="header" href="#template-documentation-and-metadata">Template Documentation and Metadata</a></h2>
+<h3 id="1-self-documenting-templates"><a class="header" href="#1-self-documenting-templates">1. Self-Documenting Templates</a></h3>
+<p>Templates should include comprehensive metadata:</p>
+<pre><code class="language-yaml">---
+# Template metadata
+name: "react-component"
+version: "2.1.0"
+description: "Generates a modern React component with TypeScript support"
+author: "Development Team"
+tags: ["react", "typescript", "component"]
+category: "frontend"
+
+# Documentation
+documentation:
+  description: |
+    This template generates a React functional component with optional features
+    like state management, effects, routing, and comprehensive testing.
+  
+  examples:
+    - name: "Basic Component"
+      description: "Simple component with props"
+      variables:
+        name: "Button"
+        props:
+          - name: "children"
+            type: "React.ReactNode"
+          - name: "onClick"
+            type: "() =&gt; void"
+            optional: true
+    
+    - name: "Stateful Component"
+      description: "Component with state and effects"
+      variables:
+        name: "Counter"
+        withState: true
+        withEffect: true
+        stateDefault: "0"
+
+# Schema definition
+schema:
+  type: "object"
+  required: ["name"]
+  properties:
+    name:
+      type: "string"
+      pattern: "^[A-Z][a-zA-Z0-9]*$"
+      description: "Component name in PascalCase"
+      examples: ["Button", "UserProfile", "NavigationMenu"]
+    
+    props:
+      type: "array"
+      description: "Component props definition"
+      items:
+        type: "object"
+        required: ["name", "type"]
+        properties:
+          name:
+            type: "string"
+            description: "Property name"
+          type:
+            type: "string"
+            description: "TypeScript type"
+          optional:
+            type: "boolean"
+            default: false
+            description: "Whether the prop is optional"
+
+# Template dependencies
+dependencies:
+  templates: []
+  packages:
+    - name: "react"
+      version: "&gt;=18.0.0"
+    - name: "typescript"
+      version: "&gt;=4.9.0"
+      optional: true
+
+# Output files
+outputs:
+  - path: "src/components/{{ pascalCase name }}/{{ pascalCase name }}.tsx"
+    description: "Main component file"
+  - path: "src/components/{{ pascalCase name }}/types.ts"
+    description: "Type definitions"
+    condition: "{{ typescript &amp;&amp; props.length &gt; 0 }}"
+  - path: "src/components/{{ pascalCase name }}/{{ pascalCase name }}.test.tsx"
+    description: "Test file"
+    condition: "{{ withTests }}"
+
+# File generation rules
+to: "src/components/{{ pascalCase name }}/{{ pascalCase name }}.tsx"
+inject: false
+skipIf: false
+chmod: "644"
+---
+
+{# Template content follows #}
+</code></pre>
+<h3 id="2-interactive-template-help"><a class="header" href="#2-interactive-template-help">2. Interactive Template Help</a></h3>
+<p>Generate interactive help and examples:</p>
+<pre><code class="language-typescript">// Template help generator
+const generateTemplateHelp = (template: TemplateMetadata): string =&gt; {
+  return `
+# ${template.name} - ${template.description}
+
+## Usage
+\`\`\`bash
+unjucks generate ${template.name} MyComponent --with-state --with-tests
+\`\`\`
+
+## Options
+${template.schema.properties.map(prop =&gt; 
+  `- **${prop.name}** (${prop.type}): ${prop.description}`
+).join('\n')}
+
+## Examples
+${template.documentation.examples.map(example =&gt; `
+### ${example.name}
+${example.description}
+
+\`\`\`bash
+unjucks generate ${template.name} ${Object.entries(example.variables)
+  .map(([key, value]) =&gt; `--${key} ${JSON.stringify(value)}`)
+  .join(' ')}
+\`\`\`
+`).join('\n')}
+
+## Generated Files
+${template.outputs.map(output =&gt; 
+  `- \`${output.path}\`: ${output.description}`
+).join('\n')}
+  `;
+};
+</code></pre>
+<h2 id="template-versioning-and-migration"><a class="header" href="#template-versioning-and-migration">Template Versioning and Migration</a></h2>
+<h3 id="1-semantic-versioning-for-templates"><a class="header" href="#1-semantic-versioning-for-templates">1. Semantic Versioning for Templates</a></h3>
+<pre><code class="language-yaml">---
+name: "component"
+version: "2.1.0"
+compatibleWith: ["2.0.0", "2.0.1", "2.1.0"]
+breaking_changes: []
+migrations:
+  "1.x.x": "migrate-v1-to-v2.js"
+---
+</code></pre>
+<h3 id="2-template-migration-scripts"><a class="header" href="#2-template-migration-scripts">2. Template Migration Scripts</a></h3>
+<pre><code class="language-typescript">// Migration script
+export const migrateV1ToV2 = (oldVariables: any): any =&gt; {
+  const newVariables = { ...oldVariables };
+  
+  // Rename 'hasState' to 'withState'
+  if ('hasState' in oldVariables) {
+    newVariables.withState = oldVariables.hasState;
+    delete newVariables.hasState;
+  }
+  
+  // Convert old prop format to new format
+  if (oldVariables.props &amp;&amp; typeof oldVariables.props[0] === 'string') {
+    newVariables.props = oldVariables.props.map((prop: string) =&gt; ({
+      name: prop,
+      type: 'any',
+      optional: false
+    }));
+  }
+  
+  return newVariables;
+};
+</code></pre>
+<h2 id="anti-patterns-and-common-pitfalls"><a class="header" href="#anti-patterns-and-common-pitfalls">Anti-Patterns and Common Pitfalls</a></h2>
+<h3 id="1-template-anti-patterns"><a class="header" href="#1-template-anti-patterns">1. Template Anti-Patterns</a></h3>
+<p>❌ <strong>The God Template</strong>: Templates that try to do everything</p>
+<pre><code class="language-yaml"># Don't create monolithic templates
+---
+name: "everything-template"
+# Generates components + tests + stories + docs + API + database + deployment
+---
+</code></pre>
+<p>❌ <strong>Hard-coded Paths</strong>: Templates with inflexible output paths</p>
+<pre><code class="language-yaml"># Avoid hard-coded paths
+to: "src/components/Button/Button.tsx"  # Inflexible
+</code></pre>
+<p>❌ <strong>No Error Handling</strong>: Templates without validation or error handling</p>
+<pre><code class="language-yaml"># Missing validation and error handling
+---
+to: "{{ outputPath }}"  # Could be undefined
+---
+import { {{ componentName }} } from './{{ fileName }}';  # No validation
+</code></pre>
+<h3 id="2-common-mistakes-and-solutions"><a class="header" href="#2-common-mistakes-and-solutions">2. Common Mistakes and Solutions</a></h3>
+<p><strong>Problem</strong>: Templates become unmaintainable as they grow
+<strong>Solution</strong>: Use composition and inheritance patterns</p>
+<p><strong>Problem</strong>: Generated code doesn't follow project conventions
+<strong>Solution</strong>: Implement context-aware generation</p>
+<p><strong>Problem</strong>: Templates break when project structure changes
+<strong>Solution</strong>: Use dynamic path generation and configuration</p>
+<p><strong>Problem</strong>: Developers don't know how to use templates
+<strong>Solution</strong>: Include comprehensive documentation and examples</p>
+<h2 id="future-proofing-template-design"><a class="header" href="#future-proofing-template-design">Future-Proofing Template Design</a></h2>
+<h3 id="1-preparing-for-ai-integration"><a class="header" href="#1-preparing-for-ai-integration">1. Preparing for AI Integration</a></h3>
+<p>Design templates to work well with AI assistance:</p>
+<pre><code class="language-yaml">---
+name: "ai-enhanced-component"
+ai_hints:
+  context: "React functional component with modern patterns"
+  patterns: ["hooks", "typescript", "testing-library"]
+  avoid: ["class-components", "prop-types"]
+suggestions:
+  - trigger: "withQuery: true"
+    hint: "Consider adding error boundaries and loading states"
+  - trigger: "props.length &gt; 5"
+    hint: "Consider breaking down into smaller components"
+---
+</code></pre>
+<h3 id="2-extensibility-points"><a class="header" href="#2-extensibility-points">2. Extensibility Points</a></h3>
+<p>Design templates with clear extension points:</p>
+<pre><code class="language-yaml">---
+name: "extensible-component"
+extension_points:
+  - name: "before_imports"
+    description: "Add custom imports before standard ones"
+  - name: "after_props"
+    description: "Add custom props after standard ones"
+  - name: "custom_hooks"
+    description: "Add custom hook implementations"
+  - name: "before_return"
+    description: "Add logic before return statement"
+---
+
+{% block before_imports %}{% endblock %}
+import React from 'react';
+
+interface {{ pascalCase name }}Props {
+  // Standard props
+  {% block after_props %}{% endblock %}
+}
+
+export const {{ pascalCase name }}: React.FC&lt;{{ pascalCase name }}Props&gt; = () =&gt; {
+  {% block custom_hooks %}{% endblock %}
+  
+  {% block before_return %}{% endblock %}
+  return (
+    &lt;div&gt;
+      {% block content %}Default content{% endblock %}
+    &lt;/div&gt;
+  );
+};
+</code></pre>
+<h2 id="conclusion"><a class="header" href="#conclusion">Conclusion</a></h2>
+<p>Modern template design is a sophisticated discipline that combines software engineering principles with creative problem-solving. The templates we've explored in this chapter represent more than just text generation—they're intelligent systems that understand context, adapt to environments, and evolve with your codebase.</p>
+<p>Key takeaways for modern template design:</p>
+<ol>
+<li><strong>Apply SOLID principles</strong> to template architecture</li>
+<li><strong>Use composition patterns</strong> for maintainable templates</li>
+<li><strong>Implement comprehensive validation</strong> and error handling</li>
+<li><strong>Design for extensibility</strong> and future enhancement</li>
+<li><strong>Include thorough documentation</strong> and examples</li>
+<li><strong>Test templates</strong> as rigorously as application code</li>
+<li><strong>Plan for migration</strong> and versioning</li>
+</ol>
+<p>As we move forward, the next chapter will explore how to configure these powerful templates through sophisticated configuration systems that make template management scalable and maintainable across large development teams.</p>
+<p>The future of code generation lies not just in creating better templates, but in creating template systems that are intelligent, adaptable, and truly serve the needs of modern development teams. The patterns and practices outlined in this chapter provide the foundation for building such systems.</p>
+
+
+                        <!-- Page Footer -->
+                        <div class="page-footer" style="margin-top: 3rem; padding-top: 2rem; border-top: 1px solid #e1e5e9;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+                                <div class="footer-links" style="display: flex; gap: 1rem; font-size: 0.9rem;">
+                                    <a href="https://unjucks.dev" target="_blank">🌐 Website</a>
+                                    <a href="https://github.com/ruvnet/unjucks" target="_blank">💻 GitHub</a>
+                                    <a href="https://github.com/ruvnet/unjucks/issues" target="_blank">🐛 Issues</a>
+                                    <a href="https://github.com/ruvnet/unjucks/discussions" target="_blank">💬 Discussions</a>
+                                </div>
+                                <div class="footer-info" style="font-size: 0.8rem; color: #888; text-align: right;">
+                                    <p>Built with ❤️ using <a href="https://rust-lang.github.io/mdBook/" target="_blank">mdBook</a></p>
+                                    <p>© 2024 Unjucks Project</p>
+                                </div>
+                            </div>
+                        </div>
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                        <a href="" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                            <i class="fa fa-angle-left"></i>
+                        </a>
+
+                        <a href="" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                            <i class="fa fa-angle-right"></i>
+                        </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <!-- Desktop navigation -->
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                <a href="" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                    <i class="fa fa-angle-left"></i>
+                </a>
+
+                <a href="" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                    <i class="fa fa-angle-right"></i>
+                </a>
+            </nav>
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="elasticlunr.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="mark.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="searcher.js" type="text/javascript" charset="utf-8"></script>
+
+        <script src="clipboard.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="highlight.js" type="text/javascript" charset="utf-8"></script>
+        <script src="book.js" type="text/javascript" charset="utf-8"></script>
+
+        <!-- Custom JS -->
+
+        <!-- Custom body content -->
+        <h1 id="chapter-3-template-design---modern-template-architecture-1"><a class="header" href="#chapter-3-template-design---modern-template-architecture-1">Chapter 3: Template Design - Modern Template Architecture</a></h1>
+<h2 id="the-art-and-science-of-template-design-1"><a class="header" href="#the-art-and-science-of-template-design-1">The Art and Science of Template Design</a></h2>
+<p>Template design in 2026 is both an art and a science. It requires creativity to envision the perfect developer experience while applying scientific principles to ensure reliability, maintainability, and scalability. This chapter explores the modern approach to template architecture, where templates are not just text files but sophisticated programs that understand context, adapt to environments, and evolve with your codebase.</p>
+<blockquote>
+<p><strong>🏗️ Unjucks v2 Case Study: Template Architecture Revolution</strong></p>
+<p>The Unjucks v2 refactor represents a complete reimagining of template architecture. This transformation demonstrates every principle covered in this chapter through real-world application.</p>
+<p><strong>The Challenge:</strong> Legacy v1 templates were monolithic, fragile, and difficult to maintain:</p>
+<pre><code class="language-javascript">// Legacy v1: Monolithic template approach
+const componentTemplate = `
+import React from 'react';
+{{#if withState}}
+import { useState } from 'react';
+{{/if}}
+{{#if withRouter}}
+import { useRouter } from 'next/router';
+{{/if}}
+
+export const {{name}} = ({{#each props}}{{name}}{{#unless @last}}, {{/unless}}{{/each}}) =&gt; {
+  {{#if withState}}
+  const [state, setState] = useState(null);
+  {{/if}}
+  {{#if withRouter}}
+  const router = useRouter();
+  {{/if}}
+  
+  return &lt;div&gt;{/* Implementation */}&lt;/div&gt;;
+};
+`;
+</code></pre>
+<p><strong>Problems Identified:</strong></p>
+<ul>
+<li>Monolithic templates (500+ lines common)</li>
+<li>No composition or reuse patterns</li>
+<li>Brittle conditional logic</li>
+<li>No validation or type safety</li>
+<li>Manual dependency management</li>
+</ul>
+<p><strong>The Solution:</strong> Modern v2 embraces sophisticated template architecture principles covered in this chapter.</p>
+</blockquote>
+<h2 id="architectural-principles-for-modern-templates-1"><a class="header" href="#architectural-principles-for-modern-templates-1">Architectural Principles for Modern Templates</a></h2>
+<h3 id="1-single-responsibility-principle-srp-for-templates-1"><a class="header" href="#1-single-responsibility-principle-srp-for-templates-1">1. Single Responsibility Principle (SRP) for Templates</a></h3>
+<p>Just as functions and classes should have a single responsibility, templates should focus on one specific generation task. This creates more maintainable, testable, and composable templates.</p>
+<pre><code class="language-yaml"># ❌ Bad: Monolithic template
+---
+name: "everything-component"
+to: "src/components/{{ pascalCase name }}/index.ts"
+---
+// Component + Tests + Stories + Docs + API + Styles all in one template
+</code></pre>
+<pre><code class="language-yaml"># ✅ Good: Focused templates
+---
+name: "component-base"
+to: "src/components/{{ pascalCase name }}/{{ pascalCase name }}.tsx"
+---
+import React from 'react';
+import { {{ pascalCase name }}Props } from './types';
+
+export const {{ pascalCase name }}: React.FC&lt;{{ pascalCase name }}Props&gt; = (props) =&gt; {
+  return &lt;div&gt;{/* Implementation */}&lt;/div&gt;;
+};
+</code></pre>
+<pre><code class="language-yaml"># ✅ Good: Separate test template
+---
+name: "component-test"
+to: "src/components/{{ pascalCase name }}/{{ pascalCase name }}.test.tsx"
+---
+import { render, screen } from '@testing-library/react';
+import { {{ pascalCase name }} } from './{{ pascalCase name }}';
+
+describe('{{ pascalCase name }}', () =&gt; {
+  it('renders correctly', () =&gt; {
+    render(&lt;{{ pascalCase name }} /&gt;);
+    // Test implementation
+  });
+});
+</code></pre>
+<h3 id="2-openclosed-principle-for-templates-1"><a class="header" href="#2-openclosed-principle-for-templates-1">2. Open/Closed Principle for Templates</a></h3>
+<p>Templates should be open for extension but closed for modification. This is achieved through inheritance, composition, and plugin systems.</p>
+<pre><code class="language-yaml"># Base template - closed for modification
+---
+name: "base-component"
+abstract: true
+schema:
+  name:
+    type: string
+    required: true
+  props:
+    type: array
+    default: []
+---
+import React from 'react';
+
+export const {{ pascalCase name }}: React.FC&lt;{% block props_type %}{{ pascalCase name }}Props{% endblock %}&gt; = ({
+  {% for prop in props %}{{ prop.name }}{% if not loop.last %}, {% endif %}{% endfor %}
+}) =&gt; {
+  {% block hooks %}{% endblock %}
+  
+  {% block render %}
+  return (
+    &lt;div className="{{ kebabCase name }}"&gt;
+      {% block content %}{{ name }} Component{% endblock %}
+    &lt;/div&gt;
+  );
+  {% endblock %}
+};
+</code></pre>
+<pre><code class="language-yaml"># Extended template - open for extension
+---
+name: "form-component"
+extends: "base-component"
+schema:
+  validation:
+    type: object
+    default: {}
+  onSubmit:
+    type: string
+    default: "handleSubmit"
+---
+{% block hooks %}
+const [formData, setFormData] = useState({});
+const [errors, setErrors] = useState({});
+
+{% if validation %}
+const validate = (data: any) =&gt; {
+  // Validation logic based on {{ validation }}
+};
+{% endif %}
+{% endblock %}
+
+{% block render %}
+return (
+  &lt;form onSubmit={{ onSubmit }} className="{{ kebabCase name }}-form"&gt;
+    {% block content %}
+    {/* Form fields */}
+    {% endblock %}
+  &lt;/form&gt;
+);
+{% endblock %}
+</code></pre>
+<h3 id="3-dependency-inversion-for-templates-1"><a class="header" href="#3-dependency-inversion-for-templates-1">3. Dependency Inversion for Templates</a></h3>
+<p>High-level templates should not depend on low-level details. Instead, both should depend on abstractions.</p>
+<pre><code class="language-typescript">// Abstract interface for data sources
+interface DataSource {
+  getSchema(): Promise&lt;Schema&gt;;
+  getRecords(): Promise&lt;Record[]&gt;;
+  getRelationships(): Promise&lt;Relationship[]&gt;;
+}
+
+// Template depends on abstraction, not concrete implementation
+interface TemplateContext {
+  dataSource: DataSource;
+  outputFormat: 'typescript' | 'javascript' | 'graphql';
+  conventions: NamingConventions;
+}
+</code></pre>
+<pre><code class="language-yaml"># Template uses abstraction
+---
+name: "api-endpoint"
+dependencies:
+  - dataSource: "interface:DataSource"
+  - logger: "interface:Logger"
+---
+{% set schema = dataSource.getSchema() %}
+{% set relationships = dataSource.getRelationships() %}
+
+export const {{ camelCase name }}API = {
+  {% for operation in schema.operations %}
+  {{ operation.name }}: async ({{ operation.params | join(', ') }}) =&gt; {
+    logger.debug('Executing {{ operation.name }}');
+    // Implementation
+  },
+  {% endfor %}
+};
+</code></pre>
+<h2 id="template-composition-patterns-1"><a class="header" href="#template-composition-patterns-1">Template Composition Patterns</a></h2>
+<blockquote>
+<p><strong>🧩 Unjucks v2 Case Study: Composition Revolution</strong></p>
+<p>The v2 refactor completely transformed how templates are composed, moving from monolithic files to sophisticated composition patterns.</p>
+<p><strong>Legacy v1 Approach: Duplication Everywhere</strong></p>
+<pre><code>templates/
+├── react-component.hbs        # 347 lines
+├── vue-component.hbs          # 289 lines  (80% duplication)
+├── angular-component.hbs      # 412 lines  (75% duplication)
+└── component-with-state.hbs   # 423 lines  (85% duplication)
+</code></pre>
+<p><strong>Modern v2 Approach: Composable Architecture</strong></p>
+<pre><code>templates/
+├── base/
+│   ├── component.njk          # 15 lines - core structure
+│   ├── imports.njk            # 8 lines - import management  
+│   └── exports.njk            # 6 lines - export patterns
+├── mixins/
+│   ├── with-state.njk         # 12 lines - state management
+│   ├── with-router.njk        # 9 lines - routing integration
+│   ├── with-form.njk          # 18 lines - form handling
+│   └── with-query.njk         # 14 lines - data fetching
+├── frameworks/
+│   ├── react.njk              # 23 lines - React-specific
+│   ├── vue.njk                # 21 lines - Vue-specific
+│   └── angular.njk            # 26 lines - Angular-specific
+└── generators/
+    ├── component.js           # 45 lines - composition logic
+    ├── page.js                # 38 lines - page generator  
+    └── service.js             # 41 lines - service generator
+</code></pre>
+<p><strong>Composition Results:</strong></p>
+<ul>
+<li><strong>Reduced duplication</strong>: From 85% to 3% duplicate code</li>
+<li><strong>Modular templates</strong>: Average 18 lines vs 347 lines</li>
+<li><strong>Consistent patterns</strong>: 100% reuse of base components</li>
+<li><strong>Maintainable architecture</strong>: Single change updates all variants</li>
+</ul>
+</blockquote>
+<h3 id="1-mixin-pattern-1"><a class="header" href="#1-mixin-pattern-1">1. Mixin Pattern</a></h3>
+<p>Mixins allow templates to share common functionality without inheritance hierarchies:</p>
+<pre><code class="language-yaml"># Mixin: Loading state functionality
+---
+name: "with-loading-state"
+type: mixin
+---
+const [isLoading, setIsLoading] = useState(false);
+
+const withLoadingWrapper = (asyncFn: (...args: any[]) =&gt; Promise&lt;any&gt;) =&gt; {
+  return async (...args: any[]) =&gt; {
+    setIsLoading(true);
+    try {
+      return await asyncFn(...args);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+};
+</code></pre>
+<pre><code class="language-yaml"># Mixin: Error handling functionality
+---
+name: "with-error-handling"
+type: mixin
+---
+const [error, setError] = useState&lt;Error | null&gt;(null);
+
+const withErrorHandling = (fn: (...args: any[]) =&gt; any) =&gt; {
+  return (...args: any[]) =&gt; {
+    try {
+      setError(null);
+      return fn(...args);
+    } catch (err) {
+      setError(err instanceof Error ? err : new Error(String(err)));
+      throw err;
+    }
+  };
+};
+</code></pre>
+<pre><code class="language-yaml"># Component using mixins
+---
+name: "async-component"
+mixins:
+  - "with-loading-state"
+  - "with-error-handling"
+---
+import React, { useState } from 'react';
+
+export const {{ pascalCase name }}: React.FC = () =&gt; {
+  &lt;!-- Mixin: with-loading-state --&gt;
+  &lt;!-- Mixin: with-error-handling --&gt;
+  
+  const fetchData = withErrorHandling(withLoadingWrapper(async () =&gt; {
+    // Data fetching logic
+  }));
+
+  if (isLoading) return &lt;div&gt;Loading...&lt;/div&gt;;
+  if (error) return &lt;div&gt;Error: {error.message}&lt;/div&gt;;
+  
+  return (
+    &lt;div&gt;
+      {/* Component content */}
+    &lt;/div&gt;
+  );
+};
+</code></pre>
+<h3 id="2-decorator-pattern-1"><a class="header" href="#2-decorator-pattern-1">2. Decorator Pattern</a></h3>
+<p>Decorators add functionality to templates without modifying their core structure:</p>
+<pre><code class="language-typescript">// Decorator interface
+interface TemplateDecorator {
+  name: string;
+  priority: number;
+  transform(template: string, context: any): string;
+}
+
+// TypeScript decorator
+class TypeScriptDecorator implements TemplateDecorator {
+  name = 'typescript';
+  priority = 100;
+  
+  transform(template: string, context: any): string {
+    if (context.language === 'typescript') {
+      return template
+        .replace(/\.js/g, '.ts')
+        .replace(/\.jsx/g, '.tsx')
+        .replace(/export default/g, 'export default')
+        .replace(/React\.FC/g, 'React.FC');
+    }
+    return template;
+  }
+}
+
+// Testing decorator
+class TestDecorator implements TemplateDecorator {
+  name = 'testing';
+  priority = 50;
+  
+  transform(template: string, context: any): string {
+    if (context.withTests) {
+      return template + '\n\n' + this.generateTests(context);
+    }
+    return template;
+  }
+  
+  private generateTests(context: any): string {
+    return `
+describe('${context.name}', () =&gt; {
+  it('should render without crashing', () =&gt; {
+    // Test implementation
+  });
+});`;
+  }
+}
+</code></pre>
+<h3 id="3-strategy-pattern-1"><a class="header" href="#3-strategy-pattern-1">3. Strategy Pattern</a></h3>
+<p>Different generation strategies for different contexts:</p>
+<pre><code class="language-yaml"># Strategy configuration
+strategies:
+  react:
+    component: "react-component.njk"
+    test: "react-test.njk"
+    story: "react-story.njk"
+  
+  vue:
+    component: "vue-component.njk"
+    test: "vue-test.njk"
+    story: "vue-story.njk"
+  
+  angular:
+    component: "angular-component.njk"
+    test: "angular-test.njk"
+    story: "angular-story.njk"
+</code></pre>
+<pre><code class="language-typescript">// Strategy selector
+const selectStrategy = (context: GenerationContext): TemplateStrategy =&gt; {
+  if (context.framework === 'react') return new ReactStrategy();
+  if (context.framework === 'vue') return new VueStrategy();
+  if (context.framework === 'angular') return new AngularStrategy();
+  
+  throw new Error(`Unsupported framework: ${context.framework}`);
+};
+</code></pre>
+<h2 id="advanced-template-features-1"><a class="header" href="#advanced-template-features-1">Advanced Template Features</a></h2>
+<h3 id="1-conditional-generation-with-smart-guards-1"><a class="header" href="#1-conditional-generation-with-smart-guards-1">1. Conditional Generation with Smart Guards</a></h3>
+<p>Modern templates use sophisticated conditional logic to generate contextually appropriate code:</p>
+<pre><code class="language-yaml">---
+name: "smart-component"
+to: "src/components/{{ pascalCase name }}/{{ pascalCase name }}.{% if typescript %}tsx{% else %}jsx{% endif %}"
+guards:
+  - condition: "{{ framework === 'react' }}"
+    error: "This template requires React framework"
+  - condition: "{{ name | length &gt; 2 }}"
+    error: "Component name must be at least 3 characters"
+---
+{% if typescript %}
+import React{% if withState %}, { useState }{% endif %}{% if withEffect %}, { useEffect }{% endif %} from 'react';
+{% if withRouter %}
+import { useRouter } from '{% if framework.version &gt;= "13" %}next/navigation{% else %}next/router{% endif %}';
+{% endif %}
+
+interface {{ pascalCase name }}Props {
+  {% for prop in props %}
+  {{ prop.name }}{% if prop.optional %}?{% endif %}: {{ prop.type }};
+  {% endfor %}
+}
+{% else %}
+import React{% if withState %}, { useState }{% endif %}{% if withEffect %}, { useEffect }{% endif %} from 'react';
+{% if withRouter %}
+import { useRouter } from 'next/router';
+{% endif %}
+{% endif %}
+
+{% if typescript %}
+export const {{ pascalCase name }}: React.FC&lt;{{ pascalCase name }}Props&gt; = ({
+{% else %}
+export const {{ pascalCase name }} = ({
+{% endif %}
+  {% for prop in props %}{{ prop.name }}{% if not loop.last %}, {% endif %}{% endfor %}
+{% if typescript %}
+}: {{ pascalCase name }}Props) =&gt; {
+{% else %}
+}) =&gt; {
+{% endif %}
+  {% if withState %}
+  const [state, setState] = useState({% if stateDefault %}{{ stateDefault }}{% else %}null{% endif %});
+  {% endif %}
+  
+  {% if withEffect %}
+  useEffect(() =&gt; {
+    // Effect logic
+  }, []);
+  {% endif %}
+  
+  {% if withRouter %}
+  const router = useRouter();
+  {% endif %}
+
+  return (
+    &lt;div className="{{ kebabCase name }}{% if styling.module %}-module{% endif %}"&gt;
+      {/* Component implementation */}
+    &lt;/div&gt;
+  );
+};
+</code></pre>
+<h3 id="2-dynamic-path-generation-1"><a class="header" href="#2-dynamic-path-generation-1">2. Dynamic Path Generation</a></h3>
+<p>Templates can generate dynamic paths based on context and conventions:</p>
+<pre><code class="language-yaml">---
+name: "feature-module"
+paths:
+  component: "src/{% if features %}features/{{ kebabCase feature }}/{% endif %}components/{{ pascalCase name }}/index.{% if typescript %}tsx{% else %}jsx{% endif %}"
+  test: "src/{% if features %}features/{{ kebabCase feature }}/{% endif %}components/{{ pascalCase name }}/{{ pascalCase name }}.test.{% if typescript %}tsx{% else %}jsx{% endif %}"
+  story: "src/{% if features %}features/{{ kebabCase feature }}/{% endif %}components/{{ pascalCase name }}/{{ pascalCase name }}.stories.{% if typescript %}tsx{% else %}jsx{% endif %}"
+  styles: "src/{% if features %}features/{{ kebabCase feature }}/{% endif %}components/{{ pascalCase name }}/{{ kebabCase name }}.{% if styling.preprocessor %}{{ styling.preprocessor }}{% else %}css{% endif %}"
+---
+</code></pre>
+<h3 id="3-context-aware-imports-1"><a class="header" href="#3-context-aware-imports-1">3. Context-Aware Imports</a></h3>
+<p>Templates intelligently manage imports based on usage and context:</p>
+<pre><code class="language-yaml">---
+name: "smart-imports"
+imports:
+  react:
+    default: "React"
+    named:
+      - condition: "{{ withState }}"
+        import: "useState"
+      - condition: "{{ withEffect }}"
+        import: "useEffect"
+      - condition: "{{ withCallback }}"
+        import: "useCallback"
+      - condition: "{{ withMemo }}"
+        import: "useMemo"
+  
+  next:
+    - condition: "{{ withRouter }}"
+      from: "{% if nextVersion &gt;= 13 %}next/navigation{% else %}next/router{% endif %}"
+      import: "useRouter"
+    
+    - condition: "{{ withImage }}"
+      from: "next/image"
+      import: "Image"
+  
+  external:
+    {% for dep in dependencies %}
+    - from: "{{ dep.package }}"
+      {% if dep.default %}default: "{{ dep.default }}"{% endif %}
+      {% if dep.named %}named: {{ dep.named | list }}{% endif %}
+    {% endfor %}
+---
+{# Generate imports based on usage #}
+import React{% if imports.react.named %}, { {{ imports.react.named | join(', ') }} }{% endif %} from 'react';
+{% for imp in imports.next %}
+import { {{ imp.import }} } from '{{ imp.from }}';
+{% endfor %}
+{% for imp in imports.external %}
+{% if imp.default %}import {{ imp.default }}{% if imp.named %}, { {{ imp.named | join(', ') }} }{% endif %} from '{{ imp.from }}';{% else %}import { {{ imp.named | join(', ') }} } from '{{ imp.from }}';{% endif %}
+{% endfor %}
+</code></pre>
+<h2 id="template-testing-and-validation-1"><a class="header" href="#template-testing-and-validation-1">Template Testing and Validation</a></h2>
+<h3 id="1-schema-driven-validation-1"><a class="header" href="#1-schema-driven-validation-1">1. Schema-Driven Validation</a></h3>
+<p>Define schemas for template variables to ensure type safety and completeness:</p>
+<pre><code class="language-typescript">// JSON Schema for component template
+const componentSchema = {
+  type: 'object',
+  required: ['name'],
+  properties: {
+    name: {
+      type: 'string',
+      pattern: '^[A-Z][a-zA-Z0-9]*$',
+      description: 'Component name in PascalCase'
+    },
+    props: {
+      type: 'array',
+      items: {
+        type: 'object',
+        required: ['name', 'type'],
+        properties: {
+          name: { type: 'string' },
+          type: { type: 'string' },
+          optional: { type: 'boolean', default: false },
+          description: { type: 'string' }
+        }
+      }
+    },
+    features: {
+      type: 'object',
+      properties: {
+        state: { type: 'boolean', default: false },
+        effect: { type: 'boolean', default: false },
+        router: { type: 'boolean', default: false },
+        testing: { type: 'boolean', default: true }
+      }
+    }
+  }
+};
+
+// Template validation
+const validateTemplate = (variables: any): ValidationResult =&gt; {
+  const ajv = new Ajv();
+  const validate = ajv.compile(componentSchema);
+  const valid = validate(variables);
+  
+  return {
+    valid,
+    errors: validate.errors || []
+  };
+};
+</code></pre>
+<h3 id="2-generated-code-testing-1"><a class="header" href="#2-generated-code-testing-1">2. Generated Code Testing</a></h3>
+<p>Test that generated code meets quality standards:</p>
+<pre><code class="language-typescript">// Test suite for template output
+describe('ComponentTemplate', () =&gt; {
+  it('generates valid TypeScript', async () =&gt; {
+    const variables = {
+      name: 'TestComponent',
+      typescript: true,
+      props: [
+        { name: 'title', type: 'string', optional: false },
+        { name: 'onClick', type: '() =&gt; void', optional: true }
+      ]
+    };
+    
+    const result = await generateTemplate('component', variables);
+    
+    // Syntax validation
+    expect(() =&gt; parse(result.content, { sourceType: 'module' })).not.toThrow();
+    
+    // TypeScript validation
+    const diagnostics = await validateTypeScript(result.content);
+    expect(diagnostics).toHaveLength(0);
+    
+    // ESLint validation
+    const lintResults = await lint(result.content);
+    expect(lintResults.errorCount).toBe(0);
+  });
+  
+  it('includes required imports', async () =&gt; {
+    const variables = {
+      name: 'TestComponent',
+      withState: true,
+      withRouter: true
+    };
+    
+    const result = await generateTemplate('component', variables);
+    
+    expect(result.content).toMatch(/import React, { useState } from 'react'/);
+    expect(result.content).toMatch(/import { useRouter } from/);
+  });
+  
+  it('follows naming conventions', async () =&gt; {
+    const variables = { name: 'MyTestComponent' };
+    const result = await generateTemplate('component', variables);
+    
+    expect(result.content).toMatch(/export const MyTestComponent:/);
+    expect(result.content).toMatch(/className="my-test-component"/);
+  });
+});
+</code></pre>
+<h3 id="3-template-performance-testing-1"><a class="header" href="#3-template-performance-testing-1">3. Template Performance Testing</a></h3>
+<p>Ensure templates perform well with various inputs:</p>
+<pre><code class="language-typescript">describe('Template Performance', () =&gt; {
+  it('handles large prop lists efficiently', async () =&gt; {
+    const variables = {
+      name: 'LargeComponent',
+      props: Array.from({ length: 100 }, (_, i) =&gt; ({
+        name: `prop${i}`,
+        type: 'string',
+        optional: i % 2 === 0
+      }))
+    };
+    
+    const startTime = performance.now();
+    const result = await generateTemplate('component', variables);
+    const endTime = performance.now();
+    
+    expect(endTime - startTime).toBeLessThan(100); // Should complete in &lt;100ms
+    expect(result.content).toMatch(/prop99: string;/);
+  });
+  
+  it('scales with template complexity', async () =&gt; {
+    const complexVariables = {
+      name: 'ComplexComponent',
+      mixins: ['with-loading', 'with-errors', 'with-validation'],
+      features: {
+        state: true,
+        effect: true,
+        router: true,
+        query: true,
+        mutation: true
+      },
+      props: Array.from({ length: 50 }, (_, i) =&gt; ({
+        name: `prop${i}`,
+        type: 'ComplexType&lt;GenericParam&gt;',
+        optional: true
+      }))
+    };
+    
+    const startTime = performance.now();
+    await generateTemplate('complex-component', complexVariables);
+    const endTime = performance.now();
+    
+    expect(endTime - startTime).toBeLessThan(200);
+  });
+});
+</code></pre>
+<h2 id="template-documentation-and-metadata-1"><a class="header" href="#template-documentation-and-metadata-1">Template Documentation and Metadata</a></h2>
+<h3 id="1-self-documenting-templates-1"><a class="header" href="#1-self-documenting-templates-1">1. Self-Documenting Templates</a></h3>
+<p>Templates should include comprehensive metadata:</p>
+<pre><code class="language-yaml">---
+# Template metadata
+name: "react-component"
+version: "2.1.0"
+description: "Generates a modern React component with TypeScript support"
+author: "Development Team"
+tags: ["react", "typescript", "component"]
+category: "frontend"
+
+# Documentation
+documentation:
+  description: |
+    This template generates a React functional component with optional features
+    like state management, effects, routing, and comprehensive testing.
+  
+  examples:
+    - name: "Basic Component"
+      description: "Simple component with props"
+      variables:
+        name: "Button"
+        props:
+          - name: "children"
+            type: "React.ReactNode"
+          - name: "onClick"
+            type: "() =&gt; void"
+            optional: true
+    
+    - name: "Stateful Component"
+      description: "Component with state and effects"
+      variables:
+        name: "Counter"
+        withState: true
+        withEffect: true
+        stateDefault: "0"
+
+# Schema definition
+schema:
+  type: "object"
+  required: ["name"]
+  properties:
+    name:
+      type: "string"
+      pattern: "^[A-Z][a-zA-Z0-9]*$"
+      description: "Component name in PascalCase"
+      examples: ["Button", "UserProfile", "NavigationMenu"]
+    
+    props:
+      type: "array"
+      description: "Component props definition"
+      items:
+        type: "object"
+        required: ["name", "type"]
+        properties:
+          name:
+            type: "string"
+            description: "Property name"
+          type:
+            type: "string"
+            description: "TypeScript type"
+          optional:
+            type: "boolean"
+            default: false
+            description: "Whether the prop is optional"
+
+# Template dependencies
+dependencies:
+  templates: []
+  packages:
+    - name: "react"
+      version: "&gt;=18.0.0"
+    - name: "typescript"
+      version: "&gt;=4.9.0"
+      optional: true
+
+# Output files
+outputs:
+  - path: "src/components/{{ pascalCase name }}/{{ pascalCase name }}.tsx"
+    description: "Main component file"
+  - path: "src/components/{{ pascalCase name }}/types.ts"
+    description: "Type definitions"
+    condition: "{{ typescript &amp;&amp; props.length &gt; 0 }}"
+  - path: "src/components/{{ pascalCase name }}/{{ pascalCase name }}.test.tsx"
+    description: "Test file"
+    condition: "{{ withTests }}"
+
+# File generation rules
+to: "src/components/{{ pascalCase name }}/{{ pascalCase name }}.tsx"
+inject: false
+skipIf: false
+chmod: "644"
+---
+
+{# Template content follows #}
+</code></pre>
+<h3 id="2-interactive-template-help-1"><a class="header" href="#2-interactive-template-help-1">2. Interactive Template Help</a></h3>
+<p>Generate interactive help and examples:</p>
+<pre><code class="language-typescript">// Template help generator
+const generateTemplateHelp = (template: TemplateMetadata): string =&gt; {
+  return `
+# ${template.name} - ${template.description}
+
+## Usage
+\`\`\`bash
+unjucks generate ${template.name} MyComponent --with-state --with-tests
+\`\`\`
+
+## Options
+${template.schema.properties.map(prop =&gt; 
+  `- **${prop.name}** (${prop.type}): ${prop.description}`
+).join('\n')}
+
+## Examples
+${template.documentation.examples.map(example =&gt; `
+### ${example.name}
+${example.description}
+
+\`\`\`bash
+unjucks generate ${template.name} ${Object.entries(example.variables)
+  .map(([key, value]) =&gt; `--${key} ${JSON.stringify(value)}`)
+  .join(' ')}
+\`\`\`
+`).join('\n')}
+
+## Generated Files
+${template.outputs.map(output =&gt; 
+  `- \`${output.path}\`: ${output.description}`
+).join('\n')}
+  `;
+};
+</code></pre>
+<h2 id="template-versioning-and-migration-1"><a class="header" href="#template-versioning-and-migration-1">Template Versioning and Migration</a></h2>
+<h3 id="1-semantic-versioning-for-templates-1"><a class="header" href="#1-semantic-versioning-for-templates-1">1. Semantic Versioning for Templates</a></h3>
+<pre><code class="language-yaml">---
+name: "component"
+version: "2.1.0"
+compatibleWith: ["2.0.0", "2.0.1", "2.1.0"]
+breaking_changes: []
+migrations:
+  "1.x.x": "migrate-v1-to-v2.js"
+---
+</code></pre>
+<h3 id="2-template-migration-scripts-1"><a class="header" href="#2-template-migration-scripts-1">2. Template Migration Scripts</a></h3>
+<pre><code class="language-typescript">// Migration script
+export const migrateV1ToV2 = (oldVariables: any): any =&gt; {
+  const newVariables = { ...oldVariables };
+  
+  // Rename 'hasState' to 'withState'
+  if ('hasState' in oldVariables) {
+    newVariables.withState = oldVariables.hasState;
+    delete newVariables.hasState;
+  }
+  
+  // Convert old prop format to new format
+  if (oldVariables.props &amp;&amp; typeof oldVariables.props[0] === 'string') {
+    newVariables.props = oldVariables.props.map((prop: string) =&gt; ({
+      name: prop,
+      type: 'any',
+      optional: false
+    }));
+  }
+  
+  return newVariables;
+};
+</code></pre>
+<h2 id="anti-patterns-and-common-pitfalls-1"><a class="header" href="#anti-patterns-and-common-pitfalls-1">Anti-Patterns and Common Pitfalls</a></h2>
+<h3 id="1-template-anti-patterns-1"><a class="header" href="#1-template-anti-patterns-1">1. Template Anti-Patterns</a></h3>
+<p>❌ <strong>The God Template</strong>: Templates that try to do everything</p>
+<pre><code class="language-yaml"># Don't create monolithic templates
+---
+name: "everything-template"
+# Generates components + tests + stories + docs + API + database + deployment
+---
+</code></pre>
+<p>❌ <strong>Hard-coded Paths</strong>: Templates with inflexible output paths</p>
+<pre><code class="language-yaml"># Avoid hard-coded paths
+to: "src/components/Button/Button.tsx"  # Inflexible
+</code></pre>
+<p>❌ <strong>No Error Handling</strong>: Templates without validation or error handling</p>
+<pre><code class="language-yaml"># Missing validation and error handling
+---
+to: "{{ outputPath }}"  # Could be undefined
+---
+import { {{ componentName }} } from './{{ fileName }}';  # No validation
+</code></pre>
+<h3 id="2-common-mistakes-and-solutions-1"><a class="header" href="#2-common-mistakes-and-solutions-1">2. Common Mistakes and Solutions</a></h3>
+<p><strong>Problem</strong>: Templates become unmaintainable as they grow
+<strong>Solution</strong>: Use composition and inheritance patterns</p>
+<p><strong>Problem</strong>: Generated code doesn't follow project conventions
+<strong>Solution</strong>: Implement context-aware generation</p>
+<p><strong>Problem</strong>: Templates break when project structure changes
+<strong>Solution</strong>: Use dynamic path generation and configuration</p>
+<p><strong>Problem</strong>: Developers don't know how to use templates
+<strong>Solution</strong>: Include comprehensive documentation and examples</p>
+<h2 id="future-proofing-template-design-1"><a class="header" href="#future-proofing-template-design-1">Future-Proofing Template Design</a></h2>
+<h3 id="1-preparing-for-ai-integration-1"><a class="header" href="#1-preparing-for-ai-integration-1">1. Preparing for AI Integration</a></h3>
+<p>Design templates to work well with AI assistance:</p>
+<pre><code class="language-yaml">---
+name: "ai-enhanced-component"
+ai_hints:
+  context: "React functional component with modern patterns"
+  patterns: ["hooks", "typescript", "testing-library"]
+  avoid: ["class-components", "prop-types"]
+suggestions:
+  - trigger: "withQuery: true"
+    hint: "Consider adding error boundaries and loading states"
+  - trigger: "props.length &gt; 5"
+    hint: "Consider breaking down into smaller components"
+---
+</code></pre>
+<h3 id="2-extensibility-points-1"><a class="header" href="#2-extensibility-points-1">2. Extensibility Points</a></h3>
+<p>Design templates with clear extension points:</p>
+<pre><code class="language-yaml">---
+name: "extensible-component"
+extension_points:
+  - name: "before_imports"
+    description: "Add custom imports before standard ones"
+  - name: "after_props"
+    description: "Add custom props after standard ones"
+  - name: "custom_hooks"
+    description: "Add custom hook implementations"
+  - name: "before_return"
+    description: "Add logic before return statement"
+---
+
+{% block before_imports %}{% endblock %}
+import React from 'react';
+
+interface {{ pascalCase name }}Props {
+  // Standard props
+  {% block after_props %}{% endblock %}
+}
+
+export const {{ pascalCase name }}: React.FC&lt;{{ pascalCase name }}Props&gt; = () =&gt; {
+  {% block custom_hooks %}{% endblock %}
+  
+  {% block before_return %}{% endblock %}
+  return (
+    &lt;div&gt;
+      {% block content %}Default content{% endblock %}
+    &lt;/div&gt;
+  );
+};
+</code></pre>
+<h2 id="conclusion-1"><a class="header" href="#conclusion-1">Conclusion</a></h2>
+<p>Modern template design is a sophisticated discipline that combines software engineering principles with creative problem-solving. The templates we've explored in this chapter represent more than just text generation—they're intelligent systems that understand context, adapt to environments, and evolve with your codebase.</p>
+<p>Key takeaways for modern template design:</p>
+<ol>
+<li><strong>Apply SOLID principles</strong> to template architecture</li>
+<li><strong>Use composition patterns</strong> for maintainable templates</li>
+<li><strong>Implement comprehensive validation</strong> and error handling</li>
+<li><strong>Design for extensibility</strong> and future enhancement</li>
+<li><strong>Include thorough documentation</strong> and examples</li>
+<li><strong>Test templates</strong> as rigorously as application code</li>
+<li><strong>Plan for migration</strong> and versioning</li>
+</ol>
+<p>As we move forward, the next chapter will explore how to configure these powerful templates through sophisticated configuration systems that make template management scalable and maintainable across large development teams.</p>
+<p>The future of code generation lies not just in creating better templates, but in creating template systems that are intelligent, adaptable, and truly serve the needs of modern development teams. The patterns and practices outlined in this chapter provide the foundation for building such systems.</p>
+
+
+        <!-- Performance monitoring -->
+        <script>
+            // Simple performance monitoring
+            window.addEventListener('load', function() {
+                if ('performance' in window) {
+                    setTimeout(function() {
+                        const loadTime = performance.timing.loadEventEnd - performance.timing.navigationStart;
+                        console.log('📊 Page loaded in ' + loadTime + 'ms');
+                    }, 0);
+                }
+            });
+        </script>
+
+        <!-- Service Worker for offline support -->
+        <script>
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.register('sw.js')
+                    .then(function(registration) {
+                        console.log('📱 SW registered with scope:', registration.scope);
+                    })
+                    .catch(function(error) {
+                        console.log('❌ SW registration failed:', error);
+                    });
+            }
+        </script>
+    </body>
+</html>

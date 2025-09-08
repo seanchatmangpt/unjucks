@@ -1,0 +1,823 @@
+# Advanced Template Frontmatter Examples for Unjucks v2
+# Comprehensive examples showing all frontmatter features and capabilities
+
+# =============================================================================
+# BASIC FRONTMATTER STRUCTURE
+# =============================================================================
+
+# Example 1: Simple component template
+---
+to: src/components/<%= componentName %>/<%= componentName %>.tsx
+description: "Generate React TypeScript component with props and styling"
+variables:
+  componentName:
+    type: string
+    required: true
+    pattern: "^[A-Z][a-zA-Z0-9]*$"
+    description: "Component name in PascalCase"
+  hasProps:
+    type: boolean
+    default: true
+    description: "Include props interface"
+  styling:
+    type: enum
+    values: ["css-modules", "styled-components", "tailwind"]
+    default: "css-modules"
+    description: "Styling approach"
+---
+
+---
+
+# =============================================================================
+# CONDITIONAL FILE GENERATION
+# =============================================================================
+
+# Example 2: Conditional test file generation
+---
+to: src/components/<%= componentName %>/<%= componentName %>.test.tsx
+condition: <%= includeTests %>
+description: "Generate component test file (only if tests are enabled)"
+variables:
+  componentName:
+    type: string
+    required: true
+  includeTests:
+    type: boolean
+    default: true
+    description: "Generate test files"
+  testFramework:
+    type: enum
+    values: ["jest", "vitest", "cypress"]
+    default: "jest"
+    description: "Testing framework to use"
+    condition: <%= includeTests %>
+---
+
+---
+
+# Example 3: Platform-specific file generation
+---
+to: src/platforms/<%= platform %>/<%= componentName %>.tsx
+condition: <%= platforms.includes(platform) %>
+description: "Generate platform-specific component variant"
+variables:
+  componentName:
+    type: string
+    required: true
+  platform:
+    type: enum
+    values: ["web", "mobile", "desktop"]
+    required: true
+    description: "Target platform"
+  platforms:
+    type: array
+    items:
+      type: string
+      enum: ["web", "mobile", "desktop"]
+    default: ["web"]
+    description: "Enabled platforms"
+---
+
+---
+
+# =============================================================================
+# ADVANCED INJECTION PATTERNS
+# =============================================================================
+
+# Example 4: Route injection into Express app
+---
+inject: true
+to: src/app.ts
+before: "export default app;"
+skipIf: "/<%= routePath %>"
+description: "Inject new route into Express application"
+variables:
+  routePath:
+    type: string
+    required: true
+    pattern: "^[a-z][a-z0-9-]*$"
+    description: "Route path (kebab-case)"
+  routeMethod:
+    type: enum
+    values: ["get", "post", "put", "delete", "patch"]
+    default: "get"
+    description: "HTTP method"
+  middlewares:
+    type: array
+    items:
+      type: string
+    default: []
+    description: "Middleware functions to apply"
+---
+
+---
+
+# Example 5: Import statement injection with sorting
+---
+inject: true
+to: src/<%= targetFile %>
+after: "// Auto-generated imports"
+before: "// End auto-generated imports"
+sortBy: alphabetical
+skipIf: "import.*<%= importName %>"
+description: "Add import statement with automatic sorting"
+variables:
+  targetFile:
+    type: string
+    required: true
+    description: "Target file for import injection"
+  importName:
+    type: string
+    required: true
+    description: "Name of the import"
+  importPath:
+    type: string
+    required: true
+    description: "Path to import from"
+  importType:
+    type: enum
+    values: ["default", "named", "namespace"]
+    default: "named"
+    description: "Type of import"
+---
+
+---
+
+# Example 6: Line-specific injection with context
+---
+inject: true
+to: src/database/models/index.ts
+lineAt: <%= lineNumber %>
+context:
+  before: 2
+  after: 1
+skipIf: "export.*<%= modelName %>"
+description: "Add model export at specific line with context"
+variables:
+  modelName:
+    type: string
+    required: true
+    pattern: "^[A-Z][a-zA-Z0-9]*$"
+    description: "Model name in PascalCase"
+  lineNumber:
+    type: number
+    description: "Specific line number for insertion"
+  tableName:
+    type: string
+    description: "Database table name"
+    transform: "snakeCase"
+---
+
+---
+
+# =============================================================================
+# COMPLEX VARIABLE DEFINITIONS
+# =============================================================================
+
+# Example 7: Advanced variable validation and transformation
+---
+to: src/api/<%= entityName | kebabCase %>/controller.ts
+description: "Generate REST API controller with advanced validation"
+variables:
+  entityName:
+    type: string
+    required: true
+    pattern: "^[A-Z][a-zA-Z0-9]*$"
+    description: "Entity name in PascalCase"
+    examples: ["User", "BlogPost", "OrderItem"]
+    transform: "pascalCase"
+    
+  fields:
+    type: array
+    required: true
+    minItems: 1
+    maxItems: 20
+    items:
+      type: object
+      required: ["name", "type"]
+      properties:
+        name:
+          type: string
+          pattern: "^[a-z][a-zA-Z0-9]*$"
+          description: "Field name in camelCase"
+        type:
+          type: enum
+          values: ["string", "number", "boolean", "date", "array", "object"]
+          description: "Field data type"
+        required:
+          type: boolean
+          default: true
+          description: "Is field required"
+        validation:
+          type: object
+          properties:
+            min:
+              type: number
+              description: "Minimum value/length"
+            max:
+              type: number
+              description: "Maximum value/length"
+            pattern:
+              type: string
+              description: "Validation regex pattern"
+            format:
+              type: enum
+              values: ["email", "url", "uuid", "date", "phone"]
+              description: "Format validation"
+    description: "Entity fields with validation rules"
+    
+  operations:
+    type: array
+    items:
+      type: enum
+      values: ["create", "read", "update", "delete", "list", "search"]
+    default: ["create", "read", "update", "delete", "list"]
+    description: "Supported CRUD operations"
+    
+  authentication:
+    type: object
+    properties:
+      required:
+        type: boolean
+        default: true
+        description: "Require authentication"
+      roles:
+        type: array
+        items:
+          type: string
+        default: []
+        description: "Required roles"
+      permissions:
+        type: array
+        items:
+          type: string
+        default: []
+        description: "Required permissions"
+    description: "Authentication configuration"
+    
+  database:
+    type: object
+    required: ["type"]
+    properties:
+      type:
+        type: enum
+        values: ["postgresql", "mysql", "mongodb", "sqlite"]
+        description: "Database type"
+      table:
+        type: string
+        description: "Custom table name"
+        transform: "snakeCase"
+      indexes:
+        type: array
+        items:
+          type: object
+          properties:
+            fields:
+              type: array
+              items:
+                type: string
+            unique:
+              type: boolean
+              default: false
+        default: []
+        description: "Database indexes"
+    description: "Database configuration"
+---
+
+---
+
+# =============================================================================
+# MULTI-FILE GENERATION WITH LOOPS
+# =============================================================================
+
+# Example 8: Generate multiple files based on array variable
+---
+forEach: entities
+to: src/models/<%= entity.name | pascalCase %>.ts
+description: "Generate model file for each entity"
+variables:
+  entities:
+    type: array
+    required: true
+    minItems: 1
+    items:
+      type: object
+      required: ["name"]
+      properties:
+        name:
+          type: string
+          description: "Entity name"
+        fields:
+          type: array
+          items:
+            type: object
+        relationships:
+          type: array
+          items:
+            type: object
+            properties:
+              type:
+                type: enum
+                values: ["hasOne", "hasMany", "belongsTo", "belongsToMany"]
+              target:
+                type: string
+              foreignKey:
+                type: string
+    description: "List of entities to generate models for"
+---
+
+---
+
+# Example 9: Nested loop generation
+---
+forEach: services
+to: src/services/<%= service.name | kebabCase %>/<%= endpoint.name | kebabCase %>.ts
+innerForEach: service.endpoints
+description: "Generate service endpoint files"
+variables:
+  services:
+    type: array
+    items:
+      type: object
+      properties:
+        name:
+          type: string
+        endpoints:
+          type: array
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+              method:
+                type: enum
+                values: ["GET", "POST", "PUT", "DELETE"]
+              path:
+                type: string
+    description: "Services with their endpoints"
+---
+
+---
+
+# =============================================================================
+# FILE PERMISSIONS AND POST-GENERATION ACTIONS
+# =============================================================================
+
+# Example 10: Executable script generation with post-actions
+---
+to: scripts/<%= scriptName %>.sh
+chmod: 755
+sh: |
+  chmod +x "<%= to %>"
+  echo "Generated executable script: <%= scriptName %>"
+  if command -v shellcheck >/dev/null; then
+    shellcheck "<%= to %>"
+  fi
+description: "Generate executable shell script with validation"
+variables:
+  scriptName:
+    type: string
+    required: true
+    pattern: "^[a-z][a-z0-9-]*$"
+    description: "Script name in kebab-case"
+  scriptType:
+    type: enum
+    values: ["build", "deploy", "test", "utility"]
+    default: "utility"
+    description: "Type of script"
+  dependencies:
+    type: array
+    items:
+      type: string
+    default: []
+    description: "Required command-line tools"
+---
+
+---
+
+# Example 11: Docker configuration with multi-stage actions
+---
+to: docker/<%= serviceName %>/Dockerfile
+description: "Generate Dockerfile with optimization and validation"
+variables:
+  serviceName:
+    type: string
+    required: true
+    pattern: "^[a-z][a-z0-9-]*$"
+  nodeVersion:
+    type: string
+    default: "18-alpine"
+    pattern: "^\\d+(-[a-z]+)?$"
+  port:
+    type: number
+    minimum: 1000
+    maximum: 65535
+    default: 3000
+
+postGenerate:
+  - name: "validate-dockerfile"
+    command: "docker build --dry-run -f '<%= to %>' ."
+    description: "Validate Dockerfile syntax"
+    continueOnError: true
+    
+  - name: "optimize-image"
+    command: "dive '<%= to %>'"
+    description: "Analyze Docker image layers"
+    condition: <%= optimizeDocker %>
+    continueOnError: true
+    
+  - name: "update-compose"
+    template: "docker-compose-service.yml"
+    inject: true
+    to: "docker-compose.yml"
+    description: "Add service to docker-compose.yml"
+---
+
+---
+
+# =============================================================================
+# ENVIRONMENT AND CONTEXT-AWARE GENERATION
+# =============================================================================
+
+# Example 12: Environment-specific configuration
+---
+to: config/<%= environment %>/<%= configName %>.config.ts
+condition: <%= environments.includes(environment) %>
+description: "Generate environment-specific configuration"
+variables:
+  configName:
+    type: string
+    required: true
+    description: "Configuration name"
+  environment:
+    type: enum
+    values: ["development", "staging", "production", "test"]
+    default: "development"
+    description: "Target environment"
+  environments:
+    type: array
+    items:
+      type: string
+      enum: ["development", "staging", "production", "test"]
+    default: ["development", "production"]
+    description: "Enabled environments"
+  
+  # Environment-specific variables
+  databaseConfig:
+    type: object
+    properties:
+      host:
+        type: string
+        default: <%= environment === 'production' ? 'prod-db.example.com' : 'localhost' %>
+      ssl:
+        type: boolean
+        default: <%= environment === 'production' %>
+      poolSize:
+        type: number
+        default: <%= environment === 'production' ? 20 : 5 %>
+    description: "Database configuration"
+  
+  # Conditional features based on environment
+  features:
+    type: object
+    properties:
+      debugging:
+        type: boolean
+        default: <%= environment !== 'production' %>
+      analytics:
+        type: boolean
+        default: <%= environment === 'production' %>
+      monitoring:
+        type: boolean
+        default: <%= ['staging', 'production'].includes(environment) %>
+    description: "Feature flags by environment"
+---
+
+---
+
+# Example 13: Git branch-aware generation
+---
+to: .github/workflows/<%= workflowName %>.yml
+condition: <%= gitBranch === 'main' || createForAllBranches %>
+description: "Generate GitHub Actions workflow"
+variables:
+  workflowName:
+    type: string
+    required: true
+    pattern: "^[a-z][a-z0-9-]*$"
+    description: "Workflow name"
+  
+  gitBranch:
+    type: string
+    default: <%= getCurrentGitBranch() %>
+    description: "Current git branch"
+    
+  createForAllBranches:
+    type: boolean
+    default: false
+    description: "Create workflow regardless of branch"
+    
+  triggers:
+    type: array
+    items:
+      type: enum
+      values: ["push", "pull_request", "schedule", "workflow_dispatch"]
+    default: <%= gitBranch === 'main' ? ['push', 'pull_request'] : ['pull_request'] %>
+    description: "Workflow triggers"
+  
+  environments:
+    type: array
+    items:
+      type: string
+    default: <%= gitBranch === 'main' ? ['staging', 'production'] : ['development'] %>
+    description: "Deployment environments"
+
+helpers:
+  getCurrentGitBranch: |
+    const { execSync } = require('child_process');
+    try {
+      return execSync('git branch --show-current', { encoding: 'utf-8' }).trim();
+    } catch {
+      return 'main';
+    }
+---
+
+---
+
+# =============================================================================
+# ADVANCED VALIDATION AND BUSINESS RULES
+# =============================================================================
+
+# Example 14: Cross-field validation and business rules
+---
+to: src/validators/<%= entityName %>Validator.ts
+description: "Generate validator with cross-field validation"
+variables:
+  entityName:
+    type: string
+    required: true
+    pattern: "^[A-Z][a-zA-Z0-9]*$"
+  
+  fields:
+    type: array
+    required: true
+    items:
+      type: object
+      required: ["name", "type"]
+      properties:
+        name:
+          type: string
+        type:
+          type: string
+        validations:
+          type: array
+          items:
+            type: object
+  
+  businessRules:
+    type: array
+    items:
+      type: object
+      required: ["name", "condition", "message"]
+      properties:
+        name:
+          type: string
+          description: "Rule name"
+        condition:
+          type: string
+          description: "JavaScript condition to evaluate"
+        message:
+          type: string
+          description: "Error message when rule fails"
+        severity:
+          type: enum
+          values: ["error", "warning"]
+          default: "error"
+    default: []
+    description: "Business validation rules"
+    examples:
+      - name: "emailUnique"
+        condition: "await User.findOne({ email: data.email }) === null"
+        message: "Email address must be unique"
+      - name: "ageRestriction" 
+        condition: "data.age >= 18 || data.parentalConsent === true"
+        message: "Must be 18 or have parental consent"
+
+validation:
+  # Cross-field validation
+  rules:
+    - field: "businessRules"
+      rule: "custom"
+      validator: |
+        (value) => {
+          return value.every(rule => {
+            try {
+              new Function('data', 'return ' + rule.condition);
+              return true;
+            } catch {
+              return false;
+            }
+          });
+        }
+      message: "Business rule conditions must be valid JavaScript expressions"
+---
+
+---
+
+# =============================================================================
+# PLUGIN AND EXTENSION INTEGRATION
+# =============================================================================
+
+# Example 15: Plugin-aware template with extension points
+---
+to: src/plugins/<%= pluginName %>/index.ts
+description: "Generate plugin with configurable extensions"
+variables:
+  pluginName:
+    type: string
+    required: true
+    pattern: "^[a-z][a-z0-9-]*$"
+    description: "Plugin name in kebab-case"
+  
+  hooks:
+    type: array
+    items:
+      type: object
+      required: ["name", "type"]
+      properties:
+        name:
+          type: string
+          pattern: "^[a-z][a-zA-Z0-9]*$"
+        type:
+          type: enum
+          values: ["sync", "async", "waterfall", "parallel"]
+        description:
+          type: string
+    default: []
+    description: "Plugin hook definitions"
+  
+  dependencies:
+    type: object
+    properties:
+      required:
+        type: array
+        items:
+          type: string
+        default: []
+      optional:
+        type: array
+        items:
+          type: string
+        default: []
+    description: "Plugin dependencies"
+
+# Plugin configuration
+plugin:
+  lifecycle:
+    - hook: "pre-generate"
+      action: "validatePluginDependencies"
+    - hook: "post-generate" 
+      action: "registerPluginHooks"
+  
+  extensions:
+    - name: "typescript-support"
+      condition: <%= includeTypeScript %>
+      files:
+        - "types/<%= pluginName %>.d.ts"
+    - name: "test-support"
+      condition: <%= includeTests %>
+      files:
+        - "__tests__/<%= pluginName %>.test.ts"
+---
+
+---
+
+# =============================================================================
+# PERFORMANCE OPTIMIZATION FRONTMATTER
+# =============================================================================
+
+# Example 16: Performance-optimized template generation
+---
+to: src/components/<%= componentName %>/<%= componentName %>.tsx
+description: "Generate performance-optimized React component"
+variables:
+  componentName:
+    type: string
+    required: true
+    
+  optimizations:
+    type: object
+    properties:
+      memoization:
+        type: boolean
+        default: true
+        description: "Use React.memo"
+      lazyLoading:
+        type: boolean
+        default: false
+        description: "Enable lazy loading"
+      codesplitting:
+        type: boolean
+        default: false
+        description: "Split component code"
+      bundleAnalysis:
+        type: boolean
+        default: false
+        description: "Include bundle analysis comments"
+
+# Performance hints for the template engine
+performance:
+  cache: true
+  cacheKey: "<%= componentName %>-<%= JSON.stringify(optimizations) %>"
+  precompile: true
+  streaming: <%= fields && fields.length > 100 %>
+  
+# Memory management
+memory:
+  maxVariableSize: "10MB"
+  streamLargeArrays: true
+  garbageCollect: <%= fields && fields.length > 1000 %>
+
+# Template optimization
+template:
+  minify: true
+  removeComments: <%= environment === 'production' %>
+  optimizeLoops: true
+  cacheIncludes: true
+---
+
+---
+
+# =============================================================================
+# INTERNATIONALIZATION AND LOCALIZATION
+# =============================================================================
+
+# Example 17: Multi-language template generation
+---
+forEach: locales
+to: src/locales/<%= locale %>/messages.json
+description: "Generate localization files for each locale"
+variables:
+  locales:
+    type: array
+    items:
+      type: string
+      pattern: "^[a-z]{2}(-[A-Z]{2})?$"
+    default: ["en", "es", "fr", "de"]
+    description: "Supported locales (ISO 639-1 format)"
+  
+  defaultLocale:
+    type: string
+    default: "en"
+    description: "Default/fallback locale"
+  
+  messageKeys:
+    type: array
+    items:
+      type: object
+      required: ["key", "defaultText"]
+      properties:
+        key:
+          type: string
+          pattern: "^[a-z][a-zA-Z0-9.]*$"
+          description: "Message key (dot notation)"
+        defaultText:
+          type: string
+          description: "Default English text"
+        context:
+          type: string
+          description: "Context for translators"
+        pluralization:
+          type: boolean
+          default: false
+          description: "Requires pluralization"
+    description: "Message keys to generate"
+
+# Localization configuration  
+i18n:
+  namespace: <%= componentName || 'common' %>
+  fallbackLocale: <%= defaultLocale %>
+  interpolation:
+    escapeValue: false
+    format: "{{variable}}"
+  
+  # Translation services integration
+  translationService:
+    enabled: <%= autoTranslate %>
+    provider: "google-translate"
+    apiKey: "${GOOGLE_TRANSLATE_API_KEY}"
+
+postGenerate:
+  - name: "validate-translations"
+    command: "node scripts/validate-i18n.js"
+    description: "Validate translation files"
+    
+  - name: "auto-translate"
+    command: "node scripts/auto-translate.js --locale=<%= locale %>"
+    condition: <%= autoTranslate && locale !== defaultLocale %>
+    description: "Auto-translate non-default locales"
+---
+
+---
+
+This comprehensive collection of frontmatter examples demonstrates the full power and flexibility of Unjucks v2's template configuration system. Each example showcases different aspects of the frontmatter capabilities, from basic file generation to advanced features like conditional logic, multi-file generation, environment awareness, and plugin integration.

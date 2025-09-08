@@ -1,0 +1,18 @@
+
+@article{}  % Empty key
+@{no-type-key}
+@article{key1,}  % Empty fields
+
+@mastersthesis{invalid-fields,
+  title = {Test},
+  invalidfield = {Should not exist},
+  anotherfield = {Also invalid}
+}
+
+# This is not a valid comment in BibTeX
+// Neither is this
+
+@article{duplicate-keys,
+  title = {First},
+  title = {Duplicate title field}
+}

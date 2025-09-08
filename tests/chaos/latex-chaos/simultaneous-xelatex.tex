@@ -1,0 +1,14 @@
+\documentclass{article}
+\usepackage{fontspec}  % XeLaTeX/LuaLaTeX only
+\usepackage[utf8]{inputenc}  % pdfLaTeX only
+\usepackage{microtype}
+
+\begin{document}
+This document has conflicting requirements:
+- fontspec needs XeLaTeX or LuaLaTeX
+- inputenc with utf8 is for pdfLaTeX only
+
+Unicode: αβγδε ∀∃∈∉ ℝℤℕ
+
+\setmainfont{Times New Roman}  % XeLaTeX/LuaTeX only
+\end{document}

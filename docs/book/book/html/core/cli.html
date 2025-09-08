@@ -1,0 +1,1217 @@
+<!DOCTYPE HTML>
+<html lang="en" class="navy" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>CLI Commands - Unjucks: Modern Code Generation in 2026</title>
+        <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+        <meta name="description" content="A comprehensive guide to modern code generation using the Unjucks framework, demonstrating declarative development patterns, AI integration, and advanced template design for productive software development.">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#0066cc"/>
+
+        <!-- Open Graph -->
+        <meta property="og:title" content="CLI Commands - Unjucks: Modern Code Generation in 2026">
+        <meta property="og:description" content="A comprehensive guide to modern code generation using the Unjucks framework, demonstrating declarative development patterns, AI integration, and advanced template design for productive software development.">
+        <meta property="og:type" content="website">
+        <meta property="og:url" content="">
+        <meta property="og:image" content="unjucks-og.png">
+        
+        <!-- Twitter Card -->
+        <meta name="twitter:card" content="summary_large_image">
+        <meta name="twitter:title" content="CLI Commands - Unjucks: Modern Code Generation in 2026">
+        <meta name="twitter:description" content="A comprehensive guide to modern code generation using the Unjucks framework, demonstrating declarative development patterns, AI integration, and advanced template design for productive software development.">
+        <meta name="twitter:image" content="unjucks-og.png">
+
+
+        <!-- Custom Unjucks Favicon -->
+        <link rel="icon" href="../favicon.png">
+        <link rel="shortcut icon" href="../favicon.png">
+
+        <!-- Fonts -->
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+
+        <link rel="stylesheet" href="../css/variables.css">
+        <link rel="stylesheet" href="../css/general.css">
+        <link rel="stylesheet" href="../css/chrome.css">
+        <link rel="stylesheet" href="../css/print.css" media="print">
+
+        <!-- Custom CSS -->
+
+        <!-- Custom head content -->
+
+        <!-- JSON-LD Structured Data -->
+        <script type="application/ld+json">
+        {
+            "@context": "https://schema.org",
+            "@type": "TechArticle",
+            "headline": "CLI Commands - Unjucks: Modern Code Generation in 2026",
+            "description": "A comprehensive guide to modern code generation using the Unjucks framework, demonstrating declarative development patterns, AI integration, and advanced template design for productive software development.",
+            "author": {
+                "@type": "Organization",
+                "name": "Unjucks Development Team"
+            },
+            "publisher": {
+                "@type": "Organization",
+                "name": "Unjucks",
+                "logo": {
+                    "@type": "ImageObject",
+                    "url": "logo.png"
+                }
+            },
+            "url": "",
+            "mainEntityOfPage": "",
+            "datePublished": "",
+            "dateModified": "",
+            "inLanguage": "en",
+            "about": [
+                "Code Generation",
+                "Template Engine", 
+                "CLI Tools",
+                "Semantic Web",
+                "RDF",
+                "Software Development"
+            ]
+        }
+        </script>
+    </head>
+    <body>
+        <!-- Provide site root to javascript -->
+        <script type="text/javascript">
+            var path_to_root = "../";
+            var default_theme = "navy";
+        </script>
+
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script type="text/javascript">
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme && theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar && sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script type="text/javascript">
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            var html = document.querySelector('html');
+            html.classList.remove('no-js')
+            html.classList.remove('light')
+            html.classList.remove('rust')
+            html.classList.remove('coal')
+            html.classList.remove('navy')
+            html.classList.remove('ayu')
+            html.classList.add(theme);
+            html.classList.add('js');
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script type="text/javascript">
+            var body = document.querySelector('body');
+            var sidebar = null;
+            var sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+            }
+            sidebar_toggle.checked = sidebar === 'visible';
+            body.classList.remove('sidebar-visible');
+            body.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <div class="sidebar-scrollbox">
+                <!-- Unjucks Logo -->
+                <div class="unjucks-logo" style="padding: 1rem; text-align: center; border-bottom: 1px solid #e1e5e9;">
+                    <h3 style="margin: 0; color: #0066cc; font-weight: 700;">🚀 Unjucks</h3>
+                    <p style="margin: 0.5rem 0 0 0; font-size: 0.8rem; color: #666;">Template Generation Platform</p>
+                </div>
+
+                <!-- TOC will be generated automatically by mdbook -->
+            </div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
+        </nav>
+
+        <!-- Page wrapper -->
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label for="sidebar-toggle-anchor" class="left" id="sidebar-toggle" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button left" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy (default)</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button left" type="button" title="Toggle Searchbar" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Unjucks: Modern Code Generation in 2026</h1>
+
+                    <div class="right-buttons">
+                        <a href="../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+                        <a href="https://github.com/ruvnet/unjucks" title="Git repository" aria-label="Git repository">
+                            <i id="git-repository-button" class="fa fa-github"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script type="text/javascript">
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <!-- Breadcrumb Navigation -->
+                        <div class="breadcrumb-nav" style="margin-bottom: 1.5rem; font-size: 0.9rem; color: #666;">
+                            <a href="../index.html">🏠 Home</a>
+                            <span> › </span>
+                            <span>CLI Commands</span>
+                        </div>
+
+                        <h1 id="cli-interface"><a class="header" href="#cli-interface">CLI Interface</a></h1>
+<p>The Unjucks CLI provides a powerful and intuitive command-line interface that automatically adapts to your templates. It features dynamic argument generation, interactive prompts, and comprehensive validation - all derived directly from your template structure.</p>
+<h2 id="command-architecture"><a class="header" href="#command-architecture">Command Architecture</a></h2>
+<h3 id="core-design-principles"><a class="header" href="#core-design-principles">Core Design Principles</a></h3>
+<ol>
+<li><strong>Auto-Discovery</strong>: CLI arguments are generated from template variables</li>
+<li><strong>Type-Aware</strong>: Boolean flags, string arguments, and array inputs are handled intelligently</li>
+<li><strong>Interactive</strong>: Missing variables trigger contextual prompts</li>
+<li><strong>Safe by Default</strong>: Dry-run mode and conflict detection prevent accidents</li>
+</ol>
+<h3 id="command-structure"><a class="header" href="#command-structure">Command Structure</a></h3>
+<pre><code class="language-bash">unjucks &lt;command&gt; [generator] [template] [options] [variables...]
+</code></pre>
+<p>The CLI follows a consistent pattern where each command operates on generators and templates, with options and variables automatically discovered from template content.</p>
+<h2 id="core-commands"><a class="header" href="#core-commands">Core Commands</a></h2>
+<h3 id="unjucks-generate"><a class="header" href="#unjucks-generate"><code>unjucks generate</code></a></h3>
+<p>The primary command for creating files from templates.</p>
+<pre><code class="language-bash">unjucks generate &lt;generator&gt; &lt;template&gt; [options] [variables...]
+</code></pre>
+<p><strong>Dynamic Argument Discovery</strong>:</p>
+<ul>
+<li>Variables like <code>{{ componentName }}</code> become <code>--componentName</code> flags</li>
+<li>Boolean patterns like <code>{% if withProps %}</code> become <code>--withProps</code> flags</li>
+<li>Array variables like <code>{% for item in items %}</code> accept JSON arrays</li>
+</ul>
+<p><strong>Examples</strong>:</p>
+<pre><code class="language-bash"># Basic generation with automatic CLI arguments
+unjucks generate command citty --commandName=user --dest=./src
+
+# Complex generation with multiple variable types
+unjucks generate component react \
+  --componentName=Button \
+  --withProps \
+  --withTests \
+  --methods='["onClick", "onHover"]' \
+  --dest=./src/components \
+  --force
+
+# Interactive mode (prompts for missing variables)
+unjucks generate component react --dest=./src
+
+# Preview mode (no files written)
+unjucks generate command citty --dry --commandName=test
+</code></pre>
+<h3 id="unjucks-list"><a class="header" href="#unjucks-list"><code>unjucks list</code></a></h3>
+<p>Discover available generators and templates with detailed information.</p>
+<pre><code class="language-bash">unjucks list [--verbose]
+</code></pre>
+<p><strong>Basic Output</strong>:</p>
+<pre><code>📦 Available Generators:
+
+command
+├── citty - Citty command with subcommands
+└── Description: Generate Citty CLI commands
+
+component  
+├── react - React functional component
+├── vue - Vue 3 composition API component
+└── Description: Generate UI components
+</code></pre>
+<p><strong>Verbose Output</strong> (<code>--verbose</code>):</p>
+<pre><code>command (Generate Citty CLI commands)
+├── 📁 Templates:
+│   └── citty
+│       ├── 📄 {{ commandName | pascalCase }}.ts
+│       └── 📄 {{ commandName | pascalCase }}.test.ts (if withTests)
+├── 🔧 Variables:
+│   ├── commandName (string, required) - Command name
+│   ├── withTests (boolean, default: true) - Include test files
+│   └── withSubcommands (boolean, default: false) - Include subcommand support
+└── 📍 Location: _templates/command/
+</code></pre>
+<h3 id="unjucks-help"><a class="header" href="#unjucks-help"><code>unjucks help</code></a></h3>
+<p>Get detailed information about specific templates including variable definitions and usage examples.</p>
+<pre><code class="language-bash">unjucks help &lt;generator&gt; &lt;template&gt;
+</code></pre>
+<p><strong>Example Output</strong>:</p>
+<pre><code>📋 Template Help: command/citty
+
+📝 Description: 
+Generate Citty CLI commands with automatic argument parsing, 
+subcommand support, and TypeScript integration.
+
+🔧 Variables:
+┌─────────────────┬─────────┬─────────────┬─────────────────────────────┐
+│ Name            │ Type    │ Default     │ Description                 │
+├─────────────────┼─────────┼─────────────┼─────────────────────────────┤
+│ commandName     │ string  │ myCommand   │ Command name (PascalCase)   │
+│ withTests       │ boolean │ true        │ Include test files          │
+│ withSubcommands │ boolean │ false       │ Support subcommands         │
+│ description     │ string  │ ""          │ Command description         │
+└─────────────────┴─────────┴─────────────┴─────────────────────────────┘
+
+📄 Generated Files:
+├── {{ commandName | pascalCase }}.ts
+└── {{ commandName | pascalCase }}.test.ts (if withTests)
+
+💡 Usage Examples:
+# Basic command
+unjucks generate command citty --commandName=User --dest=./src
+
+# With subcommands and no tests
+unjucks generate command citty \
+  --commandName=Database \
+  --withSubcommands \
+  --no-withTests \
+  --description="Database management commands"
+
+# Interactive mode
+unjucks generate command citty --dest=./src
+</code></pre>
+<h3 id="unjucks-init"><a class="header" href="#unjucks-init"><code>unjucks init</code></a></h3>
+<p>Bootstrap new projects with template generators.</p>
+<pre><code class="language-bash">unjucks init [--type &lt;type&gt;] [--dest &lt;path&gt;]
+</code></pre>
+<p><strong>Project Types</strong>:</p>
+<ul>
+<li><code>cli</code> - CLI application with command generators</li>
+<li><code>component</code> - Component library with React/Vue templates</li>
+<li><code>service</code> - Backend service with API templates</li>
+<li><code>fullstack</code> - Full-stack application with multiple generators</li>
+<li><code>custom</code> - Empty project structure for custom generators</li>
+</ul>
+<p><strong>Examples</strong>:</p>
+<pre><code class="language-bash"># Interactive project initialization
+unjucks init
+
+# CLI project setup
+unjucks init --type=cli --dest=./my-cli-tool
+
+# Component library
+unjucks init --type=component --dest=./my-components
+</code></pre>
+<h2 id="dynamic-argument-system"><a class="header" href="#dynamic-argument-system">Dynamic Argument System</a></h2>
+<h3 id="variable-type-detection"><a class="header" href="#variable-type-detection">Variable Type Detection</a></h3>
+<p>The CLI automatically generates appropriate argument types based on template analysis:</p>
+<pre><code class="language-typescript">// Template analysis results in CLI arguments
+{{ componentName }}           → --componentName &lt;string&gt;
+{% if withProps %}           → --withProps / --no-withProps (boolean)
+{% for method in methods %}  → --methods &lt;json-array&gt;
+{{ config.database.host }}   → --config-database-host &lt;string&gt;
+</code></pre>
+<h3 id="boolean-variable-handling"><a class="header" href="#boolean-variable-handling">Boolean Variable Handling</a></h3>
+<p>Boolean variables are detected by naming patterns and usage:</p>
+<pre><code class="language-bash"># Auto-detected boolean patterns
+--withProps          # Sets withProps = true
+--no-withProps       # Sets withProps = false  
+--hasTests           # Sets hasTests = true
+--isPublic           # Sets isPublic = true
+--shouldValidate     # Sets shouldValidate = true
+</code></pre>
+<h3 id="array-and-object-variables"><a class="header" href="#array-and-object-variables">Array and Object Variables</a></h3>
+<p>Complex data types are supported through JSON formatting:</p>
+<pre><code class="language-bash"># Array variables
+--methods='["create", "update", "delete"]'
+--dependencies='["react", "typescript", "vite"]'
+
+# Object variables  
+--config='{"host": "localhost", "port": 3000}'
+
+# Nested object paths (dot notation)
+--config.database.host=localhost
+--config.database.port=5432
+</code></pre>
+<h3 id="variable-name-flexibility"><a class="header" href="#variable-name-flexibility">Variable Name Flexibility</a></h3>
+<p>The CLI accepts multiple naming conventions for the same variable:</p>
+<pre><code class="language-bash"># All equivalent ways to set the same variable
+--componentName=Button     # camelCase (preferred)
+--component-name=Button    # kebab-case
+--COMPONENT_NAME=Button    # UPPER_CASE
+--component_name=Button    # snake_case
+</code></pre>
+<h2 id="interactive-mode"><a class="header" href="#interactive-mode">Interactive Mode</a></h2>
+<h3 id="smart-prompting"><a class="header" href="#smart-prompting">Smart Prompting</a></h3>
+<p>When variables are missing, the CLI provides contextual prompts:</p>
+<pre><code class="language-bash">$ unjucks generate component react --dest ./src
+
+? Component name: Button
+? Include props interface? (Y/n) y
+? Include test file? (Y/n) y  
+? Include Storybook stories? (y/N) n
+? Export type (default, named, both): default
+
+✨ Generated 2 files:
+  📄 src/components/Button/index.tsx
+  📄 src/components/Button/Button.test.tsx
+</code></pre>
+<h3 id="validation-during-prompts"><a class="header" href="#validation-during-prompts">Validation During Prompts</a></h3>
+<p>Input validation happens in real-time:</p>
+<pre><code class="language-bash">? Component name: my-component
+✗ Component name must be PascalCase (e.g., MyComponent)
+
+? Component name: MyComponent  
+✓ Valid component name
+
+? Include database connection? (y/N) y
+? Database type (postgres, mysql, sqlite): oracle
+✗ Invalid database type. Choose from: postgres, mysql, sqlite
+
+? Database type: postgres
+✓ Valid database type
+</code></pre>
+<h3 id="prompt-customization"><a class="header" href="#prompt-customization">Prompt Customization</a></h3>
+<p>Templates can customize prompts through frontmatter:</p>
+<pre><code class="language-yaml">---
+prompts:
+  componentName:
+    message: "What should we call this component?"
+    type: "input"
+    validate: "^[A-Z][a-zA-Z0-9]*$"
+    hint: "Use PascalCase (e.g., MyComponent)"
+  
+  withProps:
+    message: "Include props interface?"
+    type: "confirm"
+    default: true
+    
+  framework:
+    message: "Choose framework:"
+    type: "select"
+    choices: ["react", "vue", "svelte"]
+---
+</code></pre>
+<h2 id="configuration-system"><a class="header" href="#configuration-system">Configuration System</a></h2>
+<h3 id="project-configuration"><a class="header" href="#project-configuration">Project Configuration</a></h3>
+<p>Unjucks automatically discovers configuration files in this priority order:</p>
+<ol>
+<li><code>unjucks.config.ts</code> (TypeScript)</li>
+<li><code>unjucks.config.js</code> (JavaScript)</li>
+<li><code>unjucks.yml</code> (YAML)</li>
+<li><code>unjucks.yaml</code> (YAML)</li>
+<li><code>unjucks.json</code> (JSON)</li>
+<li><code>package.json</code> (under <code>unjucks</code> key)</li>
+</ol>
+<p><strong>TypeScript Configuration Example</strong>:</p>
+<pre><code class="language-typescript">// unjucks.config.ts
+import { defineConfig } from 'unjucks';
+
+export default defineConfig({
+  generators: '_templates',
+  defaultDest: './src',
+  globalVariables: {
+    author: 'John Doe',
+    license: 'MIT'
+  },
+  filters: {
+    businessCase: (str: string) =&gt; {
+      return str.split(/[\s_-]+/)
+        .map(word =&gt; word.charAt(0).toUpperCase() + word.slice(1))
+        .join('');
+    }
+  },
+  hooks: {
+    beforeGenerate: async (context) =&gt; {
+      console.log(`Generating ${context.template}...`);
+    },
+    afterGenerate: async (context) =&gt; {
+      console.log(`✅ Generated ${context.filesGenerated.length} files`);
+    }
+  }
+});
+</code></pre>
+<p><strong>YAML Configuration Example</strong>:</p>
+<pre><code class="language-yaml"># unjucks.yml
+version: "1.0.0"
+generators: "_templates"
+defaultDest: "./src"
+
+globalVariables:
+  author: "John Doe"
+  license: "MIT"
+  
+validation:
+  componentName:
+    pattern: "^[A-Z][a-zA-Z0-9]*$"
+    message: "Component name must be PascalCase"
+    
+formatting:
+  prettier: true
+  eslint: true
+</code></pre>
+<h3 id="generator-level-configuration"><a class="header" href="#generator-level-configuration">Generator-Level Configuration</a></h3>
+<p>Individual generators can have their own configuration:</p>
+<pre><code class="language-yaml"># _templates/component/config.yml
+name: "component"
+description: "Generate React components with TypeScript"
+
+defaultVariables:
+  withProps: true
+  withTests: true
+  exportType: "default"
+
+templates:
+  - name: "react"
+    description: "React functional component"
+  - name: "class"
+    description: "React class component (legacy)"
+
+prompts:
+  componentName:
+    message: "Component name:"
+    type: "input"
+    required: true
+    validate: "^[A-Z][a-zA-Z0-9]*$"
+</code></pre>
+<h2 id="safety-features"><a class="header" href="#safety-features">Safety Features</a></h2>
+<h3 id="dry-run-mode"><a class="header" href="#dry-run-mode">Dry Run Mode</a></h3>
+<p>Preview exactly what will be generated without creating files:</p>
+<pre><code class="language-bash">unjucks generate component react --dry --componentName=Button
+
+📋 Dry Run Preview:
+
+Would generate 3 files:
+├── 📄 src/components/Button/index.tsx (142 bytes)
+│   └── export { Button } from './Button';
+├── 📄 src/components/Button/Button.tsx (856 bytes)  
+│   └── React functional component with props interface
+└── 📄 src/components/Button/Button.test.tsx (324 bytes)
+    └── Jest test suite with basic rendering test
+
+No files were created. Use without --dry to generate.
+</code></pre>
+<h3 id="conflict-detection"><a class="header" href="#conflict-detection">Conflict Detection</a></h3>
+<p>The CLI detects existing files and prevents accidental overwrites:</p>
+<pre><code class="language-bash">$ unjucks generate component react --componentName=Button --dest=./src
+
+⚠️  Conflicts detected:
+├── 📄 src/components/Button/index.tsx (exists)
+└── 📄 src/components/Button/Button.tsx (exists)
+
+Choose action:
+  [s] Skip conflicting files
+  [o] Overwrite all files  
+  [r] Review each conflict
+  [c] Cancel generation
+
+? Action (s/o/r/c): r
+
+📄 src/components/Button/index.tsx
+Current content (3 lines):
+export { Button } from './Button';
+export type { ButtonProps } from './Button';
+
+New content (2 lines):  
+export { Button } from './Button';
+
+? Overwrite this file? (y/N/d/e): d
+[Content diff shown...]
+
+? Overwrite this file? (y/N): n
+⏭️  Skipped src/components/Button/index.tsx
+</code></pre>
+<h3 id="force-mode"><a class="header" href="#force-mode">Force Mode</a></h3>
+<p>Override safety checks when intentional:</p>
+<pre><code class="language-bash"># Force overwrite all conflicting files
+unjucks generate component react --componentName=Button --force
+
+# Combine with dry run to see what would be overwritten  
+unjucks generate component react --componentName=Button --force --dry
+</code></pre>
+<h2 id="advanced-cli-features"><a class="header" href="#advanced-cli-features">Advanced CLI Features</a></h2>
+<h3 id="environment-variables"><a class="header" href="#environment-variables">Environment Variables</a></h3>
+<p>Control CLI behavior through environment variables:</p>
+<pre><code class="language-bash"># Customize templates directory
+UNJUCKS_TEMPLATES_DIR=./my-templates unjucks list
+
+# Disable interactive prompts (for CI/CD)
+UNJUCKS_NO_PROMPTS=true unjucks generate component react --dest=./src
+
+# Enable debug logging
+UNJUCKS_DEBUG=true unjucks generate command citty --commandName=test
+
+# Set default destination
+UNJUCKS_DEFAULT_DEST=./src unjucks generate component react
+</code></pre>
+<h3 id="batch-operations"><a class="header" href="#batch-operations">Batch Operations</a></h3>
+<p>Generate multiple items efficiently:</p>
+<pre><code class="language-bash"># Generate multiple components
+for name in Button Input Modal Alert; do
+  unjucks generate component react --componentName=$name --dest=./src/components
+done
+
+# Using parameter expansion
+unjucks generate component react --componentName={Button,Input,Modal} --dest=./src
+</code></pre>
+<h3 id="pipeline-integration"><a class="header" href="#pipeline-integration">Pipeline Integration</a></h3>
+<p>The CLI integrates well with build pipelines and automation:</p>
+<pre><code class="language-bash"># CI/CD friendly (no prompts, exit codes)
+UNJUCKS_NO_PROMPTS=true unjucks generate api endpoint \
+  --endpointName=users \
+  --withAuth \
+  --httpMethods='["GET", "POST", "PUT", "DELETE"]' \
+  --dest=./src/api || exit 1
+
+# Return structured output for parsing
+unjucks generate component react --componentName=Button --json
+</code></pre>
+<h3 id="exit-codes"><a class="header" href="#exit-codes">Exit Codes</a></h3>
+<p>The CLI uses semantic exit codes for automation:</p>
+<div class="table-wrapper"><table><thead><tr><th>Code</th><th>Description</th><th>Usage</th></tr></thead><tbody>
+<tr><td>0</td><td>Success</td><td>Generation completed successfully</td></tr>
+<tr><td>1</td><td>General error</td><td>Template not found, syntax error</td></tr>
+<tr><td>2</td><td>Validation error</td><td>Invalid variable values</td></tr>
+<tr><td>3</td><td>File system error</td><td>Permission denied, disk full</td></tr>
+<tr><td>4</td><td>User cancellation</td><td>User chose to cancel operation</td></tr>
+</tbody></table>
+</div>
+<h2 id="troubleshooting"><a class="header" href="#troubleshooting">Troubleshooting</a></h2>
+<h3 id="common-issues-and-solutions"><a class="header" href="#common-issues-and-solutions">Common Issues and Solutions</a></h3>
+<p><strong>Template not found:</strong></p>
+<pre><code class="language-bash">Error: Template 'react' not found in generator 'component'
+
+# Solutions:
+unjucks list --verbose  # Check available templates
+ls _templates/component/ # Verify template exists
+</code></pre>
+<p><strong>Variable validation errors:</strong></p>
+<pre><code class="language-bash">Error: Required variable 'componentName' not provided
+
+# Solutions:  
+unjucks help component react  # See required variables
+unjucks generate component react --componentName=MyComponent
+</code></pre>
+<p><strong>File permission errors:</strong></p>
+<pre><code class="language-bash">Error: Permission denied writing to './protected/file.ts'
+
+# Solutions:
+chmod +w ./protected/        # Fix permissions
+unjucks generate ... --dest=./writable/  # Different destination
+</code></pre>
+<p><strong>Template syntax errors:</strong></p>
+<pre><code class="language-bash">Error: Template syntax error in react.njk:15: unexpected token
+
+# Solutions:
+# Check template syntax with --dry first
+unjucks generate component react --dry --componentName=Test
+</code></pre>
+<h3 id="debug-mode"><a class="header" href="#debug-mode">Debug Mode</a></h3>
+<p>Enable detailed logging for troubleshooting:</p>
+<pre><code class="language-bash">UNJUCKS_DEBUG=true unjucks generate component react --componentName=Button
+
+🔍 Debug Information:
+├── Template discovery: _templates/component/react.njk (found)
+├── Variable extraction: componentName, withProps, withTests (3 found)
+├── Variable inference: 
+│   ├── componentName: string (required)
+│   ├── withProps: boolean (default: true)
+│   └── withTests: boolean (default: true)
+├── Frontmatter parsing: 3 operations configured
+├── Template compilation: success
+├── Variable validation: passed
+├── Content rendering: 2 files queued
+└── File operations: 2 writes, 0 injections
+</code></pre>
+<p>The CLI Interface provides a seamless experience from template creation to file generation, adapting dynamically to your templates while maintaining safety and providing helpful feedback throughout the process.</p>
+
+
+                        <!-- Page Footer -->
+                        <div class="page-footer" style="margin-top: 3rem; padding-top: 2rem; border-top: 1px solid #e1e5e9;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+                                <div class="footer-links" style="display: flex; gap: 1rem; font-size: 0.9rem;">
+                                    <a href="https://unjucks.dev" target="_blank">🌐 Website</a>
+                                    <a href="https://github.com/ruvnet/unjucks" target="_blank">💻 GitHub</a>
+                                    <a href="https://github.com/ruvnet/unjucks/issues" target="_blank">🐛 Issues</a>
+                                    <a href="https://github.com/ruvnet/unjucks/discussions" target="_blank">💬 Discussions</a>
+                                </div>
+                                <div class="footer-info" style="font-size: 0.8rem; color: #888; text-align: right;">
+                                    <p>Built with ❤️ using <a href="https://rust-lang.github.io/mdBook/" target="_blank">mdBook</a></p>
+                                    <p>© 2024 Unjucks Project</p>
+                                </div>
+                            </div>
+                        </div>
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                        <a href="../" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                            <i class="fa fa-angle-left"></i>
+                        </a>
+
+                        <a href="../" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                            <i class="fa fa-angle-right"></i>
+                        </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <!-- Desktop navigation -->
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                <a href="../" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                    <i class="fa fa-angle-left"></i>
+                </a>
+
+                <a href="../" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                    <i class="fa fa-angle-right"></i>
+                </a>
+            </nav>
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../elasticlunr.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="../mark.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="../searcher.js" type="text/javascript" charset="utf-8"></script>
+
+        <script src="../clipboard.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="../highlight.js" type="text/javascript" charset="utf-8"></script>
+        <script src="../book.js" type="text/javascript" charset="utf-8"></script>
+
+        <!-- Custom JS -->
+
+        <!-- Custom body content -->
+        <h1 id="cli-interface-1"><a class="header" href="#cli-interface-1">CLI Interface</a></h1>
+<p>The Unjucks CLI provides a powerful and intuitive command-line interface that automatically adapts to your templates. It features dynamic argument generation, interactive prompts, and comprehensive validation - all derived directly from your template structure.</p>
+<h2 id="command-architecture-1"><a class="header" href="#command-architecture-1">Command Architecture</a></h2>
+<h3 id="core-design-principles-1"><a class="header" href="#core-design-principles-1">Core Design Principles</a></h3>
+<ol>
+<li><strong>Auto-Discovery</strong>: CLI arguments are generated from template variables</li>
+<li><strong>Type-Aware</strong>: Boolean flags, string arguments, and array inputs are handled intelligently</li>
+<li><strong>Interactive</strong>: Missing variables trigger contextual prompts</li>
+<li><strong>Safe by Default</strong>: Dry-run mode and conflict detection prevent accidents</li>
+</ol>
+<h3 id="command-structure-1"><a class="header" href="#command-structure-1">Command Structure</a></h3>
+<pre><code class="language-bash">unjucks &lt;command&gt; [generator] [template] [options] [variables...]
+</code></pre>
+<p>The CLI follows a consistent pattern where each command operates on generators and templates, with options and variables automatically discovered from template content.</p>
+<h2 id="core-commands-1"><a class="header" href="#core-commands-1">Core Commands</a></h2>
+<h3 id="unjucks-generate-1"><a class="header" href="#unjucks-generate-1"><code>unjucks generate</code></a></h3>
+<p>The primary command for creating files from templates.</p>
+<pre><code class="language-bash">unjucks generate &lt;generator&gt; &lt;template&gt; [options] [variables...]
+</code></pre>
+<p><strong>Dynamic Argument Discovery</strong>:</p>
+<ul>
+<li>Variables like <code>{{ componentName }}</code> become <code>--componentName</code> flags</li>
+<li>Boolean patterns like <code>{% if withProps %}</code> become <code>--withProps</code> flags</li>
+<li>Array variables like <code>{% for item in items %}</code> accept JSON arrays</li>
+</ul>
+<p><strong>Examples</strong>:</p>
+<pre><code class="language-bash"># Basic generation with automatic CLI arguments
+unjucks generate command citty --commandName=user --dest=./src
+
+# Complex generation with multiple variable types
+unjucks generate component react \
+  --componentName=Button \
+  --withProps \
+  --withTests \
+  --methods='["onClick", "onHover"]' \
+  --dest=./src/components \
+  --force
+
+# Interactive mode (prompts for missing variables)
+unjucks generate component react --dest=./src
+
+# Preview mode (no files written)
+unjucks generate command citty --dry --commandName=test
+</code></pre>
+<h3 id="unjucks-list-1"><a class="header" href="#unjucks-list-1"><code>unjucks list</code></a></h3>
+<p>Discover available generators and templates with detailed information.</p>
+<pre><code class="language-bash">unjucks list [--verbose]
+</code></pre>
+<p><strong>Basic Output</strong>:</p>
+<pre><code>📦 Available Generators:
+
+command
+├── citty - Citty command with subcommands
+└── Description: Generate Citty CLI commands
+
+component  
+├── react - React functional component
+├── vue - Vue 3 composition API component
+└── Description: Generate UI components
+</code></pre>
+<p><strong>Verbose Output</strong> (<code>--verbose</code>):</p>
+<pre><code>command (Generate Citty CLI commands)
+├── 📁 Templates:
+│   └── citty
+│       ├── 📄 {{ commandName | pascalCase }}.ts
+│       └── 📄 {{ commandName | pascalCase }}.test.ts (if withTests)
+├── 🔧 Variables:
+│   ├── commandName (string, required) - Command name
+│   ├── withTests (boolean, default: true) - Include test files
+│   └── withSubcommands (boolean, default: false) - Include subcommand support
+└── 📍 Location: _templates/command/
+</code></pre>
+<h3 id="unjucks-help-1"><a class="header" href="#unjucks-help-1"><code>unjucks help</code></a></h3>
+<p>Get detailed information about specific templates including variable definitions and usage examples.</p>
+<pre><code class="language-bash">unjucks help &lt;generator&gt; &lt;template&gt;
+</code></pre>
+<p><strong>Example Output</strong>:</p>
+<pre><code>📋 Template Help: command/citty
+
+📝 Description: 
+Generate Citty CLI commands with automatic argument parsing, 
+subcommand support, and TypeScript integration.
+
+🔧 Variables:
+┌─────────────────┬─────────┬─────────────┬─────────────────────────────┐
+│ Name            │ Type    │ Default     │ Description                 │
+├─────────────────┼─────────┼─────────────┼─────────────────────────────┤
+│ commandName     │ string  │ myCommand   │ Command name (PascalCase)   │
+│ withTests       │ boolean │ true        │ Include test files          │
+│ withSubcommands │ boolean │ false       │ Support subcommands         │
+│ description     │ string  │ ""          │ Command description         │
+└─────────────────┴─────────┴─────────────┴─────────────────────────────┘
+
+📄 Generated Files:
+├── {{ commandName | pascalCase }}.ts
+└── {{ commandName | pascalCase }}.test.ts (if withTests)
+
+💡 Usage Examples:
+# Basic command
+unjucks generate command citty --commandName=User --dest=./src
+
+# With subcommands and no tests
+unjucks generate command citty \
+  --commandName=Database \
+  --withSubcommands \
+  --no-withTests \
+  --description="Database management commands"
+
+# Interactive mode
+unjucks generate command citty --dest=./src
+</code></pre>
+<h3 id="unjucks-init-1"><a class="header" href="#unjucks-init-1"><code>unjucks init</code></a></h3>
+<p>Bootstrap new projects with template generators.</p>
+<pre><code class="language-bash">unjucks init [--type &lt;type&gt;] [--dest &lt;path&gt;]
+</code></pre>
+<p><strong>Project Types</strong>:</p>
+<ul>
+<li><code>cli</code> - CLI application with command generators</li>
+<li><code>component</code> - Component library with React/Vue templates</li>
+<li><code>service</code> - Backend service with API templates</li>
+<li><code>fullstack</code> - Full-stack application with multiple generators</li>
+<li><code>custom</code> - Empty project structure for custom generators</li>
+</ul>
+<p><strong>Examples</strong>:</p>
+<pre><code class="language-bash"># Interactive project initialization
+unjucks init
+
+# CLI project setup
+unjucks init --type=cli --dest=./my-cli-tool
+
+# Component library
+unjucks init --type=component --dest=./my-components
+</code></pre>
+<h2 id="dynamic-argument-system-1"><a class="header" href="#dynamic-argument-system-1">Dynamic Argument System</a></h2>
+<h3 id="variable-type-detection-1"><a class="header" href="#variable-type-detection-1">Variable Type Detection</a></h3>
+<p>The CLI automatically generates appropriate argument types based on template analysis:</p>
+<pre><code class="language-typescript">// Template analysis results in CLI arguments
+{{ componentName }}           → --componentName &lt;string&gt;
+{% if withProps %}           → --withProps / --no-withProps (boolean)
+{% for method in methods %}  → --methods &lt;json-array&gt;
+{{ config.database.host }}   → --config-database-host &lt;string&gt;
+</code></pre>
+<h3 id="boolean-variable-handling-1"><a class="header" href="#boolean-variable-handling-1">Boolean Variable Handling</a></h3>
+<p>Boolean variables are detected by naming patterns and usage:</p>
+<pre><code class="language-bash"># Auto-detected boolean patterns
+--withProps          # Sets withProps = true
+--no-withProps       # Sets withProps = false  
+--hasTests           # Sets hasTests = true
+--isPublic           # Sets isPublic = true
+--shouldValidate     # Sets shouldValidate = true
+</code></pre>
+<h3 id="array-and-object-variables-1"><a class="header" href="#array-and-object-variables-1">Array and Object Variables</a></h3>
+<p>Complex data types are supported through JSON formatting:</p>
+<pre><code class="language-bash"># Array variables
+--methods='["create", "update", "delete"]'
+--dependencies='["react", "typescript", "vite"]'
+
+# Object variables  
+--config='{"host": "localhost", "port": 3000}'
+
+# Nested object paths (dot notation)
+--config.database.host=localhost
+--config.database.port=5432
+</code></pre>
+<h3 id="variable-name-flexibility-1"><a class="header" href="#variable-name-flexibility-1">Variable Name Flexibility</a></h3>
+<p>The CLI accepts multiple naming conventions for the same variable:</p>
+<pre><code class="language-bash"># All equivalent ways to set the same variable
+--componentName=Button     # camelCase (preferred)
+--component-name=Button    # kebab-case
+--COMPONENT_NAME=Button    # UPPER_CASE
+--component_name=Button    # snake_case
+</code></pre>
+<h2 id="interactive-mode-1"><a class="header" href="#interactive-mode-1">Interactive Mode</a></h2>
+<h3 id="smart-prompting-1"><a class="header" href="#smart-prompting-1">Smart Prompting</a></h3>
+<p>When variables are missing, the CLI provides contextual prompts:</p>
+<pre><code class="language-bash">$ unjucks generate component react --dest ./src
+
+? Component name: Button
+? Include props interface? (Y/n) y
+? Include test file? (Y/n) y  
+? Include Storybook stories? (y/N) n
+? Export type (default, named, both): default
+
+✨ Generated 2 files:
+  📄 src/components/Button/index.tsx
+  📄 src/components/Button/Button.test.tsx
+</code></pre>
+<h3 id="validation-during-prompts-1"><a class="header" href="#validation-during-prompts-1">Validation During Prompts</a></h3>
+<p>Input validation happens in real-time:</p>
+<pre><code class="language-bash">? Component name: my-component
+✗ Component name must be PascalCase (e.g., MyComponent)
+
+? Component name: MyComponent  
+✓ Valid component name
+
+? Include database connection? (y/N) y
+? Database type (postgres, mysql, sqlite): oracle
+✗ Invalid database type. Choose from: postgres, mysql, sqlite
+
+? Database type: postgres
+✓ Valid database type
+</code></pre>
+<h3 id="prompt-customization-1"><a class="header" href="#prompt-customization-1">Prompt Customization</a></h3>
+<p>Templates can customize prompts through frontmatter:</p>
+<pre><code class="language-yaml">---
+prompts:
+  componentName:
+    message: "What should we call this component?"
+    type: "input"
+    validate: "^[A-Z][a-zA-Z0-9]*$"
+    hint: "Use PascalCase (e.g., MyComponent)"
+  
+  withProps:
+    message: "Include props interface?"
+    type: "confirm"
+    default: true
+    
+  framework:
+    message: "Choose framework:"
+    type: "select"
+    choices: ["react", "vue", "svelte"]
+---
+</code></pre>
+<h2 id="configuration-system-1"><a class="header" href="#configuration-system-1">Configuration System</a></h2>
+<h3 id="project-configuration-1"><a class="header" href="#project-configuration-1">Project Configuration</a></h3>
+<p>Unjucks automatically discovers configuration files in this priority order:</p>
+<ol>
+<li><code>unjucks.config.ts</code> (TypeScript)</li>
+<li><code>unjucks.config.js</code> (JavaScript)</li>
+<li><code>unjucks.yml</code> (YAML)</li>
+<li><code>unjucks.yaml</code> (YAML)</li>
+<li><code>unjucks.json</code> (JSON)</li>
+<li><code>package.json</code> (under <code>unjucks</code> key)</li>
+</ol>
+<p><strong>TypeScript Configuration Example</strong>:</p>
+<pre><code class="language-typescript">// unjucks.config.ts
+import { defineConfig } from 'unjucks';
+
+export default defineConfig({
+  generators: '_templates',
+  defaultDest: './src',
+  globalVariables: {
+    author: 'John Doe',
+    license: 'MIT'
+  },
+  filters: {
+    businessCase: (str: string) =&gt; {
+      return str.split(/[\s_-]+/)
+        .map(word =&gt; word.charAt(0).toUpperCase() + word.slice(1))
+        .join('');
+    }
+  },
+  hooks: {
+    beforeGenerate: async (context) =&gt; {
+      console.log(`Generating ${context.template}...`);
+    },
+    afterGenerate: async (context) =&gt; {
+      console.log(`✅ Generated ${context.filesGenerated.length} files`);
+    }
+  }
+});
+</code></pre>
+<p><strong>YAML Configuration Example</strong>:</p>
+<pre><code class="language-yaml"># unjucks.yml
+version: "1.0.0"
+generators: "_templates"
+defaultDest: "./src"
+
+globalVariables:
+  author: "John Doe"
+  license: "MIT"
+  
+validation:
+  componentName:
+    pattern: "^[A-Z][a-zA-Z0-9]*$"
+    message: "Component name must be PascalCase"
+    
+formatting:
+  prettier: true
+  eslint: true
+</code></pre>
+<h3 id="generator-level-configuration-1"><a class="header" href="#generator-level-configuration-1">Generator-Level Configuration</a></h3>
+<p>Individual generators can have their own configuration:</p>
+<pre><code class="language-yaml"># _templates/component/config.yml
+name: "component"
+description: "Generate React components with TypeScript"
+
+defaultVariables:
+  withProps: true
+  withTests: true
+  exportType: "default"
+
+templates:
+  - name: "react"
+    description: "React functional component"
+  - name: "class"
+    description: "React class component (legacy)"
+
+prompts:
+  componentName:
+    message: "Component name:"
+    type: "input"
+    required: true
+    validate: "^[A-Z][a-zA-Z0-9]*$"
+</code></pre>
+<h2 id="safety-features-1"><a class="header" href="#safety-features-1">Safety Features</a></h2>
+<h3 id="dry-run-mode-1"><a class="header" href="#dry-run-mode-1">Dry Run Mode</a></h3>
+<p>Preview exactly what will be generated without creating files:</p>
+<pre><code class="language-bash">unjucks generate component react --dry --componentName=Button
+
+📋 Dry Run Preview:
+
+Would generate 3 files:
+├── 📄 src/components/Button/index.tsx (142 bytes)
+│   └── export { Button } from './Button';
+├── 📄 src/components/Button/Button.tsx (856 bytes)  
+│   └── React functional component with props interface
+└── 📄 src/components/Button/Button.test.tsx (324 bytes)
+    └── Jest test suite with basic rendering test
+
+No files were created. Use without --dry to generate.
+</code></pre>
+<h3 id="conflict-detection-1"><a class="header" href="#conflict-detection-1">Conflict Detection</a></h3>
+<p>The CLI detects existing files and prevents accidental overwrites:</p>
+<pre><code class="language-bash">$ unjucks generate component react --componentName=Button --dest=./src
+
+⚠️  Conflicts detected:
+├── 📄 src/components/Button/index.tsx (exists)
+└── 📄 src/components/Button/Button.tsx (exists)
+
+Choose action:
+  [s] Skip conflicting files
+  [o] Overwrite all files  
+  [r] Review each conflict
+  [c] Cancel generation
+
+? Action (s/o/r/c): r
+
+📄 src/components/Button/index.tsx
+Current content (3 lines):
+export { Button } from './Button';
+export type { ButtonProps } from './Button';
+
+New content (2 lines):  
+export { Button } from './Button';
+
+? Overwrite this file? (y/N/d/e): d
+[Content diff shown...]
+
+? Overwrite this file? (y/N): n
+⏭️  Skipped src/components/Button/index.tsx
+</code></pre>
+<h3 id="force-mode-1"><a class="header" href="#force-mode-1">Force Mode</a></h3>
+<p>Override safety checks when intentional:</p>
+<pre><code class="language-bash"># Force overwrite all conflicting files
+unjucks generate component react --componentName=Button --force
+
+# Combine with dry run to see what would be overwritten  
+unjucks generate component react --componentName=Button --force --dry
+</code></pre>
+<h2 id="advanced-cli-features-1"><a class="header" href="#advanced-cli-features-1">Advanced CLI Features</a></h2>
+<h3 id="environment-variables-1"><a class="header" href="#environment-variables-1">Environment Variables</a></h3>
+<p>Control CLI behavior through environment variables:</p>
+<pre><code class="language-bash"># Customize templates directory
+UNJUCKS_TEMPLATES_DIR=./my-templates unjucks list
+
+# Disable interactive prompts (for CI/CD)
+UNJUCKS_NO_PROMPTS=true unjucks generate component react --dest=./src
+
+# Enable debug logging
+UNJUCKS_DEBUG=true unjucks generate command citty --commandName=test
+
+# Set default destination
+UNJUCKS_DEFAULT_DEST=./src unjucks generate component react
+</code></pre>
+<h3 id="batch-operations-1"><a class="header" href="#batch-operations-1">Batch Operations</a></h3>
+<p>Generate multiple items efficiently:</p>
+<pre><code class="language-bash"># Generate multiple components
+for name in Button Input Modal Alert; do
+  unjucks generate component react --componentName=$name --dest=./src/components
+done
+
+# Using parameter expansion
+unjucks generate component react --componentName={Button,Input,Modal} --dest=./src
+</code></pre>
+<h3 id="pipeline-integration-1"><a class="header" href="#pipeline-integration-1">Pipeline Integration</a></h3>
+<p>The CLI integrates well with build pipelines and automation:</p>
+<pre><code class="language-bash"># CI/CD friendly (no prompts, exit codes)
+UNJUCKS_NO_PROMPTS=true unjucks generate api endpoint \
+  --endpointName=users \
+  --withAuth \
+  --httpMethods='["GET", "POST", "PUT", "DELETE"]' \
+  --dest=./src/api || exit 1
+
+# Return structured output for parsing
+unjucks generate component react --componentName=Button --json
+</code></pre>
+<h3 id="exit-codes-1"><a class="header" href="#exit-codes-1">Exit Codes</a></h3>
+<p>The CLI uses semantic exit codes for automation:</p>
+<div class="table-wrapper"><table><thead><tr><th>Code</th><th>Description</th><th>Usage</th></tr></thead><tbody>
+<tr><td>0</td><td>Success</td><td>Generation completed successfully</td></tr>
+<tr><td>1</td><td>General error</td><td>Template not found, syntax error</td></tr>
+<tr><td>2</td><td>Validation error</td><td>Invalid variable values</td></tr>
+<tr><td>3</td><td>File system error</td><td>Permission denied, disk full</td></tr>
+<tr><td>4</td><td>User cancellation</td><td>User chose to cancel operation</td></tr>
+</tbody></table>
+</div>
+<h2 id="troubleshooting-1"><a class="header" href="#troubleshooting-1">Troubleshooting</a></h2>
+<h3 id="common-issues-and-solutions-1"><a class="header" href="#common-issues-and-solutions-1">Common Issues and Solutions</a></h3>
+<p><strong>Template not found:</strong></p>
+<pre><code class="language-bash">Error: Template 'react' not found in generator 'component'
+
+# Solutions:
+unjucks list --verbose  # Check available templates
+ls _templates/component/ # Verify template exists
+</code></pre>
+<p><strong>Variable validation errors:</strong></p>
+<pre><code class="language-bash">Error: Required variable 'componentName' not provided
+
+# Solutions:  
+unjucks help component react  # See required variables
+unjucks generate component react --componentName=MyComponent
+</code></pre>
+<p><strong>File permission errors:</strong></p>
+<pre><code class="language-bash">Error: Permission denied writing to './protected/file.ts'
+
+# Solutions:
+chmod +w ./protected/        # Fix permissions
+unjucks generate ... --dest=./writable/  # Different destination
+</code></pre>
+<p><strong>Template syntax errors:</strong></p>
+<pre><code class="language-bash">Error: Template syntax error in react.njk:15: unexpected token
+
+# Solutions:
+# Check template syntax with --dry first
+unjucks generate component react --dry --componentName=Test
+</code></pre>
+<h3 id="debug-mode-1"><a class="header" href="#debug-mode-1">Debug Mode</a></h3>
+<p>Enable detailed logging for troubleshooting:</p>
+<pre><code class="language-bash">UNJUCKS_DEBUG=true unjucks generate component react --componentName=Button
+
+🔍 Debug Information:
+├── Template discovery: _templates/component/react.njk (found)
+├── Variable extraction: componentName, withProps, withTests (3 found)
+├── Variable inference: 
+│   ├── componentName: string (required)
+│   ├── withProps: boolean (default: true)
+│   └── withTests: boolean (default: true)
+├── Frontmatter parsing: 3 operations configured
+├── Template compilation: success
+├── Variable validation: passed
+├── Content rendering: 2 files queued
+└── File operations: 2 writes, 0 injections
+</code></pre>
+<p>The CLI Interface provides a seamless experience from template creation to file generation, adapting dynamically to your templates while maintaining safety and providing helpful feedback throughout the process.</p>
+
+
+        <!-- Performance monitoring -->
+        <script>
+            // Simple performance monitoring
+            window.addEventListener('load', function() {
+                if ('performance' in window) {
+                    setTimeout(function() {
+                        const loadTime = performance.timing.loadEventEnd - performance.timing.navigationStart;
+                        console.log('📊 Page loaded in ' + loadTime + 'ms');
+                    }, 0);
+                }
+            });
+        </script>
+
+        <!-- Service Worker for offline support -->
+        <script>
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.register('../sw.js')
+                    .then(function(registration) {
+                        console.log('📱 SW registered with scope:', registration.scope);
+                    })
+                    .catch(function(error) {
+                        console.log('❌ SW registration failed:', error);
+                    });
+            }
+        </script>
+    </body>
+</html>

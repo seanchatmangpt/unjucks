@@ -1,0 +1,563 @@
+{
+  "summary": {
+    "total": 43,
+    "failures": 20,
+    "successes": 23,
+    "failureRate": "46.51%"
+  },
+  "categories": {
+    "syntax": {
+      "total": 5,
+      "failures": 3
+    },
+    "missing": {
+      "total": 5,
+      "failures": 4
+    },
+    "infinite": {
+      "total": 4,
+      "failures": 4
+    },
+    "complex": {
+      "total": 5,
+      "failures": 4
+    },
+    "bibliography": {
+      "total": 4,
+      "failures": 1
+    },
+    "malformed": {
+      "total": 2,
+      "failures": 0
+    },
+    "broken": {
+      "total": 4,
+      "failures": 2
+    },
+    "engine": {
+      "total": 3,
+      "failures": 1
+    },
+    "simultaneous": {
+      "total": 4,
+      "failures": 1
+    },
+    "filter": {
+      "total": 7,
+      "failures": 0
+    }
+  },
+  "criticalFindings": [
+    "Syntax errors that should fail but didn't: 2 cases"
+  ],
+  "recommendations": [
+    "Implement comprehensive LaTeX error reporting and recovery",
+    "Add LaTeX security scanning for malicious input",
+    "Create LaTeX compilation sandbox with resource limits"
+  ],
+  "fullResults": [
+    {
+      "test": "syntax-error-unclosed-brace",
+      "failed": false,
+      "details": {
+        "reason": "SUCCESS",
+        "code": 0,
+        "timedOut": false,
+        "engine": "pdflatex",
+        "stderr": "",
+        "stdout": "This is pdfTeX, Version 3.141592653-2.6-1.40.26 (TeX Live 2024) (preloaded format=pdflatex)\n restricted \\write18 enabled.\nentering extended mode\n(/Users/sac/unjucks/tests/chaos/latex-chaos/unclosed-brace.tex\nLaTeX2e <2023-11-01> patch level 1\nL3 programming layer <2024-02-20>\n(/usr/local/texlive/2024/texmf-dist/tex/latex/base/article.cls\nDocument Class: article 2023/05/17 v1.4n Standard LaTeX document class\n(/usr/local/texlive/2024/texmf-dist/tex/latex/base/size10.clo))\n(/usr/local/texlive/2024/"
+      },
+      "timestamp": "2025-09-08T16:40:26.265Z"
+    },
+    {
+      "test": "syntax-error-unmatched-environment",
+      "failed": true,
+      "details": {
+        "reason": "EXIT_CODE_1",
+        "code": 1,
+        "timedOut": false,
+        "engine": "pdflatex",
+        "stderr": "",
+        "stdout": "This is pdfTeX, Version 3.141592653-2.6-1.40.26 (TeX Live 2024) (preloaded format=pdflatex)\n restricted \\write18 enabled.\nentering extended mode\n(/Users/sac/unjucks/tests/chaos/latex-chaos/unmatched-environment.tex\nLaTeX2e <2023-11-01> patch level 1\nL3 programming layer <2024-02-20>\n(/usr/local/texlive/2024/texmf-dist/tex/latex/base/article.cls\nDocument Class: article 2023/05/17 v1.4n Standard LaTeX document class\n(/usr/local/texlive/2024/texmf-dist/tex/latex/base/size10.clo))\n(/usr/local/texliv"
+      },
+      "timestamp": "2025-09-08T16:40:26.457Z"
+    },
+    {
+      "test": "syntax-error-undefined-command",
+      "failed": true,
+      "details": {
+        "reason": "EXIT_CODE_1",
+        "code": 1,
+        "timedOut": false,
+        "engine": "pdflatex",
+        "stderr": "",
+        "stdout": "This is pdfTeX, Version 3.141592653-2.6-1.40.26 (TeX Live 2024) (preloaded format=pdflatex)\n restricted \\write18 enabled.\nentering extended mode\n(/Users/sac/unjucks/tests/chaos/latex-chaos/undefined-command.tex\nLaTeX2e <2023-11-01> patch level 1\nL3 programming layer <2024-02-20>\n(/usr/local/texlive/2024/texmf-dist/tex/latex/base/article.cls\nDocument Class: article 2023/05/17 v1.4n Standard LaTeX document class\n(/usr/local/texlive/2024/texmf-dist/tex/latex/base/size10.clo))\n(/usr/local/texlive/20"
+      },
+      "timestamp": "2025-09-08T16:40:26.645Z"
+    },
+    {
+      "test": "syntax-error-malformed-math",
+      "failed": true,
+      "details": {
+        "reason": "EXIT_CODE_1",
+        "code": 1,
+        "timedOut": false,
+        "engine": "pdflatex",
+        "stderr": "",
+        "stdout": "This is pdfTeX, Version 3.141592653-2.6-1.40.26 (TeX Live 2024) (preloaded format=pdflatex)\n restricted \\write18 enabled.\nentering extended mode\n(/Users/sac/unjucks/tests/chaos/latex-chaos/malformed-math.tex\nLaTeX2e <2023-11-01> patch level 1\nL3 programming layer <2024-02-20>\n(/usr/local/texlive/2024/texmf-dist/tex/latex/base/article.cls\nDocument Class: article 2023/05/17 v1.4n Standard LaTeX document class\n(/usr/local/texlive/2024/texmf-dist/tex/latex/base/size10.clo))\n(/usr/local/texlive/2024/"
+      },
+      "timestamp": "2025-09-08T16:40:26.862Z"
+    },
+    {
+      "test": "syntax-error-nested-brace-chaos",
+      "failed": false,
+      "details": {
+        "reason": "SUCCESS",
+        "code": 0,
+        "timedOut": false,
+        "engine": "pdflatex",
+        "stderr": "",
+        "stdout": "This is pdfTeX, Version 3.141592653-2.6-1.40.26 (TeX Live 2024) (preloaded format=pdflatex)\n restricted \\write18 enabled.\nentering extended mode\n(/Users/sac/unjucks/tests/chaos/latex-chaos/nested-brace-chaos.tex\nLaTeX2e <2023-11-01> patch level 1\nL3 programming layer <2024-02-20>\n(/usr/local/texlive/2024/texmf-dist/tex/latex/base/article.cls\nDocument Class: article 2023/05/17 v1.4n Standard LaTeX document class\n(/usr/local/texlive/2024/texmf-dist/tex/latex/base/size10.clo))\n(/usr/local/texlive/2"
+      },
+      "timestamp": "2025-09-08T16:40:27.053Z"
+    },
+    {
+      "test": "missing-packages-missing-amsmath",
+      "failed": true,
+      "details": {
+        "reason": "EXIT_CODE_1",
+        "code": 1,
+        "timedOut": false,
+        "engine": "pdflatex",
+        "stderr": "",
+        "stdout": "This is pdfTeX, Version 3.141592653-2.6-1.40.26 (TeX Live 2024) (preloaded format=pdflatex)\n restricted \\write18 enabled.\nentering extended mode\n(/Users/sac/unjucks/tests/chaos/latex-chaos/missing-amsmath.tex\nLaTeX2e <2023-11-01> patch level 1\nL3 programming layer <2024-02-20>\n(/usr/local/texlive/2024/texmf-dist/tex/latex/base/article.cls\nDocument Class: article 2023/05/17 v1.4n Standard LaTeX document class\n(/usr/local/texlive/2024/texmf-dist/tex/latex/base/size10.clo))\n(/usr/local/texlive/2024"
+      },
+      "timestamp": "2025-09-08T16:40:27.244Z"
+    },
+    {
+      "test": "missing-packages-missing-graphicx",
+      "failed": true,
+      "details": {
+        "reason": "EXIT_CODE_1",
+        "code": 1,
+        "timedOut": false,
+        "engine": "pdflatex",
+        "stderr": "",
+        "stdout": "This is pdfTeX, Version 3.141592653-2.6-1.40.26 (TeX Live 2024) (preloaded format=pdflatex)\n restricted \\write18 enabled.\nentering extended mode\n(/Users/sac/unjucks/tests/chaos/latex-chaos/missing-graphicx.tex\nLaTeX2e <2023-11-01> patch level 1\nL3 programming layer <2024-02-20>\n(/usr/local/texlive/2024/texmf-dist/tex/latex/base/article.cls\nDocument Class: article 2023/05/17 v1.4n Standard LaTeX document class\n(/usr/local/texlive/2024/texmf-dist/tex/latex/base/size10.clo))\n(/usr/local/texlive/202"
+      },
+      "timestamp": "2025-09-08T16:40:27.434Z"
+    },
+    {
+      "test": "missing-packages-missing-babel",
+      "failed": true,
+      "details": {
+        "reason": "EXIT_CODE_1",
+        "code": 1,
+        "timedOut": false,
+        "engine": "pdflatex",
+        "stderr": "",
+        "stdout": "This is pdfTeX, Version 3.141592653-2.6-1.40.26 (TeX Live 2024) (preloaded format=pdflatex)\n restricted \\write18 enabled.\nentering extended mode\n(/Users/sac/unjucks/tests/chaos/latex-chaos/missing-babel.tex\nLaTeX2e <2023-11-01> patch level 1\nL3 programming layer <2024-02-20>\n(/usr/local/texlive/2024/texmf-dist/tex/latex/base/article.cls\nDocument Class: article 2023/05/17 v1.4n Standard LaTeX document class\n(/usr/local/texlive/2024/texmf-dist/tex/latex/base/size10.clo))\n(/usr/local/texlive/2024/t"
+      },
+      "timestamp": "2025-09-08T16:40:27.626Z"
+    },
+    {
+      "test": "missing-packages-nonexistent-package",
+      "failed": true,
+      "details": {
+        "reason": "EXIT_CODE_1",
+        "code": 1,
+        "timedOut": false,
+        "engine": "pdflatex",
+        "stderr": "",
+        "stdout": "This is pdfTeX, Version 3.141592653-2.6-1.40.26 (TeX Live 2024) (preloaded format=pdflatex)\n restricted \\write18 enabled.\nentering extended mode\n(/Users/sac/unjucks/tests/chaos/latex-chaos/nonexistent-package.tex\nLaTeX2e <2023-11-01> patch level 1\nL3 programming layer <2024-02-20>\n(/usr/local/texlive/2024/texmf-dist/tex/latex/base/article.cls\nDocument Class: article 2023/05/17 v1.4n Standard LaTeX document class\n(/usr/local/texlive/2024/texmf-dist/tex/latex/base/size10.clo))\n\n! LaTeX Error: File"
+      },
+      "timestamp": "2025-09-08T16:40:27.830Z"
+    },
+    {
+      "test": "missing-packages-circular-package-deps",
+      "failed": false,
+      "details": {
+        "reason": "SUCCESS",
+        "code": 0,
+        "timedOut": false,
+        "engine": "pdflatex",
+        "stderr": "",
+        "stdout": "This is pdfTeX, Version 3.141592653-2.6-1.40.26 (TeX Live 2024) (preloaded format=pdflatex)\n restricted \\write18 enabled.\nentering extended mode\n(/Users/sac/unjucks/tests/chaos/latex-chaos/circular-package-deps.tex\nLaTeX2e <2023-11-01> patch level 1\nL3 programming layer <2024-02-20>\n(/usr/local/texlive/2024/texmf-dist/tex/latex/base/article.cls\nDocument Class: article 2023/05/17 v1.4n Standard LaTeX document class\n(/usr/local/texlive/2024/texmf-dist/tex/latex/base/size10.clo))\n(/usr/local/texliv"
+      },
+      "timestamp": "2025-09-08T16:40:28.326Z"
+    },
+    {
+      "test": "infinite-loop-recursive-macro",
+      "failed": true,
+      "details": {
+        "reason": "TIMEOUT",
+        "code": null,
+        "timedOut": true,
+        "engine": "pdflatex",
+        "stderr": "",
+        "stdout": "This is pdfTeX, Version 3.141592653-2.6-1.40.26 (TeX Live 2024) (preloaded format=pdflatex)\n restricted \\write18 enabled.\nentering extended mode\n(/Users/sac/unjucks/tests/chaos/latex-chaos/recursive-macro.tex\nLaTeX2e <2023-11-01> patch level 1\nL3 programming layer <2024-02-20>\n(/usr/local/texlive/2024/texmf-dist/tex/latex/base/article.cls\nDocument Class: article 2023/05/17 v1.4n Standard LaTeX document class\n(/usr/local/texlive/2024/texmf-dist/tex/latex/base/size10.clo))\n(/usr/local/texlive/2024"
+      },
+      "timestamp": "2025-09-08T16:40:38.330Z"
+    },
+    {
+      "test": "infinite-loop-mutual-recursion",
+      "failed": true,
+      "details": {
+        "reason": "TIMEOUT",
+        "code": null,
+        "timedOut": true,
+        "engine": "pdflatex",
+        "stderr": "",
+        "stdout": "This is pdfTeX, Version 3.141592653-2.6-1.40.26 (TeX Live 2024) (preloaded format=pdflatex)\n restricted \\write18 enabled.\nentering extended mode\n(/Users/sac/unjucks/tests/chaos/latex-chaos/mutual-recursion.tex\nLaTeX2e <2023-11-01> patch level 1\nL3 programming layer <2024-02-20>\n(/usr/local/texlive/2024/texmf-dist/tex/latex/base/article.cls\nDocument Class: article 2023/05/17 v1.4n Standard LaTeX document class\n(/usr/local/texlive/2024/texmf-dist/tex/latex/base/size10.clo))\n(/usr/local/texlive/202"
+      },
+      "timestamp": "2025-09-08T16:40:48.334Z"
+    },
+    {
+      "test": "infinite-loop-expand-forever",
+      "failed": true,
+      "details": {
+        "reason": "EXIT_CODE_1",
+        "code": 1,
+        "timedOut": false,
+        "engine": "pdflatex",
+        "stderr": "",
+        "stdout": "This is pdfTeX, Version 3.141592653-2.6-1.40.26 (TeX Live 2024) (preloaded format=pdflatex)\n restricted \\write18 enabled.\nentering extended mode\n(/Users/sac/unjucks/tests/chaos/latex-chaos/expand-forever.tex\nLaTeX2e <2023-11-01> patch level 1\nL3 programming layer <2024-02-20>\n(/usr/local/texlive/2024/texmf-dist/tex/latex/base/article.cls\nDocument Class: article 2023/05/17 v1.4n Standard LaTeX document class\n(/usr/local/texlive/2024/texmf-dist/tex/latex/base/size10.clo))\n(/usr/local/texlive/2024/"
+      },
+      "timestamp": "2025-09-08T16:40:48.592Z"
+    },
+    {
+      "test": "infinite-loop-counter-loop",
+      "failed": true,
+      "details": {
+        "reason": "EXIT_CODE_1",
+        "code": 1,
+        "timedOut": false,
+        "engine": "pdflatex",
+        "stderr": "",
+        "stdout": "This is pdfTeX, Version 3.141592653-2.6-1.40.26 (TeX Live 2024) (preloaded format=pdflatex)\n restricted \\write18 enabled.\nentering extended mode\n(/Users/sac/unjucks/tests/chaos/latex-chaos/counter-loop.tex\nLaTeX2e <2023-11-01> patch level 1\nL3 programming layer <2024-02-20>\n(/usr/local/texlive/2024/texmf-dist/tex/latex/base/article.cls\nDocument Class: article 2023/05/17 v1.4n Standard LaTeX document class\n(/usr/local/texlive/2024/texmf-dist/tex/latex/base/size10.clo))\n(/usr/local/texlive/2024/te"
+      },
+      "timestamp": "2025-09-08T16:40:48.781Z"
+    },
+    {
+      "test": "complex-math-deeply-nested-fractions",
+      "failed": true,
+      "details": {
+        "reason": "EXIT_CODE_1",
+        "code": 1,
+        "timedOut": false,
+        "engine": "pdflatex",
+        "stderr": "",
+        "stdout": "This is pdfTeX, Version 3.141592653-2.6-1.40.26 (TeX Live 2024) (preloaded format=pdflatex)\n restricted \\write18 enabled.\nentering extended mode\n(/Users/sac/unjucks/tests/chaos/latex-chaos/deeply-nested-fractions.tex\nLaTeX2e <2023-11-01> patch level 1\nL3 programming layer <2024-02-20>\n(/usr/local/texlive/2024/texmf-dist/tex/latex/base/article.cls\nDocument Class: article 2023/05/17 v1.4n Standard LaTeX document class\n(/usr/local/texlive/2024/texmf-dist/tex/latex/base/size10.clo))\n(/usr/local/texl"
+      },
+      "timestamp": "2025-09-08T16:40:48.983Z"
+    },
+    {
+      "test": "complex-math-massive-matrix",
+      "failed": true,
+      "details": {
+        "reason": "EXIT_CODE_1",
+        "code": 1,
+        "timedOut": false,
+        "engine": "pdflatex",
+        "stderr": "",
+        "stdout": "This is pdfTeX, Version 3.141592653-2.6-1.40.26 (TeX Live 2024) (preloaded format=pdflatex)\n restricted \\write18 enabled.\nentering extended mode\n(/Users/sac/unjucks/tests/chaos/latex-chaos/massive-matrix.tex\nLaTeX2e <2023-11-01> patch level 1\nL3 programming layer <2024-02-20>\n(/usr/local/texlive/2024/texmf-dist/tex/latex/base/article.cls\nDocument Class: article 2023/05/17 v1.4n Standard LaTeX document class\n(/usr/local/texlive/2024/texmf-dist/tex/latex/base/size10.clo))\n(/usr/local/texlive/2024/"
+      },
+      "timestamp": "2025-09-08T16:40:49.186Z"
+    },
+    {
+      "test": "complex-math-invalid-math-commands",
+      "failed": true,
+      "details": {
+        "reason": "EXIT_CODE_1",
+        "code": 1,
+        "timedOut": false,
+        "engine": "pdflatex",
+        "stderr": "",
+        "stdout": "This is pdfTeX, Version 3.141592653-2.6-1.40.26 (TeX Live 2024) (preloaded format=pdflatex)\n restricted \\write18 enabled.\nentering extended mode\n(/Users/sac/unjucks/tests/chaos/latex-chaos/invalid-math-commands.tex\nLaTeX2e <2023-11-01> patch level 1\nL3 programming layer <2024-02-20>\n(/usr/local/texlive/2024/texmf-dist/tex/latex/base/article.cls\nDocument Class: article 2023/05/17 v1.4n Standard LaTeX document class\n(/usr/local/texlive/2024/texmf-dist/tex/latex/base/size10.clo))\n(/usr/local/texliv"
+      },
+      "timestamp": "2025-09-08T16:40:49.388Z"
+    },
+    {
+      "test": "complex-math-unicode-math-chaos",
+      "failed": true,
+      "details": {
+        "reason": "EXIT_CODE_1",
+        "code": 1,
+        "timedOut": false,
+        "engine": "pdflatex",
+        "stderr": "",
+        "stdout": "This is pdfTeX, Version 3.141592653-2.6-1.40.26 (TeX Live 2024) (preloaded format=pdflatex)\n restricted \\write18 enabled.\nentering extended mode\n(/Users/sac/unjucks/tests/chaos/latex-chaos/unicode-math-chaos.tex\nLaTeX2e <2023-11-01> patch level 1\nL3 programming layer <2024-02-20>\n(/usr/local/texlive/2024/texmf-dist/tex/latex/base/article.cls\nDocument Class: article 2023/05/17 v1.4n Standard LaTeX document class\n(/usr/local/texlive/2024/texmf-dist/tex/latex/base/size10.clo))\n(/usr/local/texlive/2"
+      },
+      "timestamp": "2025-09-08T16:40:49.582Z"
+    },
+    {
+      "test": "complex-math-malformed-align",
+      "failed": false,
+      "details": {
+        "reason": "SUCCESS",
+        "code": 0,
+        "timedOut": false,
+        "engine": "pdflatex",
+        "stderr": "",
+        "stdout": "This is pdfTeX, Version 3.141592653-2.6-1.40.26 (TeX Live 2024) (preloaded format=pdflatex)\n restricted \\write18 enabled.\nentering extended mode\n(/Users/sac/unjucks/tests/chaos/latex-chaos/malformed-align.tex\nLaTeX2e <2023-11-01> patch level 1\nL3 programming layer <2024-02-20>\n(/usr/local/texlive/2024/texmf-dist/tex/latex/base/article.cls\nDocument Class: article 2023/05/17 v1.4n Standard LaTeX document class\n(/usr/local/texlive/2024/texmf-dist/tex/latex/base/size10.clo))\n(/usr/local/texlive/2024"
+      },
+      "timestamp": "2025-09-08T16:40:49.946Z"
+    },
+    {
+      "test": "bibliography-chaos-cite-without-bib",
+      "failed": false,
+      "details": {
+        "reason": "SUCCESS",
+        "code": 0,
+        "timedOut": false,
+        "engine": "pdflatex",
+        "stderr": "",
+        "stdout": "This is pdfTeX, Version 3.141592653-2.6-1.40.26 (TeX Live 2024) (preloaded format=pdflatex)\n restricted \\write18 enabled.\nentering extended mode\n(/Users/sac/unjucks/tests/chaos/latex-chaos/cite-without-bib.tex\nLaTeX2e <2023-11-01> patch level 1\nL3 programming layer <2024-02-20>\n(/usr/local/texlive/2024/texmf-dist/tex/latex/base/article.cls\nDocument Class: article 2023/05/17 v1.4n Standard LaTeX document class\n(/usr/local/texlive/2024/texmf-dist/tex/latex/base/size10.clo))\n(/usr/local/texlive/202"
+      },
+      "timestamp": "2025-09-08T16:40:50.300Z"
+    },
+    {
+      "test": "bibliography-chaos-natbib-chaos",
+      "failed": false,
+      "details": {
+        "reason": "SUCCESS",
+        "code": 0,
+        "timedOut": false,
+        "engine": "pdflatex",
+        "stderr": "",
+        "stdout": "This is pdfTeX, Version 3.141592653-2.6-1.40.26 (TeX Live 2024) (preloaded format=pdflatex)\n restricted \\write18 enabled.\nentering extended mode\n(/Users/sac/unjucks/tests/chaos/latex-chaos/natbib-chaos.tex\nLaTeX2e <2023-11-01> patch level 1\nL3 programming layer <2024-02-20>\n(/usr/local/texlive/2024/texmf-dist/tex/latex/base/article.cls\nDocument Class: article 2023/05/17 v1.4n Standard LaTeX document class\n(/usr/local/texlive/2024/texmf-dist/tex/latex/base/size10.clo))\n(/usr/local/texlive/2024/te"
+      },
+      "timestamp": "2025-09-08T16:40:50.662Z"
+    },
+    {
+      "test": "bibliography-chaos-biblatex-broken",
+      "failed": false,
+      "details": {
+        "reason": "SUCCESS",
+        "code": 0,
+        "timedOut": false,
+        "engine": "pdflatex",
+        "stderr": "",
+        "stdout": "This is pdfTeX, Version 3.141592653-2.6-1.40.26 (TeX Live 2024) (preloaded format=pdflatex)\n restricted \\write18 enabled.\nentering extended mode\n(/Users/sac/unjucks/tests/chaos/latex-chaos/biblatex-broken.tex\nLaTeX2e <2023-11-01> patch level 1\nL3 programming layer <2024-02-20>\n(/usr/local/texlive/2024/texmf-dist/tex/latex/base/article.cls\nDocument Class: article 2023/05/17 v1.4n Standard LaTeX document class\n(/usr/local/texlive/2024/texmf-dist/tex/latex/base/size10.clo))\n(/usr/local/texlive/2024"
+      },
+      "timestamp": "2025-09-08T16:40:51.357Z"
+    },
+    {
+      "test": "bibliography-chaos-mixed-bibliography-styles",
+      "failed": true,
+      "details": {
+        "reason": "EXIT_CODE_1",
+        "code": 1,
+        "timedOut": false,
+        "engine": "pdflatex",
+        "stderr": "",
+        "stdout": "This is pdfTeX, Version 3.141592653-2.6-1.40.26 (TeX Live 2024) (preloaded format=pdflatex)\n restricted \\write18 enabled.\nentering extended mode\n(/Users/sac/unjucks/tests/chaos/latex-chaos/mixed-bibliography-styles.tex\nLaTeX2e <2023-11-01> patch level 1\nL3 programming layer <2024-02-20>\n(/usr/local/texlive/2024/texmf-dist/tex/latex/base/article.cls\nDocument Class: article 2023/05/17 v1.4n Standard LaTeX document class\n(/usr/local/texlive/2024/texmf-dist/tex/latex/base/size10.clo))\n(/usr/local/te"
+      },
+      "timestamp": "2025-09-08T16:40:51.568Z"
+    },
+    {
+      "test": "malformed-bibtex-use-broken-bib",
+      "failed": false,
+      "details": {
+        "reason": "SUCCESS",
+        "code": 0,
+        "timedOut": false,
+        "engine": "pdflatex",
+        "stderr": "",
+        "stdout": "This is pdfTeX, Version 3.141592653-2.6-1.40.26 (TeX Live 2024) (preloaded format=pdflatex)\n restricted \\write18 enabled.\nentering extended mode\n(/Users/sac/unjucks/tests/chaos/latex-chaos/use-broken-bib.tex\nLaTeX2e <2023-11-01> patch level 1\nL3 programming layer <2024-02-20>\n(/usr/local/texlive/2024/texmf-dist/tex/latex/base/article.cls\nDocument Class: article 2023/05/17 v1.4n Standard LaTeX document class\n(/usr/local/texlive/2024/texmf-dist/tex/latex/base/size10.clo))\n(/usr/local/texlive/2024/"
+      },
+      "timestamp": "2025-09-08T16:40:51.921Z"
+    },
+    {
+      "test": "malformed-bibtex-use-syntax-chaos-bib",
+      "failed": false,
+      "details": {
+        "reason": "SUCCESS",
+        "code": 0,
+        "timedOut": false,
+        "engine": "pdflatex",
+        "stderr": "",
+        "stdout": "This is pdfTeX, Version 3.141592653-2.6-1.40.26 (TeX Live 2024) (preloaded format=pdflatex)\n restricted \\write18 enabled.\nentering extended mode\n(/Users/sac/unjucks/tests/chaos/latex-chaos/use-syntax-chaos-bib.tex\nLaTeX2e <2023-11-01> patch level 1\nL3 programming layer <2024-02-20>\n(/usr/local/texlive/2024/texmf-dist/tex/latex/base/article.cls\nDocument Class: article 2023/05/17 v1.4n Standard LaTeX document class\n(/usr/local/texlive/2024/texmf-dist/tex/latex/base/size10.clo))\n(/usr/local/texlive"
+      },
+      "timestamp": "2025-09-08T16:40:52.271Z"
+    },
+    {
+      "test": "broken-references-missing-labels",
+      "failed": true,
+      "details": {
+        "reason": "EXIT_CODE_1",
+        "code": 1,
+        "timedOut": false,
+        "engine": "pdflatex",
+        "stderr": "",
+        "stdout": "This is pdfTeX, Version 3.141592653-2.6-1.40.26 (TeX Live 2024) (preloaded format=pdflatex)\n restricted \\write18 enabled.\nentering extended mode\n(/Users/sac/unjucks/tests/chaos/latex-chaos/missing-labels.tex\nLaTeX2e <2023-11-01> patch level 1\nL3 programming layer <2024-02-20>\n(/usr/local/texlive/2024/texmf-dist/tex/latex/base/article.cls\nDocument Class: article 2023/05/17 v1.4n Standard LaTeX document class\n(/usr/local/texlive/2024/texmf-dist/tex/latex/base/size10.clo))\n(/usr/local/texlive/2024/"
+      },
+      "timestamp": "2025-09-08T16:40:52.462Z"
+    },
+    {
+      "test": "broken-references-circular-references",
+      "failed": false,
+      "details": {
+        "reason": "SUCCESS",
+        "code": 0,
+        "timedOut": false,
+        "engine": "pdflatex",
+        "stderr": "",
+        "stdout": "This is pdfTeX, Version 3.141592653-2.6-1.40.26 (TeX Live 2024) (preloaded format=pdflatex)\n restricted \\write18 enabled.\nentering extended mode\n(/Users/sac/unjucks/tests/chaos/latex-chaos/circular-references.tex\nLaTeX2e <2023-11-01> patch level 1\nL3 programming layer <2024-02-20>\n(/usr/local/texlive/2024/texmf-dist/tex/latex/base/article.cls\nDocument Class: article 2023/05/17 v1.4n Standard LaTeX document class\n(/usr/local/texlive/2024/texmf-dist/tex/latex/base/size10.clo))\n(/usr/local/texlive/"
+      },
+      "timestamp": "2025-09-08T16:40:52.814Z"
+    },
+    {
+      "test": "broken-references-malformed-labels",
+      "failed": true,
+      "details": {
+        "reason": "EXIT_CODE_1",
+        "code": 1,
+        "timedOut": false,
+        "engine": "pdflatex",
+        "stderr": "",
+        "stdout": "This is pdfTeX, Version 3.141592653-2.6-1.40.26 (TeX Live 2024) (preloaded format=pdflatex)\n restricted \\write18 enabled.\nentering extended mode\n(/Users/sac/unjucks/tests/chaos/latex-chaos/malformed-labels.tex\nLaTeX2e <2023-11-01> patch level 1\nL3 programming layer <2024-02-20>\n(/usr/local/texlive/2024/texmf-dist/tex/latex/base/article.cls\nDocument Class: article 2023/05/17 v1.4n Standard LaTeX document class\n(/usr/local/texlive/2024/texmf-dist/tex/latex/base/size10.clo))\n(/usr/local/texlive/202"
+      },
+      "timestamp": "2025-09-08T16:40:53.005Z"
+    },
+    {
+      "test": "broken-references-hyperref-broken",
+      "failed": false,
+      "details": {
+        "reason": "SUCCESS",
+        "code": 0,
+        "timedOut": false,
+        "engine": "pdflatex",
+        "stderr": "",
+        "stdout": "This is pdfTeX, Version 3.141592653-2.6-1.40.26 (TeX Live 2024) (preloaded format=pdflatex)\n restricted \\write18 enabled.\nentering extended mode\n(/Users/sac/unjucks/tests/chaos/latex-chaos/hyperref-broken.tex\nLaTeX2e <2023-11-01> patch level 1\nL3 programming layer <2024-02-20>\n(/usr/local/texlive/2024/texmf-dist/tex/latex/base/article.cls\nDocument Class: article 2023/05/17 v1.4n Standard LaTeX document class\n(/usr/local/texlive/2024/texmf-dist/tex/latex/base/size10.clo))\n(/usr/local/texlive/2024"
+      },
+      "timestamp": "2025-09-08T16:40:53.488Z"
+    },
+    {
+      "test": "engine-conflict-engine-specific-pdflatex",
+      "failed": true,
+      "details": {
+        "reason": "EXIT_CODE_1",
+        "code": 1,
+        "timedOut": false,
+        "engine": "pdflatex",
+        "stderr": "",
+        "stdout": "This is pdfTeX, Version 3.141592653-2.6-1.40.26 (TeX Live 2024) (preloaded format=pdflatex)\n restricted \\write18 enabled.\nentering extended mode\n(/Users/sac/unjucks/tests/chaos/latex-chaos/engine-specific-pdflatex.tex\nLaTeX2e <2023-11-01> patch level 1\nL3 programming layer <2024-02-20>\n(/usr/local/texlive/2024/texmf-dist/tex/latex/base/article.cls\nDocument Class: article 2023/05/17 v1.4n Standard LaTeX document class\n(/usr/local/texlive/2024/texmf-dist/tex/latex/base/size10.clo))\n(/usr/local/tex"
+      },
+      "timestamp": "2025-09-08T16:40:53.675Z"
+    },
+    {
+      "test": "engine-conflict-engine-specific-xelatex",
+      "failed": false,
+      "details": {
+        "reason": "SUCCESS",
+        "code": 0,
+        "timedOut": false,
+        "engine": "xelatex",
+        "stderr": "",
+        "stdout": "This is XeTeX, Version 3.141592653-2.6-0.999996 (TeX Live 2024) (preloaded format=xelatex)\n restricted \\write18 enabled.\nentering extended mode\n(/Users/sac/unjucks/tests/chaos/latex-chaos/engine-specific-xelatex.tex\nLaTeX2e <2023-11-01> patch level 1\nL3 programming layer <2024-02-20>\n(/usr/local/texlive/2024/texmf-dist/tex/latex/base/article.cls\nDocument Class: article 2023/05/17 v1.4n Standard LaTeX document class\n(/usr/local/texlive/2024/texmf-dist/tex/latex/base/size10.clo))\n(/usr/local/texli"
+      },
+      "timestamp": "2025-09-08T16:40:54.411Z"
+    },
+    {
+      "test": "engine-conflict-engine-specific-lualatex",
+      "failed": false,
+      "details": {
+        "reason": "SUCCESS",
+        "code": 0,
+        "timedOut": false,
+        "engine": "lualatex",
+        "stderr": "",
+        "stdout": "This is LuaHBTeX, Version 1.18.0 (TeX Live 2024) \n restricted system commands enabled.\n(/Users/sac/unjucks/tests/chaos/latex-chaos/engine-specific-lualatex.tex\nLaTeX2e <2023-11-01> patch level 1\nL3 programming layer <2024-02-20>\n (/usr/local/texlive/2024/texmf-dist/tex/latex/base/article.cls\nDocument Class: article 2023/05/17 v1.4n Standard LaTeX document class\n(/usr/local/texlive/2024/texmf-dist/tex/latex/base/size10.clo\nluaotfload | db : Font names database not found, generating new one.\nluaot"
+      },
+      "timestamp": "2025-09-08T16:41:03.922Z"
+    },
+    {
+      "test": "simultaneous-simultaneous-pdflatex",
+      "failed": true,
+      "details": {
+        "reason": "EXIT_CODE_1",
+        "code": 1,
+        "timedOut": false,
+        "engine": "pdflatex",
+        "stderr": "",
+        "stdout": "This is pdfTeX, Version 3.141592653-2.6-1.40.26 (TeX Live 2024) (preloaded format=pdflatex)\n restricted \\write18 enabled.\nentering extended mode\n(/Users/sac/unjucks/tests/chaos/latex-chaos/simultaneous-pdflatex.tex\nLaTeX2e <2023-11-01> patch level 1\nL3 programming layer <2024-02-20>\n(/usr/local/texlive/2024/texmf-dist/tex/latex/base/article.cls\nDocument Class: article 2023/05/17 v1.4n Standard LaTeX document class\n(/usr/local/texlive/2024/texmf-dist/tex/latex/base/size10.clo))\n(/usr/local/texliv"
+      },
+      "timestamp": "2025-09-08T16:41:04.123Z"
+    },
+    {
+      "test": "simultaneous-simultaneous-xelatex",
+      "failed": false,
+      "details": {
+        "reason": "SUCCESS",
+        "code": 0,
+        "timedOut": false,
+        "engine": "xelatex",
+        "stderr": "",
+        "stdout": "This is XeTeX, Version 3.141592653-2.6-0.999996 (TeX Live 2024) (preloaded format=xelatex)\n restricted \\write18 enabled.\nentering extended mode\n(/Users/sac/unjucks/tests/chaos/latex-chaos/simultaneous-xelatex.tex\nLaTeX2e <2023-11-01> patch level 1\nL3 programming layer <2024-02-20>\n(/usr/local/texlive/2024/texmf-dist/tex/latex/base/article.cls\nDocument Class: article 2023/05/17 v1.4n Standard LaTeX document class\n(/usr/local/texlive/2024/texmf-dist/tex/latex/base/size10.clo))\n(/usr/local/texlive/"
+      },
+      "timestamp": "2025-09-08T16:41:04.608Z"
+    },
+    {
+      "test": "simultaneous-simultaneous-lualatex",
+      "failed": false,
+      "details": {
+        "reason": "SUCCESS",
+        "code": 0,
+        "timedOut": false,
+        "engine": "lualatex",
+        "stderr": "",
+        "stdout": "This is LuaHBTeX, Version 1.18.0 (TeX Live 2024) \n restricted system commands enabled.\n(/Users/sac/unjucks/tests/chaos/latex-chaos/simultaneous-lualatex.tex\nLaTeX2e <2023-11-01> patch level 1\nL3 programming layer <2024-02-20>\n (/usr/local/texlive/2024/texmf-dist/tex/latex/base/article.cls\nDocument Class: article 2023/05/17 v1.4n Standard LaTeX document class\n(/usr/local/texlive/2024/texmf-dist/tex/latex/base/size10.clo))\n(/usr/local/texlive/2024/texmf-dist/tex/latex/fontspec/fontspec.sty\n(/usr/l"
+      },
+      "timestamp": "2025-09-08T16:41:04.683Z"
+    },
+    {
+      "test": "simultaneous-engines",
+      "failed": false,
+      "details": "All engines completed simultaneously",
+      "timestamp": "2025-09-08T16:41:04.683Z"
+    },
+    {
+      "test": "filter-texEscape with malicious input",
+      "failed": false,
+      "details": "Result: \\textbackslash{}malicious\\{\\}\\&\\%\\#\\textasciicircum{}\\_\\textasciitilde{}\\textless{}\\textgreater{}\\textbar{}\\textquotedbl{}\\textquotesingle{}",
+      "timestamp": "2025-09-08T16:41:04.684Z"
+    },
+    {
+      "test": "filter-mathMode with invalid formula",
+      "failed": false,
+      "details": "Result: $\\frac{1}{0} \\undefined{command}$",
+      "timestamp": "2025-09-08T16:41:04.684Z"
+    },
+    {
+      "test": "filter-citation with null input",
+      "failed": false,
+      "details": "Result: ",
+      "timestamp": "2025-09-08T16:41:04.684Z"
+    },
+    {
+      "test": "filter-bibtex with malformed entry",
+      "failed": false,
+      "details": "Result: @article{test,\n}\n",
+      "timestamp": "2025-09-08T16:41:04.684Z"
+    },
+    {
+      "test": "filter-latexTable with empty data",
+      "failed": false,
+      "details": "Result: ",
+      "timestamp": "2025-09-08T16:41:04.684Z"
+    },
+    {
+      "test": "filter-environment with circular reference",
+      "failed": false,
+      "details": "Result: \\begin{recursiveEnv}\n\\recursiveCommand\n\\end{recursiveEnv}",
+      "timestamp": "2025-09-08T16:41:04.684Z"
+    },
+    {
+      "test": "filter-registration",
+      "failed": false,
+      "details": "Filters registered successfully",
+      "timestamp": "2025-09-08T16:41:04.693Z"
+    }
+  ]
+}

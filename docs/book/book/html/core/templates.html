@@ -1,0 +1,1133 @@
+<!DOCTYPE HTML>
+<html lang="en" class="navy" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Template Syntax - Unjucks: Modern Code Generation in 2026</title>
+        <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+        <meta name="description" content="A comprehensive guide to modern code generation using the Unjucks framework, demonstrating declarative development patterns, AI integration, and advanced template design for productive software development.">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#0066cc"/>
+
+        <!-- Open Graph -->
+        <meta property="og:title" content="Template Syntax - Unjucks: Modern Code Generation in 2026">
+        <meta property="og:description" content="A comprehensive guide to modern code generation using the Unjucks framework, demonstrating declarative development patterns, AI integration, and advanced template design for productive software development.">
+        <meta property="og:type" content="website">
+        <meta property="og:url" content="">
+        <meta property="og:image" content="unjucks-og.png">
+        
+        <!-- Twitter Card -->
+        <meta name="twitter:card" content="summary_large_image">
+        <meta name="twitter:title" content="Template Syntax - Unjucks: Modern Code Generation in 2026">
+        <meta name="twitter:description" content="A comprehensive guide to modern code generation using the Unjucks framework, demonstrating declarative development patterns, AI integration, and advanced template design for productive software development.">
+        <meta name="twitter:image" content="unjucks-og.png">
+
+
+        <!-- Custom Unjucks Favicon -->
+        <link rel="icon" href="../favicon.png">
+        <link rel="shortcut icon" href="../favicon.png">
+
+        <!-- Fonts -->
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+
+        <link rel="stylesheet" href="../css/variables.css">
+        <link rel="stylesheet" href="../css/general.css">
+        <link rel="stylesheet" href="../css/chrome.css">
+        <link rel="stylesheet" href="../css/print.css" media="print">
+
+        <!-- Custom CSS -->
+
+        <!-- Custom head content -->
+
+        <!-- JSON-LD Structured Data -->
+        <script type="application/ld+json">
+        {
+            "@context": "https://schema.org",
+            "@type": "TechArticle",
+            "headline": "Template Syntax - Unjucks: Modern Code Generation in 2026",
+            "description": "A comprehensive guide to modern code generation using the Unjucks framework, demonstrating declarative development patterns, AI integration, and advanced template design for productive software development.",
+            "author": {
+                "@type": "Organization",
+                "name": "Unjucks Development Team"
+            },
+            "publisher": {
+                "@type": "Organization",
+                "name": "Unjucks",
+                "logo": {
+                    "@type": "ImageObject",
+                    "url": "logo.png"
+                }
+            },
+            "url": "",
+            "mainEntityOfPage": "",
+            "datePublished": "",
+            "dateModified": "",
+            "inLanguage": "en",
+            "about": [
+                "Code Generation",
+                "Template Engine", 
+                "CLI Tools",
+                "Semantic Web",
+                "RDF",
+                "Software Development"
+            ]
+        }
+        </script>
+    </head>
+    <body>
+        <!-- Provide site root to javascript -->
+        <script type="text/javascript">
+            var path_to_root = "../";
+            var default_theme = "navy";
+        </script>
+
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script type="text/javascript">
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme && theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar && sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script type="text/javascript">
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            var html = document.querySelector('html');
+            html.classList.remove('no-js')
+            html.classList.remove('light')
+            html.classList.remove('rust')
+            html.classList.remove('coal')
+            html.classList.remove('navy')
+            html.classList.remove('ayu')
+            html.classList.add(theme);
+            html.classList.add('js');
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script type="text/javascript">
+            var body = document.querySelector('body');
+            var sidebar = null;
+            var sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+            }
+            sidebar_toggle.checked = sidebar === 'visible';
+            body.classList.remove('sidebar-visible');
+            body.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <div class="sidebar-scrollbox">
+                <!-- Unjucks Logo -->
+                <div class="unjucks-logo" style="padding: 1rem; text-align: center; border-bottom: 1px solid #e1e5e9;">
+                    <h3 style="margin: 0; color: #0066cc; font-weight: 700;">🚀 Unjucks</h3>
+                    <p style="margin: 0.5rem 0 0 0; font-size: 0.8rem; color: #666;">Template Generation Platform</p>
+                </div>
+
+                <!-- TOC will be generated automatically by mdbook -->
+            </div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
+        </nav>
+
+        <!-- Page wrapper -->
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label for="sidebar-toggle-anchor" class="left" id="sidebar-toggle" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button left" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy (default)</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button left" type="button" title="Toggle Searchbar" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Unjucks: Modern Code Generation in 2026</h1>
+
+                    <div class="right-buttons">
+                        <a href="../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+                        <a href="https://github.com/ruvnet/unjucks" title="Git repository" aria-label="Git repository">
+                            <i id="git-repository-button" class="fa fa-github"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script type="text/javascript">
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <!-- Breadcrumb Navigation -->
+                        <div class="breadcrumb-nav" style="margin-bottom: 1.5rem; font-size: 0.9rem; color: #666;">
+                            <a href="../index.html">🏠 Home</a>
+                            <span> › </span>
+                            <span>Template Syntax</span>
+                        </div>
+
+                        <h1 id="template-system"><a class="header" href="#template-system">Template System</a></h1>
+<p>The Template System is the heart of Unjucks, combining the power of the Nunjucks template engine with advanced code generation features. This chapter covers the template processing pipeline, variable extraction system, and frontmatter configuration.</p>
+<h2 id="template-architecture"><a class="header" href="#template-architecture">Template Architecture</a></h2>
+<h3 id="processing-pipeline"><a class="header" href="#processing-pipeline">Processing Pipeline</a></h3>
+<pre><code>Template Input → Variable Scanning → Frontmatter Processing → Nunjucks Rendering → File Operations
+       ↓               ↓                     ↓                      ↓                 ↓
+   .njk files    Extract {{ vars }}    Parse YAML config    Apply filters    Write/Inject files
+</code></pre>
+<p>The template system follows a systematic approach:</p>
+<ol>
+<li><strong>Template Discovery</strong>: Locate templates in the <code>_templates</code> directory structure</li>
+<li><strong>Variable Extraction</strong>: Automatically scan for <code>{{ variables }}</code> and control structures</li>
+<li><strong>Frontmatter Processing</strong>: Parse YAML configuration for file operations</li>
+<li><strong>Nunjucks Rendering</strong>: Apply variables and filters to generate content</li>
+<li><strong>File Operations</strong>: Execute the six file operations (write, inject, append, prepend, lineAt, skipIf)</li>
+</ol>
+<h3 id="template-structure"><a class="header" href="#template-structure">Template Structure</a></h3>
+<p>A complete Unjucks template consists of:</p>
+<ul>
+<li><strong>Frontmatter</strong> (YAML configuration)</li>
+<li><strong>Template Body</strong> (Nunjucks markup)</li>
+<li><strong>Variable References</strong> (dynamic placeholders)</li>
+</ul>
+<pre><code class="language-nunjucks">---
+to: "{{ directory }}/{{ name | kebabCase }}.tsx"
+inject: false
+skipIf: "{{ !withComponent }}"
+chmod: "644"
+---
+import React from 'react';
+
+interface {{ name | pascalCase }}Props {
+  {% if withProps -%}
+  className?: string;
+  children?: React.ReactNode;
+  {%- endif %}
+}
+
+export const {{ name | pascalCase }}: React.FC&lt;{{ name | pascalCase }}Props&gt; = ({
+  {% if withProps -%}
+  className,
+  children
+  {%- endif %}
+}) =&gt; {
+  return (
+    &lt;div{% if withProps %} className={className}{% endif %}&gt;
+      {% if withProps -%}
+      {children}
+      {%- else -%}
+      &lt;p&gt;{{ name | titleCase }} component&lt;/p&gt;
+      {%- endif %}
+    &lt;/div&gt;
+  );
+};
+
+export default {{ name | pascalCase }};
+</code></pre>
+<h2 id="variable-extraction-system"><a class="header" href="#variable-extraction-system">Variable Extraction System</a></h2>
+<h3 id="automatic-variable-detection"><a class="header" href="#automatic-variable-detection">Automatic Variable Detection</a></h3>
+<p>The template scanner identifies variables using sophisticated pattern recognition:</p>
+<pre><code class="language-typescript">// Variable patterns detected
+{{ variableName }}                    // String variable
+{{ variableName | filter }}           // String with filter
+{% if variableName %}                 // Boolean variable (if/unless)
+{% for item in items %}               // Array variable (items)
+{{ componentName | pascalCase }}.tsx  // Filename variables
+</code></pre>
+<h3 id="type-inference-algorithm"><a class="header" href="#type-inference-algorithm">Type Inference Algorithm</a></h3>
+<p>The system automatically infers variable types based on usage patterns:</p>
+<pre><code class="language-typescript">interface TemplateVariable {
+  name: string;
+  type: 'string' | 'boolean' | 'array' | 'object';
+  required: boolean;
+  default?: any;
+  description?: string;
+}
+
+// Inference rules
+const inferType = (variableName: string, usage: string): VariableType =&gt; {
+  // Boolean patterns
+  if (/^(with|has|is|should|enable|include|use|can|will)/.test(variableName)) {
+    return 'boolean';
+  }
+  
+  // Array patterns (for loops)
+  if (usage.includes('for') &amp;&amp; usage.includes('in')) {
+    return 'array';
+  }
+  
+  // Default to string
+  return 'string';
+};
+</code></pre>
+<h3 id="boolean-detection-heuristics"><a class="header" href="#boolean-detection-heuristics">Boolean Detection Heuristics</a></h3>
+<p>Boolean variables are detected through naming conventions:</p>
+<pre><code class="language-typescript">// Boolean prefixes and patterns
+withTests, hasProps, isActive, shouldShow     // Boolean by naming convention
+enableLogging, includeTypes, useStrict       // Action-based booleans
+canEdit, willUpdate, doesExist              // Modal verbs
+</code></pre>
+<h2 id="built-in-filters"><a class="header" href="#built-in-filters">Built-in Filters</a></h2>
+<h3 id="string-case-conversion"><a class="header" href="#string-case-conversion">String Case Conversion</a></h3>
+<p>Essential for consistent naming across different programming languages and conventions:</p>
+<pre><code class="language-typescript">// Case transformation filters
+camelCase:    "hello world" → "helloWorld"
+pascalCase:   "hello world" → "HelloWorld" 
+kebabCase:    "hello world" → "hello-world"
+snakeCase:    "hello world" → "hello_world"
+titleCase:    "hello world" → "Hello World"
+constantCase: "hello world" → "HELLO_WORLD"
+
+// Usage in templates
+{{ componentName | pascalCase }}Component.tsx
+{{ functionName | camelCase }}
+{{ CSS_VAR_NAME | constantCase }}
+</code></pre>
+<h3 id="pluralization-support"><a class="header" href="#pluralization-support">Pluralization Support</a></h3>
+<p>Built-in English pluralization for entity generation:</p>
+<pre><code class="language-typescript">// English pluralization rules
+pluralize:    "item" → "items"
+              "child" → "children"
+              "person" → "people"
+              "datum" → "data"
+
+singularize:  "items" → "item"
+              "children" → "child"
+              "people" → "person"
+
+// Usage example
+export interface {{ entityName | pascalCase }} {
+  // Single entity interface
+}
+
+export interface {{ entityName | pluralize | pascalCase }} {
+  // Collection interface
+}
+</code></pre>
+<h3 id="advanced-string-manipulation"><a class="header" href="#advanced-string-manipulation">Advanced String Manipulation</a></h3>
+<pre><code class="language-typescript">// String utilities
+capitalize:   "hello world" → "Hello world"
+lowercase:    "Hello World" → "hello world"  
+uppercase:    "hello world" → "HELLO WORLD"
+trim:         "  hello  " → "hello"
+replace:      "hello world" | replace("world", "universe") → "hello universe"
+
+// Array operations
+split:        "one,two,three" | split(",") → ["one", "two", "three"]
+join:         ["one", "two", "three"] | join(" - ") → "one - two - three"
+slice:        "hello world" | slice(0, 5) → "hello"
+
+// Code generation helpers
+indent:       "line1\nline2" | indent(2) → "  line1\n  line2"
+comment:      "TODO: implement" | comment("//") → "// TODO: implement"
+</code></pre>
+<h2 id="frontmatter-system"><a class="header" href="#frontmatter-system">Frontmatter System</a></h2>
+<h3 id="basic-configuration"><a class="header" href="#basic-configuration">Basic Configuration</a></h3>
+<p>Frontmatter controls how templates are processed and where files are written:</p>
+<pre><code class="language-yaml">---
+# File output configuration
+to: "{{ outputPath }}/{{ name | kebabCase }}.ts"
+
+# Conditional generation
+skipIf: "{{ !includeFile }}"
+
+# Injection mode (instead of creating new file)
+inject: true
+before: "// INJECT_IMPORTS_HERE"
+after: "// END_IMPORTS"
+
+# File permissions (Unix)
+chmod: "755"
+
+# Shell command to execute after generation
+sh: "prettier --write {{ outputPath }}/{{ name | kebabCase }}.ts"
+---
+</code></pre>
+<h3 id="the-six-file-operations"><a class="header" href="#the-six-file-operations">The Six File Operations</a></h3>
+<p>Frontmatter controls which of the six file operations to perform:</p>
+<ol>
+<li><strong>write</strong> (default) - Create new files</li>
+<li><strong>inject</strong> - Insert content into existing files at markers</li>
+<li><strong>append</strong> - Add content to end of files</li>
+<li><strong>prepend</strong> - Add content to beginning of files</li>
+<li><strong>lineAt</strong> - Insert content at specific line numbers</li>
+<li><strong>skipIf</strong> - Conditional operation control</li>
+</ol>
+<h3 id="dynamic-filename-generation"><a class="header" href="#dynamic-filename-generation">Dynamic Filename Generation</a></h3>
+<p>Templates can generate dynamic file paths based on variables and conditions:</p>
+<pre><code class="language-yaml">---
+# Conditional file paths
+to: &gt;
+  {% if type === 'component' -%}
+  src/components/{{ name }}/index.ts
+  {%- else -%}
+  src/utils/{{ name }}.ts
+  {%- endif %}
+
+# Multiple conditions
+skipIf: "{{ !withTests || environment === 'production' }}"
+---
+</code></pre>
+<h3 id="multi-file-output"><a class="header" href="#multi-file-output">Multi-File Output</a></h3>
+<p>Generate multiple related files from a single template:</p>
+<pre><code class="language-yaml">---
+# Generate multiple files from one template
+outputs:
+  - path: "{{ name }}.ts"
+    template: "main"
+  - path: "{{ name }}.test.ts"
+    template: "test"
+    skipIf: "{{ !withTests }}"
+  - path: "{{ name }}.stories.ts"
+    template: "stories"
+    skipIf: "{{ !withStorybook }}"
+---
+</code></pre>
+<h2 id="template-inheritance"><a class="header" href="#template-inheritance">Template Inheritance</a></h2>
+<h3 id="extending-base-templates"><a class="header" href="#extending-base-templates">Extending Base Templates</a></h3>
+<p>Templates can inherit from base configurations:</p>
+<pre><code class="language-yaml">---
+# Inherit from base template
+extends: "../base/component.yml"
+
+# Override specific configurations
+overrides:
+  to: "custom/{{ name }}.ts"
+  inject: false
+
+# Additional configuration
+customField: "value"
+---
+</code></pre>
+<h3 id="base-template-example"><a class="header" href="#base-template-example">Base Template Example</a></h3>
+<p>Create reusable base configurations:</p>
+<pre><code class="language-yaml"># _templates/base/component.yml
+---
+to: "src/components/{{ name | pascalCase }}/index.ts"
+skipIf: "{{ !name }}"
+validate:
+  required: ["name"]
+  patterns:
+    name: "^[A-Z][a-zA-Z0-9]*$"
+chmod: "644"
+---
+</code></pre>
+<h2 id="validation-system"><a class="header" href="#validation-system">Validation System</a></h2>
+<h3 id="input-validation"><a class="header" href="#input-validation">Input Validation</a></h3>
+<p>Templates can specify validation rules for variables:</p>
+<pre><code class="language-yaml">---
+# Validation rules in frontmatter
+validate:
+  required: ["name", "type"]
+  patterns:
+    name: "^[A-Z][a-zA-Z0-9]*$"    # PascalCase pattern
+    type: "^(component|util|service)$"
+  custom:
+    - rule: "nameNotReserved"
+      message: "Name cannot be a reserved keyword"
+---
+</code></pre>
+<h3 id="custom-validation-rules"><a class="header" href="#custom-validation-rules">Custom Validation Rules</a></h3>
+<p>Extend validation with custom logic:</p>
+<pre><code class="language-typescript">// Register custom validation
+export class CustomValidators {
+  static nameNotReserved(value: string): boolean {
+    const reserved = ['class', 'function', 'var', 'let', 'const'];
+    return !reserved.includes(value.toLowerCase());
+  }
+  
+  static validComponentName(value: string): boolean {
+    return /^[A-Z][a-zA-Z0-9]*$/.test(value) &amp;&amp; value.length &gt; 2;
+  }
+}
+</code></pre>
+<h2 id="advanced-template-features"><a class="header" href="#advanced-template-features">Advanced Template Features</a></h2>
+<h3 id="template-macros"><a class="header" href="#template-macros">Template Macros</a></h3>
+<p>Reusable template snippets:</p>
+<pre><code class="language-nunjucks">{# Define macro #}
+{% macro renderMethod(name, returnType, params) -%}
+async {{ name }}({{ params | join(', ') }}): Promise&lt;{{ returnType }}&gt; {
+  // Implementation for {{ name }}
+}
+{%- endmacro %}
+
+{# Use macro #}
+{% for method in methods %}
+{{ renderMethod(method.name, method.returnType, method.params) }}
+{% endfor %}
+</code></pre>
+<h3 id="conditional-template-sections"><a class="header" href="#conditional-template-sections">Conditional Template Sections</a></h3>
+<p>Complex conditional rendering:</p>
+<pre><code class="language-nunjucks">{% set hasDatabase = withDatabase and databaseType %}
+{% set hasAuth = withAuth or authProvider %}
+
+{% if hasDatabase %}
+import { {{ databaseType | pascalCase }} } from './database';
+{% endif %}
+
+{% if hasAuth %}
+import { AuthProvider } from './auth';
+{% endif %}
+
+export class {{ serviceName | pascalCase }} {
+  {% if hasDatabase %}
+  private db: {{ databaseType | pascalCase }};
+  {% endif %}
+  
+  {% if hasAuth %}
+  private auth: AuthProvider;
+  {% endif %}
+}
+</code></pre>
+<h3 id="template-context-objects"><a class="header" href="#template-context-objects">Template Context Objects</a></h3>
+<p>Access structured data within templates:</p>
+<pre><code class="language-nunjucks">{# Context object: config.database #}
+{% if config.database.enabled %}
+import { {{ config.database.driver | pascalCase }} } from '{{ config.database.driver }}';
+
+const dbConfig = {
+  host: '{{ config.database.host }}',
+  port: {{ config.database.port }},
+  database: '{{ config.database.name }}'
+};
+{% endif %}
+</code></pre>
+<h2 id="performance-optimizations"><a class="header" href="#performance-optimizations">Performance Optimizations</a></h2>
+<h3 id="template-caching"><a class="header" href="#template-caching">Template Caching</a></h3>
+<p>The system caches compiled templates for performance:</p>
+<pre><code class="language-typescript">interface TemplateCache {
+  // Compiled template cache
+  compiledTemplates: Map&lt;string, nunjucks.Template&gt;;
+  
+  // Variable scan cache
+  variableScans: Map&lt;string, TemplateVariable[]&gt;;
+  
+  // Frontmatter cache
+  frontmatterCache: Map&lt;string, FrontmatterConfig&gt;;
+  
+  get(key: string): CacheEntry | null;
+  set(key: string, value: CacheEntry): void;
+  invalidate(templatePath: string): void;
+}
+</code></pre>
+<h3 id="lazy-loading"><a class="header" href="#lazy-loading">Lazy Loading</a></h3>
+<p>Templates are compiled on-demand to reduce memory usage:</p>
+<pre><code class="language-typescript">class LazyTemplateLoader {
+  private templates = new Map&lt;string, Promise&lt;nunjucks.Template&gt;&gt;();
+  
+  async getTemplate(templatePath: string): Promise&lt;nunjucks.Template&gt; {
+    if (!this.templates.has(templatePath)) {
+      this.templates.set(templatePath, this.compileTemplate(templatePath));
+    }
+    return this.templates.get(templatePath)!;
+  }
+}
+</code></pre>
+<h2 id="error-handling"><a class="header" href="#error-handling">Error Handling</a></h2>
+<h3 id="template-syntax-errors"><a class="header" href="#template-syntax-errors">Template Syntax Errors</a></h3>
+<p>Graceful handling of template compilation errors:</p>
+<pre><code class="language-typescript">try {
+  const template = nunjucks.compile(templateContent);
+  const rendered = template.render(variables);
+} catch (error) {
+  if (error instanceof nunjucks.TemplateSyntaxError) {
+    throw new TemplateSyntaxError(
+      `Template syntax error in ${templatePath}:${error.lineno}: ${error.message}`
+    );
+  }
+  throw error;
+}
+</code></pre>
+<h3 id="variable-validation-errors"><a class="header" href="#variable-validation-errors">Variable Validation Errors</a></h3>
+<p>Handle missing or invalid variables:</p>
+<pre><code class="language-typescript">export class VariableValidator {
+  validate(template: string, variables: Record&lt;string, any&gt;): ValidationResult {
+    const required = this.extractRequiredVariables(template);
+    const missing = required.filter(name =&gt; !(name in variables));
+    
+    if (missing.length &gt; 0) {
+      return {
+        valid: false,
+        errors: [`Missing required variables: ${missing.join(', ')}`],
+        suggestions: missing.map(name =&gt; `Provide --${name} argument or set in prompt`)
+      };
+    }
+    
+    return { valid: true, errors: [] };
+  }
+}
+</code></pre>
+<h2 id="best-practices"><a class="header" href="#best-practices">Best Practices</a></h2>
+<h3 id="template-organization"><a class="header" href="#template-organization">Template Organization</a></h3>
+<ul>
+<li>Keep templates focused and single-purpose</li>
+<li>Use descriptive filenames that match the generated content</li>
+<li>Organize related templates in generator directories</li>
+<li>Use consistent naming conventions for variables</li>
+</ul>
+<h3 id="variable-naming"><a class="header" href="#variable-naming">Variable Naming</a></h3>
+<ul>
+<li>Use descriptive, self-documenting variable names</li>
+<li>Follow consistent case conventions (camelCase for JavaScript/TypeScript)</li>
+<li>Use boolean prefixes (<code>with</code>, <code>has</code>, <code>is</code>, <code>should</code>) for clarity</li>
+<li>Group related variables with common prefixes</li>
+</ul>
+<h3 id="error-prevention"><a class="header" href="#error-prevention">Error Prevention</a></h3>
+<ul>
+<li>Always provide default values for optional variables</li>
+<li>Use validation rules to catch input errors early</li>
+<li>Include helpful error messages and suggestions</li>
+<li>Test templates with various input combinations</li>
+</ul>
+<p>The Template System provides a powerful foundation for code generation, combining the flexibility of Nunjucks with advanced features specifically designed for software development workflows.</p>
+
+
+                        <!-- Page Footer -->
+                        <div class="page-footer" style="margin-top: 3rem; padding-top: 2rem; border-top: 1px solid #e1e5e9;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+                                <div class="footer-links" style="display: flex; gap: 1rem; font-size: 0.9rem;">
+                                    <a href="https://unjucks.dev" target="_blank">🌐 Website</a>
+                                    <a href="https://github.com/ruvnet/unjucks" target="_blank">💻 GitHub</a>
+                                    <a href="https://github.com/ruvnet/unjucks/issues" target="_blank">🐛 Issues</a>
+                                    <a href="https://github.com/ruvnet/unjucks/discussions" target="_blank">💬 Discussions</a>
+                                </div>
+                                <div class="footer-info" style="font-size: 0.8rem; color: #888; text-align: right;">
+                                    <p>Built with ❤️ using <a href="https://rust-lang.github.io/mdBook/" target="_blank">mdBook</a></p>
+                                    <p>© 2024 Unjucks Project</p>
+                                </div>
+                            </div>
+                        </div>
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                        <a href="../" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                            <i class="fa fa-angle-left"></i>
+                        </a>
+
+                        <a href="../" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                            <i class="fa fa-angle-right"></i>
+                        </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <!-- Desktop navigation -->
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                <a href="../" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                    <i class="fa fa-angle-left"></i>
+                </a>
+
+                <a href="../" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                    <i class="fa fa-angle-right"></i>
+                </a>
+            </nav>
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../elasticlunr.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="../mark.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="../searcher.js" type="text/javascript" charset="utf-8"></script>
+
+        <script src="../clipboard.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="../highlight.js" type="text/javascript" charset="utf-8"></script>
+        <script src="../book.js" type="text/javascript" charset="utf-8"></script>
+
+        <!-- Custom JS -->
+
+        <!-- Custom body content -->
+        <h1 id="template-system-1"><a class="header" href="#template-system-1">Template System</a></h1>
+<p>The Template System is the heart of Unjucks, combining the power of the Nunjucks template engine with advanced code generation features. This chapter covers the template processing pipeline, variable extraction system, and frontmatter configuration.</p>
+<h2 id="template-architecture-1"><a class="header" href="#template-architecture-1">Template Architecture</a></h2>
+<h3 id="processing-pipeline-1"><a class="header" href="#processing-pipeline-1">Processing Pipeline</a></h3>
+<pre><code>Template Input → Variable Scanning → Frontmatter Processing → Nunjucks Rendering → File Operations
+       ↓               ↓                     ↓                      ↓                 ↓
+   .njk files    Extract {{ vars }}    Parse YAML config    Apply filters    Write/Inject files
+</code></pre>
+<p>The template system follows a systematic approach:</p>
+<ol>
+<li><strong>Template Discovery</strong>: Locate templates in the <code>_templates</code> directory structure</li>
+<li><strong>Variable Extraction</strong>: Automatically scan for <code>{{ variables }}</code> and control structures</li>
+<li><strong>Frontmatter Processing</strong>: Parse YAML configuration for file operations</li>
+<li><strong>Nunjucks Rendering</strong>: Apply variables and filters to generate content</li>
+<li><strong>File Operations</strong>: Execute the six file operations (write, inject, append, prepend, lineAt, skipIf)</li>
+</ol>
+<h3 id="template-structure-1"><a class="header" href="#template-structure-1">Template Structure</a></h3>
+<p>A complete Unjucks template consists of:</p>
+<ul>
+<li><strong>Frontmatter</strong> (YAML configuration)</li>
+<li><strong>Template Body</strong> (Nunjucks markup)</li>
+<li><strong>Variable References</strong> (dynamic placeholders)</li>
+</ul>
+<pre><code class="language-nunjucks">---
+to: "{{ directory }}/{{ name | kebabCase }}.tsx"
+inject: false
+skipIf: "{{ !withComponent }}"
+chmod: "644"
+---
+import React from 'react';
+
+interface {{ name | pascalCase }}Props {
+  {% if withProps -%}
+  className?: string;
+  children?: React.ReactNode;
+  {%- endif %}
+}
+
+export const {{ name | pascalCase }}: React.FC&lt;{{ name | pascalCase }}Props&gt; = ({
+  {% if withProps -%}
+  className,
+  children
+  {%- endif %}
+}) =&gt; {
+  return (
+    &lt;div{% if withProps %} className={className}{% endif %}&gt;
+      {% if withProps -%}
+      {children}
+      {%- else -%}
+      &lt;p&gt;{{ name | titleCase }} component&lt;/p&gt;
+      {%- endif %}
+    &lt;/div&gt;
+  );
+};
+
+export default {{ name | pascalCase }};
+</code></pre>
+<h2 id="variable-extraction-system-1"><a class="header" href="#variable-extraction-system-1">Variable Extraction System</a></h2>
+<h3 id="automatic-variable-detection-1"><a class="header" href="#automatic-variable-detection-1">Automatic Variable Detection</a></h3>
+<p>The template scanner identifies variables using sophisticated pattern recognition:</p>
+<pre><code class="language-typescript">// Variable patterns detected
+{{ variableName }}                    // String variable
+{{ variableName | filter }}           // String with filter
+{% if variableName %}                 // Boolean variable (if/unless)
+{% for item in items %}               // Array variable (items)
+{{ componentName | pascalCase }}.tsx  // Filename variables
+</code></pre>
+<h3 id="type-inference-algorithm-1"><a class="header" href="#type-inference-algorithm-1">Type Inference Algorithm</a></h3>
+<p>The system automatically infers variable types based on usage patterns:</p>
+<pre><code class="language-typescript">interface TemplateVariable {
+  name: string;
+  type: 'string' | 'boolean' | 'array' | 'object';
+  required: boolean;
+  default?: any;
+  description?: string;
+}
+
+// Inference rules
+const inferType = (variableName: string, usage: string): VariableType =&gt; {
+  // Boolean patterns
+  if (/^(with|has|is|should|enable|include|use|can|will)/.test(variableName)) {
+    return 'boolean';
+  }
+  
+  // Array patterns (for loops)
+  if (usage.includes('for') &amp;&amp; usage.includes('in')) {
+    return 'array';
+  }
+  
+  // Default to string
+  return 'string';
+};
+</code></pre>
+<h3 id="boolean-detection-heuristics-1"><a class="header" href="#boolean-detection-heuristics-1">Boolean Detection Heuristics</a></h3>
+<p>Boolean variables are detected through naming conventions:</p>
+<pre><code class="language-typescript">// Boolean prefixes and patterns
+withTests, hasProps, isActive, shouldShow     // Boolean by naming convention
+enableLogging, includeTypes, useStrict       // Action-based booleans
+canEdit, willUpdate, doesExist              // Modal verbs
+</code></pre>
+<h2 id="built-in-filters-1"><a class="header" href="#built-in-filters-1">Built-in Filters</a></h2>
+<h3 id="string-case-conversion-1"><a class="header" href="#string-case-conversion-1">String Case Conversion</a></h3>
+<p>Essential for consistent naming across different programming languages and conventions:</p>
+<pre><code class="language-typescript">// Case transformation filters
+camelCase:    "hello world" → "helloWorld"
+pascalCase:   "hello world" → "HelloWorld" 
+kebabCase:    "hello world" → "hello-world"
+snakeCase:    "hello world" → "hello_world"
+titleCase:    "hello world" → "Hello World"
+constantCase: "hello world" → "HELLO_WORLD"
+
+// Usage in templates
+{{ componentName | pascalCase }}Component.tsx
+{{ functionName | camelCase }}
+{{ CSS_VAR_NAME | constantCase }}
+</code></pre>
+<h3 id="pluralization-support-1"><a class="header" href="#pluralization-support-1">Pluralization Support</a></h3>
+<p>Built-in English pluralization for entity generation:</p>
+<pre><code class="language-typescript">// English pluralization rules
+pluralize:    "item" → "items"
+              "child" → "children"
+              "person" → "people"
+              "datum" → "data"
+
+singularize:  "items" → "item"
+              "children" → "child"
+              "people" → "person"
+
+// Usage example
+export interface {{ entityName | pascalCase }} {
+  // Single entity interface
+}
+
+export interface {{ entityName | pluralize | pascalCase }} {
+  // Collection interface
+}
+</code></pre>
+<h3 id="advanced-string-manipulation-1"><a class="header" href="#advanced-string-manipulation-1">Advanced String Manipulation</a></h3>
+<pre><code class="language-typescript">// String utilities
+capitalize:   "hello world" → "Hello world"
+lowercase:    "Hello World" → "hello world"  
+uppercase:    "hello world" → "HELLO WORLD"
+trim:         "  hello  " → "hello"
+replace:      "hello world" | replace("world", "universe") → "hello universe"
+
+// Array operations
+split:        "one,two,three" | split(",") → ["one", "two", "three"]
+join:         ["one", "two", "three"] | join(" - ") → "one - two - three"
+slice:        "hello world" | slice(0, 5) → "hello"
+
+// Code generation helpers
+indent:       "line1\nline2" | indent(2) → "  line1\n  line2"
+comment:      "TODO: implement" | comment("//") → "// TODO: implement"
+</code></pre>
+<h2 id="frontmatter-system-1"><a class="header" href="#frontmatter-system-1">Frontmatter System</a></h2>
+<h3 id="basic-configuration-1"><a class="header" href="#basic-configuration-1">Basic Configuration</a></h3>
+<p>Frontmatter controls how templates are processed and where files are written:</p>
+<pre><code class="language-yaml">---
+# File output configuration
+to: "{{ outputPath }}/{{ name | kebabCase }}.ts"
+
+# Conditional generation
+skipIf: "{{ !includeFile }}"
+
+# Injection mode (instead of creating new file)
+inject: true
+before: "// INJECT_IMPORTS_HERE"
+after: "// END_IMPORTS"
+
+# File permissions (Unix)
+chmod: "755"
+
+# Shell command to execute after generation
+sh: "prettier --write {{ outputPath }}/{{ name | kebabCase }}.ts"
+---
+</code></pre>
+<h3 id="the-six-file-operations-1"><a class="header" href="#the-six-file-operations-1">The Six File Operations</a></h3>
+<p>Frontmatter controls which of the six file operations to perform:</p>
+<ol>
+<li><strong>write</strong> (default) - Create new files</li>
+<li><strong>inject</strong> - Insert content into existing files at markers</li>
+<li><strong>append</strong> - Add content to end of files</li>
+<li><strong>prepend</strong> - Add content to beginning of files</li>
+<li><strong>lineAt</strong> - Insert content at specific line numbers</li>
+<li><strong>skipIf</strong> - Conditional operation control</li>
+</ol>
+<h3 id="dynamic-filename-generation-1"><a class="header" href="#dynamic-filename-generation-1">Dynamic Filename Generation</a></h3>
+<p>Templates can generate dynamic file paths based on variables and conditions:</p>
+<pre><code class="language-yaml">---
+# Conditional file paths
+to: &gt;
+  {% if type === 'component' -%}
+  src/components/{{ name }}/index.ts
+  {%- else -%}
+  src/utils/{{ name }}.ts
+  {%- endif %}
+
+# Multiple conditions
+skipIf: "{{ !withTests || environment === 'production' }}"
+---
+</code></pre>
+<h3 id="multi-file-output-1"><a class="header" href="#multi-file-output-1">Multi-File Output</a></h3>
+<p>Generate multiple related files from a single template:</p>
+<pre><code class="language-yaml">---
+# Generate multiple files from one template
+outputs:
+  - path: "{{ name }}.ts"
+    template: "main"
+  - path: "{{ name }}.test.ts"
+    template: "test"
+    skipIf: "{{ !withTests }}"
+  - path: "{{ name }}.stories.ts"
+    template: "stories"
+    skipIf: "{{ !withStorybook }}"
+---
+</code></pre>
+<h2 id="template-inheritance-1"><a class="header" href="#template-inheritance-1">Template Inheritance</a></h2>
+<h3 id="extending-base-templates-1"><a class="header" href="#extending-base-templates-1">Extending Base Templates</a></h3>
+<p>Templates can inherit from base configurations:</p>
+<pre><code class="language-yaml">---
+# Inherit from base template
+extends: "../base/component.yml"
+
+# Override specific configurations
+overrides:
+  to: "custom/{{ name }}.ts"
+  inject: false
+
+# Additional configuration
+customField: "value"
+---
+</code></pre>
+<h3 id="base-template-example-1"><a class="header" href="#base-template-example-1">Base Template Example</a></h3>
+<p>Create reusable base configurations:</p>
+<pre><code class="language-yaml"># _templates/base/component.yml
+---
+to: "src/components/{{ name | pascalCase }}/index.ts"
+skipIf: "{{ !name }}"
+validate:
+  required: ["name"]
+  patterns:
+    name: "^[A-Z][a-zA-Z0-9]*$"
+chmod: "644"
+---
+</code></pre>
+<h2 id="validation-system-1"><a class="header" href="#validation-system-1">Validation System</a></h2>
+<h3 id="input-validation-1"><a class="header" href="#input-validation-1">Input Validation</a></h3>
+<p>Templates can specify validation rules for variables:</p>
+<pre><code class="language-yaml">---
+# Validation rules in frontmatter
+validate:
+  required: ["name", "type"]
+  patterns:
+    name: "^[A-Z][a-zA-Z0-9]*$"    # PascalCase pattern
+    type: "^(component|util|service)$"
+  custom:
+    - rule: "nameNotReserved"
+      message: "Name cannot be a reserved keyword"
+---
+</code></pre>
+<h3 id="custom-validation-rules-1"><a class="header" href="#custom-validation-rules-1">Custom Validation Rules</a></h3>
+<p>Extend validation with custom logic:</p>
+<pre><code class="language-typescript">// Register custom validation
+export class CustomValidators {
+  static nameNotReserved(value: string): boolean {
+    const reserved = ['class', 'function', 'var', 'let', 'const'];
+    return !reserved.includes(value.toLowerCase());
+  }
+  
+  static validComponentName(value: string): boolean {
+    return /^[A-Z][a-zA-Z0-9]*$/.test(value) &amp;&amp; value.length &gt; 2;
+  }
+}
+</code></pre>
+<h2 id="advanced-template-features-1"><a class="header" href="#advanced-template-features-1">Advanced Template Features</a></h2>
+<h3 id="template-macros-1"><a class="header" href="#template-macros-1">Template Macros</a></h3>
+<p>Reusable template snippets:</p>
+<pre><code class="language-nunjucks">{# Define macro #}
+{% macro renderMethod(name, returnType, params) -%}
+async {{ name }}({{ params | join(', ') }}): Promise&lt;{{ returnType }}&gt; {
+  // Implementation for {{ name }}
+}
+{%- endmacro %}
+
+{# Use macro #}
+{% for method in methods %}
+{{ renderMethod(method.name, method.returnType, method.params) }}
+{% endfor %}
+</code></pre>
+<h3 id="conditional-template-sections-1"><a class="header" href="#conditional-template-sections-1">Conditional Template Sections</a></h3>
+<p>Complex conditional rendering:</p>
+<pre><code class="language-nunjucks">{% set hasDatabase = withDatabase and databaseType %}
+{% set hasAuth = withAuth or authProvider %}
+
+{% if hasDatabase %}
+import { {{ databaseType | pascalCase }} } from './database';
+{% endif %}
+
+{% if hasAuth %}
+import { AuthProvider } from './auth';
+{% endif %}
+
+export class {{ serviceName | pascalCase }} {
+  {% if hasDatabase %}
+  private db: {{ databaseType | pascalCase }};
+  {% endif %}
+  
+  {% if hasAuth %}
+  private auth: AuthProvider;
+  {% endif %}
+}
+</code></pre>
+<h3 id="template-context-objects-1"><a class="header" href="#template-context-objects-1">Template Context Objects</a></h3>
+<p>Access structured data within templates:</p>
+<pre><code class="language-nunjucks">{# Context object: config.database #}
+{% if config.database.enabled %}
+import { {{ config.database.driver | pascalCase }} } from '{{ config.database.driver }}';
+
+const dbConfig = {
+  host: '{{ config.database.host }}',
+  port: {{ config.database.port }},
+  database: '{{ config.database.name }}'
+};
+{% endif %}
+</code></pre>
+<h2 id="performance-optimizations-1"><a class="header" href="#performance-optimizations-1">Performance Optimizations</a></h2>
+<h3 id="template-caching-1"><a class="header" href="#template-caching-1">Template Caching</a></h3>
+<p>The system caches compiled templates for performance:</p>
+<pre><code class="language-typescript">interface TemplateCache {
+  // Compiled template cache
+  compiledTemplates: Map&lt;string, nunjucks.Template&gt;;
+  
+  // Variable scan cache
+  variableScans: Map&lt;string, TemplateVariable[]&gt;;
+  
+  // Frontmatter cache
+  frontmatterCache: Map&lt;string, FrontmatterConfig&gt;;
+  
+  get(key: string): CacheEntry | null;
+  set(key: string, value: CacheEntry): void;
+  invalidate(templatePath: string): void;
+}
+</code></pre>
+<h3 id="lazy-loading-1"><a class="header" href="#lazy-loading-1">Lazy Loading</a></h3>
+<p>Templates are compiled on-demand to reduce memory usage:</p>
+<pre><code class="language-typescript">class LazyTemplateLoader {
+  private templates = new Map&lt;string, Promise&lt;nunjucks.Template&gt;&gt;();
+  
+  async getTemplate(templatePath: string): Promise&lt;nunjucks.Template&gt; {
+    if (!this.templates.has(templatePath)) {
+      this.templates.set(templatePath, this.compileTemplate(templatePath));
+    }
+    return this.templates.get(templatePath)!;
+  }
+}
+</code></pre>
+<h2 id="error-handling-1"><a class="header" href="#error-handling-1">Error Handling</a></h2>
+<h3 id="template-syntax-errors-1"><a class="header" href="#template-syntax-errors-1">Template Syntax Errors</a></h3>
+<p>Graceful handling of template compilation errors:</p>
+<pre><code class="language-typescript">try {
+  const template = nunjucks.compile(templateContent);
+  const rendered = template.render(variables);
+} catch (error) {
+  if (error instanceof nunjucks.TemplateSyntaxError) {
+    throw new TemplateSyntaxError(
+      `Template syntax error in ${templatePath}:${error.lineno}: ${error.message}`
+    );
+  }
+  throw error;
+}
+</code></pre>
+<h3 id="variable-validation-errors-1"><a class="header" href="#variable-validation-errors-1">Variable Validation Errors</a></h3>
+<p>Handle missing or invalid variables:</p>
+<pre><code class="language-typescript">export class VariableValidator {
+  validate(template: string, variables: Record&lt;string, any&gt;): ValidationResult {
+    const required = this.extractRequiredVariables(template);
+    const missing = required.filter(name =&gt; !(name in variables));
+    
+    if (missing.length &gt; 0) {
+      return {
+        valid: false,
+        errors: [`Missing required variables: ${missing.join(', ')}`],
+        suggestions: missing.map(name =&gt; `Provide --${name} argument or set in prompt`)
+      };
+    }
+    
+    return { valid: true, errors: [] };
+  }
+}
+</code></pre>
+<h2 id="best-practices-1"><a class="header" href="#best-practices-1">Best Practices</a></h2>
+<h3 id="template-organization-1"><a class="header" href="#template-organization-1">Template Organization</a></h3>
+<ul>
+<li>Keep templates focused and single-purpose</li>
+<li>Use descriptive filenames that match the generated content</li>
+<li>Organize related templates in generator directories</li>
+<li>Use consistent naming conventions for variables</li>
+</ul>
+<h3 id="variable-naming-1"><a class="header" href="#variable-naming-1">Variable Naming</a></h3>
+<ul>
+<li>Use descriptive, self-documenting variable names</li>
+<li>Follow consistent case conventions (camelCase for JavaScript/TypeScript)</li>
+<li>Use boolean prefixes (<code>with</code>, <code>has</code>, <code>is</code>, <code>should</code>) for clarity</li>
+<li>Group related variables with common prefixes</li>
+</ul>
+<h3 id="error-prevention-1"><a class="header" href="#error-prevention-1">Error Prevention</a></h3>
+<ul>
+<li>Always provide default values for optional variables</li>
+<li>Use validation rules to catch input errors early</li>
+<li>Include helpful error messages and suggestions</li>
+<li>Test templates with various input combinations</li>
+</ul>
+<p>The Template System provides a powerful foundation for code generation, combining the flexibility of Nunjucks with advanced features specifically designed for software development workflows.</p>
+
+
+        <!-- Performance monitoring -->
+        <script>
+            // Simple performance monitoring
+            window.addEventListener('load', function() {
+                if ('performance' in window) {
+                    setTimeout(function() {
+                        const loadTime = performance.timing.loadEventEnd - performance.timing.navigationStart;
+                        console.log('📊 Page loaded in ' + loadTime + 'ms');
+                    }, 0);
+                }
+            });
+        </script>
+
+        <!-- Service Worker for offline support -->
+        <script>
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.register('../sw.js')
+                    .then(function(registration) {
+                        console.log('📱 SW registered with scope:', registration.scope);
+                    })
+                    .catch(function(error) {
+                        console.log('❌ SW registration failed:', error);
+                    });
+            }
+        </script>
+    </body>
+</html>

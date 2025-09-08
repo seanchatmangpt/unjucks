@@ -1,0 +1,11 @@
+\documentclass{article}
+\usepackage{natbib}
+\usepackage[backend=bibtex]{biblatex}  % Conflict!
+\begin{document}
+This should cause conflicts between natbib and biblatex.
+\cite{anything} \autocite{anything}
+
+\bibliographystyle{plain}
+\bibliography{fake}
+\printbibliography
+\end{document}

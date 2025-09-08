@@ -54,6 +54,8 @@ variables:
 \newcommand{\define}[1]{\textbf{``#1''}}
 \newcommand{\legalref}[1]{\textsc{#1}}
 \newcommand{\contractdate}[1]{\underline{\hspace{2in}} day of \underline{\hspace{2in}}, 20\underline{\hspace{1in}}}
+\newcommand{\legaltoday}{{{ legalDateNow(jurisdiction, 'contract') }}}
+\newcommand{\auditdate}{{{ auditTimestamp() }}}
 
 % Jurisdiction-specific formatting
 {% if jurisdiction == 'federal' %}
@@ -73,13 +75,13 @@ variables:
 
 % Title page
 \begin{center}
-{\Large\textbf{{{ contractName | title }}}}\\[0.5in]
+{\Large\textbf{{ contractName | title }}}\\[0.5in]
 {\large {{ contractType | title }} Agreement}\\[0.25in]
 Between\\[0.25in]
-{\large\textbf{{{ partyA.name }}}}\\
+{\large\textbf{{ partyA.name }}}\\
 and\\
-{\large\textbf{{{ partyB.name }}}}\\[0.5in]
-Effective Date: {{ effectiveDate }}
+{\large\textbf{{ partyB.name }}}\\[0.5in]
+Effective Date: {{ effectiveDate | legalDate(jurisdiction, 'contract') }}
 \end{center}
 
 \newpage
@@ -87,12 +89,12 @@ Effective Date: {{ effectiveDate }}
 % Contract body
 \section{PARTIES}
 
-This {{ contractType | lower }} agreement (this \define{Agreement}) is entered into on {{ effectiveDate }} (the \define{Effective Date}) between:
+This {{ contractType | lower }} agreement (this \define{Agreement}) is entered into on {{ effectiveDate | legalDate(jurisdiction, 'contract') }} (the \define{Effective Date}) between:
 
 \begin{enumerate}[label=(\alph*)]
-\item \party{{{ partyA.name }}}, a {{ partyA.entityType | default('corporation') }} organized under the laws of {{ partyA.jurisdiction | default(jurisdiction) }}, with its principal place of business at {{ partyA.address }} (\define{{{ partyA.shortName | default('Party A') }}}); and
+\item \party{{ partyA.name }}, a {{ partyA.entityType | default('corporation') }} organized under the laws of {{ partyA.jurisdiction | default(jurisdiction) }}, with its principal place of business at {{ partyA.address }} (\define{{ partyA.shortName | default('Party A') }}); and
 
-\item \party{{{ partyB.name }}}, a {{ partyB.entityType | default('corporation') }} organized under the laws of {{ partyB.jurisdiction | default(jurisdiction) }}, with its principal place of business at {{ partyB.address }} (\define{{{ partyB.shortName | default('Party B') }}}).
+\item \party{{ partyB.name }}, a {{ partyB.entityType | default('corporation') }} organized under the laws of {{ partyB.jurisdiction | default(jurisdiction) }}, with its principal place of business at {{ partyB.address }} (\define{{ partyB.shortName | default('Party B') }}).
 \end{enumerate}
 
 \section{RECITALS}
@@ -112,11 +114,11 @@ For purposes of this Agreement, the following terms shall have the meanings set 
 \begin{enumerate}[label=\textbf{\arabic*.}]
 \item \define{Agreement} means this {{ contractType | lower }} agreement, as it may be amended, modified, or supplemented from time to time in accordance with the terms hereof.
 
-\item \define{Effective Date} means {{ effectiveDate }}.
+\item \define{Effective Date} means {{ effectiveDate | legalDate(jurisdiction, 'contract') }}.
 
 {% if additionalDefinitions %}
 {% for definition in additionalDefinitions %}
-\item \define{{{ definition.term }}} means {{ definition.definition }}.
+\item \define{{ definition.term }} means {{ definition.definition }}.
 {% endfor %}
 {% endif %}
 \end{enumerate}

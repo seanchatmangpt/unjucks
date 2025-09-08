@@ -193,7 +193,7 @@ class ExportEngine {
   generateOutputPath(inputPath, format) {
     const dir = path.dirname(inputPath);
     const name = path.basename(inputPath, path.extname(inputPath));
-    return path.join(dir, `${name}.${format}`);
+    return path.resolve(dir, `${name}.${format}`);
   }
 
   /**
@@ -1105,6 +1105,13 @@ export const exportCommand = defineCommand({
           const outputPath = args.output || engine.generateOutputPath(args.input, args.format);
           consola.info(`${chalk.yellow('Dry run:')} Would export to: ${chalk.green(outputPath)}`);
           return { success: true, outputPath, dryRun: true };
+        }
+
+        // Ensure the input file exists
+        try {
+          await fs.access(args.input);
+        } catch (error) {
+          throw new Error(`Input file not found: ${args.input}`);
         }
 
         result = await engine.exportFile(args.input, options);

@@ -13,7 +13,7 @@ import { fileURLToPath } from 'url';
 
 
 // LaTeX Build Integration
-import { LaTeXBuildIntegration } from '../src/lib/latex/build-integration.js';
+import LaTeXBuildIntegration from '../src/lib/latex/build-integration.js';
 
 async function buildLatexDocuments() {
   try {

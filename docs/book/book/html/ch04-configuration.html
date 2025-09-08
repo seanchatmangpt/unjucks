@@ -1,0 +1,2363 @@
+<!DOCTYPE HTML>
+<html lang="en" class="navy" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Chapter 4: Configuration - Project Setup and Customization - Unjucks: Modern Code Generation in 2026</title>
+        <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+        <meta name="description" content="A comprehensive guide to modern code generation using the Unjucks framework, demonstrating declarative development patterns, AI integration, and advanced template design for productive software development.">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#0066cc"/>
+
+        <!-- Open Graph -->
+        <meta property="og:title" content="Chapter 4: Configuration - Project Setup and Customization - Unjucks: Modern Code Generation in 2026">
+        <meta property="og:description" content="A comprehensive guide to modern code generation using the Unjucks framework, demonstrating declarative development patterns, AI integration, and advanced template design for productive software development.">
+        <meta property="og:type" content="website">
+        <meta property="og:url" content="">
+        <meta property="og:image" content="unjucks-og.png">
+        
+        <!-- Twitter Card -->
+        <meta name="twitter:card" content="summary_large_image">
+        <meta name="twitter:title" content="Chapter 4: Configuration - Project Setup and Customization - Unjucks: Modern Code Generation in 2026">
+        <meta name="twitter:description" content="A comprehensive guide to modern code generation using the Unjucks framework, demonstrating declarative development patterns, AI integration, and advanced template design for productive software development.">
+        <meta name="twitter:image" content="unjucks-og.png">
+
+
+        <!-- Custom Unjucks Favicon -->
+        <link rel="icon" href="favicon.png">
+        <link rel="shortcut icon" href="favicon.png">
+
+        <!-- Fonts -->
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+
+        <link rel="stylesheet" href="css/variables.css">
+        <link rel="stylesheet" href="css/general.css">
+        <link rel="stylesheet" href="css/chrome.css">
+        <link rel="stylesheet" href="css/print.css" media="print">
+
+        <!-- Custom CSS -->
+
+        <!-- Custom head content -->
+
+        <!-- JSON-LD Structured Data -->
+        <script type="application/ld+json">
+        {
+            "@context": "https://schema.org",
+            "@type": "TechArticle",
+            "headline": "Chapter 4: Configuration - Project Setup and Customization - Unjucks: Modern Code Generation in 2026",
+            "description": "A comprehensive guide to modern code generation using the Unjucks framework, demonstrating declarative development patterns, AI integration, and advanced template design for productive software development.",
+            "author": {
+                "@type": "Organization",
+                "name": "Unjucks Development Team"
+            },
+            "publisher": {
+                "@type": "Organization",
+                "name": "Unjucks",
+                "logo": {
+                    "@type": "ImageObject",
+                    "url": "logo.png"
+                }
+            },
+            "url": "",
+            "mainEntityOfPage": "",
+            "datePublished": "",
+            "dateModified": "",
+            "inLanguage": "en",
+            "about": [
+                "Code Generation",
+                "Template Engine", 
+                "CLI Tools",
+                "Semantic Web",
+                "RDF",
+                "Software Development"
+            ]
+        }
+        </script>
+    </head>
+    <body>
+        <!-- Provide site root to javascript -->
+        <script type="text/javascript">
+            var path_to_root = "";
+            var default_theme = "navy";
+        </script>
+
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script type="text/javascript">
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme && theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar && sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script type="text/javascript">
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            var html = document.querySelector('html');
+            html.classList.remove('no-js')
+            html.classList.remove('light')
+            html.classList.remove('rust')
+            html.classList.remove('coal')
+            html.classList.remove('navy')
+            html.classList.remove('ayu')
+            html.classList.add(theme);
+            html.classList.add('js');
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script type="text/javascript">
+            var body = document.querySelector('body');
+            var sidebar = null;
+            var sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+            }
+            sidebar_toggle.checked = sidebar === 'visible';
+            body.classList.remove('sidebar-visible');
+            body.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <div class="sidebar-scrollbox">
+                <!-- Unjucks Logo -->
+                <div class="unjucks-logo" style="padding: 1rem; text-align: center; border-bottom: 1px solid #e1e5e9;">
+                    <h3 style="margin: 0; color: #0066cc; font-weight: 700;">🚀 Unjucks</h3>
+                    <p style="margin: 0.5rem 0 0 0; font-size: 0.8rem; color: #666;">Template Generation Platform</p>
+                </div>
+
+                <!-- TOC will be generated automatically by mdbook -->
+            </div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
+        </nav>
+
+        <!-- Page wrapper -->
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label for="sidebar-toggle-anchor" class="left" id="sidebar-toggle" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button left" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy (default)</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button left" type="button" title="Toggle Searchbar" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Unjucks: Modern Code Generation in 2026</h1>
+
+                    <div class="right-buttons">
+                        <a href="print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+                        <a href="https://github.com/ruvnet/unjucks" title="Git repository" aria-label="Git repository">
+                            <i id="git-repository-button" class="fa fa-github"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script type="text/javascript">
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <!-- Breadcrumb Navigation -->
+                        <div class="breadcrumb-nav" style="margin-bottom: 1.5rem; font-size: 0.9rem; color: #666;">
+                            <a href="index.html">🏠 Home</a>
+                            <span> › </span>
+                            <span>Chapter 4: Configuration - Project Setup and Customization</span>
+                        </div>
+
+                        <h1 id="chapter-4-configuration---advanced-configuration-patterns"><a class="header" href="#chapter-4-configuration---advanced-configuration-patterns">Chapter 4: Configuration - Advanced Configuration Patterns</a></h1>
+<h2 id="the-configuration-renaissance"><a class="header" href="#the-configuration-renaissance">The Configuration Renaissance</a></h2>
+<p>Configuration in modern code generation has evolved from simple key-value pairs to sophisticated, context-aware systems that adapt to project needs, team preferences, and environmental constraints. In 2026, configuration is not just about settings—it's about creating intelligent systems that understand intent and translate it into actionable generation patterns.</p>
+<p>This chapter explores advanced configuration patterns that make code generation tools like Unjucks powerful, flexible, and maintainable at scale. We'll examine how configuration can be layered, cascaded, validated, and evolved over time while maintaining backward compatibility and developer productivity.</p>
+<h2 id="configuration-architecture-principles"><a class="header" href="#configuration-architecture-principles">Configuration Architecture Principles</a></h2>
+<h3 id="1-configuration-as-code"><a class="header" href="#1-configuration-as-code">1. Configuration as Code</a></h3>
+<p>Modern configuration systems treat configuration files as first-class code artifacts, subject to the same quality standards as application code:</p>
+<pre><code class="language-typescript">// unjucks.config.ts - Type-safe configuration
+import { defineConfig } from 'unjucks';
+
+export default defineConfig({
+  // Base configuration with full TypeScript support
+  generators: {
+    path: './generators',
+    include: ['**/*.{yml,yaml,njk}'],
+    exclude: ['**/node_modules/**', '**/dist/**']
+  },
+  
+  // Environment-specific overrides
+  environments: {
+    development: {
+      dryRun: false,
+      verbose: true,
+      watching: true
+    },
+    
+    production: {
+      dryRun: false,
+      verbose: false,
+      optimization: {
+        minify: true,
+        treeshake: true
+      }
+    },
+    
+    testing: {
+      dryRun: true,
+      verbose: true,
+      mockData: true
+    }
+  },
+  
+  // Validation rules
+  validation: {
+    strict: true,
+    customRules: [
+      'no-hardcoded-paths',
+      'require-documentation',
+      'validate-naming-conventions'
+    ]
+  },
+  
+  // Plugin configuration
+  plugins: [
+    ['@unjucks/typescript', { 
+      strict: true,
+      target: 'ES2022' 
+    }],
+    ['@unjucks/prettier', {
+      configPath: '.prettierrc'
+    }],
+    ['@unjucks/eslint', {
+      fix: true,
+      configFile: '.eslintrc.js'
+    }]
+  ],
+  
+  // Advanced features
+  features: {
+    aiAssistance: {
+      enabled: true,
+      provider: 'openai',
+      model: 'gpt-4',
+      contextWindow: 8192
+    },
+    
+    parallelGeneration: {
+      enabled: true,
+      maxConcurrency: 4
+    },
+    
+    incrementalGeneration: {
+      enabled: true,
+      cacheDirectory: '.unjucks/cache'
+    }
+  }
+});
+</code></pre>
+<h3 id="2-hierarchical-configuration"><a class="header" href="#2-hierarchical-configuration">2. Hierarchical Configuration</a></h3>
+<p>Configuration systems should support multiple layers with clear precedence rules:</p>
+<pre><code class="language-typescript">// Configuration hierarchy (highest to lowest precedence)
+interface ConfigurationHierarchy {
+  commandLine: CLIOptions;           // --dry-run, --verbose
+  environmentVariables: EnvConfig;   // UNJUCKS_DRY_RUN=true
+  projectConfig: ProjectConfig;      // unjucks.config.ts
+  userConfig: UserConfig;           // ~/.unjucks/config.ts
+  globalConfig: GlobalConfig;       // /etc/unjucks/config.ts
+  defaults: DefaultConfig;          // Built-in defaults
+}
+
+// Merge strategy
+const mergeConfiguration = (hierarchy: ConfigurationHierarchy): ResolvedConfig =&gt; {
+  return deepMerge(
+    hierarchy.defaults,
+    hierarchy.globalConfig,
+    hierarchy.userConfig,
+    hierarchy.projectConfig,
+    hierarchy.environmentVariables,
+    hierarchy.commandLine
+  );
+};
+</code></pre>
+<h3 id="3-context-aware-configuration"><a class="header" href="#3-context-aware-configuration">3. Context-Aware Configuration</a></h3>
+<p>Configuration should adapt based on project context and detected patterns:</p>
+<pre><code class="language-typescript">// Context detection
+interface ProjectContext {
+  framework: 'react' | 'vue' | 'angular' | 'svelte' | null;
+  language: 'typescript' | 'javascript';
+  buildTool: 'vite' | 'webpack' | 'rollup' | 'esbuild' | null;
+  packageManager: 'npm' | 'yarn' | 'pnpm' | 'bun';
+  testing: ('jest' | 'vitest' | 'cypress' | 'playwright')[];
+  styling: ('css' | 'scss' | 'tailwind' | 'styled-components')[];
+  architecture: 'monorepo' | 'single-package';
+}
+
+// Adaptive configuration
+const createAdaptiveConfig = (context: ProjectContext): AdaptiveConfig =&gt; {
+  const baseConfig = getBaseConfig();
+  
+  // Framework-specific adaptations
+  if (context.framework === 'react') {
+    baseConfig.generators.defaults.component = 'react-component';
+    baseConfig.templates.includes.push('react/**/*.njk');
+    
+    if (context.language === 'typescript') {
+      baseConfig.extensions.push('.tsx', '.ts');
+      baseConfig.validation.rules.push('react-typescript-props');
+    }
+  }
+  
+  // Testing framework adaptations
+  if (context.testing.includes('vitest')) {
+    baseConfig.generators.defaults.test = 'vitest-test';
+    baseConfig.plugins.push(['@unjucks/vitest', { config: 'vitest.config.ts' }]);
+  }
+  
+  return baseConfig;
+};
+</code></pre>
+<h2 id="advanced-configuration-patterns"><a class="header" href="#advanced-configuration-patterns">Advanced Configuration Patterns</a></h2>
+<h3 id="1-dynamic-configuration-resolution"><a class="header" href="#1-dynamic-configuration-resolution">1. Dynamic Configuration Resolution</a></h3>
+<p>Configuration values can be computed at runtime based on context and environment:</p>
+<pre><code class="language-typescript">// Dynamic configuration with computed values
+export default defineConfig({
+  generators: {
+    path: ({ projectRoot, environment }) =&gt; {
+      if (environment === 'development') {
+        return path.join(projectRoot, 'dev-generators');
+      }
+      return path.join(projectRoot, 'generators');
+    },
+    
+    include: ({ framework, language }) =&gt; {
+      const patterns = ['**/*.yml', '**/*.yaml'];
+      
+      if (framework) {
+        patterns.push(`**/${framework}/**/*.njk`);
+      }
+      
+      if (language === 'typescript') {
+        patterns.push('**/*.ts.njk');
+      }
+      
+      return patterns;
+    }
+  },
+  
+  output: {
+    directory: ({ monorepo, package: pkg }) =&gt; {
+      if (monorepo &amp;&amp; pkg) {
+        return `packages/${pkg}/src`;
+      }
+      return 'src';
+    },
+    
+    naming: ({ conventions }) =&gt; ({
+      component: conventions?.component || 'PascalCase',
+      file: conventions?.file || 'kebab-case',
+      directory: conventions?.directory || 'kebab-case'
+    })
+  }
+});
+</code></pre>
+<h3 id="2-configuration-validation-and-type-safety"><a class="header" href="#2-configuration-validation-and-type-safety">2. Configuration Validation and Type Safety</a></h3>
+<p>Comprehensive validation ensures configuration correctness:</p>
+<pre><code class="language-typescript">// Configuration schema with validation
+import { z } from 'zod';
+
+const GeneratorConfigSchema = z.object({
+  name: z.string().min(1).regex(/^[a-zA-Z][a-zA-Z0-9-_]*$/),
+  description: z.string().optional(),
+  version: z.string().regex(/^\d+\.\d+\.\d+$/),
+  
+  templates: z.array(z.object({
+    name: z.string(),
+    path: z.string(),
+    when: z.string().optional(),
+    priority: z.number().int().min(0).max(100).default(50)
+  })),
+  
+  variables: z.object({
+    required: z.array(z.string()).default([]),
+    optional: z.record(z.any()).default({}),
+    computed: z.record(z.function()).default({})
+  }),
+  
+  outputs: z.array(z.object({
+    path: z.string(),
+    inject: z.boolean().default(false),
+    skipIf: z.string().optional(),
+    chmod: z.string().regex(/^[0-7]{3,4}$/).optional()
+  })),
+  
+  hooks: z.object({
+    before: z.array(z.string()).default([]),
+    after: z.array(z.string()).default([]),
+    onError: z.array(z.string()).default([])
+  }).optional()
+});
+
+// Runtime validation
+const validateConfig = (config: unknown): GeneratorConfig =&gt; {
+  try {
+    return GeneratorConfigSchema.parse(config);
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      throw new ConfigurationError(
+        'Invalid generator configuration',
+        error.errors.map(e =&gt; ({
+          path: e.path.join('.'),
+          message: e.message,
+          code: e.code
+        }))
+      );
+    }
+    throw error;
+  }
+};
+</code></pre>
+<h3 id="3-configuration-composition-and-inheritance"><a class="header" href="#3-configuration-composition-and-inheritance">3. Configuration Composition and Inheritance</a></h3>
+<p>Complex configurations can be composed from smaller, reusable pieces:</p>
+<pre><code class="language-typescript">// Base configurations
+const BaseReactConfig = defineConfig({
+  name: 'base-react',
+  templates: {
+    component: 'react/component.njk',
+    test: 'react/test.njk',
+    story: 'react/story.njk'
+  },
+  
+  validation: {
+    rules: ['react-component-naming', 'prop-types-required']
+  },
+  
+  plugins: [
+    '@unjucks/react',
+    '@unjucks/typescript'
+  ]
+});
+
+const BaseTestingConfig = defineConfig({
+  name: 'base-testing',
+  templates: {
+    unitTest: 'testing/unit.njk',
+    integrationTest: 'testing/integration.njk',
+    e2eTest: 'testing/e2e.njk'
+  },
+  
+  plugins: [
+    '@unjucks/jest',
+    '@unjucks/testing-library'
+  ]
+});
+
+// Composed configuration
+export default defineConfig({
+  extends: [BaseReactConfig, BaseTestingConfig],
+  
+  // Override specific settings
+  templates: {
+    component: 'custom/react-component.njk'  // Override base
+  },
+  
+  // Add project-specific settings
+  generators: {
+    path: './src/generators',
+    customHelpers: './helpers'
+  },
+  
+  // Environment-specific overrides
+  environments: {
+    production: {
+      validation: {
+        strict: true,
+        failOnWarning: true
+      }
+    }
+  }
+});
+</code></pre>
+<h3 id="4-plugin-configuration-system"><a class="header" href="#4-plugin-configuration-system">4. Plugin Configuration System</a></h3>
+<p>Sophisticated plugin systems with their own configuration:</p>
+<pre><code class="language-typescript">// Plugin interface
+interface UnjucksPlugin {
+  name: string;
+  version: string;
+  
+  configure?(config: PluginConfig): void;
+  beforeGeneration?(context: GenerationContext): Promise&lt;void&gt;;
+  afterGeneration?(context: GenerationContext, result: GenerationResult): Promise&lt;void&gt;;
+  transformTemplate?(template: string, variables: any): Promise&lt;string&gt;;
+  validateOutput?(output: string, context: GenerationContext): Promise&lt;ValidationResult&gt;;
+}
+
+// Plugin configuration
+const TypeScriptPlugin: UnjucksPlugin = {
+  name: '@unjucks/typescript',
+  version: '2.1.0',
+  
+  configure(config: TypeScriptPluginConfig) {
+    this.tsconfigPath = config.tsconfigPath || './tsconfig.json';
+    this.strict = config.strict ?? true;
+    this.emitDeclarationFiles = config.emitDeclarationFiles ?? false;
+  },
+  
+  async transformTemplate(template: string, variables: any): Promise&lt;string&gt; {
+    if (variables.typescript) {
+      return template
+        .replace(/\.js/g, '.ts')
+        .replace(/\.jsx/g, '.tsx')
+        .replace(/PropTypes/g, 'TypeScript interfaces');
+    }
+    return template;
+  },
+  
+  async validateOutput(output: string): Promise&lt;ValidationResult&gt; {
+    if (this.strict) {
+      return await validateTypeScript(output, {
+        configFile: this.tsconfigPath
+      });
+    }
+    return { valid: true, errors: [] };
+  }
+};
+
+// Plugin registration and configuration
+export default defineConfig({
+  plugins: [
+    // Simple plugin registration
+    '@unjucks/react',
+    
+    // Plugin with configuration
+    ['@unjucks/typescript', {
+      tsconfigPath: './tsconfig.build.json',
+      strict: true,
+      emitDeclarationFiles: true
+    }],
+    
+    // Conditional plugin loading
+    {
+      plugin: '@unjucks/styled-components',
+      condition: ({ styling }) =&gt; styling.includes('styled-components')
+    },
+    
+    // Inline plugin definition
+    {
+      name: 'custom-formatter',
+      transformTemplate: (template, variables) =&gt; {
+        return customFormat(template, variables);
+      }
+    }
+  ]
+});
+</code></pre>
+<h2 id="configuration-for-different-environments"><a class="header" href="#configuration-for-different-environments">Configuration for Different Environments</a></h2>
+<h3 id="1-environment-specific-configuration"><a class="header" href="#1-environment-specific-configuration">1. Environment-Specific Configuration</a></h3>
+<pre><code class="language-typescript">// Environment detection and configuration
+enum Environment {
+  Development = 'development',
+  Testing = 'testing',
+  Staging = 'staging',
+  Production = 'production'
+}
+
+interface EnvironmentConfig {
+  [Environment.Development]: {
+    dryRun: false;
+    verbose: true;
+    watchMode: true;
+    hotReload: true;
+    sourceMaps: true;
+    optimization: false;
+  };
+  
+  [Environment.Testing]: {
+    dryRun: true;
+    verbose: true;
+    watchMode: false;
+    mockData: true;
+    coverage: true;
+    parallel: false;  // Avoid test conflicts
+  };
+  
+  [Environment.Staging]: {
+    dryRun: false;
+    verbose: false;
+    optimization: true;
+    validation: 'strict';
+    performanceBudget: true;
+  };
+  
+  [Environment.Production]: {
+    dryRun: false;
+    verbose: false;
+    optimization: true;
+    validation: 'strict';
+    performanceBudget: true;
+    telemetry: true;
+    errorReporting: true;
+  };
+}
+
+// Environment-aware configuration loading
+const loadEnvironmentConfig = (env: Environment): ResolvedConfig =&gt; {
+  const baseConfig = loadBaseConfig();
+  const envConfig = EnvironmentConfig[env];
+  
+  return mergeDeep(baseConfig, envConfig);
+};
+</code></pre>
+<h3 id="2-multi-environment-deployment"><a class="header" href="#2-multi-environment-deployment">2. Multi-Environment Deployment</a></h3>
+<pre><code class="language-typescript">// Configuration for different deployment targets
+export default defineConfig({
+  environments: {
+    // Local development
+    local: {
+      generators: {
+        path: './dev-generators',
+        hotReload: true
+      },
+      
+      output: {
+        directory: './src',
+        preserveComments: true
+      },
+      
+      features: {
+        aiAssistance: true,
+        experimentalFeatures: true
+      }
+    },
+    
+    // CI/CD pipeline
+    ci: {
+      generators: {
+        path: './generators',
+        validateOnly: true
+      },
+      
+      validation: {
+        strict: true,
+        failFast: true,
+        reportFormat: 'junit'
+      },
+      
+      parallel: {
+        enabled: true,
+        maxWorkers: 4
+      }
+    },
+    
+    // Team shared environment
+    team: {
+      generators: {
+        registry: 'https://generators.company.com',
+        autoUpdate: true
+      },
+      
+      collaboration: {
+        shareTemplates: true,
+        teamConventions: './team-conventions.json'
+      }
+    }
+  }
+});
+</code></pre>
+<h2 id="configuration-management-at-scale"><a class="header" href="#configuration-management-at-scale">Configuration Management at Scale</a></h2>
+<h3 id="1-monorepo-configuration"><a class="header" href="#1-monorepo-configuration">1. Monorepo Configuration</a></h3>
+<p>Managing configuration across multiple packages in a monorepo:</p>
+<pre><code class="language-typescript">// Root configuration
+// packages/shared/unjucks.config.base.ts
+export const BaseConfig = defineConfig({
+  generators: {
+    path: '../../shared/generators'
+  },
+  
+  conventions: {
+    naming: {
+      component: 'PascalCase',
+      file: 'kebab-case',
+      directory: 'kebab-case'
+    },
+    
+    imports: {
+      relative: false,
+      aliasPrefix: '@/',
+      grouping: true
+    }
+  },
+  
+  validation: {
+    rules: [
+      'consistent-naming',
+      'no-hardcoded-imports',
+      'prop-documentation-required'
+    ]
+  }
+});
+
+// Package-specific configuration
+// packages/frontend/unjucks.config.ts
+export default defineConfig({
+  extends: '../shared/unjucks.config.base.ts',
+  
+  generators: {
+    path: ['./generators', '../shared/generators'],
+    include: ['react/**/*.njk', 'components/**/*.njk']
+  },
+  
+  frameworks: {
+    primary: 'react',
+    version: '^18.0.0'
+  },
+  
+  output: {
+    directory: './src',
+    typescript: true
+  }
+});
+
+// packages/backend/unjucks.config.ts
+export default defineConfig({
+  extends: '../shared/unjucks.config.base.ts',
+  
+  generators: {
+    path: ['./generators', '../shared/generators'],
+    include: ['api/**/*.njk', 'services/**/*.njk']
+  },
+  
+  frameworks: {
+    primary: 'express',
+    orm: 'prisma'
+  },
+  
+  output: {
+    directory: './src',
+    typescript: true
+  }
+});
+</code></pre>
+<h3 id="2-configuration-sharing-and-distribution"><a class="header" href="#2-configuration-sharing-and-distribution">2. Configuration Sharing and Distribution</a></h3>
+<pre><code class="language-typescript">// Shareable configuration packages
+// @company/unjucks-config-react
+export const ReactPreset = defineConfig({
+  name: '@company/react-preset',
+  version: '2.1.0',
+  
+  generators: {
+    registry: 'https://npm.company.com/@company/react-generators'
+  },
+  
+  templates: {
+    component: 'react-component-v2',
+    hook: 'react-hook-v2',
+    page: 'react-page-v2'
+  },
+  
+  conventions: {
+    // Company-specific conventions
+    naming: 'company-react-conventions',
+    testing: 'company-testing-standards',
+    documentation: 'company-docs-format'
+  },
+  
+  plugins: [
+    '@company/unjucks-react-plugin',
+    '@company/unjucks-design-system',
+    '@company/unjucks-accessibility'
+  ]
+});
+
+// Usage in projects
+export default defineConfig({
+  extends: '@company/unjucks-config-react',
+  
+  // Project-specific overrides
+  generators: {
+    path: './project-generators'
+  }
+});
+</code></pre>
+<h3 id="3-configuration-versioning-and-migration"><a class="header" href="#3-configuration-versioning-and-migration">3. Configuration Versioning and Migration</a></h3>
+<pre><code class="language-typescript">// Configuration migration system
+interface ConfigMigration {
+  from: string;
+  to: string;
+  migrate: (config: any) =&gt; any;
+  breaking: boolean;
+}
+
+const migrations: ConfigMigration[] = [
+  {
+    from: '1.x.x',
+    to: '2.0.0',
+    breaking: true,
+    migrate: (config) =&gt; ({
+      ...config,
+      generators: {
+        path: config.generatorPath,  // Renamed property
+        include: config.include || ['**/*.njk']
+      },
+      // Remove deprecated properties
+      generatorPath: undefined,
+      legacy: undefined
+    })
+  },
+  
+  {
+    from: '2.0.x',
+    to: '2.1.0',
+    breaking: false,
+    migrate: (config) =&gt; ({
+      ...config,
+      validation: {
+        ...config.validation,
+        // Add new default rules
+        rules: [
+          ...(config.validation?.rules || []),
+          'accessibility-check',
+          'performance-check'
+        ]
+      }
+    })
+  }
+];
+
+// Migration runner
+const migrateConfig = (config: any, targetVersion: string): any =&gt; {
+  let currentConfig = config;
+  const currentVersion = config.version || '1.0.0';
+  
+  for (const migration of migrations) {
+    if (semver.satisfies(currentVersion, migration.from) &amp;&amp;
+        semver.lte(targetVersion, migration.to)) {
+      
+      if (migration.breaking) {
+        console.warn(`Breaking changes detected in migration to ${migration.to}`);
+      }
+      
+      currentConfig = migration.migrate(currentConfig);
+      currentConfig.version = migration.to;
+    }
+  }
+  
+  return currentConfig;
+};
+</code></pre>
+<h2 id="configuration-validation-and-testing"><a class="header" href="#configuration-validation-and-testing">Configuration Validation and Testing</a></h2>
+<h3 id="1-configuration-testing"><a class="header" href="#1-configuration-testing">1. Configuration Testing</a></h3>
+<pre><code class="language-typescript">// Configuration test suite
+describe('Unjucks Configuration', () =&gt; {
+  describe('Base Configuration', () =&gt; {
+    it('should load default configuration', () =&gt; {
+      const config = loadConfig();
+      expect(config).toBeDefined();
+      expect(config.generators.path).toBe('./generators');
+    });
+    
+    it('should validate required fields', () =&gt; {
+      const invalidConfig = { generators: { path: null } };
+      
+      expect(() =&gt; validateConfig(invalidConfig))
+        .toThrow('generators.path is required');
+    });
+    
+    it('should merge environment configurations', () =&gt; {
+      const config = loadConfig('production');
+      expect(config.optimization.enabled).toBe(true);
+      expect(config.verbose).toBe(false);
+    });
+  });
+  
+  describe('Plugin Configuration', () =&gt; {
+    it('should load plugins with correct configuration', () =&gt; {
+      const config = loadConfig();
+      const tsPlugin = config.plugins.find(p =&gt; p.name === '@unjucks/typescript');
+      
+      expect(tsPlugin).toBeDefined();
+      expect(tsPlugin.config.strict).toBe(true);
+    });
+    
+    it('should handle plugin loading errors gracefully', () =&gt; {
+      const configWithInvalidPlugin = {
+        plugins: ['non-existent-plugin']
+      };
+      
+      expect(() =&gt; loadConfig(configWithInvalidPlugin))
+        .toThrow('Plugin "non-existent-plugin" not found');
+    });
+  });
+  
+  describe('Generator Configuration', () =&gt; {
+    it('should resolve generator paths correctly', () =&gt; {
+      const config = loadConfig();
+      const resolvedPaths = resolveGeneratorPaths(config);
+      
+      expect(resolvedPaths).toContain(path.resolve('./generators'));
+      expect(resolvedPaths.every(p =&gt; fs.existsSync(p))).toBe(true);
+    });
+    
+    it('should validate generator templates', async () =&gt; {
+      const config = loadConfig();
+      const validationResult = await validateGenerators(config);
+      
+      expect(validationResult.valid).toBe(true);
+      expect(validationResult.errors).toHaveLength(0);
+    });
+  });
+});
+</code></pre>
+<h3 id="2-configuration-schema-evolution"><a class="header" href="#2-configuration-schema-evolution">2. Configuration Schema Evolution</a></h3>
+<pre><code class="language-typescript">// Schema versioning
+const ConfigSchemaV1 = z.object({
+  version: z.literal('1.0.0'),
+  generatorPath: z.string(),
+  templates: z.array(z.string())
+});
+
+const ConfigSchemaV2 = z.object({
+  version: z.literal('2.0.0'),
+  generators: z.object({
+    path: z.string(),
+    include: z.array(z.string()).default(['**/*.njk']),
+    exclude: z.array(z.string()).default([])
+  }),
+  templates: z.record(z.string())
+});
+
+// Version-aware validation
+const validateVersionedConfig = (config: unknown): ResolvedConfig =&gt; {
+  const version = (config as any)?.version || '1.0.0';
+  
+  switch (version) {
+    case '1.0.0':
+      return migrateConfig(ConfigSchemaV1.parse(config), '2.0.0');
+    case '2.0.0':
+      return ConfigSchemaV2.parse(config);
+    default:
+      throw new Error(`Unsupported configuration version: ${version}`);
+  }
+};
+</code></pre>
+<h2 id="performance-and-optimization"><a class="header" href="#performance-and-optimization">Performance and Optimization</a></h2>
+<h3 id="1-configuration-caching"><a class="header" href="#1-configuration-caching">1. Configuration Caching</a></h3>
+<pre><code class="language-typescript">// Configuration caching system
+class ConfigurationCache {
+  private cache = new Map&lt;string, CachedConfig&gt;();
+  private watchers = new Map&lt;string, fs.FSWatcher&gt;();
+  
+  async get(configPath: string): Promise&lt;ResolvedConfig&gt; {
+    const cached = this.cache.get(configPath);
+    const stat = await fs.promises.stat(configPath);
+    
+    if (cached &amp;&amp; cached.mtime &gt;= stat.mtime) {
+      return cached.config;
+    }
+    
+    const config = await this.loadAndProcess(configPath);
+    this.cache.set(configPath, {
+      config,
+      mtime: stat.mtime,
+      dependencies: await this.getDependencies(config)
+    });
+    
+    this.setupWatcher(configPath);
+    return config;
+  }
+  
+  private setupWatcher(configPath: string): void {
+    if (this.watchers.has(configPath)) return;
+    
+    const watcher = fs.watch(configPath, () =&gt; {
+      this.invalidate(configPath);
+    });
+    
+    this.watchers.set(configPath, watcher);
+  }
+  
+  private invalidate(configPath: string): void {
+    this.cache.delete(configPath);
+    // Invalidate dependent configurations
+    for (const [path, cached] of this.cache.entries()) {
+      if (cached.dependencies.includes(configPath)) {
+        this.cache.delete(path);
+      }
+    }
+  }
+}
+</code></pre>
+<h3 id="2-lazy-configuration-loading"><a class="header" href="#2-lazy-configuration-loading">2. Lazy Configuration Loading</a></h3>
+<pre><code class="language-typescript">// Lazy loading for large configuration systems
+class LazyConfigurationLoader {
+  private configPromises = new Map&lt;string, Promise&lt;ResolvedConfig&gt;&gt;();
+  
+  async load(section: ConfigSection): Promise&lt;ResolvedConfig&gt; {
+    const key = this.getConfigKey(section);
+    
+    if (!this.configPromises.has(key)) {
+      this.configPromises.set(key, this.doLoad(section));
+    }
+    
+    return this.configPromises.get(key)!;
+  }
+  
+  private async doLoad(section: ConfigSection): Promise&lt;ResolvedConfig&gt; {
+    // Only load required configuration sections
+    const baseConfig = await this.loadBaseConfig();
+    
+    switch (section) {
+      case 'generators':
+        return {
+          ...baseConfig,
+          generators: await this.loadGeneratorConfig()
+        };
+      
+      case 'plugins':
+        return {
+          ...baseConfig,
+          plugins: await this.loadPluginConfig()
+        };
+      
+      default:
+        return this.loadFullConfig();
+    }
+  }
+}
+</code></pre>
+<h2 id="configuration-security"><a class="header" href="#configuration-security">Configuration Security</a></h2>
+<h3 id="1-secure-configuration-practices"><a class="header" href="#1-secure-configuration-practices">1. Secure Configuration Practices</a></h3>
+<pre><code class="language-typescript">// Secure configuration handling
+interface SecureConfig {
+  // Encrypted sensitive values
+  apiKeys: EncryptedValue[];
+  
+  // References to external secret stores
+  secrets: {
+    [key: string]: SecretReference;
+  };
+  
+  // Security policies
+  security: {
+    allowedHosts: string[];
+    maxFileSize: number;
+    sanitizeInput: boolean;
+    validateTemplates: boolean;
+  };
+}
+
+// Secret management integration
+class SecretManager {
+  async resolveSecrets(config: SecureConfig): Promise&lt;ResolvedConfig&gt; {
+    const resolvedConfig = { ...config };
+    
+    for (const [key, secretRef] of Object.entries(config.secrets)) {
+      resolvedConfig[key] = await this.getSecret(secretRef);
+    }
+    
+    return resolvedConfig;
+  }
+  
+  private async getSecret(ref: SecretReference): Promise&lt;string&gt; {
+    switch (ref.provider) {
+      case 'env':
+        return process.env[ref.key] || ref.default;
+      
+      case 'vault':
+        return await this.getVaultSecret(ref.path, ref.key);
+      
+      case 'aws-ssm':
+        return await this.getAWSParameter(ref.path);
+      
+      default:
+        throw new Error(`Unknown secret provider: ${ref.provider}`);
+    }
+  }
+}
+</code></pre>
+<h3 id="2-configuration-validation-security"><a class="header" href="#2-configuration-validation-security">2. Configuration Validation Security</a></h3>
+<pre><code class="language-typescript">// Security-focused validation
+const SecurityValidationRules = [
+  {
+    name: 'no-hardcoded-secrets',
+    check: (config: any) =&gt; {
+      const secrets = findHardcodedSecrets(JSON.stringify(config));
+      if (secrets.length &gt; 0) {
+        throw new SecurityError('Hardcoded secrets detected', secrets);
+      }
+    }
+  },
+  
+  {
+    name: 'validate-external-urls',
+    check: (config: any) =&gt; {
+      const urls = extractUrls(config);
+      for (const url of urls) {
+        if (!isAllowedHost(url)) {
+          throw new SecurityError(`Unauthorized host: ${url}`);
+        }
+      }
+    }
+  },
+  
+  {
+    name: 'sanitize-user-input',
+    check: (config: any) =&gt; {
+      const sanitized = deepSanitize(config);
+      return sanitized;
+    }
+  }
+];
+</code></pre>
+<h2 id="future-proofing-configuration"><a class="header" href="#future-proofing-configuration">Future-Proofing Configuration</a></h2>
+<h3 id="1-configuration-evolution-patterns"><a class="header" href="#1-configuration-evolution-patterns">1. Configuration Evolution Patterns</a></h3>
+<pre><code class="language-typescript">// Forward-compatible configuration design
+interface EvolvableConfig {
+  // Version for migration tracking
+  $schema: string;
+  version: string;
+  
+  // Feature flags for gradual rollouts
+  features: {
+    [key: string]: boolean | 'experimental' | 'deprecated';
+  };
+  
+  // Extension points for future features
+  extensions: {
+    [key: string]: unknown;
+  };
+  
+  // Backward compatibility layer
+  legacy: {
+    [key: string]: unknown;
+  };
+}
+
+// Feature flag system
+class FeatureFlag {
+  static isEnabled(feature: string, config: EvolvableConfig): boolean {
+    const flag = config.features[feature];
+    
+    if (flag === true) return true;
+    if (flag === false) return false;
+    if (flag === 'experimental') return this.isExperimentalEnabled();
+    if (flag === 'deprecated') return this.isDeprecatedAllowed();
+    
+    return false;
+  }
+}
+</code></pre>
+<h3 id="2-ai-enhanced-configuration"><a class="header" href="#2-ai-enhanced-configuration">2. AI-Enhanced Configuration</a></h3>
+<pre><code class="language-typescript">// AI-assisted configuration optimization
+interface AIConfigAssistant {
+  suggestOptimizations(config: ResolvedConfig): Promise&lt;ConfigSuggestion[]&gt;;
+  detectPatterns(usage: UsageMetrics): Promise&lt;PatternInsight[]&gt;;
+  predictNeeds(projectContext: ProjectContext): Promise&lt;ConfigRecommendation[]&gt;;
+}
+
+// Smart configuration recommendations
+const generateSmartConfig = async (
+  projectPath: string
+): Promise&lt;RecommendedConfig&gt; =&gt; {
+  const context = await analyzeProject(projectPath);
+  const usage = await getUsageMetrics(projectPath);
+  
+  const recommendations = await Promise.all([
+    suggestFrameworkConfig(context.framework),
+    suggestTestingConfig(context.testing),
+    suggestBuildConfig(context.buildTool),
+    suggestOptimizations(usage)
+  ]);
+  
+  return mergeRecommendations(recommendations);
+};
+</code></pre>
+<h2 id="conclusion"><a class="header" href="#conclusion">Conclusion</a></h2>
+<p>Advanced configuration patterns transform code generation tools from simple utilities into sophisticated development platforms. The patterns explored in this chapter enable:</p>
+<ol>
+<li><strong>Type-safe configuration</strong> with comprehensive validation</li>
+<li><strong>Environment-aware adaptation</strong> for different deployment contexts</li>
+<li><strong>Hierarchical composition</strong> for maintainable configuration at scale</li>
+<li><strong>Plugin systems</strong> for extensible functionality</li>
+<li><strong>Security practices</strong> for safe configuration management</li>
+<li><strong>Performance optimization</strong> through caching and lazy loading</li>
+<li><strong>Future-proofing</strong> through versioning and evolution patterns</li>
+</ol>
+<p>Key takeaways for advanced configuration:</p>
+<ul>
+<li>Treat configuration as code with the same quality standards</li>
+<li>Implement hierarchical merging with clear precedence rules</li>
+<li>Use type safety and validation to prevent configuration errors</li>
+<li>Design for composition and reusability across projects</li>
+<li>Plan for evolution with migration and versioning strategies</li>
+<li>Implement security practices for sensitive configuration data</li>
+<li>Optimize performance through caching and lazy loading</li>
+<li>Prepare for AI-enhanced configuration assistance</li>
+</ul>
+<p>The next chapter will explore comprehensive testing strategies that ensure these sophisticated configuration systems work reliably across all scenarios and environments. Testing becomes even more critical as configuration systems grow in complexity and influence over the generation process.</p>
+<p>Modern configuration is not just about settings—it's about creating intelligent systems that understand context, adapt to needs, and evolve with your development practices. The patterns in this chapter provide the foundation for building such systems.</p>
+
+
+                        <!-- Page Footer -->
+                        <div class="page-footer" style="margin-top: 3rem; padding-top: 2rem; border-top: 1px solid #e1e5e9;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+                                <div class="footer-links" style="display: flex; gap: 1rem; font-size: 0.9rem;">
+                                    <a href="https://unjucks.dev" target="_blank">🌐 Website</a>
+                                    <a href="https://github.com/ruvnet/unjucks" target="_blank">💻 GitHub</a>
+                                    <a href="https://github.com/ruvnet/unjucks/issues" target="_blank">🐛 Issues</a>
+                                    <a href="https://github.com/ruvnet/unjucks/discussions" target="_blank">💬 Discussions</a>
+                                </div>
+                                <div class="footer-info" style="font-size: 0.8rem; color: #888; text-align: right;">
+                                    <p>Built with ❤️ using <a href="https://rust-lang.github.io/mdBook/" target="_blank">mdBook</a></p>
+                                    <p>© 2024 Unjucks Project</p>
+                                </div>
+                            </div>
+                        </div>
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                        <a href="" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                            <i class="fa fa-angle-left"></i>
+                        </a>
+
+                        <a href="" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                            <i class="fa fa-angle-right"></i>
+                        </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <!-- Desktop navigation -->
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                <a href="" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                    <i class="fa fa-angle-left"></i>
+                </a>
+
+                <a href="" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                    <i class="fa fa-angle-right"></i>
+                </a>
+            </nav>
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="elasticlunr.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="mark.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="searcher.js" type="text/javascript" charset="utf-8"></script>
+
+        <script src="clipboard.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="highlight.js" type="text/javascript" charset="utf-8"></script>
+        <script src="book.js" type="text/javascript" charset="utf-8"></script>
+
+        <!-- Custom JS -->
+
+        <!-- Custom body content -->
+        <h1 id="chapter-4-configuration---advanced-configuration-patterns-1"><a class="header" href="#chapter-4-configuration---advanced-configuration-patterns-1">Chapter 4: Configuration - Advanced Configuration Patterns</a></h1>
+<h2 id="the-configuration-renaissance-1"><a class="header" href="#the-configuration-renaissance-1">The Configuration Renaissance</a></h2>
+<p>Configuration in modern code generation has evolved from simple key-value pairs to sophisticated, context-aware systems that adapt to project needs, team preferences, and environmental constraints. In 2026, configuration is not just about settings—it's about creating intelligent systems that understand intent and translate it into actionable generation patterns.</p>
+<p>This chapter explores advanced configuration patterns that make code generation tools like Unjucks powerful, flexible, and maintainable at scale. We'll examine how configuration can be layered, cascaded, validated, and evolved over time while maintaining backward compatibility and developer productivity.</p>
+<h2 id="configuration-architecture-principles-1"><a class="header" href="#configuration-architecture-principles-1">Configuration Architecture Principles</a></h2>
+<h3 id="1-configuration-as-code-1"><a class="header" href="#1-configuration-as-code-1">1. Configuration as Code</a></h3>
+<p>Modern configuration systems treat configuration files as first-class code artifacts, subject to the same quality standards as application code:</p>
+<pre><code class="language-typescript">// unjucks.config.ts - Type-safe configuration
+import { defineConfig } from 'unjucks';
+
+export default defineConfig({
+  // Base configuration with full TypeScript support
+  generators: {
+    path: './generators',
+    include: ['**/*.{yml,yaml,njk}'],
+    exclude: ['**/node_modules/**', '**/dist/**']
+  },
+  
+  // Environment-specific overrides
+  environments: {
+    development: {
+      dryRun: false,
+      verbose: true,
+      watching: true
+    },
+    
+    production: {
+      dryRun: false,
+      verbose: false,
+      optimization: {
+        minify: true,
+        treeshake: true
+      }
+    },
+    
+    testing: {
+      dryRun: true,
+      verbose: true,
+      mockData: true
+    }
+  },
+  
+  // Validation rules
+  validation: {
+    strict: true,
+    customRules: [
+      'no-hardcoded-paths',
+      'require-documentation',
+      'validate-naming-conventions'
+    ]
+  },
+  
+  // Plugin configuration
+  plugins: [
+    ['@unjucks/typescript', { 
+      strict: true,
+      target: 'ES2022' 
+    }],
+    ['@unjucks/prettier', {
+      configPath: '.prettierrc'
+    }],
+    ['@unjucks/eslint', {
+      fix: true,
+      configFile: '.eslintrc.js'
+    }]
+  ],
+  
+  // Advanced features
+  features: {
+    aiAssistance: {
+      enabled: true,
+      provider: 'openai',
+      model: 'gpt-4',
+      contextWindow: 8192
+    },
+    
+    parallelGeneration: {
+      enabled: true,
+      maxConcurrency: 4
+    },
+    
+    incrementalGeneration: {
+      enabled: true,
+      cacheDirectory: '.unjucks/cache'
+    }
+  }
+});
+</code></pre>
+<h3 id="2-hierarchical-configuration-1"><a class="header" href="#2-hierarchical-configuration-1">2. Hierarchical Configuration</a></h3>
+<p>Configuration systems should support multiple layers with clear precedence rules:</p>
+<pre><code class="language-typescript">// Configuration hierarchy (highest to lowest precedence)
+interface ConfigurationHierarchy {
+  commandLine: CLIOptions;           // --dry-run, --verbose
+  environmentVariables: EnvConfig;   // UNJUCKS_DRY_RUN=true
+  projectConfig: ProjectConfig;      // unjucks.config.ts
+  userConfig: UserConfig;           // ~/.unjucks/config.ts
+  globalConfig: GlobalConfig;       // /etc/unjucks/config.ts
+  defaults: DefaultConfig;          // Built-in defaults
+}
+
+// Merge strategy
+const mergeConfiguration = (hierarchy: ConfigurationHierarchy): ResolvedConfig =&gt; {
+  return deepMerge(
+    hierarchy.defaults,
+    hierarchy.globalConfig,
+    hierarchy.userConfig,
+    hierarchy.projectConfig,
+    hierarchy.environmentVariables,
+    hierarchy.commandLine
+  );
+};
+</code></pre>
+<h3 id="3-context-aware-configuration-1"><a class="header" href="#3-context-aware-configuration-1">3. Context-Aware Configuration</a></h3>
+<p>Configuration should adapt based on project context and detected patterns:</p>
+<pre><code class="language-typescript">// Context detection
+interface ProjectContext {
+  framework: 'react' | 'vue' | 'angular' | 'svelte' | null;
+  language: 'typescript' | 'javascript';
+  buildTool: 'vite' | 'webpack' | 'rollup' | 'esbuild' | null;
+  packageManager: 'npm' | 'yarn' | 'pnpm' | 'bun';
+  testing: ('jest' | 'vitest' | 'cypress' | 'playwright')[];
+  styling: ('css' | 'scss' | 'tailwind' | 'styled-components')[];
+  architecture: 'monorepo' | 'single-package';
+}
+
+// Adaptive configuration
+const createAdaptiveConfig = (context: ProjectContext): AdaptiveConfig =&gt; {
+  const baseConfig = getBaseConfig();
+  
+  // Framework-specific adaptations
+  if (context.framework === 'react') {
+    baseConfig.generators.defaults.component = 'react-component';
+    baseConfig.templates.includes.push('react/**/*.njk');
+    
+    if (context.language === 'typescript') {
+      baseConfig.extensions.push('.tsx', '.ts');
+      baseConfig.validation.rules.push('react-typescript-props');
+    }
+  }
+  
+  // Testing framework adaptations
+  if (context.testing.includes('vitest')) {
+    baseConfig.generators.defaults.test = 'vitest-test';
+    baseConfig.plugins.push(['@unjucks/vitest', { config: 'vitest.config.ts' }]);
+  }
+  
+  return baseConfig;
+};
+</code></pre>
+<h2 id="advanced-configuration-patterns-1"><a class="header" href="#advanced-configuration-patterns-1">Advanced Configuration Patterns</a></h2>
+<h3 id="1-dynamic-configuration-resolution-1"><a class="header" href="#1-dynamic-configuration-resolution-1">1. Dynamic Configuration Resolution</a></h3>
+<p>Configuration values can be computed at runtime based on context and environment:</p>
+<pre><code class="language-typescript">// Dynamic configuration with computed values
+export default defineConfig({
+  generators: {
+    path: ({ projectRoot, environment }) =&gt; {
+      if (environment === 'development') {
+        return path.join(projectRoot, 'dev-generators');
+      }
+      return path.join(projectRoot, 'generators');
+    },
+    
+    include: ({ framework, language }) =&gt; {
+      const patterns = ['**/*.yml', '**/*.yaml'];
+      
+      if (framework) {
+        patterns.push(`**/${framework}/**/*.njk`);
+      }
+      
+      if (language === 'typescript') {
+        patterns.push('**/*.ts.njk');
+      }
+      
+      return patterns;
+    }
+  },
+  
+  output: {
+    directory: ({ monorepo, package: pkg }) =&gt; {
+      if (monorepo &amp;&amp; pkg) {
+        return `packages/${pkg}/src`;
+      }
+      return 'src';
+    },
+    
+    naming: ({ conventions }) =&gt; ({
+      component: conventions?.component || 'PascalCase',
+      file: conventions?.file || 'kebab-case',
+      directory: conventions?.directory || 'kebab-case'
+    })
+  }
+});
+</code></pre>
+<h3 id="2-configuration-validation-and-type-safety-1"><a class="header" href="#2-configuration-validation-and-type-safety-1">2. Configuration Validation and Type Safety</a></h3>
+<p>Comprehensive validation ensures configuration correctness:</p>
+<pre><code class="language-typescript">// Configuration schema with validation
+import { z } from 'zod';
+
+const GeneratorConfigSchema = z.object({
+  name: z.string().min(1).regex(/^[a-zA-Z][a-zA-Z0-9-_]*$/),
+  description: z.string().optional(),
+  version: z.string().regex(/^\d+\.\d+\.\d+$/),
+  
+  templates: z.array(z.object({
+    name: z.string(),
+    path: z.string(),
+    when: z.string().optional(),
+    priority: z.number().int().min(0).max(100).default(50)
+  })),
+  
+  variables: z.object({
+    required: z.array(z.string()).default([]),
+    optional: z.record(z.any()).default({}),
+    computed: z.record(z.function()).default({})
+  }),
+  
+  outputs: z.array(z.object({
+    path: z.string(),
+    inject: z.boolean().default(false),
+    skipIf: z.string().optional(),
+    chmod: z.string().regex(/^[0-7]{3,4}$/).optional()
+  })),
+  
+  hooks: z.object({
+    before: z.array(z.string()).default([]),
+    after: z.array(z.string()).default([]),
+    onError: z.array(z.string()).default([])
+  }).optional()
+});
+
+// Runtime validation
+const validateConfig = (config: unknown): GeneratorConfig =&gt; {
+  try {
+    return GeneratorConfigSchema.parse(config);
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      throw new ConfigurationError(
+        'Invalid generator configuration',
+        error.errors.map(e =&gt; ({
+          path: e.path.join('.'),
+          message: e.message,
+          code: e.code
+        }))
+      );
+    }
+    throw error;
+  }
+};
+</code></pre>
+<h3 id="3-configuration-composition-and-inheritance-1"><a class="header" href="#3-configuration-composition-and-inheritance-1">3. Configuration Composition and Inheritance</a></h3>
+<p>Complex configurations can be composed from smaller, reusable pieces:</p>
+<pre><code class="language-typescript">// Base configurations
+const BaseReactConfig = defineConfig({
+  name: 'base-react',
+  templates: {
+    component: 'react/component.njk',
+    test: 'react/test.njk',
+    story: 'react/story.njk'
+  },
+  
+  validation: {
+    rules: ['react-component-naming', 'prop-types-required']
+  },
+  
+  plugins: [
+    '@unjucks/react',
+    '@unjucks/typescript'
+  ]
+});
+
+const BaseTestingConfig = defineConfig({
+  name: 'base-testing',
+  templates: {
+    unitTest: 'testing/unit.njk',
+    integrationTest: 'testing/integration.njk',
+    e2eTest: 'testing/e2e.njk'
+  },
+  
+  plugins: [
+    '@unjucks/jest',
+    '@unjucks/testing-library'
+  ]
+});
+
+// Composed configuration
+export default defineConfig({
+  extends: [BaseReactConfig, BaseTestingConfig],
+  
+  // Override specific settings
+  templates: {
+    component: 'custom/react-component.njk'  // Override base
+  },
+  
+  // Add project-specific settings
+  generators: {
+    path: './src/generators',
+    customHelpers: './helpers'
+  },
+  
+  // Environment-specific overrides
+  environments: {
+    production: {
+      validation: {
+        strict: true,
+        failOnWarning: true
+      }
+    }
+  }
+});
+</code></pre>
+<h3 id="4-plugin-configuration-system-1"><a class="header" href="#4-plugin-configuration-system-1">4. Plugin Configuration System</a></h3>
+<p>Sophisticated plugin systems with their own configuration:</p>
+<pre><code class="language-typescript">// Plugin interface
+interface UnjucksPlugin {
+  name: string;
+  version: string;
+  
+  configure?(config: PluginConfig): void;
+  beforeGeneration?(context: GenerationContext): Promise&lt;void&gt;;
+  afterGeneration?(context: GenerationContext, result: GenerationResult): Promise&lt;void&gt;;
+  transformTemplate?(template: string, variables: any): Promise&lt;string&gt;;
+  validateOutput?(output: string, context: GenerationContext): Promise&lt;ValidationResult&gt;;
+}
+
+// Plugin configuration
+const TypeScriptPlugin: UnjucksPlugin = {
+  name: '@unjucks/typescript',
+  version: '2.1.0',
+  
+  configure(config: TypeScriptPluginConfig) {
+    this.tsconfigPath = config.tsconfigPath || './tsconfig.json';
+    this.strict = config.strict ?? true;
+    this.emitDeclarationFiles = config.emitDeclarationFiles ?? false;
+  },
+  
+  async transformTemplate(template: string, variables: any): Promise&lt;string&gt; {
+    if (variables.typescript) {
+      return template
+        .replace(/\.js/g, '.ts')
+        .replace(/\.jsx/g, '.tsx')
+        .replace(/PropTypes/g, 'TypeScript interfaces');
+    }
+    return template;
+  },
+  
+  async validateOutput(output: string): Promise&lt;ValidationResult&gt; {
+    if (this.strict) {
+      return await validateTypeScript(output, {
+        configFile: this.tsconfigPath
+      });
+    }
+    return { valid: true, errors: [] };
+  }
+};
+
+// Plugin registration and configuration
+export default defineConfig({
+  plugins: [
+    // Simple plugin registration
+    '@unjucks/react',
+    
+    // Plugin with configuration
+    ['@unjucks/typescript', {
+      tsconfigPath: './tsconfig.build.json',
+      strict: true,
+      emitDeclarationFiles: true
+    }],
+    
+    // Conditional plugin loading
+    {
+      plugin: '@unjucks/styled-components',
+      condition: ({ styling }) =&gt; styling.includes('styled-components')
+    },
+    
+    // Inline plugin definition
+    {
+      name: 'custom-formatter',
+      transformTemplate: (template, variables) =&gt; {
+        return customFormat(template, variables);
+      }
+    }
+  ]
+});
+</code></pre>
+<h2 id="configuration-for-different-environments-1"><a class="header" href="#configuration-for-different-environments-1">Configuration for Different Environments</a></h2>
+<h3 id="1-environment-specific-configuration-1"><a class="header" href="#1-environment-specific-configuration-1">1. Environment-Specific Configuration</a></h3>
+<pre><code class="language-typescript">// Environment detection and configuration
+enum Environment {
+  Development = 'development',
+  Testing = 'testing',
+  Staging = 'staging',
+  Production = 'production'
+}
+
+interface EnvironmentConfig {
+  [Environment.Development]: {
+    dryRun: false;
+    verbose: true;
+    watchMode: true;
+    hotReload: true;
+    sourceMaps: true;
+    optimization: false;
+  };
+  
+  [Environment.Testing]: {
+    dryRun: true;
+    verbose: true;
+    watchMode: false;
+    mockData: true;
+    coverage: true;
+    parallel: false;  // Avoid test conflicts
+  };
+  
+  [Environment.Staging]: {
+    dryRun: false;
+    verbose: false;
+    optimization: true;
+    validation: 'strict';
+    performanceBudget: true;
+  };
+  
+  [Environment.Production]: {
+    dryRun: false;
+    verbose: false;
+    optimization: true;
+    validation: 'strict';
+    performanceBudget: true;
+    telemetry: true;
+    errorReporting: true;
+  };
+}
+
+// Environment-aware configuration loading
+const loadEnvironmentConfig = (env: Environment): ResolvedConfig =&gt; {
+  const baseConfig = loadBaseConfig();
+  const envConfig = EnvironmentConfig[env];
+  
+  return mergeDeep(baseConfig, envConfig);
+};
+</code></pre>
+<h3 id="2-multi-environment-deployment-1"><a class="header" href="#2-multi-environment-deployment-1">2. Multi-Environment Deployment</a></h3>
+<pre><code class="language-typescript">// Configuration for different deployment targets
+export default defineConfig({
+  environments: {
+    // Local development
+    local: {
+      generators: {
+        path: './dev-generators',
+        hotReload: true
+      },
+      
+      output: {
+        directory: './src',
+        preserveComments: true
+      },
+      
+      features: {
+        aiAssistance: true,
+        experimentalFeatures: true
+      }
+    },
+    
+    // CI/CD pipeline
+    ci: {
+      generators: {
+        path: './generators',
+        validateOnly: true
+      },
+      
+      validation: {
+        strict: true,
+        failFast: true,
+        reportFormat: 'junit'
+      },
+      
+      parallel: {
+        enabled: true,
+        maxWorkers: 4
+      }
+    },
+    
+    // Team shared environment
+    team: {
+      generators: {
+        registry: 'https://generators.company.com',
+        autoUpdate: true
+      },
+      
+      collaboration: {
+        shareTemplates: true,
+        teamConventions: './team-conventions.json'
+      }
+    }
+  }
+});
+</code></pre>
+<h2 id="configuration-management-at-scale-1"><a class="header" href="#configuration-management-at-scale-1">Configuration Management at Scale</a></h2>
+<h3 id="1-monorepo-configuration-1"><a class="header" href="#1-monorepo-configuration-1">1. Monorepo Configuration</a></h3>
+<p>Managing configuration across multiple packages in a monorepo:</p>
+<pre><code class="language-typescript">// Root configuration
+// packages/shared/unjucks.config.base.ts
+export const BaseConfig = defineConfig({
+  generators: {
+    path: '../../shared/generators'
+  },
+  
+  conventions: {
+    naming: {
+      component: 'PascalCase',
+      file: 'kebab-case',
+      directory: 'kebab-case'
+    },
+    
+    imports: {
+      relative: false,
+      aliasPrefix: '@/',
+      grouping: true
+    }
+  },
+  
+  validation: {
+    rules: [
+      'consistent-naming',
+      'no-hardcoded-imports',
+      'prop-documentation-required'
+    ]
+  }
+});
+
+// Package-specific configuration
+// packages/frontend/unjucks.config.ts
+export default defineConfig({
+  extends: '../shared/unjucks.config.base.ts',
+  
+  generators: {
+    path: ['./generators', '../shared/generators'],
+    include: ['react/**/*.njk', 'components/**/*.njk']
+  },
+  
+  frameworks: {
+    primary: 'react',
+    version: '^18.0.0'
+  },
+  
+  output: {
+    directory: './src',
+    typescript: true
+  }
+});
+
+// packages/backend/unjucks.config.ts
+export default defineConfig({
+  extends: '../shared/unjucks.config.base.ts',
+  
+  generators: {
+    path: ['./generators', '../shared/generators'],
+    include: ['api/**/*.njk', 'services/**/*.njk']
+  },
+  
+  frameworks: {
+    primary: 'express',
+    orm: 'prisma'
+  },
+  
+  output: {
+    directory: './src',
+    typescript: true
+  }
+});
+</code></pre>
+<h3 id="2-configuration-sharing-and-distribution-1"><a class="header" href="#2-configuration-sharing-and-distribution-1">2. Configuration Sharing and Distribution</a></h3>
+<pre><code class="language-typescript">// Shareable configuration packages
+// @company/unjucks-config-react
+export const ReactPreset = defineConfig({
+  name: '@company/react-preset',
+  version: '2.1.0',
+  
+  generators: {
+    registry: 'https://npm.company.com/@company/react-generators'
+  },
+  
+  templates: {
+    component: 'react-component-v2',
+    hook: 'react-hook-v2',
+    page: 'react-page-v2'
+  },
+  
+  conventions: {
+    // Company-specific conventions
+    naming: 'company-react-conventions',
+    testing: 'company-testing-standards',
+    documentation: 'company-docs-format'
+  },
+  
+  plugins: [
+    '@company/unjucks-react-plugin',
+    '@company/unjucks-design-system',
+    '@company/unjucks-accessibility'
+  ]
+});
+
+// Usage in projects
+export default defineConfig({
+  extends: '@company/unjucks-config-react',
+  
+  // Project-specific overrides
+  generators: {
+    path: './project-generators'
+  }
+});
+</code></pre>
+<h3 id="3-configuration-versioning-and-migration-1"><a class="header" href="#3-configuration-versioning-and-migration-1">3. Configuration Versioning and Migration</a></h3>
+<pre><code class="language-typescript">// Configuration migration system
+interface ConfigMigration {
+  from: string;
+  to: string;
+  migrate: (config: any) =&gt; any;
+  breaking: boolean;
+}
+
+const migrations: ConfigMigration[] = [
+  {
+    from: '1.x.x',
+    to: '2.0.0',
+    breaking: true,
+    migrate: (config) =&gt; ({
+      ...config,
+      generators: {
+        path: config.generatorPath,  // Renamed property
+        include: config.include || ['**/*.njk']
+      },
+      // Remove deprecated properties
+      generatorPath: undefined,
+      legacy: undefined
+    })
+  },
+  
+  {
+    from: '2.0.x',
+    to: '2.1.0',
+    breaking: false,
+    migrate: (config) =&gt; ({
+      ...config,
+      validation: {
+        ...config.validation,
+        // Add new default rules
+        rules: [
+          ...(config.validation?.rules || []),
+          'accessibility-check',
+          'performance-check'
+        ]
+      }
+    })
+  }
+];
+
+// Migration runner
+const migrateConfig = (config: any, targetVersion: string): any =&gt; {
+  let currentConfig = config;
+  const currentVersion = config.version || '1.0.0';
+  
+  for (const migration of migrations) {
+    if (semver.satisfies(currentVersion, migration.from) &amp;&amp;
+        semver.lte(targetVersion, migration.to)) {
+      
+      if (migration.breaking) {
+        console.warn(`Breaking changes detected in migration to ${migration.to}`);
+      }
+      
+      currentConfig = migration.migrate(currentConfig);
+      currentConfig.version = migration.to;
+    }
+  }
+  
+  return currentConfig;
+};
+</code></pre>
+<h2 id="configuration-validation-and-testing-1"><a class="header" href="#configuration-validation-and-testing-1">Configuration Validation and Testing</a></h2>
+<h3 id="1-configuration-testing-1"><a class="header" href="#1-configuration-testing-1">1. Configuration Testing</a></h3>
+<pre><code class="language-typescript">// Configuration test suite
+describe('Unjucks Configuration', () =&gt; {
+  describe('Base Configuration', () =&gt; {
+    it('should load default configuration', () =&gt; {
+      const config = loadConfig();
+      expect(config).toBeDefined();
+      expect(config.generators.path).toBe('./generators');
+    });
+    
+    it('should validate required fields', () =&gt; {
+      const invalidConfig = { generators: { path: null } };
+      
+      expect(() =&gt; validateConfig(invalidConfig))
+        .toThrow('generators.path is required');
+    });
+    
+    it('should merge environment configurations', () =&gt; {
+      const config = loadConfig('production');
+      expect(config.optimization.enabled).toBe(true);
+      expect(config.verbose).toBe(false);
+    });
+  });
+  
+  describe('Plugin Configuration', () =&gt; {
+    it('should load plugins with correct configuration', () =&gt; {
+      const config = loadConfig();
+      const tsPlugin = config.plugins.find(p =&gt; p.name === '@unjucks/typescript');
+      
+      expect(tsPlugin).toBeDefined();
+      expect(tsPlugin.config.strict).toBe(true);
+    });
+    
+    it('should handle plugin loading errors gracefully', () =&gt; {
+      const configWithInvalidPlugin = {
+        plugins: ['non-existent-plugin']
+      };
+      
+      expect(() =&gt; loadConfig(configWithInvalidPlugin))
+        .toThrow('Plugin "non-existent-plugin" not found');
+    });
+  });
+  
+  describe('Generator Configuration', () =&gt; {
+    it('should resolve generator paths correctly', () =&gt; {
+      const config = loadConfig();
+      const resolvedPaths = resolveGeneratorPaths(config);
+      
+      expect(resolvedPaths).toContain(path.resolve('./generators'));
+      expect(resolvedPaths.every(p =&gt; fs.existsSync(p))).toBe(true);
+    });
+    
+    it('should validate generator templates', async () =&gt; {
+      const config = loadConfig();
+      const validationResult = await validateGenerators(config);
+      
+      expect(validationResult.valid).toBe(true);
+      expect(validationResult.errors).toHaveLength(0);
+    });
+  });
+});
+</code></pre>
+<h3 id="2-configuration-schema-evolution-1"><a class="header" href="#2-configuration-schema-evolution-1">2. Configuration Schema Evolution</a></h3>
+<pre><code class="language-typescript">// Schema versioning
+const ConfigSchemaV1 = z.object({
+  version: z.literal('1.0.0'),
+  generatorPath: z.string(),
+  templates: z.array(z.string())
+});
+
+const ConfigSchemaV2 = z.object({
+  version: z.literal('2.0.0'),
+  generators: z.object({
+    path: z.string(),
+    include: z.array(z.string()).default(['**/*.njk']),
+    exclude: z.array(z.string()).default([])
+  }),
+  templates: z.record(z.string())
+});
+
+// Version-aware validation
+const validateVersionedConfig = (config: unknown): ResolvedConfig =&gt; {
+  const version = (config as any)?.version || '1.0.0';
+  
+  switch (version) {
+    case '1.0.0':
+      return migrateConfig(ConfigSchemaV1.parse(config), '2.0.0');
+    case '2.0.0':
+      return ConfigSchemaV2.parse(config);
+    default:
+      throw new Error(`Unsupported configuration version: ${version}`);
+  }
+};
+</code></pre>
+<h2 id="performance-and-optimization-1"><a class="header" href="#performance-and-optimization-1">Performance and Optimization</a></h2>
+<h3 id="1-configuration-caching-1"><a class="header" href="#1-configuration-caching-1">1. Configuration Caching</a></h3>
+<pre><code class="language-typescript">// Configuration caching system
+class ConfigurationCache {
+  private cache = new Map&lt;string, CachedConfig&gt;();
+  private watchers = new Map&lt;string, fs.FSWatcher&gt;();
+  
+  async get(configPath: string): Promise&lt;ResolvedConfig&gt; {
+    const cached = this.cache.get(configPath);
+    const stat = await fs.promises.stat(configPath);
+    
+    if (cached &amp;&amp; cached.mtime &gt;= stat.mtime) {
+      return cached.config;
+    }
+    
+    const config = await this.loadAndProcess(configPath);
+    this.cache.set(configPath, {
+      config,
+      mtime: stat.mtime,
+      dependencies: await this.getDependencies(config)
+    });
+    
+    this.setupWatcher(configPath);
+    return config;
+  }
+  
+  private setupWatcher(configPath: string): void {
+    if (this.watchers.has(configPath)) return;
+    
+    const watcher = fs.watch(configPath, () =&gt; {
+      this.invalidate(configPath);
+    });
+    
+    this.watchers.set(configPath, watcher);
+  }
+  
+  private invalidate(configPath: string): void {
+    this.cache.delete(configPath);
+    // Invalidate dependent configurations
+    for (const [path, cached] of this.cache.entries()) {
+      if (cached.dependencies.includes(configPath)) {
+        this.cache.delete(path);
+      }
+    }
+  }
+}
+</code></pre>
+<h3 id="2-lazy-configuration-loading-1"><a class="header" href="#2-lazy-configuration-loading-1">2. Lazy Configuration Loading</a></h3>
+<pre><code class="language-typescript">// Lazy loading for large configuration systems
+class LazyConfigurationLoader {
+  private configPromises = new Map&lt;string, Promise&lt;ResolvedConfig&gt;&gt;();
+  
+  async load(section: ConfigSection): Promise&lt;ResolvedConfig&gt; {
+    const key = this.getConfigKey(section);
+    
+    if (!this.configPromises.has(key)) {
+      this.configPromises.set(key, this.doLoad(section));
+    }
+    
+    return this.configPromises.get(key)!;
+  }
+  
+  private async doLoad(section: ConfigSection): Promise&lt;ResolvedConfig&gt; {
+    // Only load required configuration sections
+    const baseConfig = await this.loadBaseConfig();
+    
+    switch (section) {
+      case 'generators':
+        return {
+          ...baseConfig,
+          generators: await this.loadGeneratorConfig()
+        };
+      
+      case 'plugins':
+        return {
+          ...baseConfig,
+          plugins: await this.loadPluginConfig()
+        };
+      
+      default:
+        return this.loadFullConfig();
+    }
+  }
+}
+</code></pre>
+<h2 id="configuration-security-1"><a class="header" href="#configuration-security-1">Configuration Security</a></h2>
+<h3 id="1-secure-configuration-practices-1"><a class="header" href="#1-secure-configuration-practices-1">1. Secure Configuration Practices</a></h3>
+<pre><code class="language-typescript">// Secure configuration handling
+interface SecureConfig {
+  // Encrypted sensitive values
+  apiKeys: EncryptedValue[];
+  
+  // References to external secret stores
+  secrets: {
+    [key: string]: SecretReference;
+  };
+  
+  // Security policies
+  security: {
+    allowedHosts: string[];
+    maxFileSize: number;
+    sanitizeInput: boolean;
+    validateTemplates: boolean;
+  };
+}
+
+// Secret management integration
+class SecretManager {
+  async resolveSecrets(config: SecureConfig): Promise&lt;ResolvedConfig&gt; {
+    const resolvedConfig = { ...config };
+    
+    for (const [key, secretRef] of Object.entries(config.secrets)) {
+      resolvedConfig[key] = await this.getSecret(secretRef);
+    }
+    
+    return resolvedConfig;
+  }
+  
+  private async getSecret(ref: SecretReference): Promise&lt;string&gt; {
+    switch (ref.provider) {
+      case 'env':
+        return process.env[ref.key] || ref.default;
+      
+      case 'vault':
+        return await this.getVaultSecret(ref.path, ref.key);
+      
+      case 'aws-ssm':
+        return await this.getAWSParameter(ref.path);
+      
+      default:
+        throw new Error(`Unknown secret provider: ${ref.provider}`);
+    }
+  }
+}
+</code></pre>
+<h3 id="2-configuration-validation-security-1"><a class="header" href="#2-configuration-validation-security-1">2. Configuration Validation Security</a></h3>
+<pre><code class="language-typescript">// Security-focused validation
+const SecurityValidationRules = [
+  {
+    name: 'no-hardcoded-secrets',
+    check: (config: any) =&gt; {
+      const secrets = findHardcodedSecrets(JSON.stringify(config));
+      if (secrets.length &gt; 0) {
+        throw new SecurityError('Hardcoded secrets detected', secrets);
+      }
+    }
+  },
+  
+  {
+    name: 'validate-external-urls',
+    check: (config: any) =&gt; {
+      const urls = extractUrls(config);
+      for (const url of urls) {
+        if (!isAllowedHost(url)) {
+          throw new SecurityError(`Unauthorized host: ${url}`);
+        }
+      }
+    }
+  },
+  
+  {
+    name: 'sanitize-user-input',
+    check: (config: any) =&gt; {
+      const sanitized = deepSanitize(config);
+      return sanitized;
+    }
+  }
+];
+</code></pre>
+<h2 id="future-proofing-configuration-1"><a class="header" href="#future-proofing-configuration-1">Future-Proofing Configuration</a></h2>
+<h3 id="1-configuration-evolution-patterns-1"><a class="header" href="#1-configuration-evolution-patterns-1">1. Configuration Evolution Patterns</a></h3>
+<pre><code class="language-typescript">// Forward-compatible configuration design
+interface EvolvableConfig {
+  // Version for migration tracking
+  $schema: string;
+  version: string;
+  
+  // Feature flags for gradual rollouts
+  features: {
+    [key: string]: boolean | 'experimental' | 'deprecated';
+  };
+  
+  // Extension points for future features
+  extensions: {
+    [key: string]: unknown;
+  };
+  
+  // Backward compatibility layer
+  legacy: {
+    [key: string]: unknown;
+  };
+}
+
+// Feature flag system
+class FeatureFlag {
+  static isEnabled(feature: string, config: EvolvableConfig): boolean {
+    const flag = config.features[feature];
+    
+    if (flag === true) return true;
+    if (flag === false) return false;
+    if (flag === 'experimental') return this.isExperimentalEnabled();
+    if (flag === 'deprecated') return this.isDeprecatedAllowed();
+    
+    return false;
+  }
+}
+</code></pre>
+<h3 id="2-ai-enhanced-configuration-1"><a class="header" href="#2-ai-enhanced-configuration-1">2. AI-Enhanced Configuration</a></h3>
+<pre><code class="language-typescript">// AI-assisted configuration optimization
+interface AIConfigAssistant {
+  suggestOptimizations(config: ResolvedConfig): Promise&lt;ConfigSuggestion[]&gt;;
+  detectPatterns(usage: UsageMetrics): Promise&lt;PatternInsight[]&gt;;
+  predictNeeds(projectContext: ProjectContext): Promise&lt;ConfigRecommendation[]&gt;;
+}
+
+// Smart configuration recommendations
+const generateSmartConfig = async (
+  projectPath: string
+): Promise&lt;RecommendedConfig&gt; =&gt; {
+  const context = await analyzeProject(projectPath);
+  const usage = await getUsageMetrics(projectPath);
+  
+  const recommendations = await Promise.all([
+    suggestFrameworkConfig(context.framework),
+    suggestTestingConfig(context.testing),
+    suggestBuildConfig(context.buildTool),
+    suggestOptimizations(usage)
+  ]);
+  
+  return mergeRecommendations(recommendations);
+};
+</code></pre>
+<h2 id="conclusion-1"><a class="header" href="#conclusion-1">Conclusion</a></h2>
+<p>Advanced configuration patterns transform code generation tools from simple utilities into sophisticated development platforms. The patterns explored in this chapter enable:</p>
+<ol>
+<li><strong>Type-safe configuration</strong> with comprehensive validation</li>
+<li><strong>Environment-aware adaptation</strong> for different deployment contexts</li>
+<li><strong>Hierarchical composition</strong> for maintainable configuration at scale</li>
+<li><strong>Plugin systems</strong> for extensible functionality</li>
+<li><strong>Security practices</strong> for safe configuration management</li>
+<li><strong>Performance optimization</strong> through caching and lazy loading</li>
+<li><strong>Future-proofing</strong> through versioning and evolution patterns</li>
+</ol>
+<p>Key takeaways for advanced configuration:</p>
+<ul>
+<li>Treat configuration as code with the same quality standards</li>
+<li>Implement hierarchical merging with clear precedence rules</li>
+<li>Use type safety and validation to prevent configuration errors</li>
+<li>Design for composition and reusability across projects</li>
+<li>Plan for evolution with migration and versioning strategies</li>
+<li>Implement security practices for sensitive configuration data</li>
+<li>Optimize performance through caching and lazy loading</li>
+<li>Prepare for AI-enhanced configuration assistance</li>
+</ul>
+<p>The next chapter will explore comprehensive testing strategies that ensure these sophisticated configuration systems work reliably across all scenarios and environments. Testing becomes even more critical as configuration systems grow in complexity and influence over the generation process.</p>
+<p>Modern configuration is not just about settings—it's about creating intelligent systems that understand context, adapt to needs, and evolve with your development practices. The patterns in this chapter provide the foundation for building such systems.</p>
+
+
+        <!-- Performance monitoring -->
+        <script>
+            // Simple performance monitoring
+            window.addEventListener('load', function() {
+                if ('performance' in window) {
+                    setTimeout(function() {
+                        const loadTime = performance.timing.loadEventEnd - performance.timing.navigationStart;
+                        console.log('📊 Page loaded in ' + loadTime + 'ms');
+                    }, 0);
+                }
+            });
+        </script>
+
+        <!-- Service Worker for offline support -->
+        <script>
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.register('sw.js')
+                    .then(function(registration) {
+                        console.log('📱 SW registered with scope:', registration.scope);
+                    })
+                    .catch(function(error) {
+                        console.log('❌ SW registration failed:', error);
+                    });
+            }
+        </script>
+    </body>
+</html>

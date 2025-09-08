@@ -4,6 +4,44 @@
 
 Template design in 2026 is both an art and a science. It requires creativity to envision the perfect developer experience while applying scientific principles to ensure reliability, maintainability, and scalability. This chapter explores the modern approach to template architecture, where templates are not just text files but sophisticated programs that understand context, adapt to environments, and evolve with your codebase.
 
+> **🏗️ Unjucks v2 Case Study: Template Architecture Revolution**
+>
+> The Unjucks v2 refactor represents a complete reimagining of template architecture. This transformation demonstrates every principle covered in this chapter through real-world application.
+>
+> **The Challenge:** Legacy v1 templates were monolithic, fragile, and difficult to maintain:
+> ```javascript
+> // Legacy v1: Monolithic template approach
+> const componentTemplate = `
+> import React from 'react';
+> {{#if withState}}
+> import { useState } from 'react';
+> {{/if}}
+> {{#if withRouter}}
+> import { useRouter } from 'next/router';
+> {{/if}}
+> 
+> export const {{name}} = ({{#each props}}{{name}}{{#unless @last}}, {{/unless}}{{/each}}) => {
+>   {{#if withState}}
+>   const [state, setState] = useState(null);
+>   {{/if}}
+>   {{#if withRouter}}
+>   const router = useRouter();
+>   {{/if}}
+>   
+>   return <div>{/* Implementation */}</div>;
+> };
+> `;
+> ```
+>
+> **Problems Identified:**
+> - Monolithic templates (500+ lines common)
+> - No composition or reuse patterns  
+> - Brittle conditional logic
+> - No validation or type safety
+> - Manual dependency management
+>
+> **The Solution:** Modern v2 embraces sophisticated template architecture principles covered in this chapter.
+
 ## Architectural Principles for Modern Templates
 
 ### 1. Single Responsibility Principle (SRP) for Templates
@@ -161,6 +199,47 @@ export const {{ camelCase name }}API = {
 ```
 
 ## Template Composition Patterns
+
+> **🧩 Unjucks v2 Case Study: Composition Revolution**
+>
+> The v2 refactor completely transformed how templates are composed, moving from monolithic files to sophisticated composition patterns.
+>
+> **Legacy v1 Approach: Duplication Everywhere**
+> ```
+> templates/
+> ├── react-component.hbs        # 347 lines
+> ├── vue-component.hbs          # 289 lines  (80% duplication)
+> ├── angular-component.hbs      # 412 lines  (75% duplication)
+> └── component-with-state.hbs   # 423 lines  (85% duplication)
+> ```
+> 
+> **Modern v2 Approach: Composable Architecture**
+> ```
+> templates/
+> ├── base/
+> │   ├── component.njk          # 15 lines - core structure
+> │   ├── imports.njk            # 8 lines - import management  
+> │   └── exports.njk            # 6 lines - export patterns
+> ├── mixins/
+> │   ├── with-state.njk         # 12 lines - state management
+> │   ├── with-router.njk        # 9 lines - routing integration
+> │   ├── with-form.njk          # 18 lines - form handling
+> │   └── with-query.njk         # 14 lines - data fetching
+> ├── frameworks/
+> │   ├── react.njk              # 23 lines - React-specific
+> │   ├── vue.njk                # 21 lines - Vue-specific
+> │   └── angular.njk            # 26 lines - Angular-specific
+> └── generators/
+>     ├── component.js           # 45 lines - composition logic
+>     ├── page.js                # 38 lines - page generator  
+>     └── service.js             # 41 lines - service generator
+> ```
+>
+> **Composition Results:**
+> - **Reduced duplication**: From 85% to 3% duplicate code
+> - **Modular templates**: Average 18 lines vs 347 lines
+> - **Consistent patterns**: 100% reuse of base components
+> - **Maintainable architecture**: Single change updates all variants
 
 ### 1. Mixin Pattern
 

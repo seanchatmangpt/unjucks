@@ -4,33 +4,33 @@ inject: false
 ---
 {
   "@context": "https://schema.org/",
-  "@type": "{{ entityType | default('Person') | schemaOrg }}",
-  "@id": "{{ baseUrl | rdfResource }}/person/{{ id | slug }}",
+  "@type": "{{ entityType | default('Person') }}",
+  "@id": "{{ baseUrl }}/person/{{ id | slug }}",
   
   "name": "{{ fullName | titleCase }}",
   "givenName": "{{ firstName | titleCase }}",
   "familyName": "{{ lastName | titleCase }}",
   "identifier": "{{ personId | upper }}",
-  "url": "{{ website | rdfResource }}",
+  "url": "{{ website }}",
   "sameAs": [
     {% for social in socialProfiles -%}
-    "{{ social.url | rdfResource }}"{% if not loop.last %},{% endif %}
+    "{{ social.url }}"{% if not loop.last %},{% endif %}
     {% endfor %}
   ],
   
   "image": {
     "@type": "ImageObject",
-    "url": "{{ photo | rdfResource }}",
-    "contentUrl": "{{ photo | rdfResource }}",
+    "url": "{{ photo }}",
+    "contentUrl": "{{ photo }}",
     "width": {{ photoWidth | default(400) }},
     "height": {{ photoHeight | default(400) }}
   },
   
   "jobTitle": "{{ jobTitle | titleCase }}",
   "worksFor": {
-    "@type": "{{ organizationType | default('Organization') | schemaOrg }}",
+    "@type": "{{ organizationType | default('Organization') }}",
     "name": "{{ company | titleCase }}",
-    "url": "{{ companyWebsite | rdfResource }}"
+    "url": "{{ companyWebsite }}"
   },
   
   "address": {{ address | schemaAddress | dump }},
@@ -74,9 +74,9 @@ inject: false
   "alumniOf": [
     {% for school in education -%}
     {
-      "@type": "{{ school.type | default('EducationalOrganization') | schemaOrg }}",
+      "@type": "{{ school.type | default('EducationalOrganization') }}",
       "name": "{{ school.name | titleCase }}",
-      "url": "{{ school.url | rdfResource }}"
+      "url": "{{ school.url }}"
     }{% if not loop.last %},{% endif %}
     {% endfor %}
   ],

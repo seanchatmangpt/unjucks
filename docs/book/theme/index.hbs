@@ -151,7 +151,7 @@
                     <p style="margin: 0.5rem 0 0 0; font-size: 0.8rem; color: #666;">Template Generation Platform</p>
                 </div>
 
-                {{> toc}}
+                <!-- TOC will be generated automatically by mdbook -->
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
@@ -349,7 +349,7 @@
         {{/each}}
 
         <!-- Custom body content -->
-        {{> body}}
+        {{{ content }}}
 
         <!-- Performance monitoring -->
         <script>

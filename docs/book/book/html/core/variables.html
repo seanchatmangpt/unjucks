@@ -1,0 +1,1517 @@
+<!DOCTYPE HTML>
+<html lang="en" class="navy" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Variables and Context - Unjucks: Modern Code Generation in 2026</title>
+        <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+        <meta name="description" content="A comprehensive guide to modern code generation using the Unjucks framework, demonstrating declarative development patterns, AI integration, and advanced template design for productive software development.">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#0066cc"/>
+
+        <!-- Open Graph -->
+        <meta property="og:title" content="Variables and Context - Unjucks: Modern Code Generation in 2026">
+        <meta property="og:description" content="A comprehensive guide to modern code generation using the Unjucks framework, demonstrating declarative development patterns, AI integration, and advanced template design for productive software development.">
+        <meta property="og:type" content="website">
+        <meta property="og:url" content="">
+        <meta property="og:image" content="unjucks-og.png">
+        
+        <!-- Twitter Card -->
+        <meta name="twitter:card" content="summary_large_image">
+        <meta name="twitter:title" content="Variables and Context - Unjucks: Modern Code Generation in 2026">
+        <meta name="twitter:description" content="A comprehensive guide to modern code generation using the Unjucks framework, demonstrating declarative development patterns, AI integration, and advanced template design for productive software development.">
+        <meta name="twitter:image" content="unjucks-og.png">
+
+
+        <!-- Custom Unjucks Favicon -->
+        <link rel="icon" href="../favicon.png">
+        <link rel="shortcut icon" href="../favicon.png">
+
+        <!-- Fonts -->
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+
+        <link rel="stylesheet" href="../css/variables.css">
+        <link rel="stylesheet" href="../css/general.css">
+        <link rel="stylesheet" href="../css/chrome.css">
+        <link rel="stylesheet" href="../css/print.css" media="print">
+
+        <!-- Custom CSS -->
+
+        <!-- Custom head content -->
+
+        <!-- JSON-LD Structured Data -->
+        <script type="application/ld+json">
+        {
+            "@context": "https://schema.org",
+            "@type": "TechArticle",
+            "headline": "Variables and Context - Unjucks: Modern Code Generation in 2026",
+            "description": "A comprehensive guide to modern code generation using the Unjucks framework, demonstrating declarative development patterns, AI integration, and advanced template design for productive software development.",
+            "author": {
+                "@type": "Organization",
+                "name": "Unjucks Development Team"
+            },
+            "publisher": {
+                "@type": "Organization",
+                "name": "Unjucks",
+                "logo": {
+                    "@type": "ImageObject",
+                    "url": "logo.png"
+                }
+            },
+            "url": "",
+            "mainEntityOfPage": "",
+            "datePublished": "",
+            "dateModified": "",
+            "inLanguage": "en",
+            "about": [
+                "Code Generation",
+                "Template Engine", 
+                "CLI Tools",
+                "Semantic Web",
+                "RDF",
+                "Software Development"
+            ]
+        }
+        </script>
+    </head>
+    <body>
+        <!-- Provide site root to javascript -->
+        <script type="text/javascript">
+            var path_to_root = "../";
+            var default_theme = "navy";
+        </script>
+
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script type="text/javascript">
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme && theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar && sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script type="text/javascript">
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            var html = document.querySelector('html');
+            html.classList.remove('no-js')
+            html.classList.remove('light')
+            html.classList.remove('rust')
+            html.classList.remove('coal')
+            html.classList.remove('navy')
+            html.classList.remove('ayu')
+            html.classList.add(theme);
+            html.classList.add('js');
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script type="text/javascript">
+            var body = document.querySelector('body');
+            var sidebar = null;
+            var sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+            }
+            sidebar_toggle.checked = sidebar === 'visible';
+            body.classList.remove('sidebar-visible');
+            body.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <div class="sidebar-scrollbox">
+                <!-- Unjucks Logo -->
+                <div class="unjucks-logo" style="padding: 1rem; text-align: center; border-bottom: 1px solid #e1e5e9;">
+                    <h3 style="margin: 0; color: #0066cc; font-weight: 700;">🚀 Unjucks</h3>
+                    <p style="margin: 0.5rem 0 0 0; font-size: 0.8rem; color: #666;">Template Generation Platform</p>
+                </div>
+
+                <!-- TOC will be generated automatically by mdbook -->
+            </div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
+        </nav>
+
+        <!-- Page wrapper -->
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label for="sidebar-toggle-anchor" class="left" id="sidebar-toggle" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button left" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy (default)</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button left" type="button" title="Toggle Searchbar" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Unjucks: Modern Code Generation in 2026</h1>
+
+                    <div class="right-buttons">
+                        <a href="../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+                        <a href="https://github.com/ruvnet/unjucks" title="Git repository" aria-label="Git repository">
+                            <i id="git-repository-button" class="fa fa-github"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script type="text/javascript">
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <!-- Breadcrumb Navigation -->
+                        <div class="breadcrumb-nav" style="margin-bottom: 1.5rem; font-size: 0.9rem; color: #666;">
+                            <a href="../index.html">🏠 Home</a>
+                            <span> › </span>
+                            <span>Variables and Context</span>
+                        </div>
+
+                        <h1 id="variable-system"><a class="header" href="#variable-system">Variable System</a></h1>
+<p>The Variable System is Unjucks' intelligent engine for extracting, inferring, and managing template variables. It automatically discovers variables from templates, infers their types, and creates dynamic CLI interfaces that adapt to your templates.</p>
+<h2 id="variable-discovery-pipeline"><a class="header" href="#variable-discovery-pipeline">Variable Discovery Pipeline</a></h2>
+<h3 id="automatic-variable-extraction"><a class="header" href="#automatic-variable-extraction">Automatic Variable Extraction</a></h3>
+<p>The variable extraction process analyzes templates to identify all variable references:</p>
+<pre><code class="language-typescript">// Template analysis identifies these patterns:
+{{ variableName }}                    // Simple variable reference
+{{ user.profile.name }}              // Nested object access
+{{ items[0] }}                       // Array access
+{{ componentName | pascalCase }}      // Variable with filter
+{% if withProps %}                   // Boolean variable in conditional
+{% for method in methods %}          // Array variable in loop
+{{ description | default('None') }}  // Variable with default value
+</code></pre>
+<p><strong>Extraction Algorithm</strong>:</p>
+<pre><code class="language-typescript">class VariableExtractor {
+  extractVariables(template: string): TemplateVariable[] {
+    const variables = new Map&lt;string, TemplateVariable&gt;();
+    
+    // Extract from variable expressions {{ var }}
+    const variableMatches = template.match(/\{\{\s*([^}]+)\s*\}\}/g) || [];
+    variableMatches.forEach(match =&gt; {
+      const variable = this.parseVariableExpression(match);
+      this.addVariable(variables, variable);
+    });
+    
+    // Extract from control structures {% if var %}
+    const controlMatches = template.match(/\{\%\s*(if|unless|for)\s+([^%]+)\s*\%\}/g) || [];
+    controlMatches.forEach(match =&gt; {
+      const variables = this.parseControlStructure(match);
+      variables.forEach(v =&gt; this.addVariable(variables, v));
+    });
+    
+    // Extract from frontmatter variable references
+    const frontmatterVars = this.extractFromFrontmatter(template);
+    frontmatterVars.forEach(v =&gt; this.addVariable(variables, v));
+    
+    return Array.from(variables.values());
+  }
+}
+</code></pre>
+<h3 id="variable-context-analysis"><a class="header" href="#variable-context-analysis">Variable Context Analysis</a></h3>
+<p>Variables are analyzed within their usage context to improve type inference:</p>
+<pre><code class="language-nunjucks">{# Context: Conditional usage suggests boolean #}
+{% if withTests %}
+import { describe, test, expect } from 'vitest';
+{% endif %}
+
+{# Context: Loop usage indicates array type #}
+{% for method in httpMethods %}
+app.{{ method.toLowerCase() }}('{{ route }}', handler);
+{% endfor %}
+
+{# Context: Object property access #}
+{{ config.database.host }}:{{ config.database.port }}
+
+{# Context: Filter usage suggests string type #}
+{{ componentName | pascalCase }}Component
+</code></pre>
+<h2 id="type-inference-system"><a class="header" href="#type-inference-system">Type Inference System</a></h2>
+<h3 id="intelligent-type-detection"><a class="header" href="#intelligent-type-detection">Intelligent Type Detection</a></h3>
+<p>The system uses multiple heuristics to determine variable types:</p>
+<pre><code class="language-typescript">interface TemplateVariable {
+  name: string;
+  type: 'string' | 'boolean' | 'number' | 'array' | 'object';
+  required: boolean;
+  default?: any;
+  description?: string;
+  validation?: ValidationRule[];
+  examples?: string[];
+}
+
+class TypeInferenceEngine {
+  inferType(variableName: string, usageContexts: UsageContext[]): VariableType {
+    // Boolean detection by naming patterns
+    if (this.isBooleanByName(variableName)) {
+      return 'boolean';
+    }
+    
+    // Type detection by usage context
+    for (const context of usageContexts) {
+      if (context.type === 'conditional') return 'boolean';
+      if (context.type === 'loop') return 'array';
+      if (context.type === 'objectAccess') return 'object';
+      if (context.type === 'arithmetic') return 'number';
+    }
+    
+    // Default to string if no specific type detected
+    return 'string';
+  }
+  
+  private isBooleanByName(name: string): boolean {
+    const booleanPrefixes = [
+      'with', 'has', 'is', 'should', 'will', 'can', 'could',
+      'enable', 'disable', 'allow', 'include', 'exclude',
+      'use', 'show', 'hide', 'visible', 'active', 'inactive'
+    ];
+    
+    return booleanPrefixes.some(prefix =&gt; 
+      name.toLowerCase().startsWith(prefix) || 
+      name.toLowerCase().includes(prefix)
+    );
+  }
+}
+</code></pre>
+<h3 id="advanced-type-patterns"><a class="header" href="#advanced-type-patterns">Advanced Type Patterns</a></h3>
+<p>Complex type inference handles sophisticated patterns:</p>
+<pre><code class="language-typescript">// Boolean detection patterns
+const booleanPatterns = {
+  // Prefix patterns
+  with: /^with[A-Z]/,           // withProps, withTests
+  has: /^has[A-Z]/,             // hasAuth, hasDatabase  
+  is: /^is[A-Z]/,               // isActive, isPublic
+  should: /^should[A-Z]/,       // shouldValidate, shouldCache
+  
+  // Suffix patterns  
+  enabled: /Enabled$/,          // authEnabled, debugEnabled
+  disabled: /Disabled$/,        // loggingDisabled
+  
+  // Modal verbs
+  can: /^can[A-Z]/,             // canEdit, canDelete
+  will: /^will[A-Z]/,           // willRedirect
+  
+  // State patterns
+  active: /Active$/,            // isActive, setActive
+  visible: /Visible$/           // isVisible, makeVisible
+};
+
+// Array detection patterns  
+const arrayPatterns = {
+  pluralNouns: /s$/,            // methods, components, routes
+  collections: /(list|items|collection|set)$/i,
+  forLoops: /for\s+\w+\s+in\s+(\w+)/  // {% for item in items %}
+};
+
+// Object detection patterns
+const objectPatterns = {
+  dotAccess: /\w+\.\w+/,        // config.database, user.profile
+  nested: /\w+\.\w+\.\w+/,      // deeply.nested.property
+  configWords: /(config|settings|options|params)$/i
+};
+</code></pre>
+<h3 id="type-validation"><a class="header" href="#type-validation">Type Validation</a></h3>
+<p>Ensure inferred types match actual usage:</p>
+<pre><code class="language-typescript">class TypeValidator {
+  validateInference(variable: TemplateVariable, usages: VariableUsage[]): ValidationResult {
+    const errors: string[] = [];
+    
+    for (const usage of usages) {
+      // Validate boolean usage
+      if (variable.type === 'boolean' &amp;&amp; usage.context === 'string-interpolation') {
+        errors.push(`Boolean variable '${variable.name}' used in string context`);
+      }
+      
+      // Validate array usage
+      if (variable.type === 'array' &amp;&amp; usage.context !== 'loop' &amp;&amp; !usage.hasIndexAccess) {
+        errors.push(`Array variable '${variable.name}' used outside of loop context`);
+      }
+      
+      // Validate object usage
+      if (variable.type === 'object' &amp;&amp; !usage.hasPropertyAccess) {
+        errors.push(`Object variable '${variable.name}' used without property access`);
+      }
+    }
+    
+    return {
+      valid: errors.length === 0,
+      errors,
+      suggestions: this.generateSuggestions(variable, errors)
+    };
+  }
+}
+</code></pre>
+<h2 id="dynamic-cli-generation"><a class="header" href="#dynamic-cli-generation">Dynamic CLI Generation</a></h2>
+<h3 id="automatic-argument-creation"><a class="header" href="#automatic-argument-creation">Automatic Argument Creation</a></h3>
+<p>Variables are automatically converted to CLI arguments with appropriate types:</p>
+<pre><code class="language-typescript">class CLIArgumentGenerator {
+  generateArguments(variables: TemplateVariable[]): CLIArgument[] {
+    return variables.map(variable =&gt; {
+      switch (variable.type) {
+        case 'boolean':
+          return {
+            name: variable.name,
+            type: 'boolean',
+            flags: [`--${variable.name}`, `--no-${variable.name}`],
+            default: variable.default ?? false,
+            description: variable.description
+          };
+          
+        case 'array':
+          return {
+            name: variable.name,
+            type: 'array',
+            flags: [`--${variable.name}`],
+            parser: 'json',
+            default: variable.default ?? [],
+            description: `${variable.description} (JSON array format)`
+          };
+          
+        case 'object':
+          return {
+            name: variable.name,
+            type: 'object',
+            flags: [`--${variable.name}`],
+            parser: 'json',
+            dotNotation: true, // Support --config.database.host
+            default: variable.default ?? {},
+            description: `${variable.description} (JSON object or dot notation)`
+          };
+          
+        case 'number':
+          return {
+            name: variable.name,
+            type: 'number',
+            flags: [`--${variable.name}`],
+            validation: variable.validation,
+            default: variable.default ?? 0,
+            description: variable.description
+          };
+          
+        default: // string
+          return {
+            name: variable.name,
+            type: 'string',
+            flags: [`--${variable.name}`],
+            validation: variable.validation,
+            required: variable.required,
+            default: variable.default,
+            description: variable.description
+          };
+      }
+    });
+  }
+}
+</code></pre>
+<h3 id="flexible-naming-conventions"><a class="header" href="#flexible-naming-conventions">Flexible Naming Conventions</a></h3>
+<p>The CLI accepts multiple naming formats for the same variable:</p>
+<pre><code class="language-bash"># All these set the same variable: componentName
+--componentName=Button     # camelCase (preferred)
+--component-name=Button    # kebab-case  
+--COMPONENT_NAME=Button    # UPPER_CASE
+--component_name=Button    # snake_case
+
+# Boolean variables support multiple formats
+--withProps               # Set to true
+--no-withProps           # Set to false
+--withProps=true         # Explicit true
+--withProps=false        # Explicit false
+</code></pre>
+<pre><code class="language-typescript">class VariableNameResolver {
+  resolveVariableName(input: string, availableVariables: string[]): string | null {
+    const normalizedInput = this.normalize(input);
+    
+    // Find matching variable using different naming conventions
+    return availableVariables.find(variable =&gt; {
+      const variations = [
+        variable,                                    // exact match
+        this.toCamelCase(variable),                 // camelCase
+        this.toKebabCase(variable),                 // kebab-case
+        this.toSnakeCase(variable),                 // snake_case  
+        this.toUpperCase(variable)                  // UPPER_CASE
+      ];
+      
+      return variations.some(v =&gt; this.normalize(v) === normalizedInput);
+    });
+  }
+  
+  private normalize(str: string): string {
+    return str.toLowerCase().replace(/[-_]/g, '');
+  }
+}
+</code></pre>
+<h2 id="context-merging-and-precedence"><a class="header" href="#context-merging-and-precedence">Context Merging and Precedence</a></h2>
+<h3 id="variable-sources"><a class="header" href="#variable-sources">Variable Sources</a></h3>
+<p>Variables can come from multiple sources with defined precedence:</p>
+<pre><code class="language-typescript">interface VariableContext {
+  // Source precedence (highest to lowest)
+  cliArguments: Record&lt;string, any&gt;;        // --flag values
+  environmentVariables: Record&lt;string, any&gt;; // UNJUCKS_* env vars
+  configFile: Record&lt;string, any&gt;;          // unjucks.config.js
+  promptResponses: Record&lt;string, any&gt;;     // Interactive prompts
+  templateDefaults: Record&lt;string, any&gt;;    // Template-defined defaults
+  globalDefaults: Record&lt;string, any&gt;;      // System defaults
+}
+
+class ContextMerger {
+  mergeContexts(contexts: VariableContext): Record&lt;string, any&gt; {
+    const merged = {};
+    
+    // Apply in reverse precedence order (lowest to highest)
+    Object.assign(merged, contexts.globalDefaults);
+    Object.assign(merged, contexts.templateDefaults);
+    Object.assign(merged, contexts.promptResponses);
+    Object.assign(merged, contexts.configFile);
+    Object.assign(merged, contexts.environmentVariables);
+    Object.assign(merged, contexts.cliArguments); // Highest precedence
+    
+    return this.validateMergedContext(merged);
+  }
+}
+</code></pre>
+<h3 id="environment-variable-mapping"><a class="header" href="#environment-variable-mapping">Environment Variable Mapping</a></h3>
+<p>Map environment variables to template variables:</p>
+<pre><code class="language-bash"># Environment variables automatically mapped to variables
+export UNJUCKS_COMPONENT_NAME=Button      # → componentName
+export UNJUCKS_WITH_TESTS=true            # → withTests  
+export UNJUCKS_HTTP_METHODS='["GET","POST"]' # → httpMethods
+
+# Prefix can be customized
+export MYAPP_SERVICE_NAME=UserService     # → serviceName (with prefix MYAPP_)
+</code></pre>
+<pre><code class="language-typescript">class EnvironmentVariableMapper {
+  mapEnvironmentVariables(prefix = 'UNJUCKS_'): Record&lt;string, any&gt; {
+    const mapped = {};
+    
+    for (const [key, value] of Object.entries(process.env)) {
+      if (key.startsWith(prefix)) {
+        const variableName = this.envKeyToVariableName(key, prefix);
+        mapped[variableName] = this.parseEnvironmentValue(value);
+      }
+    }
+    
+    return mapped;
+  }
+  
+  private envKeyToVariableName(envKey: string, prefix: string): string {
+    return envKey
+      .replace(prefix, '')
+      .toLowerCase()
+      .replace(/_([a-z])/g, (_, letter) =&gt; letter.toUpperCase());
+  }
+  
+  private parseEnvironmentValue(value: string): any {
+    // Try to parse as JSON first
+    try {
+      return JSON.parse(value);
+    } catch {
+      // Parse boolean strings
+      if (value.toLowerCase() === 'true') return true;
+      if (value.toLowerCase() === 'false') return false;
+      
+      // Parse numbers
+      if (/^\d+$/.test(value)) return parseInt(value, 10);
+      if (/^\d+\.\d+$/.test(value)) return parseFloat(value);
+      
+      // Return as string
+      return value;
+    }
+  }
+}
+</code></pre>
+<h2 id="global-variables-and-filters"><a class="header" href="#global-variables-and-filters">Global Variables and Filters</a></h2>
+<h3 id="global-variable-system"><a class="header" href="#global-variable-system">Global Variable System</a></h3>
+<p>Define variables available to all templates:</p>
+<pre><code class="language-typescript">// unjucks.config.ts
+export default defineConfig({
+  globalVariables: {
+    // Author information
+    author: 'John Doe',
+    authorEmail: 'john@example.com',
+    
+    // Project metadata  
+    license: 'MIT',
+    currentYear: new Date().getFullYear(),
+    
+    // Build information
+    version: process.env.npm_package_version,
+    buildDate: new Date().toISOString(),
+    
+    // Environment
+    isDevelopment: process.env.NODE_ENV === 'development',
+    isProduction: process.env.NODE_ENV === 'production',
+    
+    // Company/organization info
+    organization: 'ACME Corp',
+    website: 'https://acme.com'
+  }
+});
+</code></pre>
+<p><strong>Usage in Templates</strong>:</p>
+<pre><code class="language-nunjucks">/**
+ * {{ componentName }} Component
+ * 
+ * @author {{ author }} &lt;{{ authorEmail }}&gt;
+ * @copyright {{ currentYear }} {{ organization }}
+ * @license {{ license }}
+ * @version {{ version }}
+ */
+
+{% if isDevelopment %}
+// Development-only code
+console.log('{{ componentName }} component loaded');
+{% endif %}
+
+export const {{ componentName | pascalCase }} = () =&gt; {
+  return (
+    &lt;div&gt;
+      &lt;p&gt;Built on {{ buildDate }}&lt;/p&gt;
+      &lt;p&gt;Visit {{ website }}&lt;/p&gt;
+    &lt;/div&gt;
+  );
+};
+</code></pre>
+<h3 id="custom-filter-registration"><a class="header" href="#custom-filter-registration">Custom Filter Registration</a></h3>
+<p>Extend the template system with custom filters:</p>
+<pre><code class="language-typescript">// unjucks.config.ts
+export default defineConfig({
+  filters: {
+    // Business-specific formatting
+    businessCase: (str: string) =&gt; {
+      return str
+        .split(/[\s_-]+/)
+        .map(word =&gt; word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+        .join('');
+    },
+    
+    // File path utilities
+    dirname: (path: string) =&gt; path.substring(0, path.lastIndexOf('/')),
+    basename: (path: string) =&gt; path.substring(path.lastIndexOf('/') + 1),
+    extname: (path: string) =&gt; path.substring(path.lastIndexOf('.')),
+    
+    // Date formatting
+    formatDate: (date: string | Date, format = 'YYYY-MM-DD') =&gt; {
+      const d = typeof date === 'string' ? new Date(date) : date;
+      return format
+        .replace('YYYY', d.getFullYear().toString())
+        .replace('MM', (d.getMonth() + 1).toString().padStart(2, '0'))
+        .replace('DD', d.getDate().toString().padStart(2, '0'));
+    },
+    
+    // Code generation helpers
+    indent: (text: string, spaces = 2) =&gt; {
+      const indentation = ' '.repeat(spaces);
+      return text.split('\n').map(line =&gt; `${indentation}${line}`).join('\n');
+    },
+    
+    // String manipulation
+    wrap: (text: string, width = 80) =&gt; {
+      const words = text.split(' ');
+      const lines = [];
+      let currentLine = '';
+      
+      for (const word of words) {
+        if (currentLine.length + word.length + 1 &lt;= width) {
+          currentLine += (currentLine ? ' ' : '') + word;
+        } else {
+          if (currentLine) lines.push(currentLine);
+          currentLine = word;
+        }
+      }
+      if (currentLine) lines.push(currentLine);
+      
+      return lines.join('\n');
+    }
+  }
+});
+</code></pre>
+<h3 id="dynamic-global-variables"><a class="header" href="#dynamic-global-variables">Dynamic Global Variables</a></h3>
+<p>Generate global variables dynamically:</p>
+<pre><code class="language-typescript">export default defineConfig({
+  globalVariables: async () =&gt; {
+    const packageJson = await readFile('package.json', 'utf-8');
+    const pkg = JSON.parse(packageJson);
+    
+    const gitCommit = await exec('git rev-parse HEAD');
+    const gitBranch = await exec('git branch --show-current');
+    
+    return {
+      // Package information
+      projectName: pkg.name,
+      projectVersion: pkg.version,
+      projectDescription: pkg.description,
+      dependencies: Object.keys(pkg.dependencies || {}),
+      
+      // Git information
+      gitCommit: gitCommit.trim().slice(0, 7),
+      gitBranch: gitBranch.trim(),
+      
+      // Build timestamp
+      buildTimestamp: Date.now(),
+      buildDate: new Date().toISOString(),
+      
+      // Environment detection
+      ci: !!process.env.CI,
+      nodeVersion: process.version,
+      platform: process.platform
+    };
+  }
+});
+</code></pre>
+<h2 id="variable-validation"><a class="header" href="#variable-validation">Variable Validation</a></h2>
+<h3 id="built-in-validation-rules"><a class="header" href="#built-in-validation-rules">Built-in Validation Rules</a></h3>
+<pre><code class="language-typescript">interface ValidationRule {
+  type: 'required' | 'pattern' | 'length' | 'range' | 'custom';
+  value?: any;
+  message?: string;
+}
+
+// Template frontmatter validation
+---
+validate:
+  componentName:
+    - type: "required"
+      message: "Component name is required"
+    - type: "pattern" 
+      value: "^[A-Z][a-zA-Z0-9]*$"
+      message: "Component name must be PascalCase"
+    - type: "length"
+      value: { min: 3, max: 50 }
+      message: "Component name must be 3-50 characters"
+  
+  methods:
+    - type: "required"
+      message: "At least one HTTP method is required"
+    - type: "custom"
+      value: "validateHttpMethods"
+      message: "Invalid HTTP method specified"
+---
+</code></pre>
+<h3 id="custom-validation-functions"><a class="header" href="#custom-validation-functions">Custom Validation Functions</a></h3>
+<pre><code class="language-typescript">const customValidators = {
+  validateHttpMethods: (methods: string[]): boolean =&gt; {
+    const validMethods = ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'HEAD', 'OPTIONS'];
+    return methods.every(method =&gt; validMethods.includes(method.toUpperCase()));
+  },
+  
+  validateComponentName: (name: string): boolean =&gt; {
+    // Must be PascalCase
+    if (!/^[A-Z][a-zA-Z0-9]*$/.test(name)) return false;
+    
+    // Must not be a reserved word
+    const reserved = ['Component', 'Element', 'Fragment', 'React'];
+    if (reserved.includes(name)) return false;
+    
+    return true;
+  },
+  
+  validateServiceName: (name: string): boolean =&gt; {
+    // Must end with 'Service'
+    if (!name.endsWith('Service')) return false;
+    
+    // Must be at least 3 characters before 'Service'
+    return name.length &gt; 'Service'.length + 2;
+  }
+};
+</code></pre>
+<h2 id="advanced-variable-features"><a class="header" href="#advanced-variable-features">Advanced Variable Features</a></h2>
+<h3 id="computed-variables"><a class="header" href="#computed-variables">Computed Variables</a></h3>
+<p>Variables calculated from other variables:</p>
+<pre><code class="language-typescript">export default defineConfig({
+  computedVariables: {
+    // Derive filename from component name
+    filename: (vars) =&gt; `${vars.componentName}.${vars.fileExtension || 'tsx'}`,
+    
+    // Generate import path
+    importPath: (vars) =&gt; `./components/${vars.componentName}`,
+    
+    // Create test filename
+    testFilename: (vars) =&gt; vars.withTests ? `${vars.componentName}.test.tsx` : null,
+    
+    // Generate class names
+    cssClassName: (vars) =&gt; vars.componentName
+      .replace(/([A-Z])/g, '-$1')
+      .toLowerCase()
+      .substring(1),
+    
+    // Determine file structure
+    isComplexComponent: (vars) =&gt; 
+      vars.withProps || vars.withTests || vars.withStorybook
+  }
+});
+</code></pre>
+<h3 id="variable-transformations"><a class="header" href="#variable-transformations">Variable Transformations</a></h3>
+<p>Transform variables during processing:</p>
+<pre><code class="language-typescript">class VariableTransformer {
+  transform(variables: Record&lt;string, any&gt;): Record&lt;string, any&gt; {
+    const transformed = { ...variables };
+    
+    // Normalize string variables
+    Object.keys(transformed).forEach(key =&gt; {
+      if (typeof transformed[key] === 'string') {
+        transformed[key] = transformed[key].trim();
+      }
+    });
+    
+    // Convert array strings to arrays
+    Object.keys(transformed).forEach(key =&gt; {
+      if (typeof transformed[key] === 'string' &amp;&amp; this.isArrayString(transformed[key])) {
+        try {
+          transformed[key] = JSON.parse(transformed[key]);
+        } catch {
+          // Invalid JSON, keep as string
+        }
+      }
+    });
+    
+    // Apply computed variables
+    const computed = this.computeVariables(transformed);
+    Object.assign(transformed, computed);
+    
+    return transformed;
+  }
+}
+</code></pre>
+<p>The Variable System provides intelligent automation for template variable management, making Unjucks templates self-describing and creating dynamic, type-aware CLI interfaces that adapt to your specific needs.</p>
+
+
+                        <!-- Page Footer -->
+                        <div class="page-footer" style="margin-top: 3rem; padding-top: 2rem; border-top: 1px solid #e1e5e9;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+                                <div class="footer-links" style="display: flex; gap: 1rem; font-size: 0.9rem;">
+                                    <a href="https://unjucks.dev" target="_blank">🌐 Website</a>
+                                    <a href="https://github.com/ruvnet/unjucks" target="_blank">💻 GitHub</a>
+                                    <a href="https://github.com/ruvnet/unjucks/issues" target="_blank">🐛 Issues</a>
+                                    <a href="https://github.com/ruvnet/unjucks/discussions" target="_blank">💬 Discussions</a>
+                                </div>
+                                <div class="footer-info" style="font-size: 0.8rem; color: #888; text-align: right;">
+                                    <p>Built with ❤️ using <a href="https://rust-lang.github.io/mdBook/" target="_blank">mdBook</a></p>
+                                    <p>© 2024 Unjucks Project</p>
+                                </div>
+                            </div>
+                        </div>
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                        <a href="../" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                            <i class="fa fa-angle-left"></i>
+                        </a>
+
+                        <a href="../" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                            <i class="fa fa-angle-right"></i>
+                        </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <!-- Desktop navigation -->
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                <a href="../" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                    <i class="fa fa-angle-left"></i>
+                </a>
+
+                <a href="../" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                    <i class="fa fa-angle-right"></i>
+                </a>
+            </nav>
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../elasticlunr.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="../mark.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="../searcher.js" type="text/javascript" charset="utf-8"></script>
+
+        <script src="../clipboard.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="../highlight.js" type="text/javascript" charset="utf-8"></script>
+        <script src="../book.js" type="text/javascript" charset="utf-8"></script>
+
+        <!-- Custom JS -->
+
+        <!-- Custom body content -->
+        <h1 id="variable-system-1"><a class="header" href="#variable-system-1">Variable System</a></h1>
+<p>The Variable System is Unjucks' intelligent engine for extracting, inferring, and managing template variables. It automatically discovers variables from templates, infers their types, and creates dynamic CLI interfaces that adapt to your templates.</p>
+<h2 id="variable-discovery-pipeline-1"><a class="header" href="#variable-discovery-pipeline-1">Variable Discovery Pipeline</a></h2>
+<h3 id="automatic-variable-extraction-1"><a class="header" href="#automatic-variable-extraction-1">Automatic Variable Extraction</a></h3>
+<p>The variable extraction process analyzes templates to identify all variable references:</p>
+<pre><code class="language-typescript">// Template analysis identifies these patterns:
+{{ variableName }}                    // Simple variable reference
+{{ user.profile.name }}              // Nested object access
+{{ items[0] }}                       // Array access
+{{ componentName | pascalCase }}      // Variable with filter
+{% if withProps %}                   // Boolean variable in conditional
+{% for method in methods %}          // Array variable in loop
+{{ description | default('None') }}  // Variable with default value
+</code></pre>
+<p><strong>Extraction Algorithm</strong>:</p>
+<pre><code class="language-typescript">class VariableExtractor {
+  extractVariables(template: string): TemplateVariable[] {
+    const variables = new Map&lt;string, TemplateVariable&gt;();
+    
+    // Extract from variable expressions {{ var }}
+    const variableMatches = template.match(/\{\{\s*([^}]+)\s*\}\}/g) || [];
+    variableMatches.forEach(match =&gt; {
+      const variable = this.parseVariableExpression(match);
+      this.addVariable(variables, variable);
+    });
+    
+    // Extract from control structures {% if var %}
+    const controlMatches = template.match(/\{\%\s*(if|unless|for)\s+([^%]+)\s*\%\}/g) || [];
+    controlMatches.forEach(match =&gt; {
+      const variables = this.parseControlStructure(match);
+      variables.forEach(v =&gt; this.addVariable(variables, v));
+    });
+    
+    // Extract from frontmatter variable references
+    const frontmatterVars = this.extractFromFrontmatter(template);
+    frontmatterVars.forEach(v =&gt; this.addVariable(variables, v));
+    
+    return Array.from(variables.values());
+  }
+}
+</code></pre>
+<h3 id="variable-context-analysis-1"><a class="header" href="#variable-context-analysis-1">Variable Context Analysis</a></h3>
+<p>Variables are analyzed within their usage context to improve type inference:</p>
+<pre><code class="language-nunjucks">{# Context: Conditional usage suggests boolean #}
+{% if withTests %}
+import { describe, test, expect } from 'vitest';
+{% endif %}
+
+{# Context: Loop usage indicates array type #}
+{% for method in httpMethods %}
+app.{{ method.toLowerCase() }}('{{ route }}', handler);
+{% endfor %}
+
+{# Context: Object property access #}
+{{ config.database.host }}:{{ config.database.port }}
+
+{# Context: Filter usage suggests string type #}
+{{ componentName | pascalCase }}Component
+</code></pre>
+<h2 id="type-inference-system-1"><a class="header" href="#type-inference-system-1">Type Inference System</a></h2>
+<h3 id="intelligent-type-detection-1"><a class="header" href="#intelligent-type-detection-1">Intelligent Type Detection</a></h3>
+<p>The system uses multiple heuristics to determine variable types:</p>
+<pre><code class="language-typescript">interface TemplateVariable {
+  name: string;
+  type: 'string' | 'boolean' | 'number' | 'array' | 'object';
+  required: boolean;
+  default?: any;
+  description?: string;
+  validation?: ValidationRule[];
+  examples?: string[];
+}
+
+class TypeInferenceEngine {
+  inferType(variableName: string, usageContexts: UsageContext[]): VariableType {
+    // Boolean detection by naming patterns
+    if (this.isBooleanByName(variableName)) {
+      return 'boolean';
+    }
+    
+    // Type detection by usage context
+    for (const context of usageContexts) {
+      if (context.type === 'conditional') return 'boolean';
+      if (context.type === 'loop') return 'array';
+      if (context.type === 'objectAccess') return 'object';
+      if (context.type === 'arithmetic') return 'number';
+    }
+    
+    // Default to string if no specific type detected
+    return 'string';
+  }
+  
+  private isBooleanByName(name: string): boolean {
+    const booleanPrefixes = [
+      'with', 'has', 'is', 'should', 'will', 'can', 'could',
+      'enable', 'disable', 'allow', 'include', 'exclude',
+      'use', 'show', 'hide', 'visible', 'active', 'inactive'
+    ];
+    
+    return booleanPrefixes.some(prefix =&gt; 
+      name.toLowerCase().startsWith(prefix) || 
+      name.toLowerCase().includes(prefix)
+    );
+  }
+}
+</code></pre>
+<h3 id="advanced-type-patterns-1"><a class="header" href="#advanced-type-patterns-1">Advanced Type Patterns</a></h3>
+<p>Complex type inference handles sophisticated patterns:</p>
+<pre><code class="language-typescript">// Boolean detection patterns
+const booleanPatterns = {
+  // Prefix patterns
+  with: /^with[A-Z]/,           // withProps, withTests
+  has: /^has[A-Z]/,             // hasAuth, hasDatabase  
+  is: /^is[A-Z]/,               // isActive, isPublic
+  should: /^should[A-Z]/,       // shouldValidate, shouldCache
+  
+  // Suffix patterns  
+  enabled: /Enabled$/,          // authEnabled, debugEnabled
+  disabled: /Disabled$/,        // loggingDisabled
+  
+  // Modal verbs
+  can: /^can[A-Z]/,             // canEdit, canDelete
+  will: /^will[A-Z]/,           // willRedirect
+  
+  // State patterns
+  active: /Active$/,            // isActive, setActive
+  visible: /Visible$/           // isVisible, makeVisible
+};
+
+// Array detection patterns  
+const arrayPatterns = {
+  pluralNouns: /s$/,            // methods, components, routes
+  collections: /(list|items|collection|set)$/i,
+  forLoops: /for\s+\w+\s+in\s+(\w+)/  // {% for item in items %}
+};
+
+// Object detection patterns
+const objectPatterns = {
+  dotAccess: /\w+\.\w+/,        // config.database, user.profile
+  nested: /\w+\.\w+\.\w+/,      // deeply.nested.property
+  configWords: /(config|settings|options|params)$/i
+};
+</code></pre>
+<h3 id="type-validation-1"><a class="header" href="#type-validation-1">Type Validation</a></h3>
+<p>Ensure inferred types match actual usage:</p>
+<pre><code class="language-typescript">class TypeValidator {
+  validateInference(variable: TemplateVariable, usages: VariableUsage[]): ValidationResult {
+    const errors: string[] = [];
+    
+    for (const usage of usages) {
+      // Validate boolean usage
+      if (variable.type === 'boolean' &amp;&amp; usage.context === 'string-interpolation') {
+        errors.push(`Boolean variable '${variable.name}' used in string context`);
+      }
+      
+      // Validate array usage
+      if (variable.type === 'array' &amp;&amp; usage.context !== 'loop' &amp;&amp; !usage.hasIndexAccess) {
+        errors.push(`Array variable '${variable.name}' used outside of loop context`);
+      }
+      
+      // Validate object usage
+      if (variable.type === 'object' &amp;&amp; !usage.hasPropertyAccess) {
+        errors.push(`Object variable '${variable.name}' used without property access`);
+      }
+    }
+    
+    return {
+      valid: errors.length === 0,
+      errors,
+      suggestions: this.generateSuggestions(variable, errors)
+    };
+  }
+}
+</code></pre>
+<h2 id="dynamic-cli-generation-1"><a class="header" href="#dynamic-cli-generation-1">Dynamic CLI Generation</a></h2>
+<h3 id="automatic-argument-creation-1"><a class="header" href="#automatic-argument-creation-1">Automatic Argument Creation</a></h3>
+<p>Variables are automatically converted to CLI arguments with appropriate types:</p>
+<pre><code class="language-typescript">class CLIArgumentGenerator {
+  generateArguments(variables: TemplateVariable[]): CLIArgument[] {
+    return variables.map(variable =&gt; {
+      switch (variable.type) {
+        case 'boolean':
+          return {
+            name: variable.name,
+            type: 'boolean',
+            flags: [`--${variable.name}`, `--no-${variable.name}`],
+            default: variable.default ?? false,
+            description: variable.description
+          };
+          
+        case 'array':
+          return {
+            name: variable.name,
+            type: 'array',
+            flags: [`--${variable.name}`],
+            parser: 'json',
+            default: variable.default ?? [],
+            description: `${variable.description} (JSON array format)`
+          };
+          
+        case 'object':
+          return {
+            name: variable.name,
+            type: 'object',
+            flags: [`--${variable.name}`],
+            parser: 'json',
+            dotNotation: true, // Support --config.database.host
+            default: variable.default ?? {},
+            description: `${variable.description} (JSON object or dot notation)`
+          };
+          
+        case 'number':
+          return {
+            name: variable.name,
+            type: 'number',
+            flags: [`--${variable.name}`],
+            validation: variable.validation,
+            default: variable.default ?? 0,
+            description: variable.description
+          };
+          
+        default: // string
+          return {
+            name: variable.name,
+            type: 'string',
+            flags: [`--${variable.name}`],
+            validation: variable.validation,
+            required: variable.required,
+            default: variable.default,
+            description: variable.description
+          };
+      }
+    });
+  }
+}
+</code></pre>
+<h3 id="flexible-naming-conventions-1"><a class="header" href="#flexible-naming-conventions-1">Flexible Naming Conventions</a></h3>
+<p>The CLI accepts multiple naming formats for the same variable:</p>
+<pre><code class="language-bash"># All these set the same variable: componentName
+--componentName=Button     # camelCase (preferred)
+--component-name=Button    # kebab-case  
+--COMPONENT_NAME=Button    # UPPER_CASE
+--component_name=Button    # snake_case
+
+# Boolean variables support multiple formats
+--withProps               # Set to true
+--no-withProps           # Set to false
+--withProps=true         # Explicit true
+--withProps=false        # Explicit false
+</code></pre>
+<pre><code class="language-typescript">class VariableNameResolver {
+  resolveVariableName(input: string, availableVariables: string[]): string | null {
+    const normalizedInput = this.normalize(input);
+    
+    // Find matching variable using different naming conventions
+    return availableVariables.find(variable =&gt; {
+      const variations = [
+        variable,                                    // exact match
+        this.toCamelCase(variable),                 // camelCase
+        this.toKebabCase(variable),                 // kebab-case
+        this.toSnakeCase(variable),                 // snake_case  
+        this.toUpperCase(variable)                  // UPPER_CASE
+      ];
+      
+      return variations.some(v =&gt; this.normalize(v) === normalizedInput);
+    });
+  }
+  
+  private normalize(str: string): string {
+    return str.toLowerCase().replace(/[-_]/g, '');
+  }
+}
+</code></pre>
+<h2 id="context-merging-and-precedence-1"><a class="header" href="#context-merging-and-precedence-1">Context Merging and Precedence</a></h2>
+<h3 id="variable-sources-1"><a class="header" href="#variable-sources-1">Variable Sources</a></h3>
+<p>Variables can come from multiple sources with defined precedence:</p>
+<pre><code class="language-typescript">interface VariableContext {
+  // Source precedence (highest to lowest)
+  cliArguments: Record&lt;string, any&gt;;        // --flag values
+  environmentVariables: Record&lt;string, any&gt;; // UNJUCKS_* env vars
+  configFile: Record&lt;string, any&gt;;          // unjucks.config.js
+  promptResponses: Record&lt;string, any&gt;;     // Interactive prompts
+  templateDefaults: Record&lt;string, any&gt;;    // Template-defined defaults
+  globalDefaults: Record&lt;string, any&gt;;      // System defaults
+}
+
+class ContextMerger {
+  mergeContexts(contexts: VariableContext): Record&lt;string, any&gt; {
+    const merged = {};
+    
+    // Apply in reverse precedence order (lowest to highest)
+    Object.assign(merged, contexts.globalDefaults);
+    Object.assign(merged, contexts.templateDefaults);
+    Object.assign(merged, contexts.promptResponses);
+    Object.assign(merged, contexts.configFile);
+    Object.assign(merged, contexts.environmentVariables);
+    Object.assign(merged, contexts.cliArguments); // Highest precedence
+    
+    return this.validateMergedContext(merged);
+  }
+}
+</code></pre>
+<h3 id="environment-variable-mapping-1"><a class="header" href="#environment-variable-mapping-1">Environment Variable Mapping</a></h3>
+<p>Map environment variables to template variables:</p>
+<pre><code class="language-bash"># Environment variables automatically mapped to variables
+export UNJUCKS_COMPONENT_NAME=Button      # → componentName
+export UNJUCKS_WITH_TESTS=true            # → withTests  
+export UNJUCKS_HTTP_METHODS='["GET","POST"]' # → httpMethods
+
+# Prefix can be customized
+export MYAPP_SERVICE_NAME=UserService     # → serviceName (with prefix MYAPP_)
+</code></pre>
+<pre><code class="language-typescript">class EnvironmentVariableMapper {
+  mapEnvironmentVariables(prefix = 'UNJUCKS_'): Record&lt;string, any&gt; {
+    const mapped = {};
+    
+    for (const [key, value] of Object.entries(process.env)) {
+      if (key.startsWith(prefix)) {
+        const variableName = this.envKeyToVariableName(key, prefix);
+        mapped[variableName] = this.parseEnvironmentValue(value);
+      }
+    }
+    
+    return mapped;
+  }
+  
+  private envKeyToVariableName(envKey: string, prefix: string): string {
+    return envKey
+      .replace(prefix, '')
+      .toLowerCase()
+      .replace(/_([a-z])/g, (_, letter) =&gt; letter.toUpperCase());
+  }
+  
+  private parseEnvironmentValue(value: string): any {
+    // Try to parse as JSON first
+    try {
+      return JSON.parse(value);
+    } catch {
+      // Parse boolean strings
+      if (value.toLowerCase() === 'true') return true;
+      if (value.toLowerCase() === 'false') return false;
+      
+      // Parse numbers
+      if (/^\d+$/.test(value)) return parseInt(value, 10);
+      if (/^\d+\.\d+$/.test(value)) return parseFloat(value);
+      
+      // Return as string
+      return value;
+    }
+  }
+}
+</code></pre>
+<h2 id="global-variables-and-filters-1"><a class="header" href="#global-variables-and-filters-1">Global Variables and Filters</a></h2>
+<h3 id="global-variable-system-1"><a class="header" href="#global-variable-system-1">Global Variable System</a></h3>
+<p>Define variables available to all templates:</p>
+<pre><code class="language-typescript">// unjucks.config.ts
+export default defineConfig({
+  globalVariables: {
+    // Author information
+    author: 'John Doe',
+    authorEmail: 'john@example.com',
+    
+    // Project metadata  
+    license: 'MIT',
+    currentYear: new Date().getFullYear(),
+    
+    // Build information
+    version: process.env.npm_package_version,
+    buildDate: new Date().toISOString(),
+    
+    // Environment
+    isDevelopment: process.env.NODE_ENV === 'development',
+    isProduction: process.env.NODE_ENV === 'production',
+    
+    // Company/organization info
+    organization: 'ACME Corp',
+    website: 'https://acme.com'
+  }
+});
+</code></pre>
+<p><strong>Usage in Templates</strong>:</p>
+<pre><code class="language-nunjucks">/**
+ * {{ componentName }} Component
+ * 
+ * @author {{ author }} &lt;{{ authorEmail }}&gt;
+ * @copyright {{ currentYear }} {{ organization }}
+ * @license {{ license }}
+ * @version {{ version }}
+ */
+
+{% if isDevelopment %}
+// Development-only code
+console.log('{{ componentName }} component loaded');
+{% endif %}
+
+export const {{ componentName | pascalCase }} = () =&gt; {
+  return (
+    &lt;div&gt;
+      &lt;p&gt;Built on {{ buildDate }}&lt;/p&gt;
+      &lt;p&gt;Visit {{ website }}&lt;/p&gt;
+    &lt;/div&gt;
+  );
+};
+</code></pre>
+<h3 id="custom-filter-registration-1"><a class="header" href="#custom-filter-registration-1">Custom Filter Registration</a></h3>
+<p>Extend the template system with custom filters:</p>
+<pre><code class="language-typescript">// unjucks.config.ts
+export default defineConfig({
+  filters: {
+    // Business-specific formatting
+    businessCase: (str: string) =&gt; {
+      return str
+        .split(/[\s_-]+/)
+        .map(word =&gt; word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+        .join('');
+    },
+    
+    // File path utilities
+    dirname: (path: string) =&gt; path.substring(0, path.lastIndexOf('/')),
+    basename: (path: string) =&gt; path.substring(path.lastIndexOf('/') + 1),
+    extname: (path: string) =&gt; path.substring(path.lastIndexOf('.')),
+    
+    // Date formatting
+    formatDate: (date: string | Date, format = 'YYYY-MM-DD') =&gt; {
+      const d = typeof date === 'string' ? new Date(date) : date;
+      return format
+        .replace('YYYY', d.getFullYear().toString())
+        .replace('MM', (d.getMonth() + 1).toString().padStart(2, '0'))
+        .replace('DD', d.getDate().toString().padStart(2, '0'));
+    },
+    
+    // Code generation helpers
+    indent: (text: string, spaces = 2) =&gt; {
+      const indentation = ' '.repeat(spaces);
+      return text.split('\n').map(line =&gt; `${indentation}${line}`).join('\n');
+    },
+    
+    // String manipulation
+    wrap: (text: string, width = 80) =&gt; {
+      const words = text.split(' ');
+      const lines = [];
+      let currentLine = '';
+      
+      for (const word of words) {
+        if (currentLine.length + word.length + 1 &lt;= width) {
+          currentLine += (currentLine ? ' ' : '') + word;
+        } else {
+          if (currentLine) lines.push(currentLine);
+          currentLine = word;
+        }
+      }
+      if (currentLine) lines.push(currentLine);
+      
+      return lines.join('\n');
+    }
+  }
+});
+</code></pre>
+<h3 id="dynamic-global-variables-1"><a class="header" href="#dynamic-global-variables-1">Dynamic Global Variables</a></h3>
+<p>Generate global variables dynamically:</p>
+<pre><code class="language-typescript">export default defineConfig({
+  globalVariables: async () =&gt; {
+    const packageJson = await readFile('package.json', 'utf-8');
+    const pkg = JSON.parse(packageJson);
+    
+    const gitCommit = await exec('git rev-parse HEAD');
+    const gitBranch = await exec('git branch --show-current');
+    
+    return {
+      // Package information
+      projectName: pkg.name,
+      projectVersion: pkg.version,
+      projectDescription: pkg.description,
+      dependencies: Object.keys(pkg.dependencies || {}),
+      
+      // Git information
+      gitCommit: gitCommit.trim().slice(0, 7),
+      gitBranch: gitBranch.trim(),
+      
+      // Build timestamp
+      buildTimestamp: Date.now(),
+      buildDate: new Date().toISOString(),
+      
+      // Environment detection
+      ci: !!process.env.CI,
+      nodeVersion: process.version,
+      platform: process.platform
+    };
+  }
+});
+</code></pre>
+<h2 id="variable-validation-1"><a class="header" href="#variable-validation-1">Variable Validation</a></h2>
+<h3 id="built-in-validation-rules-1"><a class="header" href="#built-in-validation-rules-1">Built-in Validation Rules</a></h3>
+<pre><code class="language-typescript">interface ValidationRule {
+  type: 'required' | 'pattern' | 'length' | 'range' | 'custom';
+  value?: any;
+  message?: string;
+}
+
+// Template frontmatter validation
+---
+validate:
+  componentName:
+    - type: "required"
+      message: "Component name is required"
+    - type: "pattern" 
+      value: "^[A-Z][a-zA-Z0-9]*$"
+      message: "Component name must be PascalCase"
+    - type: "length"
+      value: { min: 3, max: 50 }
+      message: "Component name must be 3-50 characters"
+  
+  methods:
+    - type: "required"
+      message: "At least one HTTP method is required"
+    - type: "custom"
+      value: "validateHttpMethods"
+      message: "Invalid HTTP method specified"
+---
+</code></pre>
+<h3 id="custom-validation-functions-1"><a class="header" href="#custom-validation-functions-1">Custom Validation Functions</a></h3>
+<pre><code class="language-typescript">const customValidators = {
+  validateHttpMethods: (methods: string[]): boolean =&gt; {
+    const validMethods = ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'HEAD', 'OPTIONS'];
+    return methods.every(method =&gt; validMethods.includes(method.toUpperCase()));
+  },
+  
+  validateComponentName: (name: string): boolean =&gt; {
+    // Must be PascalCase
+    if (!/^[A-Z][a-zA-Z0-9]*$/.test(name)) return false;
+    
+    // Must not be a reserved word
+    const reserved = ['Component', 'Element', 'Fragment', 'React'];
+    if (reserved.includes(name)) return false;
+    
+    return true;
+  },
+  
+  validateServiceName: (name: string): boolean =&gt; {
+    // Must end with 'Service'
+    if (!name.endsWith('Service')) return false;
+    
+    // Must be at least 3 characters before 'Service'
+    return name.length &gt; 'Service'.length + 2;
+  }
+};
+</code></pre>
+<h2 id="advanced-variable-features-1"><a class="header" href="#advanced-variable-features-1">Advanced Variable Features</a></h2>
+<h3 id="computed-variables-1"><a class="header" href="#computed-variables-1">Computed Variables</a></h3>
+<p>Variables calculated from other variables:</p>
+<pre><code class="language-typescript">export default defineConfig({
+  computedVariables: {
+    // Derive filename from component name
+    filename: (vars) =&gt; `${vars.componentName}.${vars.fileExtension || 'tsx'}`,
+    
+    // Generate import path
+    importPath: (vars) =&gt; `./components/${vars.componentName}`,
+    
+    // Create test filename
+    testFilename: (vars) =&gt; vars.withTests ? `${vars.componentName}.test.tsx` : null,
+    
+    // Generate class names
+    cssClassName: (vars) =&gt; vars.componentName
+      .replace(/([A-Z])/g, '-$1')
+      .toLowerCase()
+      .substring(1),
+    
+    // Determine file structure
+    isComplexComponent: (vars) =&gt; 
+      vars.withProps || vars.withTests || vars.withStorybook
+  }
+});
+</code></pre>
+<h3 id="variable-transformations-1"><a class="header" href="#variable-transformations-1">Variable Transformations</a></h3>
+<p>Transform variables during processing:</p>
+<pre><code class="language-typescript">class VariableTransformer {
+  transform(variables: Record&lt;string, any&gt;): Record&lt;string, any&gt; {
+    const transformed = { ...variables };
+    
+    // Normalize string variables
+    Object.keys(transformed).forEach(key =&gt; {
+      if (typeof transformed[key] === 'string') {
+        transformed[key] = transformed[key].trim();
+      }
+    });
+    
+    // Convert array strings to arrays
+    Object.keys(transformed).forEach(key =&gt; {
+      if (typeof transformed[key] === 'string' &amp;&amp; this.isArrayString(transformed[key])) {
+        try {
+          transformed[key] = JSON.parse(transformed[key]);
+        } catch {
+          // Invalid JSON, keep as string
+        }
+      }
+    });
+    
+    // Apply computed variables
+    const computed = this.computeVariables(transformed);
+    Object.assign(transformed, computed);
+    
+    return transformed;
+  }
+}
+</code></pre>
+<p>The Variable System provides intelligent automation for template variable management, making Unjucks templates self-describing and creating dynamic, type-aware CLI interfaces that adapt to your specific needs.</p>
+
+
+        <!-- Performance monitoring -->
+        <script>
+            // Simple performance monitoring
+            window.addEventListener('load', function() {
+                if ('performance' in window) {
+                    setTimeout(function() {
+                        const loadTime = performance.timing.loadEventEnd - performance.timing.navigationStart;
+                        console.log('📊 Page loaded in ' + loadTime + 'ms');
+                    }, 0);
+                }
+            });
+        </script>
+
+        <!-- Service Worker for offline support -->
+        <script>
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.register('../sw.js')
+                    .then(function(registration) {
+                        console.log('📱 SW registered with scope:', registration.scope);
+                    })
+                    .catch(function(error) {
+                        console.log('❌ SW registration failed:', error);
+                    });
+            }
+        </script>
+    </body>
+</html>

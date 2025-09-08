@@ -1,0 +1,1351 @@
+<!DOCTYPE HTML>
+<html lang="en" class="navy" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>File Operations - Unjucks: Modern Code Generation in 2026</title>
+        <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+        <meta name="description" content="A comprehensive guide to modern code generation using the Unjucks framework, demonstrating declarative development patterns, AI integration, and advanced template design for productive software development.">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#0066cc"/>
+
+        <!-- Open Graph -->
+        <meta property="og:title" content="File Operations - Unjucks: Modern Code Generation in 2026">
+        <meta property="og:description" content="A comprehensive guide to modern code generation using the Unjucks framework, demonstrating declarative development patterns, AI integration, and advanced template design for productive software development.">
+        <meta property="og:type" content="website">
+        <meta property="og:url" content="">
+        <meta property="og:image" content="unjucks-og.png">
+        
+        <!-- Twitter Card -->
+        <meta name="twitter:card" content="summary_large_image">
+        <meta name="twitter:title" content="File Operations - Unjucks: Modern Code Generation in 2026">
+        <meta name="twitter:description" content="A comprehensive guide to modern code generation using the Unjucks framework, demonstrating declarative development patterns, AI integration, and advanced template design for productive software development.">
+        <meta name="twitter:image" content="unjucks-og.png">
+
+
+        <!-- Custom Unjucks Favicon -->
+        <link rel="icon" href="../favicon.png">
+        <link rel="shortcut icon" href="../favicon.png">
+
+        <!-- Fonts -->
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+
+        <link rel="stylesheet" href="../css/variables.css">
+        <link rel="stylesheet" href="../css/general.css">
+        <link rel="stylesheet" href="../css/chrome.css">
+        <link rel="stylesheet" href="../css/print.css" media="print">
+
+        <!-- Custom CSS -->
+
+        <!-- Custom head content -->
+
+        <!-- JSON-LD Structured Data -->
+        <script type="application/ld+json">
+        {
+            "@context": "https://schema.org",
+            "@type": "TechArticle",
+            "headline": "File Operations - Unjucks: Modern Code Generation in 2026",
+            "description": "A comprehensive guide to modern code generation using the Unjucks framework, demonstrating declarative development patterns, AI integration, and advanced template design for productive software development.",
+            "author": {
+                "@type": "Organization",
+                "name": "Unjucks Development Team"
+            },
+            "publisher": {
+                "@type": "Organization",
+                "name": "Unjucks",
+                "logo": {
+                    "@type": "ImageObject",
+                    "url": "logo.png"
+                }
+            },
+            "url": "",
+            "mainEntityOfPage": "",
+            "datePublished": "",
+            "dateModified": "",
+            "inLanguage": "en",
+            "about": [
+                "Code Generation",
+                "Template Engine", 
+                "CLI Tools",
+                "Semantic Web",
+                "RDF",
+                "Software Development"
+            ]
+        }
+        </script>
+    </head>
+    <body>
+        <!-- Provide site root to javascript -->
+        <script type="text/javascript">
+            var path_to_root = "../";
+            var default_theme = "navy";
+        </script>
+
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script type="text/javascript">
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme && theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar && sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script type="text/javascript">
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            var html = document.querySelector('html');
+            html.classList.remove('no-js')
+            html.classList.remove('light')
+            html.classList.remove('rust')
+            html.classList.remove('coal')
+            html.classList.remove('navy')
+            html.classList.remove('ayu')
+            html.classList.add(theme);
+            html.classList.add('js');
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script type="text/javascript">
+            var body = document.querySelector('body');
+            var sidebar = null;
+            var sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+            }
+            sidebar_toggle.checked = sidebar === 'visible';
+            body.classList.remove('sidebar-visible');
+            body.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <div class="sidebar-scrollbox">
+                <!-- Unjucks Logo -->
+                <div class="unjucks-logo" style="padding: 1rem; text-align: center; border-bottom: 1px solid #e1e5e9;">
+                    <h3 style="margin: 0; color: #0066cc; font-weight: 700;">🚀 Unjucks</h3>
+                    <p style="margin: 0.5rem 0 0 0; font-size: 0.8rem; color: #666;">Template Generation Platform</p>
+                </div>
+
+                <!-- TOC will be generated automatically by mdbook -->
+            </div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
+        </nav>
+
+        <!-- Page wrapper -->
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label for="sidebar-toggle-anchor" class="left" id="sidebar-toggle" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button left" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy (default)</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button left" type="button" title="Toggle Searchbar" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Unjucks: Modern Code Generation in 2026</h1>
+
+                    <div class="right-buttons">
+                        <a href="../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+                        <a href="https://github.com/ruvnet/unjucks" title="Git repository" aria-label="Git repository">
+                            <i id="git-repository-button" class="fa fa-github"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script type="text/javascript">
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <!-- Breadcrumb Navigation -->
+                        <div class="breadcrumb-nav" style="margin-bottom: 1.5rem; font-size: 0.9rem; color: #666;">
+                            <a href="../index.html">🏠 Home</a>
+                            <span> › </span>
+                            <span>File Operations</span>
+                        </div>
+
+                        <h1 id="file-operations"><a class="header" href="#file-operations">File Operations</a></h1>
+<p>File Operations are the execution engine of Unjucks, providing six powerful modes for creating and modifying files. These operations support everything from simple file creation to sophisticated code injection and atomic modifications.</p>
+<h2 id="the-six-core-operations"><a class="header" href="#the-six-core-operations">The Six Core Operations</a></h2>
+<p>Unjucks provides six fundamental file operations, each designed for specific use cases in code generation:</p>
+<ol>
+<li><strong>write</strong> - Create new files or overwrite existing ones (default)</li>
+<li><strong>inject</strong> - Insert content into existing files at specific markers</li>
+<li><strong>append</strong> - Add content to the end of existing files</li>
+<li><strong>prepend</strong> - Add content to the beginning of existing files</li>
+<li><strong>lineAt</strong> - Insert content at specific line numbers</li>
+<li><strong>skipIf</strong> - Conditional operation control</li>
+</ol>
+<h2 id="operation-modes"><a class="header" href="#operation-modes">Operation Modes</a></h2>
+<h3 id="1-write-operation-default"><a class="header" href="#1-write-operation-default">1. Write Operation (Default)</a></h3>
+<p>Creates new files or overwrites existing ones with complete content.</p>
+<pre><code class="language-yaml">---
+to: "src/components/{{ name | pascalCase }}.tsx"
+# write is the default operation (no explicit declaration needed)
+---
+import React from 'react';
+
+export const {{ name | pascalCase }} = () =&gt; {
+  return &lt;div&gt;{{ name }}&lt;/div&gt;;
+};
+</code></pre>
+<p><strong>Key Characteristics</strong>:</p>
+<ul>
+<li>Creates parent directories automatically if they don't exist</li>
+<li>Overwrites existing files when using <code>--force</code> flag</li>
+<li>Uses atomic operations (write to temp file, then rename)</li>
+<li>Preserves file permissions from previous file or sets defaults</li>
+<li>Supports content validation before writing</li>
+</ul>
+<p><strong>Use Cases</strong>:</p>
+<ul>
+<li>Generating new components, services, or modules</li>
+<li>Creating configuration files</li>
+<li>Building project scaffolding</li>
+<li>Generating documentation files</li>
+</ul>
+<h3 id="2-inject-operation"><a class="header" href="#2-inject-operation">2. Inject Operation</a></h3>
+<p>The most sophisticated operation, inserting content into existing files at designated markers.</p>
+<pre><code class="language-yaml">---
+to: "src/index.ts"
+inject: true
+before: "// COMPONENT_IMPORTS"
+after: "// END_COMPONENT_IMPORTS"
+---
+export { {{ name | pascalCase }} } from './components/{{ name | pascalCase }}';
+</code></pre>
+<p><strong>Target File Example</strong>:</p>
+<pre><code class="language-typescript">// src/index.ts
+import React from 'react';
+
+// COMPONENT_IMPORTS
+export { Button } from './components/Button';     // ← Previous injection
+export { Modal } from './components/Modal';      // ← Previous injection  
+export { Header } from './components/Header';    // ← New injection here
+// END_COMPONENT_IMPORTS
+
+export { theme } from './theme';
+</code></pre>
+<p><strong>Advanced Injection Configuration</strong>:</p>
+<pre><code class="language-yaml">---
+inject: true
+before: "// IMPORTS_START"
+after: "// IMPORTS_END"
+strategy: "append"          # append | prepend | replace
+preserveIndentation: true   # Match existing indentation
+deduplicateContent: true   # Prevent duplicate injections
+sortInjections: true       # Sort injected content alphabetically  
+---
+</code></pre>
+<p><strong>Injection Strategies</strong>:</p>
+<ul>
+<li><strong>append</strong> - Add new content after existing injected content</li>
+<li><strong>prepend</strong> - Add new content before existing injected content</li>
+<li><strong>replace</strong> - Replace all content between markers</li>
+<li><strong>merge</strong> - Intelligent merging for specific content types</li>
+</ul>
+<p><strong>Smart Content Detection</strong>:</p>
+<pre><code class="language-yaml">---
+inject: true
+mode: "smart"
+target: "imports"           # Auto-detect import section
+deduplicateImports: true   # Prevent duplicate import statements
+sortImports: true          # Alphabetically sort imports
+---
+import { {{ componentName }} } from './components/{{ componentName }}';
+</code></pre>
+<h3 id="3-append-operation"><a class="header" href="#3-append-operation">3. Append Operation</a></h3>
+<p>Adds content to the end of existing files.</p>
+<pre><code class="language-yaml">---
+to: "package.json"
+append: true
+jsonPath: "dependencies"    # For JSON files, specify path
+---
+"{{ packageName }}": "^{{ version }}"
+</code></pre>
+<p><strong>Advanced JSON Manipulation</strong>:</p>
+<pre><code class="language-yaml">---
+to: "tsconfig.json"  
+append: true
+jsonPath: "compilerOptions.paths"
+merge: true             # Merge with existing paths
+---
+{
+  "{{ alias }}/*": ["{{ srcPath }}/*"]
+}
+</code></pre>
+<p><strong>Text File Appending</strong>:</p>
+<pre><code class="language-yaml">---
+to: ".gitignore"
+append: true
+addNewline: true        # Ensure newline before content
+deduplicate: true       # Don't add if already present
+---
+# Generated files
+dist/
+*.log
+</code></pre>
+<h3 id="4-prepend-operation"><a class="header" href="#4-prepend-operation">4. Prepend Operation</a></h3>
+<p>Adds content to the beginning of existing files.</p>
+<pre><code class="language-yaml">---
+to: "src/types.ts"
+prepend: true
+preserveShebang: true   # Keep #!/usr/bin/env node if present
+preserveHeader: true    # Keep existing license/copyright headers
+---
+// Auto-generated type definitions for {{ name }}
+export interface {{ name | pascalCase }} {
+  id: string;
+  name: string;
+  createdAt: Date;
+}
+</code></pre>
+<p><strong>Intelligent Header Detection</strong>:</p>
+<pre><code class="language-yaml">---
+prepend: true
+insertAfterHeaders: true    # Skip license/copyright headers
+insertAfterImports: false   # Insert before imports
+preserveDocstrings: true    # Keep module-level docstrings
+---
+</code></pre>
+<h3 id="5-lineat-operation"><a class="header" href="#5-lineat-operation">5. LineAt Operation</a></h3>
+<p>Inserts content at specific line numbers with precise control.</p>
+<pre><code class="language-yaml">---
+to: "src/config/database.ts"
+lineAt: 15               # Insert at line 15
+preserveIndentation: true # Match indentation of target line
+---
+  {{ configKey }}: '{{ configValue }}',
+</code></pre>
+<p><strong>Multiple Line Insertions</strong>:</p>
+<pre><code class="language-yaml">---
+lineAt: [10, 25, 40]    # Insert at multiple lines
+strategy: "distributed" # How to handle multiple insertions
+content:
+  10: "// Configuration section"
+  25: "// Middleware section"  
+  40: "// Route definitions"
+---
+</code></pre>
+<p><strong>Relative Line Positioning</strong>:</p>
+<pre><code class="language-yaml">---
+lineAt: "after:// DATABASE_CONFIG"  # Insert after matching line
+offsetLines: 1                      # Additional line offset
+---
+</code></pre>
+<h3 id="6-skipif-operation"><a class="header" href="#6-skipif-operation">6. SkipIf Operation</a></h3>
+<p>Conditional control that skips the entire file operation based on conditions.</p>
+<pre><code class="language-yaml">---
+to: "{{ name }}.test.ts"
+skipIf: "{{ !withTests || environment === 'production' }}"
+---
+import { {{ name | pascalCase }} } from './{{ name }}';
+
+describe('{{ name | pascalCase }}', () =&gt; {
+  it('should work correctly', () =&gt; {
+    // Test implementation
+  });
+});
+</code></pre>
+<p><strong>Complex Skip Conditions</strong>:</p>
+<pre><code class="language-yaml">---
+skipIf: "{{ !withTests || skipTests || testFramework === 'none' }}"
+skipMessage: "Skipping test file (tests disabled)"
+---
+</code></pre>
+<p><strong>Skip Condition Examples</strong>:</p>
+<pre><code class="language-yaml"># Skip based on boolean variables
+skipIf: "{{ !includeDocumentation }}"
+
+# Skip based on string comparisons
+skipIf: "{{ framework !== 'react' }}"
+
+# Skip based on array contents
+skipIf: "{{ 'typescript' not in languages }}"
+
+# Complex boolean logic
+skipIf: "{{ !withAuth || (authProvider === 'none' and !customAuth) }}"
+</code></pre>
+<h2 id="advanced-file-operations"><a class="header" href="#advanced-file-operations">Advanced File Operations</a></h2>
+<h3 id="atomic-operations"><a class="header" href="#atomic-operations">Atomic Operations</a></h3>
+<p>All file operations are atomic to prevent corruption during generation:</p>
+<pre><code class="language-typescript">class AtomicFileWriter {
+  async write(filePath: string, content: string): Promise&lt;void&gt; {
+    const tempFile = `${filePath}.tmp.${Date.now()}`;
+    
+    try {
+      // Write to temporary file first
+      await fs.writeFile(tempFile, content, { mode: this.getFileMode(filePath) });
+      
+      // Atomic rename (this is the atomic operation)
+      await fs.rename(tempFile, filePath);
+      
+      // Set file permissions if specified
+      if (this.config.chmod) {
+        await fs.chmod(filePath, this.config.chmod);
+      }
+    } catch (error) {
+      // Cleanup temporary file on failure
+      await fs.unlink(tempFile).catch(() =&gt; {});
+      throw error;
+    }
+  }
+}
+</code></pre>
+<h3 id="backup-and-recovery"><a class="header" href="#backup-and-recovery">Backup and Recovery</a></h3>
+<p>Automatic backup creation for safe modifications:</p>
+<pre><code class="language-yaml">---
+to: "important-config.json"
+createBackup: true          # Create .bak file before modification
+backupSuffix: ".backup"     # Custom backup suffix
+maxBackups: 5               # Keep maximum 5 backups
+timestampBackups: true      # Add timestamp to backup names
+---
+</code></pre>
+<p><strong>Backup Strategies</strong>:</p>
+<ul>
+<li><strong>incremental</strong> - Only backup if file has changed</li>
+<li><strong>always</strong> - Create backup for every operation</li>
+<li><strong>never</strong> - Disable backups (default)</li>
+<li><strong>prompt</strong> - Ask user before creating backups</li>
+</ul>
+<h3 id="conflict-resolution"><a class="header" href="#conflict-resolution">Conflict Resolution</a></h3>
+<p>Handle conflicting file operations gracefully:</p>
+<pre><code class="language-yaml">---
+to: "src/components/Button.tsx"
+onConflict: "merge"         # prompt | skip | overwrite | merge
+mergeStrategy: "smart"      # For merge conflicts
+conflictMarkers: true       # Add &lt;&lt;&lt;&lt; &gt;&gt;&gt;&gt; markers for manual resolution
+---
+</code></pre>
+<p><strong>Conflict Resolution Strategies</strong>:</p>
+<pre><code class="language-typescript">interface ConflictResolution {
+  strategy: 'prompt' | 'skip' | 'overwrite' | 'merge';
+  mergeStrategy?: 'line-by-line' | 'smart' | 'semantic';
+  promptMessage?: string;
+  autoResolve?: boolean;
+}
+</code></pre>
+<h3 id="content-aware-operations"><a class="header" href="#content-aware-operations">Content-Aware Operations</a></h3>
+<p>Smart operations that understand file types and content structure:</p>
+<pre><code class="language-yaml">---
+to: "src/routes.ts"
+inject: true
+mode: "smart"
+contentType: "typescript"    # Enable TypeScript-aware injection
+target: "routes"            # Auto-detect route definitions section
+sortContent: true           # Sort routes alphabetically
+validateSyntax: true        # Validate TypeScript syntax after injection
+---
+{
+  path: '/{{ routePath }}',
+  component: {{ componentName | pascalCase }},
+  name: '{{ routeName }}'
+}
+</code></pre>
+<p><strong>Supported Content Types</strong>:</p>
+<ul>
+<li><strong>typescript/javascript</strong> - Import management, syntax validation</li>
+<li><strong>json</strong> - Schema validation, path-based updates</li>
+<li><strong>yaml</strong> - Structure preservation, validation</li>
+<li><strong>css/scss</strong> - Rule organization, property sorting</li>
+<li><strong>markdown</strong> - Section management, TOC updates</li>
+</ul>
+<h2 id="performance-optimizations"><a class="header" href="#performance-optimizations">Performance Optimizations</a></h2>
+<h3 id="batch-operations"><a class="header" href="#batch-operations">Batch Operations</a></h3>
+<p>Process multiple file operations efficiently:</p>
+<pre><code class="language-typescript">class BatchFileProcessor {
+  private operations: FileOperation[] = [];
+  
+  queue(operation: FileOperation): void {
+    this.operations.push(operation);
+  }
+  
+  async execute(): Promise&lt;void&gt; {
+    // Group operations by type for optimal processing
+    const grouped = this.groupOperations(this.operations);
+    
+    // Execute in optimal order
+    await this.executeReads(grouped.reads);       // Read operations first
+    await this.executeWrites(grouped.writes);     // Writes second  
+    await this.executeInjections(grouped.injections); // Injections last
+    
+    // Run post-processing hooks
+    await this.runPostProcessingHooks();
+  }
+  
+  private groupOperations(operations: FileOperation[]): GroupedOperations {
+    return operations.reduce((groups, op) =&gt; {
+      groups[op.type].push(op);
+      return groups;
+    }, { reads: [], writes: [], injections: [] });
+  }
+}
+</code></pre>
+<h3 id="incremental-updates"><a class="header" href="#incremental-updates">Incremental Updates</a></h3>
+<p>Only modify files that have actually changed:</p>
+<pre><code class="language-typescript">class IncrementalFileWriter {
+  async writeIfChanged(filePath: string, content: string): Promise&lt;boolean&gt; {
+    const currentContent = await this.readFile(filePath).catch(() =&gt; '');
+    const contentHash = this.hashContent(content);
+    const currentHash = this.hashContent(currentContent);
+    
+    if (contentHash !== currentHash) {
+      await this.atomicWrite(filePath, content);
+      return true; // File was updated
+    }
+    
+    return false; // File unchanged, no write performed
+  }
+  
+  private hashContent(content: string): string {
+    return crypto.createHash('sha256').update(content).digest('hex');
+  }
+}
+</code></pre>
+<h3 id="parallel-processing"><a class="header" href="#parallel-processing">Parallel Processing</a></h3>
+<p>Execute independent file operations in parallel:</p>
+<pre><code class="language-typescript">class ParallelProcessor {
+  async executeOperations(operations: FileOperation[]): Promise&lt;void&gt; {
+    // Group operations by dependencies
+    const independent = operations.filter(op =&gt; !op.dependencies?.length);
+    const dependent = operations.filter(op =&gt; op.dependencies?.length);
+    
+    // Execute independent operations in parallel
+    await Promise.all(independent.map(op =&gt; this.executeOperation(op)));
+    
+    // Execute dependent operations in dependency order
+    await this.executeDependent(dependent);
+  }
+}
+</code></pre>
+<h2 id="error-handling-and-safety"><a class="header" href="#error-handling-and-safety">Error Handling and Safety</a></h2>
+<h3 id="comprehensive-error-types"><a class="header" href="#comprehensive-error-types">Comprehensive Error Types</a></h3>
+<pre><code class="language-typescript">export class FileOperationError extends Error {
+  constructor(
+    public operation: FileOperation,
+    public filePath: string,
+    message: string,
+    public cause?: Error
+  ) {
+    super(`${operation.type} operation failed on ${filePath}: ${message}`);
+    this.name = 'FileOperationError';
+  }
+}
+
+export class MarkerNotFoundError extends FileOperationError {
+  constructor(filePath: string, marker: string) {
+    super('inject', filePath, `Injection marker '${marker}' not found`);
+  }
+}
+
+export class ValidationError extends FileOperationError {
+  constructor(filePath: string, validationErrors: string[]) {
+    super('validate', filePath, `Validation failed: ${validationErrors.join(', ')}`);
+  }
+}
+</code></pre>
+<h3 id="error-recovery"><a class="header" href="#error-recovery">Error Recovery</a></h3>
+<p>Implement graceful error handling with recovery options:</p>
+<pre><code class="language-typescript">try {
+  await fileWriter.inject(filePath, content, { before: marker });
+} catch (error) {
+  if (error instanceof MarkerNotFoundError) {
+    // Offer to create missing injection marker
+    const shouldCreateMarker = await prompt.confirm(
+      `Injection marker '${marker}' not found. Create it?`
+    );
+    
+    if (shouldCreateMarker) {
+      await fileWriter.append(filePath, `\n${marker}\n`);
+      await fileWriter.inject(filePath, content, { before: marker });
+    }
+  } else if (error instanceof PermissionError) {
+    // Suggest alternative locations or permission fixes
+    const suggestions = await this.suggestAlternatives(filePath);
+    throw new UserFriendlyError('Permission denied', suggestions);
+  }
+}
+</code></pre>
+<h3 id="pre-operation-validation"><a class="header" href="#pre-operation-validation">Pre-Operation Validation</a></h3>
+<p>Validate operations before execution:</p>
+<pre><code class="language-typescript">class FileOperationValidator {
+  async validateOperation(operation: FileOperation): Promise&lt;ValidationResult&gt; {
+    const checks: string[] = [];
+    
+    // Check file system permissions
+    if (!(await this.canWrite(operation.filePath))) {
+      checks.push(`No write permission for ${operation.filePath}`);
+    }
+    
+    // Check available disk space
+    const requiredSpace = operation.estimatedSize || operation.content.length;
+    if (!(await this.hasSufficientSpace(requiredSpace))) {
+      checks.push('Insufficient disk space');
+    }
+    
+    // Check for path traversal attacks
+    if (this.hasPathTraversal(operation.filePath)) {
+      checks.push('Path traversal attempt detected');
+    }
+    
+    // Validate file paths
+    if (!this.isValidPath(operation.filePath)) {
+      checks.push('Invalid file path');
+    }
+    
+    // Check file locks
+    if (await this.isFileLocked(operation.filePath)) {
+      checks.push('File is locked by another process');
+    }
+    
+    return {
+      valid: checks.length === 0,
+      errors: checks,
+      suggestions: this.generateSuggestions(checks)
+    };
+  }
+}
+</code></pre>
+<h2 id="integration-with-template-system"><a class="header" href="#integration-with-template-system">Integration with Template System</a></h2>
+<h3 id="frontmatter-to-operation-mapping"><a class="header" href="#frontmatter-to-operation-mapping">Frontmatter to Operation Mapping</a></h3>
+<p>The frontmatter processor converts YAML configuration to file operations:</p>
+<pre><code class="language-typescript">class FrontmatterProcessor {
+  process(frontmatter: FrontmatterConfig, content: string): FileOperation {
+    const operation: FileOperation = {
+      type: this.determineOperationType(frontmatter),
+      filePath: this.renderFilePath(frontmatter.to),
+      content: content,
+      options: this.extractOptions(frontmatter),
+      validation: this.extractValidation(frontmatter)
+    };
+    
+    return operation;
+  }
+  
+  private determineOperationType(fm: FrontmatterConfig): OperationType {
+    if (fm.skipIf &amp;&amp; this.evaluateCondition(fm.skipIf)) return 'skip';
+    if (fm.inject) return 'inject';
+    if (fm.append) return 'append';
+    if (fm.prepend) return 'prepend';
+    if (fm.lineAt) return 'lineAt';
+    return 'write'; // default operation
+  }
+}
+</code></pre>
+<h3 id="operation-hooks"><a class="header" href="#operation-hooks">Operation Hooks</a></h3>
+<p>Execute custom logic before and after operations:</p>
+<pre><code class="language-yaml">---
+to: "src/{{ name }}.ts"
+beforeWrite: "validateTypeScript"    # Run validation hook
+afterWrite: "formatWithPrettier"     # Run formatting hook
+---
+</code></pre>
+<pre><code class="language-typescript">// Hook implementations
+export const hooks = {
+  validateTypeScript: async (filePath: string, content: string) =&gt; {
+    const result = await typescript.compile(content, { noEmit: true });
+    if (result.diagnostics.length &gt; 0) {
+      throw new ValidationError(filePath, result.diagnostics.map(d =&gt; d.messageText));
+    }
+  },
+  
+  formatWithPrettier: async (filePath: string) =&gt; {
+    const formatted = await prettier.format(
+      await fs.readFile(filePath, 'utf-8'),
+      { parser: 'typescript' }
+    );
+    await fs.writeFile(filePath, formatted);
+  }
+};
+</code></pre>
+<h2 id="best-practices"><a class="header" href="#best-practices">Best Practices</a></h2>
+<h3 id="operation-selection-guidelines"><a class="header" href="#operation-selection-guidelines">Operation Selection Guidelines</a></h3>
+<p>Choose the appropriate operation for your use case:</p>
+<ul>
+<li><strong>write</strong> - New files, complete file replacement</li>
+<li><strong>inject</strong> - Adding imports, exports, registrations</li>
+<li><strong>append</strong> - Adding items to lists, configuration entries</li>
+<li><strong>prepend</strong> - Adding headers, top-level imports</li>
+<li><strong>lineAt</strong> - Precise positioning, configuration updates</li>
+<li><strong>skipIf</strong> - Conditional generation, environment-specific files</li>
+</ul>
+<h3 id="safety-recommendations"><a class="header" href="#safety-recommendations">Safety Recommendations</a></h3>
+<ol>
+<li><strong>Always use dry-run mode</strong> when testing new templates</li>
+<li><strong>Enable backups</strong> for important files</li>
+<li><strong>Use validation hooks</strong> for critical operations</li>
+<li><strong>Test with edge cases</strong> including empty files and binary content</li>
+<li><strong>Implement proper error handling</strong> for all file operations</li>
+</ol>
+<h3 id="performance-tips"><a class="header" href="#performance-tips">Performance Tips</a></h3>
+<ol>
+<li><strong>Batch related operations</strong> to reduce file system calls</li>
+<li><strong>Use incremental updates</strong> to avoid unnecessary writes</li>
+<li><strong>Cache file stats</strong> to optimize conflict detection</li>
+<li><strong>Parallelize independent operations</strong> for better performance</li>
+</ol>
+<p>The File Operations system provides a robust foundation for all code generation and modification tasks, offering both power and safety through its comprehensive feature set and careful error handling.</p>
+
+
+                        <!-- Page Footer -->
+                        <div class="page-footer" style="margin-top: 3rem; padding-top: 2rem; border-top: 1px solid #e1e5e9;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+                                <div class="footer-links" style="display: flex; gap: 1rem; font-size: 0.9rem;">
+                                    <a href="https://unjucks.dev" target="_blank">🌐 Website</a>
+                                    <a href="https://github.com/ruvnet/unjucks" target="_blank">💻 GitHub</a>
+                                    <a href="https://github.com/ruvnet/unjucks/issues" target="_blank">🐛 Issues</a>
+                                    <a href="https://github.com/ruvnet/unjucks/discussions" target="_blank">💬 Discussions</a>
+                                </div>
+                                <div class="footer-info" style="font-size: 0.8rem; color: #888; text-align: right;">
+                                    <p>Built with ❤️ using <a href="https://rust-lang.github.io/mdBook/" target="_blank">mdBook</a></p>
+                                    <p>© 2024 Unjucks Project</p>
+                                </div>
+                            </div>
+                        </div>
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                        <a href="../" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                            <i class="fa fa-angle-left"></i>
+                        </a>
+
+                        <a href="../" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                            <i class="fa fa-angle-right"></i>
+                        </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <!-- Desktop navigation -->
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                <a href="../" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                    <i class="fa fa-angle-left"></i>
+                </a>
+
+                <a href="../" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                    <i class="fa fa-angle-right"></i>
+                </a>
+            </nav>
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../elasticlunr.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="../mark.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="../searcher.js" type="text/javascript" charset="utf-8"></script>
+
+        <script src="../clipboard.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="../highlight.js" type="text/javascript" charset="utf-8"></script>
+        <script src="../book.js" type="text/javascript" charset="utf-8"></script>
+
+        <!-- Custom JS -->
+
+        <!-- Custom body content -->
+        <h1 id="file-operations-1"><a class="header" href="#file-operations-1">File Operations</a></h1>
+<p>File Operations are the execution engine of Unjucks, providing six powerful modes for creating and modifying files. These operations support everything from simple file creation to sophisticated code injection and atomic modifications.</p>
+<h2 id="the-six-core-operations-1"><a class="header" href="#the-six-core-operations-1">The Six Core Operations</a></h2>
+<p>Unjucks provides six fundamental file operations, each designed for specific use cases in code generation:</p>
+<ol>
+<li><strong>write</strong> - Create new files or overwrite existing ones (default)</li>
+<li><strong>inject</strong> - Insert content into existing files at specific markers</li>
+<li><strong>append</strong> - Add content to the end of existing files</li>
+<li><strong>prepend</strong> - Add content to the beginning of existing files</li>
+<li><strong>lineAt</strong> - Insert content at specific line numbers</li>
+<li><strong>skipIf</strong> - Conditional operation control</li>
+</ol>
+<h2 id="operation-modes-1"><a class="header" href="#operation-modes-1">Operation Modes</a></h2>
+<h3 id="1-write-operation-default-1"><a class="header" href="#1-write-operation-default-1">1. Write Operation (Default)</a></h3>
+<p>Creates new files or overwrites existing ones with complete content.</p>
+<pre><code class="language-yaml">---
+to: "src/components/{{ name | pascalCase }}.tsx"
+# write is the default operation (no explicit declaration needed)
+---
+import React from 'react';
+
+export const {{ name | pascalCase }} = () =&gt; {
+  return &lt;div&gt;{{ name }}&lt;/div&gt;;
+};
+</code></pre>
+<p><strong>Key Characteristics</strong>:</p>
+<ul>
+<li>Creates parent directories automatically if they don't exist</li>
+<li>Overwrites existing files when using <code>--force</code> flag</li>
+<li>Uses atomic operations (write to temp file, then rename)</li>
+<li>Preserves file permissions from previous file or sets defaults</li>
+<li>Supports content validation before writing</li>
+</ul>
+<p><strong>Use Cases</strong>:</p>
+<ul>
+<li>Generating new components, services, or modules</li>
+<li>Creating configuration files</li>
+<li>Building project scaffolding</li>
+<li>Generating documentation files</li>
+</ul>
+<h3 id="2-inject-operation-1"><a class="header" href="#2-inject-operation-1">2. Inject Operation</a></h3>
+<p>The most sophisticated operation, inserting content into existing files at designated markers.</p>
+<pre><code class="language-yaml">---
+to: "src/index.ts"
+inject: true
+before: "// COMPONENT_IMPORTS"
+after: "// END_COMPONENT_IMPORTS"
+---
+export { {{ name | pascalCase }} } from './components/{{ name | pascalCase }}';
+</code></pre>
+<p><strong>Target File Example</strong>:</p>
+<pre><code class="language-typescript">// src/index.ts
+import React from 'react';
+
+// COMPONENT_IMPORTS
+export { Button } from './components/Button';     // ← Previous injection
+export { Modal } from './components/Modal';      // ← Previous injection  
+export { Header } from './components/Header';    // ← New injection here
+// END_COMPONENT_IMPORTS
+
+export { theme } from './theme';
+</code></pre>
+<p><strong>Advanced Injection Configuration</strong>:</p>
+<pre><code class="language-yaml">---
+inject: true
+before: "// IMPORTS_START"
+after: "// IMPORTS_END"
+strategy: "append"          # append | prepend | replace
+preserveIndentation: true   # Match existing indentation
+deduplicateContent: true   # Prevent duplicate injections
+sortInjections: true       # Sort injected content alphabetically  
+---
+</code></pre>
+<p><strong>Injection Strategies</strong>:</p>
+<ul>
+<li><strong>append</strong> - Add new content after existing injected content</li>
+<li><strong>prepend</strong> - Add new content before existing injected content</li>
+<li><strong>replace</strong> - Replace all content between markers</li>
+<li><strong>merge</strong> - Intelligent merging for specific content types</li>
+</ul>
+<p><strong>Smart Content Detection</strong>:</p>
+<pre><code class="language-yaml">---
+inject: true
+mode: "smart"
+target: "imports"           # Auto-detect import section
+deduplicateImports: true   # Prevent duplicate import statements
+sortImports: true          # Alphabetically sort imports
+---
+import { {{ componentName }} } from './components/{{ componentName }}';
+</code></pre>
+<h3 id="3-append-operation-1"><a class="header" href="#3-append-operation-1">3. Append Operation</a></h3>
+<p>Adds content to the end of existing files.</p>
+<pre><code class="language-yaml">---
+to: "package.json"
+append: true
+jsonPath: "dependencies"    # For JSON files, specify path
+---
+"{{ packageName }}": "^{{ version }}"
+</code></pre>
+<p><strong>Advanced JSON Manipulation</strong>:</p>
+<pre><code class="language-yaml">---
+to: "tsconfig.json"  
+append: true
+jsonPath: "compilerOptions.paths"
+merge: true             # Merge with existing paths
+---
+{
+  "{{ alias }}/*": ["{{ srcPath }}/*"]
+}
+</code></pre>
+<p><strong>Text File Appending</strong>:</p>
+<pre><code class="language-yaml">---
+to: ".gitignore"
+append: true
+addNewline: true        # Ensure newline before content
+deduplicate: true       # Don't add if already present
+---
+# Generated files
+dist/
+*.log
+</code></pre>
+<h3 id="4-prepend-operation-1"><a class="header" href="#4-prepend-operation-1">4. Prepend Operation</a></h3>
+<p>Adds content to the beginning of existing files.</p>
+<pre><code class="language-yaml">---
+to: "src/types.ts"
+prepend: true
+preserveShebang: true   # Keep #!/usr/bin/env node if present
+preserveHeader: true    # Keep existing license/copyright headers
+---
+// Auto-generated type definitions for {{ name }}
+export interface {{ name | pascalCase }} {
+  id: string;
+  name: string;
+  createdAt: Date;
+}
+</code></pre>
+<p><strong>Intelligent Header Detection</strong>:</p>
+<pre><code class="language-yaml">---
+prepend: true
+insertAfterHeaders: true    # Skip license/copyright headers
+insertAfterImports: false   # Insert before imports
+preserveDocstrings: true    # Keep module-level docstrings
+---
+</code></pre>
+<h3 id="5-lineat-operation-1"><a class="header" href="#5-lineat-operation-1">5. LineAt Operation</a></h3>
+<p>Inserts content at specific line numbers with precise control.</p>
+<pre><code class="language-yaml">---
+to: "src/config/database.ts"
+lineAt: 15               # Insert at line 15
+preserveIndentation: true # Match indentation of target line
+---
+  {{ configKey }}: '{{ configValue }}',
+</code></pre>
+<p><strong>Multiple Line Insertions</strong>:</p>
+<pre><code class="language-yaml">---
+lineAt: [10, 25, 40]    # Insert at multiple lines
+strategy: "distributed" # How to handle multiple insertions
+content:
+  10: "// Configuration section"
+  25: "// Middleware section"  
+  40: "// Route definitions"
+---
+</code></pre>
+<p><strong>Relative Line Positioning</strong>:</p>
+<pre><code class="language-yaml">---
+lineAt: "after:// DATABASE_CONFIG"  # Insert after matching line
+offsetLines: 1                      # Additional line offset
+---
+</code></pre>
+<h3 id="6-skipif-operation-1"><a class="header" href="#6-skipif-operation-1">6. SkipIf Operation</a></h3>
+<p>Conditional control that skips the entire file operation based on conditions.</p>
+<pre><code class="language-yaml">---
+to: "{{ name }}.test.ts"
+skipIf: "{{ !withTests || environment === 'production' }}"
+---
+import { {{ name | pascalCase }} } from './{{ name }}';
+
+describe('{{ name | pascalCase }}', () =&gt; {
+  it('should work correctly', () =&gt; {
+    // Test implementation
+  });
+});
+</code></pre>
+<p><strong>Complex Skip Conditions</strong>:</p>
+<pre><code class="language-yaml">---
+skipIf: "{{ !withTests || skipTests || testFramework === 'none' }}"
+skipMessage: "Skipping test file (tests disabled)"
+---
+</code></pre>
+<p><strong>Skip Condition Examples</strong>:</p>
+<pre><code class="language-yaml"># Skip based on boolean variables
+skipIf: "{{ !includeDocumentation }}"
+
+# Skip based on string comparisons
+skipIf: "{{ framework !== 'react' }}"
+
+# Skip based on array contents
+skipIf: "{{ 'typescript' not in languages }}"
+
+# Complex boolean logic
+skipIf: "{{ !withAuth || (authProvider === 'none' and !customAuth) }}"
+</code></pre>
+<h2 id="advanced-file-operations-1"><a class="header" href="#advanced-file-operations-1">Advanced File Operations</a></h2>
+<h3 id="atomic-operations-1"><a class="header" href="#atomic-operations-1">Atomic Operations</a></h3>
+<p>All file operations are atomic to prevent corruption during generation:</p>
+<pre><code class="language-typescript">class AtomicFileWriter {
+  async write(filePath: string, content: string): Promise&lt;void&gt; {
+    const tempFile = `${filePath}.tmp.${Date.now()}`;
+    
+    try {
+      // Write to temporary file first
+      await fs.writeFile(tempFile, content, { mode: this.getFileMode(filePath) });
+      
+      // Atomic rename (this is the atomic operation)
+      await fs.rename(tempFile, filePath);
+      
+      // Set file permissions if specified
+      if (this.config.chmod) {
+        await fs.chmod(filePath, this.config.chmod);
+      }
+    } catch (error) {
+      // Cleanup temporary file on failure
+      await fs.unlink(tempFile).catch(() =&gt; {});
+      throw error;
+    }
+  }
+}
+</code></pre>
+<h3 id="backup-and-recovery-1"><a class="header" href="#backup-and-recovery-1">Backup and Recovery</a></h3>
+<p>Automatic backup creation for safe modifications:</p>
+<pre><code class="language-yaml">---
+to: "important-config.json"
+createBackup: true          # Create .bak file before modification
+backupSuffix: ".backup"     # Custom backup suffix
+maxBackups: 5               # Keep maximum 5 backups
+timestampBackups: true      # Add timestamp to backup names
+---
+</code></pre>
+<p><strong>Backup Strategies</strong>:</p>
+<ul>
+<li><strong>incremental</strong> - Only backup if file has changed</li>
+<li><strong>always</strong> - Create backup for every operation</li>
+<li><strong>never</strong> - Disable backups (default)</li>
+<li><strong>prompt</strong> - Ask user before creating backups</li>
+</ul>
+<h3 id="conflict-resolution-1"><a class="header" href="#conflict-resolution-1">Conflict Resolution</a></h3>
+<p>Handle conflicting file operations gracefully:</p>
+<pre><code class="language-yaml">---
+to: "src/components/Button.tsx"
+onConflict: "merge"         # prompt | skip | overwrite | merge
+mergeStrategy: "smart"      # For merge conflicts
+conflictMarkers: true       # Add &lt;&lt;&lt;&lt; &gt;&gt;&gt;&gt; markers for manual resolution
+---
+</code></pre>
+<p><strong>Conflict Resolution Strategies</strong>:</p>
+<pre><code class="language-typescript">interface ConflictResolution {
+  strategy: 'prompt' | 'skip' | 'overwrite' | 'merge';
+  mergeStrategy?: 'line-by-line' | 'smart' | 'semantic';
+  promptMessage?: string;
+  autoResolve?: boolean;
+}
+</code></pre>
+<h3 id="content-aware-operations-1"><a class="header" href="#content-aware-operations-1">Content-Aware Operations</a></h3>
+<p>Smart operations that understand file types and content structure:</p>
+<pre><code class="language-yaml">---
+to: "src/routes.ts"
+inject: true
+mode: "smart"
+contentType: "typescript"    # Enable TypeScript-aware injection
+target: "routes"            # Auto-detect route definitions section
+sortContent: true           # Sort routes alphabetically
+validateSyntax: true        # Validate TypeScript syntax after injection
+---
+{
+  path: '/{{ routePath }}',
+  component: {{ componentName | pascalCase }},
+  name: '{{ routeName }}'
+}
+</code></pre>
+<p><strong>Supported Content Types</strong>:</p>
+<ul>
+<li><strong>typescript/javascript</strong> - Import management, syntax validation</li>
+<li><strong>json</strong> - Schema validation, path-based updates</li>
+<li><strong>yaml</strong> - Structure preservation, validation</li>
+<li><strong>css/scss</strong> - Rule organization, property sorting</li>
+<li><strong>markdown</strong> - Section management, TOC updates</li>
+</ul>
+<h2 id="performance-optimizations-1"><a class="header" href="#performance-optimizations-1">Performance Optimizations</a></h2>
+<h3 id="batch-operations-1"><a class="header" href="#batch-operations-1">Batch Operations</a></h3>
+<p>Process multiple file operations efficiently:</p>
+<pre><code class="language-typescript">class BatchFileProcessor {
+  private operations: FileOperation[] = [];
+  
+  queue(operation: FileOperation): void {
+    this.operations.push(operation);
+  }
+  
+  async execute(): Promise&lt;void&gt; {
+    // Group operations by type for optimal processing
+    const grouped = this.groupOperations(this.operations);
+    
+    // Execute in optimal order
+    await this.executeReads(grouped.reads);       // Read operations first
+    await this.executeWrites(grouped.writes);     // Writes second  
+    await this.executeInjections(grouped.injections); // Injections last
+    
+    // Run post-processing hooks
+    await this.runPostProcessingHooks();
+  }
+  
+  private groupOperations(operations: FileOperation[]): GroupedOperations {
+    return operations.reduce((groups, op) =&gt; {
+      groups[op.type].push(op);
+      return groups;
+    }, { reads: [], writes: [], injections: [] });
+  }
+}
+</code></pre>
+<h3 id="incremental-updates-1"><a class="header" href="#incremental-updates-1">Incremental Updates</a></h3>
+<p>Only modify files that have actually changed:</p>
+<pre><code class="language-typescript">class IncrementalFileWriter {
+  async writeIfChanged(filePath: string, content: string): Promise&lt;boolean&gt; {
+    const currentContent = await this.readFile(filePath).catch(() =&gt; '');
+    const contentHash = this.hashContent(content);
+    const currentHash = this.hashContent(currentContent);
+    
+    if (contentHash !== currentHash) {
+      await this.atomicWrite(filePath, content);
+      return true; // File was updated
+    }
+    
+    return false; // File unchanged, no write performed
+  }
+  
+  private hashContent(content: string): string {
+    return crypto.createHash('sha256').update(content).digest('hex');
+  }
+}
+</code></pre>
+<h3 id="parallel-processing-1"><a class="header" href="#parallel-processing-1">Parallel Processing</a></h3>
+<p>Execute independent file operations in parallel:</p>
+<pre><code class="language-typescript">class ParallelProcessor {
+  async executeOperations(operations: FileOperation[]): Promise&lt;void&gt; {
+    // Group operations by dependencies
+    const independent = operations.filter(op =&gt; !op.dependencies?.length);
+    const dependent = operations.filter(op =&gt; op.dependencies?.length);
+    
+    // Execute independent operations in parallel
+    await Promise.all(independent.map(op =&gt; this.executeOperation(op)));
+    
+    // Execute dependent operations in dependency order
+    await this.executeDependent(dependent);
+  }
+}
+</code></pre>
+<h2 id="error-handling-and-safety-1"><a class="header" href="#error-handling-and-safety-1">Error Handling and Safety</a></h2>
+<h3 id="comprehensive-error-types-1"><a class="header" href="#comprehensive-error-types-1">Comprehensive Error Types</a></h3>
+<pre><code class="language-typescript">export class FileOperationError extends Error {
+  constructor(
+    public operation: FileOperation,
+    public filePath: string,
+    message: string,
+    public cause?: Error
+  ) {
+    super(`${operation.type} operation failed on ${filePath}: ${message}`);
+    this.name = 'FileOperationError';
+  }
+}
+
+export class MarkerNotFoundError extends FileOperationError {
+  constructor(filePath: string, marker: string) {
+    super('inject', filePath, `Injection marker '${marker}' not found`);
+  }
+}
+
+export class ValidationError extends FileOperationError {
+  constructor(filePath: string, validationErrors: string[]) {
+    super('validate', filePath, `Validation failed: ${validationErrors.join(', ')}`);
+  }
+}
+</code></pre>
+<h3 id="error-recovery-1"><a class="header" href="#error-recovery-1">Error Recovery</a></h3>
+<p>Implement graceful error handling with recovery options:</p>
+<pre><code class="language-typescript">try {
+  await fileWriter.inject(filePath, content, { before: marker });
+} catch (error) {
+  if (error instanceof MarkerNotFoundError) {
+    // Offer to create missing injection marker
+    const shouldCreateMarker = await prompt.confirm(
+      `Injection marker '${marker}' not found. Create it?`
+    );
+    
+    if (shouldCreateMarker) {
+      await fileWriter.append(filePath, `\n${marker}\n`);
+      await fileWriter.inject(filePath, content, { before: marker });
+    }
+  } else if (error instanceof PermissionError) {
+    // Suggest alternative locations or permission fixes
+    const suggestions = await this.suggestAlternatives(filePath);
+    throw new UserFriendlyError('Permission denied', suggestions);
+  }
+}
+</code></pre>
+<h3 id="pre-operation-validation-1"><a class="header" href="#pre-operation-validation-1">Pre-Operation Validation</a></h3>
+<p>Validate operations before execution:</p>
+<pre><code class="language-typescript">class FileOperationValidator {
+  async validateOperation(operation: FileOperation): Promise&lt;ValidationResult&gt; {
+    const checks: string[] = [];
+    
+    // Check file system permissions
+    if (!(await this.canWrite(operation.filePath))) {
+      checks.push(`No write permission for ${operation.filePath}`);
+    }
+    
+    // Check available disk space
+    const requiredSpace = operation.estimatedSize || operation.content.length;
+    if (!(await this.hasSufficientSpace(requiredSpace))) {
+      checks.push('Insufficient disk space');
+    }
+    
+    // Check for path traversal attacks
+    if (this.hasPathTraversal(operation.filePath)) {
+      checks.push('Path traversal attempt detected');
+    }
+    
+    // Validate file paths
+    if (!this.isValidPath(operation.filePath)) {
+      checks.push('Invalid file path');
+    }
+    
+    // Check file locks
+    if (await this.isFileLocked(operation.filePath)) {
+      checks.push('File is locked by another process');
+    }
+    
+    return {
+      valid: checks.length === 0,
+      errors: checks,
+      suggestions: this.generateSuggestions(checks)
+    };
+  }
+}
+</code></pre>
+<h2 id="integration-with-template-system-1"><a class="header" href="#integration-with-template-system-1">Integration with Template System</a></h2>
+<h3 id="frontmatter-to-operation-mapping-1"><a class="header" href="#frontmatter-to-operation-mapping-1">Frontmatter to Operation Mapping</a></h3>
+<p>The frontmatter processor converts YAML configuration to file operations:</p>
+<pre><code class="language-typescript">class FrontmatterProcessor {
+  process(frontmatter: FrontmatterConfig, content: string): FileOperation {
+    const operation: FileOperation = {
+      type: this.determineOperationType(frontmatter),
+      filePath: this.renderFilePath(frontmatter.to),
+      content: content,
+      options: this.extractOptions(frontmatter),
+      validation: this.extractValidation(frontmatter)
+    };
+    
+    return operation;
+  }
+  
+  private determineOperationType(fm: FrontmatterConfig): OperationType {
+    if (fm.skipIf &amp;&amp; this.evaluateCondition(fm.skipIf)) return 'skip';
+    if (fm.inject) return 'inject';
+    if (fm.append) return 'append';
+    if (fm.prepend) return 'prepend';
+    if (fm.lineAt) return 'lineAt';
+    return 'write'; // default operation
+  }
+}
+</code></pre>
+<h3 id="operation-hooks-1"><a class="header" href="#operation-hooks-1">Operation Hooks</a></h3>
+<p>Execute custom logic before and after operations:</p>
+<pre><code class="language-yaml">---
+to: "src/{{ name }}.ts"
+beforeWrite: "validateTypeScript"    # Run validation hook
+afterWrite: "formatWithPrettier"     # Run formatting hook
+---
+</code></pre>
+<pre><code class="language-typescript">// Hook implementations
+export const hooks = {
+  validateTypeScript: async (filePath: string, content: string) =&gt; {
+    const result = await typescript.compile(content, { noEmit: true });
+    if (result.diagnostics.length &gt; 0) {
+      throw new ValidationError(filePath, result.diagnostics.map(d =&gt; d.messageText));
+    }
+  },
+  
+  formatWithPrettier: async (filePath: string) =&gt; {
+    const formatted = await prettier.format(
+      await fs.readFile(filePath, 'utf-8'),
+      { parser: 'typescript' }
+    );
+    await fs.writeFile(filePath, formatted);
+  }
+};
+</code></pre>
+<h2 id="best-practices-1"><a class="header" href="#best-practices-1">Best Practices</a></h2>
+<h3 id="operation-selection-guidelines-1"><a class="header" href="#operation-selection-guidelines-1">Operation Selection Guidelines</a></h3>
+<p>Choose the appropriate operation for your use case:</p>
+<ul>
+<li><strong>write</strong> - New files, complete file replacement</li>
+<li><strong>inject</strong> - Adding imports, exports, registrations</li>
+<li><strong>append</strong> - Adding items to lists, configuration entries</li>
+<li><strong>prepend</strong> - Adding headers, top-level imports</li>
+<li><strong>lineAt</strong> - Precise positioning, configuration updates</li>
+<li><strong>skipIf</strong> - Conditional generation, environment-specific files</li>
+</ul>
+<h3 id="safety-recommendations-1"><a class="header" href="#safety-recommendations-1">Safety Recommendations</a></h3>
+<ol>
+<li><strong>Always use dry-run mode</strong> when testing new templates</li>
+<li><strong>Enable backups</strong> for important files</li>
+<li><strong>Use validation hooks</strong> for critical operations</li>
+<li><strong>Test with edge cases</strong> including empty files and binary content</li>
+<li><strong>Implement proper error handling</strong> for all file operations</li>
+</ol>
+<h3 id="performance-tips-1"><a class="header" href="#performance-tips-1">Performance Tips</a></h3>
+<ol>
+<li><strong>Batch related operations</strong> to reduce file system calls</li>
+<li><strong>Use incremental updates</strong> to avoid unnecessary writes</li>
+<li><strong>Cache file stats</strong> to optimize conflict detection</li>
+<li><strong>Parallelize independent operations</strong> for better performance</li>
+</ol>
+<p>The File Operations system provides a robust foundation for all code generation and modification tasks, offering both power and safety through its comprehensive feature set and careful error handling.</p>
+
+
+        <!-- Performance monitoring -->
+        <script>
+            // Simple performance monitoring
+            window.addEventListener('load', function() {
+                if ('performance' in window) {
+                    setTimeout(function() {
+                        const loadTime = performance.timing.loadEventEnd - performance.timing.navigationStart;
+                        console.log('📊 Page loaded in ' + loadTime + 'ms');
+                    }, 0);
+                }
+            });
+        </script>
+
+        <!-- Service Worker for offline support -->
+        <script>
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.register('../sw.js')
+                    .then(function(registration) {
+                        console.log('📱 SW registered with scope:', registration.scope);
+                    })
+                    .catch(function(error) {
+                        console.log('❌ SW registration failed:', error);
+                    });
+            }
+        </script>
+    </body>
+</html>

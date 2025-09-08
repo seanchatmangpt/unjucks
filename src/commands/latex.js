@@ -7,10 +7,10 @@ import { promises as fs } from 'fs';
 import path from 'path';
 import consola from 'consola';
 import chalk from 'chalk';
-import LaTeXCompiler from '../lib/latex/compiler.js';
-import LaTeXConfig from '../lib/latex/config.js';
+import { LaTeXCompiler } from '../lib/latex/compiler.js';
+import { LaTeXConfig } from '../lib/latex/config.js';
 import LaTeXBuildIntegration from '../lib/latex/build-integration.js';
-import DockerLaTeXSupport from '../lib/latex/docker-support.js';
+import { DockerLaTeXSupport } from '../lib/latex/docker-support.js';
 
 export const latexCommand = defineCommand({
   meta: {

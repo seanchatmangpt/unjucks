@@ -2,7 +2,7 @@
 to: "{{ dest }}/queries/federated-{{ queryName }}.sparql"
 inject: false
 ---
-PREFIX ex: <{{ baseUri | rdfResource }}/>
+PREFIX ex: <{{ baseUri }}/>
 PREFIX schema: <http://schema.org/>
 PREFIX dbr: <http://dbpedia.org/resource/>
 PREFIX dbo: <http://dbpedia.org/ontology/>
