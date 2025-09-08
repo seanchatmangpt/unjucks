@@ -1,0 +1,91 @@
+---
+to: generated/api/{{ serviceName | kebabCase }}/index.js
+inject: false
+---
+/**
+ * {{ serviceName | titleCase }} API Service
+ * Generated on {{ now().format("YYYY-MM-DD HH:mm:ss") }}
+ * 
+ * @namespace {{ serviceName | rdfResource("api") }}
+ * @author {{ author | default(fakeName()) }}
+ * @version {{ version | default("1.0.0") }}
+ */
+
+const express = require('express');
+const { {{ serviceName | classify }} } = require('./models');
+const router = express.Router();
+
+// Constants
+const SERVICE_NAME = '{{ serviceName | constantCase }}';
+const BASE_PATH = '/{{ serviceName | kebabCase }}';
+const RATE_LIMIT = {{ rateLimit | default(100) }};
+
+/**
+ * @swagger
+ * components:
+ *   schemas:
+ *     {{ serviceName | classify }}:
+ *       type: object
+ *       properties:
+ *       {% for field in fields %}
+ *         {{ field.name | camelCase }}:
+ *           type: {{ field.type | default("string") }}
+ *           {% if field.description %}description: "{{ field.description | turtleEscape }}"{% endif %}
+ *           {% if field.required %}required: true{% endif %}
+ *           {% if field.example %}example: {{ field.example | dump }}{% endif %}
+ *       {% endfor %}
+ */
+
+// Endpoints
+{% for endpoint in endpoints %}
+/**
+ * {{ endpoint.description | default("Handles " + endpoint.method + " " + endpoint.path) }}
+ * @route {{ endpoint.method | upper }} {{ endpoint.path }}
+ * @param {{ "{" + endpoint.params | join(", ") + "}" if endpoint.params }}
+ * @returns {{ "{" + endpoint.returns | default("object") + "}" }}
+ */
+router.{{ endpoint.method | lower }}('{{ endpoint.path }}', async (req, res) => {
+  try {
+    const {{ endpoint.name | camelCase }}Service = new {{ serviceName | classify }}Service();
+    
+    {% if endpoint.method == "GET" %}
+    const result = await {{ endpoint.name | camelCase }}Service.{{ endpoint.action | default("find") }}(req.query);
+    {% elif endpoint.method == "POST" %}
+    const result = await {{ endpoint.name | camelCase }}Service.{{ endpoint.action | default("create") }}(req.body);
+    {% elif endpoint.method == "PUT" %}
+    const result = await {{ endpoint.name | camelCase }}Service.{{ endpoint.action | default("update") }}(req.params.id, req.body);
+    {% elif endpoint.method == "DELETE" %}
+    const result = await {{ endpoint.name | camelCase }}Service.{{ endpoint.action | default("delete") }}(req.params.id);
+    {% endif %}
+    
+    res.status({{ endpoint.successCode | default(200) }}).json({
+      success: true,
+      data: result,
+      timestamp: '{{ now().format() }}',
+      service: SERVICE_NAME
+    });
+  } catch (error) {
+    console.error(`Error in {{ endpoint.name | titleCase }}:`, error);
+    res.status({{ endpoint.errorCode | default(500) }}).json({
+      success: false,
+      error: error.message,
+      timestamp: '{{ now().format() }}',
+      service: SERVICE_NAME
+    });
+  }
+});
+
+{% endfor %}
+
+// Health check endpoint
+router.get('/health', (req, res) => {
+  res.json({
+    service: SERVICE_NAME,
+    status: 'healthy',
+    version: '{{ version | default("1.0.0") }}',
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime()
+  });
+});
+
+module.exports = router;

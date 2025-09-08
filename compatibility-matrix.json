@@ -1,0 +1,196 @@
+{
+  "timestamp": "2025-09-07T23:49:01.401Z",
+  "currentPlatform": "darwin",
+  "currentArch": "arm64",
+  "currentNode": "v22.12.0",
+  "nodeVersions": [
+    "16",
+    "18",
+    "20",
+    "22"
+  ],
+  "platforms": [
+    "linux",
+    "darwin",
+    "win32"
+  ],
+  "architectures": [
+    "x64",
+    "arm64"
+  ],
+  "packageManagers": [
+    "npm",
+    "yarn",
+    "pnpm"
+  ],
+  "tests": {
+    "darwin-arm64-v22.12.0": {
+      "environment": {
+        "platform": "darwin",
+        "architecture": "arm64",
+        "nodeVersion": "v22.12.0",
+        "npmVersion": "10.9.0"
+      },
+      "tests": {
+        "packageResolution": {
+          "success": false,
+          "error": "require is not defined"
+        },
+        "binaryExecution": {
+          "success": true,
+          "commands": {
+            "node bin/unjucks.cjs --version": {
+              "success": true,
+              "output": 14
+            },
+            "node bin/unjucks.cjs --help": {
+              "success": true,
+              "output": 1768
+            }
+          },
+          "successCount": 2,
+          "totalCommands": 2
+        },
+        "moduleImports": {
+          "success": true,
+          "modules": {
+            "citty": {
+              "success": true,
+              "hasDefault": false,
+              "hasNamed": true
+            },
+            "chalk": {
+              "success": true,
+              "hasDefault": true,
+              "hasNamed": false
+            },
+            "nunjucks": {
+              "success": true,
+              "hasDefault": true,
+              "hasNamed": true
+            },
+            "fs-extra": {
+              "success": true,
+              "hasDefault": true,
+              "hasNamed": true
+            }
+          },
+          "successCount": 4,
+          "totalModules": 4
+        },
+        "dependencies": {
+          "success": false,
+          "error": "require is not defined"
+        },
+        "nativeModules": {
+          "success": false,
+          "error": "require is not defined"
+        }
+      },
+      "summary": {
+        "passed": 2,
+        "total": 5,
+        "success": false
+      }
+    },
+    "simulated-node-16": {
+      "simulated": true,
+      "nodeVersion": "v16.0.0",
+      "features": {
+        "esModules": true,
+        "topLevelAwait": false,
+        "abortController": true
+      },
+      "compatibility": {
+        "esModules": true,
+        "asyncAwait": true,
+        "imports": true,
+        "fileSystem": true
+      },
+      "summary": {
+        "success": true,
+        "passed": 4,
+        "total": 4
+      }
+    },
+    "simulated-node-18": {
+      "simulated": true,
+      "nodeVersion": "v18.0.0",
+      "features": {
+        "esModules": true,
+        "topLevelAwait": true,
+        "abortController": true,
+        "fetch": true
+      },
+      "compatibility": {
+        "esModules": true,
+        "asyncAwait": true,
+        "imports": true,
+        "fileSystem": true
+      },
+      "summary": {
+        "success": true,
+        "passed": 4,
+        "total": 4
+      }
+    },
+    "simulated-node-20": {
+      "simulated": true,
+      "nodeVersion": "v20.0.0",
+      "features": {
+        "esModules": true,
+        "topLevelAwait": true,
+        "abortController": true,
+        "fetch": true,
+        "testRunner": true
+      },
+      "compatibility": {
+        "esModules": true,
+        "asyncAwait": true,
+        "imports": true,
+        "fileSystem": true
+      },
+      "summary": {
+        "success": true,
+        "passed": 4,
+        "total": 4
+      }
+    },
+    "simulated-node-22": {
+      "simulated": true,
+      "nodeVersion": "v22.0.0",
+      "features": {
+        "esModules": true,
+        "topLevelAwait": true,
+        "abortController": true,
+        "fetch": true,
+        "testRunner": true,
+        "require": true
+      },
+      "compatibility": {
+        "esModules": true,
+        "asyncAwait": true,
+        "imports": true,
+        "fileSystem": true
+      },
+      "summary": {
+        "success": true,
+        "passed": 4,
+        "total": 4
+      }
+    }
+  },
+  "summary": {
+    "totalEnvironments": 5,
+    "successfulEnvironments": 4,
+    "failedEnvironments": 1,
+    "compatibilityRate": 80,
+    "supportedPlatforms": [],
+    "supportedArchitectures": [],
+    "supportedNodeVersions": [],
+    "recommendations": [
+      "Cross-platform compatibility needs improvement",
+      "Current environment has compatibility issues"
+    ]
+  }
+}

@@ -1,0 +1,343 @@
+# SPARQL Query Examples
+# Generated using Unjucks semantic web filters
+
+# ========================================
+# PREFIX DECLARATIONS
+# ========================================
+
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX schema: <http://schema.org/>
+PREFIX foaf: <http://xmlns.com/foaf/0.1/>
+PREFIX dcterms: <http://purl.org/dc/terms/>
+PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+PREFIX enterprise: <https://enterprise.example.org/ontology#>
+
+# ========================================
+# BASIC QUERIES
+# ========================================
+
+# Query 1: Find all employees and their basic information
+SELECT ?employee ?firstName ?lastName ?email WHERE {
+    ?employee rdf:type enterprise:Employee .
+    ?employee foaf:firstName ?firstName .
+    ?employee foaf:lastName ?lastName .
+    OPTIONAL { ?employee foaf:mbox ?email }
+}
+ORDER BY ?lastName ?firstName
+
+# Query 2: Find all managers and their departments
+SELECT ?manager ?managerName ?department ?departmentName WHERE {
+    ?manager rdf:type enterprise:Manager .
+    ?manager foaf:firstName ?managerName .
+    ?manager enterprise:worksInDepartment ?department .
+    ?department rdfs:label ?departmentName .
+}
+
+# Query 3: Find employees with salary above a threshold
+SELECT ?employee ?name ?salary WHERE {
+    ?employee rdf:type enterprise:Employee .
+    ?employee foaf:firstName ?name .
+    ?employee enterprise:salary ?salary .
+    FILTER(?salary > 100000.00)
+}
+ORDER BY DESC(?salary)
+
+# ========================================
+# COMPLEX ANALYTICAL QUERIES
+# ========================================
+
+# Query 4: Department employee count and average salary
+SELECT ?department ?departmentName (COUNT(?employee) AS ?employeeCount) (AVG(?salary) AS ?avgSalary) WHERE {
+    ?department rdf:type enterprise:Department .
+    ?department rdfs:label ?departmentName .
+    ?employee enterprise:worksInDepartment ?department .
+    ?employee enterprise:salary ?salary .
+}
+GROUP BY ?department ?departmentName
+ORDER BY DESC(?employeeCount)
+
+# Query 5: Find reporting hierarchy (manager-subordinate relationships)
+SELECT ?manager ?managerName ?subordinate ?subordinateName WHERE {
+    ?subordinate enterprise:reportsTo ?manager .
+    ?manager foaf:firstName ?managerName .
+    ?subordinate foaf:firstName ?subordinateName .
+}
+ORDER BY ?managerName ?subordinateName
+
+# Query 6: Find employees who are both managers and work on projects
+SELECT DISTINCT ?person ?name ?projectName ?teamSize WHERE {
+    ?person rdf:type enterprise:Manager .
+    ?person foaf:firstName ?name .
+    ?person enterprise:manages ?team .
+    ?person enterprise:assignedTo ?project .
+    ?project rdfs:label ?projectName .
+    
+    # Count team size
+    {
+        SELECT ?team (COUNT(?teamMember) AS ?teamSize) WHERE {
+            ?teamMember enterprise:worksInDepartment ?team .
+        }
+        GROUP BY ?team
+    }
+}
+
+# ========================================
+# TEMPORAL QUERIES
+# ========================================
+
+# Query 7: Find employees hired in the last 2 years
+SELECT ?employee ?name ?hireDate ?tenure WHERE {
+    ?employee rdf:type enterprise:Employee .
+    ?employee foaf:firstName ?name .
+    ?employee enterprise:hireDate ?hireDate .
+    
+    # Calculate tenure in days
+    BIND(NOW() - ?hireDate AS ?tenure)
+    
+    FILTER(?hireDate >= "2022-01-01"^^xsd:date)
+}
+ORDER BY DESC(?hireDate)
+
+# Query 8: Find projects with their duration and status
+SELECT ?project ?projectName ?startDate ?endDate ?duration WHERE {
+    ?project rdf:type enterprise:Project .
+    ?project rdfs:label ?projectName .
+    ?project enterprise:startDate ?startDate .
+    OPTIONAL { ?project enterprise:endDate ?endDate }
+    
+    # Calculate project duration
+    BIND(COALESCE(?endDate, NOW()) - ?startDate AS ?duration)
+}
+
+# ========================================
+# SECURITY AND COMPLIANCE QUERIES
+# ========================================
+
+# Query 9: Security audit - find users with high clearance levels
+SELECT ?person ?name ?clearanceLevel ?department WHERE {
+    ?person rdf:type enterprise:Person .
+    ?person foaf:firstName ?name .
+    ?person enterprise:securityClearanceLevel ?clearanceLevel .
+    OPTIONAL { ?person enterprise:worksInDepartment ?department }
+    
+    FILTER(CONTAINS(LCASE(?clearanceLevel), "level 3") || 
+           CONTAINS(LCASE(?clearanceLevel), "top secret"))
+}
+
+# Query 10: Compliance check - employees without required information
+SELECT ?employee ?name WHERE {
+    ?employee rdf:type enterprise:Employee .
+    ?employee foaf:firstName ?name .
+    
+    FILTER NOT EXISTS { ?employee enterprise:employeeId ?empId }
+    FILTER NOT EXISTS { ?employee enterprise:hireDate ?hireDate }
+}
+
+# ========================================
+# SCHEMA.ORG QUERIES
+# ========================================
+
+# Query 11: Find organizations with their contact information
+SELECT ?org ?orgName ?email ?phone ?address WHERE {
+    ?org rdf:type schema:Organization .
+    ?org schema:name ?orgName .
+    
+    OPTIONAL {
+        ?org schema:contactPoint ?contact .
+        ?contact schema:email ?email .
+        ?contact schema:telephone ?phone .
+    }
+    
+    OPTIONAL {
+        ?org schema:address ?addr .
+        ?addr schema:streetAddress ?address .
+    }
+}
+
+# Query 12: Find software products with pricing
+SELECT ?product ?productName ?price ?currency ?description WHERE {
+    ?product rdf:type schema:SoftwareApplication .
+    ?product schema:name ?productName .
+    ?product schema:description ?description .
+    
+    OPTIONAL {
+        ?product schema:offers ?offer .
+        ?offer schema:price ?price .
+        ?offer schema:priceCurrency ?currency .
+    }
+}
+
+# ========================================
+# KNOWLEDGE GRAPH EXPLORATION
+# ========================================
+
+# Query 13: Explore all class hierarchies
+SELECT DISTINCT ?class ?superClass ?label WHERE {
+    ?class rdf:type owl:Class .
+    OPTIONAL { ?class rdfs:subClassOf ?superClass }
+    OPTIONAL { ?class rdfs:label ?label }
+    
+    FILTER(!isBlank(?class))
+}
+ORDER BY ?class
+
+# Query 14: Find all properties and their domains/ranges
+SELECT DISTINCT ?property ?domain ?range ?label WHERE {
+    ?property rdf:type ?propType .
+    VALUES ?propType { owl:ObjectProperty owl:DatatypeProperty }
+    
+    OPTIONAL { ?property rdfs:domain ?domain }
+    OPTIONAL { ?property rdfs:range ?range }
+    OPTIONAL { ?property rdfs:label ?label }
+}
+ORDER BY ?property
+
+# ========================================
+# CONSTRUCT QUERIES
+# ========================================
+
+# Query 15: Create a simplified employee directory
+CONSTRUCT {
+    ?employee foaf:name ?fullName .
+    ?employee foaf:mbox ?email .
+    ?employee enterprise:department ?deptName .
+    ?employee enterprise:role ?jobTitle .
+}
+WHERE {
+    ?employee rdf:type enterprise:Employee .
+    ?employee foaf:firstName ?firstName .
+    ?employee foaf:lastName ?lastName .
+    
+    BIND(CONCAT(?firstName, " ", ?lastName) AS ?fullName)
+    
+    OPTIONAL { ?employee foaf:mbox ?email }
+    OPTIONAL { 
+        ?employee enterprise:worksInDepartment ?dept .
+        ?dept rdfs:label ?deptName .
+    }
+    OPTIONAL { 
+        ?employee enterprise:hasRole ?role .
+        ?role rdfs:label ?jobTitle .
+    }
+}
+
+# Query 16: Generate organizational chart data
+CONSTRUCT {
+    ?manager enterprise:supervises ?subordinate .
+    ?manager enterprise:teamSize ?size .
+}
+WHERE {
+    ?subordinate enterprise:reportsTo ?manager .
+    
+    {
+        SELECT ?manager (COUNT(?subordinate) AS ?size) WHERE {
+            ?subordinate enterprise:reportsTo ?manager .
+        }
+        GROUP BY ?manager
+    }
+}
+
+# ========================================
+# ASK QUERIES (BOOLEAN)
+# ========================================
+
+# Query 17: Check if there are any contractors
+ASK {
+    ?person rdf:type enterprise:Contractor .
+}
+
+# Query 18: Verify data integrity - employees without departments
+ASK {
+    ?employee rdf:type enterprise:Employee .
+    FILTER NOT EXISTS { ?employee enterprise:worksInDepartment ?dept }
+}
+
+# ========================================
+# FEDERATED QUERIES
+# ========================================
+
+# Query 19: Cross-system employee lookup
+SELECT ?localEmployee ?externalId ?externalInfo WHERE {
+    # Local employee data
+    SERVICE <http://local.hr.example.org/sparql> {
+        ?localEmployee rdf:type enterprise:Employee .
+        ?localEmployee enterprise:employeeId ?empId .
+    }
+    
+    # External HR system
+    SERVICE <http://external.hr.example.org/sparql> {
+        ?externalEmployee hr:employeeId ?empId .
+        ?externalEmployee hr:externalId ?externalId .
+        ?externalEmployee hr:additionalInfo ?externalInfo .
+    }
+}
+
+# Query 20: Multi-source organizational data
+SELECT ?employee ?localInfo ?payrollInfo ?benefitsInfo WHERE {
+    # Core employee data
+    ?employee rdf:type enterprise:Employee .
+    ?employee foaf:firstName ?localInfo .
+    
+    # Payroll system data
+    SERVICE <http://payroll.example.org/sparql> {
+        ?employee payroll:salary ?payrollInfo .
+    }
+    
+    # Benefits system data
+    SERVICE <http://benefits.example.org/sparql> {
+        ?employee benefits:plan ?benefitsInfo .
+    }
+}
+
+# ========================================
+# ANALYTICS AND REPORTING QUERIES
+# ========================================
+
+# Query 21: Department performance metrics
+SELECT ?department ?employeeCount ?avgSalary ?projectCount ?avgProjectDuration WHERE {
+    {
+        SELECT ?department (COUNT(?employee) AS ?employeeCount) (AVG(?salary) AS ?avgSalary) WHERE {
+            ?employee enterprise:worksInDepartment ?department .
+            ?employee enterprise:salary ?salary .
+        }
+        GROUP BY ?department
+    }
+    
+    {
+        SELECT ?department (COUNT(?project) AS ?projectCount) (AVG(?duration) AS ?avgProjectDuration) WHERE {
+            ?project enterprise:managedBy ?manager .
+            ?manager enterprise:worksInDepartment ?department .
+            ?project enterprise:startDate ?start .
+            ?project enterprise:endDate ?end .
+            BIND(?end - ?start AS ?duration)
+        }
+        GROUP BY ?department
+    }
+}
+
+# Query 22: Skills gap analysis using SKOS
+SELECT ?skill ?requiredCount ?availableCount (?requiredCount - ?availableCount AS ?gap) WHERE {
+    # Required skills from job postings
+    {
+        SELECT ?skill (COUNT(?posting) AS ?requiredCount) WHERE {
+            ?posting rdf:type enterprise:JobPosting .
+            ?posting enterprise:requiredSkill ?skill .
+        }
+        GROUP BY ?skill
+    }
+    
+    # Available skills from employee profiles
+    {
+        SELECT ?skill (COUNT(?employee) AS ?availableCount) WHERE {
+            ?employee rdf:type enterprise:Employee .
+            ?employee enterprise:hasSkill ?skill .
+        }
+        GROUP BY ?skill
+    }
+    
+    FILTER(?requiredCount > ?availableCount)
+}
+ORDER BY DESC(?gap)

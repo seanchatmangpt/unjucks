@@ -1,0 +1,98 @@
+---
+to: data/{{ environment | default("development") }}/users.json
+inject: false
+---
+{
+  "metadata": {
+    "generatedAt": "{{ now().format() }}",
+    "environment": "{{ environment | default("development") }}",
+    "seed": {{ seed | default(12345) }},
+    "totalUsers": {{ userCount | default(10) }},
+    "description": "{{ description | default("Generated user test data") }}"
+  },
+  "users": [
+    {% set seed = fakeSeed(seed | default(12345)) %}
+    {% for i in range(0, userCount | default(10)) %}
+    {
+      "id": {{ i + 1 }},
+      "uuid": "{{ fakeUuid() }}",
+      "profile": {
+        "firstName": "{{ fakeName().split(' ')[0] | capitalize }}",
+        "lastName": "{{ fakeName().split(' ')[1] | capitalize }}",
+        "fullName": "{{ fakeName() | titleCase }}",
+        "username": "{{ fakeName() | camelCase | lower }}{{ fakeNumber(100, 999) }}",
+        "email": "{{ fakeEmail() | lower }}",
+        "avatar": "https://api.dicebear.com/7.x/avataaars/svg?seed={{ fakeUuid() }}"
+      },
+      "contact": {
+        "phone": "{{ fakePhone() }}",
+        "address": {
+          "street": "{{ fakeAddress() }}",
+          "city": "{{ fakeCity() }}",
+          "country": "{{ fakeArrayElement(["USA", "Canada", "UK", "Germany", "France", "Japan"]) }}"
+        }
+      },
+      "employment": {
+        "company": "{{ fakeCompany() | titleCase }}",
+        "position": "{{ fakeArrayElement(["Developer", "Designer", "Manager", "Analyst", "Engineer"]) | titleCase }}",
+        "department": "{{ fakeArrayElement(["Engineering", "Design", "Marketing", "Sales", "HR"]) }}",
+        "startDate": "{{ fakeDate("2020-01-01", "2024-01-01") | formatDate("YYYY-MM-DD") }}"
+      },
+      "preferences": {
+        "theme": "{{ fakeArrayElement(["light", "dark", "auto"]) }}",
+        "language": "{{ fakeArrayElement(["en", "es", "fr", "de", "ja"]) }}",
+        "timezone": "{{ fakeArrayElement(["UTC", "EST", "PST", "GMT", "JST"]) }}",
+        "notifications": {
+          "email": {{ fakeBoolean() }},
+          "push": {{ fakeBoolean() }},
+          "sms": {{ fakeBoolean() }}
+        }
+      },
+      "skills": {{ fakeArrayElement([
+        ["JavaScript", "React", "Node.js"],
+        ["Python", "Django", "PostgreSQL"],
+        ["Java", "Spring", "MySQL"],
+        ["C#", "ASP.NET", "SQL Server"],
+        ["Go", "Docker", "Kubernetes"]
+      ]) | dump }},
+      "social": {
+        "github": "https://github.com/{{ fakeName() | camelCase | lower }}",
+        "linkedin": "https://linkedin.com/in/{{ fakeName() | kebabCase | lower }}",
+        "twitter": "https://twitter.com/{{ fakeName() | camelCase | lower }}"
+      },
+      "metadata": {
+        "isActive": {{ fakeBoolean() }},
+        "lastLogin": "{{ fakeDate("2024-01-01", now()) | formatDate() }}",
+        "accountType": "{{ fakeArrayElement(["free", "premium", "enterprise"]) }}",
+        "createdAt": "{{ fakeDate("2020-01-01", "2023-12-31") | formatDate() }}",
+        "updatedAt": "{{ fakeDate("2024-01-01", now()) | formatDate() }}",
+        "tags": {{ fakeArrayElement([
+          ["admin", "power-user"],
+          ["beta-tester", "early-adopter"],
+          ["contributor", "maintainer"],
+          ["student", "educator"],
+          []
+        ]) | dump }}
+      },
+      "rdf": {
+        "uri": "{{ ("user_" + (i + 1)) | rdfResource }}",
+        "type": "{{ "Person" | schemaOrg | curie }}",
+        "foafName": "{{ "name" | foaf | curie }}",
+        "foafEmail": "{{ "mbox" | foaf | curie }}",
+        "dcCreated": "{{ "created" | dublinCore | curie }}",
+        "dataGraph": "{{ ("users_" + environment) | rdfGraph | curie }}"
+      }
+    }{% if not loop.last %},{% endif %}
+    {% endfor %}
+  ],
+  "summary": {
+    "activeUsers": "{{ "SELECT (COUNT(?user) AS ?count) WHERE { ?user a schema:Person ; ex:isActive true }" }}",
+    "companiesRepresented": "{{ "SELECT (COUNT(DISTINCT ?company) AS ?count) WHERE { ?user ex:worksFor ?company }" }}",
+    "skillDistribution": "{{ "SELECT ?skill (COUNT(?user) AS ?count) WHERE { ?user ex:hasSkill ?skill } GROUP BY ?skill ORDER BY DESC(?count)" }}",
+    "generationStats": {
+      "processingTime": "< 1 second",
+      "filtersCombined": {{ ["fakeName", "fakeEmail", "fakeCompany", "fakeBoolean", "titleCase", "camelCase", "kebabCase", "rdfResource", "schemaOrg", "foaf", "dublinCore"] | length }},
+      "semanticTriples": "~{{ (userCount | default(10)) * 15 }} estimated RDF triples"
+    }
+  }
+}

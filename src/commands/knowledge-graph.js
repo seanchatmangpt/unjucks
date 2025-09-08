@@ -2,7 +2,7 @@ import { defineCommand } from 'citty';
 import { consola } from 'consola';
 import { promises as fs } from 'fs';
 import { join, resolve } from 'path';
-import { KnowledgeGraphPipeline, KGDataset } from '../lib/knowledge-graph/kg-pipeline';
+import { KnowledgeGraphPipeline } from '../lib/knowledge-graph/kg-pipeline.js';
 import { performance } from 'perf_hooks';
 
 export default defineCommand({
@@ -65,7 +65,7 @@ export default defineCommand({
           // Load dataset
           consola.info('Loading dataset from:', inputPath);
           const datasetContent = await fs.readFile(inputPath, 'utf8');
-          const dataset: KGDataset = JSON.parse(datasetContent);
+          const dataset = JSON.parse(datasetContent);
           
           // Validate templates directory
           const templatesDir = resolve(args.templates);
@@ -77,7 +77,7 @@ export default defineCommand({
             outputDir: resolve(args.output),
             validate: args.validate,
             force: args.force,
-            format: args.format as any
+            format: args.format
           });
           
           consola.info(`Generating knowledge graph for domain: ${dataset.domain}`);
@@ -131,7 +131,7 @@ export default defineCommand({
           if (args.format !== 'turtle') {
             consola.info(`Converting to ${args.format} format...`);
             for (const file of result.files.filter(f => f.endsWith('.ttl'))) {
-              await pipeline.convertFormat(file, args.format as any);
+              await pipeline.convertFormat(file, args.format);
             }
             consola.success(`Format conversion completed`);
           }
@@ -183,13 +183,13 @@ Output: ${args.output}`);
           
           // Check if input is file or directory
           const inputStat = await fs.stat(inputPath);
-          let rdfFiles: string[] = [];
+          let rdfFiles = [];
           
           if (inputStat.isDirectory()) {
             const files = await fs.readdir(inputPath, { recursive: true });
             rdfFiles = files
-              .filter((file: any) => typeof file === 'string' && (file.endsWith('.ttl') || file.endsWith('.rdf') || file.endsWith('.nt')))
-              .map((file: any) => join(inputPath, file));
+              .filter((file) => typeof file === 'string' && (file.endsWith('.ttl') || file.endsWith('.rdf') || file.endsWith('.nt')))
+              .map((file) => join(inputPath, file));
           } else {
             rdfFiles = [inputPath];
           }
@@ -205,7 +205,7 @@ Output: ${args.output}`);
           });
           
           // Validate files
-          const validationResult = await (pipeline as any).validateKnowledgeGraph(rdfFiles);
+          const validationResult = await pipeline.validateKnowledgeGraph(rdfFiles);
           
           // Generate report
           const report = {
@@ -277,7 +277,7 @@ Output: ${args.output}`);
       },
       async run({ args }) {
         try {
-          let queryText: string;
+          let queryText;
           
           if (args.query) {
             queryText = args.query;
@@ -396,7 +396,7 @@ Output: ${args.output}`);
           };
           
           // Execute Docker Compose
-          const { spawn } = require('child_process');
+          const { spawn } = await import('child_process');
           const profiles = args.profiles.split(',').map(p => p.trim()).join(',');
           
           const dockerArgs = [
@@ -483,7 +483,7 @@ Output: ${args.output}`);
           const pipeline = new KnowledgeGraphPipeline({
             templatesDir: '',
             outputDir: '',
-            format: args.to as any
+            format: args.to
           });
           
           // Check if input is file or directory
@@ -492,15 +492,15 @@ Output: ${args.output}`);
           if (inputStat.isDirectory()) {
             // Convert directory of files
             const files = await fs.readdir(inputPath, { recursive: true });
-            const rdfFiles = files.filter((file: any) => 
+            const rdfFiles = files.filter((file) => 
               typeof file === 'string' && file.endsWith(getFileExtension(args.from))
             );
             
             await fs.mkdir(outputPath, { recursive: true });
             
             for (const file of rdfFiles) {
-              const inputFile = join(inputPath, file as string);
-              const outputFile = await pipeline.convertFormat(inputFile, args.to as any);
+              const inputFile = join(inputPath, file);
+              const outputFile = await pipeline.convertFormat(inputFile, args.to);
               consola.info(`Converted: ${file} → ${outputFile}`);
             }
             
@@ -508,7 +508,7 @@ Output: ${args.output}`);
             
           } else {
             // Convert single file
-            const outputFile = await pipeline.convertFormat(inputPath, args.to as any);
+            const outputFile = await pipeline.convertFormat(inputPath, args.to);
             consola.success(`Converted: ${inputPath} → ${outputFile}`);
           }
           
@@ -521,8 +521,8 @@ Output: ${args.output}`);
   }
 });
 
-function getFileExtension(format: string): string {
-  const extensions: Record<string, string> = {
+function getFileExtension(format) {
+  const extensions = {
     turtle: '.ttl',
     rdfxml: '.rdf',
     jsonld: '.jsonld',

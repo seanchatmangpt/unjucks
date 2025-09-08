@@ -32,6 +32,7 @@ process.on('unhandledRejection', (reason) => {
 // Check if source CLI exists
 const path = require('path');
 const fs = require('fs');
+const { createRequire } = require('module');
 const cliPath = path.join(__dirname, '../src/cli/index.js');
 
 if (!fs.existsSync(cliPath)) {
@@ -46,7 +47,8 @@ try {
   // Import using dynamic import to support ES modules
   (async () => {
     const fullPath = path.resolve(__dirname, '../src/cli/index.js');
-    const cliModule = await import(fullPath);
+    const { pathToFileURL } = require('url');
+    const cliModule = await import(pathToFileURL(fullPath));
     const { runMain } = cliModule;
   
     // Run with proper error handling

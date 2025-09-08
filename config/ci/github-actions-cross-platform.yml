@@ -1,0 +1,283 @@
+name: Cross-Platform Compatibility Tests
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  cross-platform-test:
+    name: Test on ${{ matrix.os }} with Node.js ${{ matrix.node-version }}
+    runs-on: ${{ matrix.os }}
+    
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest, macos-14] # macos-14 for M1
+        node-version: [18, 20, 22]
+        include:
+          # Test on Ubuntu with different architectures
+          - os: ubuntu-20.04
+            node-version: 18
+            arch: x64
+          # Test Windows on older version
+          - os: windows-2019  
+            node-version: 18
+            arch: x64
+        exclude:
+          # Skip Node 22 on Windows (if needed for compatibility)
+          # - os: windows-latest
+          #   node-version: 22
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+          architecture: ${{ matrix.arch || 'x64' }}
+
+      - name: Display system info
+        run: |
+          echo "OS: ${{ runner.os }}"
+          echo "Architecture: ${{ runner.arch }}"
+          echo "Node version: $(node --version)"
+          echo "NPM version: $(npm --version)"
+          echo "Platform: $(node -p 'process.platform')"
+          echo "Arch: $(node -p 'process.arch')"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Verify binary permissions (Unix)
+        if: runner.os != 'Windows'
+        run: |
+          ls -la bin/
+          chmod +x bin/unjucks.cjs
+          ls -la bin/
+
+      - name: Test CLI execution
+        run: |
+          node bin/unjucks.cjs --version
+          node bin/unjucks.cjs --help
+
+      - name: Run cross-platform compatibility tests
+        run: npm run test:cli:core
+        env:
+          CI: true
+          NODE_ENV: test
+
+      - name: Run specific cross-platform test suite
+        run: npx vitest run tests/cross-platform/platform-compatibility.test.js --reporter=verbose
+        env:
+          CI: true
+
+      - name: Test package installation in clean environment
+        run: |
+          mkdir test-install
+          cd test-install
+          npm init -y
+          npm install ../
+          node -e "console.log('Installation test passed')"
+
+      - name: Test ES module imports
+        run: |
+          node -e "
+            import('./src/cli/index.js')
+              .then(() => console.log('ES module import successful'))
+              .catch(err => { console.error('ES module import failed:', err); process.exit(1); })
+          "
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-${{ matrix.os }}-node${{ matrix.node-version }}
+          path: |
+            tests/.tmp/cross-platform-test/
+            reports/
+
+  architecture-test:
+    name: Test Architecture Compatibility
+    runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        node-version: [18, 20, 22]
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Test native dependencies (if any)
+        run: |
+          node -e "
+            const pkg = JSON.parse(require('fs').readFileSync('package.json', 'utf8'));
+            const nativeDeps = Object.keys(pkg.dependencies || {}).filter(dep => 
+              ['bcrypt', 'sharp', 'canvas', 'sqlite3'].includes(dep)
+            );
+            console.log('Native dependencies detected:', nativeDeps);
+            nativeDeps.forEach(dep => {
+              try {
+                require.resolve(dep);
+                console.log('✓', dep, 'resolved successfully');
+              } catch(e) {
+                console.log('✗', dep, 'failed to resolve:', e.message);
+                process.exit(1);
+              }
+            });
+          "
+
+      - name: Test ARM64 simulation (if supported)
+        if: runner.arch == 'ARM64' || runner.arch == 'arm64'
+        run: |
+          echo "Running on ARM64 architecture"
+          node -p "'Architecture: ' + process.arch"
+          npm test
+
+  package-manager-test:
+    name: Test with ${{ matrix.package-manager }}
+    runs-on: ubuntu-latest
+    
+    strategy:
+      fail-fast: false
+      matrix:
+        package-manager: [npm, yarn, pnpm]
+        node-version: [18, 20]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      - name: Setup package manager
+        run: |
+          if [ "${{ matrix.package-manager }}" = "yarn" ]; then
+            corepack enable yarn
+            yarn --version
+          elif [ "${{ matrix.package-manager }}" = "pnpm" ]; then
+            corepack enable pnpm
+            pnpm --version
+          else
+            npm --version
+          fi
+
+      - name: Install dependencies
+        run: |
+          if [ "${{ matrix.package-manager }}" = "yarn" ]; then
+            yarn install --frozen-lockfile
+          elif [ "${{ matrix.package-manager }}" = "pnpm" ]; then
+            pnpm install --frozen-lockfile
+          else
+            npm ci
+          fi
+
+      - name: Test CLI with package manager
+        run: |
+          if [ "${{ matrix.package-manager }}" = "yarn" ]; then
+            yarn test:cli:core
+          elif [ "${{ matrix.package-manager }}" = "pnpm" ]; then
+            pnpm test:cli:core
+          else
+            npm run test:cli:core
+          fi
+
+  environment-compatibility:
+    name: Environment Compatibility Tests
+    runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        node-env: [development, production, test]
+        
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Test in ${{ matrix.node-env }} environment
+        run: |
+          export NODE_ENV=${{ matrix.node-env }}
+          node bin/unjucks.cjs --version
+          npm run test:cli:core
+        env:
+          NODE_ENV: ${{ matrix.node-env }}
+
+  compatibility-report:
+    name: Generate Compatibility Report
+    needs: [cross-platform-test, architecture-test, package-manager-test, environment-compatibility]
+    if: always()
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+
+      - name: Generate compatibility matrix
+        run: |
+          echo "# Cross-Platform Compatibility Report" > compatibility-report.md
+          echo "" >> compatibility-report.md
+          echo "Generated: $(date)" >> compatibility-report.md
+          echo "" >> compatibility-report.md
+          
+          echo "## Test Results Summary" >> compatibility-report.md
+          echo "" >> compatibility-report.md
+          
+          if [ "${{ needs.cross-platform-test.result }}" = "success" ]; then
+            echo "✅ Cross-platform tests: PASSED" >> compatibility-report.md
+          else
+            echo "❌ Cross-platform tests: FAILED" >> compatibility-report.md
+          fi
+          
+          if [ "${{ needs.architecture-test.result }}" = "success" ]; then
+            echo "✅ Architecture tests: PASSED" >> compatibility-report.md
+          else
+            echo "❌ Architecture tests: FAILED" >> compatibility-report.md
+          fi
+          
+          if [ "${{ needs.package-manager-test.result }}" = "success" ]; then
+            echo "✅ Package manager tests: PASSED" >> compatibility-report.md
+          else
+            echo "❌ Package manager tests: FAILED" >> compatibility-report.md
+          fi
+          
+          if [ "${{ needs.environment-compatibility.result }}" = "success" ]; then
+            echo "✅ Environment tests: PASSED" >> compatibility-report.md
+          else
+            echo "❌ Environment tests: FAILED" >> compatibility-report.md
+          fi
+
+      - name: Upload compatibility report
+        uses: actions/upload-artifact@v4
+        with:
+          name: compatibility-report
+          path: compatibility-report.md

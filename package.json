@@ -1,17 +1,16 @@
 {
   "name": "@seanchatmangpt/unjucks",
-  "version": "2025.09.07.19.54",
+  "version": "2025.9.071954",
   "type": "module",
   "description": "Nunjucks + Hygen style scaffolding with RDF/Turtle support",
   "main": "./src/cli/index.js",
-  "module": "./src/cli/index.js",
   "bin": {
     "unjucks": "./bin/unjucks.cjs"
   },
   "exports": {
     ".": {
       "import": "./src/cli/index.js",
-      "require": "./src/cli/index.js"
+      "require": "./bin/unjucks.cjs"
     }
   },
   "files": [
@@ -141,7 +140,7 @@
   "dependencies": {
     "@faker-js/faker": "^9.9.0",
     "axios": "^1.6.0",
-    "bcrypt": "^6.0.0",
+    "bcrypt": "^5.1.1",
     "chalk": "^4.1.2",
     "chokidar": "^3.3.0",
     "citty": "^0.1.6",
@@ -156,21 +155,11 @@
     "n3": "^1.26.0",
     "nunjucks": "^3.2.4",
     "ora": "^8.2.0",
+    "vitest": "^3.2.4",
     "yaml": "^2.4.1",
-    "zod": "^4.1.5"
+    "zod": "^3.23.8"
   },
   "devDependencies": {
-    "@amiceli/vitest-cucumber": "^5.2.1",
-    "@vitejs/plugin-vue": "^6.0.1",
-    "@vitest/ui": "^3.2.4",
-    "automd": "^0.3.8",
-    "eslint": "^9.0.0",
-    "eslint-plugin-import": "^2.32.0",
-    "sparqljs": "^3.7.3",
-    "unbuild": "^3.6.1",
-    "vite": "^7.1.4",
-    "vitest": "^3.2.4",
-    "vue": "^3.5.21"
   },
   "peerDependencies": {
     "chokidar": "^3.3.0"

@@ -1,0 +1,93 @@
+---
+to: ontology/{{ domainName | kebabCase }}.ttl
+inject: false
+---
+@prefix : <{{ baseUri | default("http://example.org/ontology/") | rdfResource }}> .
+@prefix owl: <{{ rdfNamespaces.owl }}> .
+@prefix rdf: <{{ rdfNamespaces.rdf }}> .
+@prefix xml: <http://www.w3.org/XML/1998/namespace> .
+@prefix xsd: <{{ rdfNamespaces.xsd }}> .
+@prefix rdfs: <{{ rdfNamespaces.rdfs }}> .
+@prefix skos: <{{ rdfNamespaces.skos }}> .
+@prefix dct: <{{ rdfNamespaces.dct }}> .
+@prefix foaf: <{{ rdfNamespaces.foaf }}> .
+@base <{{ baseUri | default("http://example.org/ontology/") }}> .
+
+# Ontology Metadata
+{{ baseUri | rdfResource | curie }} {{ "type" | rdf }} {{ "Ontology" | owl | curie }} ;
+    {{ "title" | dublinCore | curie }} {{ (domainName + " Domain Ontology") | rdfLiteral("en") }} ;
+    {{ "description" | dublinCore | curie }} {{ description | default("Domain ontology for " + domainName) | rdfLiteral("en") }} ;
+    {{ "creator" | dublinCore | curie }} {{ author | default(fakeName()) | rdfLiteral }} ;
+    {{ "created" | dublinCore | curie }} {{ now().format() | rdfDatatype("dateTime") }} ;
+    {{ "version" | owl | curie }} {{ version | default("1.0.0") | rdfLiteral }} ;
+    {{ "license" | dublinCore | curie }} <{{ license | default("https://creativecommons.org/licenses/by/4.0/") }}> .
+
+# Classes
+{% for class in classes %}
+{{ class.name | rdfClass | curie }} {{ "type" | rdf }} {{ "Class" | owl | curie }} ;
+    {{ "label" | rdfs }} {{ class.name | humanize | rdfLiteral("en") }} ;
+    {% if class.description %}{{ "comment" | rdfs }} {{ class.description | rdfLiteral("en") }} ;{% endif %}
+    {% if class.subClassOf %}{{ "subClassOf" | rdfs }} {{ class.subClassOf | rdfClass | curie }} ;{% endif %}
+    {% if class.equivalentClass %}{{ "equivalentClass" | owl | curie }} {{ class.equivalentClass | rdfClass | curie }} ;{% endif %}
+    {% if class.disjointWith %}{{ "disjointWith" | owl | curie }} {{ class.disjointWith | rdfClass | curie }} ;{% endif %}
+    {{ "definedBy" | rdfs }} {{ baseUri | rdfResource | curie }} .
+
+{% endfor %}
+
+# Object Properties
+{% for property in objectProperties %}
+{{ property.name | rdfProperty | curie }} {{ "type" | rdf }} {{ "ObjectProperty" | owl | curie }} ;
+    {{ "label" | rdfs }} {{ property.name | humanize | rdfLiteral("en") }} ;
+    {% if property.description %}{{ "comment" | rdfs }} {{ property.description | rdfLiteral("en") }} ;{% endif %}
+    {% if property.domain %}{{ "domain" | rdfs }} {{ property.domain | rdfClass | curie }} ;{% endif %}
+    {% if property.range %}{{ "range" | rdfs }} {{ property.range | rdfClass | curie }} ;{% endif %}
+    {% if property.subPropertyOf %}{{ "subPropertyOf" | rdfs }} {{ property.subPropertyOf | rdfProperty | curie }} ;{% endif %}
+    {% if property.inverseOf %}{{ "inverseOf" | owl | curie }} {{ property.inverseOf | rdfProperty | curie }} ;{% endif %}
+    {% if property.functional %}{{ "type" | rdf }} {{ "FunctionalProperty" | owl | curie }} ;{% endif %}
+    {% if property.transitive %}{{ "type" | rdf }} {{ "TransitiveProperty" | owl | curie }} ;{% endif %}
+    {% if property.symmetric %}{{ "type" | rdf }} {{ "SymmetricProperty" | owl | curie }} ;{% endif %}
+    {{ "definedBy" | rdfs }} {{ baseUri | rdfResource | curie }} .
+
+{% endfor %}
+
+# Data Properties  
+{% for property in dataProperties %}
+{{ property.name | rdfProperty | curie }} {{ "type" | rdf }} {{ "DatatypeProperty" | owl | curie }} ;
+    {{ "label" | rdfs }} {{ property.name | humanize | rdfLiteral("en") }} ;
+    {% if property.description %}{{ "comment" | rdfs }} {{ property.description | rdfLiteral("en") }} ;{% endif %}
+    {% if property.domain %}{{ "domain" | rdfs }} {{ property.domain | rdfClass | curie }} ;{% endif %}
+    {% if property.range %}{{ "range" | rdfs }} {{ property.range | xsd }} ;{% endif %}
+    {% if property.subPropertyOf %}{{ "subPropertyOf" | rdfs }} {{ property.subPropertyOf | rdfProperty | curie }} ;{% endif %}
+    {% if property.functional %}{{ "type" | rdf }} {{ "FunctionalProperty" | owl | curie }} ;{% endif %}
+    {{ "definedBy" | rdfs }} {{ baseUri | rdfResource | curie }} .
+
+{% endfor %}
+
+# Named Individuals
+{% for individual in individuals | default([]) %}
+{{ individual.name | rdfResource | curie }} {{ "type" | rdf }} {{ individual.type | rdfClass | curie }} ;
+    {{ "label" | rdfs }} {{ individual.name | humanize | rdfLiteral("en") }} ;
+    {% if individual.description %}{{ "comment" | rdfs }} {{ individual.description | rdfLiteral("en") }} ;{% endif %}
+    {% for prop, value in individual.properties %}
+    {{ prop | rdfProperty | curie }} {{ value | rdfLiteral }} ;
+    {% endfor %}
+    {{ "definedBy" | rdfs }} {{ baseUri | rdfResource | curie }} .
+
+{% endfor %}
+
+# SPARQL Queries for Validation
+{% if generateQueries %}
+# Query to list all classes
+# SELECT ?class ?label WHERE {
+#   {{ "class" | sparqlVar }} {{ "type" | rdf }} {{ "Class" | owl | curie }} .
+#   OPTIONAL { {{ "class" | sparqlVar }} {{ "label" | rdfs }} {{ "label" | sparqlVar }} }
+# }
+
+# Query to list all properties  
+# SELECT ?property ?type ?domain ?range WHERE {
+#   {{ "property" | sparqlVar }} {{ "type" | rdf }} {{ "type" | sparqlVar }} .
+#   {{ "(?type = owl:ObjectProperty || ?type = owl:DatatypeProperty)" | sparqlFilter }}
+#   OPTIONAL { {{ "property" | sparqlVar }} {{ "domain" | rdfs }} {{ "domain" | sparqlVar }} }
+#   OPTIONAL { {{ "property" | sparqlVar }} {{ "range" | rdfs }} {{ "range" | sparqlVar }} }
+# }
+{% endif %}

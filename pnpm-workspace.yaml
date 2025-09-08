@@ -1,0 +1,59 @@
+# PNPM Workspace Configuration
+# ============================
+# Enterprise-grade workspace setup for Unjucks
+
+packages:
+  # Main application package
+  - '.'
+  
+  # VS Code extension
+  - 'vscode-extension'
+  
+  # Exclude all test directories and temporary files
+  - '!**/node_modules'
+  - '!**/dist'
+  - '!**/build'
+  - '!**/.git'
+  - '!**/coverage'
+  - '!**/.nyc_output'
+  - '!**/temp'
+  - '!**/tmp'
+  - '!**/.tmp'
+  - '!**/test-*'
+  - '!**/TestApp'
+  - '!**/generated'
+  - '!**/memory'
+  - '!**/reports'
+  - '!**/.swarm'
+  - '!**/.hive-mind'
+  - '!**/.unjucks'
+  
+# Workspace settings
+catalog:
+  # Common dependencies across workspace
+  vitest: ^3.2.4
+  eslint: ^9.0.0
+  typescript: ^5.0.0
+  '@types/node': ^20.0.0
+  
+# Shared configurations
+sharedWorkspaceFile:
+  - '.gitignore'
+  - '.editorconfig'
+  - '.eslintrc.*'
+  - 'tsconfig.json'
+  - 'vitest.config.*'
+  
+# Dependency management
+dependencyMeta:
+  # Peer dependency warnings
+  eslint:
+    optional: false
+  vitest:
+    optional: false
+    
+# Workspace-specific settings
+workspace:
+  linkWorkspacePackages: deep
+  preferWorkspacePackages: true
+  saveWorkspaceProtocol: rolling

@@ -70,7 +70,7 @@
     "inquirer": "^9.2.8",
     "chalk": "^5.3.0",
     "ora": "^7.0.1",
-    "unjucks": "workspace:*"
+    "@seanchatmangpt/unjucks": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "^20.5.0",

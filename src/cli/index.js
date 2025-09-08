@@ -10,17 +10,17 @@ import { injectCommand } from '../commands/inject.js';
 import { initCommand } from '../commands/init.js';
 import { semanticCommand } from '../commands/semantic.js';
 import { migrateCommand } from '../commands/migrate.js';
-import { versionCommand } from '../commands/version.js';
-import { newCommand } from '../commands/new.js';
-import { previewCommand } from '../commands/preview.js';
+// import { versionCommand } from '../commands/version.js'; // Temporarily commented out
+// import { newCommand } from '../commands/new.js'; // Temporarily commented out
+// import { previewCommand } from '../commands/preview.js'; // Temporarily commented out
 
 // Import NEW enhanced commands
-import { swarmCommand } from '../commands/swarm.js';
-import { workflowCommand } from '../commands/workflow.js';
-import { perfCommand } from '../commands/perf.js';
+// import { swarmCommand } from '../commands/swarm.js'; // Temporarily commented out
+// import { workflowCommand } from '../commands/workflow.js'; // Temporarily commented out
+// import { perfCommand } from '../commands/perf.js'; // Temporarily commented out
 import { githubCommand } from '../commands/github.js';
-import { knowledgeCommand } from '../commands/knowledge.js';
-import { neuralCommand } from '../commands/neural.js';
+// import { knowledgeCommand } from '../commands/knowledge.js'; // Temporarily commented out
+// import { neuralCommand } from '../commands/neural.js'; // Temporarily commented out
 
 // All commands now imported from their respective modules
 
@@ -114,27 +114,27 @@ const main = defineCommand({
   },
   subCommands: {
     // PRIMARY UNIFIED COMMANDS
-    new: newCommand,        // Primary command - clear intent
-    preview: previewCommand, // Safe exploration
+    // new: newCommand,        // Primary command - clear intent
+    // preview: previewCommand, // Safe exploration
     help: helpCommand,      // Context-sensitive help
     
     // SECONDARY COMMANDS
     list: listCommand,
     init: initCommand,
     inject: injectCommand,
-    version: versionCommand,
+    // version: versionCommand,
     
     // LEGACY SUPPORT
     generate: generateCommand, // Legacy command with deprecation warnings
     
     // ADVANCED FEATURES
     semantic: semanticCommand,
-    swarm: swarmCommand,
-    workflow: workflowCommand,
-    perf: perfCommand,
+    // swarm: swarmCommand,
+    // workflow: workflowCommand,
+    // perf: perfCommand,
     github: githubCommand,
-    knowledge: knowledgeCommand,
-    neural: neuralCommand,
+    // knowledge: knowledgeCommand,
+    // neural: neuralCommand,
     migrate: migrateCommand,
   },
   /**

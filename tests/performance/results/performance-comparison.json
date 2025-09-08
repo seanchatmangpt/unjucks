@@ -1,0 +1,19 @@
+{
+  "generatedAt": "2025-09-07T23:23:54.897Z",
+  "nodeVersion": "v22.12.0",
+  "platform": "darwin",
+  "arch": "arm64",
+  "testEnvironment": "Performance Comparison Suite",
+  "comparisonResults": [],
+  "summary": {
+    "totalTests": 0,
+    "improved": 0,
+    "regressed": 0,
+    "stable": 0,
+    "new": 0,
+    "overallStatus": "STABLE"
+  },
+  "recommendations": [
+    "No comparison data available - establish performance baselines"
+  ]
+}

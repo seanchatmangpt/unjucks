@@ -1,0 +1,36 @@
+# CI/CD Enterprise pnpm Configuration
+# ===================================
+
+# Strict CI Settings
+frozen-lockfile=true
+prefer-offline=true
+ignore-scripts=false
+production=false
+
+# Performance for CI
+cache-dir=./.pnpm-cache
+store-dir=./.pnpm-store
+network-concurrency=16
+child-concurrency=8
+
+# Security & Auditing
+audit-level=moderate
+fund=false
+optional=false
+
+# Logging for CI
+loglevel=info
+progress=false
+reporter=append-only
+
+# Registry Settings
+registry=https://registry.npmjs.org/
+
+# Workspace Settings
+hoist=true
+shamefully-hoist=false
+strict-peer-dependencies=false
+
+# No interactive prompts
+update-notifier=false
+engine-strict=true

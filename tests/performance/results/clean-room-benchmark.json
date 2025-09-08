@@ -1,0 +1,84 @@
+{
+  "timestamp": "2025-09-07T23:47:07.246Z",
+  "environment": "clean-room",
+  "nodeVersion": "v22.12.0",
+  "platform": "darwin",
+  "arch": "arm64",
+  "results": {
+    "baseline": {
+      "duration": 100.931083,
+      "memoryDelta": {
+        "rss": 81920,
+        "heapUsed": 16072,
+        "heapTotal": 0,
+        "external": 40
+      },
+      "memoryPeak": {
+        "rss": 40960000,
+        "heapUsed": 4383368,
+        "heapTotal": 5554176,
+        "external": 1652271
+      }
+    },
+    "templateRendering": {
+      "duration": 3812.340042,
+      "memoryDelta": {
+        "rss": 144490496,
+        "heapUsed": 46995816,
+        "heapTotal": 69206016,
+        "external": -2545
+      },
+      "memoryPeak": {
+        "rss": 193544192,
+        "heapUsed": 52076152,
+        "heapTotal": 76070912,
+        "external": 1649726
+      }
+    },
+    "fileOperations": {
+      "duration": 187.7002090000001,
+      "memoryDelta": {
+        "rss": 5423104,
+        "heapUsed": -37328976,
+        "heapTotal": -19136512,
+        "external": 2047374
+      },
+      "memoryPeak": {
+        "rss": 199049216,
+        "heapUsed": 14772752,
+        "heapTotal": 56934400,
+        "external": 3697100
+      }
+    },
+    "concurrentOps": {
+      "duration": 78.5141249999997,
+      "memoryDelta": {
+        "rss": 1884160,
+        "heapUsed": -3390224,
+        "heapTotal": 0,
+        "external": -208270
+      },
+      "memoryPeak": {
+        "rss": 200949760,
+        "heapUsed": 11394088,
+        "heapTotal": 56934400,
+        "external": 3488830
+      }
+    },
+    "cliResponses": {
+      "duration": 54.913542000000234,
+      "memoryDelta": {
+        "rss": 196608,
+        "heapUsed": 195504,
+        "heapTotal": 0,
+        "external": 9
+      },
+      "memoryPeak": {
+        "rss": 201146368,
+        "heapUsed": 11592640,
+        "heapTotal": 56934400,
+        "external": 3488839
+      }
+    }
+  }
+}

@@ -1,0 +1,375 @@
+{
+  "timestamp": "2025-09-07T23:24:53.556Z",
+  "summary": {
+    "totalFilters": 21,
+    "passedFilters": 38,
+    "failedFilters": 6,
+    "categories": {
+      "stringInflection": {
+        "total": 15,
+        "passed": 14,
+        "failed": 2,
+        "passRate": 93
+      },
+      "dateTime": {
+        "total": 8,
+        "passed": 8,
+        "failed": 0,
+        "passRate": 100
+      },
+      "faker": {
+        "total": 13,
+        "passed": 13,
+        "failed": 0,
+        "passRate": 100
+      },
+      "semanticWeb": {
+        "total": 18,
+        "passed": 3,
+        "failed": 2,
+        "passRate": 17
+      },
+      "utility": {
+        "total": 10,
+        "passed": 0,
+        "failed": 2,
+        "passRate": 0
+      }
+    }
+  },
+  "categories": {
+    "stringInflection": {
+      "total": 15,
+      "passed": 14,
+      "failed": 2,
+      "filters": {
+        "pascalCase": {
+          "status": "PASS",
+          "input": "hello_world",
+          "expected": "HelloWorld",
+          "actual": "HelloWorld",
+          "template": "{{ \"hello_world\" | pascalCase }}"
+        },
+        "camelCase": {
+          "status": "PASS",
+          "input": "hello_world",
+          "expected": "helloWorld",
+          "actual": "helloWorld",
+          "template": "{{ \"hello_world\" | camelCase }}"
+        },
+        "kebabCase": {
+          "status": "PASS",
+          "input": "HelloWorld",
+          "expected": "hello-world",
+          "actual": "hello-world",
+          "template": "{{ \"HelloWorld\" | kebabCase }}"
+        },
+        "snakeCase": {
+          "status": "PASS",
+          "input": "HelloWorld",
+          "expected": "hello_world",
+          "actual": "hello_world",
+          "template": "{{ \"HelloWorld\" | snakeCase }}"
+        },
+        "constantCase": {
+          "status": "PASS",
+          "input": "hello world",
+          "expected": "HELLO_WORLD",
+          "actual": "HELLO_WORLD",
+          "template": "{{ \"hello world\" | constantCase }}"
+        },
+        "titleCase": {
+          "status": "PASS",
+          "input": "hello world",
+          "expected": "Hello World",
+          "actual": "Hello World",
+          "template": "{{ \"hello world\" | titleCase }}"
+        },
+        "sentenceCase": {
+          "status": "PASS",
+          "input": "hello_world",
+          "expected": "Hello world",
+          "actual": "Hello world",
+          "template": "{{ \"hello_world\" | sentenceCase }}"
+        },
+        "slug": {
+          "status": "PASS",
+          "input": "Hello World!",
+          "expected": "hello-world",
+          "actual": "hello-world",
+          "template": "{{ \"Hello World!\" | slug }}"
+        },
+        "humanize": {
+          "status": "PASS",
+          "input": "user_name",
+          "expected": "User name",
+          "actual": "User name",
+          "template": "{{ \"user_name\" | humanize }}"
+        },
+        "classify": {
+          "status": "PASS",
+          "input": "user_posts",
+          "expected": "UserPost",
+          "actual": "UserPost",
+          "template": "{{ \"user_posts\" | classify }}"
+        },
+        "tableize": {
+          "status": "PASS",
+          "input": "UserPost",
+          "expected": "user_posts",
+          "actual": "user_posts",
+          "template": "{{ \"UserPost\" | tableize }}"
+        },
+        "demodulize": {
+          "status": "PASS",
+          "input": "Admin::User",
+          "expected": "User",
+          "actual": "User",
+          "template": "{{ \"Admin::User\" | demodulize }}"
+        },
+        "pluralize": {
+          "status": "PASS",
+          "input": "user",
+          "expected": "users",
+          "actual": "users",
+          "template": "{{ \"user\" | pluralize }}"
+        },
+        "singular": {
+          "status": "PASS",
+          "input": "users",
+          "expected": "user",
+          "actual": "user",
+          "template": "{{ \"users\" | singular }}"
+        },
+        "truncate": {
+          "status": "ERROR",
+          "input": "very long text",
+          "expected": "very long te...",
+          "error": "expected 'very lo...' to be 'very long te...' // Object.is equality"
+        }
+      }
+    },
+    "dateTime": {
+      "total": 8,
+      "passed": 8,
+      "failed": 0,
+      "filters": {
+        "formatDate": {
+          "status": "PASS",
+          "input": "2024-01-15T10:30:00Z",
+          "expected": "2024-01-15",
+          "actual": "2024-01-15",
+          "template": "{{ \"2024-01-15T10:30:00Z\" | formatDate }}"
+        },
+        "dateAdd": {
+          "status": "PASS",
+          "input": "2024-01-15",
+          "expected": "2024-01-22",
+          "actual": "2024-01-22",
+          "template": "{{ \"2024-01-15\" | dateAdd(7, \"day\") | formatDate }}"
+        },
+        "dateSub": {
+          "status": "PASS",
+          "input": "2024-01-15",
+          "expected": "2024-01-08",
+          "actual": "2024-01-08",
+          "template": "{{ \"2024-01-15\" | dateSub(7, \"day\") | formatDate }}"
+        },
+        "dateStart": {
+          "status": "PASS",
+          "input": "2024-01-15T10:30:00Z",
+          "expected": "2024-01-15",
+          "actual": "2024-01-15",
+          "template": "{{ \"2024-01-15T10:30:00Z\" | dateStart(\"day\") | formatDate }}"
+        },
+        "dateEnd": {
+          "status": "PASS",
+          "input": "2024-01-15T10:30:00Z",
+          "expected": "2024-01-15",
+          "actual": "2024-01-15",
+          "template": "{{ \"2024-01-15T10:30:00Z\" | dateEnd(\"day\") | formatDate }}"
+        },
+        "dateUnix": {
+          "status": "PASS",
+          "input": "2024-01-15T10:30:00Z",
+          "expected": "number type",
+          "actual": "1705314600",
+          "template": "{{ \"2024-01-15T10:30:00Z\" | dateUnix }}"
+        },
+        "dateIso": {
+          "status": "PASS",
+          "input": "2024-01-15T10:30:00Z",
+          "expected": "2024-01-15T10:30:00.000Z",
+          "actual": "2024-01-15T10:30:00.000Z",
+          "template": "{{ \"2024-01-15T10:30:00Z\" | dateIso }}"
+        },
+        "isToday": {
+          "status": "PASS",
+          "input": "2025-09-07T23:24:53.554Z",
+          "expected": "true",
+          "actual": "true",
+          "template": "{{ \"2025-09-07T23:24:53.554Z\" | isToday }}"
+        }
+      }
+    },
+    "faker": {
+      "total": 13,
+      "passed": 13,
+      "failed": 0,
+      "filters": {
+        "fakeName": {
+          "status": "PASS",
+          "expected": "Pattern: /^[A-Za-z\\s]+$/",
+          "actual": "Wilfred DuBuque",
+          "template": "{{ fakeName() }}"
+        },
+        "fakeEmail": {
+          "status": "PASS",
+          "expected": "Pattern: /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$/",
+          "actual": "Linnie_Wolf@gmail.com",
+          "template": "{{ fakeEmail() }}"
+        },
+        "fakeAddress": {
+          "status": "PASS",
+          "expected": "Min length: 5",
+          "actual": "662 Zackery Port",
+          "template": "{{ fakeAddress() }}"
+        },
+        "fakeCity": {
+          "status": "PASS",
+          "expected": "Pattern: /^[A-Za-z\\s]+$/",
+          "actual": "East Ila",
+          "template": "{{ fakeCity() }}"
+        },
+        "fakePhone": {
+          "status": "PASS",
+          "expected": "Min length: 5",
+          "actual": "(691) 512-5645 x767",
+          "template": "{{ fakePhone() }}"
+        },
+        "fakeCompany": {
+          "status": "PASS",
+          "expected": "Min length: 2",
+          "actual": "Ratke Inc",
+          "template": "{{ fakeCompany() }}"
+        },
+        "fakeUuid": {
+          "status": "PASS",
+          "expected": "Pattern: /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i",
+          "actual": "80540b20-57aa-4091-b0fe-cd88d7a45434",
+          "template": "{{ fakeUuid() }}"
+        },
+        "fakeNumber": {
+          "status": "PASS",
+          "expected": "Should be numeric",
+          "actual": "11",
+          "template": "{{ fakeNumber(1, 100) }}"
+        },
+        "fakeText": {
+          "status": "PASS",
+          "expected": "Min length: 10",
+          "actual": "Contego spiritus colo ustulo talio curso sufficio speciosus comprehendo. Dedecor demergo theca vespillo subiungo catena utrum suus. Tersus statim rerum tonsor curiositas arbustum defaeco.",
+          "template": "{{ fakeText() }}"
+        },
+        "fakeParagraph": {
+          "status": "PASS",
+          "expected": "Min length: 50",
+          "actual": "Victus coma alioqui appositus aspicio. Vitium amiculum umerus vorago cubo. Venia synagoga ver.",
+          "template": "{{ fakeParagraph() }}"
+        },
+        "fakeDate": {
+          "status": "PASS",
+          "expected": "Should be valid date",
+          "actual": "Wed Aug 27 2025 11:42:23 GMT-0700 (Pacific Daylight Time)",
+          "template": "{{ fakeDate() }}"
+        },
+        "fakeBoolean": {
+          "status": "PASS",
+          "expected": "Should be one of: true, false",
+          "actual": "true",
+          "template": "{{ fakeBoolean() }}"
+        },
+        "fakeSeed": {
+          "status": "PASS",
+          "expected": "Should equal: Faker seed set to 123",
+          "actual": "Faker seed set to 123",
+          "template": "{{ fakeSeed(123) }}"
+        }
+      }
+    },
+    "semanticWeb": {
+      "total": 18,
+      "passed": 3,
+      "failed": 2,
+      "filters": {
+        "rdfResource": {
+          "status": "PASS",
+          "input": "Person",
+          "expected": "http://example.org/Person",
+          "actual": "http://example.org/Person",
+          "template": "{{ \"Person\" | rdfResource }}"
+        },
+        "rdfProperty": {
+          "status": "PASS",
+          "input": "user_name",
+          "expected": "http://example.org/userName",
+          "actual": "http://example.org/userName",
+          "template": "{{ \"user_name\" | rdfProperty }}"
+        },
+        "rdfClass": {
+          "status": "PASS",
+          "input": "person",
+          "expected": "http://example.org/Person",
+          "actual": "http://example.org/Person",
+          "template": "{{ \"person\" | rdfClass }}"
+        },
+        "rdfDatatype": {
+          "status": "ERROR",
+          "input": "John",
+          "error": "expected false to be true // Object.is equality"
+        }
+      }
+    },
+    "utility": {
+      "total": 10,
+      "passed": 0,
+      "failed": 2,
+      "filters": {
+        "dump": {
+          "status": "ERROR",
+          "input": {
+            "key": "value"
+          },
+          "error": "expected '{\\n  &quot;key&quot;: &quot;value&quo…' to be '{\\n  \"key\": \"value\"\\n}' // Object.is equality"
+        }
+      }
+    }
+  },
+  "details": [],
+  "failedFilters": [
+    {
+      "category": "stringInflection",
+      "filter": "truncate",
+      "status": "ERROR",
+      "error": "expected 'very lo...' to be 'very long te...' // Object.is equality",
+      "input": "very long text",
+      "expected": "very long te..."
+    },
+    {
+      "category": "semanticWeb",
+      "filter": "rdfDatatype",
+      "status": "ERROR",
+      "error": "expected false to be true // Object.is equality",
+      "input": "John"
+    },
+    {
+      "category": "utility",
+      "filter": "dump",
+      "status": "ERROR",
+      "error": "expected '{\\n  &quot;key&quot;: &quot;value&quo…' to be '{\\n  \"key\": \"value\"\\n}' // Object.is equality",
+      "input": {
+        "key": "value"
+      }
+    }
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "timestamp": "2025-09-07T23:20:05.834Z",
+  "duration": 20026,
+  "environment": {
+    "node_version": "v22.12.0",
+    "platform": "darwin",
+    "cli_version": "2025.9.071605"
+  },
+  "comprehensive_tests": null,
+  "advanced_tests": null,
+  "summary": {
+    "total_tests": 0,
+    "total_passed": 0,
+    "total_failed": 0,
+    "overall_success_rate": "NaN",
+    "categories": {}
+  }
+}
