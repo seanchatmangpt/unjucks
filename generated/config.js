@@ -3,9 +3,6 @@
  * Generated from RDF configuration data
  */
 
-import { createRequire } from 'module';
-const require = createRequire(import.meta.url);
-
 /**
  * @typedef {Object} AppConfig
  * @property {string} name
@@ -222,7 +219,7 @@ function mergeConfig(customConfig, environment) {
   return validateConfig(merged);
 }
 
-export {
+module.exports = {
   getConfig,
   getConfigForEnvironment,
   mergeConfig,
@@ -230,6 +227,6 @@ export {
   configs
 };
 
-// Export default configuration
+// Export default configuration for CommonJS compatibility
 const defaultConfig = getConfig();
-export default defaultConfig;
+module.exports.default = defaultConfig;

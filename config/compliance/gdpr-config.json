@@ -1,0 +1,113 @@
+{
+  "gdpr_compliance": {
+    "version": "2018",
+    "principles": {
+      "lawfulness": {
+        "legal_bases": ["consent", "contract", "legal_obligation", "vital_interests", "public_task", "legitimate_interests"],
+        "automation": {
+          "consent_tracking": true,
+          "legal_basis_validation": true,
+          "purpose_limitation": true
+        }
+      },
+      "fairness_transparency": {
+        "requirements": [
+          "Privacy notices in plain language",
+          "Information about data processing purposes",
+          "Contact details of data controller and DPO"
+        ],
+        "automation": {
+          "privacy_notice_generation": true,
+          "transparency_reports": true,
+          "language_compliance": true
+        }
+      },
+      "purpose_limitation": {
+        "requirements": [
+          "Data collected for specified, explicit, legitimate purposes",
+          "No further processing incompatible with purposes",
+          "Documentation of processing purposes"
+        ],
+        "automation": {
+          "purpose_validation": true,
+          "processing_monitoring": true,
+          "purpose_drift_detection": true
+        }
+      },
+      "data_minimization": {
+        "requirements": [
+          "Adequate, relevant, limited to necessary",
+          "Regular review of data collection",
+          "Deletion of unnecessary data"
+        ],
+        "automation": {
+          "data_inventory": true,
+          "minimization_checks": true,
+          "automated_deletion": true
+        }
+      },
+      "accuracy": {
+        "requirements": [
+          "Keep personal data accurate and up to date",
+          "Take reasonable steps to ensure accuracy",
+          "Erase or rectify inaccurate data"
+        ],
+        "automation": {
+          "accuracy_monitoring": true,
+          "update_workflows": true,
+          "rectification_processes": true
+        }
+      },
+      "storage_limitation": {
+        "requirements": [
+          "Keep data no longer than necessary",
+          "Define retention periods",
+          "Secure deletion processes"
+        ],
+        "automation": {
+          "retention_scheduling": true,
+          "automated_deletion": true,
+          "deletion_verification": true
+        }
+      },
+      "security": {
+        "requirements": [
+          "Appropriate technical and organizational measures",
+          "Protection against unauthorized processing",
+          "Protection against loss, destruction, damage"
+        ],
+        "automation": {
+          "encryption_monitoring": true,
+          "access_control_validation": true,
+          "security_incident_detection": true
+        }
+      },
+      "accountability": {
+        "requirements": [
+          "Demonstrate compliance with GDPR principles",
+          "Maintain records of processing activities",
+          "Implement data protection by design and default"
+        ],
+        "automation": {
+          "compliance_reporting": true,
+          "processing_records": true,
+          "privacy_impact_assessments": true
+        }
+      }
+    },
+    "rights": {
+      "access": "Article 15 - Right to confirmation and access",
+      "rectification": "Article 16 - Right to rectification",
+      "erasure": "Article 17 - Right to erasure (right to be forgotten)",
+      "restriction": "Article 18 - Right to restriction of processing",
+      "portability": "Article 20 - Right to data portability",
+      "objection": "Article 21 - Right to object",
+      "automated_decision_making": "Article 22 - Automated decision-making and profiling"
+    },
+    "breach_notification": {
+      "controller_to_authority": "72_hours",
+      "controller_to_data_subject": "without_undue_delay",
+      "processor_to_controller": "without_undue_delay"
+    }
+  }
+}

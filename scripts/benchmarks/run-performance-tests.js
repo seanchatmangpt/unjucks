@@ -1,10 +1,12 @@
 #!/usr/bin/env node
 
-const { performance } = require('perf_hooks');
-const fs = require('fs-extra');
-const path = require('path');
-const { spawn, exec } = require('child_process');
-const { promisify } = require('util');
+import { performance } from 'perf_hooks';
+import fs from 'fs-extra';
+import path from 'path';
+import { spawn, exec } from 'child_process';
+import { promisify } from 'util';
+import os from 'os';
+import nunjucks from 'nunjucks';
 
 const execAsync = promisify(exec);
 
@@ -15,7 +17,7 @@ class BenchmarkRunner {
   }
 
   collectSystemInfo() {
-    const os = require('os');
+    // os is imported at the top
     return {
       nodeVersion: process.version,
       platform: os.platform(),
@@ -141,7 +143,7 @@ class BenchmarkRunner {
   async runTemplateRenderingBenchmarks() {
     console.log('🎨 Running template rendering benchmarks...');
 
-    const nunjucks = require('nunjucks');
+    // nunjucks is imported at the top
     const env = nunjucks.configure({ autoescape: false });
 
     await this.benchmark('Simple Template Rendering', async () => {
@@ -156,15 +158,13 @@ class BenchmarkRunner {
     });
 
     await this.benchmark('Complex Template with Loops', async () => {
-      const template = \`
-{% for user in users %}
-  User: {{ user.name }}
-  Email: {{ user.email }}
-  {% for item in user.items %}
-    - {{ item.name }}: $\{{ item.price | round(2) }}
-  {% endfor %}
-{% endfor %}
-      \`;
+      const template = '{% for user in users %}\n' +
+        '  User: {{ user.name }}\n' +
+        '  Email: {{ user.email }}\n' +
+        '  {% for item in user.items %}\n' +
+        '    - {{ item.name }}: ${{ item.price | round(2) }}\n' +
+        '  {% endfor %}\n' +
+        '{% endfor %}';
 
       const data = {
         users: Array.from({ length: 100 }, (_, i) => ({
@@ -476,8 +476,8 @@ ${report.results.filter(r => !r.success).map(r =>
   console.log('\n✅ Benchmark complete! Results saved to tests/benchmarks/');
 }
 
-if (require.main === module) {
+if (import.meta.url === `file://${process.argv[1]}`) {
   main().catch(console.error);
 }
 
-module.exports = { BenchmarkRunner };
+export { BenchmarkRunner };

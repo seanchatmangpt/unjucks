@@ -1,0 +1,21 @@
+version: '3.8'
+
+services:
+  unjucks:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.simple
+    container_name: unjucks-simple
+    volumes:
+      - ../_templates:/app/_templates:ro
+      - ../output:/app/output
+    environment:
+      - NODE_ENV=development
+    ports:
+      - "3000:3000"
+    healthcheck:
+      test: ["CMD", "node", "bin/unjucks.cjs", "--version"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped

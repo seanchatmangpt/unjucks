@@ -1,0 +1,144 @@
+---
+name: 🧪 Act Test - Blue-Green Deployment
+
+# Test workflow specifically designed for act testing
+# with simplified dependencies and mock services
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Test environment'
+        required: true
+        type: choice
+        options:
+          - test
+          - staging
+        default: test
+      version:
+        description: 'Test version'
+        required: true
+        type: string
+        default: '20250101.120000-abcd1234'
+
+env:
+  BLUE_SLOT: 'blue'
+  GREEN_SLOT: 'green'
+  HEALTH_CHECK_TIMEOUT: 60
+
+jobs:
+  act-test-validation:
+    name: 🔍 Act Test Validation
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      current-slot: ${{ steps.slot-detection.outputs.current }}
+      target-slot: ${{ steps.slot-detection.outputs.target }}
+      ready: ${{ steps.validation.outputs.ready }}
+    steps:
+      - name: 📥 Checkout
+        uses: actions/checkout@v4
+
+      - name: 🔍 Mock Slot Detection
+        id: slot-detection
+        run: |
+          echo "🔍 Mock slot detection for act testing..."
+          
+          # Simulate slot detection
+          current_slot="green"
+          target_slot="blue"
+          
+          echo "current=$current_slot" >> $GITHUB_OUTPUT
+          echo "target=$target_slot" >> $GITHUB_OUTPUT
+          
+          echo "✅ Current: $current_slot, Target: $target_slot"
+
+      - name: ✅ Mock Validation
+        id: validation
+        run: |
+          echo "✅ Running mock validation..."
+          echo "ready=true" >> $GITHUB_OUTPUT
+          echo "✅ Validation passed"
+
+  act-test-deployment:
+    name: 🚀 Act Test Deployment
+    runs-on: ubuntu-latest
+    needs: act-test-validation
+    timeout-minutes: 10
+    steps:
+      - name: 📥 Checkout
+        uses: actions/checkout@v4
+
+      - name: 🏗️ Mock Build
+        run: |
+          echo "🏗️ Mock build process..."
+          
+          mkdir -p dist
+          echo '{"version":"${{ inputs.version }}","slot":"${{ needs.act-test-validation.outputs.target-slot }}"}' > dist/version.json
+          
+          echo "✅ Mock build completed"
+
+      - name: 🔄 Mock Deployment
+        run: |
+          echo "🔄 Mock deployment to ${{ needs.act-test-validation.outputs.target-slot }}..."
+          
+          # Simulate deployment
+          sleep 5
+          
+          echo "✅ Mock deployment completed"
+
+      - name: 🏥 Mock Health Check
+        run: |
+          echo "🏥 Mock health check..."
+          
+          # Simulate health check
+          for i in {1..5}; do
+            echo "🔍 Health check attempt $i/5..."
+            sleep 2
+          done
+          
+          echo "✅ Mock health check passed"
+
+      - name: 🔄 Mock Traffic Switch
+        run: |
+          echo "🔄 Mock traffic switch..."
+          
+          steps=(10 50 100)
+          for step in "${steps[@]}"; do
+            echo "📊 Mock switching ${step}% traffic..."
+            sleep 3
+          done
+          
+          echo "✅ Mock traffic switch completed"
+
+  act-test-monitoring:
+    name: 📊 Act Test Monitoring
+    runs-on: ubuntu-latest
+    needs: [act-test-validation, act-test-deployment]
+    if: always()
+    steps:
+      - name: 📊 Mock Monitoring Setup
+        run: |
+          echo "📊 Mock monitoring setup..."
+          
+          cat > test-metrics.json << EOF
+          {
+            "test_deployment_id": "${{ github.run_id }}",
+            "environment": "${{ inputs.environment }}",
+            "version": "${{ inputs.version }}",
+            "status": "${{ needs.act-test-deployment.result }}",
+            "timestamp": "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          }
+          EOF
+          
+          echo "📊 Test metrics:"
+          cat test-metrics.json
+          
+          echo "✅ Mock monitoring completed"
+
+      - name: 📤 Upload Test Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: act-test-artifacts
+          path: test-metrics.json
+          retention-days: 1

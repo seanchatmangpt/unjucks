@@ -3,14 +3,21 @@
     "name": "unjucks-enterprise",
     "version": "1.0.0",
     "description": "Unjucks Enterprise Application",
-    "environment": "development"
+    "environment": "development",
+    "debug": true,
+    "timezone": "UTC",
+    "locale": "en-US"
   },
   "server": {
     "port": 3000,
     "host": "localhost",
     "timeout": 30000,
     "keepAliveTimeout": 65000,
-    "maxConnections": 1000
+    "maxConnections": 1000,
+    "gracefulShutdown": {
+      "enabled": true,
+      "timeout": 30000
+    }
   },
   "security": {
     "cors": {
@@ -21,20 +28,33 @@
       ],
       "credentials": true,
       "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-      "allowedHeaders": ["Content-Type", "Authorization", "X-Requested-With"]
+      "allowedHeaders": ["Content-Type", "Authorization", "X-Requested-With"],
+      "maxAge": 86400
     },
     "rateLimit": {
       "enabled": false,
       "windowMs": 3600000,
       "maxRequests": 10000,
       "skipSuccessfulRequests": false,
-      "skipFailedRequests": false
+      "skipFailedRequests": false,
+      "standardHeaders": true,
+      "legacyHeaders": false
     },
     "headers": {
       "hsts": false,
       "noSniff": true,
       "xframe": true,
-      "xss": true
+      "xss": true,
+      "referrerPolicy": "no-referrer",
+      "contentSecurityPolicy": false
+    },
+    "jwt": {
+      "algorithm": "HS256",
+      "expiresIn": "24h"
+    },
+    "encryption": {
+      "algorithm": "aes-256-gcm",
+      "keyLength": 32
     }
   },
   "database": {
@@ -44,7 +64,8 @@
       "min": 2,
       "max": 10,
       "acquireTimeoutMillis": 60000,
-      "idleTimeoutMillis": 30000
+      "idleTimeoutMillis": 30000,
+      "createTimeoutMillis": 30000
     },
     "retries": {
       "max": 3,
@@ -62,26 +83,111 @@
     "format": "pretty",
     "enableAudit": true,
     "enablePerformance": false,
+    "enableSensitiveData": false,
     "retention": {
       "days": 7,
-      "maxSize": "100MB"
-    }
+      "maxSize": "100MB",
+      "maxFiles": 10
+    },
+    "transports": ["console"]
   },
   "monitoring": {
     "enabled": true,
     "metrics": {
       "enabled": true,
       "endpoint": "/metrics",
-      "interval": 30000
+      "interval": 30000,
+      "prometheus": true,
+      "customMetrics": []
     },
     "health": {
       "enabled": true,
       "endpoint": "/health",
-      "detailed": true
+      "detailed": true,
+      "checks": ["database", "cache", "memory"]
     },
     "tracing": {
       "enabled": false,
+      "service": "unjucks",
       "sampleRate": 0.1
+    }
+  },
+  "features": {
+    "enabled": true,
+    "provider": "local",
+    "refreshInterval": 30000,
+    "flags": {
+      "config.hot-reload": true,
+      "config.validation": true,
+      "config.secrets": false,
+      "logging.structured": false,
+      "monitoring.detailed": true,
+      "security.enhanced": false,
+      "cache.distributed": false,
+      "unjucks.templates.cache": false,
+      "unjucks.generators.parallel": false,
+      "unjucks.validation.strict": false,
+      "unjucks.watch.enabled": true,
+      "unjucks.rdf.support": true
+    },
+    "rollouts": {}
+  },
+  "secrets": {
+    "provider": "env",
+    "caching": {
+      "enabled": false,
+      "ttl": 300
+    }
+  },
+  "hotReload": {
+    "enabled": true,
+    "watchPaths": ["./config"],
+    "excludePaths": ["./config/secrets", "./config/runtime.json"],
+    "debounceMs": 1000,
+    "restartOnChange": ["server", "database", "security"],
+    "safeReload": ["logging", "monitoring", "features"]
+  },
+  "unjucks": {
+    "templatesDir": "./templates",
+    "outputDir": "./output",
+    "defaultEngine": "nunjucks",
+    "engines": {
+      "nunjucks": {
+        "autoescape": true,
+        "throwOnUndefined": true,
+        "trimBlocks": true,
+        "lstripBlocks": true
+      },
+      "ejs": {
+        "delimiter": "%",
+        "openDelimiter": "<",
+        "closeDelimiter": ">",
+        "cache": false
+      }
+    },
+    "generators": {
+      "parallel": false,
+      "maxConcurrency": 2,
+      "timeout": 60000
+    },
+    "validation": {
+      "enabled": true,
+      "strict": false,
+      "schema": "./config/schemas/template-schema.json"
+    },
+    "watch": {
+      "enabled": true,
+      "patterns": ["**/*.njk", "**/*.ejs", "**/*.yml"],
+      "ignored": ["node_modules/**", ".git/**"]
+    },
+    "rdf": {
+      "enabled": true,
+      "formats": ["turtle", "rdf-xml", "json-ld"],
+      "namespaces": {
+        "foaf": "http://xmlns.com/foaf/0.1/",
+        "dc": "http://purl.org/dc/elements/1.1/",
+        "unjucks": "https://unjucks.dev/ns/"
+      }
     }
   }
 }

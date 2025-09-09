@@ -1,0 +1,36 @@
+apiVersion: v2
+name: unjucks-enterprise
+description: Enterprise Helm chart for Unjucks scaffolding framework with security hardening
+type: application
+version: 2.0.0
+appVersion: "2.0.8"
+
+home: https://unjucks.dev
+sources:
+  - https://github.com/unjucks/unjucks
+maintainers:
+  - name: Unjucks Team
+    email: team@unjucks.dev
+    url: https://unjucks.dev
+
+keywords:
+  - scaffolding
+  - template
+  - generator
+  - nunjucks
+  - enterprise
+  - security
+
+annotations:
+  category: Development
+  licenses: MIT
+  images: |
+    - name: unjucks-distroless
+      image: ghcr.io/unjucks/unjucks-distroless-production:latest
+    - name: unjucks-hardened
+      image: ghcr.io/unjucks/unjucks-security-hardened:latest
+
+dependencies: []
+
+deprecated: false
+kubeVersion: ">=1.24.0"

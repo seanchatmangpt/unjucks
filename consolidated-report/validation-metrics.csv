@@ -1,0 +1,8 @@
+"Category","Score","Status","Details"
+"Security","100","PASS","0 scanners"
+"Performance","40","FAIL","0 benchmarks"
+"Multi-Architecture","0","FAIL",""
+"Production","0","FAIL","0 services"
+"Coordination","0","FAIL","0 components"
+"Matrix Tests","0","FAIL","0 configurations"
+"Overall","40","FAIL","0/8 tests passed"

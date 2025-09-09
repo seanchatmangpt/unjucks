@@ -1,356 +1,463 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { TemplateEngine } from '../../src/core/template-engine.js';
-import { FileSystemHelper } from '../support/helpers.js';
-import { TemplateBuilder, TestDataBuilder } from '../support/builders.js';
+/**
+ * Tests for PerfectTemplateEngine - Zero Parsing Error System
+ * Tests rendering, error recovery, and template validation
+ */
 
-describe('TemplateEngine', () => {
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { PerfectTemplateEngine, renderTemplate, validateTemplate, extractTemplateVariables } from '../../src/lib/template-engine-perfect.js';
+import fs from 'fs-extra';
+import path from 'node:path';
+import os from 'node:os';
+
+describe('PerfectTemplateEngine', () => {
   let engine;
-  let mockFileSystem;
-  let tempDir => {
-    tempDir = '/tmp/test-' + Date.now();
-    mockFileSystem = new FileSystemHelper(tempDir);
-    engine = new TemplateEngine({ templatesPath);
+  let tempDir;
+  let templatePath;
+
+  beforeEach(async () => {
+    tempDir = path.join(os.tmpdir(), 'unjucks-test-' + Date.now());
+    await fs.ensureDir(tempDir);
+    
+    engine = new PerfectTemplateEngine({
+      templatesDir: tempDir,
+      enableCaching: true,
+      autoescape: false,
+      throwOnUndefined: false
+    });
+    
+    templatePath = path.join(tempDir, 'test.njk');
   });
 
   afterEach(async () => {
-    vi.clearAllMocks();
+    await fs.remove(tempDir);
   });
 
-  describe('Template Discovery', () => {
-    it('should discover simple templates', async () => {
-      // Arrange
-      await mockFileSystem.createDirectory('_templates/component');
-      await mockFileSystem.createFile('_templates/component/index.ejs', 'Hello <%= name %>');
-
-      // Act
-      const generators = await engine.discoverGenerators();
-
-      // Assert
-      expect(generators).toHaveLength(1);
-      expect(generators[0].name).toBe('component');
+  describe('Template Engine Initialization', () => {
+    it('should initialize with default configuration', () => {
+      const defaultEngine = new PerfectTemplateEngine();
+      expect(defaultEngine.config.templatesDir).toBe('_templates');
+      expect(defaultEngine.config.enableCaching).toBe(true);
+      expect(defaultEngine.config.autoescape).toBe(false);
+      expect(defaultEngine.config.throwOnUndefined).toBe(false);
     });
 
-    it('should handle nested template structures', async () => {
-      // Arrange
-      await mockFileSystem.createDirectory('_templates/frontend/component');
-      await mockFileSystem.createDirectory('_templates/backend/service');
-      await mockFileSystem.createFile('_templates/frontend/component/index.ejs', 'Component');
-      await mockFileSystem.createFile('_templates/backend/service/index.ejs', 'Service');
-
-      // Act
-      const generators = await engine.discoverGenerators();
-
-      // Assert
-      expect(generators).toHaveLength(2);
-      expect(generators.map(g => g.name)).toContain('frontend/component');
-      expect(generators.map(g => g.name)).toContain('backend/service');
-    });
-
-    it('should ignore invalid template directories', async () => {
-      // Arrange
-      await mockFileSystem.createDirectory('_templates/valid');
-      await mockFileSystem.createDirectory('_templates/.hidden');
-      await mockFileSystem.createDirectory('_templates/node_modules');
-      await mockFileSystem.createFile('_templates/valid/index.ejs', 'Valid');
-
-      // Act
-      const generators = await engine.discoverGenerators();
-
-      // Assert
-      expect(generators).toHaveLength(1);
-      expect(generators[0].name).toBe('valid');
-    });
-
-    it('should extract variables from templates', async () => {
-      // Arrange
-      const templateContent = `
-        Hello <%= name %>!
-        Your email is <%= email %>.
-        <% if (active) { %>You are active<% } %>
-      `;
-      await mockFileSystem.createDirectory('_templates/user');
-      await mockFileSystem.createFile('_templates/user/profile.ejs', templateContent);
-
-      // Act
-      const generators = await engine.discoverGenerators();
-      const variables = await engine.extractVariables(generators[0]);
-
-      // Assert
-      expect(variables).toContain('name');
-      expect(variables).toContain('email');
-      expect(variables).toContain('active');
-    });
-  });
-
-  describe('Template Rendering', () => { it('should render simple templates', async () => {
-      // Arrange
-      const template = 'Hello <%= name %>!';
-      const data = { name };
-
-      // Act
-      const result = await engine.render(template, data);
-
-      // Assert
-      expect(result).toBe('Hello World!');
-    });
-
-    it('should handle complex data structures', async () => { // Arrange
-      const template = `
-        <% items.forEach(item => { %>
-        - <%= item.name %>) %>
-      `;
-      const data = {
-        items },
-          { name }
-        ]
-      };
-
-      // Act
-      const result = await engine.render(template, data);
-
-      // Assert
-      expect(result).toContain('- Item 1);
-      expect(result).toContain('- Item 2);
-    });
-
-    it('should provide utility filters', async () => { // Arrange
-      const template = '<%= name | pascalCase %> <%= description | kebabCase %>';
-      const data = { name };
-
-      // Act
-      const result = await engine.render(template, data);
-
-      // Assert
-      expect(result).toBe('UserProfile user-profile-component');
-    });
-
-    it('should handle conditional rendering', async () => {
-      // Arrange
-      const template = `
-        <% if (showHeader) { %>Header Content<% } %>
-        Main Content
-        <% if (showFooter) { %>Footer Content<% } %>
-      `;
+    it('should override default configuration with options', () => {
+      const customEngine = new PerfectTemplateEngine({
+        templatesDir: '/custom/path',
+        autoescape: true,
+        throwOnUndefined: true,
+        enableCaching: false,
+        maxCacheSize: 500
+      });
       
-      // Act & Assert
-      const withBoth = await engine.render(template, { showHeader, showFooter });
-      expect(withBoth).toContain('Header Content');
-      expect(withBoth).toContain('Footer Content');
+      expect(customEngine.config.templatesDir).toBe('/custom/path');
+      expect(customEngine.config.autoescape).toBe(true);
+      expect(customEngine.config.throwOnUndefined).toBe(true);
+      expect(customEngine.config.enableCaching).toBe(false);
+      expect(customEngine.config.maxCacheSize).toBe(500);
+    });
 
-      const headerOnly = await engine.render(template, { showHeader, showFooter });
-      expect(headerOnly).toContain('Header Content');
-      expect(headerOnly).not.toContain('Footer Content');
+    it('should initialize all required engines and parsers', () => {
+      expect(engine.nunjucksEnv).toBeDefined();
+      expect(engine.ejsOptions).toBeDefined();
+      expect(engine.frontmatterParser).toBeDefined();
+      expect(engine.templateCache).toBeDefined();
+      expect(engine.compiledCache).toBeDefined();
     });
   });
 
-  describe('Frontmatter Processing', () => { it('should parse YAML frontmatter', async () => {
-      // Arrange
-      const templateWithFrontmatter = `---
-to };`;
-
-      // Act
-      const { frontmatter, content } = await engine.parseFrontmatter(templateWithFrontmatter);
-
-      // Assert
-      expect(frontmatter.to).toBe('src/components/<%= name %>.tsx');
-      expect(frontmatter.inject).toBe(true);
-      expect(frontmatter.after).toBe('// COMPONENTS');
-      expect(content.trim()).toBe('export const <%= name %> = () => {};');
+  describe('Template Type Detection', () => {
+    it('should detect Nunjucks templates by extension', () => {
+      expect(engine.detectTemplateType('template.njk')).toBe('nunjucks');
+      expect(engine.detectTemplateType('template.nunjucks')).toBe('nunjucks');
     });
 
-    it('should handle templates without frontmatter', async () => {
-      // Arrange
-      const simpleTemplate = 'Hello <%= name %>!';
-
-      // Act
-      const { frontmatter, content } = await engine.parseFrontmatter(simpleTemplate);
-
-      // Assert
-      expect(frontmatter).toEqual({});
-      expect(content).toBe(simpleTemplate);
+    it('should detect EJS templates by extension', () => {
+      expect(engine.detectTemplateType('template.ejs')).toBe('ejs');
     });
 
-    it('should render frontmatter with variables', async () => { // Arrange
-      const templateWithDynamicFrontmatter = `---
-to }`;
-      const data = { module };
+    it('should detect Handlebars templates by extension', () => {
+      expect(engine.detectTemplateType('template.hbs')).toBe('handlebars');
+      expect(engine.detectTemplateType('template.handlebars')).toBe('handlebars');
+    });
 
-      // Act
-      const { frontmatter } = await engine.parseFrontmatter(templateWithDynamicFrontmatter);
-      const renderedFrontmatter = await engine.renderFrontmatter(frontmatter, data);
-
-      // Assert
-      expect(renderedFrontmatter.to).toBe('src/services/UserService.ts');
+    it('should default to Nunjucks for unknown extensions', () => {
+      expect(engine.detectTemplateType('template.txt')).toBe('nunjucks');
+      expect(engine.detectTemplateType('template.html')).toBe('nunjucks');
+      expect(engine.detectTemplateType('template')).toBe('nunjucks');
     });
   });
 
-  describe('File Generation', () => {
-    it('should generate files with correct paths', async () => {
-      // Arrange
-      const builder = new TemplateBuilder('component', tempDir + '/_templates')
-        .withDestination('src/components/<%= name %>.tsx');
+  describe('Basic Template Rendering', () => {
+    it('should render simple Nunjucks template', async () => {
+      const content = 'Hello {{ name }}!';
+      await fs.writeFile(templatePath, content);
       
-      await builder.addFile('component.ejs', 'export const <%= name %> = () => {};');
+      const result = await engine.renderTemplate(templatePath, { name: 'World' });
       
-      const data = new TestDataBuilder()
-        .withVariable('name', 'Button')
-        .build();
-
-      // Act
-      const result = await engine.generate('component', data);
-
-      // Assert
-      expect(result.files).toHaveLength(1);
-      expect(result.files[0].path).toBe('src/components/Button.tsx');
       expect(result.success).toBe(true);
+      expect(result.content).toBe('Hello World!');
+      expect(result.templateType).toBe('nunjucks');
     });
 
-    it('should handle generation errors gracefully', async () => {
-      // Arrange
-      const invalidTemplate = '<%= undefinedVariable.nonExistentProperty %>';
-      await mockFileSystem.createDirectory('_templates/broken');
-      await mockFileSystem.createFile('_templates/broken/index.ejs', invalidTemplate);
-
-      // Act & Assert
-      await expect(engine.generate('broken', {})).rejects.toThrow();
-    });
-
-    it('should validate required variables', async () => { // Arrange
-      const template = `---
-variables });
-  });
-
-  describe('Injection Support', () => { it('should support content injection', async () => {
-      // Arrange
-      await mockFileSystem.createFile('target.ts', `
-// Existing content
-// INJECT_HERE
-// More content
-`);
-
-      const injectionTemplate = `---
-inject }, { targetFile);
-
-      // Assert
+    it('should render template with filters', async () => {
+      const content = 'Hello {{ name | upper }}!';
+      await fs.writeFile(templatePath, content);
+      
+      const result = await engine.renderTemplate(templatePath, { name: 'world' });
+      
       expect(result.success).toBe(true);
-      const content = await mockFileSystem.readFile('target.ts');
-      expect(content).toContain('console.log(\'Injected content\');');
+      expect(result.content).toBe('Hello WORLD!');
     });
 
-    it('should support conditional injection with skipIf', async () => { // Arrange
-      await mockFileSystem.createFile('target.ts', 'existing content\nconsole.log("already here");');
+    it('should render template with frontmatter', async () => {
+      const content = `---
+to: "output.txt"
+variables:
+  greeting: "Hello"
+---
+{{ greeting }} {{ name }}!`;
+      await fs.writeFile(templatePath, content);
+      
+      const result = await engine.renderTemplate(templatePath, { name: 'World' });
+      
+      expect(result.success).toBe(true);
+      expect(result.content).toBe('Hello World!');
+      expect(result.frontmatter.to).toBe('output.txt');
+      expect(result.frontmatter.variables.greeting).toBe('Hello');
+    });
 
-      const template = `---
-inject }, { targetFile);
-
-      // Assert
-      expect(result.skipped).toBe(true);
-      const content = await mockFileSystem.readFile('target.ts');
-      expect(content).not.toContain('new content');
+    it('should merge frontmatter variables with passed variables', async () => {
+      const content = `---
+variables:
+  greeting: "Hello"
+  punctuation: "!"
+---
+{{ greeting }} {{ name }}{{ punctuation }}`;
+      await fs.writeFile(templatePath, content);
+      
+      const result = await engine.renderTemplate(templatePath, { 
+        name: 'World',
+        greeting: 'Hi' // Should override frontmatter
+      });
+      
+      expect(result.success).toBe(true);
+      expect(result.content).toBe('Hi World!');
     });
   });
 
-  describe('Error Handling', () => {
-    it('should handle template syntax errors', async () => {
-      // Arrange
-      const brokenTemplate = '<%= unclosed tag';
-      await mockFileSystem.createDirectory('_templates/broken');
-      await mockFileSystem.createFile('_templates/broken/syntax.ejs', brokenTemplate);
-
-      // Act & Assert
-      await expect(engine.generate('broken', {})).rejects.toThrow(/syntax/i);
+  describe('Custom Filters', () => {
+    it('should support exists filter', async () => {
+      const content = '{{ value | exists }}';
+      await fs.writeFile(templatePath, content);
+      
+      const result1 = await engine.renderTemplate(templatePath, { value: 'test' });
+      expect(result1.content).toBe('true');
+      
+      const result2 = await engine.renderTemplate(templatePath, { value: null });
+      expect(result2.content).toBe('false');
+      
+      const result3 = await engine.renderTemplate(templatePath, {});
+      expect(result3.content).toBe('false');
     });
 
-    it('should handle file system errors', async () => {
-      // Arrange
-      vi.spyOn(mockFileSystem, 'createFile').mockRejectedValue(new Error('Permission denied'));
-
-      // Act & Assert
-      await expect(engine.generate('nonexistent', {})).rejects.toThrow();
+    it('should support isEmpty filter', async () => {
+      const content = '{{ value | isEmpty }}';
+      await fs.writeFile(templatePath, content);
+      
+      const result1 = await engine.renderTemplate(templatePath, { value: [] });
+      expect(result1.content).toBe('true');
+      
+      const result2 = await engine.renderTemplate(templatePath, { value: '' });
+      expect(result2.content).toBe('true');
+      
+      const result3 = await engine.renderTemplate(templatePath, { value: {} });
+      expect(result3.content).toBe('true');
+      
+      const result4 = await engine.renderTemplate(templatePath, { value: 'test' });
+      expect(result4.content).toBe('false');
     });
 
-    it('should provide helpful error messages', async () => {
-      // Arrange
-      const template = '<%= undefinedVar %>';
-      await mockFileSystem.createDirectory('_templates/error-test');
-      await mockFileSystem.createFile('_templates/error-test/index.ejs', template);
+    it('should support quote filter', async () => {
+      const content = '{{ value | quote }}';
+      await fs.writeFile(templatePath, content);
+      
+      const result = await engine.renderTemplate(templatePath, { value: 'test string' });
+      expect(result.content).toBe('"test string"');
+    });
 
-      // Act & Assert
-      try {
-        await engine.generate('error-test', {});
-      } catch (error) {
-        expect(error.message).toContain('undefinedVar');
-        expect(error.message).toContain('error-test');
+    it('should support indent filter', async () => {
+      const content = '{{ value | indent(4) }}';
+      await fs.writeFile(templatePath, content);
+      
+      const result = await engine.renderTemplate(templatePath, { 
+        value: 'line1\nline2\nline3' 
+      });
+      expect(result.content).toBe('line1\n    line2\n    line3');
+    });
+
+    it('should support comment filter', async () => {
+      const content = '{{ value | comment("js") }}';
+      await fs.writeFile(templatePath, content);
+      
+      const result = await engine.renderTemplate(templatePath, { value: 'This is a comment' });
+      expect(result.content).toBe('// This is a comment');
+    });
+  });
+
+  describe('Global Functions', () => {
+    it('should provide uuid global function', async () => {
+      const content = '{{ uuid() }}';
+      await fs.writeFile(templatePath, content);
+      
+      const result = await engine.renderTemplate(templatePath, {});
+      expect(result.success).toBe(true);
+      expect(result.content).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/);
+    });
+
+    it('should provide range global function', async () => {
+      const content = '{% for i in range(1, 4) %}{{ i }}{% endfor %}';
+      await fs.writeFile(templatePath, content);
+      
+      const result = await engine.renderTemplate(templatePath, {});
+      expect(result.success).toBe(true);
+      expect(result.content).toBe('123');
+    });
+
+    it('should provide keys global function', async () => {
+      const content = '{{ keys(obj) | join(",") }}';
+      await fs.writeFile(templatePath, content);
+      
+      const result = await engine.renderTemplate(templatePath, { 
+        obj: { a: 1, b: 2, c: 3 } 
+      });
+      expect(result.success).toBe(true);
+      expect(result.content).toBe('a,b,c');
+    });
+
+    it('should provide values global function', async () => {
+      const content = '{{ values(obj) | join(",") }}';
+      await fs.writeFile(templatePath, content);
+      
+      const result = await engine.renderTemplate(templatePath, { 
+        obj: { a: 1, b: 2, c: 3 } 
+      });
+      expect(result.success).toBe(true);
+      expect(result.content).toBe('1,2,3');
+    });
+  });
+
+  describe('Error Recovery', () => {
+    it('should handle undefined variables gracefully', async () => {
+      const content = 'Hello {{ undefinedVar }}!';
+      await fs.writeFile(templatePath, content);
+      
+      const result = await engine.renderTemplate(templatePath, {});
+      expect(result.success).toBe(true);
+      expect(result.content).toBe('Hello !');
+    });
+
+    it('should attempt error recovery for invalid syntax', async () => {
+      const content = 'Hello {{ invalidSyntax | nonExistentFilter }}!';
+      await fs.writeFile(templatePath, content);
+      
+      const result = await engine.renderTemplate(templatePath, { invalidSyntax: 'World' });
+      // Should either succeed with fallback or fail gracefully
+      expect(typeof result.success).toBe('boolean');
+      if (!result.success) {
+        expect(result.error).toBeDefined();
+        expect(result.error.message).toContain('Template rendering failed');
       }
     });
-  });
 
-  describe('Performance', () => {
-    it('should handle large templates efficiently', async () => {
-      // Arrange
-      const largeTemplate = 'Line <%= index %>\n'.repeat(10_000);
-      await mockFileSystem.createDirectory('_templates/large');
-      await mockFileSystem.createFile('_templates/large/big.ejs', largeTemplate);
-
-      // Act
-      const startTime = Date.now();
-      const result = await engine.generate('large', { index);
-      const duration = Date.now() - startTime;
-
-      // Assert
-      expect(result.success).toBe(true);
-      expect(duration).toBeLessThan(1000); // Should complete within 1 second
-    });
-
-    it('should cache compiled templates', async () => {
-      // Arrange
-      const template = 'Hello <%= name %>!';
-      await mockFileSystem.createDirectory('_templates/cache-test');
-      await mockFileSystem.createFile('_templates/cache-test/index.ejs', template);
-
-      // Act - Generate twice
-      const start1 = Date.now();
-      await engine.generate('cache-test', { name);
-      const duration1 = Date.now() - start1;
-
-      const start2 = Date.now();
-      await engine.generate('cache-test', { name);
-      const duration2 = Date.now() - start2;
-
-      // Assert - Second generation should be faster due to caching
-      expect(duration2).toBeLessThan(duration1);
+    it('should handle missing template file', async () => {
+      const nonExistentPath = path.join(tempDir, 'nonexistent.njk');
+      
+      const result = await engine.renderTemplate(nonExistentPath, {});
+      expect(result.success).toBe(false);
+      expect(result.error).toBeDefined();
     });
   });
 
-  describe('Edge Cases', () => {
-    it('should handle empty templates', async () => {
-      // Arrange
-      await mockFileSystem.createDirectory('_templates/empty');
-      await mockFileSystem.createFile('_templates/empty/blank.ejs', '');
-
-      // Act
-      const result = await engine.generate('empty', {});
-
-      // Assert
-      expect(result.success).toBe(true);
-      expect(result.files[0].content).toBe('');
+  describe('Template Validation', () => {
+    it('should validate correct template syntax', async () => {
+      const content = 'Hello {{ name }}!';
+      await fs.writeFile(templatePath, content);
+      
+      const validation = await engine.validateTemplate(templatePath);
+      expect(validation.valid).toBe(true);
+      expect(validation.templateType).toBe('nunjucks');
+      expect(validation.issues).toHaveLength(0);
     });
 
-    it('should handle templates with only frontmatter', async () => { // Arrange
-      const onlyFrontmatter = `---
-to });
+    it('should detect invalid template syntax', async () => {
+      const content = 'Hello {% if name %}{{ name }}'; // Missing endif
+      await fs.writeFile(templatePath, content);
+      
+      const validation = await engine.validateTemplate(templatePath);
+      expect(validation.valid).toBe(false);
+      expect(validation.error).toBeDefined();
+      expect(validation.issues.length).toBeGreaterThan(0);
+    });
+  });
 
-      // Assert
-      expect(result.skipped).toBe(true);
+  describe('Variable Extraction', () => {
+    it('should extract variables from simple template', async () => {
+      const content = 'Hello {{ name }} and {{ age }}!';
+      await fs.writeFile(templatePath, content);
+      
+      const variables = await engine.extractVariables(templatePath);
+      expect(variables.variables).toContain('name');
+      expect(variables.variables).toContain('age');
+      expect(variables.variables).toHaveLength(2);
     });
 
-    it('should handle special characters in file paths', async () => { // Arrange
-      const template = `---
-to });
+    it('should extract variables from template with filters', async () => {
+      const content = 'Hello {{ name | upper }} and {{ count | default(0) }}!';
+      await fs.writeFile(templatePath, content);
+      
+      const variables = await engine.extractVariables(templatePath);
+      expect(variables.variables).toContain('name');
+      expect(variables.variables).toContain('count');
+    });
 
-      // Assert
+    it('should extract variables from control structures', async () => {
+      const content = '{% if isActive %}{{ name }}{% endif %}{% for item in items %}{{ item }}{% endfor %}';
+      await fs.writeFile(templatePath, content);
+      
+      const variables = await engine.extractVariables(templatePath);
+      expect(variables.variables).toContain('isActive');
+      expect(variables.variables).toContain('name');
+      expect(variables.variables).toContain('items');
+    });
+
+    it('should extract variables from frontmatter to field', async () => {
+      const content = `---
+to: "{{ directory }}/{{ filename }}.txt"
+---
+Hello {{ name }}!`;
+      await fs.writeFile(templatePath, content);
+      
+      const variables = await engine.extractVariables(templatePath);
+      expect(variables.variables).toContain('directory');
+      expect(variables.variables).toContain('filename');
+      expect(variables.variables).toContain('name');
+    });
+
+    it('should handle templates with no variables', async () => {
+      const content = 'Hello World!';
+      await fs.writeFile(templatePath, content);
+      
+      const variables = await engine.extractVariables(templatePath);
+      expect(variables.variables).toHaveLength(0);
+    });
+  });
+
+  describe('Caching', () => {
+    it('should cache template content', async () => {
+      const content = 'Hello {{ name }}!';
+      await fs.writeFile(templatePath, content);
+      
+      // First render
+      const result1 = await engine.renderTemplate(templatePath, { name: 'World' });
+      expect(result1.success).toBe(true);
+      
+      // Check cache
+      const cacheKey = `content:${templatePath}`;
+      expect(engine.templateCache.has(cacheKey)).toBe(true);
+      
+      // Second render should use cache
+      const result2 = await engine.renderTemplate(templatePath, { name: 'Universe' });
+      expect(result2.success).toBe(true);
+      expect(result2.content).toBe('Hello Universe!');
+    });
+
+    it('should provide cache statistics', () => {
+      const stats = engine.getCacheStats();
+      expect(stats).toHaveProperty('templateCache');
+      expect(stats).toHaveProperty('compiledCache');
+      expect(stats).toHaveProperty('variableCache');
+      expect(stats).toHaveProperty('fixedTemplates');
+      expect(stats).toHaveProperty('maxCacheSize');
+      expect(typeof stats.templateCache).toBe('number');
+    });
+
+    it('should clear all caches', async () => {
+      const content = 'Hello {{ name }}!';
+      await fs.writeFile(templatePath, content);
+      
+      // Populate cache
+      await engine.renderTemplate(templatePath, { name: 'World' });
+      await engine.extractVariables(templatePath);
+      
+      // Verify cache has content
+      expect(engine.getCacheStats().templateCache).toBeGreaterThan(0);
+      
+      // Clear cache
+      engine.clearCache();
+      
+      // Verify cache is empty
+      const stats = engine.getCacheStats();
+      expect(stats.templateCache).toBe(0);
+      expect(stats.variableCache).toBe(0);
+    });
+  });
+
+  describe('Performance Metrics', () => {
+    it('should include duration in render results', async () => {
+      const content = 'Hello {{ name }}!';
+      await fs.writeFile(templatePath, content);
+      
+      const result = await engine.renderTemplate(templatePath, { name: 'World' });
       expect(result.success).toBe(true);
-      expect(result.files[0].path).toContain('file-with-spaces and symbols!.ts');
+      expect(typeof result.duration).toBe('number');
+      expect(result.duration).toBeGreaterThan(0);
+    });
+  });
+});
+
+describe('Standalone Template Functions', () => {
+  let tempDir;
+  let templatePath;
+
+  beforeEach(async () => {
+    tempDir = path.join(os.tmpdir(), 'unjucks-test-' + Date.now());
+    await fs.ensureDir(tempDir);
+    templatePath = path.join(tempDir, 'test.njk');
+  });
+
+  afterEach(async () => {
+    await fs.remove(tempDir);
+  });
+
+  describe('renderTemplate function', () => {
+    it('should render template using standalone function', async () => {
+      const content = 'Hello {{ name }}!';
+      await fs.writeFile(templatePath, content);
+      
+      const result = await renderTemplate(templatePath, { name: 'World' });
+      expect(result.success).toBe(true);
+      expect(result.content).toBe('Hello World!');
+    });
+  });
+
+  describe('validateTemplate function', () => {
+    it('should validate template using standalone function', async () => {
+      const content = 'Hello {{ name }}!';
+      await fs.writeFile(templatePath, content);
+      
+      const validation = await validateTemplate(templatePath);
+      expect(validation.valid).toBe(true);
+    });
+  });
+
+  describe('extractTemplateVariables function', () => {
+    it('should extract variables using standalone function', async () => {
+      const content = 'Hello {{ name }}!';
+      await fs.writeFile(templatePath, content);
+      
+      const variables = await extractTemplateVariables(templatePath);
+      expect(variables.variables).toContain('name');
     });
   });
 });

@@ -1,0 +1,96 @@
+{
+  "levels": {
+    "info": {
+      "channels": [
+        "slack"
+      ],
+      "escalation_delay": 0,
+      "suppress_duration": "1h",
+      "notification_template": "info"
+    },
+    "warning": {
+      "channels": [
+        "slack",
+        "email"
+      ],
+      "escalation_delay": 300,
+      "suppress_duration": "30m",
+      "notification_template": "warning"
+    },
+    "high": {
+      "channels": [
+        "slack",
+        "email",
+        "github_issue"
+      ],
+      "escalation_delay": 180,
+      "suppress_duration": "15m",
+      "notification_template": "high",
+      "assignees": [
+        "@team-lead",
+        "@on-call"
+      ]
+    },
+    "critical": {
+      "channels": [
+        "slack",
+        "email",
+        "pagerduty",
+        "github_issue"
+      ],
+      "escalation_delay": 60,
+      "suppress_duration": "5m",
+      "notification_template": "critical",
+      "assignees": [
+        "@team-lead",
+        "@on-call",
+        "@engineering-manager"
+      ],
+      "immediate_escalation": true
+    }
+  },
+  "routing": {
+    "slo_breach": "high",
+    "anomaly_detected": "warning",
+    "error_budget_critical": "critical",
+    "system_down": "critical"
+  },
+  "contact_methods": {
+    "slack": {
+      "webhook_url": "${SLACK_WEBHOOK_URL}",
+      "mention_groups": {
+        "critical": [
+          "@channel",
+          "@here"
+        ],
+        "high": [
+          "@team-lead"
+        ],
+        "warning": [],
+        "info": []
+      }
+    },
+    "email": {
+      "smtp_server": "${SMTP_SERVER}",
+      "recipients": {
+        "critical": [
+          "oncall@company.com",
+          "engineering@company.com"
+        ],
+        "high": [
+          "team-lead@company.com"
+        ],
+        "warning": [
+          "alerts@company.com"
+        ],
+        "info": [
+          "alerts@company.com"
+        ]
+      }
+    },
+    "pagerduty": {
+      "integration_key": "${PAGERDUTY_INTEGRATION_KEY}",
+      "escalation_policy": "default"
+    }
+  }
+}

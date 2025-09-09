@@ -167,7 +167,7 @@ jobs:
       - name: 📦 Install dependencies with verification
         run: |
           echo "🔧 Installing dependencies with enterprise verification..."
-          npm ci --prefer-offline --no-audit --timing
+          npm ci --prefer-offline --no-audit --omit=optional --timing || npm install --omit=optional
           
           # Verify critical dependencies
           npm list --depth=0 || echo "⚠️ Dependency tree issues detected"

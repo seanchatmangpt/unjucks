@@ -1,0 +1,188 @@
+name: Semantic Version Calculator
+description: Calculate next semantic version based on conventional commits
+
+inputs:
+  release-type:
+    description: 'Override release type (auto, patch, minor, major, prerelease)'
+    required: false
+    default: 'auto'
+  release-channel:
+    description: 'Release channel (alpha, beta, rc, stable)'
+    required: false
+    default: 'stable'
+  dry-run:
+    description: 'Calculate version without creating tags'
+    required: false
+    default: 'false'
+  base-branch:
+    description: 'Base branch for comparison'
+    required: false
+    default: 'main'
+
+outputs:
+  version:
+    description: 'Calculated semantic version'
+    value: ${{ steps.calculate.outputs.version }}
+  tag:
+    description: 'Git tag for the version'
+    value: ${{ steps.calculate.outputs.tag }}
+  release-type:
+    description: 'Determined release type'
+    value: ${{ steps.calculate.outputs.release-type }}
+  channel-suffix:
+    description: 'Channel suffix for prerelease versions'
+    value: ${{ steps.calculate.outputs.channel-suffix }}
+  should-publish:
+    description: 'Whether a release should be published'
+    value: ${{ steps.calculate.outputs.should-publish }}
+
+runs:
+  using: composite
+  steps:
+    - name: Calculate semantic version
+      id: calculate
+      shell: bash
+      run: |
+        set -e
+        
+        # Get current version from package.json
+        CURRENT_VERSION=$(node -p "require('./package.json').version")
+        echo "Current version: $CURRENT_VERSION"
+        
+        # Get last git tag
+        LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
+        LAST_VERSION=${LAST_TAG#v}
+        echo "Last tagged version: $LAST_VERSION"
+        
+        # Parse version components
+        IFS='.' read -r MAJOR MINOR PATCH <<< "$CURRENT_VERSION"
+        
+        # Remove any prerelease suffix from PATCH
+        PATCH=${PATCH%%-*}
+        
+        # Analyze commits since last tag
+        if [[ "$LAST_TAG" != "v0.0.0" ]]; then
+          COMMIT_RANGE="${LAST_TAG}..HEAD"
+        else
+          COMMIT_RANGE="HEAD"
+        fi
+        
+        echo "Analyzing commits in range: $COMMIT_RANGE"
+        
+        # Parse commits for conventional format
+        BREAKING_CHANGES=false
+        FEATURES=false
+        FIXES=false
+        CHORES=false
+        
+        while IFS= read -r commit; do
+          if [[ -n "$commit" ]]; then
+            echo "  - $commit"
+            
+            # Check for breaking changes
+            if [[ $commit =~ ^[a-z]+(\(.+\))?!: || $commit =~ BREAKING[[:space:]]CHANGE ]]; then
+              BREAKING_CHANGES=true
+            # Check for features  
+            elif [[ $commit =~ ^(feat|feature)(\(.+\))?: ]]; then
+              FEATURES=true
+            # Check for fixes
+            elif [[ $commit =~ ^(fix|bugfix)(\(.+\))?: ]]; then
+              FIXES=true
+            # Check for chores, docs, etc.
+            elif [[ $commit =~ ^(chore|docs|style|refactor|test|ci)(\(.+\))?: ]]; then
+              CHORES=true
+            fi
+          fi
+        done <<< "$(git log --format='%s' $COMMIT_RANGE)"
+        
+        # Determine release type
+        if [[ "${{ inputs.release-type }}" != "auto" ]]; then
+          RELEASE_TYPE="${{ inputs.release-type }}"
+          echo "Release type override: $RELEASE_TYPE"
+        elif [[ $BREAKING_CHANGES == true ]]; then
+          RELEASE_TYPE="major"
+          echo "Breaking changes detected -> major release"
+        elif [[ $FEATURES == true ]]; then
+          RELEASE_TYPE="minor" 
+          echo "Features detected -> minor release"
+        elif [[ $FIXES == true ]]; then
+          RELEASE_TYPE="patch"
+          echo "Fixes detected -> patch release"
+        elif [[ $CHORES == true ]]; then
+          RELEASE_TYPE="patch"
+          echo "Chores detected -> patch release"
+        else
+          RELEASE_TYPE="none"
+          echo "No significant changes detected"
+        fi
+        
+        # Calculate new version
+        if [[ $RELEASE_TYPE == "none" ]]; then
+          NEW_VERSION="$CURRENT_VERSION"
+          SHOULD_PUBLISH="false"
+        else
+          case $RELEASE_TYPE in
+            major)
+              NEW_MAJOR=$((MAJOR + 1))
+              NEW_MINOR=0
+              NEW_PATCH=0
+              ;;
+            minor)
+              NEW_MAJOR=$MAJOR
+              NEW_MINOR=$((MINOR + 1))
+              NEW_PATCH=0
+              ;;
+            patch|prerelease)
+              NEW_MAJOR=$MAJOR
+              NEW_MINOR=$MINOR
+              NEW_PATCH=$((PATCH + 1))
+              ;;
+            *)
+              echo "Unknown release type: $RELEASE_TYPE"
+              exit 1
+              ;;
+          esac
+          
+          # Handle release channels
+          CHANNEL_SUFFIX=""
+          case "${{ inputs.release-channel }}" in
+            alpha)
+              CHANNEL_SUFFIX="-alpha.$(date +%Y%m%d%H%M%S)"
+              ;;
+            beta)
+              CHANNEL_SUFFIX="-beta.$(date +%Y%m%d)"
+              ;;
+            rc)
+              CHANNEL_SUFFIX="-rc.$(date +%Y%m%d)"
+              ;;
+            stable)
+              CHANNEL_SUFFIX=""
+              ;;
+          esac
+          
+          NEW_VERSION="${NEW_MAJOR}.${NEW_MINOR}.${NEW_PATCH}${CHANNEL_SUFFIX}"
+          SHOULD_PUBLISH="true"
+        fi
+        
+        NEW_TAG="v${NEW_VERSION}"
+        
+        echo "📊 Version Calculation Results:"
+        echo "  - Current: $CURRENT_VERSION"
+        echo "  - New: $NEW_VERSION"
+        echo "  - Tag: $NEW_TAG"
+        echo "  - Type: $RELEASE_TYPE"
+        echo "  - Channel: ${{ inputs.release-channel }}"
+        echo "  - Should Publish: $SHOULD_PUBLISH"
+        
+        # Set outputs
+        echo "version=$NEW_VERSION" >> $GITHUB_OUTPUT
+        echo "tag=$NEW_TAG" >> $GITHUB_OUTPUT
+        echo "release-type=$RELEASE_TYPE" >> $GITHUB_OUTPUT
+        echo "channel-suffix=$CHANNEL_SUFFIX" >> $GITHUB_OUTPUT
+        echo "should-publish=$SHOULD_PUBLISH" >> $GITHUB_OUTPUT
+        
+        # Validate version format
+        if [[ ! $NEW_VERSION =~ ^[0-9]+\.[0-9]+\.[0-9]+ ]]; then
+          echo "❌ Invalid version format: $NEW_VERSION"
+          exit 1
+        fi

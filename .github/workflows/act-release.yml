@@ -1,0 +1,363 @@
+name: Test Release Workflows Locally
+
+on:
+  workflow_dispatch:
+    inputs:
+      test-type:
+        description: 'Type of release test'
+        required: true
+        default: 'dry-run'
+        type: choice
+        options:
+        - dry-run
+        - validation
+        - rollback
+        - full-simulation
+      target-version:
+        description: 'Target version for rollback testing'
+        required: false
+        default: '2.0.7'
+
+env:
+  ACT_TEST: true
+
+jobs:
+  test-release-dry-run:
+    name: Test Release (Dry Run)
+    runs-on: ubuntu-latest
+    if: inputs.test-type == 'dry-run' || inputs.test-type == 'full-simulation'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          
+      - name: Install dependencies
+        run: npm ci
+        
+      - name: Run release validation script
+        run: |
+          chmod +x scripts/release/validate-release.sh
+          scripts/release/validate-release.sh --level full --report --format markdown
+          
+      - name: Test semantic version calculation
+        run: |
+          echo "🧮 Testing semantic version calculation..."
+          
+          # Simulate conventional commits
+          git config user.name "test"
+          git config user.email "test@example.com"
+          
+          # Create test commits
+          echo "// Test change" >> src/test-file.js
+          git add .
+          git commit -m "feat: add new feature for testing semantic versioning"
+          
+          # Test version calculation logic
+          LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
+          echo "Last tag: $LAST_TAG"
+          
+          # Analyze commits
+          COMMITS=$(git log --format="%s" ${LAST_TAG}..HEAD)
+          echo "Recent commits:"
+          echo "$COMMITS"
+          
+          # Clean up test file
+          git reset --hard HEAD^
+          
+      - name: Simulate release workflow steps
+        run: |
+          echo "📋 Simulating release workflow..."
+          
+          # Test package creation
+          npm pack --dry-run
+          
+          # Test CLI functionality
+          if [[ -x bin/unjucks.cjs ]]; then
+            ./bin/unjucks.cjs --version
+            ./bin/unjucks.cjs --help
+          fi
+          
+          # Test build process
+          npm run build || echo "No build script found"
+          
+          echo "✅ Dry run simulation completed"
+          
+      - name: Upload simulation results
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-dry-run-results
+          path: |
+            validation-report-*.md
+            *.tgz
+          retention-days: 7
+          
+  test-rollback-functionality:
+    name: Test Rollback System
+    runs-on: ubuntu-latest
+    if: inputs.test-type == 'rollback' || inputs.test-type == 'full-simulation'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          
+      - name: Install dependencies
+        run: npm ci
+        
+      - name: Test rollback script (dry run)
+        run: |
+          chmod +x scripts/release/rollback.sh
+          
+          echo "🔄 Testing rollback script..."
+          
+          # Test with dry run
+          if ! ./scripts/release/rollback.sh \
+            "${{ inputs.target-version }}" \
+            --dry-run \
+            --reason "Testing rollback functionality" \
+            --yes; then
+            echo "❌ Rollback script test failed"
+            exit 1
+          fi
+          
+          echo "✅ Rollback script test passed"
+          
+      - name: Validate rollback safety checks
+        run: |
+          echo "🛡️ Testing rollback safety checks..."
+          
+          # Test invalid version
+          if ./scripts/release/rollback.sh "invalid.version" --dry-run --reason "test" --yes 2>/dev/null; then
+            echo "❌ Rollback script should reject invalid versions"
+            exit 1
+          else
+            echo "✅ Invalid version rejection works"
+          fi
+          
+          # Test missing reason
+          if ./scripts/release/rollback.sh "${{ inputs.target-version }}" --dry-run --yes 2>/dev/null; then
+            echo "❌ Rollback script should require a reason"
+            exit 1
+          else
+            echo "✅ Reason requirement works"
+          fi
+          
+          echo "✅ Safety checks validated"
+          
+  test-changelog-generation:
+    name: Test Changelog Generation
+    runs-on: ubuntu-latest
+    if: inputs.test-type == 'validation' || inputs.test-type == 'full-simulation'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          
+      - name: Install changelog tools
+        run: |
+          npm install -g conventional-changelog-cli conventional-commits-parser
+          
+      - name: Test conventional changelog
+        run: |
+          echo "📝 Testing changelog generation..."
+          
+          # Generate changelog
+          conventional-changelog -p angular -i TEST_CHANGELOG.md -s
+          
+          if [[ -f TEST_CHANGELOG.md ]]; then
+            echo "✅ Changelog generated successfully"
+            echo "📄 Changelog preview:"
+            head -20 TEST_CHANGELOG.md
+          else
+            echo "❌ Changelog generation failed"
+            exit 1
+          fi
+          
+      - name: Test commit analysis
+        run: |
+          echo "🔍 Testing commit analysis..."
+          
+          # Get recent commits
+          COMMITS=$(git log --format="%s" HEAD~10..HEAD)
+          
+          echo "Recent commits:"
+          echo "$COMMITS"
+          
+          # Analyze for conventional format
+          BREAKING_CHANGES=false
+          FEATURES=false
+          FIXES=false
+          
+          while IFS= read -r commit; do
+            if [[ $commit =~ ^[a-z]+(\(.+\))?!: ]]; then
+              BREAKING_CHANGES=true
+              echo "🚨 Breaking change detected: $commit"
+            elif [[ $commit =~ ^feat(\(.+\))?: ]]; then
+              FEATURES=true
+              echo "✨ Feature detected: $commit"
+            elif [[ $commit =~ ^fix(\(.+\))?: ]]; then
+              FIXES=true
+              echo "🐛 Fix detected: $commit"
+            fi
+          done <<< "$COMMITS"
+          
+          echo "Analysis results:"
+          echo "  Breaking changes: $BREAKING_CHANGES"
+          echo "  Features: $FEATURES"
+          echo "  Fixes: $FIXES"
+          
+      - name: Upload changelog artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: changelog-test-results
+          path: |
+            TEST_CHANGELOG.md
+          retention-days: 7
+          
+  test-security-validation:
+    name: Test Security Validation
+    runs-on: ubuntu-latest
+    if: inputs.test-type == 'validation' || inputs.test-type == 'full-simulation'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          
+      - name: Install dependencies
+        run: npm ci
+        
+      - name: Run security audit
+        run: |
+          echo "🛡️ Running security validation..."
+          
+          # npm audit
+          npm audit --audit-level moderate || echo "Security issues found - review required"
+          
+          # Check for dangerous patterns
+          echo "🔍 Checking for dangerous code patterns..."
+          
+          # Check for eval usage
+          if grep -r "eval(" --include="*.js" src/ 2>/dev/null; then
+            echo "⚠️ eval() usage detected"
+          else
+            echo "✅ No eval() usage found"
+          fi
+          
+          # Check for process.env exposure
+          if grep -r "process\.env" --include="*.js" src/ | grep -v "NODE_ENV" 2>/dev/null; then
+            echo "⚠️ Environment variable exposure detected"
+          else
+            echo "✅ No environment variable exposure found"
+          fi
+          
+          # Check for hardcoded credentials (simple patterns)
+          if grep -ri "password\s*=" --include="*.js" --include="*.json" . | grep -v node_modules | grep -v test 2>/dev/null; then
+            echo "⚠️ Potential hardcoded credentials found"
+          else
+            echo "✅ No hardcoded credentials detected"
+          fi
+          
+      - name: Test SBOM generation
+        run: |
+          echo "📋 Testing SBOM generation..."
+          
+          # Install SBOM tools
+          npm install -g @cyclonedx/bom
+          
+          # Generate SBOM
+          cyclonedx-bom -o test-sbom.json
+          
+          if [[ -f test-sbom.json ]]; then
+            echo "✅ SBOM generated successfully"
+            echo "📄 SBOM components: $(jq '.components | length' test-sbom.json 2>/dev/null || echo 'unknown')"
+          else
+            echo "❌ SBOM generation failed"
+          fi
+          
+      - name: Upload security artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-validation-results
+          path: |
+            test-sbom.json
+          retention-days: 7
+          
+  generate-act-summary:
+    name: Generate Test Summary
+    runs-on: ubuntu-latest
+    needs: [test-release-dry-run, test-rollback-functionality, test-changelog-generation, test-security-validation]
+    if: always()
+    
+    steps:
+      - name: Create test summary
+        run: |
+          echo "# 🧪 Release Workflow Test Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Test Type:** ${{ inputs.test-type }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Run Date:** $(date -u +%Y-%m-%dT%H:%M:%SZ)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          echo "## Test Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Test Suite | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|------------|---------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Release Dry Run | ${{ needs.test-release-dry-run.result == 'success' && '✅ Passed' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Rollback System | ${{ needs.test-rollback-functionality.result == 'success' && '✅ Passed' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Changelog Generation | ${{ needs.test-changelog-generation.result == 'success' && '✅ Passed' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Security Validation | ${{ needs.test-security-validation.result == 'success' && '✅ Passed' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          echo "## Quick Commands for Local Testing" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Test with act (GitHub Actions locally)" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`bash" >> $GITHUB_STEP_SUMMARY
+          echo "# Install act: https://github.com/nektos/act" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "# Test release dry run" >> $GITHUB_STEP_SUMMARY
+          echo "act workflow_dispatch -W .github/workflows/act-release.yml --input test-type=dry-run" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "# Test rollback functionality" >> $GITHUB_STEP_SUMMARY
+          echo "act workflow_dispatch -W .github/workflows/act-release.yml --input test-type=rollback" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "# Test validation" >> $GITHUB_STEP_SUMMARY
+          echo "act workflow_dispatch -W .github/workflows/act-release.yml --input test-type=validation" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          echo "### Manual Script Testing" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`bash" >> $GITHUB_STEP_SUMMARY
+          echo "# Validation script" >> $GITHUB_STEP_SUMMARY
+          echo "chmod +x scripts/release/validate-release.sh" >> $GITHUB_STEP_SUMMARY
+          echo "./scripts/release/validate-release.sh --level full" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "# Rollback script (dry run)" >> $GITHUB_STEP_SUMMARY
+          echo "chmod +x scripts/release/rollback.sh" >> $GITHUB_STEP_SUMMARY
+          echo "./scripts/release/rollback.sh 2.0.7 --dry-run --reason \"test rollback\"" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY

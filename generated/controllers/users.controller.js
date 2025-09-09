@@ -1,4 +1,4 @@
-import { UserService } from '../services/users.service.js';
+const { UserService } = require('../services/users.service.js');
 
 const service = new UserService();
 
@@ -7,7 +7,7 @@ const service = new UserService();
  * @param {import('express').Request} req - Express request object
  * @param {import('express').Response} res - Express response object
  */
-export async function listUsers(req, res) {
+async function listUsers(req, res) {
   try {
     const result = await service.listUsers(req.query);
     res.json(result);
@@ -21,7 +21,7 @@ export async function listUsers(req, res) {
  * @param {import('express').Request} req - Express request object
  * @param {import('express').Response} res - Express response object
  */
-export async function getUser(req, res) {
+async function getUser(req, res) {
   try {
     const result = await service.getUser(req.params.id);
     res.json(result);
@@ -35,7 +35,7 @@ export async function getUser(req, res) {
  * @param {import('express').Request} req - Express request object
  * @param {import('express').Response} res - Express response object
  */
-export async function createUser(req, res) {
+async function createUser(req, res) {
   try {
     const result = await service.createUser(req.body);
     res.json(result);
@@ -49,7 +49,7 @@ export async function createUser(req, res) {
  * @param {import('express').Request} req - Express request object
  * @param {import('express').Response} res - Express response object
  */
-export async function updateUser(req, res) {
+async function updateUser(req, res) {
   try {
     const result = await service.updateUser(req.params.id, req.body);
     res.json(result);
@@ -63,7 +63,7 @@ export async function updateUser(req, res) {
  * @param {import('express').Request} req - Express request object
  * @param {import('express').Response} res - Express response object
  */
-export async function deleteUser(req, res) {
+async function deleteUser(req, res) {
   try {
     await service.deleteUser(req.params.id);
     const result = { success: true };
@@ -72,3 +72,12 @@ export async function deleteUser(req, res) {
     res.status(500).json({ error: error.message });
   }
 }
+
+// Export all functions
+module.exports = {
+  listUsers,
+  getUser,
+  createUser,
+  updateUser,
+  deleteUser
+};

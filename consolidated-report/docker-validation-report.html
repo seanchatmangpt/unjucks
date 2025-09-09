@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Docker Validation Report - Unjucks</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; margin: 0; padding: 20px; background: #f5f5f5; }
+        .container { max-width: 1200px; margin: 0 auto; }
+        .header { background: #2563eb; color: white; padding: 30px; border-radius: 8px; margin-bottom: 30px; }
+        .score-card { background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .score-value { font-size: 48px; font-weight: bold; color: #059669; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
+        .metric { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .status-success { color: #059669; }
+        .status-warning { color: #d97706; }
+        .status-error { color: #dc2626; }
+        .progress-bar { background: #e5e7eb; height: 10px; border-radius: 5px; overflow: hidden; }
+        .progress-fill { background: #059669; height: 100%; transition: width 0.3s ease; }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #e5e7eb; }
+        th { background: #f9fafb; font-weight: 600; }
+        .timestamp { color: #6b7280; font-size: 14px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🐳 Docker Validation Report</h1>
+            <p>Comprehensive testing and validation results for Unjucks Docker infrastructure</p>
+            <p class="timestamp">Generated: 2025-09-09T23:05:13.088Z</p>
+        </div>
+
+        <div class="score-card">
+            <h2>Overall Validation Score</h2>
+            <div class="score-value">40/100</div>
+            <div class="progress-bar">
+                <div class="progress-fill" style="width: 40%"></div>
+            </div>
+            <p>Tests Passed: 0/8</p>
+        </div>
+
+        <div class="grid">
+            <div class="metric">
+                <h3>🔒 Security Validation</h3>
+                <div class="score-value status-success">100/100</div>
+                <table>
+                    <tr><th>Severity</th><th>Count</th></tr>
+                    <tr><td>Critical</td><td class="status-error">0</td></tr>
+                    <tr><td>High</td><td class="status-warning">0</td></tr>
+                    <tr><td>Medium</td><td>0</td></tr>
+                    <tr><td>Low</td><td>0</td></tr>
+                </table>
+                <p>Scanners: </p>
+            </div>
+
+            <div class="metric">
+                <h3>⚡ Performance Testing</h3>
+                <div class="score-value status-error">40/100</div>
+                <table>
+                    <tr><th>Benchmark</th><th>Status</th></tr>
+                    <tr><td>CPU</td><td class="status-error">❌</td></tr>
+                    <tr><td>Memory</td><td class="status-error">❌</td></tr>
+                    <tr><td>I/O</td><td class="status-error">❌</td></tr>
+                    <tr><td>Startup</td><td class="status-error">❌</td></tr>
+                </table>
+            </div>
+
+            <div class="metric">
+                <h3>🏗️ Multi-Architecture</h3>
+                <div class="score-value status-error">❌</div>
+                <p>Architectures: </p>
+                <p>Digests Generated: ❌</p>
+            </div>
+
+            <div class="metric">
+                <h3>🚀 Production Simulation</h3>
+                <div class="score-value status-error">❌</div>
+                <table>
+                    <tr><th>Service</th><th>Status</th></tr>
+                    <tr><td>Application</td><td class="status-error">❌</td></tr>
+                    <tr><td>Database</td><td class="status-error">❌</td></tr>
+                    <tr><td>Cache</td><td class="status-error">❌</td></tr>
+                    <tr><td>Load Balancer</td><td class="status-error">❌</td></tr>
+                </table>
+            </div>
+
+            <div class="metric">
+                <h3>🤝 Coordination System</h3>
+                <div class="score-value status-error">❌</div>
+                <table>
+                    <tr><th>Component</th><th>Status</th></tr>
+                    <tr><td>System Initialized</td><td class="status-error">❌</td></tr>
+                    <tr><td>Hooks Enabled</td><td class="status-error">❌</td></tr>
+                    <tr><td>Swarm Active</td><td class="status-error">❌</td></tr>
+                    <tr><td>Network Configured</td><td class="status-error">❌</td></tr>
+                </table>
+            </div>
+
+            <div class="metric">
+                <h3>📊 Test Matrix</h3>
+                <div class="score-value">0</div>
+                <p>Matrix Configurations Tested</p>
+                
+            </div>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,15 @@
+{
+  "command": "inject",
+  "args": [
+    "_"
+  ],
+  "error": {
+    "message": "The \"paths[0]\" argument must be of type string. Received undefined",
+    "stack": "TypeError [ERR_INVALID_ARG_TYPE]: The \"paths[0]\" argument must be of type string. Received undefined\n    at Object.resolve (node:path:1168:7)\n    at Object.run (file:///Users/sac/unjucks/src/commands/inject.js:192:29)\n    at Object.run (file:///Users/sac/unjucks/src/cli/index.js:74:30)\n    at async runCommand (file:///Users/sac/unjucks/node_modules/citty/dist/index.mjs:316:16)\n    at async runCommand (file:///Users/sac/unjucks/node_modules/citty/dist/index.mjs:307:11)\n    at async runMain (file:///Users/sac/unjucks/node_modules/citty/dist/index.mjs:445:7)\n    at async loadAndRunCLI (/Users/sac/unjucks/bin/unjucks.cjs:55:5)",
+    "code": "ERR_INVALID_ARG_TYPE",
+    "name": "TypeError"
+  },
+  "context": "inject",
+  "timestamp": "2025-09-09T22:44:09.815Z",
+  "retryCount": 0
+}

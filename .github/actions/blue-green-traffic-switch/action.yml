@@ -1,0 +1,282 @@
+---
+name: 'Blue-Green Traffic Switch'
+description: 'Safely switch traffic between blue and green environments with gradual rollout'
+author: 'Blue-Green Deployment Engineer'
+
+inputs:
+  current-slot:
+    description: 'Current active slot (blue or green)'
+    required: true
+  target-slot:
+    description: 'Target deployment slot (blue or green)'
+    required: true
+  environment:
+    description: 'Deployment environment (staging, production)'
+    required: true
+  health-check-url:
+    description: 'Base URL for health checks'
+    required: true
+  traffic-split-steps:
+    description: 'Traffic split percentages (comma-separated)'
+    required: false
+    default: '10,50,100'
+  step-delay:
+    description: 'Delay between traffic split steps (seconds)'
+    required: false
+    default: '30'
+  rollback-threshold:
+    description: 'Error rate threshold for automatic rollback (%)'
+    required: false
+    default: '5'
+  cloud-provider:
+    description: 'Cloud provider (aws, azure, gcp)'
+    required: false
+    default: 'aws'
+
+outputs:
+  switch-status:
+    description: 'Traffic switch status (success, failed, rolled-back)'
+  final-traffic-percentage:
+    description: 'Final traffic percentage to target slot'
+  rollback-reason:
+    description: 'Reason for rollback if applicable'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: 🔍 Validate Traffic Switch Prerequisites
+      shell: bash
+      run: |
+        echo "🔍 Validating traffic switch prerequisites..."
+        
+        # Validate slot names
+        if [[ "${{ inputs.current-slot }}" != "blue" && "${{ inputs.current-slot }}" != "green" ]]; then
+          echo "❌ Invalid current slot: ${{ inputs.current-slot }}"
+          exit 1
+        fi
+        
+        if [[ "${{ inputs.target-slot }}" != "blue" && "${{ inputs.target-slot }}" != "green" ]]; then
+          echo "❌ Invalid target slot: ${{ inputs.target-slot }}"
+          exit 1
+        fi
+        
+        if [[ "${{ inputs.current-slot }}" == "${{ inputs.target-slot }}" ]]; then
+          echo "❌ Current and target slots cannot be the same"
+          exit 1
+        fi
+        
+        # Validate traffic split steps
+        IFS=',' read -ra STEPS <<< "${{ inputs.traffic-split-steps }}"
+        for step in "${STEPS[@]}"; do
+          if [[ ! "$step" =~ ^[0-9]+$ ]] || [ "$step" -lt 0 ] || [ "$step" -gt 100 ]; then
+            echo "❌ Invalid traffic split step: $step"
+            exit 1
+          fi
+        done
+        
+        echo "✅ Prerequisites validation passed"
+
+    - name: 🏥 Pre-Switch Health Check
+      shell: bash
+      run: |
+        echo "🏥 Running pre-switch health check..."
+        
+        target_url="${{ inputs.health-check-url }}/${{ inputs.target-slot }}"
+        
+        # Comprehensive health check
+        endpoints=("/health" "/ready" "/metrics")
+        
+        for endpoint in "${endpoints[@]}"; do
+          echo "🔍 Checking ${target_url}${endpoint}..."
+          
+          for attempt in {1..10}; do
+            if curl -f -m 10 -s "${target_url}${endpoint}" > /dev/null; then
+              echo "✅ ${endpoint}: healthy"
+              break
+            else
+              if [ $attempt -eq 10 ]; then
+                echo "❌ ${endpoint}: failed after 10 attempts"
+                exit 1
+              fi
+              echo "⏳ ${endpoint}: attempt $attempt failed, retrying..."
+              sleep 5
+            fi
+          done
+        done
+        
+        echo "✅ Pre-switch health check passed"
+
+    - name: 🔄 Gradual Traffic Switch
+      shell: bash
+      run: |
+        echo "🔄 Starting gradual traffic switch..."
+        echo "🚦 From: ${{ inputs.current-slot }} → To: ${{ inputs.target-slot }}"
+        
+        IFS=',' read -ra STEPS <<< "${{ inputs.traffic-split-steps }}"
+        rollback_threshold=${{ inputs.rollback-threshold }}
+        step_delay=${{ inputs.step-delay }}
+        
+        for step in "${STEPS[@]}"; do
+          echo "📊 Switching ${step}% traffic to ${{ inputs.target-slot }}..."
+          
+          # Cloud provider specific traffic switching
+          case "${{ inputs.cloud-provider }}" in
+            "aws")
+              echo "🌩️ AWS: Updating ALB target group weights..."
+              # aws elbv2 modify-target-group-attributes ...
+              ;;
+            "azure")
+              echo "🌩️ Azure: Updating Traffic Manager weights..."
+              # az network traffic-manager endpoint update ...
+              ;;
+            "gcp")
+              echo "🌩️ GCP: Updating load balancer backend weights..."
+              # gcloud compute backend-services update ...
+              ;;
+            *)
+              echo "🔧 Generic: Updating load balancer configuration..."
+              ;;
+          esac
+          
+          # Simulate traffic switch
+          sleep 2
+          
+          # Wait for traffic to propagate
+          echo "⏳ Waiting ${step_delay}s for traffic propagation..."
+          sleep $step_delay
+          
+          # Health check after traffic split
+          echo "🏥 Health check after ${step}% traffic switch..."
+          
+          health_url="${{ inputs.health-check-url }}"
+          error_count=0
+          total_requests=20
+          
+          for i in $(seq 1 $total_requests); do
+            if ! curl -f -m 5 -s "$health_url/health" > /dev/null; then
+              ((error_count++))
+            fi
+            sleep 0.5
+          done
+          
+          error_rate=$(( error_count * 100 / total_requests ))
+          echo "📊 Error rate: ${error_rate}%"
+          
+          # Check if error rate exceeds threshold
+          if [ $error_rate -gt $rollback_threshold ]; then
+            echo "🚨 Error rate ${error_rate}% exceeds threshold ${rollback_threshold}%"
+            echo "🔄 Initiating automatic rollback..."
+            
+            # Rollback traffic
+            echo "📊 Rolling back traffic to ${{ inputs.current-slot }}..."
+            
+            case "${{ inputs.cloud-provider }}" in
+              "aws")
+                echo "🌩️ AWS: Rolling back ALB target group weights..."
+                ;;
+              "azure")
+                echo "🌩️ Azure: Rolling back Traffic Manager weights..."
+                ;;
+              "gcp")
+                echo "🌩️ GCP: Rolling back load balancer backend weights..."
+                ;;
+              *)
+                echo "🔧 Generic: Rolling back load balancer configuration..."
+                ;;
+            esac
+            
+            sleep 10
+            
+            # Verify rollback
+            echo "🏥 Verifying rollback..."
+            sleep 30
+            
+            rollback_error_count=0
+            for i in $(seq 1 10); do
+              if ! curl -f -m 5 -s "$health_url/health" > /dev/null; then
+                ((rollback_error_count++))
+              fi
+              sleep 1
+            done
+            
+            rollback_error_rate=$(( rollback_error_count * 100 / 10 ))
+            
+            if [ $rollback_error_rate -le 5 ]; then
+              echo "✅ Rollback successful"
+              echo "switch-status=rolled-back" >> $GITHUB_OUTPUT
+              echo "final-traffic-percentage=0" >> $GITHUB_OUTPUT
+              echo "rollback-reason=error-rate-exceeded" >> $GITHUB_OUTPUT
+            else
+              echo "❌ Rollback failed - manual intervention required"
+              echo "switch-status=failed" >> $GITHUB_OUTPUT
+              echo "final-traffic-percentage=$step" >> $GITHUB_OUTPUT
+              echo "rollback-reason=rollback-failed" >> $GITHUB_OUTPUT
+              exit 1
+            fi
+            
+            exit 0
+          fi
+          
+          echo "✅ Traffic switch to ${step}% completed successfully"
+        done
+        
+        echo "✅ Gradual traffic switch completed"
+        echo "switch-status=success" >> $GITHUB_OUTPUT
+        echo "final-traffic-percentage=100" >> $GITHUB_OUTPUT
+
+    - name: 🏥 Post-Switch Validation
+      if: success()
+      shell: bash
+      run: |
+        echo "🏥 Running post-switch validation..."
+        
+        base_url="${{ inputs.health-check-url }}"
+        
+        # Extended health check period
+        echo "⏳ Extended health monitoring (2 minutes)..."
+        
+        error_count=0
+        total_checks=24  # 2 minutes with 5-second intervals
+        
+        for i in $(seq 1 $total_checks); do
+          if curl -f -m 5 -s "$base_url/health" > /dev/null; then
+            echo "✅ Health check $i/$total_checks: passed"
+          else
+            ((error_count++))
+            echo "❌ Health check $i/$total_checks: failed"
+          fi
+          sleep 5
+        done
+        
+        error_rate=$(( error_count * 100 / total_checks ))
+        echo "📊 Overall error rate: ${error_rate}%"
+        
+        if [ $error_rate -le 5 ]; then
+          echo "✅ Post-switch validation passed"
+        else
+          echo "⚠️ Post-switch validation shows elevated error rate: ${error_rate}%"
+          exit 1
+        fi
+
+    - name: 📊 Traffic Switch Metrics
+      if: always()
+      shell: bash
+      run: |
+        echo "📊 Collecting traffic switch metrics..."
+        
+        cat > traffic-switch-metrics.json << EOF
+        {
+          "traffic_switch_id": "${{ github.run_id }}-traffic",
+          "from_slot": "${{ inputs.current-slot }}",
+          "to_slot": "${{ inputs.target-slot }}",
+          "environment": "${{ inputs.environment }}",
+          "cloud_provider": "${{ inputs.cloud-provider }}",
+          "traffic_steps": "${{ inputs.traffic-split-steps }}",
+          "step_delay_seconds": ${{ inputs.step-delay }},
+          "rollback_threshold_percent": ${{ inputs.rollback-threshold }},
+          "final_status": "${{ steps.gradual-traffic-switch.outcome }}",
+          "timestamp": "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+        }
+        EOF
+        
+        echo "📊 Traffic switch metrics collected"

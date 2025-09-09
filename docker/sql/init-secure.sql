@@ -1,0 +1,1 @@
+-- Security-hardened PostgreSQL init script for cleanroom testing

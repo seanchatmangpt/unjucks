@@ -1,0 +1,1308 @@
+name: 🛡️ Comprehensive Quality Gates & QA Orchestration
+
+# Enterprise-grade quality assurance pipeline with multi-layer testing,
+# mutation testing, accessibility compliance, and cross-browser validation
+
+on:
+  push:
+    branches: [main, develop, feature/*, hotfix/*]
+  pull_request:
+    branches: [main, develop]
+  schedule:
+    - cron: '0 6 * * 1'  # Weekly comprehensive QA scan
+  workflow_dispatch:
+    inputs:
+      qa_depth:
+        description: 'QA testing depth level'
+        required: true
+        default: 'comprehensive'
+        type: choice
+        options:
+          - fast
+          - comprehensive
+          - enterprise
+          - mutation-only
+          - accessibility-only
+      coverage_threshold:
+        description: 'Minimum code coverage threshold (%)'
+        required: false
+        default: '90'
+        type: number
+      enable_mutation:
+        description: 'Enable mutation testing (expensive)'
+        required: false
+        default: true
+        type: boolean
+
+concurrency:
+  group: qa-gates-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
+env:
+  # Quality gate thresholds - Enterprise standards
+  MIN_COVERAGE: ${{ github.event.inputs.coverage_threshold || '90' }}
+  MIN_MUTATION_SCORE: 75
+  MAX_COMPLEXITY: 10
+  MAX_DUPLICATION: 3
+  MIN_MAINTAINABILITY: 'A'
+  MAX_TECHNICAL_DEBT: '1h'
+  
+  # Performance thresholds
+  MAX_BUNDLE_SIZE: '5MB'
+  MAX_BUILD_TIME: '300'  # 5 minutes
+  MIN_PERFORMANCE_SCORE: 85
+  
+  # Security thresholds
+  MAX_CRITICAL_VULNS: 0
+  MAX_HIGH_VULNS: 0
+  MAX_MEDIUM_VULNS: 5
+
+jobs:
+  # ==========================================
+  # QUALITY GATE ORCHESTRATION SETUP
+  # ==========================================
+  qa-orchestration-setup:
+    name: 🎯 QA Orchestration Setup
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    outputs:
+      test-matrix: ${{ steps.matrix.outputs.test-matrix }}
+      browser-matrix: ${{ steps.matrix.outputs.browser-matrix }}
+      coverage-threshold: ${{ steps.config.outputs.coverage-threshold }}
+      mutation-enabled: ${{ steps.config.outputs.mutation-enabled }}
+      qa-depth: ${{ steps.config.outputs.qa-depth }}
+      cache-key: ${{ steps.cache.outputs.key }}
+    steps:
+      - name: 📥 Checkout with optimized settings
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2  # For change detection
+          clean: true
+
+      - name: 🎯 Smart QA configuration
+        id: config
+        run: |
+          qa_depth="${{ github.event.inputs.qa_depth || 'comprehensive' }}"
+          coverage_threshold="${{ github.event.inputs.coverage_threshold || '90' }}"
+          mutation_enabled="${{ github.event.inputs.enable_mutation || 'true' }}"
+          
+          echo "qa-depth=$qa_depth" >> $GITHUB_OUTPUT
+          echo "coverage-threshold=$coverage_threshold" >> $GITHUB_OUTPUT
+          echo "mutation-enabled=$mutation_enabled" >> $GITHUB_OUTPUT
+          
+          echo "🎯 QA Configuration:"
+          echo "  Depth: $qa_depth"
+          echo "  Coverage Threshold: $coverage_threshold%"
+          echo "  Mutation Testing: $mutation_enabled"
+
+      - name: 📊 Dynamic test matrix generation
+        id: matrix
+        run: |
+          qa_depth="${{ steps.config.outputs.qa-depth }}"
+          
+          case $qa_depth in
+            "fast")
+              test_matrix='["unit", "integration"]'
+              browser_matrix='["chrome"]'
+              ;;
+            "comprehensive")
+              test_matrix='["unit", "integration", "e2e", "performance", "security"]'
+              browser_matrix='["chrome", "firefox", "safari", "edge"]'
+              ;;
+            "enterprise")
+              test_matrix='["unit", "integration", "e2e", "performance", "security", "accessibility", "mutation"]'
+              browser_matrix='["chrome", "firefox", "safari", "edge", "mobile"]'
+              ;;
+            "mutation-only")
+              test_matrix='["mutation"]'
+              browser_matrix='["chrome"]'
+              ;;
+            "accessibility-only")
+              test_matrix='["accessibility"]'
+              browser_matrix='["chrome", "firefox", "safari"]'
+              ;;
+          esac
+          
+          echo "test-matrix=$test_matrix" >> $GITHUB_OUTPUT
+          echo "browser-matrix=$browser_matrix" >> $GITHUB_OUTPUT
+          
+          echo "📊 Test Matrix: $test_matrix"
+          echo "🌐 Browser Matrix: $browser_matrix"
+
+      - name: 📦 Setup Node.js with caching
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: 🔧 Install QA toolchain
+        run: |
+          echo "🔧 Installing comprehensive QA toolchain..."
+          
+          # Core testing framework
+          npm install --no-save \
+            jest@29 \
+            @jest/globals@29 \
+            jest-environment-jsdom@29 \
+            @testing-library/jest-dom@6 \
+            @testing-library/react@14 \
+            @testing-library/user-event@14
+          
+          # Code coverage and quality
+          npm install --no-save \
+            c8@8 \
+            nyc@15 \
+            codecov@3
+          
+          # Mutation testing
+          if [[ "${{ steps.config.outputs.mutation-enabled }}" == "true" ]]; then
+            npm install --no-save \
+              @stryker-mutator/core@7 \
+              @stryker-mutator/jest-runner@7 \
+              @stryker-mutator/javascript-mutator@7
+          fi
+          
+          # Performance testing
+          npm install --no-save \
+            lighthouse@11 \
+            web-vitals@3 \
+            autocannon@7
+          
+          # Security scanning
+          npm install --no-save \
+            audit-ci@6 \
+            semgrep@1
+          
+          # Accessibility testing
+          npm install --no-save \
+            @axe-core/cli@4 \
+            pa11y@7 \
+            lighthouse@11
+          
+          # Code quality analysis
+          npm install --no-save \
+            sonarjs@0 \
+            jscpd@3 \
+            complexity-report@2
+          
+          echo "✅ QA toolchain installed"
+
+      - name: 🔑 Setup unified caching
+        id: cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.npm
+            node_modules
+            .cache
+            .stryker-tmp
+            .lighthouse
+            .nyc_output
+            coverage/
+            reports/
+          key: qa-v3-${{ runner.os }}-${{ hashFiles('**/package*.json') }}-${{ hashFiles('src/**/*.js', 'tests/**/*.js') }}
+          restore-keys: |
+            qa-v3-${{ runner.os }}-${{ hashFiles('**/package*.json') }}-
+            qa-v3-${{ runner.os }}-
+
+      - name: 📝 Generate QA execution plan
+        run: |
+          cat > qa-execution-plan.json << EOF
+          {
+            "execution_id": "${{ github.run_id }}",
+            "timestamp": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+            "configuration": {
+              "qa_depth": "${{ steps.config.outputs.qa-depth }}",
+              "coverage_threshold": ${{ steps.config.outputs.coverage-threshold }},
+              "mutation_enabled": ${{ steps.config.outputs.mutation-enabled }},
+              "test_types": ${{ steps.matrix.outputs.test-matrix }},
+              "browsers": ${{ steps.matrix.outputs.browser-matrix }}
+            },
+            "thresholds": {
+              "coverage": ${{ env.MIN_COVERAGE }},
+              "mutation_score": ${{ env.MIN_MUTATION_SCORE }},
+              "complexity": ${{ env.MAX_COMPLEXITY }},
+              "performance": ${{ env.MIN_PERFORMANCE_SCORE }}
+            }
+          }
+          EOF
+          
+          echo "📝 QA Execution Plan generated"
+
+      - name: 📤 Upload execution plan
+        uses: actions/upload-artifact@v4
+        with:
+          name: qa-execution-plan
+          path: qa-execution-plan.json
+          retention-days: 30
+
+  # ==========================================
+  # MULTI-LAYER TEST ORCHESTRATION
+  # ==========================================
+  test-orchestration:
+    name: "🧪 Multi-Layer Testing"
+    runs-on: ubuntu-latest
+    needs: qa-orchestration-setup
+    if: needs.qa-orchestration-setup.outputs.test-matrix != '[]'
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        test-type: ${{ fromJson(needs.qa-orchestration-setup.outputs.test-matrix) }}
+        browser: ${{ fromJson(needs.qa-orchestration-setup.outputs.browser-matrix) }}
+        exclude:
+          # Optimize matrix - some tests don't need all browsers
+          - test-type: unit
+            browser: firefox
+          - test-type: unit
+            browser: safari
+          - test-type: unit
+            browser: edge
+          - test-type: integration
+            browser: safari
+          - test-type: integration
+            browser: edge
+          - test-type: mutation
+            browser: firefox
+          - test-type: mutation
+            browser: safari
+          - test-type: mutation
+            browser: edge
+          - test-type: performance
+            browser: firefox
+          - test-type: performance
+            browser: safari
+          - test-type: security
+            browser: firefox
+          - test-type: security
+            browser: safari
+          - test-type: security
+            browser: edge
+    steps:
+      - name: 📥 Checkout
+        uses: actions/checkout@v4
+
+      - name: 📦 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: 🔄 Restore QA cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.npm
+            node_modules
+            .cache
+            .stryker-tmp
+            .lighthouse
+            .nyc_output
+            coverage/
+            reports/
+          key: ${{ needs.qa-orchestration-setup.outputs.cache-key }}
+          restore-keys: |
+            qa-v3-${{ runner.os }}-
+
+      - name: 📦 Install dependencies
+        run: npm ci --prefer-offline --no-audit
+
+      # ==========================================
+      # UNIT TESTING WITH ENHANCED COVERAGE
+      # ==========================================
+      - name: 🧪 Unit Testing with Coverage
+        if: matrix.test-type == 'unit'
+        run: |
+          echo "🧪 Running comprehensive unit tests..."
+          
+          # Create enhanced Jest config
+          cat > jest.qa.config.js << 'EOF'
+          module.exports = {
+            testEnvironment: 'node',
+            collectCoverage: true,
+            collectCoverageFrom: [
+              'src/**/*.js',
+              '!src/**/*.test.js',
+              '!src/**/*.spec.js',
+              '!src/test-utils/**',
+              '!src/mocks/**'
+            ],
+            coverageReporters: [
+              'text',
+              'html',
+              'lcov',
+              'json-summary',
+              'cobertura'
+            ],
+            coverageThreshold: {
+              global: {
+                branches: ${{ needs.qa-orchestration-setup.outputs.coverage-threshold }},
+                functions: ${{ needs.qa-orchestration-setup.outputs.coverage-threshold }},
+                lines: ${{ needs.qa-orchestration-setup.outputs.coverage-threshold }},
+                statements: ${{ needs.qa-orchestration-setup.outputs.coverage-threshold }}
+              }
+            },
+            reporters: [
+              'default',
+              ['jest-junit', { 
+                outputDirectory: './reports',
+                outputName: 'unit-test-results.xml'
+              }]
+            ],
+            testMatch: [
+              '**/__tests__/**/*.js',
+              '**/?(*.)+(spec|test).js'
+            ],
+            setupFilesAfterEnv: ['<rootDir>/src/test-utils/setup.js'],
+            verbose: true,
+            bail: false,
+            maxWorkers: '50%'
+          };
+          EOF
+          
+          # Run tests with enhanced reporting
+          npx jest --config=jest.qa.config.js \
+            --coverage \
+            --coverageDirectory=coverage/unit \
+            --outputFile=reports/unit-test-results.json \
+            --json > unit-test-output.json || test_exit_code=$?
+          
+          # Validate coverage threshold
+          coverage_pct=$(node -p "
+            const fs = require('fs');
+            const data = JSON.parse(fs.readFileSync('coverage/unit/coverage-summary.json'));
+            Math.round(data.total.lines.pct);
+          " 2>/dev/null || echo "0")
+          
+          echo "📊 Coverage: ${coverage_pct}%"
+          echo "🎯 Threshold: ${{ needs.qa-orchestration-setup.outputs.coverage-threshold }}%"
+          
+          if [ "$coverage_pct" -ge "${{ needs.qa-orchestration-setup.outputs.coverage-threshold }}" ]; then
+            echo "✅ Coverage threshold met"
+            echo "COVERAGE_STATUS=passed" >> $GITHUB_ENV
+          else
+            echo "❌ Coverage threshold not met"
+            echo "COVERAGE_STATUS=failed" >> $GITHUB_ENV
+            exit 1
+          fi
+
+      # ==========================================
+      # INTEGRATION TESTING
+      # ==========================================
+      - name: 🔗 Integration Testing
+        if: matrix.test-type == 'integration'
+        run: |
+          echo "🔗 Running integration tests..."
+          
+          # Setup test services if needed
+          npm run test:integration:setup || echo "No integration setup needed"
+          
+          # Run integration tests
+          npm run test:integration -- \
+            --coverage \
+            --coverageDirectory=coverage/integration \
+            --reporters=default \
+            --reporters=jest-junit \
+            --testNamePattern="integration|Integration" \
+            --json > integration-test-output.json
+          
+          echo "✅ Integration tests completed"
+
+      # ==========================================
+      # END-TO-END TESTING
+      # ==========================================
+      - name: 🎭 E2E Testing with Playwright
+        if: matrix.test-type == 'e2e'
+        run: |
+          echo "🎭 Running E2E tests with Playwright..."
+          
+          # Install Playwright
+          npm install --no-save @playwright/test@1.40
+          npx playwright install ${{ matrix.browser }}
+          
+          # Create Playwright config
+          cat > playwright.qa.config.js << 'EOF'
+          module.exports = {
+            testDir: './tests/e2e',
+            timeout: 30000,
+            expect: { timeout: 5000 },
+            fullyParallel: true,
+            retries: 2,
+            workers: process.env.CI ? 2 : undefined,
+            reporter: [
+              ['html'],
+              ['json', { outputFile: 'reports/e2e-results.json' }],
+              ['junit', { outputFile: 'reports/e2e-results.xml' }]
+            ],
+            use: {
+              baseURL: 'http://localhost:3000',
+              trace: 'on-first-retry',
+              screenshot: 'only-on-failure',
+              video: 'retain-on-failure'
+            },
+            projects: [
+              {
+                name: '${{ matrix.browser }}',
+                use: { 
+                  ...devices['${{ matrix.browser == 'chrome' && 'Desktop Chrome' || matrix.browser == 'firefox' && 'Desktop Firefox' || matrix.browser == 'safari' && 'Desktop Safari' || 'Desktop Edge' }}']
+                }
+              }
+            ]
+          };
+          EOF
+          
+          # Start application
+          npm run build
+          npm start &
+          SERVER_PID=$!
+          
+          # Wait for server
+          for i in {1..30}; do
+            if curl -f http://localhost:3000/health 2>/dev/null; then
+              break
+            fi
+            sleep 2
+          done
+          
+          # Run E2E tests
+          npx playwright test --config=playwright.qa.config.js
+          
+          # Cleanup
+          kill $SERVER_PID 2>/dev/null || true
+          
+          echo "✅ E2E tests completed"
+
+      # ==========================================
+      # MUTATION TESTING (ADVANCED)
+      # ==========================================
+      - name: 🧬 Mutation Testing with Stryker
+        if: matrix.test-type == 'mutation' && needs.qa-orchestration-setup.outputs.mutation-enabled == 'true'
+        timeout-minutes: 60
+        run: |
+          echo "🧬 Running mutation testing with Stryker..."
+          
+          # Create Stryker configuration
+          cat > stryker.config.mjs << 'EOF'
+          import { createRequire } from 'module';
+          const require = createRequire(import.meta.url);
+          
+          export default {
+            packageManager: 'npm',
+            testRunner: 'jest',
+            jest: {
+              projectType: 'custom',
+              config: require('./jest.qa.config.js'),
+              enableFindRelatedTests: true
+            },
+            mutate: [
+              'src/**/*.js',
+              '!src/**/*.test.js',
+              '!src/**/*.spec.js',
+              '!src/test-utils/**',
+              '!src/mocks/**'
+            ],
+            mutator: {
+              plugins: ['javascript'],
+              excludedMutations: []
+            },
+            thresholds: {
+              high: ${{ env.MIN_MUTATION_SCORE }},
+              low: 60,
+              break: 50
+            },
+            reporters: [
+              'html',
+              'clear-text',
+              'progress',
+              'json'
+            ],
+            htmlReporter: {
+              baseDir: 'reports/mutation'
+            },
+            jsonReporter: {
+              fileName: 'reports/mutation-results.json'
+            },
+            concurrency: 4,
+            timeoutMS: 60000,
+            dryRunTimeoutMS: 300000
+          };
+          EOF
+          
+          # Run mutation testing
+          npx stryker run stryker.config.mjs || mutation_exit_code=$?
+          
+          # Parse mutation score
+          mutation_score=$(node -p "
+            const fs = require('fs');
+            try {
+              const data = JSON.parse(fs.readFileSync('reports/mutation-results.json'));
+              Math.round(data.mutationScore);
+            } catch(e) { 0 }
+          ")
+          
+          echo "🧬 Mutation Score: ${mutation_score}%"
+          echo "🎯 Threshold: ${{ env.MIN_MUTATION_SCORE }}%"
+          
+          if [ "$mutation_score" -ge "${{ env.MIN_MUTATION_SCORE }}" ]; then
+            echo "✅ Mutation testing passed"
+          else
+            echo "❌ Mutation score below threshold"
+            exit 1
+          fi
+
+      # ==========================================
+      # PERFORMANCE TESTING
+      # ==========================================
+      - name: ⚡ Performance Testing
+        if: matrix.test-type == 'performance'
+        run: |
+          echo "⚡ Running performance tests..."
+          
+          # Build for performance testing
+          npm run build
+          npm start &
+          SERVER_PID=$!
+          
+          # Wait for server
+          for i in {1..30}; do
+            if curl -f http://localhost:3000 2>/dev/null; then
+              break
+            fi
+            sleep 2
+          done
+          
+          # Install performance testing tools
+          npm install --no-save lighthouse@11 autocannon@7
+          
+          # Lighthouse audit
+          npx lighthouse http://localhost:3000 \
+            --output=json \
+            --output=html \
+            --output-path=reports/lighthouse \
+            --chrome-flags="--headless --no-sandbox" \
+            --quiet
+          
+          # Load testing with autocannon
+          npx autocannon \
+            -c 100 \
+            -d 30 \
+            -p 10 \
+            --json \
+            http://localhost:3000 > reports/load-test.json
+          
+          # Parse performance metrics
+          performance_score=$(node -p "
+            const fs = require('fs');
+            const data = JSON.parse(fs.readFileSync('reports/lighthouse.report.json'));
+            Math.round(data.categories.performance.score * 100);
+          ")
+          
+          echo "⚡ Performance Score: ${performance_score}"
+          echo "🎯 Threshold: ${{ env.MIN_PERFORMANCE_SCORE }}"
+          
+          if [ "$performance_score" -ge "${{ env.MIN_PERFORMANCE_SCORE }}" ]; then
+            echo "✅ Performance threshold met"
+          else
+            echo "❌ Performance below threshold"
+            exit 1
+          fi
+          
+          # Cleanup
+          kill $SERVER_PID 2>/dev/null || true
+
+      # ==========================================
+      # ACCESSIBILITY TESTING (WCAG COMPLIANCE)
+      # ==========================================
+      - name: ♿ Accessibility Testing (WCAG 2.1 AA)
+        if: matrix.test-type == 'accessibility'
+        run: |
+          echo "♿ Running WCAG 2.1 AA accessibility tests..."
+          
+          # Build and start application
+          npm run build
+          npm start &
+          SERVER_PID=$!
+          
+          # Wait for server
+          for i in {1..30}; do
+            if curl -f http://localhost:3000 2>/dev/null; then
+              break
+            fi
+            sleep 2
+          done
+          
+          # Install accessibility testing tools
+          npm install --no-save @axe-core/cli@4 pa11y@7
+          
+          # axe-core accessibility scan
+          npx axe http://localhost:3000 \
+            --tags wcag2a,wcag2aa,wcag21aa \
+            --reporter json \
+            --output reports/axe-results.json
+          
+          # pa11y accessibility scan
+          npx pa11y http://localhost:3000 \
+            --standard WCAG2AA \
+            --reporter json \
+            --output reports/pa11y-results.json
+          
+          # Additional Lighthouse accessibility audit
+          npx lighthouse http://localhost:3000 \
+            --only-categories=accessibility \
+            --output=json \
+            --output-path=reports/lighthouse-a11y \
+            --chrome-flags="--headless --no-sandbox"
+          
+          # Check accessibility score
+          a11y_score=$(node -p "
+            const fs = require('fs');
+            const data = JSON.parse(fs.readFileSync('reports/lighthouse-a11y.report.json'));
+            Math.round(data.categories.accessibility.score * 100);
+          ")
+          
+          echo "♿ Accessibility Score: ${a11y_score}"
+          
+          if [ "$a11y_score" -ge "90" ]; then
+            echo "✅ Accessibility requirements met"
+          else
+            echo "❌ Accessibility score below 90%"
+            exit 1
+          fi
+          
+          # Check for axe violations
+          violations=$(node -p "
+            const fs = require('fs');
+            try {
+              const data = JSON.parse(fs.readFileSync('reports/axe-results.json'));
+              data.violations.length;
+            } catch(e) { 0 }
+          ")
+          
+          if [ "$violations" -eq 0 ]; then
+            echo "✅ No axe accessibility violations"
+          else
+            echo "❌ Found $violations accessibility violations"
+            exit 1
+          fi
+          
+          # Cleanup
+          kill $SERVER_PID 2>/dev/null || true
+
+      # ==========================================
+      # SECURITY TESTING
+      # ==========================================
+      - name: 🔒 Security Testing
+        if: matrix.test-type == 'security'
+        run: |
+          echo "🔒 Running comprehensive security tests..."
+          
+          # Dependency security audit
+          npm audit --audit-level=moderate --json > reports/npm-audit.json || audit_exit_code=$?
+          
+          # SAST with Semgrep
+          npm install --no-save @semgrep/semgrep@1
+          npx semgrep \
+            --config=auto \
+            --json \
+            --output=reports/semgrep-results.json \
+            src/ || semgrep_exit_code=$?
+          
+          # Check for hardcoded secrets
+          echo "🔍 Scanning for secrets..."
+          secret_patterns=(
+            "password\s*=\s*['\"][^'\"]{8,}['\"]"
+            "api_key\s*=\s*['\"][^'\"]{20,}['\"]" 
+            "secret\s*=\s*['\"][^'\"]{10,}['\"]"
+            "token\s*=\s*['\"][^'\"]{20,}['\"]"
+            "-----BEGIN"
+            "sk-[a-zA-Z0-9]{48}"
+          )
+          
+          secret_found=false
+          for pattern in "${secret_patterns[@]}"; do
+            if grep -r -E -i "$pattern" src/ tests/ --exclude-dir=node_modules 2>/dev/null; then
+              echo "❌ Potential secret found: $pattern"
+              secret_found=true
+            fi
+          done
+          
+          if [ "$secret_found" = false ]; then
+            echo "✅ No hardcoded secrets detected"
+          else
+            echo "❌ Security scan failed - secrets detected"
+            exit 1
+          fi
+          
+          # Parse vulnerability counts
+          critical_vulns=$(node -p "
+            const fs = require('fs');
+            try {
+              const data = JSON.parse(fs.readFileSync('reports/npm-audit.json'));
+              data.metadata.vulnerabilities.critical || 0;
+            } catch(e) { 0 }
+          ")
+          
+          high_vulns=$(node -p "
+            const fs = require('fs');
+            try {
+              const data = JSON.parse(fs.readFileSync('reports/npm-audit.json'));
+              data.metadata.vulnerabilities.high || 0;
+            } catch(e) { 0 }
+          ")
+          
+          echo "🔒 Security Results:"
+          echo "  Critical vulnerabilities: $critical_vulns"
+          echo "  High vulnerabilities: $high_vulns"
+          
+          if [ "$critical_vulns" -le "${{ env.MAX_CRITICAL_VULNS }}" ] && [ "$high_vulns" -le "${{ env.MAX_HIGH_VULNS }}" ]; then
+            echo "✅ Security thresholds met"
+          else
+            echo "❌ Security vulnerabilities exceed thresholds"
+            exit 1
+          fi
+
+      - name: 📤 Upload test artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-${{ matrix.test-type }}-${{ matrix.browser }}-${{ github.run_number }}
+          path: |
+            reports/
+            coverage/
+            *.json
+            *.xml
+            *.html
+          retention-days: 30
+
+  # ==========================================
+  # CODE QUALITY ANALYSIS
+  # ==========================================
+  code-quality-analysis:
+    name: 📊 Code Quality Analysis
+    runs-on: ubuntu-latest
+    needs: qa-orchestration-setup
+    timeout-minutes: 30
+    steps:
+      - name: 📥 Checkout
+        uses: actions/checkout@v4
+
+      - name: 📦 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: 🔄 Restore QA cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.npm
+            node_modules
+            .cache
+          key: ${{ needs.qa-orchestration-setup.outputs.cache-key }}
+
+      - name: 📊 ESLint with Quality Rules
+        run: |
+          echo "📊 Running ESLint with quality rules..."
+          
+          # Create enhanced ESLint config
+          cat > .eslintrc.qa.json << 'EOF'
+          {
+            "extends": [
+              "eslint:recommended",
+              "@eslint/js/recommended"
+            ],
+            "env": {
+              "node": true,
+              "es2022": true,
+              "jest": true
+            },
+            "parserOptions": {
+              "ecmaVersion": 2022,
+              "sourceType": "module"
+            },
+            "rules": {
+              "complexity": ["error", { "max": 10 }],
+              "max-depth": ["error", { "max": 4 }],
+              "max-lines": ["error", { "max": 500 }],
+              "max-lines-per-function": ["error", { "max": 50 }],
+              "max-params": ["error", { "max": 5 }],
+              "no-console": "warn",
+              "no-debugger": "error",
+              "no-unused-vars": "error",
+              "prefer-const": "error",
+              "no-var": "error"
+            }
+          }
+          EOF
+          
+          npx eslint \
+            --config .eslintrc.qa.json \
+            --format json \
+            --output-file reports/eslint-results.json \
+            src/ tests/ || eslint_exit_code=$?
+          
+          # Parse ESLint results
+          error_count=$(node -p "
+            const data = require('./reports/eslint-results.json');
+            data.reduce((sum, file) => sum + file.errorCount, 0);
+          ")
+          
+          warning_count=$(node -p "
+            const data = require('./reports/eslint-results.json');
+            data.reduce((sum, file) => sum + file.warningCount, 0);
+          ")
+          
+          echo "📊 ESLint Results:"
+          echo "  Errors: $error_count"
+          echo "  Warnings: $warning_count"
+          
+          if [ "$error_count" -eq 0 ]; then
+            echo "✅ No ESLint errors"
+          else
+            echo "❌ ESLint errors found"
+            exit 1
+          fi
+
+      - name: 🔍 Complexity Analysis
+        run: |
+          echo "🔍 Analyzing code complexity..."
+          
+          npm install --no-save complexity-report@2
+          
+          npx cr \
+            --output json \
+            --format json \
+            --filepattern "src/**/*.js" > reports/complexity-report.json
+          
+          # Parse complexity results
+          avg_complexity=$(node -p "
+            const data = require('./reports/complexity-report.json');
+            Math.round(data.reports.reduce((sum, report) => 
+              sum + report.functions.reduce((fSum, fn) => fSum + fn.complexity.cyclomatic, 0), 0
+            ) / data.reports.length);
+          " 2>/dev/null || echo "0")
+          
+          echo "🔍 Average Complexity: $avg_complexity"
+          
+          if [ "$avg_complexity" -le "${{ env.MAX_COMPLEXITY }}" ]; then
+            echo "✅ Complexity within limits"
+          else
+            echo "❌ Code complexity too high"
+            exit 1
+          fi
+
+      - name: 🔄 Duplication Detection
+        run: |
+          echo "🔄 Detecting code duplication..."
+          
+          npm install --no-save jscpd@3
+          
+          npx jscpd \
+            --format json \
+            --output reports/duplication-report.json \
+            --threshold ${{ env.MAX_DUPLICATION }} \
+            src/
+          
+          duplication_pct=$(node -p "
+            const fs = require('fs');
+            try {
+              const data = JSON.parse(fs.readFileSync('reports/duplication-report.json'));
+              data.statistics ? Math.round(data.statistics.percentage) : 0;
+            } catch(e) { 0 }
+          ")
+          
+          echo "🔄 Code Duplication: ${duplication_pct}%"
+          
+          if [ "$duplication_pct" -le "${{ env.MAX_DUPLICATION }}" ]; then
+            echo "✅ Duplication within limits"
+          else
+            echo "❌ Code duplication too high"
+            exit 1
+          fi
+
+      - name: 📤 Upload quality reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: code-quality-reports
+          path: reports/
+          retention-days: 30
+
+  # ==========================================
+  # QUALITY GATES VALIDATION & REPORTING
+  # ==========================================
+  quality-gates-validation:
+    name: 🛡️ Quality Gates Validation
+    runs-on: ubuntu-latest
+    needs: [qa-orchestration-setup, test-orchestration, code-quality-analysis]
+    if: always()
+    timeout-minutes: 15
+    steps:
+      - name: 📥 Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: "*-${{ github.run_number }}"
+          merge-multiple: true
+
+      - name: 📊 Comprehensive quality assessment
+        run: |
+          echo "📊 Performing comprehensive quality assessment..."
+          
+          # Initialize quality report
+          cat > quality-gates-report.md << 'EOF'
+          # 🛡️ Quality Gates Assessment Report
+          
+          **Execution ID**: ${{ github.run_id }}
+          **Timestamp**: $(date -u +"%Y-%m-%d %H:%M:%S UTC")
+          **Branch**: ${{ github.ref_name }}
+          **Commit**: ${{ github.sha }}
+          **QA Depth**: ${{ needs.qa-orchestration-setup.outputs.qa-depth }}
+          
+          ## 📊 Quality Metrics Summary
+          EOF
+          
+          # Aggregate test results
+          total_tests=0
+          passed_tests=0
+          failed_tests=0
+          coverage_avg=0
+          quality_score=100
+          
+          # Process coverage reports
+          if ls coverage/*/coverage-summary.json 1> /dev/null 2>&1; then
+            for coverage_file in coverage/*/coverage-summary.json; do
+              cov=$(node -p "
+                const data = JSON.parse(require('fs').readFileSync('$coverage_file'));
+                Math.round(data.total.lines.pct);
+              " 2>/dev/null || echo "0")
+              echo "📊 Coverage from $coverage_file: ${cov}%"
+              coverage_avg=$((coverage_avg + cov))
+            done
+            coverage_count=$(ls coverage/*/coverage-summary.json | wc -l)
+            coverage_avg=$((coverage_avg / coverage_count))
+          fi
+          
+          # Evaluate quality gates
+          gates_passed=0
+          gates_total=8
+          
+          echo "🔍 Evaluating Quality Gates:"
+          
+          # Gate 1: Code Coverage
+          if [ "$coverage_avg" -ge "${{ needs.qa-orchestration-setup.outputs.coverage-threshold }}" ]; then
+            echo "✅ Gate 1: Code Coverage ($coverage_avg% >= ${{ needs.qa-orchestration-setup.outputs.coverage-threshold }}%)"
+            gates_passed=$((gates_passed + 1))
+          else
+            echo "❌ Gate 1: Code Coverage ($coverage_avg% < ${{ needs.qa-orchestration-setup.outputs.coverage-threshold }}%)"
+            quality_score=$((quality_score - 15))
+          fi
+          
+          # Gate 2: ESLint Quality
+          if [ -f "reports/eslint-results.json" ]; then
+            eslint_errors=$(node -p "
+              const data = require('./reports/eslint-results.json');
+              data.reduce((sum, file) => sum + file.errorCount, 0);
+            " 2>/dev/null || echo "1")
+            
+            if [ "$eslint_errors" -eq 0 ]; then
+              echo "✅ Gate 2: Code Quality (0 ESLint errors)"
+              gates_passed=$((gates_passed + 1))
+            else
+              echo "❌ Gate 2: Code Quality ($eslint_errors ESLint errors)"
+              quality_score=$((quality_score - 10))
+            fi
+          else
+            echo "⚠️ Gate 2: Code Quality (No ESLint results found)"
+          fi
+          
+          # Gate 3: Complexity
+          if [ -f "reports/complexity-report.json" ]; then
+            avg_complexity=$(node -p "
+              const data = require('./reports/complexity-report.json');
+              Math.round(data.reports.reduce((sum, report) => 
+                sum + report.functions.reduce((fSum, fn) => fSum + fn.complexity.cyclomatic, 0), 0
+              ) / data.reports.length);
+            " 2>/dev/null || echo "11")
+            
+            if [ "$avg_complexity" -le "${{ env.MAX_COMPLEXITY }}" ]; then
+              echo "✅ Gate 3: Code Complexity ($avg_complexity <= ${{ env.MAX_COMPLEXITY }})"
+              gates_passed=$((gates_passed + 1))
+            else
+              echo "❌ Gate 3: Code Complexity ($avg_complexity > ${{ env.MAX_COMPLEXITY }})"
+              quality_score=$((quality_score - 10))
+            fi
+          else
+            echo "⚠️ Gate 3: Code Complexity (No complexity analysis found)"
+          fi
+          
+          # Gate 4: Duplication
+          if [ -f "reports/duplication-report.json" ]; then
+            duplication_pct=$(node -p "
+              const fs = require('fs');
+              try {
+                const data = JSON.parse(fs.readFileSync('reports/duplication-report.json'));
+                data.statistics ? Math.round(data.statistics.percentage) : 0;
+              } catch(e) { 0 }
+            ")
+            
+            if [ "$duplication_pct" -le "${{ env.MAX_DUPLICATION }}" ]; then
+              echo "✅ Gate 4: Code Duplication (${duplication_pct}% <= ${{ env.MAX_DUPLICATION }}%)"
+              gates_passed=$((gates_passed + 1))
+            else
+              echo "❌ Gate 4: Code Duplication (${duplication_pct}% > ${{ env.MAX_DUPLICATION }}%)"
+              quality_score=$((quality_score - 8))
+            fi
+          else
+            echo "⚠️ Gate 4: Code Duplication (No duplication analysis found)"
+          fi
+          
+          # Gate 5: Security
+          if [ -f "reports/npm-audit.json" ]; then
+            critical_vulns=$(node -p "
+              const fs = require('fs');
+              try {
+                const data = JSON.parse(fs.readFileSync('reports/npm-audit.json'));
+                data.metadata.vulnerabilities.critical || 0;
+              } catch(e) { 0 }
+            ")
+            
+            if [ "$critical_vulns" -eq 0 ]; then
+              echo "✅ Gate 5: Security (0 critical vulnerabilities)"
+              gates_passed=$((gates_passed + 1))
+            else
+              echo "❌ Gate 5: Security ($critical_vulns critical vulnerabilities)"
+              quality_score=$((quality_score - 20))
+            fi
+          else
+            echo "⚠️ Gate 5: Security (No security scan results found)"
+          fi
+          
+          # Gate 6: Performance (if available)
+          if [ -f "reports/lighthouse.report.json" ]; then
+            perf_score=$(node -p "
+              const fs = require('fs');
+              const data = JSON.parse(fs.readFileSync('reports/lighthouse.report.json'));
+              Math.round(data.categories.performance.score * 100);
+            " 2>/dev/null || echo "0")
+            
+            if [ "$perf_score" -ge "${{ env.MIN_PERFORMANCE_SCORE }}" ]; then
+              echo "✅ Gate 6: Performance (${perf_score} >= ${{ env.MIN_PERFORMANCE_SCORE }})"
+              gates_passed=$((gates_passed + 1))
+            else
+              echo "❌ Gate 6: Performance (${perf_score} < ${{ env.MIN_PERFORMANCE_SCORE }})"
+              quality_score=$((quality_score - 15))
+            fi
+          else
+            echo "⚠️ Gate 6: Performance (No performance testing done)"
+            gates_passed=$((gates_passed + 1))  # Don't penalize if not run
+          fi
+          
+          # Gate 7: Accessibility (if available)
+          if [ -f "reports/lighthouse-a11y.report.json" ]; then
+            a11y_score=$(node -p "
+              const fs = require('fs');
+              const data = JSON.parse(fs.readFileSync('reports/lighthouse-a11y.report.json'));
+              Math.round(data.categories.accessibility.score * 100);
+            " 2>/dev/null || echo "0")
+            
+            if [ "$a11y_score" -ge "90" ]; then
+              echo "✅ Gate 7: Accessibility (${a11y_score} >= 90)"
+              gates_passed=$((gates_passed + 1))
+            else
+              echo "❌ Gate 7: Accessibility (${a11y_score} < 90)"
+              quality_score=$((quality_score - 10))
+            fi
+          else
+            echo "⚠️ Gate 7: Accessibility (No accessibility testing done)"
+            gates_passed=$((gates_passed + 1))  # Don't penalize if not run
+          fi
+          
+          # Gate 8: Mutation Testing (if available)
+          if [ -f "reports/mutation-results.json" ]; then
+            mutation_score=$(node -p "
+              const fs = require('fs');
+              try {
+                const data = JSON.parse(fs.readFileSync('reports/mutation-results.json'));
+                Math.round(data.mutationScore);
+              } catch(e) { 0 }
+            " 2>/dev/null || echo "0")
+            
+            if [ "$mutation_score" -ge "${{ env.MIN_MUTATION_SCORE }}" ]; then
+              echo "✅ Gate 8: Mutation Testing (${mutation_score}% >= ${{ env.MIN_MUTATION_SCORE }}%)"
+              gates_passed=$((gates_passed + 1))
+            else
+              echo "❌ Gate 8: Mutation Testing (${mutation_score}% < ${{ env.MIN_MUTATION_SCORE }}%)"
+              quality_score=$((quality_score - 12))
+            fi
+          else
+            echo "⚠️ Gate 8: Mutation Testing (No mutation testing done)"
+            gates_passed=$((gates_passed + 1))  # Don't penalize if not enabled
+          fi
+          
+          # Calculate final score
+          gate_percentage=$((gates_passed * 100 / gates_total))
+          
+          # Generate final report
+          cat >> quality-gates-report.md << EOF
+          
+          | Metric | Value | Status |
+          |--------|-------|--------|
+          | Quality Gates Passed | $gates_passed/$gates_total ($gate_percentage%) | $( [ $gate_percentage -ge 80 ] && echo "✅" || echo "❌" ) |
+          | Code Coverage | ${coverage_avg}% | $( [ $coverage_avg -ge ${{ needs.qa-orchestration-setup.outputs.coverage-threshold }} ] && echo "✅" || echo "❌" ) |
+          | Quality Score | ${quality_score}/100 | $( [ $quality_score -ge 85 ] && echo "✅" || echo "❌" ) |
+          
+          ## 📋 Quality Gates Status
+          EOF
+          
+          # Overall status
+          if [ $gate_percentage -ge 80 ] && [ $quality_score -ge 85 ]; then
+            echo "## ✅ OVERALL STATUS: QUALITY GATES PASSED" >> quality-gates-report.md
+            echo "" >> quality-gates-report.md
+            echo "All critical quality thresholds have been met. Code is ready for deployment." >> quality-gates-report.md
+            echo "QUALITY_GATES_STATUS=passed" >> $GITHUB_ENV
+          else
+            echo "## ❌ OVERALL STATUS: QUALITY GATES FAILED" >> quality-gates-report.md
+            echo "" >> quality-gates-report.md
+            echo "Quality thresholds not met. Please address the failing quality gates before deployment." >> quality-gates-report.md
+            echo "QUALITY_GATES_STATUS=failed" >> $GITHUB_ENV
+          fi
+          
+          echo "" >> quality-gates-report.md
+          echo "---" >> quality-gates-report.md
+          echo "*Generated by Comprehensive QA Orchestration Pipeline*" >> quality-gates-report.md
+
+      - name: 📤 Upload quality gates report
+        uses: actions/upload-artifact@v4
+        with:
+          name: quality-gates-report-${{ github.run_number }}
+          path: |
+            quality-gates-report.md
+            reports/
+          retention-days: 90
+
+      - name: 💬 Comment quality gates results on PR
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            
+            try {
+              const report = fs.readFileSync('quality-gates-report.md', 'utf8');
+              
+              await github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: report
+              });
+            } catch (error) {
+              console.log('Could not post quality gates report:', error.message);
+            }
+
+      - name: 🛡️ Enforce quality gates
+        run: |
+          if [ "$QUALITY_GATES_STATUS" = "failed" ]; then
+            echo "❌ Quality gates failed - blocking merge"
+            exit 1
+          else
+            echo "✅ All quality gates passed - ready for deployment"
+          fi
+
+      # Store QA architecture in memory
+      - name: 💾 Store QA architecture in memory
+        run: |
+          mkdir -p /tmp/hive/qa
+          
+          cat > /tmp/hive/qa/quality-gates.json << EOF
+          {
+            "architecture": {
+              "name": "Comprehensive QA Orchestration",
+              "version": "1.0.0",
+              "description": "Enterprise-grade quality assurance pipeline with multi-layer testing",
+              "components": {
+                "test_orchestration": {
+                  "unit_testing": {
+                    "framework": "Jest",
+                    "coverage_threshold": "${{ needs.qa-orchestration-setup.outputs.coverage-threshold }}%",
+                    "reporters": ["lcov", "json-summary", "html"]
+                  },
+                  "integration_testing": {
+                    "framework": "Jest",
+                    "services": ["postgres", "redis"],
+                    "coverage": true
+                  },
+                  "e2e_testing": {
+                    "framework": "Playwright",
+                    "browsers": ["chrome", "firefox", "safari", "edge"],
+                    "features": ["screenshot", "video", "trace"]
+                  },
+                  "mutation_testing": {
+                    "framework": "Stryker",
+                    "threshold": "${{ env.MIN_MUTATION_SCORE }}%",
+                    "mutators": ["javascript"]
+                  },
+                  "performance_testing": {
+                    "tools": ["Lighthouse", "Autocannon"],
+                    "thresholds": {
+                      "performance_score": "${{ env.MIN_PERFORMANCE_SCORE }}",
+                      "load_testing": "100 concurrent users"
+                    }
+                  },
+                  "accessibility_testing": {
+                    "tools": ["axe-core", "pa11y", "Lighthouse"],
+                    "standards": ["WCAG 2.1 AA"],
+                    "threshold": "90%"
+                  },
+                  "security_testing": {
+                    "tools": ["npm audit", "Semgrep", "secret scanning"],
+                    "thresholds": {
+                      "critical_vulns": "${{ env.MAX_CRITICAL_VULNS }}",
+                      "high_vulns": "${{ env.MAX_HIGH_VULNS }}"
+                    }
+                  }
+                },
+                "code_quality": {
+                  "linting": {
+                    "tool": "ESLint",
+                    "rules": "enhanced quality rules",
+                    "error_tolerance": 0
+                  },
+                  "complexity": {
+                    "tool": "complexity-report",
+                    "max_complexity": "${{ env.MAX_COMPLEXITY }}"
+                  },
+                  "duplication": {
+                    "tool": "jscpd",
+                    "max_duplication": "${{ env.MAX_DUPLICATION }}%"
+                  }
+                },
+                "quality_gates": {
+                  "total_gates": 8,
+                  "passing_threshold": "80%",
+                  "quality_score_threshold": "85/100"
+                }
+              },
+              "metrics": {
+                "coverage_threshold": "${{ needs.qa-orchestration-setup.outputs.coverage-threshold }}%",
+                "mutation_score_threshold": "${{ env.MIN_MUTATION_SCORE }}%",
+                "performance_threshold": "${{ env.MIN_PERFORMANCE_SCORE }}",
+                "accessibility_threshold": "90%",
+                "security_thresholds": {
+                  "critical": "${{ env.MAX_CRITICAL_VULNS }}",
+                  "high": "${{ env.MAX_HIGH_VULNS }}"
+                }
+              }
+            },
+            "implementation_notes": {
+              "parallel_execution": "Tests run in parallel across multiple browsers and test types",
+              "caching_strategy": "Unified caching for all QA tools and dependencies",
+              "artifact_retention": "Test results retained for 30 days, quality reports for 90 days",
+              "failure_handling": "fail-fast disabled for better debugging, individual gate validation"
+            },
+            "created": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+            "execution_id": "${{ github.run_id }}"
+          }
+          EOF
+          
+          echo "💾 QA architecture documentation stored in memory"

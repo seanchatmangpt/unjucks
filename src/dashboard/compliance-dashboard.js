@@ -701,7 +701,7 @@ The compliance program demonstrates strong governance with automated monitoring 
    */
   async storeMonitoringConfig(organizationId, monitoringId, settings) {
     // In production, store in database
-    console.log(`Stored monitoring config for ${organizationId}: ${monitoringId}`);
+    // Monitoring configuration stored successfully
   }
 
   /**

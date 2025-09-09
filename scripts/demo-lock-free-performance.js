@@ -95,7 +95,9 @@ class LockFreeOperations {
       // Cleanup temp file
       try {
         await fs.unlink(tempFile);
-      } catch {}
+      } catch (cleanupError) {
+        // Ignore cleanup errors
+      }
       
       if (error.code === 'EEXIST') {
         // Retry with exponential backoff

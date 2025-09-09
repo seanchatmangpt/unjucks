@@ -1,0 +1,187 @@
+version: '3.8'
+
+services:
+  # PostgreSQL test database
+  test-postgres:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: unjucks_test
+      POSTGRES_USER: test_user
+      POSTGRES_PASSWORD: test_password
+      POSTGRES_INITDB_ARGS: "--auth-host=scram-sha-256"
+    ports:
+      - "5433:5432"
+    volumes:
+      - ./test-data/postgres-init:/docker-entrypoint-initdb.d
+      - postgres-test-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U test_user -d unjucks_test"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - test-network
+
+  # MySQL test database
+  test-mysql:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: root_password
+      MYSQL_DATABASE: unjucks_test
+      MYSQL_USER: test_user
+      MYSQL_PASSWORD: test_password
+    ports:
+      - "3307:3306"
+    volumes:
+      - ./test-data/mysql-init:/docker-entrypoint-initdb.d
+      - mysql-test-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "test_user", "-ptest_password"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - test-network
+
+  # MongoDB test database
+  test-mongodb:
+    image: mongo:7.0
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: admin_password
+      MONGO_INITDB_DATABASE: unjucks_test
+    ports:
+      - "27018:27017"
+    volumes:
+      - ./test-data/mongo-init:/docker-entrypoint-initdb.d
+      - mongodb-test-data:/data/db
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - test-network
+
+  # Redis test cache
+  test-redis:
+    image: redis:7-alpine
+    ports:
+      - "6380:6379"
+    command: redis-server --requirepass test_password
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - test-network
+
+  # MinIO test S3 storage
+  test-minio:
+    image: minio/minio:latest
+    environment:
+      MINIO_ROOT_USER: test_access_key
+      MINIO_ROOT_PASSWORD: test_secret_key
+    ports:
+      - "9001:9000"
+      - "9002:9001"
+    command: server /data --console-address ":9001"
+    volumes:
+      - minio-test-data:/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - test-network
+
+  # Elasticsearch test search engine
+  test-elasticsearch:
+    image: elasticsearch:8.11.0
+    environment:
+      - discovery.type=single-node
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      - xpack.security.enabled=false
+    ports:
+      - "9201:9200"
+    volumes:
+      - elasticsearch-test-data:/usr/share/elasticsearch/data
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:9200/_cluster/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks:
+      - test-network
+
+  # RabbitMQ test message queue
+  test-rabbitmq:
+    image: rabbitmq:3.12-management-alpine
+    environment:
+      RABBITMQ_DEFAULT_USER: test_user
+      RABBITMQ_DEFAULT_PASS: test_password
+    ports:
+      - "5673:5672"
+      - "15673:15672"
+    volumes:
+      - rabbitmq-test-data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - test-network
+
+  # Test application container
+  unjucks-test-app:
+    build:
+      context: ../..
+      dockerfile: tests/integration/Dockerfile.test
+    environment:
+      NODE_ENV: test
+      DATABASE_URL: postgresql://test_user:test_password@test-postgres:5432/unjucks_test
+      MYSQL_URL: mysql://test_user:test_password@test-mysql:3306/unjucks_test
+      MONGODB_URL: mongodb://admin:admin_password@test-mongodb:27017/unjucks_test?authSource=admin
+      REDIS_URL: redis://:test_password@test-redis:6379
+      S3_ENDPOINT: http://test-minio:9000
+      S3_ACCESS_KEY: test_access_key
+      S3_SECRET_KEY: test_secret_key
+      ELASTICSEARCH_URL: http://test-elasticsearch:9200
+      RABBITMQ_URL: amqp://test_user:test_password@test-rabbitmq:5672
+    depends_on:
+      test-postgres:
+        condition: service_healthy
+      test-mysql:
+        condition: service_healthy
+      test-mongodb:
+        condition: service_healthy
+      test-redis:
+        condition: service_healthy
+      test-minio:
+        condition: service_healthy
+      test-elasticsearch:
+        condition: service_healthy
+      test-rabbitmq:
+        condition: service_healthy
+    volumes:
+      - ../..:/app
+      - /app/node_modules
+    working_dir: /app
+    command: npm run test:integration
+    networks:
+      - test-network
+
+volumes:
+  postgres-test-data:
+  mysql-test-data:
+  mongodb-test-data:
+  minio-test-data:
+  elasticsearch-test-data:
+  rabbitmq-test-data:
+
+networks:
+  test-network:
+    driver: bridge

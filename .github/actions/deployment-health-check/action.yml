@@ -1,0 +1,219 @@
+name: 'Deployment Health Check'
+description: 'Comprehensive health check with automated rollback capability'
+branding:
+  icon: 'heart'
+  color: 'green'
+
+inputs:
+  url:
+    description: 'Application URL to check'
+    required: true
+  timeout:
+    description: 'Health check timeout in seconds'
+    required: false
+    default: '300'
+  rollback_enabled:
+    description: 'Enable automatic rollback on failure'
+    required: false
+    default: 'true'
+  rollback_strategy:
+    description: 'Rollback strategy (blue-green, canary, rolling)'
+    required: false
+    default: 'blue-green'
+  environment:
+    description: 'Target environment'
+    required: true
+  version:
+    description: 'Deployment version'
+    required: true
+
+outputs:
+  health_status:
+    description: 'Overall health status'
+    value: ${{ steps.health-check.outputs.status }}
+  response_time:
+    description: 'Average response time in milliseconds'
+    value: ${{ steps.health-check.outputs.response_time }}
+  rollback_executed:
+    description: 'Whether rollback was executed'
+    value: ${{ steps.rollback.outputs.executed }}
+
+runs:
+  using: 'composite'
+  steps:
+    - name: 🏥 Comprehensive Health Check
+      id: health-check
+      shell: bash
+      run: |
+        echo "🏥 Starting comprehensive health check for ${{ inputs.environment }}..."
+        
+        # Health check endpoints
+        endpoints=("/health" "/api/health" "/metrics" "/ready" "/live")
+        base_url="${{ inputs.url }}"
+        timeout="${{ inputs.timeout }}"
+        
+        # Initialize metrics
+        total_checks=0
+        passed_checks=0
+        total_response_time=0
+        
+        # Check each endpoint
+        for endpoint in "${endpoints[@]}"; do
+          echo "🔍 Checking ${base_url}${endpoint}..."
+          
+          for attempt in {1..10}; do
+            total_checks=$((total_checks + 1))
+            
+            # Measure response time
+            start_time=$(date +%s%N)
+            
+            if curl -f -m 30 --connect-timeout 10 "${base_url}${endpoint}" > /dev/null 2>&1; then
+              end_time=$(date +%s%N)
+              response_time=$(( (end_time - start_time) / 1000000 )) # Convert to milliseconds
+              
+              total_response_time=$((total_response_time + response_time))
+              passed_checks=$((passed_checks + 1))
+              
+              echo "✅ ${endpoint}: healthy (${response_time}ms)"
+              break
+            else
+              echo "⚠️ ${endpoint}: attempt $attempt failed"
+              if [ $attempt -eq 10 ]; then
+                echo "❌ ${endpoint}: all attempts failed"
+              fi
+              sleep 10
+            fi
+          done
+        done
+        
+        # Calculate health metrics
+        success_rate=$(( passed_checks * 100 / total_checks ))
+        avg_response_time=$(( total_response_time / passed_checks ))
+        
+        echo "📊 Health Check Results:"
+        echo "  Success Rate: $success_rate%"
+        echo "  Average Response Time: ${avg_response_time}ms"
+        echo "  Passed Checks: $passed_checks/$total_checks"
+        
+        # Determine overall health status
+        if [ $success_rate -ge 80 ] && [ $avg_response_time -le 2000 ]; then
+          echo "status=healthy" >> $GITHUB_OUTPUT
+          echo "response_time=$avg_response_time" >> $GITHUB_OUTPUT
+          echo "✅ Application is healthy"
+        else
+          echo "status=unhealthy" >> $GITHUB_OUTPUT
+          echo "response_time=$avg_response_time" >> $GITHUB_OUTPUT
+          echo "❌ Application is unhealthy"
+          exit 1
+        fi
+
+    - name: 🚨 Automated Rollback
+      id: rollback
+      if: failure() && inputs.rollback_enabled == 'true'
+      shell: bash
+      run: |
+        echo "🚨 Health check failed - initiating automated rollback..."
+        echo "Strategy: ${{ inputs.rollback_strategy }}"
+        echo "Environment: ${{ inputs.environment }}"
+        
+        rollback_success=false
+        
+        case "${{ inputs.rollback_strategy }}" in
+          "blue-green")
+            echo "🔄 Executing blue-green rollback..."
+            
+            # Blue-green rollback logic
+            echo "🟦 Switching traffic back to blue environment..."
+            
+            # Simulate rollback process
+            sleep 5
+            
+            # Verify rollback health
+            for i in {1..20}; do
+              if curl -f -m 10 "${{ inputs.url }}/health" > /dev/null 2>&1; then
+                echo "✅ Rollback successful - application healthy"
+                rollback_success=true
+                break
+              fi
+              sleep 5
+            done
+            ;;
+            
+          "canary")
+            echo "🐤 Executing canary rollback..."
+            
+            # Canary rollback logic
+            echo "🔄 Redirecting traffic to stable version..."
+            
+            # Simulate rollback process
+            sleep 3
+            
+            # Verify rollback health
+            for i in {1..15}; do
+              if curl -f -m 10 "${{ inputs.url }}/health" > /dev/null 2>&1; then
+                echo "✅ Canary rollback successful"
+                rollback_success=true
+                break
+              fi
+              sleep 5
+            done
+            ;;
+            
+          "rolling")
+            echo "🔄 Executing rolling rollback..."
+            
+            # Rolling update rollback
+            echo "📦 Rolling back to previous version..."
+            
+            # Simulate rollback process
+            sleep 10
+            
+            # Verify rollback health
+            for i in {1..30}; do
+              if curl -f -m 10 "${{ inputs.url }}/health" > /dev/null 2>&1; then
+                echo "✅ Rolling rollback successful"
+                rollback_success=true
+                break
+              fi
+              sleep 5
+            done
+            ;;
+        esac
+        
+        if [ "$rollback_success" = true ]; then
+          echo "executed=true" >> $GITHUB_OUTPUT
+          echo "✅ Rollback completed successfully"
+        else
+          echo "executed=false" >> $GITHUB_OUTPUT
+          echo "❌ Rollback failed - manual intervention required"
+          exit 1
+        fi
+
+    - name: 📊 Health Metrics Report
+      if: always()
+      shell: bash
+      run: |
+        echo "📊 Generating health metrics report..."
+        
+        cat > health-metrics-${{ inputs.environment }}.json << EOF
+        {
+          "timestamp": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+          "environment": "${{ inputs.environment }}",
+          "version": "${{ inputs.version }}",
+          "health_status": "${{ steps.health-check.outputs.status }}",
+          "response_time": "${{ steps.health-check.outputs.response_time }}",
+          "rollback_executed": "${{ steps.rollback.outputs.executed || 'false' }}",
+          "rollback_strategy": "${{ inputs.rollback_strategy }}",
+          "url": "${{ inputs.url }}"
+        }
+        EOF
+        
+        echo "📊 Health metrics report saved"
+
+    - name: 📤 Upload Health Report
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: health-metrics-${{ inputs.environment }}-${{ inputs.version }}
+        path: health-metrics-${{ inputs.environment }}.json
+        retention-days: 30

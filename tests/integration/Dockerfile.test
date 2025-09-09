@@ -1,0 +1,37 @@
+FROM node:18-alpine
+
+# Install system dependencies
+RUN apk add --no-cache \
+    git \
+    curl \
+    bash \
+    postgresql-client \
+    mysql-client \
+    mongodb-tools
+
+# Create app directory
+WORKDIR /app
+
+# Copy package files
+COPY package*.json ./
+
+# Install dependencies
+RUN npm ci --only=production && npm cache clean --force
+
+# Copy application code
+COPY . .
+
+# Create test user
+RUN addgroup -g 1001 -S testuser && \
+    adduser -S testuser -u 1001 && \
+    chown -R testuser:testuser /app
+
+# Switch to test user
+USER testuser
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+    CMD node --version || exit 1
+
+# Default command
+CMD ["npm", "run", "test:integration"]

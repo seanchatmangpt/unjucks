@@ -1,0 +1,43 @@
+# Simple, working Dockerfile for Unjucks development
+FROM node:18-alpine
+
+# Install minimal dependencies
+RUN apk add --no-cache dumb-init
+
+# Create non-root user
+RUN addgroup -g 1001 -S nodejs && \
+    adduser -S nodejs -u 1001 -G nodejs
+
+# Set working directory
+WORKDIR /app
+
+# Copy package files
+COPY package*.json ./
+COPY bin/ ./bin/
+
+# Make binary executable
+RUN chmod +x bin/unjucks.cjs
+
+# Install dependencies
+RUN npm install --only=production && npm cache clean --force
+
+# Copy application code
+COPY src/ ./src/
+COPY _templates/ ./_templates/
+COPY types/ ./types/
+
+# Set ownership
+RUN chown -R nodejs:nodejs /app
+
+# Switch to non-root user
+USER nodejs
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+  CMD node bin/unjucks.cjs --version || exit 1
+
+# Use dumb-init as PID 1
+ENTRYPOINT ["dumb-init", "--"]
+
+# Default command
+CMD ["node", "bin/unjucks.cjs", "--help"]

@@ -240,7 +240,7 @@ jobs:
     - name: Store performance baseline
       run: |
         mkdir -p .ci/baselines
-        cp reports/performance-results.json .ci/baselines/performance-baseline-\$(date +%Y%m%d).json
+        cp reports/performance-results.json .ci/baselines/performance-baseline-$(date +%Y%m%d).json
         
     - name: Commit baseline if changed
       run: |
@@ -587,8 +587,8 @@ workflows:
               only:
                 - main
                 - develop
-                - /feature\/.*/
-                - /hotfix\/.*/
+                - /feature/.*/
+                - /hotfix/.*/
   
   nightly-tests:
     triggers:

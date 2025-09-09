@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 // Quick test to see if our fix worked
-import { Generator } from './src/lib/generator.js';
+const { Generator } = require('./src/lib/generator.js');
 
 async function testList() {
   try {

@@ -285,7 +285,7 @@ export class LaTeXExporter {
     // Convert inline math $...$ to LaTeX
     content = content.replace(/\$([^$]+)\$/g, (match, math) => {
       try {
-        return \`\\\\\( \${math} \\\\\)\`;
+        return '\\( ' + math + ' \\)';
       } catch (error) {
         console.warn('Math expression failed:', math);
         return match;
@@ -295,7 +295,7 @@ export class LaTeXExporter {
     // Convert display math $$...$$ to LaTeX
     content = content.replace(/\$\$([^$]+)\$\$/g, (match, math) => {
       try {
-        return \`\\\\\[ \${math} \\\\\]\`;
+        return '\\[ ' + math + ' \\]';
       } catch (error) {
         console.warn('Display math failed:', math);
         return match;

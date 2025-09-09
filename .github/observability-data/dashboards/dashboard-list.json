@@ -1,0 +1,18 @@
+{
+  "dashboards": [
+    {
+      "title": "CI/CD Pipeline Observability",
+      "uid": "cicd-observability",
+      "url": "/d/cicd-observability/ci-cd-pipeline-observability",
+      "description": "Comprehensive observability for CI/CD pipeline health and performance"
+    },
+    {
+      "title": "SLO Dashboard",
+      "uid": "slo-dashboard",
+      "url": "/d/slo-dashboard/slo-dashboard",
+      "description": "Service Level Objectives tracking and error budget monitoring"
+    }
+  ],
+  "generatedAt": "2025-09-09T20:09:28.523Z",
+  "version": "1.0.0"
+}

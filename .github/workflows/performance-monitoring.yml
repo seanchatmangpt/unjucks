@@ -1,0 +1,615 @@
+name: 📊 Performance Monitoring & Regression Detection
+
+# Continuous performance monitoring with automated regression detection
+# and performance benchmarking for enterprise applications
+
+on:
+  schedule:
+    # Run performance monitoring every hour
+    - cron: '0 * * * *'
+    # Run comprehensive benchmarks daily at 2 AM UTC
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+    inputs:
+      test_type:
+        description: 'Type of performance test to run'
+        required: true
+        default: 'comprehensive'
+        type: choice
+        options:
+          - comprehensive
+          - load
+          - stress
+          - spike
+          - endurance
+          - baseline
+      duration:
+        description: 'Test duration in minutes'
+        required: false
+        default: '10'
+        type: number
+      target_environment:
+        description: 'Target environment for testing'
+        required: true
+        default: 'staging'
+        type: choice
+        options:
+          - staging
+          - production
+          - canary
+
+env:
+  # Performance thresholds - Fortune 500 standards
+  MAX_RESPONSE_TIME: '200'    # milliseconds
+  MIN_THROUGHPUT: '1000'      # requests per second
+  MAX_ERROR_RATE: '0.1'       # percentage
+  MAX_CPU_USAGE: '70'         # percentage
+  MAX_MEMORY_USAGE: '80'      # percentage
+  MIN_AVAILABILITY: '99.9'    # percentage
+
+jobs:
+  # ==========================================
+  # BASELINE PERFORMANCE MEASUREMENT
+  # ==========================================
+  performance-baseline:
+    name: 📊 Performance Baseline Measurement
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    outputs:
+      baseline-response-time: ${{ steps.baseline.outputs.response-time }}
+      baseline-throughput: ${{ steps.baseline.outputs.throughput }}
+      baseline-error-rate: ${{ steps.baseline.outputs.error-rate }}
+    steps:
+      - name: 📥 Checkout
+        uses: actions/checkout@v4
+
+      - name: 📦 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: 🔧 Install Performance Testing Tools
+        run: |
+          echo "🔧 Installing performance testing tools..."
+          
+          # Install k6 for load testing
+          sudo gpg -k
+          sudo gpg --no-default-keyring --keyring /usr/share/keyrings/k6-archive-keyring.gpg --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys C5AD17C747E3415A3642D57D77C6C491D6AC1D69
+          echo "deb [signed-by=/usr/share/keyrings/k6-archive-keyring.gpg] https://dl.k6.io/deb stable main" | sudo tee /etc/apt/sources.list.d/k6.list
+          sudo apt-get update
+          sudo apt-get install k6
+          
+          # Install additional tools
+          npm install -g autocannon clinic
+          
+          echo "✅ Performance tools installed"
+
+      - name: 📊 Baseline Performance Test
+        id: baseline
+        run: |
+          echo "📊 Running baseline performance test..."
+          
+          target_url="https://${{ github.event.inputs.target_environment || 'staging' }}.unjucks.app"
+          echo "🎯 Target: $target_url"
+          
+          # Create k6 test script
+          cat > baseline-test.js << 'EOF'
+          import http from 'k6/http';
+          import { check, sleep } from 'k6';
+          import { Rate, Trend } from 'k6/metrics';
+          
+          export let errorRate = new Rate('errors');
+          export let responseTime = new Trend('response_time');
+          
+          export let options = {
+            stages: [
+              { duration: '2m', target: 10 },   // Ramp up
+              { duration: '5m', target: 50 },   // Stay at 50 users
+              { duration: '2m', target: 0 },    // Ramp down
+            ],
+            thresholds: {
+              'http_req_duration': ['p(95)<500'], // 95% of requests must be below 500ms
+              'errors': ['rate<0.01'],            // Error rate must be below 1%
+            },
+          };
+          
+          export default function() {
+            let response = http.get('__TARGET_URL__');
+            
+            check(response, {
+              'status is 200': (r) => r.status === 200,
+              'response time < 500ms': (r) => r.timings.duration < 500,
+            });
+            
+            errorRate.add(response.status !== 200);
+            responseTime.add(response.timings.duration);
+            
+            sleep(1);
+          }
+          EOF
+          
+          # Replace target URL
+          sed -i "s|__TARGET_URL__|$target_url|g" baseline-test.js
+          
+          # Run k6 test
+          k6 run --out json=baseline-results.json baseline-test.js
+          
+          # Extract metrics
+          response_time=$(jq -r '.metrics.http_req_duration.avg' baseline-results.json)
+          throughput=$(jq -r '.metrics.http_reqs.rate' baseline-results.json)
+          error_rate=$(jq -r '.metrics.errors.rate * 100' baseline-results.json)
+          
+          echo "📊 Baseline Results:"
+          echo "  Response Time: ${response_time}ms"
+          echo "  Throughput: ${throughput} RPS"
+          echo "  Error Rate: ${error_rate}%"
+          
+          echo "response-time=$response_time" >> $GITHUB_OUTPUT
+          echo "throughput=$throughput" >> $GITHUB_OUTPUT
+          echo "error-rate=$error_rate" >> $GITHUB_OUTPUT
+
+      - name: 📤 Upload Baseline Results
+        uses: actions/upload-artifact@v4
+        with:
+          name: performance-baseline-${{ github.run_number }}
+          path: |
+            baseline-results.json
+            baseline-test.js
+          retention-days: 90
+
+  # ==========================================
+  # COMPREHENSIVE PERFORMANCE TESTING
+  # ==========================================
+  performance-testing:
+    name: ⚡ Comprehensive Performance Testing
+    runs-on: ubuntu-latest
+    needs: performance-baseline
+    timeout-minutes: 45
+    strategy:
+      matrix:
+        test_type: [load, stress, spike, endurance]
+    steps:
+      - name: 📥 Checkout
+        uses: actions/checkout@v4
+
+      - name: 📦 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: 🔧 Install Performance Testing Tools
+        run: |
+          echo "🔧 Installing performance testing tools..."
+          
+          # Install k6 for load testing
+          sudo gpg -k
+          sudo gpg --no-default-keyring --keyring /usr/share/keyrings/k6-archive-keyring.gpg --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys C5AD17C747E3415A3642D57D77C6C491D6AC1D69
+          echo "deb [signed-by=/usr/share/keyrings/k6-archive-keyring.gpg] https://dl.k6.io/deb stable main" | sudo tee /etc/apt/sources.list.d/k6.list
+          sudo apt-get update
+          sudo apt-get install k6
+          
+          # Install additional tools
+          npm install -g autocannon clinic
+          
+          echo "✅ Performance tools installed"
+
+      - name: ⚡ ${{ matrix.test_type }} Performance Test
+        run: |
+          echo "⚡ Running ${{ matrix.test_type }} performance test..."
+          
+          target_url="https://${{ github.event.inputs.target_environment || 'staging' }}.unjucks.app"
+          duration="${{ github.event.inputs.duration || '10' }}"
+          
+          case "${{ matrix.test_type }}" in
+            "load")
+              echo "📈 Load Testing - Gradual increase"
+              cat > ${{ matrix.test_type }}-test.js << 'EOF'
+              import http from 'k6/http';
+              import { check, sleep } from 'k6';
+              
+              export let options = {
+                stages: [
+                  { duration: '5m', target: 100 },
+                  { duration: '10m', target: 200 },
+                  { duration: '5m', target: 0 },
+                ],
+                thresholds: {
+                  'http_req_duration': ['p(95)<500'],
+                  'http_req_failed': ['rate<0.01'],
+                },
+              };
+              EOF
+              ;;
+              
+            "stress")
+              echo "💪 Stress Testing - Find breaking point"
+              cat > ${{ matrix.test_type }}-test.js << 'EOF'
+              import http from 'k6/http';
+              import { check, sleep } from 'k6';
+              
+              export let options = {
+                stages: [
+                  { duration: '2m', target: 100 },
+                  { duration: '5m', target: 400 },
+                  { duration: '10m', target: 800 },
+                  { duration: '5m', target: 0 },
+                ],
+                thresholds: {
+                  'http_req_duration': ['p(95)<1000'],
+                  'http_req_failed': ['rate<0.05'],
+                },
+              };
+              EOF
+              ;;
+              
+            "spike")
+              echo "⚡ Spike Testing - Sudden traffic spike"
+              cat > ${{ matrix.test_type }}-test.js << 'EOF'
+              import http from 'k6/http';
+              import { check, sleep } from 'k6';
+              
+              export let options = {
+                stages: [
+                  { duration: '1m', target: 50 },
+                  { duration: '30s', target: 500 },
+                  { duration: '5m', target: 500 },
+                  { duration: '30s', target: 50 },
+                  { duration: '1m', target: 0 },
+                ],
+                thresholds: {
+                  'http_req_duration': ['p(95)<2000'],
+                  'http_req_failed': ['rate<0.1'],
+                },
+              };
+              EOF
+              ;;
+              
+            "endurance")
+              echo "🏃 Endurance Testing - Long duration"
+              cat > ${{ matrix.test_type }}-test.js << 'EOF'
+              import http from 'k6/http';
+              import { check, sleep } from 'k6';
+              
+              export let options = {
+                stages: [
+                  { duration: '2m', target: 100 },
+                  { duration: '30m', target: 100 },
+                  { duration: '2m', target: 0 },
+                ],
+                thresholds: {
+                  'http_req_duration': ['p(95)<500'],
+                  'http_req_failed': ['rate<0.01'],
+                },
+              };
+              EOF
+              ;;
+          esac
+          
+          # Add common test logic
+          cat >> ${{ matrix.test_type }}-test.js << 'EOF'
+          
+          export default function() {
+            let response = http.get('__TARGET_URL__');
+            
+            check(response, {
+              'status is 200': (r) => r.status === 200,
+              'response time OK': (r) => r.timings.duration < 2000,
+            });
+            
+            sleep(Math.random() * 2 + 1);
+          }
+          EOF
+          
+          # Replace target URL
+          sed -i "s|__TARGET_URL__|$target_url|g" ${{ matrix.test_type }}-test.js
+          
+          # Run test
+          k6 run --out json=${{ matrix.test_type }}-results.json ${{ matrix.test_type }}-test.js
+
+      - name: 📊 Analyze ${{ matrix.test_type }} Results
+        run: |
+          echo "📊 Analyzing ${{ matrix.test_type }} test results..."
+          
+          # Extract key metrics
+          avg_response_time=$(jq -r '.metrics.http_req_duration.avg' ${{ matrix.test_type }}-results.json)
+          p95_response_time=$(jq -r '.metrics.http_req_duration."p(95)"' ${{ matrix.test_type }}-results.json)
+          throughput=$(jq -r '.metrics.http_reqs.rate' ${{ matrix.test_type }}-results.json)
+          error_rate=$(jq -r '.metrics.http_req_failed.rate * 100' ${{ matrix.test_type }}-results.json)
+          
+          echo "📊 ${{ matrix.test_type }} Test Results:"
+          echo "  Average Response Time: ${avg_response_time}ms"
+          echo "  95th Percentile Response Time: ${p95_response_time}ms"
+          echo "  Throughput: ${throughput} RPS"
+          echo "  Error Rate: ${error_rate}%"
+          
+          # Performance regression detection
+          baseline_response_time=${{ needs.performance-baseline.outputs.baseline-response-time }}
+          baseline_throughput=${{ needs.performance-baseline.outputs.baseline-throughput }}
+          
+          # Check for regression (>20% degradation)
+          regression_threshold=1.2
+          
+          if (( $(echo "$avg_response_time > $baseline_response_time * $regression_threshold" | bc -l) )); then
+            echo "🚨 PERFORMANCE REGRESSION DETECTED!"
+            echo "  Response time increased by >20%"
+            echo "  Baseline: ${baseline_response_time}ms"
+            echo "  Current: ${avg_response_time}ms"
+            echo "regression=true" >> performance-status.txt
+          elif (( $(echo "$throughput < $baseline_throughput * 0.8" | bc -l) )); then
+            echo "🚨 PERFORMANCE REGRESSION DETECTED!"
+            echo "  Throughput decreased by >20%"
+            echo "  Baseline: ${baseline_throughput} RPS"
+            echo "  Current: ${throughput} RPS"
+            echo "regression=true" >> performance-status.txt
+          else
+            echo "✅ Performance within acceptable range"
+            echo "regression=false" >> performance-status.txt
+          fi
+
+      - name: 📤 Upload ${{ matrix.test_type }} Results
+        uses: actions/upload-artifact@v4
+        with:
+          name: performance-${{ matrix.test_type }}-${{ github.run_number }}
+          path: |
+            ${{ matrix.test_type }}-results.json
+            ${{ matrix.test_type }}-test.js
+            performance-status.txt
+          retention-days: 30
+
+  # ==========================================
+  # PERFORMANCE REGRESSION ANALYSIS
+  # ==========================================
+  regression-analysis:
+    name: 📈 Performance Regression Analysis
+    runs-on: ubuntu-latest
+    needs: [performance-baseline, performance-testing]
+    if: always()
+    timeout-minutes: 15
+    steps:
+      - name: 📥 Download Performance Results
+        uses: actions/download-artifact@v4
+        with:
+          pattern: performance-*-${{ github.run_number }}
+          merge-multiple: true
+
+      - name: 📈 Comprehensive Regression Analysis
+        run: |
+          echo "📈 Running comprehensive regression analysis..."
+          
+          # Initialize regression report
+          cat > regression-report.md << 'EOF'
+          # 📊 Performance Regression Analysis Report
+          
+          **Test Date**: $(date -u)
+          **Environment**: ${{ github.event.inputs.target_environment || 'staging' }}
+          **Baseline Response Time**: ${{ needs.performance-baseline.outputs.baseline-response-time }}ms
+          **Baseline Throughput**: ${{ needs.performance-baseline.outputs.baseline-throughput }} RPS
+          **Baseline Error Rate**: ${{ needs.performance-baseline.outputs.baseline-error-rate }}%
+          
+          ## Test Results Summary
+          EOF
+          
+          # Analyze each test type
+          regression_detected=false
+          
+          for test_type in load stress spike endurance; do
+            if [ -f "${test_type}-results.json" ]; then
+              echo "📊 Analyzing $test_type results..."
+              
+              avg_response_time=$(jq -r '.metrics.http_req_duration.avg' ${test_type}-results.json)
+              throughput=$(jq -r '.metrics.http_reqs.rate' ${test_type}-results.json)
+              error_rate=$(jq -r '.metrics.http_req_failed.rate * 100' ${test_type}-results.json)
+              
+              # Add to report
+              cat >> regression-report.md << EOF
+          
+          ### $test_type Test
+          - **Average Response Time**: ${avg_response_time}ms
+          - **Throughput**: ${throughput} RPS
+          - **Error Rate**: ${error_rate}%
+          EOF
+              
+              # Check for regression
+              if [ -f "performance-status.txt" ] && grep -q "regression=true" performance-status.txt; then
+                regression_detected=true
+                echo "🚨 Regression detected in $test_type test"
+                
+                cat >> regression-report.md << EOF
+          - **Status**: 🚨 REGRESSION DETECTED
+          EOF
+              else
+                cat >> regression-report.md << EOF
+          - **Status**: ✅ Performance OK
+          EOF
+              fi
+            fi
+          done
+          
+          # Overall status
+          if [ "$regression_detected" = true ]; then
+            cat >> regression-report.md << 'EOF'
+          
+          ## 🚨 OVERALL STATUS: PERFORMANCE REGRESSION DETECTED
+          
+          **Action Required**: Investigation needed to identify performance degradation
+          
+          ### Recommendations:
+          1. Review recent code changes
+          2. Check infrastructure metrics
+          3. Analyze database performance
+          4. Review third-party service dependencies
+          EOF
+            
+            echo "regression_status=detected" >> $GITHUB_OUTPUT
+          else
+            cat >> regression-report.md << 'EOF'
+          
+          ## ✅ OVERALL STATUS: PERFORMANCE OK
+          
+          All performance tests are within acceptable thresholds.
+          EOF
+            
+            echo "regression_status=ok" >> $GITHUB_OUTPUT
+          fi
+
+      - name: 🚨 Send Regression Alert
+        if: contains(steps.regression-analysis.outputs.regression_status, 'detected')
+        run: |
+          echo "🚨 Sending performance regression alert..."
+          
+          # Send Slack notification if configured
+          if [ -n "${{ secrets.SLACK_WEBHOOK_URL }}" ]; then
+            curl -X POST -H 'Content-type: application/json' \
+              --data "{\"text\":\"🚨 Performance Regression Detected!\\n📊 Environment: ${{ github.event.inputs.target_environment || 'staging' }}\\n📈 Review required: Performance metrics have degraded beyond acceptable thresholds\\n🔗 Details: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}\"}" \
+              "${{ secrets.SLACK_WEBHOOK_URL }}"
+          fi
+          
+          # Create GitHub issue for regression
+          if [ "${{ github.event_name }}" = "schedule" ]; then
+            echo "📝 Creating GitHub issue for performance regression..."
+            # Issue creation logic would go here
+          fi
+
+      - name: 📤 Upload Regression Analysis
+        uses: actions/upload-artifact@v4
+        with:
+          name: regression-analysis-${{ github.run_number }}
+          path: regression-report.md
+          retention-days: 90
+
+  # ==========================================
+  # PERFORMANCE MONITORING DASHBOARD
+  # ==========================================
+  monitoring-dashboard:
+    name: 📊 Update Performance Monitoring Dashboard
+    runs-on: ubuntu-latest
+    needs: [performance-baseline, performance-testing, regression-analysis]
+    if: always()
+    steps:
+      - name: 📥 Checkout
+        uses: actions/checkout@v4
+
+      - name: 📥 Download All Performance Results
+        uses: actions/download-artifact@v4
+        with:
+          pattern: "*-${{ github.run_number }}"
+          merge-multiple: true
+
+      - name: 📊 Generate Performance Dashboard
+        run: |
+          echo "📊 Generating performance dashboard..."
+          
+          # Create dashboard directory
+          mkdir -p performance-dashboard
+          
+          # Generate HTML dashboard
+          cat > performance-dashboard/index.html << 'EOF'
+          <!DOCTYPE html>
+          <html lang="en">
+          <head>
+              <meta charset="UTF-8">
+              <meta name="viewport" content="width=device-width, initial-scale=1.0">
+              <title>Unjucks Performance Dashboard</title>
+              <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+              <style>
+                  body { font-family: Arial, sans-serif; margin: 40px; background: #f5f5f5; }
+                  .dashboard { display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 20px; }
+                  .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+                  .metric { font-size: 2em; font-weight: bold; color: #2196F3; }
+                  .status-ok { color: #4CAF50; }
+                  .status-warning { color: #FF9800; }
+                  .status-error { color: #F44336; }
+                  h1 { color: #333; text-align: center; }
+                  h2 { color: #555; border-bottom: 2px solid #eee; padding-bottom: 10px; }
+              </style>
+          </head>
+          <body>
+              <h1>🚀 Unjucks Performance Dashboard</h1>
+              <div class="dashboard">
+                  <div class="card">
+                      <h2>📊 Current Metrics</h2>
+                      <p>Response Time: <span class="metric" id="response-time">Loading...</span> ms</p>
+                      <p>Throughput: <span class="metric" id="throughput">Loading...</span> RPS</p>
+                      <p>Error Rate: <span class="metric" id="error-rate">Loading...</span>%</p>
+                  </div>
+                  <div class="card">
+                      <h2>📈 Performance Trend</h2>
+                      <canvas id="performanceChart"></canvas>
+                  </div>
+                  <div class="card">
+                      <h2>🎯 Test Results</h2>
+                      <div id="test-results">Loading test results...</div>
+                  </div>
+                  <div class="card">
+                      <h2>🏥 Health Status</h2>
+                      <div id="health-status">Loading health status...</div>
+                  </div>
+              </div>
+              
+              <script>
+                  // Load and display performance data
+                  document.addEventListener('DOMContentLoaded', function() {
+                      // This would typically load from the JSON results
+                      // For now, displaying static placeholder data
+                      
+                      document.getElementById('response-time').textContent = '__RESPONSE_TIME__';
+                      document.getElementById('throughput').textContent = '__THROUGHPUT__';
+                      document.getElementById('error-rate').textContent = '__ERROR_RATE__';
+                      
+                      // Performance trend chart
+                      const ctx = document.getElementById('performanceChart').getContext('2d');
+                      new Chart(ctx, {
+                          type: 'line',
+                          data: {
+                              labels: ['1h ago', '45m ago', '30m ago', '15m ago', 'Now'],
+                              datasets: [{
+                                  label: 'Response Time (ms)',
+                                  data: [180, 185, 175, 190, '__RESPONSE_TIME__'],
+                                  borderColor: '#2196F3',
+                                  tension: 0.1
+                              }]
+                          },
+                          options: {
+                              responsive: true,
+                              scales: {
+                                  y: {
+                                      beginAtZero: true
+                                  }
+                              }
+                          }
+                      });
+                  });
+              </script>
+          </body>
+          </html>
+          EOF
+          
+          # Replace placeholders with actual data
+          if [ -f "baseline-results.json" ]; then
+            response_time=$(jq -r '.metrics.http_req_duration.avg' baseline-results.json)
+            throughput=$(jq -r '.metrics.http_reqs.rate' baseline-results.json)
+            error_rate=$(jq -r '.metrics.http_req_failed.rate * 100' baseline-results.json)
+            
+            sed -i "s/__RESPONSE_TIME__/$response_time/g" performance-dashboard/index.html
+            sed -i "s/__THROUGHPUT__/$throughput/g" performance-dashboard/index.html
+            sed -i "s/__ERROR_RATE__/$error_rate/g" performance-dashboard/index.html
+          fi
+          
+          echo "📊 Performance dashboard generated"
+
+      - name: 📤 Deploy Dashboard to GitHub Pages
+        if: github.ref == 'refs/heads/main'
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./performance-dashboard
+          destination_dir: performance
+
+      - name: 📤 Upload Dashboard
+        uses: actions/upload-artifact@v4
+        with:
+          name: performance-dashboard-${{ github.run_number }}
+          path: performance-dashboard/
+          retention-days: 30

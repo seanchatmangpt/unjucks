@@ -1,0 +1,31 @@
+{
+  "title": "💡 Observability Info",
+  "level": "INFO",
+  "emoji": "💡",
+  "color": "#36a64f",
+  "timestamp": "2025-09-09T20:09:28.614Z",
+  "summary": "System operating normally with minor observations.",
+  "details": {
+    "anomaly_confidence": "50.0%",
+    "slo_status": "healthy",
+    "error_budget_remaining": "90.0%",
+    "alert_score": 23
+  },
+  "reasons": [],
+  "recommendations": [
+    "Continue monitoring metrics",
+    "No immediate action required"
+  ],
+  "escalation": {
+    "channels": [
+      "slack"
+    ],
+    "delay": 0,
+    "assignees": []
+  },
+  "metadata": {
+    "repository": "test/observability-suite",
+    "workflow": "test-observability",
+    "run_id": "12345"
+  }
+}

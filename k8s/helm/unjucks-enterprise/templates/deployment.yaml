@@ -1,0 +1,160 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "unjucks-enterprise.fullname" . }}
+  namespace: {{ .Release.Namespace | quote }}
+  labels:
+    {{- include "unjucks-enterprise.labels" . | nindent 4 }}
+  annotations:
+    {{- with .Values.annotations }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  {{- if not .Values.autoscaling.enabled }}
+  replicas: {{ .Values.deployment.replicaCount }}
+  {{- end }}
+  strategy:
+    {{- toYaml .Values.deployment.strategy | nindent 4 }}
+  selector:
+    matchLabels:
+      {{- include "unjucks-enterprise.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+        {{- with .Values.podAnnotations }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      labels:
+        {{- include "unjucks-enterprise.selectorLabels" . | nindent 8 }}
+        {{- with .Values.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+    spec:
+      {{- with .Values.image.pullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "unjucks-enterprise.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      {{- with .Values.initContainers }}
+      initContainers:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: {{ .Chart.Name }}
+          securityContext:
+            {{- toYaml .Values.containerSecurityContext | nindent 12 }}
+          image: "{{ .Values.image.registry }}/{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.service.targetPort }}
+              protocol: TCP
+            {{- if .Values.monitoring.enabled }}
+            - name: metrics
+              containerPort: {{ .Values.monitoring.prometheus.port }}
+              protocol: TCP
+            {{- end }}
+          env:
+            {{- range $key, $value := .Values.env }}
+            - name: {{ $key }}
+              value: {{ $value | quote }}
+            {{- end }}
+          {{- with .Values.envFrom }}
+          envFrom:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- if .Values.healthChecks.livenessProbe.enabled }}
+          livenessProbe:
+            httpGet:
+              path: {{ .Values.healthChecks.livenessProbe.httpGet.path }}
+              port: {{ .Values.healthChecks.livenessProbe.httpGet.port }}
+              scheme: HTTP
+            initialDelaySeconds: {{ .Values.healthChecks.livenessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.healthChecks.livenessProbe.periodSeconds }}
+            timeoutSeconds: {{ .Values.healthChecks.livenessProbe.timeoutSeconds }}
+            successThreshold: {{ .Values.healthChecks.livenessProbe.successThreshold }}
+            failureThreshold: {{ .Values.healthChecks.livenessProbe.failureThreshold }}
+          {{- end }}
+          {{- if .Values.healthChecks.readinessProbe.enabled }}
+          readinessProbe:
+            httpGet:
+              path: {{ .Values.healthChecks.readinessProbe.httpGet.path }}
+              port: {{ .Values.healthChecks.readinessProbe.httpGet.port }}
+              scheme: HTTP
+            initialDelaySeconds: {{ .Values.healthChecks.readinessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.healthChecks.readinessProbe.periodSeconds }}
+            timeoutSeconds: {{ .Values.healthChecks.readinessProbe.timeoutSeconds }}
+            successThreshold: {{ .Values.healthChecks.readinessProbe.successThreshold }}
+            failureThreshold: {{ .Values.healthChecks.readinessProbe.failureThreshold }}
+          {{- end }}
+          {{- if .Values.healthChecks.startupProbe.enabled }}
+          startupProbe:
+            httpGet:
+              path: {{ .Values.healthChecks.startupProbe.httpGet.path }}
+              port: {{ .Values.healthChecks.startupProbe.httpGet.port }}
+              scheme: HTTP
+            initialDelaySeconds: {{ .Values.healthChecks.startupProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.healthChecks.startupProbe.periodSeconds }}
+            timeoutSeconds: {{ .Values.healthChecks.startupProbe.timeoutSeconds }}
+            successThreshold: {{ .Values.healthChecks.startupProbe.successThreshold }}
+            failureThreshold: {{ .Values.healthChecks.startupProbe.failureThreshold }}
+          {{- end }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          volumeMounts:
+            {{- with .Values.volumeMounts }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+        {{- with .Values.sidecars }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      volumes:
+        {{- with .Values.volumes }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      {{- with .Values.nodeAffinity }}
+      {{- if .enabled }}
+      affinity:
+        nodeAffinity:
+          {{- with .requiredDuringSchedulingIgnoredDuringExecution }}
+          requiredDuringSchedulingIgnoredDuringExecution:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .preferredDuringSchedulingIgnoredDuringExecution }}
+          preferredDuringSchedulingIgnoredDuringExecution:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+      {{- end }}
+      {{- end }}
+      {{- if or .Values.podAffinity.enabled .Values.podAntiAffinity.enabled }}
+      affinity:
+        {{- if .Values.podAffinity.enabled }}
+        podAffinity:
+          {{- with .Values.podAffinity.requiredDuringSchedulingIgnoredDuringExecution }}
+          requiredDuringSchedulingIgnoredDuringExecution:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.podAffinity.preferredDuringSchedulingIgnoredDuringExecution }}
+          preferredDuringSchedulingIgnoredDuringExecution:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+        {{- end }}
+        {{- if .Values.podAntiAffinity.enabled }}
+        podAntiAffinity:
+          {{- with .Values.podAntiAffinity.requiredDuringSchedulingIgnoredDuringExecution }}
+          requiredDuringSchedulingIgnoredDuringExecution:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.podAntiAffinity.preferredDuringSchedulingIgnoredDuringExecution }}
+          preferredDuringSchedulingIgnoredDuringExecution:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+        {{- end }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

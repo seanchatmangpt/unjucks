@@ -34,7 +34,15 @@
     "test": "node tests/native-test-runner.js",
     "test:vitest": "vitest run --no-coverage",
     "test:watch": "vitest --no-coverage",
-    "test:smoke": "node bin/unjucks.cjs --version && node bin/unjucks.cjs --help",
+    "test:smoke": "node tests/smoke/fast-runner.js",
+    "test:smoke:fast": "node tests/smoke/fast-runner.js",
+    "test:smoke:critical": "node tests/smoke/critical-paths.test.js",
+    "test:smoke:journeys": "node tests/smoke/user-journeys.test.js",
+    "test:smoke:api": "node tests/smoke/api-endpoints.test.js",
+    "test:smoke:db": "node tests/smoke/database-connectivity.test.js",
+    "test:smoke:full": "node tests/smoke/smoke-runner.js",
+    "test:smoke:pre-deploy": "node tests/smoke/smoke-runner.js pre-deploy",
+    "test:smoke:post-deploy": "node tests/smoke/smoke-runner.js post-deploy",
     "test:cli": "node bin/unjucks.cjs list && echo 'CLI tests completed'",
     "test:integration": "node tests/mcp-integration-basic.js",
     "test:mcp": "node tests/mcp-integration-basic.js",
@@ -106,18 +114,20 @@
     "cli-table3": "^0.6.5",
     "confbox": "^0.2.2",
     "consola": "^3.4.2",
+    "cors": "^2.8.5",
     "dayjs": "^1.11.18",
     "ejs": "^3.1.10",
+    "express": "^5.1.0",
     "fs-extra": "^11.3.1",
     "glob": "^10.4.5",
     "gray-matter": "^4.0.3",
+    "helmet": "^8.1.0",
     "inquirer": "^12.9.4",
     "n3": "^1.26.0",
     "nunjucks": "^3.2.4",
     "ora": "^8.2.0",
     "sparqljs": "^3.7.3",
     "uuid": "^10.0.0",
-    "yaml": "^2.8.1",
     "zod": "^3.23.8"
   },
   "optionalDependencies": {
@@ -127,10 +137,8 @@
     "katex": "^0.16.11",
     "officegen": "^0.6.5",
     "pdfkit": "^0.15.0",
+    "puppeteer": "^24.19.0",
     "puppeteer-core": "^24.0.0"
-  },
-  "peerDependencies": {
-    "puppeteer": ">=24.0.0"
   },
   "peerDependenciesMeta": {
     "puppeteer": {
@@ -139,15 +147,16 @@
   },
   "devDependencies": {
     "@cucumber/cucumber": "^11.0.1",
-    "@vitest/coverage-v8": "^3.2.4",
-    "c8": "^10.1.3",
-    "tsx": "^4.7.3",
-    "vitest": "^3.2.4",
-    "eslint": "^8.57.0",
     "@typescript-eslint/eslint-plugin": "^6.21.0",
     "@typescript-eslint/parser": "^6.21.0",
-    "prettier": "^3.2.5",
+    "@vitest/coverage-v8": "^3.2.4",
+    "c8": "^10.1.3",
+    "eslint": "^8.57.0",
     "husky": "^9.0.11",
-    "lint-staged": "^15.2.2"
+    "lint-staged": "^15.2.2",
+    "prettier": "^3.2.5",
+    "tsx": "^4.7.3",
+    "vitest": "^3.2.4",
+    "yaml": "^2.8.1"
   }
 }

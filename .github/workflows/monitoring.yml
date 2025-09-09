@@ -1,46 +1,89 @@
-name: Workflow Monitoring & Reporting
+name: Enterprise Observability & Monitoring Suite
 
 on:
   schedule:
-    # Run daily at 6:00 AM UTC
+    # Run every 15 minutes for real-time monitoring
+    - cron: '*/15 * * * *'
+    # Daily comprehensive report at 6:00 AM UTC
     - cron: '0 6 * * *'
-    # Weekly report on Mondays at 8:00 AM UTC
+    # Weekly SLO report on Mondays at 8:00 AM UTC
     - cron: '0 8 * * 1'
   workflow_dispatch:
     inputs:
-      report_type:
-        description: 'Type of report to generate'
+      observability_mode:
+        description: 'Observability operation mode'
         required: true
-        default: 'daily'
+        default: 'comprehensive'
         type: choice
         options:
-          - daily
-          - weekly
-          - monthly
-          - custom
-      days_back:
-        description: 'Number of days to analyze (for custom reports)'
+          - real-time
+          - comprehensive
+          - slo-check
+          - anomaly-detection
+          - trace-analysis
+          - alert-test
+      time_window:
+        description: 'Analysis time window (hours)'
         required: false
-        default: '7'
+        default: '24'
         type: number
+      trace_depth:
+        description: 'Distributed tracing depth'
+        required: false
+        default: 'full'
+        type: choice
+        options:
+          - shallow
+          - medium
+          - full
+          - deep
+      enable_ml_detection:
+        description: 'Enable ML-based anomaly detection'
+        required: false
+        default: true
+        type: boolean
 
 env:
-  MONITORING_CONFIG_PATH: '.github/scripts/monitoring/config.json'
-  REPORTS_PATH: '.github/monitoring-reports'
+  # OpenTelemetry Configuration
+  OTEL_EXPORTER_OTLP_ENDPOINT: 'https://api.honeycomb.io'
+  OTEL_SERVICE_NAME: 'unjucks-ci-pipeline'
+  OTEL_SERVICE_VERSION: '${{ github.sha }}'
+  OTEL_RESOURCE_ATTRIBUTES: 'deployment.environment=ci,service.namespace=github-actions'
+  
+  # Prometheus & Grafana
+  PROMETHEUS_GATEWAY: 'https://prometheus-pushgateway.monitoring.svc.cluster.local:9091'
+  GRAFANA_DASHBOARD_URL: 'https://grafana.monitoring.svc.cluster.local'
+  
+  # Observability Paths
+  OBSERVABILITY_CONFIG_PATH: '.github/scripts/observability'
+  METRICS_STORAGE_PATH: '.github/observability-data'
+  TRACES_STORAGE_PATH: '.github/observability-data/traces'
+  LOGS_STORAGE_PATH: '.github/observability-data/logs'
+  DASHBOARDS_PATH: '.github/observability-data/dashboards'
+  ALERTS_CONFIG_PATH: '.github/scripts/observability/alerts'
+  
+  # SLO Targets
+  SLO_AVAILABILITY_TARGET: '99.9'
+  SLO_LATENCY_P95_MS: '5000'
+  SLO_ERROR_RATE_PERCENT: '0.1'
+  SLO_THROUGHPUT_MIN: '10'
 
 permissions:
   actions: read
   contents: write
   issues: write
   pull-requests: read
+  checks: write
+  deployments: write
 
 jobs:
-  collect-metrics:
-    name: Collect Workflow Metrics
+  observability-setup:
+    name: Initialize Observability Stack
     runs-on: ubuntu-latest
     outputs:
-      metrics-collected: ${{ steps.collection.outputs.success }}
-      report-path: ${{ steps.collection.outputs.report_path }}
+      trace-id: ${{ steps.setup.outputs.trace_id }}
+      session-id: ${{ steps.setup.outputs.session_id }}
+      prometheus-job: ${{ steps.setup.outputs.prometheus_job }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -48,82 +91,335 @@ jobs:
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Setup Node.js
+      - name: Setup Observability Stack
+        id: setup
+        run: |
+          # Generate unique session identifiers
+          TRACE_ID=$(openssl rand -hex 16)
+          SESSION_ID=$(openssl rand -hex 8)
+          PROMETHEUS_JOB="github-actions-${GITHUB_RUN_ID}"
+          
+          echo "trace_id=${TRACE_ID}" >> $GITHUB_OUTPUT
+          echo "session_id=${SESSION_ID}" >> $GITHUB_OUTPUT
+          echo "prometheus_job=${PROMETHEUS_JOB}" >> $GITHUB_OUTPUT
+          
+          # Create observability directories
+          mkdir -p ${{ env.METRICS_STORAGE_PATH }}/{prometheus,influxdb,custom}
+          mkdir -p ${{ env.TRACES_STORAGE_PATH }}
+          mkdir -p ${{ env.LOGS_STORAGE_PATH }}/{structured,raw,aggregated}
+          mkdir -p ${{ env.DASHBOARDS_PATH }}
+          
+          echo "🔍 Observability stack initialized with trace ID: ${TRACE_ID}"
+
+  prometheus-metrics:
+    name: Collect Prometheus Metrics
+    runs-on: ubuntu-latest
+    needs: observability-setup
+    outputs:
+      metrics-exported: ${{ steps.prometheus.outputs.success }}
+      custom-metrics-count: ${{ steps.prometheus.outputs.custom_metrics }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js with Observability Tools
         uses: actions/setup-node@v4
         with:
           node-version: '20'
           cache: 'npm'
 
-      - name: Install dependencies
+      - name: Install Observability Dependencies
         run: |
           npm ci --prefer-offline --no-audit
-          cd .github/scripts/monitoring && npm install --production
+          # Install OpenTelemetry and Prometheus client libraries
+          npm install --no-save \
+            @opentelemetry/api@^1.7.0 \
+            @opentelemetry/sdk-node@^0.45.0 \
+            @opentelemetry/instrumentation@^0.45.0 \
+            @opentelemetry/exporter-prometheus@^0.45.0 \
+            @opentelemetry/exporter-jaeger@^1.17.0 \
+            prom-client@^15.1.0 \
+            winston@^3.11.0 \
+            elastic-apm-node@^4.5.4
 
-      - name: Collect workflow metrics
-        id: collection
+      - name: Collect Prometheus Metrics
+        id: prometheus
         run: |
-          node .github/scripts/monitoring/collect-metrics.js \
-            --repo "${{ github.repository }}" \
-            --token "${{ secrets.GITHUB_TOKEN }}" \
-            --days-back "${{ github.event.inputs.days_back || '7' }}" \
-            --report-type "${{ github.event.inputs.report_type || 'daily' }}"
+          node .github/scripts/observability/prometheus-collector.js \
+            --session-id "${{ needs.observability-setup.outputs.session-id }}" \
+            --trace-id "${{ needs.observability-setup.outputs.trace-id }}" \
+            --job-name "${{ needs.observability-setup.outputs.prometheus-job }}" \
+            --time-window "${{ github.event.inputs.time_window || '24' }}"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PROMETHEUS_GATEWAY: ${{ env.PROMETHEUS_GATEWAY }}
 
-      - name: Upload metrics artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: workflow-metrics-${{ github.run_number }}
-          path: |
-            .github/monitoring-reports/
-            .github/scripts/monitoring/data/
-          retention-days: 30
+      - name: Export Custom Workflow Metrics
+        run: |
+          node .github/scripts/observability/custom-metrics-exporter.js \
+            --workflows-analyzed "$(find .github/workflows -name '*.yml' | wc -l)" \
+            --repository "${{ github.repository }}" \
+            --branch "${{ github.ref_name }}"
 
-  analyze-trends:
-    name: Analyze Performance Trends
+  distributed-tracing:
+    name: OpenTelemetry Distributed Tracing
     runs-on: ubuntu-latest
-    needs: collect-metrics
-    if: needs.collect-metrics.outputs.metrics-collected == 'true'
+    needs: observability-setup
     outputs:
-      trends-analyzed: ${{ steps.analysis.outputs.success }}
-      alerts-triggered: ${{ steps.analysis.outputs.alerts }}
+      traces-collected: ${{ steps.tracing.outputs.success }}
+      span-count: ${{ steps.tracing.outputs.spans }}
+      critical-path-ms: ${{ steps.tracing.outputs.critical_path }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-
-      - name: Download metrics artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: workflow-metrics-${{ github.run_number }}
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
 
-      - name: Analyze trends and detect anomalies
-        id: analysis
+      - name: Initialize OpenTelemetry Tracing
+        id: tracing
         run: |
-          node .github/scripts/monitoring/analyze-trends.js \
-            --report-type "${{ github.event.inputs.report_type || 'daily' }}"
+          node .github/scripts/observability/otel-tracer.js \
+            --trace-id "${{ needs.observability-setup.outputs.trace-id }}" \
+            --session-id "${{ needs.observability-setup.outputs.session-id }}" \
+            --depth "${{ github.event.inputs.trace_depth || 'full' }}" \
+            --operation "workflow-monitoring"
+        env:
+          OTEL_EXPORTER_OTLP_ENDPOINT: ${{ env.OTEL_EXPORTER_OTLP_ENDPOINT }}
+          OTEL_EXPORTER_OTLP_HEADERS: "x-honeycomb-team=${{ secrets.HONEYCOMB_API_KEY }}"
+          OTEL_SERVICE_NAME: ${{ env.OTEL_SERVICE_NAME }}
+
+      - name: Trace Pipeline Stages
+        run: |
+          node .github/scripts/observability/pipeline-tracer.js \
+            --stage "metrics-collection" \
+            --parent-trace "${{ needs.observability-setup.outputs.trace-id }}"
+
+  structured-logging:
+    name: Centralized Structured Logging
+    runs-on: ubuntu-latest
+    needs: observability-setup
+    outputs:
+      logs-processed: ${{ steps.logging.outputs.success }}
+      error-count: ${{ steps.logging.outputs.errors }}
+      warning-count: ${{ steps.logging.outputs.warnings }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup ELK Stack Integration
+        id: logging
+        run: |
+          node .github/scripts/observability/elk-logger.js \
+            --session-id "${{ needs.observability-setup.outputs.session-id }}" \
+            --trace-id "${{ needs.observability-setup.outputs.trace-id }}" \
+            --log-level "info" \
+            --include-system-metrics true
+        env:
+          ELASTIC_CLOUD_ID: ${{ secrets.ELASTIC_CLOUD_ID }}
+          ELASTIC_CLOUD_AUTH: ${{ secrets.ELASTIC_CLOUD_AUTH }}
+          LOGSTASH_ENDPOINT: ${{ secrets.LOGSTASH_ENDPOINT }}
+
+      - name: Process Workflow Logs
+        run: |
+          # Collect and structure all workflow logs
+          node .github/scripts/observability/log-aggregator.js \
+            --workflows-path ".github/workflows" \
+            --output-format "json" \
+            --include-metrics true \
+            --trace-correlation "${{ needs.observability-setup.outputs.trace-id }}"
+
+      - name: Analyze Log Patterns
+        run: |
+          node .github/scripts/observability/log-pattern-analyzer.js \
+            --input-path "${{ env.LOGS_STORAGE_PATH }}/structured" \
+            --detect-anomalies true \
+            --pattern-threshold 5
+
+  ml-anomaly-detection:
+    name: ML-Based Anomaly Detection
+    runs-on: ubuntu-latest
+    needs: [observability-setup, prometheus-metrics, structured-logging]
+    if: github.event.inputs.enable_ml_detection != 'false'
+    outputs:
+      anomalies-detected: ${{ steps.ml-analysis.outputs.anomalies }}
+      confidence-score: ${{ steps.ml-analysis.outputs.confidence }}
+      model-accuracy: ${{ steps.ml-analysis.outputs.accuracy }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Python ML Environment
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install ML Dependencies
+        run: |
+          pip install numpy pandas scikit-learn scipy matplotlib seaborn
+          pip install prometheus-client elasticsearch tensorflow-cpu
+          pip install alertmanager-webhook-logger
+
+      - name: Train Anomaly Detection Models
+        id: ml-analysis
+        run: |
+          python .github/scripts/observability/ml-anomaly-detector.py \
+            --metrics-path "${{ env.METRICS_STORAGE_PATH }}" \
+            --logs-path "${{ env.LOGS_STORAGE_PATH }}" \
+            --model-type "isolation_forest" \
+            --training-window "720h" \
+            --confidence-threshold "0.85"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Check for performance degradation
-        id: degradation
+      - name: Predict Performance Trends
         run: |
-          node .github/scripts/monitoring/check-degradation.js \
-            --threshold-failure-rate 15 \
-            --threshold-duration-increase 50 \
-            --threshold-cost-increase 25
+          python .github/scripts/observability/performance-predictor.py \
+            --historical-data "${{ env.METRICS_STORAGE_PATH }}/prometheus" \
+            --forecast-horizon "24h" \
+            --model-type "lstm"
+
+      - name: Generate ML Insights Report
+        run: |
+          python .github/scripts/observability/ml-insights-generator.py \
+            --session-id "${{ needs.observability-setup.outputs.session-id }}" \
+            --output-format "json,html,pdf"
+
+  slo-monitoring:
+    name: SLO Tracking & Alerting
+    runs-on: ubuntu-latest
+    needs: [observability-setup, prometheus-metrics, distributed-tracing]
+    outputs:
+      slo-status: ${{ steps.slo-check.outputs.status }}
+      availability-score: ${{ steps.slo-check.outputs.availability }}
+      error-budget-remaining: ${{ steps.slo-check.outputs.error_budget }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Calculate SLO Metrics
+        id: slo-check
+        run: |
+          node .github/scripts/observability/slo-calculator.js \
+            --availability-target "${{ env.SLO_AVAILABILITY_TARGET }}" \
+            --latency-target "${{ env.SLO_LATENCY_P95_MS }}" \
+            --error-rate-target "${{ env.SLO_ERROR_RATE_PERCENT }}" \
+            --throughput-target "${{ env.SLO_THROUGHPUT_MIN }}" \
+            --time-window "${{ github.event.inputs.time_window || '24' }}h"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Update Error Budget
+        run: |
+          node .github/scripts/observability/error-budget-tracker.js \
+            --current-availability "${{ steps.slo-check.outputs.availability }}" \
+            --target-availability "${{ env.SLO_AVAILABILITY_TARGET }}" \
+            --time-window "30d"
+
+      - name: Generate SLO Dashboard
+        run: |
+          node .github/scripts/observability/slo-dashboard-generator.js \
+            --metrics-source "prometheus" \
+            --dashboard-type "grafana" \
+            --export-path "${{ env.DASHBOARDS_PATH }}/slo-dashboard.json"
+
+  intelligent-alerting:
+    name: Smart Alerting System
+    runs-on: ubuntu-latest
+    needs: [prometheus-metrics, ml-anomaly-detection, slo-monitoring]
+    if: always() && (needs.ml-anomaly-detection.outputs.anomalies-detected == 'true' || needs.slo-monitoring.outputs.slo-status != 'healthy')
+    outputs:
+      alerts-sent: ${{ steps.alerting.outputs.sent }}
+      escalation-level: ${{ steps.alerting.outputs.level }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Process Intelligent Alerts
+        id: alerting
+        run: |
+          node .github/scripts/observability/intelligent-alerting.js \
+            --anomaly-confidence "${{ needs.ml-anomaly-detection.outputs.confidence-score || '0' }}" \
+            --slo-status "${{ needs.slo-monitoring.outputs.slo-status }}" \
+            --error-budget "${{ needs.slo-monitoring.outputs.error-budget-remaining || '100' }}" \
+            --escalation-rules ".github/scripts/observability/escalation-matrix.json"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Send Multi-Channel Alerts
+        run: |
+          # Slack Integration
+          if [[ -n "${{ secrets.SLACK_WEBHOOK_URL }}" ]]; then
+            node .github/scripts/observability/slack-alerting.js \
+              --webhook "${{ secrets.SLACK_WEBHOOK_URL }}" \
+              --severity "${{ steps.alerting.outputs.level }}" \
+              --template "enterprise"
+          fi
+          
+          # PagerDuty Integration
+          if [[ -n "${{ secrets.PAGERDUTY_INTEGRATION_KEY }}" ]]; then
+            node .github/scripts/observability/pagerduty-alerting.js \
+              --integration-key "${{ secrets.PAGERDUTY_INTEGRATION_KEY }}" \
+              --severity "${{ steps.alerting.outputs.level }}"
+          fi
+          
+          # Email Alerts
+          if [[ -n "${{ secrets.SMTP_CONFIG }}" ]]; then
+            node .github/scripts/observability/email-alerting.js \
+              --smtp-config "${{ secrets.SMTP_CONFIG }}" \
+              --recipients "${{ secrets.ALERT_RECIPIENTS }}"
+          fi
+
+      - name: Create GitHub Issue for Critical Alerts
+        if: steps.alerting.outputs.level == 'critical'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const alertData = require('.github/observability-data/current-alerts.json');
+            const criticalAlerts = alertData.filter(alert => alert.severity === 'critical');
+            
+            if (criticalAlerts.length > 0) {
+              const title = `🚨 CRITICAL: Observability Alert - ${new Date().toISOString()}`;
+              const body = `
+              ## Critical System Alert
+              
+              **Session ID**: ${{ needs.observability-setup.outputs.session-id }}
+              **Trace ID**: ${{ needs.observability-setup.outputs.trace-id }}
+              
+              ### Alerts Triggered
+              ${criticalAlerts.map(alert => `
+              - **${alert.title}** (Confidence: ${alert.confidence}%)
+                - ${alert.description}
+                - **SLO Impact**: ${alert.slo_impact}
+                - **Error Budget**: ${alert.error_budget_consumed}%
+              `).join('\n')}
+              
+              ### Recommended Actions
+              ${criticalAlerts.map(alert => alert.recommended_actions?.map(action => `- ${action}`).join('\n')).join('\n')}
+              
+              ### Dashboards
+              - [Real-time Dashboard](${{ env.GRAFANA_DASHBOARD_URL }}/d/observability)
+              - [SLO Dashboard](${{ env.GRAFANA_DASHBOARD_URL }}/d/slo)
+              - [Trace Analysis](${{ env.OTEL_EXPORTER_OTLP_ENDPOINT }}/trace/${{ needs.observability-setup.outputs.trace-id }})
+              `;
+              
+              await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title: title,
+                body: body,
+                labels: ['observability', 'critical', 'slo-breach', 'alert'],
+                assignees: ['${{ github.actor }}']
+              });
+            }
 
   generate-reports:
     name: Generate Monitoring Reports
     runs-on: ubuntu-latest
-    needs: [collect-metrics, analyze-trends]
-    if: always() && needs.collect-metrics.outputs.metrics-collected == 'true'
+    needs: [prometheus-metrics, intelligent-alerting]
+    if: always() && needs.prometheus-metrics.outputs.metrics-exported == 'true'
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -170,8 +466,8 @@ jobs:
   send-alerts:
     name: Send Performance Alerts
     runs-on: ubuntu-latest
-    needs: [collect-metrics, analyze-trends]
-    if: needs.analyze-trends.outputs.alerts-triggered == 'true'
+    needs: [prometheus-metrics, intelligent-alerting]
+    if: needs.intelligent-alerting.outputs.alerts-triggered == 'true'
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4

@@ -1,0 +1,718 @@
+name: 🚀 Load Testing Suite
+
+# Comprehensive load testing with k6, Artillery, and JMeter
+# for performance validation and capacity planning
+
+on:
+  workflow_dispatch:
+    inputs:
+      test_type:
+        description: 'Type of load test to run'
+        required: true
+        default: 'k6-comprehensive'
+        type: choice
+        options:
+          - k6-comprehensive
+          - artillery-stress
+          - jmeter-endurance
+          - all-tools-comparison
+      target_environment:
+        description: 'Target environment'
+        required: true
+        default: 'staging'
+        type: choice
+        options:
+          - staging
+          - production
+          - canary
+      duration:
+        description: 'Test duration in minutes'
+        required: false
+        default: '10'
+        type: number
+      max_users:
+        description: 'Maximum concurrent users'
+        required: false
+        default: '500'
+        type: number
+  schedule:
+    # Run comprehensive load tests daily at 3 AM UTC
+    - cron: '0 3 * * *'
+
+env:
+  # Performance SLA thresholds
+  MAX_RESPONSE_TIME_MS: 300
+  MIN_THROUGHPUT_RPS: 800
+  MAX_ERROR_RATE_PERCENT: 1.0
+  MAX_P95_RESPONSE_TIME_MS: 500
+  MIN_AVAILABILITY_PERCENT: 99.5
+
+jobs:
+  # ==========================================
+  # K6 LOAD TESTING
+  # ==========================================
+  k6-load-testing:
+    name: 🎯 k6 Load Testing
+    runs-on: ubuntu-latest
+    if: contains(github.event.inputs.test_type, 'k6') || github.event.inputs.test_type == 'all-tools-comparison' || github.event_name == 'schedule'
+    timeout-minutes: 60
+    outputs:
+      k6-response-time: ${{ steps.k6-test.outputs.response-time }}
+      k6-throughput: ${{ steps.k6-test.outputs.throughput }}
+      k6-error-rate: ${{ steps.k6-test.outputs.error-rate }}
+    steps:
+      - name: 📥 Checkout
+        uses: actions/checkout@v4
+
+      - name: 🔧 Install k6
+        run: |
+          echo "🔧 Installing k6 load testing tool..."
+          sudo gpg -k
+          sudo gpg --no-default-keyring --keyring /usr/share/keyrings/k6-archive-keyring.gpg --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys C5AD17C747E3415A3642D57D77C6C491D6AC1D69
+          echo "deb [signed-by=/usr/share/keyrings/k6-archive-keyring.gpg] https://dl.k6.io/deb stable main" | sudo tee /etc/apt/sources.list.d/k6.list
+          sudo apt-get update
+          sudo apt-get install k6
+          echo "✅ k6 installed successfully"
+
+      - name: 📊 Generate k6 Test Scripts
+        run: |
+          echo "📊 Generating k6 test scripts..."
+          
+          # Create comprehensive k6 test
+          cat > k6-comprehensive.js << 'EOF'
+          import http from 'k6/http';
+          import { check, sleep, group } from 'k6';
+          import { Rate, Trend, Counter, Gauge } from 'k6/metrics';
+          import { htmlReport } from 'https://raw.githubusercontent.com/benc-uk/k6-reporter/main/dist/bundle.js';
+          import { textSummary } from 'https://jslib.k6.io/k6-summary/0.0.1/index.js';
+          
+          // Custom metrics
+          export let errorRate = new Rate('errors');
+          export let responseTime = new Trend('response_time');
+          export let requestsPerSecond = new Rate('requests_per_second');
+          export let activeUsers = new Gauge('active_users');
+          
+          export let options = {
+            stages: [
+              { duration: '2m', target: 20 },    // Ramp up to 20 users
+              { duration: '5m', target: 50 },    // Stay at 50 users
+              { duration: '3m', target: 100 },   // Ramp up to 100 users
+              { duration: '5m', target: 100 },   // Stay at 100 users
+              { duration: '3m', target: 200 },   // Ramp up to 200 users
+              { duration: '5m', target: 200 },   // Stay at 200 users
+              { duration: '5m', target: 0 },     // Ramp down
+            ],
+            thresholds: {
+              'http_req_duration': [
+                'p(50)<300',     // 50% of requests must be below 300ms
+                'p(95)<500',     // 95% of requests must be below 500ms
+                'p(99)<1000',    // 99% of requests must be below 1s
+              ],
+              'http_req_failed': ['rate<0.01'],  // Error rate must be below 1%
+              'http_reqs': ['rate>50'],          // Minimum 50 RPS
+            },
+          };
+          
+          const BASE_URL = '__TARGET_URL__';
+          
+          export default function() {
+            activeUsers.add(1);
+            
+            group('Home Page Load', function() {
+              let response = http.get(`${BASE_URL}/`);
+              
+              check(response, {
+                'status is 200': (r) => r.status === 200,
+                'response time < 300ms': (r) => r.timings.duration < 300,
+                'body contains expected content': (r) => r.body.includes('html') || r.body.includes('json'),
+              });
+              
+              errorRate.add(response.status !== 200);
+              responseTime.add(response.timings.duration);
+              requestsPerSecond.add(1);
+            });
+            
+            group('API Endpoints', function() {
+              // Test multiple API endpoints if they exist
+              const endpoints = ['/api/health', '/api/status', '/health'];
+              
+              endpoints.forEach(endpoint => {
+                let response = http.get(`${BASE_URL}${endpoint}`, {
+                  timeout: '10s',
+                });
+                
+                if (response.status === 200 || response.status === 404) {
+                  // 404 is acceptable for non-existent endpoints
+                  check(response, {
+                    [`${endpoint} response time < 200ms`]: (r) => r.timings.duration < 200,
+                  });
+                }
+              });
+            });
+            
+            sleep(Math.random() * 2 + 1); // Random sleep between 1-3 seconds
+          }
+          
+          export function handleSummary(data) {
+            return {
+              'k6-results.html': htmlReport(data),
+              'k6-summary.json': JSON.stringify(data),
+              stdout: textSummary(data, { indent: ' ', enableColors: true }),
+            };
+          }
+          EOF
+          
+          echo "✅ k6 test scripts generated"
+
+      - name: 🚀 Run k6 Load Test
+        id: k6-test
+        run: |
+          echo "🚀 Running k6 load test..."
+          
+          target_url="https://${{ github.event.inputs.target_environment || 'staging' }}.unjucks.app"
+          max_users="${{ github.event.inputs.max_users || '200' }}"
+          duration="${{ github.event.inputs.duration || '10' }}"
+          
+          echo "🎯 Target: $target_url"
+          echo "👥 Max Users: $max_users"
+          echo "⏱️ Duration: ${duration}m"
+          
+          # Replace placeholders in test script
+          sed -i "s|__TARGET_URL__|$target_url|g" k6-comprehensive.js
+          
+          # Adjust test duration based on input
+          if [ "$duration" != "10" ]; then
+            # Create dynamic test configuration
+            cat > k6-dynamic.js << EOF
+          import http from 'k6/http';
+          import { check, sleep } from 'k6';
+          import { Rate, Trend } from 'k6/metrics';
+          
+          export let errorRate = new Rate('errors');
+          export let responseTime = new Trend('response_time');
+          
+          export let options = {
+            stages: [
+              { duration: '1m', target: Math.floor($max_users * 0.1) },
+              { duration: '${duration}m', target: $max_users },
+              { duration: '1m', target: 0 },
+            ],
+            thresholds: {
+              'http_req_duration': ['p(95)<500'],
+              'http_req_failed': ['rate<0.01'],
+            },
+          };
+          
+          export default function() {
+            let response = http.get('$target_url');
+            
+            check(response, {
+              'status is 200': (r) => r.status === 200,
+              'response time < 500ms': (r) => r.timings.duration < 500,
+            });
+            
+            errorRate.add(response.status !== 200);
+            responseTime.add(response.timings.duration);
+            
+            sleep(1);
+          }
+          EOF
+            
+            k6 run --out json=k6-results.json k6-dynamic.js
+          else
+            k6 run --out json=k6-results.json k6-comprehensive.js
+          fi
+          
+          # Extract metrics
+          if [ -f "k6-results.json" ]; then
+            response_time=$(jq -r '.metrics.http_req_duration.avg // 0' k6-results.json)
+            p95_time=$(jq -r '.metrics.http_req_duration."p(95)" // 0' k6-results.json)
+            throughput=$(jq -r '.metrics.http_reqs.rate // 0' k6-results.json)
+            error_rate=$(jq -r '.metrics.http_req_failed.rate * 100 // 0' k6-results.json)
+            
+            echo "📊 k6 Test Results:"
+            echo "  Average Response Time: ${response_time}ms"
+            echo "  95th Percentile: ${p95_time}ms"
+            echo "  Throughput: ${throughput} RPS"
+            echo "  Error Rate: ${error_rate}%"
+            
+            echo "response-time=$response_time" >> $GITHUB_OUTPUT
+            echo "throughput=$throughput" >> $GITHUB_OUTPUT
+            echo "error-rate=$error_rate" >> $GITHUB_OUTPUT
+          else
+            echo "❌ k6 results file not found"
+            exit 1
+          fi
+
+      - name: 📤 Upload k6 Results
+        uses: actions/upload-artifact@v4
+        with:
+          name: k6-load-test-results-${{ github.run_number }}
+          path: |
+            k6-results.json
+            k6-results.html
+            k6-summary.json
+            k6-comprehensive.js
+          retention-days: 30
+
+  # ==========================================
+  # ARTILLERY STRESS TESTING
+  # ==========================================
+  artillery-stress-testing:
+    name: 💥 Artillery Stress Testing
+    runs-on: ubuntu-latest
+    if: contains(github.event.inputs.test_type, 'artillery') || github.event.inputs.test_type == 'all-tools-comparison' || github.event_name == 'schedule'
+    timeout-minutes: 45
+    outputs:
+      artillery-response-time: ${{ steps.artillery-test.outputs.response-time }}
+      artillery-throughput: ${{ steps.artillery-test.outputs.throughput }}
+      artillery-error-rate: ${{ steps.artillery-test.outputs.error-rate }}
+    steps:
+      - name: 📥 Checkout
+        uses: actions/checkout@v4
+
+      - name: 📦 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: 🔧 Install Artillery
+        run: |
+          echo "🔧 Installing Artillery load testing tool..."
+          npm install -g artillery
+          echo "✅ Artillery installed successfully"
+
+      - name: 📊 Generate Artillery Test Configuration
+        run: |
+          echo "📊 Generating Artillery test configuration..."
+          
+          target_url="https://${{ github.event.inputs.target_environment || 'staging' }}.unjucks.app"
+          max_users="${{ github.event.inputs.max_users || '300' }}"
+          duration="${{ github.event.inputs.duration || '10' }}"
+          
+          cat > artillery-stress.yml << EOF
+          config:
+            target: '$target_url'
+            phases:
+              - duration: 120
+                arrivalRate: 10
+                name: "Warm up"
+              - duration: 300
+                arrivalRate: 50
+                name: "Ramp up load"
+              - duration: $(($duration * 60))
+                arrivalRate: $((max_users / 10))
+                name: "Sustained high load"
+              - duration: 120
+                arrivalRate: 5
+                name: "Cool down"
+            plugins:
+              publish-metrics:
+                - type: json
+                  path: artillery-results.json
+          scenarios:
+            - weight: 70
+              name: "Main page load"
+              flow:
+                - get:
+                    url: "/"
+                    capture:
+                      - json: "$"
+                        as: response_body
+                    expect:
+                      - statusCode: 200
+                      - responseTime: 500
+            - weight: 20
+              name: "Health check"
+              flow:
+                - get:
+                    url: "/health"
+                    expect:
+                      - statusCode: [200, 404]
+                      - responseTime: 200
+            - weight: 10
+              name: "API status"
+              flow:
+                - get:
+                    url: "/api/status"
+                    expect:
+                      - statusCode: [200, 404]
+                      - responseTime: 300
+          EOF
+          
+          echo "✅ Artillery configuration generated"
+
+      - name: 🚀 Run Artillery Stress Test
+        id: artillery-test
+        run: |
+          echo "🚀 Running Artillery stress test..."
+          
+          artillery run artillery-stress.yml --output artillery-raw-results.json
+          
+          # Generate HTML report
+          artillery report artillery-raw-results.json --output artillery-report.html
+          
+          # Extract metrics from results
+          if [ -f "artillery-raw-results.json" ]; then
+            # Parse Artillery results (Artillery has a different JSON structure)
+            response_time=$(node -e "
+              const fs = require('fs');
+              const data = JSON.parse(fs.readFileSync('artillery-raw-results.json', 'utf8'));
+              const summary = data.aggregate;
+              console.log(summary.latency?.mean || 0);
+            ")
+            
+            throughput=$(node -e "
+              const fs = require('fs');
+              const data = JSON.parse(fs.readFileSync('artillery-raw-results.json', 'utf8'));
+              const summary = data.aggregate;
+              console.log(summary.requestsPerSecond?.mean || 0);
+            ")
+            
+            error_rate=$(node -e "
+              const fs = require('fs');
+              const data = JSON.parse(fs.readFileSync('artillery-raw-results.json', 'utf8'));
+              const summary = data.aggregate;
+              const total = summary.counters?.['http.requests'] || 1;
+              const errors = summary.counters?.['http.request_rate'] || 0;
+              console.log((errors / total * 100) || 0);
+            ")
+            
+            echo "📊 Artillery Test Results:"
+            echo "  Average Response Time: ${response_time}ms"
+            echo "  Throughput: ${throughput} RPS"
+            echo "  Error Rate: ${error_rate}%"
+            
+            echo "response-time=$response_time" >> $GITHUB_OUTPUT
+            echo "throughput=$throughput" >> $GITHUB_OUTPUT
+            echo "error-rate=$error_rate" >> $GITHUB_OUTPUT
+          else
+            echo "❌ Artillery results file not found"
+            exit 1
+          fi
+
+      - name: 📤 Upload Artillery Results
+        uses: actions/upload-artifact@v4
+        with:
+          name: artillery-stress-test-results-${{ github.run_number }}
+          path: |
+            artillery-raw-results.json
+            artillery-report.html
+            artillery-stress.yml
+          retention-days: 30
+
+  # ==========================================
+  # JMETER ENDURANCE TESTING
+  # ==========================================
+  jmeter-endurance-testing:
+    name: 🏃 JMeter Endurance Testing
+    runs-on: ubuntu-latest
+    if: contains(github.event.inputs.test_type, 'jmeter') || github.event.inputs.test_type == 'all-tools-comparison' || github.event_name == 'schedule'
+    timeout-minutes: 90
+    outputs:
+      jmeter-response-time: ${{ steps.jmeter-test.outputs.response-time }}
+      jmeter-throughput: ${{ steps.jmeter-test.outputs.throughput }}
+      jmeter-error-rate: ${{ steps.jmeter-test.outputs.error-rate }}
+    steps:
+      - name: 📥 Checkout
+        uses: actions/checkout@v4
+
+      - name: ☕ Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '11'
+
+      - name: 🔧 Install JMeter
+        run: |
+          echo "🔧 Installing Apache JMeter..."
+          wget -q https://archive.apache.org/dist/jmeter/binaries/apache-jmeter-5.6.3.tgz
+          tar -xzf apache-jmeter-5.6.3.tgz
+          export PATH=$PATH:$(pwd)/apache-jmeter-5.6.3/bin
+          echo "$(pwd)/apache-jmeter-5.6.3/bin" >> $GITHUB_PATH
+          
+          # Install JMeter plugins
+          cd apache-jmeter-5.6.3/lib/ext
+          wget -q https://jmeter-plugins.org/get/ -O jmeter-plugins-manager.jar
+          
+          echo "✅ JMeter installed successfully"
+
+      - name: 📊 Generate JMeter Test Plan
+        run: |
+          echo "📊 Generating JMeter test plan..."
+          
+          target_url="https://${{ github.event.inputs.target_environment || 'staging' }}.unjucks.app"
+          max_users="${{ github.event.inputs.max_users || '100' }}"
+          duration="${{ github.event.inputs.duration || '30' }}"
+          
+          cat > endurance-test.jmx << 'EOF'
+          <?xml version="1.0" encoding="UTF-8"?>
+          <jmeterTestPlan version="1.2" properties="5.0" jmeter="5.6.3">
+            <hashTree>
+              <TestPlan guiclass="TestPlanGui" testclass="TestPlan" testname="Endurance Test Plan">
+                <elementProp name="TestPlan.arguments" elementType="Arguments" guiclass="ArgumentsPanel" testclass="Arguments">
+                  <collectionProp name="Arguments.arguments">
+                    <elementProp name="TARGET_URL" elementType="Argument">
+                      <stringProp name="Argument.name">TARGET_URL</stringProp>
+                      <stringProp name="Argument.value">__TARGET_URL__</stringProp>
+                    </elementProp>
+                    <elementProp name="MAX_USERS" elementType="Argument">
+                      <stringProp name="Argument.name">MAX_USERS</stringProp>
+                      <stringProp name="Argument.value">__MAX_USERS__</stringProp>
+                    </elementProp>
+                    <elementProp name="DURATION" elementType="Argument">
+                      <stringProp name="Argument.name">DURATION</stringProp>
+                      <stringProp name="Argument.value">__DURATION__</stringProp>
+                    </elementProp>
+                  </collectionProp>
+                </elementProp>
+              </TestPlan>
+              <hashTree>
+                <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="Endurance Thread Group">
+                  <stringProp name="ThreadGroup.on_sample_error">continue</stringProp>
+                  <elementProp name="ThreadGroup.main_controller" elementType="LoopController" guiclass="LoopControllerGui" testclass="LoopController">
+                    <boolProp name="LoopController.continue_forever">false</boolProp>
+                    <intProp name="LoopController.loops">-1</intProp>
+                  </elementProp>
+                  <stringProp name="ThreadGroup.num_threads">${MAX_USERS}</stringProp>
+                  <stringProp name="ThreadGroup.ramp_time">300</stringProp>
+                  <longProp name="ThreadGroup.start_time">1640995200000</longProp>
+                  <longProp name="ThreadGroup.end_time">1640995200000</longProp>
+                  <boolProp name="ThreadGroup.scheduler">true</boolProp>
+                  <stringProp name="ThreadGroup.duration">${__eval(${DURATION}*60)}</stringProp>
+                  <stringProp name="ThreadGroup.delay">0</stringProp>
+                </ThreadGroup>
+                <hashTree>
+                  <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Home Page Request">
+                    <elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments">
+                      <collectionProp name="Arguments.arguments"/>
+                    </elementProp>
+                    <stringProp name="HTTPSampler.domain">${__regexReplace(${TARGET_URL},^https?://([^/]+).*,$1$)}</stringProp>
+                    <stringProp name="HTTPSampler.port"></stringProp>
+                    <stringProp name="HTTPSampler.protocol">https</stringProp>
+                    <stringProp name="HTTPSampler.contentEncoding"></stringProp>
+                    <stringProp name="HTTPSampler.path">/</stringProp>
+                    <stringProp name="HTTPSampler.method">GET</stringProp>
+                    <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+                    <boolProp name="HTTPSampler.auto_redirects">false</boolProp>
+                    <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+                    <boolProp name="HTTPSampler.DO_MULTIPART_POST">false</boolProp>
+                    <stringProp name="HTTPSampler.embedded_url_re"></stringProp>
+                    <stringProp name="HTTPSampler.connect_timeout">10000</stringProp>
+                    <stringProp name="HTTPSampler.response_timeout">30000</stringProp>
+                  </HTTPSamplerProxy>
+                  <hashTree/>
+                  
+                  <UniformRandomTimer guiclass="UniformRandomTimerGui" testclass="UniformRandomTimer" testname="Random Timer">
+                    <stringProp name="ConstantTimer.delay">1000</stringProp>
+                    <stringProp name="RandomTimer.range">2000</stringProp>
+                  </UniformRandomTimer>
+                  <hashTree/>
+                  
+                  <ResultCollector guiclass="StatVisualizer" testclass="ResultCollector" testname="Aggregate Report">
+                    <boolProp name="ResultCollector.error_logging">false</boolProp>
+                    <objProp>
+                      <name>saveConfig</name>
+                      <value class="SampleSaveConfiguration">
+                        <time>true</time>
+                        <latency>true</latency>
+                        <timestamp>true</timestamp>
+                        <success>true</success>
+                        <label>true</label>
+                        <code>true</code>
+                        <message>true</message>
+                        <threadName>true</threadName>
+                        <dataType>true</dataType>
+                        <encoding>false</encoding>
+                        <assertions>true</assertions>
+                        <subresults>true</subresults>
+                        <responseData>false</responseData>
+                        <samplerData>false</samplerData>
+                        <xml>false</xml>
+                        <fieldNames>true</fieldNames>
+                        <responseHeaders>false</responseHeaders>
+                        <requestHeaders>false</requestHeaders>
+                        <responseDataOnError>false</responseDataOnError>
+                        <saveAssertionResultsFailureMessage>true</saveAssertionResultsFailureMessage>
+                        <assertionsResultsToSave>0</assertionsResultsToSave>
+                        <bytes>true</bytes>
+                        <sentBytes>true</sentBytes>
+                        <url>true</url>
+                        <threadCounts>true</threadCounts>
+                        <idleTime>true</idleTime>
+                        <connectTime>true</connectTime>
+                      </value>
+                    </objProp>
+                    <stringProp name="filename">jmeter-results.jtl</stringProp>
+                  </ResultCollector>
+                  <hashTree/>
+                </hashTree>
+              </hashTree>
+            </hashTree>
+          </jmeterTestPlan>
+          EOF
+          
+          # Replace placeholders
+          sed -i "s|__TARGET_URL__|$target_url|g" endurance-test.jmx
+          sed -i "s|__MAX_USERS__|$max_users|g" endurance-test.jmx
+          sed -i "s|__DURATION__|$duration|g" endurance-test.jmx
+          
+          echo "✅ JMeter test plan generated"
+
+      - name: 🚀 Run JMeter Endurance Test
+        id: jmeter-test
+        run: |
+          echo "🚀 Running JMeter endurance test..."
+          
+          # Run JMeter test
+          jmeter -n -t endurance-test.jmx -l jmeter-results.jtl -e -o jmeter-report/
+          
+          # Extract metrics from results
+          if [ -f "jmeter-results.jtl" ]; then
+            # Calculate metrics using awk
+            response_time=$(awk -F',' 'NR>1 {sum+=$2; count++} END {if(count>0) print sum/count; else print 0}' jmeter-results.jtl)
+            throughput=$(awk -F',' 'NR>1 {count++} END {print count/(NR>1 ? (max_time-min_time)/1000 : 1)}' jmeter-results.jtl)
+            error_rate=$(awk -F',' 'NR>1 {if($8=="false") errors++; total++} END {if(total>0) print (errors/total)*100; else print 0}' jmeter-results.jtl)
+            
+            echo "📊 JMeter Test Results:"
+            echo "  Average Response Time: ${response_time}ms"
+            echo "  Throughput: ${throughput} RPS"
+            echo "  Error Rate: ${error_rate}%"
+            
+            echo "response-time=$response_time" >> $GITHUB_OUTPUT
+            echo "throughput=$throughput" >> $GITHUB_OUTPUT
+            echo "error-rate=$error_rate" >> $GITHUB_OUTPUT
+          else
+            echo "❌ JMeter results file not found"
+            exit 1
+          fi
+
+      - name: 📤 Upload JMeter Results
+        uses: actions/upload-artifact@v4
+        with:
+          name: jmeter-endurance-test-results-${{ github.run_number }}
+          path: |
+            jmeter-results.jtl
+            jmeter-report/
+            endurance-test.jmx
+          retention-days: 30
+
+  # ==========================================
+  # PERFORMANCE COMPARISON & ANALYSIS
+  # ==========================================
+  performance-comparison:
+    name: 📊 Performance Comparison & Analysis
+    runs-on: ubuntu-latest
+    needs: [k6-load-testing, artillery-stress-testing, jmeter-endurance-testing]
+    if: always() && (github.event.inputs.test_type == 'all-tools-comparison' || github.event_name == 'schedule')
+    steps:
+      - name: 📥 Checkout
+        uses: actions/checkout@v4
+
+      - name: 📊 Compare Tool Results
+        run: |
+          echo "📊 Comparing performance testing tool results..."
+          
+          # Extract results from previous jobs
+          k6_response_time="${{ needs.k6-load-testing.outputs.k6-response-time }}"
+          k6_throughput="${{ needs.k6-load-testing.outputs.k6-throughput }}"
+          k6_error_rate="${{ needs.k6-load-testing.outputs.k6-error-rate }}"
+          
+          artillery_response_time="${{ needs.artillery-stress-testing.outputs.artillery-response-time }}"
+          artillery_throughput="${{ needs.artillery-stress-testing.outputs.artillery-throughput }}"
+          artillery_error_rate="${{ needs.artillery-stress-testing.outputs.artillery-error-rate }}"
+          
+          jmeter_response_time="${{ needs.jmeter-endurance-testing.outputs.jmeter-response-time }}"
+          jmeter_throughput="${{ needs.jmeter-endurance-testing.outputs.jmeter-throughput }}"
+          jmeter_error_rate="${{ needs.jmeter-endurance-testing.outputs.jmeter-error-rate }}"
+          
+          # Create comparison report
+          cat > load-testing-comparison.md << EOF
+          # 📊 Load Testing Tools Comparison Report
+          
+          **Test Date**: $(date -u)
+          **Environment**: ${{ github.event.inputs.target_environment || 'staging' }}
+          **Duration**: ${{ github.event.inputs.duration || '10' }} minutes
+          **Max Users**: ${{ github.event.inputs.max_users || 'default' }}
+          
+          ## Results Summary
+          
+          | Tool | Avg Response Time (ms) | Throughput (RPS) | Error Rate (%) |
+          |------|------------------------|------------------|----------------|
+          | k6   | ${k6_response_time:-"N/A"} | ${k6_throughput:-"N/A"} | ${k6_error_rate:-"N/A"} |
+          | Artillery | ${artillery_response_time:-"N/A"} | ${artillery_throughput:-"N/A"} | ${artillery_error_rate:-"N/A"} |
+          | JMeter | ${jmeter_response_time:-"N/A"} | ${jmeter_throughput:-"N/A"} | ${jmeter_error_rate:-"N/A"} |
+          
+          ## Performance Analysis
+          
+          ### Response Time Comparison
+          - **Best**: $(echo -e "${k6_response_time:-999999}\tk6\n${artillery_response_time:-999999}\tArtillery\n${jmeter_response_time:-999999}\tJMeter" | sort -n | head -1 | cut -f2)
+          - **Difference**: Variance in response times may indicate different load patterns or measurement methodologies
+          
+          ### Throughput Analysis
+          - **Highest**: $(echo -e "${k6_throughput:-0}\tk6\n${artillery_throughput:-0}\tArtillery\n${jmeter_throughput:-0}\tJMeter" | sort -nr | head -1 | cut -f2)
+          - **Impact**: Higher throughput indicates better server capacity utilization
+          
+          ### Error Rate Assessment
+          - **Lowest**: $(echo -e "${k6_error_rate:-100}\tk6\n${artillery_error_rate:-100}\tArtillery\n${jmeter_error_rate:-100}\tJMeter" | sort -n | head -1 | cut -f2)
+          - **Threshold**: All tools should report <1% error rate for passing grade
+          
+          ## Recommendations
+          
+          1. **Tool Selection**: Each tool has strengths for different scenarios
+             - **k6**: Best for developer-friendly scripting and CI/CD integration
+             - **Artillery**: Excellent for quick stress testing and JSON configuration
+             - **JMeter**: Comprehensive for complex scenarios and enterprise features
+          
+          2. **Performance Insights**:
+             - Response times under 300ms indicate good performance
+             - Throughput should meet minimum SLA requirements
+             - Error rates must remain below 1% under normal load
+          
+          3. **Next Steps**:
+             - Investigate any tools reporting high error rates
+             - Consider capacity planning if throughput is below targets
+             - Monitor trends across multiple test runs
+          EOF
+          
+          echo "✅ Comparison report generated"
+
+      - name: 📤 Upload Comparison Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: load-testing-comparison-${{ github.run_number }}
+          path: load-testing-comparison.md
+          retention-days: 90
+
+      - name: 🚨 Performance Gate Check
+        run: |
+          echo "🚨 Checking performance gates..."
+          
+          # Define thresholds
+          max_response_time=${{ env.MAX_RESPONSE_TIME_MS }}
+          min_throughput=${{ env.MIN_THROUGHPUT_RPS }}
+          max_error_rate=${{ env.MAX_ERROR_RATE_PERCENT }}
+          
+          gate_passed=true
+          
+          # Check k6 results
+          k6_response_time="${{ needs.k6-load-testing.outputs.k6-response-time }}"
+          k6_error_rate="${{ needs.k6-load-testing.outputs.k6-error-rate }}"
+          
+          if [ -n "$k6_response_time" ] && [ $(echo "$k6_response_time > $max_response_time" | bc -l) -eq 1 ]; then
+            echo "❌ k6 response time ($k6_response_time ms) exceeds threshold ($max_response_time ms)"
+            gate_passed=false
+          fi
+          
+          if [ -n "$k6_error_rate" ] && [ $(echo "$k6_error_rate > $max_error_rate" | bc -l) -eq 1 ]; then
+            echo "❌ k6 error rate ($k6_error_rate%) exceeds threshold ($max_error_rate%)"
+            gate_passed=false
+          fi
+          
+          if [ "$gate_passed" = true ]; then
+            echo "✅ All performance gates passed"
+          else
+            echo "🚫 Performance gates failed - consider blocking deployment"
+            exit 1
+          fi

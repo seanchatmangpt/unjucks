@@ -13,7 +13,7 @@ const dependencies = [
   'glob@10.3.10'
 ];
 
-console.log('Installing core dependencies without esbuild...');
+// Installing core dependencies without esbuild...
 
 const install = spawn('npm', ['install', '--no-package-lock', '--ignore-scripts', ...dependencies], {
   stdio: 'inherit'
@@ -21,7 +21,7 @@ const install = spawn('npm', ['install', '--no-package-lock', '--ignore-scripts'
 
 install.on('close', (code) => {
   if (code === 0) {
-    console.log('✅ Core dependencies installed successfully');
+    // Core dependencies installed successfully
     
     // Test CLI
     const test = spawn('node', ['/Users/sac/unjucks/bin/unjucks.cjs', '--version'], {
@@ -30,12 +30,12 @@ install.on('close', (code) => {
     
     test.on('close', (testCode) => {
       if (testCode === 0) {
-        console.log('✅ CLI is working');
+        // CLI is working
       } else {
-        console.log('❌ CLI test failed');
+        // CLI test failed
       }
     });
   } else {
-    console.log('❌ Installation failed');
+    // Installation failed
   }
 });

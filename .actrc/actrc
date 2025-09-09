@@ -1,0 +1,44 @@
+# Act Configuration for Security Workflow Testing
+# Fortune 500 Enterprise Security Configuration
+
+# GitHub Actions Runner Images
+-P ubuntu-latest=ghcr.io/catthehacker/ubuntu:act-latest
+-P ubuntu-22.04=ghcr.io/catthehacker/ubuntu:act-22.04
+-P ubuntu-20.04=ghcr.io/catthehacker/ubuntu:act-20.04
+
+# Security-focused environment variables
+--env GITHUB_TOKEN=fake_token_for_testing
+--env RUNNER_DEBUG=1
+--env ACTIONS_STEP_DEBUG=true
+
+# Security testing secrets (mock values for local testing)
+--secret SECURITY_SCAN_TOKEN=mock_security_token
+--secret VAULT_TOKEN=mock_vault_token
+--secret AWS_ROLE_TO_ASSUME=arn:aws:iam::123456789012:role/GitHubActions-SecurityRole
+--secret AZURE_CLIENT_ID=00000000-0000-0000-0000-000000000000
+--secret GCP_WORKLOAD_IDENTITY_PROVIDER=projects/123456789/locations/global/workloadIdentityPools/github-actions/providers/github
+--secret SLACK_WEBHOOK_URL=https://hooks.slack.com/services/mock/webhook/url
+--secret COMPLIANCE_API_KEY=mock_compliance_api_key
+--secret SIEM_ENDPOINT=https://siem.example.com/api/events
+--secret SECURITY_EMAIL=security@example.com
+
+# Compliance testing configuration
+--secret SOX_EVIDENCE_BUCKET=sox-evidence-test
+--secret PCI_COMPLIANCE_API=https://pci-compliance.example.com/api
+--secret GDPR_AUDIT_ENDPOINT=https://gdpr-audit.example.com/events
+
+# Network and container configuration for security testing
+--container-architecture linux/amd64
+--container-daemon-socket ""
+--artifact-server-path /tmp/artifacts
+--no-skip-checkout
+
+# Security workflow specific configuration
+--workflows .github/workflows/security-enhanced.yml
+--workflows .github/workflows/oidc-secrets-management.yml  
+--workflows .github/workflows/compliance-automation.yml
+--workflows .github/workflows/security-monitoring.yml
+
+# Debugging and logging
+--verbose
+--log-level debug

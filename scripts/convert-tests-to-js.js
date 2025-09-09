@@ -23,7 +23,7 @@ const conversions = [
   },
   // Remove TypeScript type annotations from function parameters  
   {
-    pattern: /(\w+)\s*:\s*[A-Za-z_$][A-Za-z0-9_$]*(?:<.*?>)?(\s*[,\)])/g,
+    pattern: /(\w+)\s*:\s*[A-Za-z_$][A-Za-z0-9_$]*(?:<.*?>)?(\s*[,)])/g,
     replacement: '$1$2'
   },
   // Remove TypeScript return type annotations

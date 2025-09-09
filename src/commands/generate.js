@@ -1,10 +1,11 @@
 import { defineCommand } from "citty";
 import chalk from "chalk";
 import { SimpleFileInjectorOrchestrator } from '../lib/file-injector/simple-file-injector-orchestrator.js';
-import { addCommonFilters } from '../lib/nunjucks-filters.js';
 import { PerfectTemplateEngine } from '../lib/template-engine-perfect.js';
 import { SecureTemplateEngine } from '../lib/template-engine-secure.js';
 import { createSecureNunjucksEnvironment } from '../lib/nunjucks-env.js';
+import { handleEnterpriseError } from '../lib/enterprise-error-handler.js';
+import { TemplateError, FileSystemError, ValidationError } from '../lib/actionable-error.js';
 import nunjucks from 'nunjucks';
 import fs from 'fs-extra';
 import path from 'node:path';
@@ -66,7 +67,10 @@ class Generator {
       
       return generators;
     } catch (error) {
-      console.error('Error listing generators:', error);
+      await handleEnterpriseError(new FileSystemError('listGenerators', this.templatesDir, error), {
+        operation: 'list_generators',
+        metadata: { templatesDir: this.templatesDir }
+      });
       return [];
     }
   }
@@ -697,8 +701,16 @@ export const generateCommand = defineCommand({
         ? JSON.parse(process.env.UNJUCKS_POSITIONAL_ARGS)
         : [];
 
-      // Use basic fallback parsing for positional args
+      // CRITICAL FIX: Parse generator and template from original positional args
       if (originalPositionalArgs.length >= 2) {
+        // Override generator and template from positional args if not already set
+        if (!generatorName && originalPositionalArgs[0]) {
+          generatorName = originalPositionalArgs[0];
+        }
+        if (!templateName && originalPositionalArgs[1]) {
+          templateName = originalPositionalArgs[1];
+        }
+        
         templateVariables = fallbackPositionalParsing(originalPositionalArgs);
       }
 

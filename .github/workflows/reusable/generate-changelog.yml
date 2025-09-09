@@ -1,0 +1,221 @@
+name: Generate Changelog
+description: Generate changelog from conventional commits and PRs
+
+inputs:
+  version:
+    description: 'Version for the changelog'
+    required: true
+  tag:
+    description: 'Tag for the changelog'
+    required: true
+  format:
+    description: 'Changelog format (markdown, json, html)'
+    required: false
+    default: 'markdown'
+  include-prs:
+    description: 'Include pull request information'
+    required: false
+    default: 'true'
+  template:
+    description: 'Changelog template (conventional, keepachangelog, custom)'
+    required: false
+    default: 'conventional'
+
+outputs:
+  changelog:
+    description: 'Generated changelog content'
+    value: ${{ steps.generate.outputs.changelog }}
+  changelog-file:
+    description: 'Path to generated changelog file'
+    value: ${{ steps.generate.outputs.file }}
+  has-breaking-changes:
+    description: 'Whether changelog contains breaking changes'
+    value: ${{ steps.generate.outputs.has-breaking-changes }}
+
+runs:
+  using: composite
+  steps:
+    - name: Install changelog tools
+      shell: bash
+      run: |
+        npm install -g conventional-changelog-cli conventional-commits-parser
+        
+    - name: Generate changelog
+      id: generate
+      shell: bash
+      env:
+        GITHUB_TOKEN: ${{ github.token }}
+      run: |
+        set -e
+        
+        VERSION="${{ inputs.version }}"
+        TAG="${{ inputs.tag }}"
+        
+        echo "🔍 Generating changelog for $VERSION"
+        
+        # Get the range for changelog
+        LAST_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
+        if [[ -n "$LAST_TAG" ]]; then
+          COMMIT_RANGE="${LAST_TAG}..HEAD"
+          echo "📅 Commit range: $COMMIT_RANGE"
+        else
+          COMMIT_RANGE="HEAD"
+          echo "📅 First release - using all commits"
+        fi
+        
+        # Generate base changelog
+        CHANGELOG_FILE="CHANGELOG_${VERSION}.md"
+        
+        case "${{ inputs.template }}" in
+          conventional)
+            # Use conventional-changelog for Angular-style changelog
+            conventional-changelog -p angular -r 1 -s -i "$CHANGELOG_FILE" --commit-path . \
+              --preset=angular --pkg-path=./package.json
+            ;;
+          keepachangelog)
+            # Generate Keep a Changelog format
+            cat > "$CHANGELOG_FILE" << EOF
+        # Changelog
+        
+        All notable changes to this project will be documented in this file.
+        
+        The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+        and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+        
+        ## [$VERSION] - $(date +%Y-%m-%d)
+        
+        EOF
+            ;;
+          *)
+            echo "Unknown template: ${{ inputs.template }}"
+            exit 1
+            ;;
+        esac
+        
+        # Enhance with commit analysis
+        echo "🔍 Analyzing commits for detailed changelog..."
+        
+        BREAKING_CHANGES=""
+        FEATURES=""
+        FIXES=""
+        PERFORMANCE=""
+        DEPRECATIONS=""
+        SECURITY=""
+        CHORES=""
+        
+        # Parse commits
+        while IFS= read -r commit_line; do
+          if [[ -n "$commit_line" ]]; then
+            HASH=$(echo "$commit_line" | cut -d'|' -f1)
+            SUBJECT=$(echo "$commit_line" | cut -d'|' -f2)
+            BODY=$(git log --format="%b" -n 1 "$HASH")
+            
+            # Categorize commits
+            if [[ $SUBJECT =~ ^[a-z]+(\(.+\))?!: || $BODY =~ BREAKING[[:space:]]CHANGE ]]; then
+              BREAKING_CHANGES="$BREAKING_CHANGES\n- $SUBJECT ($HASH)"
+            elif [[ $SUBJECT =~ ^(feat|feature)(\(.+\))?: ]]; then
+              FEATURES="$FEATURES\n- $SUBJECT ($HASH)"
+            elif [[ $SUBJECT =~ ^(fix|bugfix)(\(.+\))?: ]]; then
+              FIXES="$FIXES\n- $SUBJECT ($HASH)"
+            elif [[ $SUBJECT =~ ^perf(\(.+\))?: ]]; then
+              PERFORMANCE="$PERFORMANCE\n- $SUBJECT ($HASH)"
+            elif [[ $SUBJECT =~ ^security(\(.+\))?: ]]; then
+              SECURITY="$SECURITY\n- $SUBJECT ($HASH)"
+            elif [[ $SUBJECT =~ ^(chore|docs|style|refactor|test|ci)(\(.+\))?: ]]; then
+              CHORES="$CHORES\n- $SUBJECT ($HASH)"
+            fi
+          fi
+        done <<< "$(git log --format='%h|%s' $COMMIT_RANGE)"
+        
+        # Add PR information if requested
+        if [[ "${{ inputs.include-prs }}" == "true" ]]; then
+          echo "🔍 Fetching pull request information..."
+          
+          # Get merged PRs in this release
+          if command -v gh &> /dev/null; then
+            echo -e "\n### 📋 Pull Requests\n" >> "$CHANGELOG_FILE"
+            
+            # Find PRs merged since last tag
+            if [[ -n "$LAST_TAG" ]]; then
+              SINCE_DATE=$(git log -1 --format="%ci" "$LAST_TAG" | cut -d' ' -f1)
+              gh pr list --state merged --limit 50 --json number,title,url,mergedAt \
+                --jq ".[] | select(.mergedAt >= \"$SINCE_DATE\") | \"- [#\\(.number)]\\(.url) \\(.title)\"" \
+                >> "$CHANGELOG_FILE" || echo "Could not fetch PRs"
+            fi
+          fi
+        fi
+        
+        # Build enhanced changelog
+        if [[ "${{ inputs.template }}" == "keepachangelog" ]]; then
+          {
+            if [[ -n "$BREAKING_CHANGES" ]]; then
+              echo -e "\n### ⚠️ BREAKING CHANGES"
+              echo -e "$BREAKING_CHANGES"
+            fi
+            
+            if [[ -n "$SECURITY" ]]; then
+              echo -e "\n### 🛡️ Security"
+              echo -e "$SECURITY"
+            fi
+            
+            if [[ -n "$FEATURES" ]]; then
+              echo -e "\n### ✨ Added"
+              echo -e "$FEATURES"
+            fi
+            
+            if [[ -n "$FIXES" ]]; then
+              echo -e "\n### 🐛 Fixed"
+              echo -e "$FIXES"
+            fi
+            
+            if [[ -n "$PERFORMANCE" ]]; then
+              echo -e "\n### ⚡ Performance"
+              echo -e "$PERFORMANCE"
+            fi
+            
+            if [[ -n "$CHORES" ]]; then
+              echo -e "\n### 🔧 Maintenance"
+              echo -e "$CHORES"
+            fi
+          } >> "$CHANGELOG_FILE"
+        fi
+        
+        # Check for breaking changes
+        HAS_BREAKING="false"
+        if [[ -n "$BREAKING_CHANGES" ]]; then
+          HAS_BREAKING="true"
+        fi
+        
+        # Read the generated changelog
+        CHANGELOG_CONTENT=$(cat "$CHANGELOG_FILE" | head -200)  # Limit size for GitHub output
+        
+        # Escape for JSON output
+        CHANGELOG_ESCAPED=$(echo "$CHANGELOG_CONTENT" | jq -Rs .)
+        
+        echo "📝 Generated changelog:"
+        echo "$CHANGELOG_CONTENT"
+        
+        # Set outputs
+        echo "changelog=$CHANGELOG_ESCAPED" >> $GITHUB_OUTPUT
+        echo "file=$CHANGELOG_FILE" >> $GITHUB_OUTPUT
+        echo "has-breaking-changes=$HAS_BREAKING" >> $GITHUB_OUTPUT
+        
+        # Also create formats if requested
+        if [[ "${{ inputs.format }}" == "json" ]]; then
+          JSON_FILE="changelog-${VERSION}.json"
+          cat > "$JSON_FILE" << EOF
+        {
+          "version": "$VERSION",
+          "date": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+          "breaking_changes": $(echo "$BREAKING_CHANGES" | jq -Rs 'split("\n") | map(select(. != ""))'),
+          "features": $(echo "$FEATURES" | jq -Rs 'split("\n") | map(select(. != ""))'),
+          "fixes": $(echo "$FIXES" | jq -Rs 'split("\n") | map(select(. != ""))'),
+          "performance": $(echo "$PERFORMANCE" | jq -Rs 'split("\n") | map(select(. != ""))'),
+          "security": $(echo "$SECURITY" | jq -Rs 'split("\n") | map(select(. != ""))'),
+          "chores": $(echo "$CHORES" | jq -Rs 'split("\n") | map(select(. != ""))')
+        }
+        EOF
+          echo "📄 JSON changelog: $JSON_FILE"
+        fi
+        
+        echo "✅ Changelog generation complete"

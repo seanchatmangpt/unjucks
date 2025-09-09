@@ -1,0 +1,99 @@
+{
+  "pci_dss_compliance": {
+    "version": "4.0",
+    "requirements": {
+      "1": {
+        "name": "Install and maintain network security controls",
+        "sub_requirements": [
+          "1.1 Processes and mechanisms for network security controls",
+          "1.2 Network security controls (NSCs) are configured and maintained",
+          "1.3 Network access to and from the cardholder data environment is restricted",
+          "1.4 Network connections between trusted and untrusted networks are controlled",
+          "1.5 Risks to the CDE from computing devices in connected network locations are mitigated"
+        ],
+        "automation": {
+          "firewall_rule_validation": true,
+          "network_segmentation_testing": true,
+          "access_control_monitoring": true
+        }
+      },
+      "2": {
+        "name": "Apply secure configurations to all system components",
+        "sub_requirements": [
+          "2.1 Processes and mechanisms for applying secure configurations",
+          "2.2 System components are configured securely",
+          "2.3 Wireless environments are configured securely"
+        ],
+        "automation": {
+          "configuration_scanning": true,
+          "hardening_validation": true,
+          "wireless_security_monitoring": true
+        }
+      },
+      "3": {
+        "name": "Protect stored account data",
+        "sub_requirements": [
+          "3.1 Processes and mechanisms for protecting stored account data",
+          "3.2 Storage of account data is kept to a minimum",
+          "3.3 Sensitive authentication data is not stored after authorization",
+          "3.4 Access to displays of full PAN and ability to copy cardholder data are restricted",
+          "3.5 Primary account number (PAN) is protected wherever it is stored",
+          "3.6 Cryptographic keys used to protect stored account data are protected",
+          "3.7 Where cryptography is used to protect stored account data, key management processes and procedures are defined and implemented"
+        ],
+        "automation": {
+          "data_discovery": true,
+          "encryption_validation": true,
+          "key_management_monitoring": true
+        }
+      },
+      "4": {
+        "name": "Protect cardholder data with strong cryptography during transmission over open, public networks",
+        "sub_requirements": [
+          "4.1 Processes and mechanisms for protecting cardholder data with strong cryptography during transmission",
+          "4.2 PAN is protected with strong cryptography during transmission"
+        ],
+        "automation": {
+          "encryption_in_transit_validation": true,
+          "certificate_monitoring": true,
+          "protocol_compliance_checking": true
+        }
+      },
+      "5": {
+        "name": "Protect all systems and networks from malicious software",
+        "sub_requirements": [
+          "5.1 Processes and mechanisms for protecting all systems and networks from malicious software",
+          "5.2 Malicious software (malware) is prevented, or detected and addressed",
+          "5.3 Anti-malware mechanisms and processes are active, maintained, and monitored",
+          "5.4 Anti-malware mechanisms cannot be disabled or altered by users"
+        ],
+        "automation": {
+          "malware_scanning": true,
+          "antivirus_status_monitoring": true,
+          "threat_detection": true
+        }
+      },
+      "6": {
+        "name": "Develop and maintain secure systems and software",
+        "sub_requirements": [
+          "6.1 Processes and mechanisms for developing and maintaining secure systems and software",
+          "6.2 Bespoke and custom software are developed securely",
+          "6.3 Security vulnerabilities are identified and addressed",
+          "6.4 Public-facing web applications are protected against attacks",
+          "6.5 Changes to all system components are managed securely"
+        ],
+        "automation": {
+          "vulnerability_scanning": true,
+          "code_security_analysis": true,
+          "change_management_validation": true
+        }
+      }
+    },
+    "validation_levels": {
+      "level_1": "Merchants processing over 6 million card transactions annually",
+      "level_2": "Merchants processing 1 to 6 million transactions annually",
+      "level_3": "Merchants processing 20,000 to 1 million e-commerce transactions annually",
+      "level_4": "Merchants processing fewer than 20,000 e-commerce transactions annually"
+    }
+  }
+}

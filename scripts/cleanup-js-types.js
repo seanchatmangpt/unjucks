@@ -22,7 +22,7 @@ const cleanupPatterns = [
   // Remove TypeScript function parameter type annotations  
   {
     name: 'Function parameter types',
-    pattern: /(\w+):\s*[A-Za-z_$][A-Za-z0-9_$<>[\]|&]*(\s*[,\)])/g,
+    pattern: /(\w+):\s*[A-Za-z_$][A-Za-z0-9_$<>[\]|&]*(\s*[,)])/g,
     replacement: '$1$2'
   },
   // Remove TypeScript return type annotations

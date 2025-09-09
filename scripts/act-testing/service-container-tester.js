@@ -239,7 +239,7 @@ class ServiceContainerTester {
     
     try {
       // Test with act's service container execution
-      const command = `act push -W "${workflowInfo.path}" -j "${jobId}" --bind`;
+      let command = `act push -W "${workflowInfo.path}" -j "${jobId}" --bind`;
       
       if (this.options.dryRun) {
         command += ' --dry-run';

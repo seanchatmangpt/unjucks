@@ -248,7 +248,7 @@ class BuildValidator {
     }
   }
 
-  validateFilePermissions() {
+  async validateFilePermissions() {
     console.log('🔐 Validating file permissions...');
     
     try {
@@ -312,7 +312,7 @@ class BuildValidator {
     this.validateBuildArtifacts();
     this.validateDependencies();
     this.validateScripts();
-    this.validateFilePermissions();
+    await this.validateFilePermissions();
     
     this.generateReport();
     return this.validationResults;

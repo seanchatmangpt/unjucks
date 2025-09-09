@@ -1,0 +1,662 @@
+name: 🚨 Performance Alerting & Notification System
+
+# Real-time performance alerting with Slack, PagerDuty, email notifications
+# and automated incident response for performance degradation
+
+on:
+  workflow_dispatch:
+    inputs:
+      alert_type:
+        description: 'Type of alert to test'
+        required: true
+        default: 'all'
+        type: choice
+        options:
+          - performance-degradation
+          - high-error-rate
+          - service-outage
+          - capacity-threshold
+          - all
+      severity:
+        description: 'Alert severity level'
+        required: true
+        default: 'warning'
+        type: choice
+        options:
+          - info
+          - warning
+          - critical
+          - emergency
+  repository_dispatch:
+    types: [performance-alert]
+  workflow_call:
+    inputs:
+      metric_name:
+        required: true
+        type: string
+      current_value:
+        required: true
+        type: string
+      threshold:
+        required: true
+        type: string
+      environment:
+        required: true
+        type: string
+
+env:
+  # Alert thresholds
+  RESPONSE_TIME_WARNING_MS: 300
+  RESPONSE_TIME_CRITICAL_MS: 500
+  ERROR_RATE_WARNING_PERCENT: 2.0
+  ERROR_RATE_CRITICAL_PERCENT: 5.0
+  CPU_USAGE_WARNING_PERCENT: 75
+  CPU_USAGE_CRITICAL_PERCENT: 90
+  MEMORY_USAGE_WARNING_PERCENT: 80
+  MEMORY_USAGE_CRITICAL_PERCENT: 95
+
+jobs:
+  # ==========================================
+  # PERFORMANCE MONITORING & DETECTION
+  # ==========================================
+  performance-monitoring:
+    name: 📊 Performance Monitoring & Detection
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    outputs:
+      alert-triggered: ${{ steps.detect.outputs.alert-triggered }}
+      alert-type: ${{ steps.detect.outputs.alert-type }}
+      alert-severity: ${{ steps.detect.outputs.alert-severity }}
+      alert-message: ${{ steps.detect.outputs.alert-message }}
+    steps:
+      - name: 📥 Checkout
+        uses: actions/checkout@v4
+
+      - name: 📊 Fetch Performance Metrics
+        id: metrics
+        run: |
+          echo "📊 Fetching current performance metrics..."
+          
+          environment="${{ github.event.inputs.environment || inputs.environment || 'staging' }}"
+          target_url="https://${environment}.unjucks.app"
+          
+          # Perform health check with timing
+          start_time=$(date +%s%N)
+          response=$(curl -s -w "%{http_code},%{time_total},%{time_connect}" -o /dev/null "$target_url" || echo "000,99.999,99.999")
+          end_time=$(date +%s%N)
+          
+          # Parse response
+          IFS=',' read -r http_code response_time connect_time <<< "$response"
+          response_time_ms=$(echo "$response_time * 1000" | bc -l | cut -d. -f1)
+          
+          # Get system metrics (mock data for demo)
+          cpu_usage=$(echo "scale=1; $(shuf -i 10-95 -n 1)" | bc)
+          memory_usage=$(echo "scale=1; $(shuf -i 20-98 -n 1)" | bc)
+          error_count=$(shuf -i 0-50 -n 1)
+          total_requests=$(shuf -i 1000-10000 -n 1)
+          error_rate=$(echo "scale=2; $error_count * 100 / $total_requests" | bc -l)
+          
+          echo "📊 Current Metrics:"
+          echo "  HTTP Status: $http_code"
+          echo "  Response Time: ${response_time_ms}ms"
+          echo "  CPU Usage: ${cpu_usage}%"
+          echo "  Memory Usage: ${memory_usage}%"
+          echo "  Error Rate: ${error_rate}%"
+          
+          echo "http-code=$http_code" >> $GITHUB_OUTPUT
+          echo "response-time=$response_time_ms" >> $GITHUB_OUTPUT
+          echo "cpu-usage=$cpu_usage" >> $GITHUB_OUTPUT
+          echo "memory-usage=$memory_usage" >> $GITHUB_OUTPUT
+          echo "error-rate=$error_rate" >> $GITHUB_OUTPUT
+
+      - name: 🔍 Alert Detection Logic
+        id: detect
+        run: |
+          echo "🔍 Analyzing metrics for alert conditions..."
+          
+          http_code="${{ steps.metrics.outputs.http-code }}"
+          response_time="${{ steps.metrics.outputs.response-time }}"
+          cpu_usage="${{ steps.metrics.outputs.cpu-usage }}"
+          memory_usage="${{ steps.metrics.outputs.memory-usage }}"
+          error_rate="${{ steps.metrics.outputs.error-rate }}"
+          
+          alert_triggered=false
+          alert_type=""
+          alert_severity=""
+          alert_message=""
+          
+          # Check for service outage
+          if [ "$http_code" != "200" ]; then
+            alert_triggered=true
+            alert_type="service-outage"
+            alert_severity="critical"
+            alert_message="🚨 Service Outage: HTTP $http_code response from ${{ github.event.inputs.environment || 'staging' }} environment"
+          
+          # Check response time thresholds
+          elif [ $(echo "$response_time > ${{ env.RESPONSE_TIME_CRITICAL_MS }}" | bc -l) -eq 1 ]; then
+            alert_triggered=true
+            alert_type="performance-degradation"
+            alert_severity="critical"
+            alert_message="🐌 Critical Response Time: ${response_time}ms (threshold: ${{ env.RESPONSE_TIME_CRITICAL_MS }}ms)"
+          
+          elif [ $(echo "$response_time > ${{ env.RESPONSE_TIME_WARNING_MS }}" | bc -l) -eq 1 ]; then
+            alert_triggered=true
+            alert_type="performance-degradation"
+            alert_severity="warning"
+            alert_message="⚠️ High Response Time: ${response_time}ms (threshold: ${{ env.RESPONSE_TIME_WARNING_MS }}ms)"
+          
+          # Check error rate thresholds
+          elif [ $(echo "$error_rate > ${{ env.ERROR_RATE_CRITICAL_PERCENT }}" | bc -l) -eq 1 ]; then
+            alert_triggered=true
+            alert_type="high-error-rate"
+            alert_severity="critical"
+            alert_message="💥 Critical Error Rate: ${error_rate}% (threshold: ${{ env.ERROR_RATE_CRITICAL_PERCENT }}%)"
+          
+          elif [ $(echo "$error_rate > ${{ env.ERROR_RATE_WARNING_PERCENT }}" | bc -l) -eq 1 ]; then
+            alert_triggered=true
+            alert_type="high-error-rate"
+            alert_severity="warning"
+            alert_message="⚠️ High Error Rate: ${error_rate}% (threshold: ${{ env.ERROR_RATE_WARNING_PERCENT }}%)"
+          
+          # Check system resource thresholds
+          elif [ $(echo "$cpu_usage > ${{ env.CPU_USAGE_CRITICAL_PERCENT }}" | bc -l) -eq 1 ]; then
+            alert_triggered=true
+            alert_type="capacity-threshold"
+            alert_severity="critical"
+            alert_message="🔥 Critical CPU Usage: ${cpu_usage}% (threshold: ${{ env.CPU_USAGE_CRITICAL_PERCENT }}%)"
+          
+          elif [ $(echo "$memory_usage > ${{ env.MEMORY_USAGE_CRITICAL_PERCENT }}" | bc -l) -eq 1 ]; then
+            alert_triggered=true
+            alert_type="capacity-threshold"
+            alert_severity="critical"
+            alert_message="💾 Critical Memory Usage: ${memory_usage}% (threshold: ${{ env.MEMORY_USAGE_CRITICAL_PERCENT }}%)"
+          fi
+          
+          # For manual testing, trigger alert if requested
+          if [ "${{ github.event.inputs.alert_type }}" != "" ] && [ "${{ github.event.inputs.alert_type }}" != "all" ]; then
+            alert_triggered=true
+            alert_type="${{ github.event.inputs.alert_type }}"
+            alert_severity="${{ github.event.inputs.severity }}"
+            alert_message="🧪 Test Alert: ${{ github.event.inputs.alert_type }} with severity ${{ github.event.inputs.severity }}"
+          fi
+          
+          echo "Alert triggered: $alert_triggered"
+          echo "Alert type: $alert_type"
+          echo "Alert severity: $alert_severity"
+          echo "Alert message: $alert_message"
+          
+          echo "alert-triggered=$alert_triggered" >> $GITHUB_OUTPUT
+          echo "alert-type=$alert_type" >> $GITHUB_OUTPUT
+          echo "alert-severity=$alert_severity" >> $GITHUB_OUTPUT
+          echo "alert-message=$alert_message" >> $GITHUB_OUTPUT
+
+  # ==========================================
+  # SLACK NOTIFICATIONS
+  # ==========================================
+  slack-notifications:
+    name: 💬 Slack Notifications
+    runs-on: ubuntu-latest
+    needs: performance-monitoring
+    if: needs.performance-monitoring.outputs.alert-triggered == 'true'
+    timeout-minutes: 5
+    steps:
+      - name: 💬 Send Slack Alert
+        uses: slackapi/slack-github-action@v1.25.0
+        with:
+          webhook-url: ${{ secrets.SLACK_WEBHOOK_URL }}
+          payload: |
+            {
+              "text": "🚨 Performance Alert - Unjucks",
+              "blocks": [
+                {
+                  "type": "header",
+                  "text": {
+                    "type": "plain_text",
+                    "text": "${{ needs.performance-monitoring.outputs.alert-message }}"
+                  }
+                },
+                {
+                  "type": "section",
+                  "fields": [
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Environment:*\n${{ github.event.inputs.environment || 'staging' }}"
+                    },
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Severity:*\n${{ needs.performance-monitoring.outputs.alert-severity }}"
+                    },
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Alert Type:*\n${{ needs.performance-monitoring.outputs.alert-type }}"
+                    },
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Timestamp:*\n$(date -u)"
+                    }
+                  ]
+                },
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "*Performance Details:*\n• Response Time: ${{ needs.performance-monitoring.outputs.response-time || 'N/A' }}ms\n• Error Rate: ${{ needs.performance-monitoring.outputs.error-rate || 'N/A' }}%\n• CPU Usage: ${{ needs.performance-monitoring.outputs.cpu-usage || 'N/A' }}%\n• Memory Usage: ${{ needs.performance-monitoring.outputs.memory-usage || 'N/A' }}%"
+                  }
+                },
+                {
+                  "type": "actions",
+                  "elements": [
+                    {
+                      "type": "button",
+                      "text": {
+                        "type": "plain_text",
+                        "text": "View Workflow"
+                      },
+                      "url": "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+                    },
+                    {
+                      "type": "button",
+                      "text": {
+                        "type": "plain_text",
+                        "text": "Performance Dashboard"
+                      },
+                      "url": "https://${{ github.event.inputs.environment || 'staging' }}.unjucks.app/dashboard"
+                    }
+                  ]
+                }
+              ]
+            }
+        if: ${{ github.event_name != 'act' }}
+
+      - name: 💬 Send Slack Recovery Alert
+        uses: slackapi/slack-github-action@v1.25.0
+        with:
+          webhook-url: ${{ secrets.SLACK_WEBHOOK_URL }}
+          payload: |
+            {
+              "text": "✅ Performance Recovered - Unjucks",
+              "blocks": [
+                {
+                  "type": "header",
+                  "text": {
+                    "type": "plain_text",
+                    "text": "✅ Performance Alert Resolved"
+                  }
+                },
+                {
+                  "type": "section",
+                  "fields": [
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Environment:*\n${{ github.event.inputs.environment || 'staging' }}"
+                    },
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Recovery Time:*\n$(date -u)"
+                    }
+                  ]
+                }
+              ]
+            }
+        if: ${{ github.event_name != 'act' }} && needs.performance-monitoring.outputs.alert-severity == 'info'
+
+  # ==========================================
+  # PAGERDUTY INTEGRATION
+  # ==========================================
+  pagerduty-alerts:
+    name: 📟 PagerDuty Alerts
+    runs-on: ubuntu-latest
+    needs: performance-monitoring
+    if: needs.performance-monitoring.outputs.alert-triggered == 'true' && (needs.performance-monitoring.outputs.alert-severity == 'critical' || needs.performance-monitoring.outputs.alert-severity == 'emergency')
+    timeout-minutes: 5
+    steps:
+      - name: 📟 Send PagerDuty Incident
+        run: |
+          echo "📟 Creating PagerDuty incident..."
+          
+          # Create incident payload
+          incident_payload=$(cat << EOF
+          {
+            "incident": {
+              "type": "incident",
+              "title": "${{ needs.performance-monitoring.outputs.alert-message }}",
+              "service": {
+                "id": "${{ secrets.PAGERDUTY_SERVICE_ID }}",
+                "type": "service_reference"
+              },
+              "priority": {
+                "id": "${{ secrets.PAGERDUTY_PRIORITY_ID }}",
+                "type": "priority_reference"
+              },
+              "urgency": "${{ needs.performance-monitoring.outputs.alert-severity == 'emergency' && 'high' || 'low' }}",
+              "body": {
+                "type": "incident_body",
+                "details": "Performance alert triggered in ${{ github.event.inputs.environment || 'staging' }} environment.\n\nDetails:\n- Alert Type: ${{ needs.performance-monitoring.outputs.alert-type }}\n- Severity: ${{ needs.performance-monitoring.outputs.alert-severity }}\n- Workflow: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+              },
+              "escalation_policy": {
+                "id": "${{ secrets.PAGERDUTY_ESCALATION_POLICY_ID }}",
+                "type": "escalation_policy_reference"
+              }
+            }
+          }
+          EOF
+          )
+          
+          # Send to PagerDuty
+          if [ -n "${{ secrets.PAGERDUTY_API_TOKEN }}" ]; then
+            curl -X POST "https://api.pagerduty.com/incidents" \
+              -H "Authorization: Token token=${{ secrets.PAGERDUTY_API_TOKEN }}" \
+              -H "Content-Type: application/json" \
+              -H "From: github-actions@unjucks.app" \
+              -d "$incident_payload"
+            
+            echo "✅ PagerDuty incident created"
+          else
+            echo "⚠️ PagerDuty API token not configured"
+          fi
+
+  # ==========================================
+  # EMAIL NOTIFICATIONS
+  # ==========================================
+  email-notifications:
+    name: 📧 Email Notifications
+    runs-on: ubuntu-latest
+    needs: performance-monitoring
+    if: needs.performance-monitoring.outputs.alert-triggered == 'true'
+    timeout-minutes: 5
+    steps:
+      - name: 📧 Send Email Alert
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: ${{ secrets.SMTP_SERVER }}
+          server_port: ${{ secrets.SMTP_PORT }}
+          username: ${{ secrets.SMTP_USERNAME }}
+          password: ${{ secrets.SMTP_PASSWORD }}
+          subject: "🚨 Unjucks Performance Alert - ${{ needs.performance-monitoring.outputs.alert-severity }}"
+          to: ${{ secrets.ALERT_EMAIL_LIST }}
+          from: "Unjucks Monitoring <noreply@unjucks.app>"
+          body: |
+            Performance Alert: ${{ needs.performance-monitoring.outputs.alert-message }}
+            
+            Environment: ${{ github.event.inputs.environment || 'staging' }}
+            Severity: ${{ needs.performance-monitoring.outputs.alert-severity }}
+            Alert Type: ${{ needs.performance-monitoring.outputs.alert-type }}
+            Timestamp: $(date -u)
+            
+            Performance Metrics:
+            - Response Time: ${{ needs.performance-monitoring.outputs.response-time || 'N/A' }}ms
+            - Error Rate: ${{ needs.performance-monitoring.outputs.error-rate || 'N/A' }}%
+            - CPU Usage: ${{ needs.performance-monitoring.outputs.cpu-usage || 'N/A' }}%
+            - Memory Usage: ${{ needs.performance-monitoring.outputs.memory-usage || 'N/A' }}%
+            
+            Actions Required:
+            1. Investigate the root cause immediately
+            2. Check application logs and system metrics
+            3. Consider scaling resources if capacity issues
+            4. Update incident status once resolved
+            
+            Workflow Details: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          html_body: |
+            <h2>🚨 Unjucks Performance Alert</h2>
+            <p><strong>Alert:</strong> ${{ needs.performance-monitoring.outputs.alert-message }}</p>
+            
+            <table border="1" cellpadding="5" cellspacing="0">
+              <tr><th>Environment</th><td>${{ github.event.inputs.environment || 'staging' }}</td></tr>
+              <tr><th>Severity</th><td><span style="color: ${{ needs.performance-monitoring.outputs.alert-severity == 'critical' && 'red' || 'orange' }};">${{ needs.performance-monitoring.outputs.alert-severity }}</span></td></tr>
+              <tr><th>Alert Type</th><td>${{ needs.performance-monitoring.outputs.alert-type }}</td></tr>
+              <tr><th>Timestamp</th><td>$(date -u)</td></tr>
+            </table>
+            
+            <h3>Performance Metrics</h3>
+            <ul>
+              <li><strong>Response Time:</strong> ${{ needs.performance-monitoring.outputs.response-time || 'N/A' }}ms</li>
+              <li><strong>Error Rate:</strong> ${{ needs.performance-monitoring.outputs.error-rate || 'N/A' }}%</li>
+              <li><strong>CPU Usage:</strong> ${{ needs.performance-monitoring.outputs.cpu-usage || 'N/A' }}%</li>
+              <li><strong>Memory Usage:</strong> ${{ needs.performance-monitoring.outputs.memory-usage || 'N/A' }}%</li>
+            </ul>
+            
+            <h3>Actions Required</h3>
+            <ol>
+              <li>Investigate the root cause immediately</li>
+              <li>Check application logs and system metrics</li>
+              <li>Consider scaling resources if capacity issues</li>
+              <li>Update incident status once resolved</li>
+            </ol>
+            
+            <p><a href="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}">View Workflow Details</a></p>
+        if: ${{ github.event_name != 'act' }}
+
+  # ==========================================
+  # AUTOMATED INCIDENT RESPONSE
+  # ==========================================
+  incident-response:
+    name: 🤖 Automated Incident Response
+    runs-on: ubuntu-latest
+    needs: performance-monitoring
+    if: needs.performance-monitoring.outputs.alert-triggered == 'true'
+    timeout-minutes: 15
+    steps:
+      - name: 📥 Checkout
+        uses: actions/checkout@v4
+
+      - name: 🔧 Create GitHub Issue
+        if: needs.performance-monitoring.outputs.alert-severity == 'critical'
+        run: |
+          echo "🔧 Creating GitHub issue for critical performance alert..."
+          
+          issue_body="## 🚨 Performance Alert: ${{ needs.performance-monitoring.outputs.alert-type }}
+
+          **Alert Message:** ${{ needs.performance-monitoring.outputs.alert-message }}
+
+          ### Environment Details
+          - **Environment:** ${{ github.event.inputs.environment || 'staging' }}
+          - **Severity:** ${{ needs.performance-monitoring.outputs.alert-severity }}
+          - **Timestamp:** $(date -u)
+
+          ### Performance Metrics
+          - **Response Time:** ${{ needs.performance-monitoring.outputs.response-time || 'N/A' }}ms
+          - **Error Rate:** ${{ needs.performance-monitoring.outputs.error-rate || 'N/A' }}%
+          - **CPU Usage:** ${{ needs.performance-monitoring.outputs.cpu-usage || 'N/A' }}%
+          - **Memory Usage:** ${{ needs.performance-monitoring.outputs.memory-usage || 'N/A' }}%
+
+          ### Investigation Checklist
+          - [ ] Check application logs for errors
+          - [ ] Review system metrics and resource usage
+          - [ ] Verify database performance
+          - [ ] Check third-party service dependencies
+          - [ ] Review recent deployments or changes
+          - [ ] Consider scaling resources if needed
+
+          ### Workflow
+          [View Workflow Run](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
+
+          ---
+          *This issue was automatically created by the performance monitoring system.*"
+
+          gh issue create \
+            --title "🚨 Performance Alert: ${{ needs.performance-monitoring.outputs.alert-type }} in ${{ github.event.inputs.environment || 'staging' }}" \
+            --body "$issue_body" \
+            --label "performance,alert,critical" \
+            --assignee "${{ github.actor }}"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: 📊 Collect Diagnostic Information
+        run: |
+          echo "📊 Collecting diagnostic information..."
+          
+          mkdir -p diagnostics
+          
+          # System information
+          cat > diagnostics/system-info.txt << EOF
+          Performance Alert Diagnostics
+          ============================
+          
+          Alert Details:
+          - Type: ${{ needs.performance-monitoring.outputs.alert-type }}
+          - Severity: ${{ needs.performance-monitoring.outputs.alert-severity }}
+          - Message: ${{ needs.performance-monitoring.outputs.alert-message }}
+          - Environment: ${{ github.event.inputs.environment || 'staging' }}
+          - Timestamp: $(date -u)
+          
+          Performance Metrics:
+          - Response Time: ${{ needs.performance-monitoring.outputs.response-time || 'N/A' }}ms
+          - Error Rate: ${{ needs.performance-monitoring.outputs.error-rate || 'N/A' }}%
+          - CPU Usage: ${{ needs.performance-monitoring.outputs.cpu-usage || 'N/A' }}%
+          - Memory Usage: ${{ needs.performance-monitoring.outputs.memory-usage || 'N/A' }}%
+          
+          GitHub Context:
+          - Repository: ${{ github.repository }}
+          - Ref: ${{ github.ref }}
+          - SHA: ${{ github.sha }}
+          - Actor: ${{ github.actor }}
+          - Workflow: ${{ github.workflow }}
+          - Run ID: ${{ github.run_id }}
+          EOF
+          
+          # Performance recommendations
+          cat > diagnostics/recommendations.md << EOF
+          # Performance Alert Response Recommendations
+          
+          ## Alert: ${{ needs.performance-monitoring.outputs.alert-type }}
+          
+          ### Immediate Actions
+          
+          1. **Verify Current Status**
+             - Check if the issue is still occurring
+             - Monitor real-time metrics
+             - Assess user impact
+          
+          2. **Resource Analysis**
+             - CPU: ${{ needs.performance-monitoring.outputs.cpu-usage || 'N/A' }}%
+             - Memory: ${{ needs.performance-monitoring.outputs.memory-usage || 'N/A' }}%
+             - Response Time: ${{ needs.performance-monitoring.outputs.response-time || 'N/A' }}ms
+          
+          3. **Investigation Steps**
+             - Review application logs
+             - Check database performance
+             - Verify third-party services
+             - Analyze recent deployments
+          
+          ### Resolution Strategies
+          
+          #### For High Response Time:
+          - Scale application instances
+          - Optimize database queries
+          - Review caching strategies
+          - Check network connectivity
+          
+          #### For High Error Rate:
+          - Review error logs
+          - Check service dependencies
+          - Verify configuration
+          - Consider rollback if recent deployment
+          
+          #### For High Resource Usage:
+          - Scale resources vertically/horizontally
+          - Identify memory leaks
+          - Optimize CPU-intensive operations
+          - Review background processes
+          
+          ### Prevention Measures
+          
+          - Implement proactive monitoring
+          - Set up predictive scaling
+          - Regular performance testing
+          - Code review for performance impact
+          - Capacity planning based on trends
+          EOF
+          
+          echo "✅ Diagnostic information collected"
+
+      - name: 📤 Upload Diagnostics
+        uses: actions/upload-artifact@v4
+        with:
+          name: performance-alert-diagnostics-${{ github.run_number }}
+          path: diagnostics/
+          retention-days: 30
+
+  # ==========================================
+  # ALERT SUMMARY & REPORTING
+  # ==========================================
+  alert-summary:
+    name: 📋 Alert Summary & Reporting
+    runs-on: ubuntu-latest
+    needs: [performance-monitoring, slack-notifications, pagerduty-alerts, email-notifications, incident-response]
+    if: always()
+    steps:
+      - name: 📋 Generate Alert Summary
+        run: |
+          echo "📋 Generating alert summary report..."
+          
+          alert_triggered="${{ needs.performance-monitoring.outputs.alert-triggered }}"
+          
+          cat > alert-summary.md << EOF
+          # 🚨 Performance Alert Summary Report
+          
+          **Alert Date:** $(date -u)
+          **Environment:** ${{ github.event.inputs.environment || 'staging' }}
+          **Workflow Run:** [\#${{ github.run_number }}](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
+          
+          ## Alert Status
+          
+          **Alert Triggered:** $([ "$alert_triggered" = "true" ] && echo "✅ Yes" || echo "❌ No")
+          
+          $(if [ "$alert_triggered" = "true" ]; then
+            echo "**Alert Type:** ${{ needs.performance-monitoring.outputs.alert-type }}"
+            echo "**Severity:** ${{ needs.performance-monitoring.outputs.alert-severity }}"
+            echo "**Message:** ${{ needs.performance-monitoring.outputs.alert-message }}"
+          else
+            echo "**Status:** All systems normal"
+          fi)
+          
+          ## Notification Status
+          
+          | Channel | Status | Notes |
+          |---------|--------|-------|
+          | Slack   | $([ "${{ needs.slack-notifications.result }}" = "success" ] && echo "✅ Sent" || echo "❌ Failed") | $([ -n "${{ secrets.SLACK_WEBHOOK_URL }}" ] && echo "Configured" || echo "Not configured") |
+          | PagerDuty | $([ "${{ needs.pagerduty-alerts.result }}" = "success" ] && echo "✅ Sent" || echo "❌ Skipped") | $([ "$alert_triggered" = "true" ] && echo "Critical alerts only" || echo "No alert triggered") |
+          | Email   | $([ "${{ needs.email-notifications.result }}" = "success" ] && echo "✅ Sent" || echo "❌ Failed") | $([ -n "${{ secrets.SMTP_SERVER }}" ] && echo "Configured" || echo "Not configured") |
+          
+          ## Performance Metrics
+          
+          $(if [ "$alert_triggered" = "true" ]; then
+            cat << METRICS
+          | Metric | Value | Status |
+          |--------|--------|--------|
+          | Response Time | ${{ needs.performance-monitoring.outputs.response-time || 'N/A' }}ms | $([ ${{ needs.performance-monitoring.outputs.response-time || 0 }} -gt ${{ env.RESPONSE_TIME_CRITICAL_MS }} ] && echo "🔴 Critical" || [ ${{ needs.performance-monitoring.outputs.response-time || 0 }} -gt ${{ env.RESPONSE_TIME_WARNING_MS }} ] && echo "🟡 Warning" || echo "🟢 Normal") |
+          | Error Rate | ${{ needs.performance-monitoring.outputs.error-rate || 'N/A' }}% | $([ $(echo "${{ needs.performance-monitoring.outputs.error-rate || 0 }} > ${{ env.ERROR_RATE_CRITICAL_PERCENT }}" | bc -l) -eq 1 ] && echo "🔴 Critical" || [ $(echo "${{ needs.performance-monitoring.outputs.error-rate || 0 }} > ${{ env.ERROR_RATE_WARNING_PERCENT }}" | bc -l) -eq 1 ] && echo "🟡 Warning" || echo "🟢 Normal") |
+          | CPU Usage | ${{ needs.performance-monitoring.outputs.cpu-usage || 'N/A' }}% | $([ $(echo "${{ needs.performance-monitoring.outputs.cpu-usage || 0 }} > ${{ env.CPU_USAGE_CRITICAL_PERCENT }}" | bc -l) -eq 1 ] && echo "🔴 Critical" || [ $(echo "${{ needs.performance-monitoring.outputs.cpu-usage || 0 }} > ${{ env.CPU_USAGE_WARNING_PERCENT }}" | bc -l) -eq 1 ] && echo "🟡 Warning" || echo "🟢 Normal") |
+          | Memory Usage | ${{ needs.performance-monitoring.outputs.memory-usage || 'N/A' }}% | $([ $(echo "${{ needs.performance-monitoring.outputs.memory-usage || 0 }} > ${{ env.MEMORY_USAGE_CRITICAL_PERCENT }}" | bc -l) -eq 1 ] && echo "🔴 Critical" || [ $(echo "${{ needs.performance-monitoring.outputs.memory-usage || 0 }} > ${{ env.MEMORY_USAGE_WARNING_PERCENT }}" | bc -l) -eq 1 ] && echo "🟡 Warning" || echo "🟢 Normal") |
+          METRICS
+          else
+            echo "No alert triggered - all metrics within normal ranges"
+          fi)
+          
+          ## Next Steps
+          
+          $(if [ "$alert_triggered" = "true" ]; then
+            cat << NEXTSTEPS
+          1. **Immediate:** Verify current system status
+          2. **Investigation:** Review diagnostic information
+          3. **Resolution:** Apply appropriate fixes based on alert type
+          4. **Follow-up:** Monitor for resolution and prevent recurrence
+          5. **Documentation:** Update runbooks with lessons learned
+          NEXTSTEPS
+          else
+            echo "Continue monitoring. No immediate action required."
+          fi)
+          
+          ---
+          
+          *Report generated automatically by Performance Alerting System*
+          EOF
+          
+          echo "✅ Alert summary report generated"
+
+      - name: 📤 Upload Alert Summary
+        uses: actions/upload-artifact@v4
+        with:
+          name: alert-summary-${{ github.run_number }}
+          path: alert-summary.md
+          retention-days: 90

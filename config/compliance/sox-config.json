@@ -1,0 +1,52 @@
+{
+  "sox_compliance": {
+    "version": "2002",
+    "sections": {
+      "302": {
+        "name": "Corporate Responsibility for Financial Reports",
+        "requirements": [
+          "CEO/CFO certification of financial statements",
+          "Management assessment of internal controls",
+          "Quarterly and annual report accuracy"
+        ],
+        "automation": {
+          "audit_trail": true,
+          "access_logging": true,
+          "change_tracking": true
+        }
+      },
+      "404": {
+        "name": "Management Assessment of Internal Controls",
+        "requirements": [
+          "Annual internal control report",
+          "Management effectiveness assessment",
+          "External auditor attestation"
+        ],
+        "automation": {
+          "control_testing": true,
+          "deficiency_tracking": true,
+          "remediation_monitoring": true
+        }
+      },
+      "409": {
+        "name": "Real-time Financial Disclosure",
+        "requirements": [
+          "Rapid disclosure of material changes",
+          "Plain English disclosure requirements",
+          "Pro forma financial information rules"
+        ],
+        "automation": {
+          "real_time_monitoring": true,
+          "materiality_assessment": true,
+          "disclosure_automation": true
+        }
+      }
+    },
+    "audit_requirements": {
+      "retention_period": "7_years",
+      "log_integrity": "cryptographic_hash",
+      "access_controls": "role_based",
+      "segregation_of_duties": true
+    }
+  }
+}

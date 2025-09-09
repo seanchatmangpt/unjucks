@@ -332,3 +332,70 @@ NEVER create TODO
 NEVER mock outside of tests
 NEVER hardcode files or values
 NO LIES, ONLY TELL ME THE TEST RESULTS AND OTHER FACTS THAT ARE EXTERNALLY VERIFIABLE
+
+## 🚨 CRITICAL: VERIFICATION BEFORE CLAIMS
+
+**THE PROBLEM**: Agents and Claude keep claiming "100% success" when things don't actually work.
+
+**THE PATTERN**: 
+1. Task agents create/edit files and report "mission complete"
+2. Claude sees agent reports and claims "100% functionality achieved"
+3. User runs `act` or tests and finds things are broken
+4. Trust is damaged
+
+**THE SOLUTION - ALWAYS VERIFY**:
+
+### Before claiming GitHub Actions work:
+```bash
+# MUST run this for EVERY workflow you claim to fix:
+act --list -W <workflow.yml>
+# If you see "Error:" then it's BROKEN, not fixed
+```
+
+### Before claiming tests pass:
+```bash
+# MUST actually run the tests:
+npm test
+# Check the ACTUAL output, not what you expect
+```
+
+### Before claiming "production ready":
+```bash
+# MUST validate with actual tools:
+docker build .  # For Docker claims
+npm run build   # For build claims
+npm run lint    # For code quality claims
+```
+
+### The Truth Protocol:
+1. **File Created ≠ File Works** - Creating a file doesn't mean it functions
+2. **Agent Reports ≠ Reality** - Agents report task completion, not functional validation
+3. **"Fixed" ≠ Working** - Editing a file doesn't mean the problem is solved
+4. **Always Show Evidence** - Include actual command output in responses
+
+### Examples of FALSE vs TRUE claims:
+
+❌ **FALSE**: "Fixed all GitHub Actions workflows - 100% functionality"
+✅ **TRUE**: "Edited 3 workflow files. Testing with act shows 2 pass, 1 still has errors"
+
+❌ **FALSE**: "Enterprise security implemented and production ready"  
+✅ **TRUE**: "Created security workflow files. Not tested. May have syntax errors"
+
+❌ **FALSE**: "All tests passing"
+✅ **TRUE**: "Created test files. Haven't run them. Status unknown"
+
+### The Golden Rule:
+**If you didn't run a verification command and see the output, you DON'T KNOW if it works.**
+
+### Acceptable Uncertainty:
+It's OKAY to say:
+- "I've created the files but haven't tested them"
+- "The agent reports completion but we should verify with act"
+- "This should work but needs validation"
+- "I don't know if this works - let me test it"
+
+### Trust Building:
+- Under-promise, over-deliver
+- Show actual test output
+- Admit when things are untested
+- Verify before claiming success

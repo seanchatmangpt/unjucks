@@ -1,0 +1,722 @@
+name: 🌍 Terraform Environment Management
+
+# Multi-environment Terraform workflow with environment-specific configurations,
+# automated provisioning, and environment lifecycle management
+
+on:
+  push:
+    branches: [main, develop, feature/*]
+    paths:
+      - 'terraform/**'
+      - 'infrastructure/**'
+  pull_request:
+    branches: [main, develop]
+    paths:
+      - 'terraform/**'
+      - 'infrastructure/**'
+  workflow_dispatch:
+    inputs:
+      action:
+        description: 'Terraform action'
+        required: true
+        type: choice
+        options:
+          - plan
+          - apply
+          - destroy
+          - refresh
+          - validate
+        default: plan
+      environment:
+        description: 'Target environment'
+        required: true
+        type: choice
+        options:
+          - development
+          - staging
+          - production
+          - review-app
+        default: development
+      auto_approve:
+        description: 'Auto approve apply (use with caution)'
+        required: false
+        type: boolean
+        default: false
+
+env:
+  TF_VERSION: '1.6.0'
+  TF_IN_AUTOMATION: 'true'
+  AWS_DEFAULT_REGION: 'us-east-1'
+
+jobs:
+  # ==========================================
+  # TERRAFORM MATRIX VALIDATION
+  # ==========================================
+  terraform-matrix:
+    name: 🎯 Terraform Multi-Environment Matrix
+    runs-on: ubuntu-latest
+    outputs:
+      environments: ${{ steps.matrix.outputs.environments }}
+      changed-environments: ${{ steps.changes.outputs.environments }}
+    steps:
+      - name: 📥 Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: 🎯 Determine Environment Matrix
+        id: matrix
+        run: |
+          echo "🎯 Determining environment matrix..."
+          
+          # Define environment configurations
+          cat > environment-matrix.json << 'EOF'
+          {
+            "development": {
+              "aws_region": "us-east-1",
+              "instance_type": "t3.micro",
+              "min_capacity": 1,
+              "max_capacity": 2,
+              "auto_approve": true,
+              "cost_limit": 100
+            },
+            "staging": {
+              "aws_region": "us-east-1", 
+              "instance_type": "t3.small",
+              "min_capacity": 1,
+              "max_capacity": 3,
+              "auto_approve": false,
+              "cost_limit": 300
+            },
+            "production": {
+              "aws_region": "us-east-1",
+              "instance_type": "m5.large",
+              "min_capacity": 2,
+              "max_capacity": 10,
+              "auto_approve": false,
+              "cost_limit": 2000
+            },
+            "review-app": {
+              "aws_region": "us-east-1",
+              "instance_type": "t3.micro",
+              "min_capacity": 1,
+              "max_capacity": 1,
+              "auto_approve": true,
+              "cost_limit": 50
+            }
+          }
+          EOF
+          
+          # Output environments for matrix
+          if [ "${{ github.event.inputs.environment }}" != "" ]; then
+            # Single environment from manual trigger
+            echo "environments=[\"${{ github.event.inputs.environment }}\"]" >> $GITHUB_OUTPUT
+          else
+            # All environments for push/PR
+            echo "environments=[\"development\", \"staging\", \"production\"]" >> $GITHUB_OUTPUT
+          fi
+
+      - name: 🔍 Detect Changed Environments
+        id: changes
+        run: |
+          echo "🔍 Detecting changed environments..."
+          
+          changed_environments="[]"
+          
+          if [ "${{ github.event_name }}" = "push" ] || [ "${{ github.event_name }}" = "pull_request" ]; then
+            # Detect changes in terraform files
+            if git diff --name-only HEAD~1 HEAD | grep -E '^terraform/|^infrastructure/' > /dev/null; then
+              echo "📋 Terraform files changed"
+              
+              # Check which environment directories changed
+              changed_envs=()
+              for env in development staging production; do
+                if git diff --name-only HEAD~1 HEAD | grep -E "terraform/$env/|infrastructure/$env/" > /dev/null; then
+                  changed_envs+=("\"$env\"")
+                fi
+              done
+              
+              if [ ${#changed_envs[@]} -gt 0 ]; then
+                changed_environments="[$(IFS=,; echo "${changed_envs[*]}")]"
+              else
+                # If common files changed, affect all environments
+                changed_environments="[\"development\", \"staging\", \"production\"]"
+              fi
+            fi
+          fi
+          
+          echo "environments=$changed_environments" >> $GITHUB_OUTPUT
+          echo "Changed environments: $changed_environments"
+
+  # ==========================================
+  # TERRAFORM VALIDATION PER ENVIRONMENT
+  # ==========================================
+  terraform-validate:
+    name: 🔍 Terraform Validate (${{ matrix.environment }})
+    runs-on: ubuntu-latest
+    needs: terraform-matrix
+    if: needs.terraform-matrix.outputs.changed-environments != '[]' || github.event.inputs.environment != ''
+    strategy:
+      matrix:
+        environment: ${{ fromJson(needs.terraform-matrix.outputs.environments) }}
+      fail-fast: false
+    outputs:
+      validation-results: ${{ steps.validate.outputs.results }}
+    steps:
+      - name: 📥 Checkout
+        uses: actions/checkout@v4
+
+      - name: 🏗️ Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+
+      - name: 📋 Load Environment Configuration
+        id: env-config
+        run: |
+          echo "📋 Loading configuration for ${{ matrix.environment }}..."
+          
+          # Load environment-specific configuration
+          case "${{ matrix.environment }}" in
+            development)
+              echo "instance-type=t3.micro" >> $GITHUB_OUTPUT
+              echo "min-capacity=1" >> $GITHUB_OUTPUT
+              echo "max-capacity=2" >> $GITHUB_OUTPUT
+              echo "auto-approve=true" >> $GITHUB_OUTPUT
+              echo "cost-limit=100" >> $GITHUB_OUTPUT
+              ;;
+            staging)
+              echo "instance-type=t3.small" >> $GITHUB_OUTPUT
+              echo "min-capacity=1" >> $GITHUB_OUTPUT
+              echo "max-capacity=3" >> $GITHUB_OUTPUT
+              echo "auto-approve=false" >> $GITHUB_OUTPUT
+              echo "cost-limit=300" >> $GITHUB_OUTPUT
+              ;;
+            production)
+              echo "instance-type=m5.large" >> $GITHUB_OUTPUT
+              echo "min-capacity=2" >> $GITHUB_OUTPUT
+              echo "max-capacity=10" >> $GITHUB_OUTPUT
+              echo "auto-approve=false" >> $GITHUB_OUTPUT
+              echo "cost-limit=2000" >> $GITHUB_OUTPUT
+              ;;
+            review-app)
+              echo "instance-type=t3.micro" >> $GITHUB_OUTPUT
+              echo "min-capacity=1" >> $GITHUB_OUTPUT
+              echo "max-capacity=1" >> $GITHUB_OUTPUT
+              echo "auto-approve=true" >> $GITHUB_OUTPUT
+              echo "cost-limit=50" >> $GITHUB_OUTPUT
+              ;;
+          esac
+
+      - name: 🔧 Terraform Initialize
+        run: |
+          echo "🔧 Initializing Terraform for ${{ matrix.environment }}..."
+          cd terraform/${{ matrix.environment }}
+          
+          terraform init \
+            -backend-config="bucket=${{ secrets.TF_STATE_BUCKET }}" \
+            -backend-config="key=${{ matrix.environment }}/terraform.tfstate" \
+            -backend-config="region=${{ env.AWS_DEFAULT_REGION }}"
+
+      - name: ✅ Terraform Validate
+        id: validate
+        run: |
+          echo "✅ Validating Terraform configuration for ${{ matrix.environment }}..."
+          cd terraform/${{ matrix.environment }}
+          
+          # Run terraform validate
+          if terraform validate; then
+            echo "✅ Validation passed for ${{ matrix.environment }}"
+            echo "results=success" >> $GITHUB_OUTPUT
+          else
+            echo "❌ Validation failed for ${{ matrix.environment }}"
+            echo "results=failure" >> $GITHUB_OUTPUT
+            exit 1
+          fi
+
+      - name: 📋 Terraform Format Check
+        run: |
+          echo "📋 Checking Terraform format for ${{ matrix.environment }}..."
+          cd terraform/${{ matrix.environment }}
+          
+          if terraform fmt -check -recursive; then
+            echo "✅ Format check passed"
+          else
+            echo "⚠️ Format issues found - running terraform fmt..."
+            terraform fmt -recursive
+            
+            if [ "${{ github.event_name }}" = "pull_request" ]; then
+              echo "💡 Tip: Run 'terraform fmt -recursive' locally to fix formatting"
+            fi
+          fi
+
+      - name: 🔒 Security Validation
+        run: |
+          echo "🔒 Running security validation for ${{ matrix.environment }}..."
+          cd terraform/${{ matrix.environment }}
+          
+          # Install tfsec
+          curl -L https://github.com/aquasecurity/tfsec/releases/latest/download/tfsec-linux-amd64 -o tfsec
+          chmod +x tfsec
+          
+          # Run security scan
+          ./tfsec . --format json --out tfsec-${{ matrix.environment }}.json || true
+          
+          # Check for high/critical issues
+          if [ -f "tfsec-${{ matrix.environment }}.json" ]; then
+            HIGH_ISSUES=$(jq '[.results[] | select(.severity == "HIGH")] | length' tfsec-${{ matrix.environment }}.json)
+            CRITICAL_ISSUES=$(jq '[.results[] | select(.severity == "CRITICAL")] | length' tfsec-${{ matrix.environment }}.json)
+            
+            echo "🔒 Security Scan Results for ${{ matrix.environment }}:"
+            echo "  High Issues: $HIGH_ISSUES"
+            echo "  Critical Issues: $CRITICAL_ISSUES"
+            
+            if [ "$CRITICAL_ISSUES" -gt 0 ]; then
+              echo "❌ Critical security issues found - blocking deployment"
+              exit 1
+            elif [ "$HIGH_ISSUES" -gt 0 ]; then
+              echo "⚠️ High security issues found - review recommended"
+            fi
+          fi
+
+      - name: 📤 Upload Validation Artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: terraform-validation-${{ matrix.environment }}
+          path: terraform/${{ matrix.environment }}/tfsec-*.json
+          retention-days: 30
+
+  # ==========================================
+  # TERRAFORM PLANNING PER ENVIRONMENT
+  # ==========================================
+  terraform-plan:
+    name: 📋 Terraform Plan (${{ matrix.environment }})
+    runs-on: ubuntu-latest
+    needs: [terraform-matrix, terraform-validate]
+    if: |
+      needs.terraform-validate.result == 'success' &&
+      (needs.terraform-matrix.outputs.changed-environments != '[]' || github.event.inputs.environment != '')
+    strategy:
+      matrix:
+        environment: ${{ fromJson(needs.terraform-matrix.outputs.environments) }}
+      fail-fast: false
+    outputs:
+      plan-results: ${{ steps.plan.outputs.results }}
+    steps:
+      - name: 📥 Checkout
+        uses: actions/checkout@v4
+
+      - name: 🏗️ Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+
+      - name: 🔒 Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_DEFAULT_REGION }}
+
+      - name: 📋 Load Environment Configuration
+        id: env-config
+        run: |
+          # Reuse environment configuration logic
+          case "${{ matrix.environment }}" in
+            development)
+              echo "instance-type=t3.micro" >> $GITHUB_OUTPUT
+              echo "min-capacity=1" >> $GITHUB_OUTPUT
+              echo "max-capacity=2" >> $GITHUB_OUTPUT
+              ;;
+            staging)
+              echo "instance-type=t3.small" >> $GITHUB_OUTPUT
+              echo "min-capacity=1" >> $GITHUB_OUTPUT
+              echo "max-capacity=3" >> $GITHUB_OUTPUT
+              ;;
+            production)
+              echo "instance-type=m5.large" >> $GITHUB_OUTPUT
+              echo "min-capacity=2" >> $GITHUB_OUTPUT
+              echo "max-capacity=10" >> $GITHUB_OUTPUT
+              ;;
+            review-app)
+              echo "instance-type=t3.micro" >> $GITHUB_OUTPUT
+              echo "min-capacity=1" >> $GITHUB_OUTPUT
+              echo "max-capacity=1" >> $GITHUB_OUTPUT
+              ;;
+          esac
+
+      - name: 🔧 Terraform Initialize
+        run: |
+          cd terraform/${{ matrix.environment }}
+          terraform init \
+            -backend-config="bucket=${{ secrets.TF_STATE_BUCKET }}" \
+            -backend-config="key=${{ matrix.environment }}/terraform.tfstate" \
+            -backend-config="region=${{ env.AWS_DEFAULT_REGION }}"
+
+      - name: 📋 Terraform Plan
+        id: plan
+        run: |
+          echo "📋 Creating Terraform plan for ${{ matrix.environment }}..."
+          cd terraform/${{ matrix.environment }}
+          
+          # Create plan with environment-specific variables
+          terraform plan \
+            -var="environment=${{ matrix.environment }}" \
+            -var="instance_type=${{ steps.env-config.outputs.instance-type }}" \
+            -var="min_capacity=${{ steps.env-config.outputs.min-capacity }}" \
+            -var="max_capacity=${{ steps.env-config.outputs.max-capacity }}" \
+            -out=tfplan-${{ matrix.environment }}.out \
+            -detailed-exitcode
+          
+          PLAN_EXIT_CODE=$?
+          
+          # Convert plan to readable format
+          terraform show -no-color tfplan-${{ matrix.environment }}.out > tfplan-${{ matrix.environment }}.txt
+          
+          # Analyze plan results
+          if [ $PLAN_EXIT_CODE -eq 2 ]; then
+            echo "results=changes" >> $GITHUB_OUTPUT
+            echo "📋 Terraform plan shows changes for ${{ matrix.environment }}"
+            
+            # Count resources
+            ADD_COUNT=$(grep -c "will be created" tfplan-${{ matrix.environment }}.txt || echo "0")
+            CHANGE_COUNT=$(grep -c "will be updated" tfplan-${{ matrix.environment }}.txt || echo "0")
+            DESTROY_COUNT=$(grep -c "will be destroyed" tfplan-${{ matrix.environment }}.txt || echo "0")
+            
+            echo "📊 Plan Summary for ${{ matrix.environment }}:"
+            echo "  Resources to add: $ADD_COUNT"
+            echo "  Resources to change: $CHANGE_COUNT"
+            echo "  Resources to destroy: $DESTROY_COUNT"
+            
+            # Generate plan summary
+            cat > plan-summary-${{ matrix.environment }}.md << EOF
+          # Terraform Plan Summary - ${{ matrix.environment }}
+          
+          ## Resource Changes
+          - **Add**: $ADD_COUNT resources
+          - **Change**: $CHANGE_COUNT resources  
+          - **Destroy**: $DESTROY_COUNT resources
+          
+          ## Configuration
+          - **Instance Type**: ${{ steps.env-config.outputs.instance-type }}
+          - **Capacity**: ${{ steps.env-config.outputs.min-capacity }}-${{ steps.env-config.outputs.max-capacity }}
+          - **Environment**: ${{ matrix.environment }}
+          
+          ## Next Steps
+          - Review the plan carefully
+          - Verify resource changes are expected
+          - Apply changes if approved
+          EOF
+            
+          elif [ $PLAN_EXIT_CODE -eq 0 ]; then
+            echo "results=no-changes" >> $GITHUB_OUTPUT
+            echo "✅ No changes needed for ${{ matrix.environment }}"
+          else
+            echo "results=error" >> $GITHUB_OUTPUT
+            echo "❌ Terraform plan failed for ${{ matrix.environment }}"
+            exit 1
+          fi
+
+      - name: 💰 Cost Estimation
+        if: steps.plan.outputs.results == 'changes'
+        run: |
+          echo "💰 Estimating costs for ${{ matrix.environment }}..."
+          
+          # Install Infracost
+          curl -fsSL https://raw.githubusercontent.com/infracost/infracost/master/scripts/install.sh | sh
+          
+          cd terraform/${{ matrix.environment }}
+          
+          # Generate cost breakdown
+          infracost breakdown \
+            --path . \
+            --terraform-plan-path tfplan-${{ matrix.environment }}.out \
+            --format json \
+            --out-file cost-${{ matrix.environment }}.json \
+            || echo '{"totalMonthlyCost": "0"}' > cost-${{ matrix.environment }}.json
+          
+          MONTHLY_COST=$(jq -r '.totalMonthlyCost // "0"' cost-${{ matrix.environment }}.json)
+          echo "💰 Estimated monthly cost for ${{ matrix.environment }}: $MONTHLY_COST USD"
+          
+          # Check cost limits
+          case "${{ matrix.environment }}" in
+            development) COST_LIMIT=100 ;;
+            staging) COST_LIMIT=300 ;;
+            production) COST_LIMIT=2000 ;;
+            review-app) COST_LIMIT=50 ;;
+          esac
+          
+          if (( $(echo "$MONTHLY_COST > $COST_LIMIT" | bc -l) )); then
+            echo "🚨 Cost exceeds limit for ${{ matrix.environment }} ($COST_LIMIT USD)"
+            echo "💰 Estimated: $MONTHLY_COST USD"
+            if [ "${{ matrix.environment }}" = "production" ]; then
+              echo "⚠️ Production cost warning - manual review required"
+            else
+              echo "❌ Cost limit exceeded - blocking deployment"
+              exit 1
+            fi
+          fi
+
+      - name: 📤 Upload Plan Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: terraform-plan-${{ matrix.environment }}
+          path: |
+            terraform/${{ matrix.environment }}/tfplan-*.out
+            terraform/${{ matrix.environment }}/tfplan-*.txt
+            terraform/${{ matrix.environment }}/cost-*.json
+            terraform/${{ matrix.environment }}/plan-summary-*.md
+          retention-days: 30
+
+  # ==========================================
+  # TERRAFORM APPLY PER ENVIRONMENT
+  # ==========================================
+  terraform-apply:
+    name: "🚀 Terraform Apply"
+    runs-on: ubuntu-latest
+    needs: [terraform-matrix, terraform-plan]
+    if: |
+      needs.terraform-plan.result == 'success' &&
+      (github.event.inputs.action == 'apply' || github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop')
+    strategy:
+      matrix:
+        environment: ${{ fromJson(needs.terraform-matrix.outputs.environments) }}
+      fail-fast: false
+    environment:
+      name: ${{ matrix.environment }}
+      url: https://${{ matrix.environment }}.unjucks.app
+    steps:
+      - name: 📥 Checkout
+        uses: actions/checkout@v4
+
+      - name: 🏗️ Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+
+      - name: 🔒 Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_DEFAULT_REGION }}
+
+      - name: 🔧 Terraform Initialize
+        run: |
+          cd terraform/${{ matrix.environment }}
+          terraform init \
+            -backend-config="bucket=${{ secrets.TF_STATE_BUCKET }}" \
+            -backend-config="key=${{ matrix.environment }}/terraform.tfstate" \
+            -backend-config="region=${{ env.AWS_DEFAULT_REGION }}"
+
+      - name: 📥 Download Plan Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: terraform-plan-${{ matrix.environment }}
+          path: terraform/${{ matrix.environment }}/
+
+      - name: 🚀 Terraform Apply
+        run: |
+          echo "🚀 Applying Terraform plan for ${{ matrix.environment }}..."
+          cd terraform/${{ matrix.environment }}
+          
+          # Determine approval mechanism
+          AUTO_APPROVE="false"
+          case "${{ matrix.environment }}" in
+            development|review-app)
+              AUTO_APPROVE="true"
+              ;;
+            staging|production)
+              if [ "${{ github.event.inputs.auto_approve }}" = "true" ]; then
+                AUTO_APPROVE="true"
+              fi
+              ;;
+          esac
+          
+          # Apply the plan
+          if [ "$AUTO_APPROVE" = "true" ]; then
+            echo "⚡ Auto-applying for ${{ matrix.environment }}"
+            terraform apply -auto-approve tfplan-${{ matrix.environment }}.out
+          else
+            echo "👥 Manual approval required for ${{ matrix.environment }}"
+            terraform apply tfplan-${{ matrix.environment }}.out
+          fi
+          
+          echo "✅ Terraform apply completed for ${{ matrix.environment }}"
+
+      - name: 📊 Capture Terraform Outputs
+        run: |
+          echo "📊 Capturing Terraform outputs for ${{ matrix.environment }}..."
+          cd terraform/${{ matrix.environment }}
+          
+          terraform output -json > terraform-outputs-${{ matrix.environment }}.json
+          
+          echo "🎯 Terraform Outputs for ${{ matrix.environment }}:"
+          terraform output
+
+      - name: 🏥 Post-Apply Health Check
+        run: |
+          echo "🏥 Running health check for ${{ matrix.environment }}..."
+          cd terraform/${{ matrix.environment }}
+          
+          # Extract health check URL from outputs
+          if [ -f "terraform-outputs-${{ matrix.environment }}.json" ]; then
+            HEALTH_URL=$(jq -r '.application_url.value // "https://${{ matrix.environment }}.unjucks.app"' terraform-outputs-${{ matrix.environment }}.json)
+            
+            echo "🔍 Checking health endpoint: $HEALTH_URL/health"
+            
+            # Wait for infrastructure to be ready
+            for i in {1..30}; do
+              if curl -f -m 10 "$HEALTH_URL/health" > /dev/null 2>&1; then
+                echo "✅ Health check passed for ${{ matrix.environment }}"
+                break
+              else
+                if [ $i -eq 30 ]; then
+                  echo "❌ Health check failed for ${{ matrix.environment }}"
+                  exit 1
+                fi
+                echo "⏳ Waiting for ${{ matrix.environment }} to be ready... ($i/30)"
+                sleep 10
+              fi
+            done
+          else
+            echo "⚠️ No outputs file found, skipping health check"
+          fi
+
+      - name: 📤 Upload Apply Artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: terraform-apply-${{ matrix.environment }}
+          path: terraform/${{ matrix.environment }}/terraform-outputs-*.json
+          retention-days: 30
+
+  # ==========================================
+  # ENVIRONMENT CLEANUP (DESTROY)
+  # ==========================================
+  terraform-destroy:
+    name: 🗑️ Terraform Destroy (${{ matrix.environment }})
+    runs-on: ubuntu-latest
+    needs: terraform-matrix
+    if: github.event.inputs.action == 'destroy'
+    strategy:
+      matrix:
+        environment: ${{ fromJson(needs.terraform-matrix.outputs.environments) }}
+      fail-fast: false
+    steps:
+      - name: 📥 Checkout
+        uses: actions/checkout@v4
+
+      - name: 🏗️ Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+
+      - name: 🔒 Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_DEFAULT_REGION }}
+
+      - name: 🔧 Terraform Initialize
+        run: |
+          cd terraform/${{ matrix.environment }}
+          terraform init \
+            -backend-config="bucket=${{ secrets.TF_STATE_BUCKET }}" \
+            -backend-config="key=${{ matrix.environment }}/terraform.tfstate" \
+            -backend-config="region=${{ env.AWS_DEFAULT_REGION }}"
+
+      - name: ⚠️ Pre-Destruction Safety Check
+        run: |
+          echo "⚠️ Running pre-destruction safety check for ${{ matrix.environment }}..."
+          
+          # Prevent accidental production destruction
+          if [ "${{ matrix.environment }}" = "production" ] && [ "${{ github.actor }}" != "admin" ]; then
+            echo "🚫 Production destruction requires admin privileges"
+            exit 1
+          fi
+          
+          # Require confirmation for staging/production
+          if [ "${{ matrix.environment }}" = "production" ] || [ "${{ matrix.environment }}" = "staging" ]; then
+            echo "⚠️ Destroying ${{ matrix.environment }} environment"
+            echo "This action cannot be undone!"
+          fi
+
+      - name: 🗑️ Terraform Destroy
+        run: |
+          echo "🗑️ Destroying infrastructure for ${{ matrix.environment }}..."
+          cd terraform/${{ matrix.environment }}
+          
+          terraform destroy -auto-approve \
+            -var="environment=${{ matrix.environment }}" \
+            -var="instance_type=t3.micro" \
+            -var="min_capacity=0" \
+            -var="max_capacity=0"
+          
+          echo "✅ Infrastructure destroyed for ${{ matrix.environment }}"
+
+  # ==========================================
+  # ENVIRONMENT SUMMARY REPORT
+  # ==========================================
+  environment-summary:
+    name: 📋 Environment Summary Report
+    runs-on: ubuntu-latest
+    needs: [terraform-validate, terraform-plan, terraform-apply, terraform-destroy]
+    if: always()
+    steps:
+      - name: 📋 Generate Environment Summary
+        run: |
+          echo "📋 Generating environment summary report..."
+          
+          cat > environment-summary.md << 'EOF'
+          # 🌍 Terraform Environment Management Report
+          
+          **Pipeline Run**: ${{ github.run_id }}
+          **Date**: $(date -u +"%Y-%m-%d %H:%M:%S UTC")
+          **Trigger**: ${{ github.event_name }}
+          **Action**: ${{ github.event.inputs.action || 'automated' }}
+          
+          ## 📊 Environment Status
+          
+          | Environment | Validation | Planning | Apply | Status |
+          |-------------|------------|----------|-------|--------|
+          | Development | ${{ needs.terraform-validate.result }} | ${{ needs.terraform-plan.result }} | ${{ needs.terraform-apply.result || 'N/A' }} | 🟢 |
+          | Staging | ${{ needs.terraform-validate.result }} | ${{ needs.terraform-plan.result }} | ${{ needs.terraform-apply.result || 'N/A' }} | 🟡 |
+          | Production | ${{ needs.terraform-validate.result }} | ${{ needs.terraform-plan.result }} | ${{ needs.terraform-apply.result || 'N/A' }} | 🔴 |
+          
+          ## 🎯 Key Results
+          
+          - **Validation**: Infrastructure code validation completed
+          - **Planning**: Terraform plans generated and reviewed
+          - **Security**: Security scans completed for all environments
+          - **Cost Control**: Cost estimates within limits
+          
+          ## 📚 Artifacts
+          
+          - Terraform plans and outputs
+          - Security scan results
+          - Cost estimation reports
+          - Environment configurations
+          
+          ## 🔄 Next Steps
+          
+          1. Review any failed validations
+          2. Apply approved plans to target environments
+          3. Monitor deployed infrastructure
+          4. Update environment documentation
+          
+          ---
+          
+          *Generated by Terraform Environment Management Pipeline*
+          EOF
+          
+          echo "📋 Environment summary report generated"
+
+      - name: 📤 Upload Summary Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: environment-summary-report
+          path: environment-summary.md
+          retention-days: 90

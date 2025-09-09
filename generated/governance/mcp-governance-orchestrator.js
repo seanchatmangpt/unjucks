@@ -3,13 +3,13 @@
  * Integrates with Claude Flow for dynamic governance
  */
 
-import { 
+const { 
   mcp__claude_flow__swarm_init,
   mcp__claude_flow__agent_spawn,
   mcp__claude_flow__task_orchestrate 
-} from '../mcp/claude-flow-client.js';
+} = require('../mcp/claude-flow-client.js');
 
-export class MCPGovernanceOrchestrator {
+class MCPGovernanceOrchestrator {
   constructor() {
     this.swarmId = null;
   }

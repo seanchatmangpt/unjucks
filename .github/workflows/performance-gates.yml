@@ -1,0 +1,489 @@
+name: 🚪 Performance Gates & Deployment Blocking
+
+# Performance gates to block deployments if SLA is violated
+# Automated quality assurance for production deployments
+
+on:
+  pull_request:
+    branches: [main, develop]
+    types: [opened, synchronize, ready_for_review]
+  push:
+    branches: [main, develop]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to test'
+        required: true
+        default: 'staging'
+        type: choice
+        options:
+          - staging
+          - production
+          - canary
+      strict_mode:
+        description: 'Enable strict performance gates'
+        required: false
+        default: false
+        type: boolean
+      gate_type:
+        description: 'Type of gate to enforce'
+        required: true
+        default: 'all'
+        type: choice
+        options:
+          - response-time
+          - error-rate
+          - throughput
+          - availability
+          - all
+
+env:
+  # Performance SLA thresholds
+  MAX_RESPONSE_TIME_MS: 300      # P95 response time
+  MAX_ERROR_RATE_PERCENT: 1.0    # Error rate threshold
+  MIN_THROUGHPUT_RPS: 500        # Minimum requests per second
+  MIN_AVAILABILITY_PERCENT: 99.9 # Availability SLA
+  MAX_P99_RESPONSE_TIME_MS: 1000 # P99 response time
+  
+  # Strict mode thresholds (for critical deployments)
+  STRICT_MAX_RESPONSE_TIME_MS: 200
+  STRICT_MAX_ERROR_RATE_PERCENT: 0.5
+  STRICT_MIN_THROUGHPUT_RPS: 800
+  STRICT_MIN_AVAILABILITY_PERCENT: 99.95
+
+jobs:
+  # ==========================================
+  # PERFORMANCE GATE EVALUATION
+  # ==========================================
+  performance-gate-check:
+    name: 🚪 Performance Gate Evaluation
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    outputs:
+      gate-passed: ${{ steps.evaluation.outputs.gate-passed }}
+      gate-results: ${{ steps.evaluation.outputs.gate-results }}
+      deployment-blocked: ${{ steps.evaluation.outputs.deployment-blocked }}
+    steps:
+      - name: 📥 Checkout
+        uses: actions/checkout@v4
+
+      - name: 📦 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: 🔧 Install Performance Testing Tools
+        run: |
+          echo "🔧 Installing performance testing tools..."
+          
+          # Install k6 for performance testing
+          sudo gpg -k
+          sudo gpg --no-default-keyring --keyring /usr/share/keyrings/k6-archive-keyring.gpg --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys C5AD17C747E3415A3642D57D77C6C491D6AC1D69
+          echo "deb [signed-by=/usr/share/keyrings/k6-archive-keyring.gpg] https://dl.k6.io/deb stable main" | sudo tee /etc/apt/sources.list.d/k6.list
+          sudo apt-get update
+          sudo apt-get install k6
+          
+          # Install additional tools
+          npm install -g autocannon
+          
+          echo "✅ Performance tools installed"
+
+      - name: 🎯 Run Performance Tests
+        id: testing
+        run: |
+          echo "🎯 Running performance tests for gate evaluation..."
+          
+          environment="${{ github.event.inputs.environment || 'staging' }}"
+          target_url="https://${environment}.unjucks.app"
+          strict_mode="${{ github.event.inputs.strict_mode }}"
+          
+          echo "🎯 Target: $target_url"
+          echo "📋 Strict mode: $strict_mode"
+          
+          # Create performance test script
+          cat > gate-test.js << 'EOF'
+          import http from 'k6/http';
+          import { check, sleep } from 'k6';
+          import { Rate, Trend, Counter } from 'k6/metrics';
+          
+          export let errorRate = new Rate('errors');
+          export let responseTime = new Trend('response_time');
+          export let requestCount = new Counter('requests');
+          
+          export let options = {
+            stages: [
+              { duration: '1m', target: 50 },   // Ramp up
+              { duration: '3m', target: 100 },  // Sustained load
+              { duration: '1m', target: 200 },  // Spike test
+              { duration: '2m', target: 100 },  // Back to normal
+              { duration: '1m', target: 0 },    // Ramp down
+            ],
+            thresholds: {
+              'http_req_duration': [
+                'p(50)<200',   // 50% under 200ms
+                'p(95)<500',   // 95% under 500ms
+                'p(99)<1000',  // 99% under 1s
+              ],
+              'http_req_failed': ['rate<0.01'], // Error rate under 1%
+              'http_reqs': ['rate>50'],         // Minimum throughput
+            },
+          };
+          
+          export default function() {
+            let response = http.get('__TARGET_URL__', {
+              timeout: '10s',
+            });
+            
+            check(response, {
+              'status is 200': (r) => r.status === 200,
+              'response time < 500ms': (r) => r.timings.duration < 500,
+              'body size > 0': (r) => r.body.length > 0,
+            });
+            
+            errorRate.add(response.status !== 200);
+            responseTime.add(response.timings.duration);
+            requestCount.add(1);
+            
+            sleep(Math.random() * 2 + 0.5);
+          }
+          EOF
+          
+          # Replace target URL
+          sed -i "s|__TARGET_URL__|$target_url|g" gate-test.js
+          
+          # Run k6 test
+          k6 run --out json=gate-results.json gate-test.js
+          
+          # Extract metrics
+          if [ -f "gate-results.json" ]; then
+            avg_response_time=$(jq -r '.metrics.http_req_duration.avg // 0' gate-results.json)
+            p95_response_time=$(jq -r '.metrics.http_req_duration."p(95)" // 0' gate-results.json)
+            p99_response_time=$(jq -r '.metrics.http_req_duration."p(99)" // 0' gate-results.json)
+            throughput=$(jq -r '.metrics.http_reqs.rate // 0' gate-results.json)
+            error_rate=$(jq -r '.metrics.http_req_failed.rate * 100 // 0' gate-results.json)
+            request_count=$(jq -r '.metrics.http_reqs.count // 0' gate-results.json)
+            
+            echo "📊 Performance Test Results:"
+            echo "  Average Response Time: ${avg_response_time}ms"
+            echo "  P95 Response Time: ${p95_response_time}ms"
+            echo "  P99 Response Time: ${p99_response_time}ms"
+            echo "  Throughput: ${throughput} RPS"
+            echo "  Error Rate: ${error_rate}%"
+            echo "  Total Requests: ${request_count}"
+            
+            echo "avg-response-time=$avg_response_time" >> $GITHUB_OUTPUT
+            echo "p95-response-time=$p95_response_time" >> $GITHUB_OUTPUT
+            echo "p99-response-time=$p99_response_time" >> $GITHUB_OUTPUT
+            echo "throughput=$throughput" >> $GITHUB_OUTPUT
+            echo "error-rate=$error_rate" >> $GITHUB_OUTPUT
+            echo "request-count=$request_count" >> $GITHUB_OUTPUT
+          else
+            echo "❌ Performance test results not found"
+            exit 1
+          fi
+
+      - name: 📊 Evaluate Performance Gates
+        id: evaluation
+        run: |
+          echo "📊 Evaluating performance gates..."
+          
+          # Get test results
+          avg_response_time="${{ steps.testing.outputs.avg-response-time }}"
+          p95_response_time="${{ steps.testing.outputs.p95-response-time }}"
+          p99_response_time="${{ steps.testing.outputs.p99-response-time }}"
+          throughput="${{ steps.testing.outputs.throughput }}"
+          error_rate="${{ steps.testing.outputs.error-rate }}"
+          strict_mode="${{ github.event.inputs.strict_mode }}"
+          gate_type="${{ github.event.inputs.gate_type }}"
+          
+          # Set thresholds based on mode
+          if [ "$strict_mode" = "true" ]; then
+            max_response_time="${{ env.STRICT_MAX_RESPONSE_TIME_MS }}"
+            max_error_rate="${{ env.STRICT_MAX_ERROR_RATE_PERCENT }}"
+            min_throughput="${{ env.STRICT_MIN_THROUGHPUT_RPS }}"
+            min_availability="${{ env.STRICT_MIN_AVAILABILITY_PERCENT }}"
+          else
+            max_response_time="${{ env.MAX_RESPONSE_TIME_MS }}"
+            max_error_rate="${{ env.MAX_ERROR_RATE_PERCENT }}"
+            min_throughput="${{ env.MIN_THROUGHPUT_RPS }}"
+            min_availability="${{ env.MIN_AVAILABILITY_PERCENT }}"
+          fi
+          
+          echo "🎯 Using thresholds:"
+          echo "  Max Response Time (P95): ${max_response_time}ms"
+          echo "  Max Error Rate: ${max_error_rate}%"
+          echo "  Min Throughput: ${min_throughput} RPS"
+          
+          # Initialize gate results
+          gate_passed=true
+          failed_gates=()
+          gate_results=""
+          
+          # Evaluate response time gate
+          if [ "$gate_type" = "response-time" ] || [ "$gate_type" = "all" ]; then
+            if [ $(echo "$p95_response_time > $max_response_time" | bc -l) -eq 1 ]; then
+              echo "❌ Response Time Gate FAILED: P95 ${p95_response_time}ms > ${max_response_time}ms"
+              gate_passed=false
+              failed_gates+=("response-time")
+            else
+              echo "✅ Response Time Gate PASSED: P95 ${p95_response_time}ms <= ${max_response_time}ms"
+            fi
+          fi
+          
+          # Evaluate error rate gate
+          if [ "$gate_type" = "error-rate" ] || [ "$gate_type" = "all" ]; then
+            if [ $(echo "$error_rate > $max_error_rate" | bc -l) -eq 1 ]; then
+              echo "❌ Error Rate Gate FAILED: ${error_rate}% > ${max_error_rate}%"
+              gate_passed=false
+              failed_gates+=("error-rate")
+            else
+              echo "✅ Error Rate Gate PASSED: ${error_rate}% <= ${max_error_rate}%"
+            fi
+          fi
+          
+          # Evaluate throughput gate
+          if [ "$gate_type" = "throughput" ] || [ "$gate_type" = "all" ]; then
+            if [ $(echo "$throughput < $min_throughput" | bc -l) -eq 1 ]; then
+              echo "❌ Throughput Gate FAILED: ${throughput} RPS < ${min_throughput} RPS"
+              gate_passed=false
+              failed_gates+=("throughput")
+            else
+              echo "✅ Throughput Gate PASSED: ${throughput} RPS >= ${min_throughput} RPS"
+            fi
+          fi
+          
+          # Calculate availability (simplified)
+          availability=$(echo "scale=2; (100 - $error_rate)" | bc -l)
+          if [ "$gate_type" = "availability" ] || [ "$gate_type" = "all" ]; then
+            if [ $(echo "$availability < $min_availability" | bc -l) -eq 1 ]; then
+              echo "❌ Availability Gate FAILED: ${availability}% < ${min_availability}%"
+              gate_passed=false
+              failed_gates+=("availability")
+            else
+              echo "✅ Availability Gate PASSED: ${availability}% >= ${min_availability}%"
+            fi
+          fi
+          
+          # Generate gate results summary
+          gate_results="{"
+          gate_results+="\"response_time\":{\"p95\":$p95_response_time,\"threshold\":$max_response_time,\"passed\":$([ "${failed_gates[*]}" != *"response-time"* ] && echo "true" || echo "false")},"
+          gate_results+="\"error_rate\":{\"value\":$error_rate,\"threshold\":$max_error_rate,\"passed\":$([ "${failed_gates[*]}" != *"error-rate"* ] && echo "true" || echo "false")},"
+          gate_results+="\"throughput\":{\"value\":$throughput,\"threshold\":$min_throughput,\"passed\":$([ "${failed_gates[*]}" != *"throughput"* ] && echo "true" || echo "false")},"
+          gate_results+="\"availability\":{\"value\":$availability,\"threshold\":$min_availability,\"passed\":$([ "${failed_gates[*]}" != *"availability"* ] && echo "true" || echo "false")}"
+          gate_results+="}"
+          
+          # Overall gate status
+          if [ "$gate_passed" = true ]; then
+            echo "✅ ALL PERFORMANCE GATES PASSED"
+            echo "🚀 Deployment can proceed"
+            deployment_blocked=false
+          else
+            echo "🚫 PERFORMANCE GATES FAILED"
+            echo "🛑 Deployment is BLOCKED"
+            echo "Failed gates: ${failed_gates[*]}"
+            deployment_blocked=true
+          fi
+          
+          echo "gate-passed=$gate_passed" >> $GITHUB_OUTPUT
+          echo "gate-results=$gate_results" >> $GITHUB_OUTPUT
+          echo "deployment-blocked=$deployment_blocked" >> $GITHUB_OUTPUT
+
+      - name: 📊 Generate Gate Report
+        run: |
+          echo "📊 Generating performance gate report..."
+          
+          gate_passed="${{ steps.evaluation.outputs.gate-passed }}"
+          deployment_blocked="${{ steps.evaluation.outputs.deployment-blocked }}"
+          
+          cat > gate-report.md << EOF
+          # 🚪 Performance Gates Report
+          
+          **Environment:** ${{ github.event.inputs.environment || 'staging' }}
+          **Strict Mode:** ${{ github.event.inputs.strict_mode }}
+          **Gate Type:** ${{ github.event.inputs.gate_type }}
+          **Test Date:** $(date -u)
+          **GitHub SHA:** ${{ github.sha }}
+          
+          ## Overall Status
+          
+          **Gates Status:** $([ "$gate_passed" = "true" ] && echo "✅ PASSED" || echo "❌ FAILED")
+          **Deployment:** $([ "$deployment_blocked" = "true" ] && echo "🛑 BLOCKED" || echo "🚀 APPROVED")
+          
+          ## Performance Metrics
+          
+          | Metric | Value | Threshold | Status |
+          |--------|--------|-----------|--------|
+          | P95 Response Time | ${{ steps.testing.outputs.p95-response-time }}ms | ${{ github.event.inputs.strict_mode == 'true' && env.STRICT_MAX_RESPONSE_TIME_MS || env.MAX_RESPONSE_TIME_MS }}ms | $([ "$gate_passed" = "true" ] && echo "✅" || echo "❌") |
+          | Error Rate | ${{ steps.testing.outputs.error-rate }}% | ${{ github.event.inputs.strict_mode == 'true' && env.STRICT_MAX_ERROR_RATE_PERCENT || env.MAX_ERROR_RATE_PERCENT }}% | $([ "$gate_passed" = "true" ] && echo "✅" || echo "❌") |
+          | Throughput | ${{ steps.testing.outputs.throughput }} RPS | ${{ github.event.inputs.strict_mode == 'true' && env.STRICT_MIN_THROUGHPUT_RPS || env.MIN_THROUGHPUT_RPS }} RPS | $([ "$gate_passed" = "true" ] && echo "✅" || echo "❌") |
+          | Total Requests | ${{ steps.testing.outputs.request-count }} | N/A | ✅ |
+          
+          ## Detailed Results
+          
+          - **Average Response Time:** ${{ steps.testing.outputs.avg-response-time }}ms
+          - **P95 Response Time:** ${{ steps.testing.outputs.p95-response-time }}ms
+          - **P99 Response Time:** ${{ steps.testing.outputs.p99-response-time }}ms
+          - **Throughput:** ${{ steps.testing.outputs.throughput }} RPS
+          - **Error Rate:** ${{ steps.testing.outputs.error-rate }}%
+          
+          ## Gate Configuration
+          
+          ### Standard Mode Thresholds
+          - Max Response Time (P95): ${{ env.MAX_RESPONSE_TIME_MS }}ms
+          - Max Error Rate: ${{ env.MAX_ERROR_RATE_PERCENT }}%
+          - Min Throughput: ${{ env.MIN_THROUGHPUT_RPS }} RPS
+          - Min Availability: ${{ env.MIN_AVAILABILITY_PERCENT }}%
+          
+          ### Strict Mode Thresholds
+          - Max Response Time (P95): ${{ env.STRICT_MAX_RESPONSE_TIME_MS }}ms
+          - Max Error Rate: ${{ env.STRICT_MAX_ERROR_RATE_PERCENT }}%
+          - Min Throughput: ${{ env.STRICT_MIN_THROUGHPUT_RPS }} RPS
+          - Min Availability: ${{ env.STRICT_MIN_AVAILABILITY_PERCENT }}%
+          
+          ## Actions Required
+          
+          $(if [ "$deployment_blocked" = "true" ]; then
+            cat << ACTIONS
+          🛑 **Deployment is blocked due to performance gate failures**
+          
+          ### Immediate Actions:
+          1. Review performance regression causes
+          2. Optimize application performance
+          3. Consider scaling resources
+          4. Re-run tests after fixes
+          
+          ### Investigation Areas:
+          - Recent code changes affecting performance
+          - Database query optimization
+          - Third-party service dependencies
+          - Infrastructure resource constraints
+          ACTIONS
+          else
+            echo "✅ **All gates passed - deployment approved**"
+          fi)
+          
+          ---
+          
+          **Workflow:** [${{ github.workflow }}](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
+          EOF
+          
+          echo "✅ Gate report generated"
+
+      - name: 📤 Upload Gate Results
+        uses: actions/upload-artifact@v4
+        with:
+          name: performance-gate-results-${{ github.run_number }}
+          path: |
+            gate-results.json
+            gate-report.md
+            gate-test.js
+          retention-days: 30
+
+  # ==========================================
+  # DEPLOYMENT BLOCKING
+  # ==========================================
+  deployment-gate:
+    name: 🛑 Deployment Gate Decision
+    runs-on: ubuntu-latest
+    needs: performance-gate-check
+    if: always()
+    steps:
+      - name: 🛑 Block Deployment on Gate Failure
+        if: needs.performance-gate-check.outputs.deployment-blocked == 'true'
+        run: |
+          echo "🛑 DEPLOYMENT BLOCKED"
+          echo "Performance gates have failed. Deployment cannot proceed."
+          echo ""
+          echo "Gate Results: ${{ needs.performance-gate-check.outputs.gate-results }}"
+          echo ""
+          echo "Actions required:"
+          echo "1. Review performance regression causes"
+          echo "2. Fix performance issues"
+          echo "3. Re-run performance tests"
+          echo "4. Ensure all gates pass before deployment"
+          
+          # Set exit code to block deployment
+          exit 1
+
+      - name: ✅ Approve Deployment
+        if: needs.performance-gate-check.outputs.deployment-blocked != 'true'
+        run: |
+          echo "✅ DEPLOYMENT APPROVED"
+          echo "All performance gates have passed successfully."
+          echo ""
+          echo "Gate Results: ${{ needs.performance-gate-check.outputs.gate-results }}"
+          echo ""
+          echo "Deployment can proceed safely."
+
+  # ==========================================
+  # PR STATUS CHECK
+  # ==========================================
+  pr-status-check:
+    name: 📋 PR Status Check
+    runs-on: ubuntu-latest
+    needs: performance-gate-check
+    if: github.event_name == 'pull_request'
+    steps:
+      - name: 📋 Update PR Status
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { data: pullRequest } = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.issue.number
+            });
+            
+            const gatesPassed = ${{ needs.performance-gate-check.outputs.gate-passed }};
+            const deploymentBlocked = ${{ needs.performance-gate-check.outputs.deployment-blocked }};
+            
+            const statusIcon = gatesPassed ? '✅' : '❌';
+            const statusText = gatesPassed ? 'PASSED' : 'FAILED';
+            const deploymentStatus = deploymentBlocked ? '🛑 BLOCKED' : '🚀 APPROVED';
+            
+            const comment = `## ${statusIcon} Performance Gates ${statusText}
+            
+            **Deployment Status:** ${deploymentStatus}
+            **Environment:** ${{ github.event.inputs.environment || 'staging' }}
+            **Test Results:** [View Details](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
+            
+            ### Performance Metrics
+            - **P95 Response Time:** ${{ needs.performance-gate-check.outputs.p95-response-time || 'N/A' }}ms
+            - **Error Rate:** ${{ needs.performance-gate-check.outputs.error-rate || 'N/A' }}%
+            - **Throughput:** ${{ needs.performance-gate-check.outputs.throughput || 'N/A' }} RPS
+            
+            ${deploymentBlocked ? 
+              '⚠️ **Action Required:** Performance gates failed. Please address performance issues before merging.' :
+              '✅ **Ready to Deploy:** All performance gates passed successfully.'
+            }`;
+            
+            // Find existing comment
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number
+            });
+            
+            const existingComment = comments.find(c => 
+              c.user.login === 'github-actions[bot]' && 
+              c.body.includes('Performance Gates')
+            );
+            
+            if (existingComment) {
+              // Update existing comment
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existingComment.id,
+                body: comment
+              });
+            } else {
+              // Create new comment
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: comment
+              });
+            }

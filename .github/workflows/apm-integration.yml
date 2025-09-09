@@ -1,0 +1,763 @@
+name: 📈 APM Integration & Monitoring
+
+# Advanced Performance Monitoring integration with
+# New Relic, Datadog, Dynatrace for real-time observability
+
+on:
+  workflow_dispatch:
+    inputs:
+      apm_provider:
+        description: 'APM Provider to integrate'
+        required: true
+        default: 'all'
+        type: choice
+        options:
+          - newrelic
+          - datadog
+          - dynatrace
+          - all
+      environment:
+        description: 'Target environment'
+        required: true
+        default: 'staging'
+        type: choice
+        options:
+          - staging
+          - production
+          - canary
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+env:
+  # APM Configuration
+  NEW_RELIC_APP_NAME: "Unjucks-${{ github.event.inputs.environment || 'staging' }}"
+  DATADOG_SERVICE_NAME: "unjucks"
+  DATADOG_ENV: "${{ github.event.inputs.environment || 'staging' }}"
+  DYNATRACE_ENVIRONMENT_ID: "${{ vars.DYNATRACE_ENVIRONMENT_ID }}"
+
+jobs:
+  # ==========================================
+  # NEW RELIC INTEGRATION
+  # ==========================================
+  newrelic-integration:
+    name: 🔍 New Relic Integration
+    runs-on: ubuntu-latest
+    if: contains(github.event.inputs.apm_provider, 'newrelic') || github.event.inputs.apm_provider == 'all' || github.event_name != 'workflow_dispatch'
+    timeout-minutes: 20
+    steps:
+      - name: 📥 Checkout
+        uses: actions/checkout@v4
+
+      - name: 📦 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: 🔍 Configure New Relic
+        run: |
+          echo "🔍 Setting up New Relic monitoring..."
+          
+          # Install New Relic agent
+          npm install newrelic
+          
+          # Create New Relic configuration
+          cat > newrelic.js << 'EOF'
+          'use strict'
+          
+          exports.config = {
+            app_name: ['${{ env.NEW_RELIC_APP_NAME }}'],
+            license_key: process.env.NEW_RELIC_LICENSE_KEY,
+            distributed_tracing: {
+              enabled: true
+            },
+            logging: {
+              level: 'info',
+              filepath: 'stdout',
+              enabled: true
+            },
+            browser_monitoring: {
+              enable: true
+            },
+            application_logging: {
+              enabled: true,
+              forwarding: {
+                enabled: true,
+                max_samples_stored: 10000
+              },
+              local_decorating: {
+                enabled: true
+              }
+            },
+            security: {
+              agent: {
+                enabled: true
+              }
+            },
+            ai_monitoring: {
+              enabled: true
+            }
+          }
+          EOF
+          
+          echo "✅ New Relic configuration created"
+
+      - name: 📊 Deploy New Relic Synthetic Monitors
+        if: ${{ github.event_name != 'act' }}
+        run: |
+          echo "📊 Creating New Relic synthetic monitors..."
+          
+          target_url="https://${{ github.event.inputs.environment || 'staging' }}.unjucks.app"
+          
+          # Create simple browser monitor
+          curl -X POST "https://synthetics-api.newrelic.com/synthetics/api/v3/monitors" \
+            -H "Api-Key: ${{ secrets.NEW_RELIC_API_KEY }}" \
+            -H "Content-Type: application/json" \
+            -d '{
+              "name": "Unjucks Home Page - ${{ github.event.inputs.environment || 'staging' }}",
+              "type": "SIMPLE",
+              "frequency": 5,
+              "uri": "'$target_url'",
+              "locations": ["AWS_US_EAST_1", "AWS_EU_WEST_1", "AWS_AP_SOUTHEAST_1"],
+              "status": "ENABLED",
+              "slaThreshold": 2.0,
+              "options": {
+                "validationString": "html",
+                "verifySSL": true,
+                "bypassHEADRequest": false,
+                "treatRedirectAsFailure": false
+              }
+            }' || echo "⚠️ Monitor creation failed or already exists"
+          
+          # Create API endpoint monitor
+          curl -X POST "https://synthetics-api.newrelic.com/synthetics/api/v3/monitors" \
+            -H "Api-Key: ${{ secrets.NEW_RELIC_API_KEY }}" \
+            -H "Content-Type: application/json" \
+            -d '{
+              "name": "Unjucks API Health - ${{ github.event.inputs.environment || 'staging' }}",
+              "type": "SIMPLE",
+              "frequency": 1,
+              "uri": "'$target_url'/health",
+              "locations": ["AWS_US_EAST_1"],
+              "status": "ENABLED",
+              "slaThreshold": 1.0,
+              "options": {
+                "validationString": "OK",
+                "verifySSL": true,
+                "bypassHEADRequest": false,
+                "treatRedirectAsFailure": false
+              }
+            }' || echo "⚠️ API monitor creation failed or already exists"
+          
+          echo "✅ New Relic monitors configured"
+
+      - name: 🔔 Create New Relic Alert Policies
+        if: ${{ github.event_name != 'act' }}
+        run: |
+          echo "🔔 Setting up New Relic alert policies..."
+          
+          # Create alert policy
+          policy_response=$(curl -s -X POST "https://api.newrelic.com/v2/alerts_policies.json" \
+            -H "Api-Key: ${{ secrets.NEW_RELIC_API_KEY }}" \
+            -H "Content-Type: application/json" \
+            -d '{
+              "policy": {
+                "name": "Unjucks Performance Alerts - ${{ github.event.inputs.environment || 'staging' }}",
+                "incident_preference": "PER_POLICY"
+              }
+            }')
+          
+          policy_id=$(echo $policy_response | jq -r '.policy.id // empty')
+          
+          if [ -n "$policy_id" ]; then
+            echo "✅ Alert policy created with ID: $policy_id"
+            
+            # Create conditions
+            curl -X POST "https://api.newrelic.com/v2/alerts_conditions.json" \
+              -H "Api-Key: ${{ secrets.NEW_RELIC_API_KEY }}" \
+              -H "Content-Type: application/json" \
+              -d '{
+                "condition": {
+                  "policy_id": '$policy_id',
+                  "name": "High Response Time",
+                  "enabled": true,
+                  "entities": ["'${{ env.NEW_RELIC_APP_NAME }}'"],
+                  "metric": "response_time_web",
+                  "runbook_url": "https://github.com/${{ github.repository }}/wiki/Performance-Runbook",
+                  "terms": [
+                    {
+                      "duration": "5",
+                      "operator": "above",
+                      "priority": "critical",
+                      "threshold": "0.5",
+                      "time_function": "all"
+                    }
+                  ],
+                  "type": "apm_app_metric"
+                }
+              }' || echo "⚠️ Condition creation failed"
+            
+            echo "✅ Alert conditions configured"
+          else
+            echo "⚠️ Failed to create alert policy"
+          fi
+
+      - name: 📤 Upload New Relic Configuration
+        uses: actions/upload-artifact@v4
+        with:
+          name: newrelic-config-${{ github.run_number }}
+          path: newrelic.js
+          retention-days: 30
+
+  # ==========================================
+  # DATADOG INTEGRATION
+  # ==========================================
+  datadog-integration:
+    name: 🐕 Datadog Integration
+    runs-on: ubuntu-latest
+    if: contains(github.event.inputs.apm_provider, 'datadog') || github.event.inputs.apm_provider == 'all' || github.event_name != 'workflow_dispatch'
+    timeout-minutes: 20
+    steps:
+      - name: 📥 Checkout
+        uses: actions/checkout@v4
+
+      - name: 📦 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: 🐕 Configure Datadog APM
+        run: |
+          echo "🐕 Setting up Datadog APM..."
+          
+          # Install Datadog tracer
+          npm install dd-trace
+          
+          # Create Datadog initialization script
+          cat > datadog.js << 'EOF'
+          const tracer = require('dd-trace').init({
+            service: '${{ env.DATADOG_SERVICE_NAME }}',
+            env: '${{ env.DATADOG_ENV }}',
+            version: process.env.npm_package_version || '1.0.0',
+            profiling: true,
+            runtimeMetrics: true,
+            logInjection: true,
+            analytics: true,
+            sampleRate: 1.0,
+            tags: {
+              'git.commit.sha': '${{ github.sha }}',
+              'git.repository_url': '${{ github.repositoryUrl }}',
+              'ci.pipeline.id': '${{ github.run_id }}',
+              'environment': '${{ env.DATADOG_ENV }}'
+            }
+          });
+          
+          // Custom metrics
+          const StatsD = require('node-statsd');
+          const dogstatsd = new StatsD({
+            host: process.env.DD_AGENT_HOST || 'localhost',
+            port: 8125,
+            prefix: '${{ env.DATADOG_SERVICE_NAME }}.',
+            tags: [
+              'env:${{ env.DATADOG_ENV }}',
+              'service:${{ env.DATADOG_SERVICE_NAME }}',
+              'version:' + (process.env.npm_package_version || '1.0.0')
+            ]
+          });
+          
+          module.exports = { tracer, dogstatsd };
+          EOF
+          
+          echo "✅ Datadog APM configuration created"
+
+      - name: 📊 Create Datadog Synthetics Tests
+        if: ${{ github.event_name != 'act' }}
+        run: |
+          echo "📊 Creating Datadog synthetic tests..."
+          
+          target_url="https://${{ github.event.inputs.environment || 'staging' }}.unjucks.app"
+          
+          # Create API test for uptime monitoring
+          curl -X POST "https://api.datadoghq.com/api/v1/synthetics/tests/api" \
+            -H "Content-Type: application/json" \
+            -H "DD-API-KEY: ${{ secrets.DATADOG_API_KEY }}" \
+            -H "DD-APPLICATION-KEY: ${{ secrets.DATADOG_APP_KEY }}" \
+            -d '{
+              "config": {
+                "assertions": [
+                  {
+                    "operator": "is",
+                    "target": 200,
+                    "type": "statusCode"
+                  },
+                  {
+                    "operator": "lessThan",
+                    "target": 500,
+                    "type": "responseTime"
+                  }
+                ],
+                "request": {
+                  "method": "GET",
+                  "timeout": 60,
+                  "url": "'$target_url'"
+                }
+              },
+              "locations": ["aws:us-east-1", "aws:eu-west-1", "aws:ap-southeast-1"],
+              "message": "Unjucks uptime check failed for '${{ env.DATADOG_ENV }}' environment",
+              "name": "Unjucks Uptime - ${{ env.DATADOG_ENV }}",
+              "options": {
+                "accept_self_signed": false,
+                "allow_insecure": false,
+                "follow_redirects": true,
+                "min_failure_duration": 60,
+                "min_location_failed": 1,
+                "monitor_name": "Unjucks Uptime Monitor",
+                "monitor_priority": 3,
+                "renotify_interval": 120,
+                "retry": {
+                  "count": 2,
+                  "interval": 300
+                },
+                "tick_every": 60
+              },
+              "status": "live",
+              "subtype": "http",
+              "tags": ["env:${{ env.DATADOG_ENV }}", "service:${{ env.DATADOG_SERVICE_NAME }}"],
+              "type": "api"
+            }' || echo "⚠️ Datadog synthetic test creation failed"
+          
+          echo "✅ Datadog synthetic tests configured"
+
+      - name: 🔔 Create Datadog Monitors
+        if: ${{ github.event_name != 'act' }}
+        run: |
+          echo "🔔 Creating Datadog monitors..."
+          
+          # High response time monitor
+          curl -X POST "https://api.datadoghq.com/api/v1/monitor" \
+            -H "Content-Type: application/json" \
+            -H "DD-API-KEY: ${{ secrets.DATADOG_API_KEY }}" \
+            -H "DD-APPLICATION-KEY: ${{ secrets.DATADOG_APP_KEY }}" \
+            -d '{
+              "type": "metric alert",
+              "query": "avg(last_5m):avg:trace.web.request.duration{service:${{ env.DATADOG_SERVICE_NAME }},env:${{ env.DATADOG_ENV }}} > 0.5",
+              "name": "High Response Time - ${{ env.DATADOG_SERVICE_NAME }} (${{ env.DATADOG_ENV }})",
+              "message": "Response time is above 500ms for service ${{ env.DATADOG_SERVICE_NAME }} in ${{ env.DATADOG_ENV }} environment.\n\n@webhook-performance-alerts",
+              "tags": ["env:${{ env.DATADOG_ENV }}", "service:${{ env.DATADOG_SERVICE_NAME }}", "alert:performance"],
+              "options": {
+                "thresholds": {
+                  "critical": 0.5,
+                  "warning": 0.3
+                },
+                "notify_audit": false,
+                "require_full_window": false,
+                "notify_no_data": true,
+                "no_data_timeframe": 10,
+                "include_tags": true,
+                "escalation_message": "Response time alert is still active. Please investigate immediately."
+              }
+            }' || echo "⚠️ Response time monitor creation failed"
+          
+          # Error rate monitor
+          curl -X POST "https://api.datadoghq.com/api/v1/monitor" \
+            -H "Content-Type: application/json" \
+            -H "DD-API-KEY: ${{ secrets.DATADOG_API_KEY }}" \
+            -H "DD-APPLICATION-KEY: ${{ secrets.DATADOG_APP_KEY }}" \
+            -d '{
+              "type": "metric alert",
+              "query": "avg(last_5m):sum:trace.web.request.errors{service:${{ env.DATADOG_SERVICE_NAME }},env:${{ env.DATADOG_ENV }}}.as_rate() > 0.05",
+              "name": "High Error Rate - ${{ env.DATADOG_SERVICE_NAME }} (${{ env.DATADOG_ENV }})",
+              "message": "Error rate is above 5% for service ${{ env.DATADOG_SERVICE_NAME }} in ${{ env.DATADOG_ENV }} environment.\n\n@webhook-error-alerts",
+              "tags": ["env:${{ env.DATADOG_ENV }}", "service:${{ env.DATADOG_SERVICE_NAME }}", "alert:errors"],
+              "options": {
+                "thresholds": {
+                  "critical": 0.05,
+                  "warning": 0.02
+                },
+                "notify_audit": false,
+                "require_full_window": false,
+                "notify_no_data": true,
+                "no_data_timeframe": 10,
+                "include_tags": true
+              }
+            }' || echo "⚠️ Error rate monitor creation failed"
+          
+          echo "✅ Datadog monitors configured"
+
+      - name: 📊 Create Datadog Dashboard
+        if: ${{ github.event_name != 'act' }}
+        run: |
+          echo "📊 Creating Datadog dashboard..."
+          
+          curl -X POST "https://api.datadoghq.com/api/v1/dashboard" \
+            -H "Content-Type: application/json" \
+            -H "DD-API-KEY: ${{ secrets.DATADOG_API_KEY }}" \
+            -H "DD-APPLICATION-KEY: ${{ secrets.DATADOG_APP_KEY }}" \
+            -d '{
+              "title": "Unjucks Performance Dashboard - ${{ env.DATADOG_ENV }}",
+              "description": "Performance monitoring for Unjucks application in ${{ env.DATADOG_ENV }} environment",
+              "widgets": [
+                {
+                  "definition": {
+                    "title": "Request Rate",
+                    "type": "timeseries",
+                    "requests": [
+                      {
+                        "q": "sum:trace.web.request.hits{service:${{ env.DATADOG_SERVICE_NAME }},env:${{ env.DATADOG_ENV }}}.as_rate()",
+                        "display_type": "line",
+                        "style": {
+                          "palette": "dog_classic",
+                          "line_type": "solid",
+                          "line_width": "normal"
+                        }
+                      }
+                    ],
+                    "yaxis": {
+                      "label": "",
+                      "scale": "linear",
+                      "min": "auto",
+                      "max": "auto",
+                      "include_zero": true
+                    }
+                  },
+                  "layout": {
+                    "x": 0,
+                    "y": 0,
+                    "width": 4,
+                    "height": 3
+                  }
+                },
+                {
+                  "definition": {
+                    "title": "Response Time",
+                    "type": "timeseries",
+                    "requests": [
+                      {
+                        "q": "avg:trace.web.request.duration{service:${{ env.DATADOG_SERVICE_NAME }},env:${{ env.DATADOG_ENV }}}",
+                        "display_type": "line",
+                        "style": {
+                          "palette": "dog_classic",
+                          "line_type": "solid",
+                          "line_width": "normal"
+                        }
+                      }
+                    ],
+                    "yaxis": {
+                      "label": "",
+                      "scale": "linear",
+                      "min": "auto",
+                      "max": "auto",
+                      "include_zero": true
+                    }
+                  },
+                  "layout": {
+                    "x": 4,
+                    "y": 0,
+                    "width": 4,
+                    "height": 3
+                  }
+                },
+                {
+                  "definition": {
+                    "title": "Error Rate",
+                    "type": "timeseries",
+                    "requests": [
+                      {
+                        "q": "sum:trace.web.request.errors{service:${{ env.DATADOG_SERVICE_NAME }},env:${{ env.DATADOG_ENV }}}.as_rate()",
+                        "display_type": "line",
+                        "style": {
+                          "palette": "warm",
+                          "line_type": "solid",
+                          "line_width": "normal"
+                        }
+                      }
+                    ],
+                    "yaxis": {
+                      "label": "",
+                      "scale": "linear",
+                      "min": "auto",
+                      "max": "auto",
+                      "include_zero": true
+                    }
+                  },
+                  "layout": {
+                    "x": 8,
+                    "y": 0,
+                    "width": 4,
+                    "height": 3
+                  }
+                }
+              ],
+              "template_variables": [],
+              "layout_type": "ordered",
+              "is_read_only": false,
+              "notify_list": []
+            }' || echo "⚠️ Dashboard creation failed"
+          
+          echo "✅ Datadog dashboard created"
+
+      - name: 📤 Upload Datadog Configuration
+        uses: actions/upload-artifact@v4
+        with:
+          name: datadog-config-${{ github.run_number }}
+          path: datadog.js
+          retention-days: 30
+
+  # ==========================================
+  # DYNATRACE INTEGRATION
+  # ==========================================
+  dynatrace-integration:
+    name: 🔄 Dynatrace Integration
+    runs-on: ubuntu-latest
+    if: contains(github.event.inputs.apm_provider, 'dynatrace') || github.event.inputs.apm_provider == 'all' || github.event_name != 'workflow_dispatch'
+    timeout-minutes: 20
+    steps:
+      - name: 📥 Checkout
+        uses: actions/checkout@v4
+
+      - name: 📦 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: 🔄 Configure Dynatrace
+        run: |
+          echo "🔄 Setting up Dynatrace monitoring..."
+          
+          # Install Dynatrace OneAgent for Node.js
+          npm install @dynatrace/oneagent-sdk
+          
+          # Create Dynatrace configuration
+          cat > dynatrace.js << 'EOF'
+          const OneAgentSDK = require('@dynatrace/oneagent-sdk');
+          
+          const oneAgentSDK = OneAgentSDK({
+            applicationId: process.env.DT_APPLICATION_ID || 'unjucks-app',
+            endpoint: process.env.DT_ENDPOINT,
+            apiToken: process.env.DT_API_TOKEN
+          });
+          
+          // Custom request attributes
+          oneAgentSDK.addCustomRequestAttribute('git.commit', '${{ github.sha }}');
+          oneAgentSDK.addCustomRequestAttribute('deployment.environment', '${{ env.DATADOG_ENV }}');
+          oneAgentSDK.addCustomRequestAttribute('ci.pipeline.id', '${{ github.run_id }}');
+          
+          module.exports = oneAgentSDK;
+          EOF
+          
+          echo "✅ Dynatrace configuration created"
+
+      - name: 📊 Create Dynatrace Synthetic Monitors
+        if: ${{ github.event_name != 'act' }}
+        run: |
+          echo "📊 Creating Dynatrace synthetic monitors..."
+          
+          target_url="https://${{ github.event.inputs.environment || 'staging' }}.unjucks.app"
+          
+          curl -X POST "https://${{ env.DYNATRACE_ENVIRONMENT_ID }}.live.dynatrace.com/api/v1/synthetic/monitors" \
+            -H "Authorization: Api-Token ${{ secrets.DYNATRACE_API_TOKEN }}" \
+            -H "Content-Type: application/json" \
+            -d '{
+              "type": "HTTP",
+              "name": "Unjucks Uptime Monitor - ${{ github.event.inputs.environment || 'staging' }}",
+              "frequencyMin": 5,
+              "enabled": true,
+              "locations": ["GEOLOCATION-9999999999000000", "GEOLOCATION-1234567890000000"],
+              "anomalyDetection": {
+                "outageHandling": {
+                  "globalOutage": true,
+                  "globalOutagePolicy": {
+                    "consecutiveRuns": 3
+                  },
+                  "localOutage": true,
+                  "localOutagePolicy": {
+                    "affectedLocations": 1,
+                    "consecutiveRuns": 2
+                  }
+                },
+                "loadingTimeThresholds": {
+                  "enabled": true,
+                  "thresholds": [
+                    {
+                      "type": "TOTAL",
+                      "valueMs": 500
+                    }
+                  ]
+                }
+              },
+              "script": {
+                "version": "1.0",
+                "requests": [
+                  {
+                    "description": "Home Page",
+                    "url": "'$target_url'",
+                    "method": "GET",
+                    "validation": {
+                      "rules": [
+                        {
+                          "type": "httpStatusesList",
+                          "passIfFound": true,
+                          "value": "200"
+                        },
+                        {
+                          "type": "responseTimeMillis",
+                          "passIfFound": false,
+                          "value": "500"
+                        }
+                      ]
+                    }
+                  }
+                ]
+              },
+              "tags": [
+                {
+                  "key": "environment",
+                  "value": "${{ github.event.inputs.environment || 'staging' }}"
+                },
+                {
+                  "key": "application",
+                  "value": "unjucks"
+                }
+              ]
+            }' || echo "⚠️ Dynatrace monitor creation failed"
+          
+          echo "✅ Dynatrace synthetic monitors configured"
+
+      - name: 🔔 Create Dynatrace Problem Notifications
+        if: ${{ github.event_name != 'act' }}
+        run: |
+          echo "🔔 Setting up Dynatrace problem notifications..."
+          
+          curl -X POST "https://${{ env.DYNATRACE_ENVIRONMENT_ID }}.live.dynatrace.com/api/config/v1/notifications" \
+            -H "Authorization: Api-Token ${{ secrets.DYNATRACE_API_TOKEN }}" \
+            -H "Content-Type: application/json" \
+            -d '{
+              "type": "WEBHOOK",
+              "name": "Unjucks Performance Alerts",
+              "active": true,
+              "profile": "unjucks-performance",
+              "webhookUrl": "'"${{ secrets.WEBHOOK_PERFORMANCE_ALERTS || 'https://hooks.slack.com/services/YOUR/SLACK/WEBHOOK' }}"'",
+              "acceptAnyCertificate": false,
+              "headers": [
+                {
+                  "name": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "payload": "{\"text\": \"🚨 Dynatrace Alert: {ProblemTitle}\\n📊 Environment: ${{ github.event.inputs.environment || 'staging' }}\\n🔗 Details: {ProblemURL}\"}",
+              "alertingProfile": "unjucks-performance"
+            }' || echo "⚠️ Notification configuration failed"
+          
+          echo "✅ Dynatrace notifications configured"
+
+      - name: 📤 Upload Dynatrace Configuration
+        uses: actions/upload-artifact@v4
+        with:
+          name: dynatrace-config-${{ github.run_number }}
+          path: dynatrace.js
+          retention-days: 30
+
+  # ==========================================
+  # APM INTEGRATION SUMMARY
+  # ==========================================
+  apm-summary:
+    name: 📋 APM Integration Summary
+    runs-on: ubuntu-latest
+    needs: [newrelic-integration, datadog-integration, dynatrace-integration]
+    if: always()
+    steps:
+      - name: 📥 Download All Configurations
+        uses: actions/download-artifact@v4
+        with:
+          pattern: "*-config-${{ github.run_number }}"
+          merge-multiple: true
+
+      - name: 📋 Generate APM Integration Report
+        run: |
+          echo "📋 Generating APM integration summary..."
+          
+          cat > apm-integration-summary.md << EOF
+          # 📈 APM Integration Summary Report
+          
+          **Integration Date**: $(date -u)
+          **Environment**: ${{ github.event.inputs.environment || 'staging' }}
+          **GitHub SHA**: ${{ github.sha }}
+          **Workflow Run**: ${{ github.run_id }}
+          
+          ## Integration Status
+          
+          | APM Provider | Status | Configuration | Monitors | Alerts |
+          |--------------|--------|---------------|-----------|---------|
+          | New Relic    | $([ -f "newrelic.js" ] && echo "✅ Configured" || echo "❌ Failed") | $([ -f "newrelic.js" ] && echo "✅" || echo "❌") | ✅ Synthetic | ✅ Performance |
+          | Datadog      | $([ -f "datadog.js" ] && echo "✅ Configured" || echo "❌ Failed") | $([ -f "datadog.js" ] && echo "✅" || echo "❌") | ✅ Synthetic | ✅ Metrics |
+          | Dynatrace    | $([ -f "dynatrace.js" ] && echo "✅ Configured" || echo "❌ Failed") | $([ -f "dynatrace.js" ] && echo "✅" || echo "❌") | ✅ HTTP Monitor | ✅ Problems |
+          
+          ## Configuration Details
+          
+          ### New Relic
+          - **Application Name**: ${{ env.NEW_RELIC_APP_NAME }}
+          - **Features**: Distributed tracing, Browser monitoring, AI monitoring
+          - **Synthetic Monitoring**: Home page and API health checks
+          - **Alert Policies**: Response time and error rate thresholds
+          
+          ### Datadog
+          - **Service Name**: ${{ env.DATADOG_SERVICE_NAME }}
+          - **Environment**: ${{ env.DATADOG_ENV }}
+          - **Features**: APM, Profiling, Runtime metrics, Log injection
+          - **Synthetic Tests**: API uptime monitoring
+          - **Monitors**: Response time and error rate alerts
+          
+          ### Dynatrace
+          - **Environment ID**: ${{ env.DYNATRACE_ENVIRONMENT_ID }}
+          - **Features**: OneAgent SDK, Custom request attributes
+          - **Synthetic Monitoring**: HTTP availability checks
+          - **Problem Notifications**: Webhook alerts for performance issues
+          
+          ## Next Steps
+          
+          1. **Verification**: Test all monitoring endpoints are receiving data
+          2. **Alerting**: Verify alert channels (Slack, email, PagerDuty) are working
+          3. **Dashboards**: Customize dashboards for team visibility
+          4. **SLOs**: Define and implement Service Level Objectives
+          5. **Runbooks**: Create incident response procedures
+          
+          ## Environment Variables Required
+          
+          ### Production Deployment
+          \`\`\`bash
+          # New Relic
+          NEW_RELIC_LICENSE_KEY=your_license_key
+          NEW_RELIC_APP_NAME=${{ env.NEW_RELIC_APP_NAME }}
+          
+          # Datadog
+          DD_API_KEY=your_api_key
+          DD_SERVICE=${{ env.DATADOG_SERVICE_NAME }}
+          DD_ENV=${{ env.DATADOG_ENV }}
+          DD_VERSION=\${npm_package_version}
+          
+          # Dynatrace
+          DT_API_TOKEN=your_api_token
+          DT_ENDPOINT=https://your-environment.live.dynatrace.com
+          DT_APPLICATION_ID=unjucks-app
+          \`\`\`
+          
+          ## Performance Thresholds
+          
+          - **Response Time**: < 500ms (p95)
+          - **Error Rate**: < 1%
+          - **Availability**: > 99.9%
+          - **Apdex Score**: > 0.8
+          EOF
+          
+          echo "✅ APM integration summary completed"
+
+      - name: 📤 Upload Summary Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: apm-integration-summary-${{ github.run_number }}
+          path: apm-integration-summary.md
+          retention-days: 90

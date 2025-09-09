@@ -1,0 +1,706 @@
+{
+  "metadata": {
+    "timestamp": "2025-09-09T20:15:53.073Z",
+    "framework": "ACT Validation Framework",
+    "version": "1.0.0",
+    "environment": {
+      "platform": "darwin",
+      "nodeVersion": "v22.12.0",
+      "actVersion": "act version 0.2.80"
+    }
+  },
+  "summary": {
+    "totalWorkflows": 34,
+    "analyzedWorkflows": 34,
+    "compatibleWorkflows": 9,
+    "incompatibleWorkflows": 25,
+    "frameworkTests": 5,
+    "passedFrameworkTests": 5,
+    "failedFrameworkTests": 0
+  },
+  "workflows": [
+    {
+      "name": "act-compatibility.yml",
+      "actCompatible": false,
+      "issues": [
+        "Uses GitHub Environment protection (not supported in ACT)",
+        "Uses manual approval actions (not supported in ACT)"
+      ],
+      "recommendations": [
+        "Comment out environment blocks or use conditional logic",
+        "Replace with automatic approval for testing",
+        "Ensure service containers are properly configured"
+      ],
+      "features": {
+        "hasMatrix": false,
+        "hasServices": true,
+        "hasEnvironments": false,
+        "hasSecrets": false,
+        "hasManualApproval": false,
+        "jobCount": 18,
+        "estimatedComplexity": "high"
+      }
+    },
+    {
+      "name": "act-release.yml",
+      "actCompatible": true,
+      "issues": [],
+      "recommendations": [],
+      "features": {
+        "hasMatrix": false,
+        "hasServices": false,
+        "hasEnvironments": false,
+        "hasSecrets": false,
+        "hasManualApproval": false,
+        "jobCount": 20,
+        "estimatedComplexity": "high"
+      }
+    },
+    {
+      "name": "act-test-blue-green.yml",
+      "actCompatible": false,
+      "issues": [
+        "Uses GitHub Environment protection (not supported in ACT)"
+      ],
+      "recommendations": [
+        "Comment out environment blocks or use conditional logic"
+      ],
+      "features": {
+        "hasMatrix": false,
+        "hasServices": false,
+        "hasEnvironments": false,
+        "hasSecrets": false,
+        "hasManualApproval": false,
+        "jobCount": 13,
+        "estimatedComplexity": "high"
+      }
+    },
+    {
+      "name": "apm-integration.yml",
+      "actCompatible": false,
+      "issues": [
+        "Uses GitHub Environment protection (not supported in ACT)"
+      ],
+      "recommendations": [
+        "Comment out environment blocks or use conditional logic",
+        "Use .secrets.act file for testing"
+      ],
+      "features": {
+        "hasMatrix": false,
+        "hasServices": false,
+        "hasEnvironments": false,
+        "hasSecrets": true,
+        "hasManualApproval": false,
+        "jobCount": 23,
+        "estimatedComplexity": "high"
+      }
+    },
+    {
+      "name": "blue-green-deployment.yml",
+      "actCompatible": false,
+      "issues": [
+        "Uses GitHub Environment protection (not supported in ACT)"
+      ],
+      "recommendations": [
+        "Comment out environment blocks or use conditional logic",
+        "Use .secrets.act file for testing"
+      ],
+      "features": {
+        "hasMatrix": false,
+        "hasServices": false,
+        "hasEnvironments": false,
+        "hasSecrets": true,
+        "hasManualApproval": false,
+        "jobCount": 32,
+        "estimatedComplexity": "high"
+      }
+    },
+    {
+      "name": "compliance-automation.yml",
+      "actCompatible": false,
+      "issues": [
+        "Uses GitHub Environment protection (not supported in ACT)"
+      ],
+      "recommendations": [
+        "Comment out environment blocks or use conditional logic"
+      ],
+      "features": {
+        "hasMatrix": false,
+        "hasServices": false,
+        "hasEnvironments": false,
+        "hasSecrets": false,
+        "hasManualApproval": false,
+        "jobCount": 31,
+        "estimatedComplexity": "high"
+      }
+    },
+    {
+      "name": "cross-browser-testing.yml",
+      "actCompatible": true,
+      "issues": [],
+      "recommendations": [
+        "Use .secrets.act file for testing"
+      ],
+      "features": {
+        "hasMatrix": true,
+        "hasServices": false,
+        "hasEnvironments": false,
+        "hasSecrets": true,
+        "hasManualApproval": false,
+        "jobCount": 38,
+        "estimatedComplexity": "high"
+      }
+    },
+    {
+      "name": "deployment.yml",
+      "actCompatible": true,
+      "issues": [],
+      "recommendations": [
+        "Use .secrets.act file for testing"
+      ],
+      "features": {
+        "hasMatrix": true,
+        "hasServices": false,
+        "hasEnvironments": false,
+        "hasSecrets": true,
+        "hasManualApproval": false,
+        "jobCount": 31,
+        "estimatedComplexity": "high"
+      }
+    },
+    {
+      "name": "disaster-recovery.yml",
+      "actCompatible": false,
+      "issues": [
+        "Uses GitHub Environment protection (not supported in ACT)"
+      ],
+      "recommendations": [
+        "Comment out environment blocks or use conditional logic",
+        "Use .secrets.act file for testing",
+        "Ensure service containers are properly configured"
+      ],
+      "features": {
+        "hasMatrix": false,
+        "hasServices": true,
+        "hasEnvironments": false,
+        "hasSecrets": true,
+        "hasManualApproval": false,
+        "jobCount": 29,
+        "estimatedComplexity": "high"
+      }
+    },
+    {
+      "name": "docker-enterprise.yml",
+      "actCompatible": false,
+      "issues": [
+        "Uses GitHub Environment protection (not supported in ACT)"
+      ],
+      "recommendations": [
+        "Comment out environment blocks or use conditional logic",
+        "Use .secrets.act file for testing"
+      ],
+      "features": {
+        "hasMatrix": true,
+        "hasServices": false,
+        "hasEnvironments": false,
+        "hasSecrets": true,
+        "hasManualApproval": false,
+        "jobCount": 83,
+        "estimatedComplexity": "high"
+      }
+    },
+    {
+      "name": "docker-unified.yml",
+      "actCompatible": false,
+      "issues": [
+        "Uses GitHub Environment protection (not supported in ACT)"
+      ],
+      "recommendations": [
+        "Comment out environment blocks or use conditional logic",
+        "Use .secrets.act file for testing"
+      ],
+      "features": {
+        "hasMatrix": true,
+        "hasServices": false,
+        "hasEnvironments": false,
+        "hasSecrets": true,
+        "hasManualApproval": false,
+        "jobCount": 70,
+        "estimatedComplexity": "high"
+      }
+    },
+    {
+      "name": "enhanced-blue-green.yml",
+      "actCompatible": false,
+      "issues": [
+        "Uses GitHub Environment protection (not supported in ACT)"
+      ],
+      "recommendations": [
+        "Comment out environment blocks or use conditional logic",
+        "Use .secrets.act file for testing"
+      ],
+      "features": {
+        "hasMatrix": false,
+        "hasServices": false,
+        "hasEnvironments": false,
+        "hasSecrets": true,
+        "hasManualApproval": false,
+        "jobCount": 31,
+        "estimatedComplexity": "high"
+      }
+    },
+    {
+      "name": "enterprise-cicd.yml",
+      "actCompatible": false,
+      "issues": [
+        "Uses GitHub Environment protection (not supported in ACT)",
+        "Uses manual approval actions (not supported in ACT)"
+      ],
+      "recommendations": [
+        "Comment out environment blocks or use conditional logic",
+        "Replace with automatic approval for testing",
+        "Use .secrets.act file for testing"
+      ],
+      "features": {
+        "hasMatrix": false,
+        "hasServices": false,
+        "hasEnvironments": false,
+        "hasSecrets": true,
+        "hasManualApproval": false,
+        "jobCount": 33,
+        "estimatedComplexity": "high"
+      }
+    },
+    {
+      "name": "enterprise-multi-env.yml",
+      "actCompatible": false,
+      "issues": [
+        "Uses GitHub Environment protection (not supported in ACT)",
+        "Uses manual approval actions (not supported in ACT)"
+      ],
+      "recommendations": [
+        "Comment out environment blocks or use conditional logic",
+        "Replace with automatic approval for testing"
+      ],
+      "features": {
+        "hasMatrix": false,
+        "hasServices": false,
+        "hasEnvironments": false,
+        "hasSecrets": false,
+        "hasManualApproval": false,
+        "jobCount": 18,
+        "estimatedComplexity": "high"
+      }
+    },
+    {
+      "name": "enterprise-orchestrator.yml",
+      "actCompatible": false,
+      "issues": [
+        "Uses GitHub Environment protection (not supported in ACT)"
+      ],
+      "recommendations": [
+        "Comment out environment blocks or use conditional logic"
+      ],
+      "features": {
+        "hasMatrix": true,
+        "hasServices": false,
+        "hasEnvironments": false,
+        "hasSecrets": false,
+        "hasManualApproval": false,
+        "jobCount": 25,
+        "estimatedComplexity": "high"
+      }
+    },
+    {
+      "name": "error-handler-example.yml",
+      "actCompatible": false,
+      "issues": [
+        "Uses GitHub Environment protection (not supported in ACT)"
+      ],
+      "recommendations": [
+        "Comment out environment blocks or use conditional logic"
+      ],
+      "features": {
+        "hasMatrix": true,
+        "hasServices": false,
+        "hasEnvironments": false,
+        "hasSecrets": false,
+        "hasManualApproval": false,
+        "jobCount": 27,
+        "estimatedComplexity": "high"
+      }
+    },
+    {
+      "name": "infrastructure-automation.yml",
+      "actCompatible": false,
+      "issues": [
+        "Uses GitHub Environment protection (not supported in ACT)"
+      ],
+      "recommendations": [
+        "Comment out environment blocks or use conditional logic",
+        "Use .secrets.act file for testing"
+      ],
+      "features": {
+        "hasMatrix": false,
+        "hasServices": false,
+        "hasEnvironments": false,
+        "hasSecrets": true,
+        "hasManualApproval": false,
+        "jobCount": 36,
+        "estimatedComplexity": "high"
+      }
+    },
+    {
+      "name": "load-testing.yml",
+      "actCompatible": false,
+      "issues": [
+        "Uses GitHub Environment protection (not supported in ACT)"
+      ],
+      "recommendations": [
+        "Comment out environment blocks or use conditional logic"
+      ],
+      "features": {
+        "hasMatrix": false,
+        "hasServices": false,
+        "hasEnvironments": false,
+        "hasSecrets": false,
+        "hasManualApproval": false,
+        "jobCount": 36,
+        "estimatedComplexity": "high"
+      }
+    },
+    {
+      "name": "matrix-examples.yml",
+      "actCompatible": true,
+      "issues": [],
+      "recommendations": [],
+      "features": {
+        "hasMatrix": true,
+        "hasServices": false,
+        "hasEnvironments": false,
+        "hasSecrets": false,
+        "hasManualApproval": false,
+        "jobCount": 49,
+        "estimatedComplexity": "high"
+      }
+    },
+    {
+      "name": "monitoring.yml",
+      "actCompatible": true,
+      "issues": [],
+      "recommendations": [
+        "Use .secrets.act file for testing"
+      ],
+      "features": {
+        "hasMatrix": false,
+        "hasServices": false,
+        "hasEnvironments": false,
+        "hasSecrets": true,
+        "hasManualApproval": false,
+        "jobCount": 49,
+        "estimatedComplexity": "high"
+      }
+    },
+    {
+      "name": "multi-cloud-deployment.yml",
+      "actCompatible": false,
+      "issues": [
+        "Uses GitHub Environment protection (not supported in ACT)"
+      ],
+      "recommendations": [
+        "Comment out environment blocks or use conditional logic",
+        "Use .secrets.act file for testing"
+      ],
+      "features": {
+        "hasMatrix": true,
+        "hasServices": false,
+        "hasEnvironments": false,
+        "hasSecrets": true,
+        "hasManualApproval": false,
+        "jobCount": 41,
+        "estimatedComplexity": "high"
+      }
+    },
+    {
+      "name": "oidc-secrets-management.yml",
+      "actCompatible": false,
+      "issues": [
+        "Uses GitHub Environment protection (not supported in ACT)"
+      ],
+      "recommendations": [
+        "Comment out environment blocks or use conditional logic",
+        "Use .secrets.act file for testing"
+      ],
+      "features": {
+        "hasMatrix": false,
+        "hasServices": false,
+        "hasEnvironments": false,
+        "hasSecrets": true,
+        "hasManualApproval": false,
+        "jobCount": 36,
+        "estimatedComplexity": "high"
+      }
+    },
+    {
+      "name": "optimized-ci.yml",
+      "actCompatible": false,
+      "issues": [
+        "Uses GitHub Environment protection (not supported in ACT)"
+      ],
+      "recommendations": [
+        "Comment out environment blocks or use conditional logic",
+        "Use .secrets.act file for testing"
+      ],
+      "features": {
+        "hasMatrix": true,
+        "hasServices": false,
+        "hasEnvironments": false,
+        "hasSecrets": true,
+        "hasManualApproval": false,
+        "jobCount": 62,
+        "estimatedComplexity": "high"
+      }
+    },
+    {
+      "name": "performance-alerting.yml",
+      "actCompatible": false,
+      "issues": [
+        "Uses GitHub Environment protection (not supported in ACT)"
+      ],
+      "recommendations": [
+        "Comment out environment blocks or use conditional logic",
+        "Use .secrets.act file for testing"
+      ],
+      "features": {
+        "hasMatrix": false,
+        "hasServices": false,
+        "hasEnvironments": false,
+        "hasSecrets": true,
+        "hasManualApproval": false,
+        "jobCount": 29,
+        "estimatedComplexity": "high"
+      }
+    },
+    {
+      "name": "performance-gates.yml",
+      "actCompatible": false,
+      "issues": [
+        "Uses GitHub Environment protection (not supported in ACT)"
+      ],
+      "recommendations": [
+        "Comment out environment blocks or use conditional logic"
+      ],
+      "features": {
+        "hasMatrix": false,
+        "hasServices": false,
+        "hasEnvironments": false,
+        "hasSecrets": false,
+        "hasManualApproval": false,
+        "jobCount": 19,
+        "estimatedComplexity": "high"
+      }
+    },
+    {
+      "name": "performance-monitoring.yml",
+      "actCompatible": false,
+      "issues": [
+        "Uses GitHub Environment protection (not supported in ACT)"
+      ],
+      "recommendations": [
+        "Comment out environment blocks or use conditional logic",
+        "Use .secrets.act file for testing"
+      ],
+      "features": {
+        "hasMatrix": true,
+        "hasServices": false,
+        "hasEnvironments": false,
+        "hasSecrets": true,
+        "hasManualApproval": false,
+        "jobCount": 27,
+        "estimatedComplexity": "high"
+      }
+    },
+    {
+      "name": "pr-checks.yml",
+      "actCompatible": true,
+      "issues": [],
+      "recommendations": [],
+      "features": {
+        "hasMatrix": false,
+        "hasServices": false,
+        "hasEnvironments": false,
+        "hasSecrets": false,
+        "hasManualApproval": false,
+        "jobCount": 15,
+        "estimatedComplexity": "high"
+      }
+    },
+    {
+      "name": "production-validation.yml",
+      "actCompatible": false,
+      "issues": [
+        "Uses GitHub Environment protection (not supported in ACT)"
+      ],
+      "recommendations": [
+        "Comment out environment blocks or use conditional logic",
+        "Use .secrets.act file for testing",
+        "Ensure service containers are properly configured"
+      ],
+      "features": {
+        "hasMatrix": true,
+        "hasServices": true,
+        "hasEnvironments": false,
+        "hasSecrets": true,
+        "hasManualApproval": false,
+        "jobCount": 78,
+        "estimatedComplexity": "high"
+      }
+    },
+    {
+      "name": "quality-gates-comprehensive.yml",
+      "actCompatible": true,
+      "issues": [],
+      "recommendations": [],
+      "features": {
+        "hasMatrix": true,
+        "hasServices": false,
+        "hasEnvironments": false,
+        "hasSecrets": false,
+        "hasManualApproval": false,
+        "jobCount": 34,
+        "estimatedComplexity": "high"
+      }
+    },
+    {
+      "name": "release.yml",
+      "actCompatible": false,
+      "issues": [
+        "Uses GitHub Environment protection (not supported in ACT)"
+      ],
+      "recommendations": [
+        "Comment out environment blocks or use conditional logic",
+        "Use .secrets.act file for testing"
+      ],
+      "features": {
+        "hasMatrix": true,
+        "hasServices": false,
+        "hasEnvironments": false,
+        "hasSecrets": true,
+        "hasManualApproval": false,
+        "jobCount": 47,
+        "estimatedComplexity": "high"
+      }
+    },
+    {
+      "name": "security-enhanced.yml",
+      "actCompatible": true,
+      "issues": [],
+      "recommendations": [
+        "Use .secrets.act file for testing"
+      ],
+      "features": {
+        "hasMatrix": true,
+        "hasServices": false,
+        "hasEnvironments": false,
+        "hasSecrets": true,
+        "hasManualApproval": false,
+        "jobCount": 50,
+        "estimatedComplexity": "high"
+      }
+    },
+    {
+      "name": "security-monitoring.yml",
+      "actCompatible": false,
+      "issues": [
+        "Uses GitHub Environment protection (not supported in ACT)"
+      ],
+      "recommendations": [
+        "Comment out environment blocks or use conditional logic"
+      ],
+      "features": {
+        "hasMatrix": false,
+        "hasServices": false,
+        "hasEnvironments": false,
+        "hasSecrets": false,
+        "hasManualApproval": false,
+        "jobCount": 26,
+        "estimatedComplexity": "high"
+      }
+    },
+    {
+      "name": "security.yml",
+      "actCompatible": true,
+      "issues": [],
+      "recommendations": [],
+      "features": {
+        "hasMatrix": false,
+        "hasServices": false,
+        "hasEnvironments": false,
+        "hasSecrets": false,
+        "hasManualApproval": false,
+        "jobCount": 35,
+        "estimatedComplexity": "high"
+      }
+    },
+    {
+      "name": "terraform-environments.yml",
+      "actCompatible": false,
+      "issues": [
+        "Uses GitHub Environment protection (not supported in ACT)"
+      ],
+      "recommendations": [
+        "Comment out environment blocks or use conditional logic",
+        "Use .secrets.act file for testing"
+      ],
+      "features": {
+        "hasMatrix": true,
+        "hasServices": false,
+        "hasEnvironments": false,
+        "hasSecrets": true,
+        "hasManualApproval": false,
+        "jobCount": 45,
+        "estimatedComplexity": "high"
+      }
+    }
+  ],
+  "frameworkValidation": [
+    {
+      "name": "ACT CLI Installation",
+      "status": "passed",
+      "critical": true,
+      "result": "ACT CLI found: act version 0.2.80"
+    },
+    {
+      "name": "Framework Files Present",
+      "status": "passed",
+      "critical": true,
+      "result": "All 4 framework files present"
+    },
+    {
+      "name": "Configuration Valid",
+      "status": "passed",
+      "critical": false,
+      "result": "Configuration file valid"
+    },
+    {
+      "name": "Results Directory Writable",
+      "status": "passed",
+      "critical": false,
+      "result": "Results directory writable"
+    },
+    {
+      "name": "Workflow Discovery",
+      "status": "passed",
+      "critical": true,
+      "result": "Discovered 34 workflows"
+    }
+  ],
+  "recommendations": [
+    "Review 25 workflows that require modifications for ACT compatibility",
+    "Consider breaking down 34 high-complexity workflows for better maintainability",
+    "Set up Docker Compose configuration for workflows using service containers",
+    "Install Docker and run full ACT tests with: ./tests/workflows/act-test-runner.sh",
+    "Set up automated regression testing in CI/CD pipeline",
+    "Use performance benchmarking to optimize workflow execution time"
+  ]
+}

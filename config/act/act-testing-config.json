@@ -1,0 +1,270 @@
+{
+  "framework": {
+    "name": "ACT Workflow Validation Framework",
+    "version": "1.0.0",
+    "description": "Comprehensive testing framework for GitHub Actions workflows using nektos/act"
+  },
+  "configuration": {
+    "workflowsDirectory": ".github/workflows",
+    "testResultsDirectory": "tests/workflows/results",
+    "baselineDirectory": "tests/workflows/baselines",
+    "regressionsDirectory": "tests/workflows/regressions",
+    "configDirectory": "config/act",
+    "maxConcurrentTests": 3,
+    "testTimeout": 600,
+    "retryAttempts": 2
+  },
+  "platforms": {
+    "primary": "ubuntu-latest",
+    "supported": [
+      {
+        "name": "ubuntu-latest",
+        "image": "ghcr.io/catthehacker/ubuntu:act-latest",
+        "description": "Latest Ubuntu with GitHub Actions runner",
+        "priority": 1
+      },
+      {
+        "name": "ubuntu-20.04",
+        "image": "ghcr.io/catthehacker/ubuntu:act-20.04",
+        "description": "Ubuntu 20.04 LTS with GitHub Actions runner",
+        "priority": 2
+      },
+      {
+        "name": "ubuntu-18.04",
+        "image": "ghcr.io/catthehacker/ubuntu:act-18.04",
+        "description": "Ubuntu 18.04 LTS with GitHub Actions runner",
+        "priority": 3
+      }
+    ],
+    "testing": {
+      "fullMatrix": ["ubuntu-latest", "ubuntu-20.04", "ubuntu-18.04"],
+      "quickTest": ["ubuntu-latest"],
+      "regressionTest": ["ubuntu-latest", "ubuntu-20.04"]
+    }
+  },
+  "events": {
+    "supported": [
+      {
+        "name": "push",
+        "description": "Push events to repository",
+        "common": true,
+        "testPriority": 1
+      },
+      {
+        "name": "pull_request",
+        "description": "Pull request events",
+        "common": true,
+        "testPriority": 2
+      },
+      {
+        "name": "workflow_dispatch",
+        "description": "Manual workflow dispatch",
+        "common": false,
+        "testPriority": 3
+      },
+      {
+        "name": "schedule",
+        "description": "Scheduled workflow runs",
+        "common": false,
+        "testPriority": 4
+      },
+      {
+        "name": "release",
+        "description": "Release events",
+        "common": false,
+        "testPriority": 5
+      }
+    ],
+    "testing": {
+      "comprehensive": ["push", "pull_request", "workflow_dispatch"],
+      "quickTest": ["push"],
+      "regressionTest": ["push", "pull_request"]
+    }
+  },
+  "thresholds": {
+    "performance": {
+      "maxExecutionTime": 600000,
+      "maxMemoryUsage": 2048,
+      "performanceDegradationThreshold": 50,
+      "warningExecutionTime": 300000
+    },
+    "quality": {
+      "minPassRate": 73,
+      "minWorkflowPassRate": 80,
+      "maxNewFailures": 0,
+      "maxPassRateReduction": 5
+    },
+    "complexity": {
+      "maxJobsPerWorkflow": 10,
+      "maxStepsPerJob": 50,
+      "maxWorkflowFiles": 100
+    }
+  },
+  "actConfiguration": {
+    "defaultRunner": "ghcr.io/catthehacker/ubuntu:act-latest",
+    "artifactServerPath": "/tmp/act-artifacts",
+    "environmentFiles": {
+      "env": ".env.act",
+      "secrets": ".secrets.act",
+      "vars": ".vars.act"
+    },
+    "commonFlags": [
+      "--container-daemon-socket -",
+      "--bind"
+    ],
+    "dryRunByDefault": true,
+    "verboseOutput": false
+  },
+  "testCategories": {
+    "smoke": {
+      "description": "Quick smoke tests for basic functionality",
+      "timeout": 120,
+      "dryRun": true,
+      "platforms": ["ubuntu-latest"],
+      "events": ["push"]
+    },
+    "comprehensive": {
+      "description": "Full test suite across all platforms and events",
+      "timeout": 600,
+      "dryRun": false,
+      "platforms": ["ubuntu-latest", "ubuntu-20.04"],
+      "events": ["push", "pull_request", "workflow_dispatch"]
+    },
+    "regression": {
+      "description": "Regression testing against baseline",
+      "timeout": 300,
+      "dryRun": true,
+      "platforms": ["ubuntu-latest"],
+      "events": ["push", "pull_request"]
+    },
+    "performance": {
+      "description": "Performance and benchmarking tests",
+      "timeout": 900,
+      "dryRun": true,
+      "platforms": ["ubuntu-latest"],
+      "events": ["push"],
+      "iterations": 3
+    }
+  },
+  "workflowCategories": {
+    "critical": {
+      "description": "Critical workflows that must always pass",
+      "patterns": [
+        "pr-checks.yml",
+        "optimized-ci.yml",
+        "security.yml"
+      ],
+      "failureAction": "block"
+    },
+    "important": {
+      "description": "Important workflows with high priority",
+      "patterns": [
+        "deployment.yml",
+        "release.yml",
+        "quality-gates-comprehensive.yml"
+      ],
+      "failureAction": "warn"
+    },
+    "optional": {
+      "description": "Optional workflows for testing",
+      "patterns": [
+        "matrix-examples.yml",
+        "error-handler-example.yml"
+      ],
+      "failureAction": "ignore"
+    }
+  },
+  "errorSimulation": {
+    "enabled": true,
+    "scenarios": [
+      {
+        "name": "invalid_workflow_syntax",
+        "description": "Test with invalid YAML syntax",
+        "severity": "critical"
+      },
+      {
+        "name": "missing_dependencies",
+        "description": "Test with missing package dependencies",
+        "severity": "major"
+      },
+      {
+        "name": "network_timeout",
+        "description": "Simulate network timeouts",
+        "severity": "minor"
+      },
+      {
+        "name": "resource_limits",
+        "description": "Test with resource constraints",
+        "severity": "minor"
+      }
+    ]
+  },
+  "reporting": {
+    "formats": ["json", "markdown", "html"],
+    "includeDetails": true,
+    "includeLogs": true,
+    "includePerformanceMetrics": true,
+    "retention": {
+      "testResults": 30,
+      "regressionReports": 90,
+      "performanceData": 180
+    },
+    "notifications": {
+      "onCriticalFailure": true,
+      "onRegressionDetected": true,
+      "onPerformanceDegradation": true
+    }
+  },
+  "integration": {
+    "ci": {
+      "enabled": true,
+      "triggerOn": ["push", "pull_request"],
+      "blockOn": ["critical_failure", "critical_regression"]
+    },
+    "memory": {
+      "enabled": true,
+      "storageKey": "hive/validation/act-testing-complete",
+      "includeMetrics": true,
+      "includeRecommendations": true
+    }
+  },
+  "optimization": {
+    "parallelExecution": true,
+    "caching": {
+      "enabled": true,
+      "dockerImages": true,
+      "dependencies": true,
+      "buildArtifacts": true
+    },
+    "smartTesting": {
+      "enabled": true,
+      "skipUnchangedWorkflows": true,
+      "prioritizeCriticalWorkflows": true,
+      "adaptiveTimeout": true
+    }
+  },
+  "security": {
+    "secretHandling": {
+      "useDummySecrets": true,
+      "maskSensitiveData": true,
+      "validateSecretUsage": true
+    },
+    "containerSecurity": {
+      "useOfficialImages": true,
+      "scanImages": false,
+      "restrictNetworkAccess": false
+    }
+  },
+  "maintenance": {
+    "automaticCleanup": true,
+    "logRotation": {
+      "enabled": true,
+      "retentionDays": 30,
+      "maxSize": "100MB"
+    },
+    "imageUpdates": {
+      "checkFrequency": "weekly",
+      "autoUpdate": false
+    }
+  }
+}

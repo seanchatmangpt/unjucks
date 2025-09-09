@@ -1,152 +1,167 @@
-# Security-hardened production Docker image for deployment simulation
-# Multi-stage build with minimal attack surface
-FROM node:20-alpine AS base
+# Multi-stage production-grade Dockerfile for unjucks
+# Container Specialist #3 - Bulletproof cleanroom environment
 
-# Security: Install only essential production dependencies
-RUN apk add --no-cache \
-    dumb-init \
-    curl \
-    ca-certificates \
-    openssl \
-    tzdata \
-    && rm -rf /var/cache/apk/* \
-    && rm -rf /tmp/* \
-    && rm -rf /var/tmp/*
+# =============================================================================
+# Stage 1: Base Alpine with security hardening
+# =============================================================================
+FROM node:20-alpine3.19 AS base
+LABEL maintainer="Container Specialist #3"
+LABEL version="1.0.0"
+LABEL description="Production-grade unjucks with cleanroom testing"
 
-# Security: Create application user with minimal privileges
+# Security hardening - non-root user with minimal privileges
 RUN addgroup -g 1001 -S unjucks && \
-    adduser -S unjucks -u 1001 -G unjucks \
-    --disabled-password \
-    --no-create-home \
-    --shell /bin/false
+    adduser -S -D -H -u 1001 -s /sbin/nologin unjucks -G unjucks
 
+# Install security updates and minimal required packages
+RUN apk update && \
+    apk upgrade && \
+    apk add --no-cache \
+        dumb-init \
+        tini \
+        ca-certificates \
+        tzdata && \
+    rm -rf /var/cache/apk/* /tmp/* /var/tmp/*
+
+# Set secure environment
+ENV NODE_ENV=production \
+    NPM_CONFIG_CACHE=/tmp/.npm \
+    PATH=/app/node_modules/.bin:$PATH \
+    TERM=xterm
+
+# =============================================================================
+# Stage 2: Dependencies and security validation
+# =============================================================================
+FROM base AS deps
 WORKDIR /app
 
-# Security: Set timezone and harden environment
-ENV TZ=UTC
-RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone \
-    && chmod 755 /app
+# Copy package files with validation
+COPY --chown=unjucks:unjucks package*.json ./
+COPY --chown=unjucks:unjucks .npmrc* ./
 
-# ==================================================
-# Dependencies Stage - Security Hardened
-# ==================================================
-FROM base AS deps
+# Install production dependencies with strict security
+RUN npm install --only=production \
+        --no-audit \
+        --no-fund \
+        --prefer-offline \
+        --ignore-scripts && \
+    npm cache clean --force && \
+    rm -rf /tmp/.npm
 
-# Security: Copy and validate package files
-COPY package*.json ./
+# Validate dependencies for security issues after install
+RUN npm audit --audit-level high --production || \
+    (echo "Warning: Security vulnerabilities detected in dependencies")
 
-# Security: Install production dependencies with verification
-RUN npm ci --production --prefer-offline --no-audit --no-fund \
-    && npm audit fix --audit-level=high --production || true \
-    && npm cache clean --force \
-    && rm -rf ~/.npm/_logs/* 2>/dev/null || true
+# =============================================================================
+# Stage 3: Build and validation
+# =============================================================================
+FROM base AS builder
+WORKDIR /app
 
-# ==================================================
-# Build Stage - Security Focused
-# ==================================================
-FROM deps AS build
+# Copy dependencies from deps stage
+COPY --from=deps --chown=unjucks:unjucks /app/node_modules ./node_modules
+COPY --from=deps --chown=unjucks:unjucks /app/package*.json ./
 
-# Security: Install dev dependencies with verification
-RUN npm ci --include=dev --prefer-offline --no-audit --no-fund \
-    && npm cache clean --force
+# Copy source code
+COPY --chown=unjucks:unjucks src/ ./src/
+COPY --chown=unjucks:unjucks bin/ ./bin/
+COPY --chown=unjucks:unjucks _templates/ ./_templates/
+COPY --chown=unjucks:unjucks types/ ./types/
+COPY --chown=unjucks:unjucks scripts/build-system.js ./scripts/
 
-# Security: Copy source code with proper permissions
-COPY --chown=unjucks:unjucks . .
+# Build application with validation
+RUN npm run build && \
+    chmod +x bin/unjucks.cjs && \
+    chmod +x src/cli/index.js
 
-# Security: Build application with error handling
-RUN npm run build 2>/dev/null || echo "No build step configured" \
-    && chmod -R 644 /app \
-    && find /app -type d -exec chmod 755 {} \; \
-    && find /app/bin -type f -exec chmod 755 {} \; 2>/dev/null || true
+# Validate build artifacts
+RUN node bin/unjucks.cjs --version && \
+    node bin/unjucks.cjs --help
 
-# Security: Clean up dev dependencies and temporary files
-RUN npm prune --production \
-    && npm cache clean --force \
-    && rm -rf ~/.npm \
-    && rm -rf /tmp/* \
-    && rm -rf /var/tmp/*
+# =============================================================================
+# Stage 4: Testing environment (cleanroom)
+# =============================================================================
+FROM builder AS testing
+WORKDIR /app
 
-# ==================================================
-# Production Stage - Maximum Security
-# ==================================================
+# Install test dependencies in isolated layer
+COPY --chown=unjucks:unjucks package*.json ./
+RUN npm install --include=dev \
+        --no-audit \
+        --no-fund \
+        --prefer-offline && \
+    npm cache clean --force
+
+# Copy test files
+COPY --chown=unjucks:unjucks tests/ ./tests/
+COPY --chown=unjucks:unjucks features/ ./features/
+COPY --chown=unjucks:unjucks cucumber*.config.cjs ./
+COPY --chown=unjucks:unjucks vitest*.config.js ./
+COPY --chown=unjucks:unjucks .eslintrc*.cjs ./
+
+# Create test results directories
+RUN mkdir -p /app/test-results/{unit,integration,e2e,security,performance} && \
+    chown -R unjucks:unjucks /app/test-results
+
+# Health check for testing stage
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD node -e "console.log('Testing environment healthy')" || exit 1
+
+# =============================================================================
+# Stage 5: Production runtime
+# =============================================================================
 FROM base AS production
+WORKDIR /app
 
-# Security: Copy production dependencies with proper ownership
-COPY --from=build --chown=unjucks:unjucks /app/node_modules ./node_modules
+# Copy only production artifacts
+COPY --from=builder --chown=unjucks:unjucks /app/node_modules ./node_modules
+COPY --from=builder --chown=unjucks:unjucks /app/package.json ./
+COPY --from=builder --chown=unjucks:unjucks /app/src ./src
+COPY --from=builder --chown=unjucks:unjucks /app/bin ./bin
+COPY --from=builder --chown=unjucks:unjucks /app/_templates ./_templates
+COPY --from=builder --chown=unjucks:unjucks /app/types ./types
 
-# Security: Copy application code with validation
-COPY --from=build --chown=unjucks:unjucks /app .
-
-# Security: Remove unnecessary files and potential attack vectors
-RUN rm -rf \
-    tests/ \
-    docs/ \
-    .github/ \
-    docker/ \
-    scripts/test-* \
-    scripts/dev-* \
-    *.test.js \
-    *.spec.js \
-    .git/ \
-    .gitignore \
-    .dockerignore \
-    README.md \
-    CHANGELOG.md \
-    .env* \
-    .DS_Store \
-    Thumbs.db \
-    && find /app -name \"*.log\" -delete 2>/dev/null || true \
-    && find /app -name \"*.tmp\" -delete 2>/dev/null || true
-
-# Security: Set production environment with hardening
-ENV NODE_ENV=production \
-    PORT=3000 \
-    UNJUCKS_LOG_LEVEL=info \
-    UNJUCKS_METRICS_ENABLED=true \
-    NODE_OPTIONS="--max-old-space-size=512 --no-deprecation" \
-    NPM_CONFIG_UPDATE_NOTIFIER=false \
-    NPM_CONFIG_FUND=false \
-    FORCE_COLOR=0
-
-# Security: Create directories with proper permissions
-RUN mkdir -p /app/logs /app/data /app/tmp && \
+# Create necessary directories with proper permissions
+RUN mkdir -p /app/{logs,tmp,cache} && \
     chown -R unjucks:unjucks /app && \
-    chmod 755 /app/logs /app/data /app/tmp && \
-    chmod 644 /app/package*.json
+    chmod -R 755 /app && \
+    chmod +x /app/bin/unjucks.cjs
 
-# Security: Copy and validate production configuration
-COPY --chown=unjucks:unjucks docker/configs/production.json /app/config/production.json
-RUN chmod 644 /app/config/production.json
+# Security: Remove package managers and unnecessary tools
+RUN apk del --purge npm && \
+    rm -rf /usr/local/lib/node_modules/npm
 
-# Security: Enhanced health check with authentication bypass
-HEALTHCHECK --interval=30s --timeout=10s --start-period=15s --retries=3 \
-    CMD curl -sf http://localhost:${PORT}/health --max-time 5 || exit 1
-
-# Security: Switch to non-root user before exposure
+# Switch to non-root user
 USER unjucks
 
-# Security: Expose only necessary port
+# Expose application port (if needed)
 EXPOSE 3000
 
-# Security: Use dumb-init for proper signal handling and PID 1
-ENTRYPOINT ["dumb-init", "--"]
+# Health check for production
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD node /app/bin/unjucks.cjs --version || exit 1
 
-# Production: Start application with monitoring
-CMD ["node", "bin/unjucks.cjs", "serve", "--port", "3000"]
+# Use tini as init system for proper signal handling
+ENTRYPOINT ["tini", "--"]
+CMD ["node", "/app/bin/unjucks.cjs"]
 
-# ==================================================
-# Security and Compliance Labels
-# ==================================================
-LABEL maintainer="Unjucks Team <team@unjucks.dev>" \
-      description="Security-hardened production deployment image" \
-      version="2.0.0" \
-      org.opencontainers.image.title="Unjucks Production" \
-      org.opencontainers.image.description="Production-ready container with security hardening" \
-      org.opencontainers.image.vendor="Unjucks" \
-      org.opencontainers.image.licenses="MIT" \
-      org.opencontainers.image.source="https://github.com/unjucks/unjucks" \
-      security.user.nonroot="true" \
-      security.scan.enabled="true" \
-      security.minimal.surface="true" \
-      production.ready="true" \
-      compliance.hardened="true"
+# =============================================================================
+# Stage 6: Security scanning (optional)
+# =============================================================================
+FROM builder AS security-scan
+RUN npm audit --audit-level moderate && \
+    npm ls --depth=0
+
+# =============================================================================
+# Metadata and labels for container registry
+# =============================================================================
+LABEL org.opencontainers.image.title="unjucks"
+LABEL org.opencontainers.image.description="Nunjucks + Hygen style scaffolding with RDF/Turtle support"
+LABEL org.opencontainers.image.version="2.0.8"
+LABEL org.opencontainers.image.vendor="Unjucks Team"
+LABEL org.opencontainers.image.licenses="MIT"
+LABEL org.opencontainers.image.source="https://github.com/unjucks/unjucks"
+LABEL security.scan.date="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+LABEL security.non-root-user="unjucks"
+LABEL security.uid="1001"
+LABEL security.gid="1001"

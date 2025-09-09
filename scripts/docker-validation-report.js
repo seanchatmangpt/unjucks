@@ -129,7 +129,7 @@ class DockerValidationReporter {
                 try {
                     if (file.endsWith('.json')) {
                         const data = await fs.readJson(file);
-                        this.processSec urityData(data, file);
+                        this.processSecurityData(data, file);
                     } else if (file.endsWith('.sarif')) {
                         const data = await fs.readJson(file);
                         this.processSarifData(data);
