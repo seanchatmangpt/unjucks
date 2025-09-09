@@ -89,7 +89,7 @@ export class TurtleParser {
    * @returns {TurtleParseResult}
    */
   parseSync(content) {
-    const startTime = Date.now();
+    const startTime = performance.now();
 
     // Input validation
     if (typeof content !== "string") {
@@ -130,7 +130,7 @@ export class TurtleParser {
         }
       }
 
-      const parseTime = Date.now() - startTime;
+      const parseTime = Math.max(performance.now() - startTime, 0.01);
 
       const stats = {
         tripleCount: triples.length,

@@ -26,6 +26,15 @@ export class FrontmatterParser {
    * @returns {Promise<{frontmatter: Object, content: string, hasValidFrontmatter: boolean, validationResult?: Object}>}
    */
   async parse(templateContent, enableSemanticValidation = false) {
+    // Handle empty or whitespace-only content
+    if (!templateContent || typeof templateContent !== 'string' || templateContent.trim().length === 0) {
+      return {
+        frontmatter: {},
+        content: templateContent || '',
+        hasValidFrontmatter: false,
+      };
+    }
+
     // Enhanced frontmatter regex that properly handles SPARQL content
     const frontmatterRegex = /^---\s*\n([\s\S]*?)\n---\s*\n?([\s\S]*)$/;
     const match = templateContent.match(frontmatterRegex);
@@ -193,7 +202,7 @@ export class FrontmatterParser {
     }
 
     // Validate lineAt is a positive number
-    if (frontmatter.lineAt !== undefined && frontmatter.lineAt < 1) {
+    if (frontmatter.lineAt !== undefined && (typeof frontmatter.lineAt !== 'number' || frontmatter.lineAt < 1)) {
       errors.push("lineAt must be a positive number (1-based line numbers)");
     }
 
@@ -389,14 +398,14 @@ export class FrontmatterParser {
    * @returns {boolean}
    */
   shouldSkip(frontmatter, variables) {
-    if (!frontmatter.skipIf) {
+    if (!frontmatter.skipIf || typeof frontmatter.skipIf !== 'string' || frontmatter.skipIf.trim().length === 0) {
       return false;
     }
 
     try {
       // Simple expression evaluation for skipIf conditions
       // Supports: variable existence, boolean checks, equality
-      const condition = frontmatter.skipIf;
+      const condition = frontmatter.skipIf.trim();
 
       // Check for simple variable existence: skipIf: "variableName"
       if (variables[condition] !== undefined) {

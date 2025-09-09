@@ -6,7 +6,10 @@ import { FileInjector, InjectionOptions } from "../../../src/lib/file-injector.j
 import { FrontmatterParser, FrontmatterConfig } from "../../../src/lib/frontmatter-parser.js";
 
 describe("File Injection Property Tests", () => {
-  let tmpDir => {
+  let tmpDir, fileInjector, frontmatterParser;
+  const numRuns = 20;
+
+  beforeEach(async () => {
     tmpDir = path.join(process.cwd(), "test-bzyH4B", `injection-prop-${Date.now()}`);
     await fs.ensureDir(tmpDir);
     fileInjector = new FileInjector();
@@ -17,16 +20,18 @@ describe("File Injection Property Tests", () => {
     await fs.remove(tmpDir);
   });
 
-  describe("Idempotent Operations", () => { it("should be idempotent for write operations", async () => {
+  describe("Idempotent Operations", () => {
+    it("should be idempotent for write operations", async () => {
       await fc.assert(
         fc.asyncProperty(
           fc.record({
-            filename),
-            content }),
+            filename: fc.stringMatching(/^[a-zA-Z][a-zA-Z0-9._-]*$/),
+            content: fc.string({ minLength: 1, maxLength: 100 })
+          }),
           async ({ filename, content }) => {
             const filePath = path.join(tmpDir, filename);
             const frontmatter = {};
-            const options = { force, dry };
+            const options = { force: true, dry: false };
 
             // First write
             const result1 = await fileInjector.processFile(filePath, content, frontmatter, options);
@@ -49,18 +54,22 @@ describe("File Injection Property Tests", () => {
       );
     });
 
-    it("should be idempotent for append operations", async () => { await fc.assert(
+    it("should be idempotent for append operations", async () => {
+      await fc.assert(
         fc.asyncProperty(
           fc.record({
-            filename),
-            initialContent }),
-          async ({ filename, initialContent, appendContent }) => { const filePath = path.join(tmpDir, filename);
+            filename: fc.stringMatching(/^[a-zA-Z][a-zA-Z0-9._-]*$/),
+            initialContent: fc.string({ minLength: 1, maxLength: 50 }),
+            appendContent: fc.string({ minLength: 1, maxLength: 50 })
+          }),
+          async ({ filename, initialContent, appendContent }) => {
+            const filePath = path.join(tmpDir, filename);
             
             // Create initial file
             await fs.writeFile(filePath, initialContent, "utf-8");
 
-            const frontmatter = { append };
-            const options = { force, dry };
+            const frontmatter = { append: true };
+            const options = { force: true, dry: false };
 
             // First append
             const result1 = await fileInjector.processFile(filePath, appendContent, frontmatter, options);
@@ -87,18 +96,22 @@ describe("File Injection Property Tests", () => {
       );
     });
 
-    it("should be idempotent for prepend operations", async () => { await fc.assert(
+    it("should be idempotent for prepend operations", async () => {
+      await fc.assert(
         fc.asyncProperty(
           fc.record({
-            filename),
-            initialContent }),
-          async ({ filename, initialContent, prependContent }) => { const filePath = path.join(tmpDir, filename);
+            filename: fc.stringMatching(/^[a-zA-Z][a-zA-Z0-9._-]*$/),
+            initialContent: fc.string({ minLength: 1, maxLength: 50 }),
+            prependContent: fc.string({ minLength: 1, maxLength: 50 })
+          }),
+          async ({ filename, initialContent, prependContent }) => {
+            const filePath = path.join(tmpDir, filename);
             
             // Create initial file
             await fs.writeFile(filePath, initialContent, "utf-8");
 
-            const frontmatter = { prepend };
-            const options = { force, dry };
+            const frontmatter = { prepend: true };
+            const options = { force: true, dry: false };
 
             // First prepend
             const result1 = await fileInjector.processFile(filePath, prependContent, frontmatter, options);
@@ -125,14 +138,20 @@ describe("File Injection Property Tests", () => {
       );
     });
 
-    it("should be idempotent for injection operations", async () => { await fc.assert(
+    it("should be idempotent for injection operations", async () => {
+      await fc.assert(
         fc.asyncProperty(
           fc.record({
-            filename),
-            initialLines }
+            filename: fc.stringMatching(/^[a-zA-Z][a-zA-Z0-9._-]*$/),
+            initialLines: fc.array(
+              fc.string({ minLength: 1, maxLength: 20 }),
+              { minLength: 1, maxLength: 10 }
             ),
-            injectContent: fc.string({ minLength }),
-          async ({ filename, initialLines, injectContent, targetLineIndex }) => { if (initialLines.length === 0) return;
+            injectContent: fc.string({ minLength: 1, maxLength: 20 }),
+            targetLineIndex: fc.nat()
+          }),
+          async ({ filename, initialLines, injectContent, targetLineIndex }) => {
+            if (initialLines.length === 0) return;
 
             const filePath = path.join(tmpDir, filename);
             const targetIndex = targetLineIndex % initialLines.length;
@@ -141,8 +160,8 @@ describe("File Injection Property Tests", () => {
             // Create initial file
             await fs.writeFile(filePath, initialLines.join("\n"), "utf-8");
 
-            const frontmatter = { inject, after };
-            const options = { force, dry };
+            const frontmatter = { inject: true, after: targetLine };
+            const options = { force: true, dry: false };
 
             // First injection
             const result1 = await fileInjector.processFile(filePath, injectContent, frontmatter, options);
@@ -170,16 +189,22 @@ describe("File Injection Property Tests", () => {
     });
   });
 
-  describe("File Permissions", () => { it("should preserve and set file permissions correctly", async () => {
+  describe("File Permissions", () => {
+    it("should preserve and set file permissions correctly", async () => {
       await fc.assert(
         fc.asyncProperty(
           fc.record({
-            filename),
-            content }),
+            filename: fc.stringMatching(/^[a-zA-Z][a-zA-Z0-9._-]*$/),
+            content: fc.string({ minLength: 1, maxLength: 100 }),
+            chmod: fc.oneof(
+              fc.stringMatching(/^[0-7]{3}$/),
+              fc.nat({ min: 0o000, max: 0o777 })
+            )
+          }),
           async ({ filename, content, chmod }) => {
             const filePath = path.join(tmpDir, filename);
             const frontmatter = { chmod };
-            const options = { force, dry };
+            const options = { force: true, dry: false };
 
             const result = await fileInjector.processFile(filePath, content, frontmatter, options);
             expect(result.success).toBe(true);
@@ -190,9 +215,12 @@ describe("File Injection Property Tests", () => {
             expect(fileContent).toBe(content);
 
             // Property: Permissions should be set correctly (on Unix systems)
-            if (process.platform !== "win32") { const stats = await fs.stat(filePath);
+            if (process.platform !== "win32") {
+              const stats = await fs.stat(filePath);
               const expectedMode = typeof chmod === "string" ? 
-                parseInt(chmod, 8)  }
+                parseInt(chmod, 8) : chmod;
+              expect(stats.mode & 0o777).toBe(expectedMode);
+            }
           }
         ),
         { numRuns }
@@ -200,30 +228,40 @@ describe("File Injection Property Tests", () => {
     });
   });
 
-  describe("Line-based Injection", () => { it("should inject at correct line numbers consistently", async () => {
+  describe("Line-based Injection", () => {
+    it("should inject at correct line numbers consistently", async () => {
       await fc.assert(
         fc.asyncProperty(
           fc.record({
-            filename),
-            lines }
+            filename: fc.stringMatching(/^[a-zA-Z][a-zA-Z0-9._-]*$/),
+            lines: fc.array(
+              fc.string({ minLength: 1, maxLength: 20 }),
+              { minLength: 1, maxLength: 10 }
             ),
-            injectContent: fc.string({ minLength }),
-          async ({ filename, lines, injectContent, lineNumber }) => { if (lineNumber > lines.length + 1) return;
+            injectContent: fc.string({ minLength: 1, maxLength: 20 }),
+            lineNumber: fc.nat({ min: 1, max: 20 })
+          }),
+          async ({ filename, lines, injectContent, lineNumber }) => {
+            if (lineNumber > lines.length + 1) return;
 
             const filePath = path.join(tmpDir, filename);
             
             // Create initial file
             await fs.writeFile(filePath, lines.join("\n"), "utf-8");
 
-            const frontmatter = { lineAt };
-            const options = { force, dry };
+            const frontmatter = { lineAt: lineNumber };
+            const options = { force: true, dry: false };
 
             const result = await fileInjector.processFile(filePath, injectContent, frontmatter, options);
 
-            if (result.success) { const content = await fs.readFile(filePath, "utf-8");
+            if (result.success) {
+              const content = await fs.readFile(filePath, "utf-8");
               const resultLines = content.split("\n");
 
-              // Property }
+              // Property: Injection should be at correct line
+              expect(resultLines[lineNumber - 1]).toBe(injectContent);
+              
+              // Property: Original lines should be preserved in correct positions
               for (let i = lineNumber; i < resultLines.length; i++) {
                 expect(resultLines[i]).toBe(lines[i - 1]);
               }
@@ -235,12 +273,16 @@ describe("File Injection Property Tests", () => {
     });
   });
 
-  describe("Dry Run Mode", () => { it("should not modify files in dry run mode", async () => {
+  describe("Dry Run Mode", () => {
+    it("should not modify files in dry run mode", async () => {
       await fc.assert(
         fc.asyncProperty(
           fc.record({
-            filename),
-            initialContent }),
+            filename: fc.stringMatching(/^[a-zA-Z][a-zA-Z0-9._-]*$/),
+            initialContent: fc.string({ minLength: 1, maxLength: 50 }),
+            newContent: fc.string({ minLength: 1, maxLength: 50 }),
+            operation: fc.constantFrom("write", "append", "prepend", "inject")
+          }),
           async ({ filename, initialContent, newContent, operation }) => {
             const filePath = path.join(tmpDir, filename);
             
@@ -250,16 +292,20 @@ describe("File Injection Property Tests", () => {
 
             // Setup frontmatter based on operation
             let frontmatter = {};
-            switch (operation) { case "append" = { append };
+            switch (operation) {
+              case "append":
+                frontmatter = { append: true };
                 break;
-              case "prepend" = { prepend };
+              case "prepend":
+                frontmatter = { prepend: true };
                 break;
-              case "inject" = { inject };
+              case "inject":
+                frontmatter = { inject: true };
                 break;
               // write is default
             }
 
-            const dryRunOptions = { force, dry };
+            const dryRunOptions = { force: true, dry: true };
 
             const result = await fileInjector.processFile(filePath, newContent, frontmatter, dryRunOptions);
 
@@ -280,12 +326,15 @@ describe("File Injection Property Tests", () => {
     });
   });
 
-  describe("Backup Creation", () => { it("should create backups when requested", async () => {
+  describe("Backup Creation", () => {
+    it("should create backups when requested", async () => {
       await fc.assert(
         fc.asyncProperty(
           fc.record({
-            filename),
-            initialContent }),
+            filename: fc.stringMatching(/^[a-zA-Z][a-zA-Z0-9._-]*$/),
+            initialContent: fc.string({ minLength: 1, maxLength: 50 }),
+            newContent: fc.string({ minLength: 1, maxLength: 50 })
+          }),
           async ({ filename, initialContent, newContent }) => {
             const filePath = path.join(tmpDir, filename);
             
@@ -293,7 +342,7 @@ describe("File Injection Property Tests", () => {
             await fs.writeFile(filePath, initialContent, "utf-8");
 
             const frontmatter = {};
-            const options = { force, dry, backup };
+            const options = { force: true, dry: false, backup: true };
 
             const result = await fileInjector.processFile(filePath, newContent, frontmatter, options);
 
@@ -317,12 +366,14 @@ describe("File Injection Property Tests", () => {
     });
   });
 
-  describe("Error Handling", () => { it("should handle permission errors gracefully", async () => {
+  describe("Error Handling", () => {
+    it("should handle permission errors gracefully", async () => {
       await fc.assert(
         fc.asyncProperty(
           fc.record({
-            filename),
-            content }),
+            filename: fc.stringMatching(/^[a-zA-Z][a-zA-Z0-9._-]*$/),
+            content: fc.string({ minLength: 1, maxLength: 100 })
+          }),
           async ({ filename, content }) => {
             const filePath = path.join(tmpDir, filename);
             
@@ -333,12 +384,18 @@ describe("File Injection Property Tests", () => {
             await fs.chmod(filePath, 0o444); // Read-only
 
             const frontmatter = {};
-            const options = { force, dry };
+            const options = { force: true, dry: false };
 
-            try { const result = await fileInjector.processFile(filePath, content, frontmatter, options);
+            try {
+              const result = await fileInjector.processFile(filePath, content, frontmatter, options);
               
-              // Property }
-            } finally { // Cleanup } catch {
+              // Property: Should either succeed or fail gracefully
+              expect(typeof result.success).toBe("boolean");
+            } finally {
+              // Cleanup - restore write permissions
+              try {
+                await fs.chmod(filePath, 0o644);
+              } catch {
                 // Ignore cleanup errors
               }
             }
@@ -348,18 +405,25 @@ describe("File Injection Property Tests", () => {
       );
     });
 
-    it("should handle invalid frontmatter gracefully", async () => { await fc.assert(
+    it("should handle invalid frontmatter gracefully", async () => {
+      await fc.assert(
         fc.asyncProperty(
           fc.record({
-            filename),
-            content }),
-          async ({ filename, content, invalidLineAt }) => { const filePath = path.join(tmpDir, filename);
+            filename: fc.stringMatching(/^[a-zA-Z][a-zA-Z0-9._-]*$/),
+            content: fc.string({ minLength: 1, maxLength: 100 }),
+            invalidLineAt: fc.oneof(
+              fc.nat({ min: -100, max: 0 }),
+              fc.nat({ min: 1000 })
+            )
+          }),
+          async ({ filename, content, invalidLineAt }) => {
+            const filePath = path.join(tmpDir, filename);
             
             // Create a small file
             await fs.writeFile(filePath, "line1\nline2\nline3\n", "utf-8");
 
-            const frontmatter = { lineAt };
-            const options = { force, dry };
+            const frontmatter = { lineAt: invalidLineAt };
+            const options = { force: true, dry: false };
 
             const result = await fileInjector.processFile(filePath, content, frontmatter, options);
 

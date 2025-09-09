@@ -44,7 +44,6 @@ async function runCLI(args = [], cwd) {
     });
   });
 }
-}
 
 describe('Argument Parsing Edge Cases', () => {
   let tempDir, originalCwd;
@@ -59,7 +58,7 @@ describe('Argument Parsing Edge Cases', () => {
 
   afterEach(async () => {
     process.chdir(originalCwd);
-    await fs.rm(tempDir, { recursive: true, force });
+    await fs.rm(tempDir, { recursive: true, force: true });
   });
 
   async function createComplexTestTemplates() {
@@ -94,19 +93,21 @@ variables:
     default: 1
     min: 1
     max: 10
-    description)}}
+    description: "Complexity level"
+---
+{% if type == "functional" %}
 export function {{name}}() {
-  return {{name}} ({{type}})</div>;
+  return <div>{{name}} ({{type}})</div>;
 }
-{{/if}}
+{% endif %}
 
-{{#if (eq type "class")}}
+{% if type == "class" %}
 export class {{name}} extends Component {
   render() {
-    return {{name}} ({{type}})</div>;
+    return <div>{{name}} ({{type}})</div>;
   }
 }
-{{/if}}
+{% endif %}
 `
     );
 
@@ -123,7 +124,9 @@ variables:
   - name: content
     type: string
     default: "default content"
-    description);
+    description: "File content"
+---
+{{content}}
 
     // Template with nested object variables
     await fs.writeFile(
@@ -147,13 +150,15 @@ variables:
         type: boolean
         default: false
 ---
-{ "name" }}",
+{
+  "name": "{{ name }}",
   "host": "{{config.host}}",
   "port": {{config.port}},
-  "ssl");
+  "ssl": {{config.ssl}}
+}
 
-    await fs.mkdir('src', { recursive });
-    await fs.mkdir('config', { recursive });
+    await fs.mkdir('src', { recursive: true });
+    await fs.mkdir('config', { recursive: true });
   }
 
   describe('Positional Parameter Parsing', () => {
@@ -257,7 +262,8 @@ variables:
       expect(result.stdout).toContain('true');
     });
 
-    it('should handle JSON object syntax', async () => { const result = await runCLI(['complex', 'nested', 'myconfig', '--config', '{"host" }', '--dry']);
+    it('should handle JSON object syntax', async () => {
+      const result = await runCLI(['complex', 'nested', 'myconfig', '--config', '{"host": "api.example.com", "port": 9000}', '--dry']);
       
       expect(result.exitCode).toBe(0);
       expect(result.stdout).toContain('api.example.com');
@@ -287,13 +293,14 @@ variables:
       expect(result.stderr).toContain('Error');
     });
 
-    it('should convert boolean parameters', async () => { const testCases = [
-        { value },
-        { value },
-        { value },
-        { value },
-        { value },
-        { value }
+    it('should convert boolean parameters', async () => {
+      const testCases = [
+        { value: 'true' },
+        { value: 'false' },
+        { value: '1' },
+        { value: '0' },
+        { value: 'yes' },
+        { value: 'no' }
       ];
 
       for (const testCase of testCases) {
@@ -392,9 +399,20 @@ variables:
       expect(result.exitCode).toBe(0);
     });
 
-    it('should handle config file vs CLI argument precedence', async () => { await fs.writeFile('unjucks.config.js', `
+    it('should handle config file vs CLI argument precedence', async () => {
+      await fs.writeFile('unjucks.config.js', `
 module.exports = {
-  variables });
+  variables: {
+    name: 'ConfigComponent'
+  }
+}`);
+      
+      const result = await runCLI(['complex', 'variables', 'CLIComponent', '--dry']);
+      
+      expect(result.exitCode).toBe(0);
+      // CLI args should override config file
+      expect(result.stdout).toContain('CLIComponent');
+    });
   });
 
   describe('Error Recovery and Validation', () => {
@@ -450,8 +468,21 @@ module.exports = {
       expect([0, 1]).toContain(result.exitCode);
     });
 
-    it('should handle deeply nested object arguments', async () => { const deepObject = JSON.stringify({
-        level1 });
+    it('should handle deeply nested object arguments', async () => {
+      const deepObject = JSON.stringify({
+        level1: {
+          level2: {
+            level3: {
+              value: 'deep-value'
+            }
+          }
+        }
+      });
+      
+      const result = await runCLI(['complex', 'nested', 'deep-test', '--config', deepObject, '--dry']);
+      
+      expect([0, 1]).toContain(result.exitCode);
+    });
 
     it('should handle concurrent argument parsing', async () => {
       // Run multiple CLI commands simultaneously to test thread safety

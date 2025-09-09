@@ -148,7 +148,7 @@ const main = defineCommand({
     // don't show the main help to avoid confusion
     const originalArgs = process.argv.slice(2);
     const hasSubcommand = originalArgs.length > 0 && 
-      ['semantic', 'github', 'neural', 'workflow', 'perf', 'knowledge', 'migrate', 'swarm', 'specify', 'latex', 'export', 'export-docx', 'pdf'].includes(originalArgs[0]) &&
+      ['new', 'preview', 'help', 'list', 'init', 'inject', 'version', 'generate', 'semantic', 'github', 'neural', 'workflow', 'perf', 'knowledge', 'migrate', 'swarm', 'specify', 'latex', 'export', 'export-docx', 'pdf'].includes(originalArgs[0]) &&
       !originalArgs.includes('--help') && !originalArgs.includes('-h');
     
     if (hasSubcommand) {
@@ -157,12 +157,13 @@ const main = defineCommand({
     
     // Handle --version flag
     if (args.version) {
-      console.log(getVersion());
+      const version = getVersion();
+      console.log(version);
       // Ensure output is flushed
       if (process.stdout.isTTY === false) {
         process.stdout.write('');
       }
-      return { success: true, action: 'version' };
+      return { success: true, action: 'version', output: version };
     }
 
     // Handle --help flag
@@ -170,7 +171,7 @@ const main = defineCommand({
       console.log(chalk.blue.bold("🌆 Unjucks CLI"));
       console.log(chalk.gray("A Hygen-style CLI generator for creating templates and scaffolding projects"));
       console.log();
-      console.log(chalk.yellow("USAGE:"));
+      console.log(chalk.yellow("Usage:"));
       console.log(chalk.gray("  unjucks <generator> <template> [args...]  # Positional syntax (Hygen-style)"));
       console.log(chalk.gray("  unjucks generate <generator> <template>   # Explicit syntax"));
       console.log();
@@ -265,9 +266,53 @@ const main = defineCommand({
   },
 });
 
-export const runMain = () => cittyRunMain(main);
+export const runMain = () => {
+  try {
+    return cittyRunMain(main);
+  } catch (error) {
+    // Handle unknown commands and errors
+    const originalArgs = process.argv.slice(2);
+    if (originalArgs.length > 0) {
+      const firstArg = originalArgs[0];
+      const knownCommands = ['new', 'preview', 'help', 'list', 'init', 'inject', 'version', 'generate', 'semantic', 'github', 'migrate', 'latex', 'perf', 'specify', 'export', 'export-docx', 'pdf'];
+      
+      if (!knownCommands.includes(firstArg) && !firstArg.startsWith('-')) {
+        console.error(chalk.red(`Unknown command: ${firstArg}`));
+        console.log(chalk.blue("\n💡 Available commands:"));
+        knownCommands.forEach(cmd => {
+          console.log(chalk.blue(`  • ${cmd}`));
+        });
+        process.exit(1);
+      }
+    }
+    
+    console.error(chalk.red(`Error: ${error.message || error}`));
+    process.exit(1);
+  }
+};
 
 // Auto-run if this is the main module
 if (import.meta.url === `file://${process.argv[1]}`) {
-  cittyRunMain(main);
+  try {
+    cittyRunMain(main);
+  } catch (error) {
+    // Handle unknown commands and errors
+    const originalArgs = process.argv.slice(2);
+    if (originalArgs.length > 0) {
+      const firstArg = originalArgs[0];
+      const knownCommands = ['new', 'preview', 'help', 'list', 'init', 'inject', 'version', 'generate', 'semantic', 'github', 'migrate', 'latex', 'perf', 'specify', 'export', 'export-docx', 'pdf'];
+      
+      if (!knownCommands.includes(firstArg) && !firstArg.startsWith('-')) {
+        console.error(chalk.red(`Unknown command: ${firstArg}`));
+        console.log(chalk.blue("\n💡 Available commands:"));
+        knownCommands.forEach(cmd => {
+          console.log(chalk.blue(`  • ${cmd}`));
+        });
+        process.exit(1);
+      }
+    }
+    
+    console.error(chalk.red(`Error: ${error.message || error}`));
+    process.exit(1);
+  }
 }

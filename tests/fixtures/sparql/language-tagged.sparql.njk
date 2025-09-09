@@ -23,7 +23,7 @@ PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 SELECT {{ variables | map('sparqlVar') | join(' ') }}
 WHERE {
   {% for pattern in patterns %}
-  {{ pattern.subject | sparqlVar }} {{ pattern.predicate | rdfProperty }} {{ pattern.object | sparqlValue }} .
+  {{ pattern.subject | sparqlVar }} {{ pattern.predicate | rdfPropertyFilter }} {{ pattern.object | sparqlValue }} .
   {% endfor %}
   
   {% if languageFilters %}
@@ -35,7 +35,7 @@ WHERE {
   {% if optionalPatterns %}
   {% for optional in optionalPatterns %}
   OPTIONAL {
-    {{ optional.subject | sparqlVar }} {{ optional.predicate | rdfProperty }} {{ optional.object | sparqlValue }} .
+    {{ optional.subject | sparqlVar }} {{ optional.predicate | rdfPropertyFilter }} {{ optional.object | sparqlValue }} .
     {% if optional.languageFilter %}
     FILTER(lang({{ optional.languageFilter.variable | sparqlVar }}) = "{{ optional.languageFilter.language }}")
     {% endif %}

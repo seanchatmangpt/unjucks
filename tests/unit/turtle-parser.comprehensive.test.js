@@ -205,9 +205,9 @@ describe('TurtleParser - Core Functionality', () => {
         largeTurtle += `ex:entity${i} ex:prop${i % 10} "value${i}" .\n`;
       }
 
-      const timer = global.testUtils.timer();
+      const startTime = performance.now();
       const result = await parser.parse(largeTurtle);
-      const duration = timer.end();
+      const duration = performance.now() - startTime;
       
       expect(result.triples).toHaveLength(1000);
       expect(duration).toBeLessThan(1000); // Should parse in under 1 second

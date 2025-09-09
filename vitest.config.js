@@ -52,7 +52,7 @@ export default defineConfig({
     // Test file patterns - JavaScript only tests
     include: [
       "tests/unit/**/*.test.js", // Unit tests
-      "tests/integration/**/*.test.js", // Integration tests
+      "tests/integration/**/*.test.js", // Integration tests including RDF tests
       "tests/smoke/**/*.test.js", // Smoke tests
       "tests/documentation/**/*.test.js", // Documentation tests
       "tests/atomic-*.test.js", // Atomic operation tests

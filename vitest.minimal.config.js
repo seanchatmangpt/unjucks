@@ -6,16 +6,25 @@ export default defineConfig({
     environment: "node",
     globals: true,
     
-    // Only include tests that we know work + new filter tests + linked data tests
+    // Only include tests that we know work + new filter tests + linked data tests + fixed helper tests
     include: [
       "tests/unit/configuration-loader.test.js",
       "tests/unit/nunjucks-filters.test.js",
       "tests/unit/advanced-filters.test.js",
       "tests/unit/latex-parser.test.js",
       "tests/unit/string-filters.test.js", // New string filter tests
+      "tests/unit/test-helpers-validation.test.js", // Test helper validation
+      // "tests/unit/file-injector.test.js", // Fixed file injector tests - disabled for now due to mocking issues
+      "tests/unit/cli-integration.test.js", // Fixed CLI integration tests - enabled after fixing test helper
+      "tests/unit/turtle-parser.comprehensive.test.js", // Fixed turtle parser tests
+      "tests/unit/ArgumentParser.test.js", // Fixed ArgumentParser tests
+      "tests/unit/rdf-filters.test.js", // Fixed RDF filters tests
       "tests/integration/template-rendering.test.js",
       "tests/integration/frontmatter-filters.test.js",
+      "tests/integration/performance-infrastructure.test.js",
       "tests/integration/sparql/**/*.test.ts",
+      "tests/validation/sparql-validation.test.js",
+      "tests/integration/rdf-*.test.js", // Include all RDF integration tests
       "tests/schema-org-validation.test.js",
       "tests/semantic-web-filters.test.js",
       "tests/linked-data-validation.test.js",
@@ -42,6 +51,9 @@ export default defineConfig({
       "tests/cli/performance-edge-cases.test.js",
       "tests/cli/semantic-commands.test.js",
       
+      // Property-based tests
+      "tests/unit/property/*.test.js",
+      
       // "tests/atomic-operations.test.js", // Has syntax issues
       // "tests/template-scanner.test.js", // Has syntax issues
     ],
@@ -55,7 +67,7 @@ export default defineConfig({
       "tests/smoke/**",
       "tests/features/**",
       // Exclude other integration tests but not our filter tests
-      "tests/integration/!(template-rendering|frontmatter-filters|sparql).test.js",
+      "tests/integration/!(template-rendering|frontmatter-filters|performance-infrastructure|sparql).test.js",
       "tests/security/**",
       "tests/performance/**",
       "tests/validation/**",
@@ -93,12 +105,12 @@ export default defineConfig({
     // Simplified reporting
     reporters: ['default'],
     
-    // Single thread for stability
-    pool: "threads",
+    // Single thread for stability - use forks to support process.chdir()
+    pool: "forks",
     poolOptions: {
-      threads: {
-        minThreads: 1,
-        maxThreads: 1,
+      forks: {
+        minForks: 1,
+        maxForks: 1,
       },
     },
     

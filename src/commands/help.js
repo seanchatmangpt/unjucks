@@ -38,12 +38,12 @@ export const helpCommand = defineCommand({
         console.log(chalk.blue.bold("🆘 Unjucks Help"));
         console.log(chalk.gray("Shows available template variables and their usage"));
         console.log();
-        console.log(chalk.yellow("USAGE:"));
+        console.log(chalk.yellow("Usage:"));
         console.log(chalk.gray("  unjucks help                           # Show general help"));
         console.log(chalk.gray("  unjucks help <generator>               # Show generator help"));
         console.log(chalk.gray("  unjucks help <generator> <template>    # Show template-specific help"));
         console.log();
-        console.log(chalk.yellow("EXAMPLES:"));
+        console.log(chalk.yellow("Examples:"));
         console.log(chalk.gray("  unjucks help component                 # Help for component generator"));
         console.log(chalk.gray("  unjucks help component react           # Help for React component template"));
         console.log();
@@ -51,7 +51,7 @@ export const helpCommand = defineCommand({
         // Dynamically scan for available generators
         const availableGenerators = await this.scanGenerators(templatesDir);
         
-        console.log(chalk.yellow("AVAILABLE GENERATORS:"));
+        console.log(chalk.yellow("Available generators:"));
         if (availableGenerators.length === 0) {
           console.log(chalk.gray("  No generators found in _templates directory"));
           console.log(chalk.blue("  Run 'unjucks init' to create sample templates"));
@@ -73,15 +73,34 @@ export const helpCommand = defineCommand({
         const templates = await this.scanTemplates(templatesDir, args.generator);
         
         if (templates.length === 0) {
-          console.log(chalk.yellow(`No templates found for generator: ${args.generator}`));
-          console.log(chalk.gray("Check that _templates/${args.generator} directory exists"));
+          console.error(chalk.red(`Generator "${args.generator}" not found`));
+          console.log(chalk.blue("\n💡 Available generators:"));
+          const availableGenerators = await this.scanGenerators(templatesDir);
+          availableGenerators.forEach(g => {
+            console.log(chalk.blue(`  • ${g.name}`));
+          });
+          process.exit(1);
         } else {
-          console.log(chalk.yellow("DESCRIPTION:"));
-          console.log(chalk.gray(`  Generates files using ${args.generator} templates`));
-          console.log();
-          console.log(chalk.yellow("AVAILABLE TEMPLATES:"));
+          console.log(chalk.yellow("Available templates:"));
           for (const template of templates) {
-            console.log(chalk.gray(`  ${template.name.padEnd(12)} - ${template.description}`));
+            console.log(chalk.gray(`  --${template.name.padEnd(12)} ${template.description}`));
+          }
+          console.log();
+          console.log(chalk.yellow("Options:"));
+          console.log(chalk.gray(`  --name     ${args.generator.charAt(0).toUpperCase() + args.generator.slice(1)} name`));
+          
+          // Parse and display frontmatter variables from the first template
+          if (templates.length > 0) {
+            try {
+              const variables = await this.parseTemplateVariables(templatesDir, args.generator, templates[0].name);
+              if (variables.length > 0) {
+                variables.forEach(variable => {
+                  console.log(chalk.gray(`  --${variable.name.padEnd(10)} ${variable.description}`));
+                });
+              }
+            } catch (error) {
+              // Continue if we can't parse variables
+            }
           }
         }
         
@@ -90,93 +109,50 @@ export const helpCommand = defineCommand({
         return { success: true, message: "Generator help displayed", files: [] };
       }
 
-      // Template-specific help
-      console.log(chalk.blue.bold(`🆘 Help for Template: ${args.generator}/${args.template}`));
-      console.log();
-      
-      const templateHelp = {
-        "component/react": {
-          description: "React functional component with TypeScript support",
-          variables: [
-            { name: "name", required: true, type: "string", description: "Component name (PascalCase)" },
-            { name: "withTests", required: false, type: "boolean", description: "Generate test files" },
-            { name: "withStorybook", required: false, type: "boolean", description: "Generate Storybook stories" },
-            { name: "styled", required: false, type: "boolean", description: "Include styled-components" }
-          ],
-          outputs: ["Component.tsx", "index.ts", "Component.test.tsx?", "Component.stories.tsx?"],
-          examples: [
-            "unjucks generate component react UserButton",
-            "unjucks generate component react LoginForm --withTests --withStorybook"
-          ]
-        },
-        "component/vue": {
-          description: "Vue 3 composition API component with TypeScript",
-          variables: [
-            { name: "name", required: true, type: "string", description: "Component name (PascalCase)" },
-            { name: "withTests", required: false, type: "boolean", description: "Generate test files" },
-            { name: "withCSS", required: false, type: "boolean", description: "Include scoped CSS" }
-          ],
-          outputs: ["Component.vue", "Component.test.ts?"],
-          examples: [
-            "unjucks generate component vue UserCard",
-            "unjucks generate component vue DataTable --withTests --withCSS"
-          ]
-        },
-        "api/express": {
-          description: "Express.js router with controller and middleware",
-          variables: [
-            { name: "name", required: true, type: "string", description: "Route name (camelCase)" },
-            { name: "withAuth", required: false, type: "boolean", description: "Include authentication middleware" },
-            { name: "withValidation", required: false, type: "boolean", description: "Include request validation" },
-            { name: "methods", required: false, type: "array", description: "HTTP methods (GET,POST,PUT,DELETE)" }
-          ],
-          outputs: ["router.js", "controller.js", "middleware.js?"],
-          examples: [
-            "unjucks generate api express users",
-            "unjucks generate api express posts --withAuth --withValidation"
-          ]
-        }
-      };
-
-      const key = `${args.generator}/${args.template}`;
-      const help = templateHelp[key];
-
-      if (!help) {
-        console.log(chalk.yellow(`No specific help available for template: ${args.generator}/${args.template}`));
-        console.log(chalk.gray("This template may be available but not documented yet"));
-        console.log();
-        console.log(chalk.blue("💡 Try:"));
-        console.log(chalk.blue(`  • unjucks list ${args.generator} - See available templates`));
-        console.log(chalk.blue(`  • unjucks generate ${args.generator} ${args.template} --dry - Preview generation`));
-        return { success: true, message: "Template help not found", files: [] };
+      // Template-specific help with dynamic validation
+      const generatorExists = await fs.pathExists(path.resolve(templatesDir, args.generator));
+      if (!generatorExists) {
+        console.error(chalk.red(`Generator "${args.generator}" not found`));
+        console.log(chalk.blue("\n💡 Available generators:"));
+        const availableGenerators = await this.scanGenerators(templatesDir);
+        availableGenerators.forEach(g => {
+          console.log(chalk.blue(`  • ${g.name}`));
+        });
+        process.exit(1);
       }
 
-      console.log(chalk.yellow("DESCRIPTION:"));
-      console.log(chalk.gray(`  ${help.description}`));
+      const templates = await this.scanTemplates(templatesDir, args.generator);
+      const templateExists = templates.some(t => t.name === args.template);
+      
+      if (!templateExists) {
+        console.error(chalk.red(`Template "${args.template}" not found in generator "${args.generator}"`));
+        console.log(chalk.blue("\n💡 Available templates:"));
+        templates.forEach(t => {
+          console.log(chalk.blue(`  • ${t.name}`));
+        });
+        process.exit(1);
+      }
+
+      console.log(chalk.blue.bold(`🆘 Help for Template: ${args.generator}/${args.template}`));
       console.log();
 
+      // Dynamic help based on template scanning
       console.log(chalk.yellow("TEMPLATE VARIABLES:"));
-      help.variables.forEach(variable => {
-        const requiredLabel = variable.required ? chalk.red("*required") : chalk.gray("optional");
-        const typeLabel = chalk.cyan(`[${variable.type}]`);
-        console.log(`  ${chalk.green(variable.name)} ${typeLabel} ${requiredLabel}`);
-        console.log(`    ${chalk.gray(variable.description)}`);
-      });
+      console.log(`  ${chalk.green('name')} ${chalk.cyan('[string]')} ${chalk.red('*required')}`);
+      console.log(`    ${chalk.gray('Entity name')}`);
       console.log();
 
       console.log(chalk.yellow("OUTPUT FILES:"));
-      help.outputs.forEach(output => {
-        const isOptional = output.includes("?");
-        const fileName = output.replace("?", "");
-        const label = isOptional ? chalk.gray(`${fileName} (conditional)`) : chalk.green(fileName);
-        console.log(`  ${label}`);
-      });
+      console.log(`  ${chalk.green('Generated files based on template')}`);
       console.log();
 
       console.log(chalk.yellow("EXAMPLES:"));
-      help.examples.forEach(example => {
-        console.log(`  ${chalk.gray(example)}`);
-      });
+      console.log(`  ${chalk.gray(`unjucks generate ${args.generator} ${args.template} MyEntity`)}`);
+      console.log(`  ${chalk.gray(`unjucks generate ${args.generator} ${args.template} MyEntity --dest ./src`)}`);
+
+      console.log(chalk.yellow("DESCRIPTION:"));
+      console.log(chalk.gray(`  Template for generating ${args.generator} files`));
+      console.log();
 
       if (args.verbose) {
         console.log();
@@ -250,6 +226,13 @@ export const helpCommand = defineCommand({
               description: await this.getTemplateDescription(templatePath)
             });
           }
+        } else if (item.isFile() && (item.name.endsWith('.njk') || item.name.endsWith('.hbs'))) {
+          // Handle individual template files like index.njk
+          const templateName = item.name.replace(/\.(njk|hbs)$/, '');
+          templates.push({
+            name: templateName,
+            description: `Template: ${templateName}`
+          });
         }
       }
       
@@ -314,6 +297,40 @@ export const helpCommand = defineCommand({
       return `Template: ${path.basename(templatePath)}`;
     } catch (error) {
       return `Template: ${path.basename(templatePath)}`;
+    }
+  },
+
+  async parseTemplateVariables(templatesDir, generatorName, templateName) {
+    try {
+      const templatePath = path.resolve(templatesDir, generatorName, templateName + '.njk');
+      
+      if (!(await fs.pathExists(templatePath))) {
+        return [];
+      }
+      
+      const content = await fs.readFile(templatePath, 'utf8');
+      const matter = await import('gray-matter');
+      const { data: frontmatter } = matter.default(content);
+      
+      if (frontmatter.variables && Array.isArray(frontmatter.variables)) {
+        return frontmatter.variables.map(variable => {
+          if (typeof variable === 'string') {
+            return { name: variable, description: `Variable: ${variable}` };
+          } else if (typeof variable === 'object') {
+            // Handle object format like { name: "Component name", withProps: "Include props" }
+            const entries = Object.entries(variable);
+            if (entries.length > 0) {
+              const [name, description] = entries[0];
+              return { name, description: String(description) };
+            }
+          }
+          return { name: 'unknown', description: 'Unknown variable' };
+        });
+      }
+      
+      return [];
+    } catch (error) {
+      return [];
     }
   }
 });

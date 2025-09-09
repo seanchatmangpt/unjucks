@@ -14,14 +14,14 @@ SELECT {{ variables | map('sparqlVar') | join(' ') }}
 WHERE {
   # Local patterns
   {% for pattern in localPatterns %}
-  {{ pattern.subject | sparqlVar }} {{ pattern.predicate | rdfProperty }} {{ pattern.object | sparqlValue }} .
+  {{ pattern.subject | sparqlVar }} {{ pattern.predicate | rdfPropertyFilter }} {{ pattern.object | sparqlValue }} .
   {% endfor %}
   
   # Federated queries to external endpoints
   {% for endpoint in federatedEndpoints %}
   SERVICE {{ endpoint.url | rdfResource }} {
     {% for pattern in endpoint.patterns %}
-    {{ pattern.subject | sparqlVar }} {{ pattern.predicate | rdfProperty }} {{ pattern.object | sparqlValue }} .
+    {{ pattern.subject | sparqlVar }} {{ pattern.predicate | rdfPropertyFilter }} {{ pattern.object | sparqlValue }} .
     {% endfor %}
     
     {% if endpoint.filters %}
@@ -45,7 +45,7 @@ WHERE {
   OPTIONAL {
     SERVICE {{ conditional.endpoint | rdfResource }} {
       {% for pattern in conditional.patterns %}
-      {{ pattern.subject | sparqlVar }} {{ pattern.predicate | rdfProperty }} {{ pattern.object | sparqlValue }} .
+      {{ pattern.subject | sparqlVar }} {{ pattern.predicate | rdfPropertyFilter }} {{ pattern.object | sparqlValue }} .
       {% endfor %}
     }
   }

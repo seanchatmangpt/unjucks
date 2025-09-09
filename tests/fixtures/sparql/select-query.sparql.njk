@@ -12,7 +12,7 @@ PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 SELECT{% if distinct %} DISTINCT{% endif %} {% for var in variables %}{{ var | sparqlVar }}{% if not loop.last %} {% endif %}{% endfor %}
 WHERE {
   {% for pattern in patterns %}
-  {{ pattern.subject | sparqlVar }} {{ pattern.predicate | rdfProperty }} {{ pattern.object | sparqlValue }} .
+  {{ pattern.subject | sparqlVar }} {{ pattern.predicate | rdfPropertyFilter }} {{ pattern.object | sparqlValue }} .
   {% endfor %}
   
   {% if filters %}
@@ -24,7 +24,7 @@ WHERE {
   {% if optionalPatterns %}
   {% for optional in optionalPatterns %}
   OPTIONAL {
-    {{ optional.subject | sparqlVar }} {{ optional.predicate | rdfProperty }} {{ optional.object | sparqlValue }} .
+    {{ optional.subject | sparqlVar }} {{ optional.predicate | rdfPropertyFilter }} {{ optional.object | sparqlValue }} .
   }
   {% endfor %}
   {% endif %}
@@ -35,7 +35,7 @@ WHERE {
     {% if not loop.first %}UNION{% endif %}
     {
       {% for pattern in union %}
-      {{ pattern.subject | sparqlVar }} {{ pattern.predicate | rdfProperty }} {{ pattern.object | sparqlValue }} .
+      {{ pattern.subject | sparqlVar }} {{ pattern.predicate | rdfPropertyFilter }} {{ pattern.object | sparqlValue }} .
       {% endfor %}
     }
     {% endfor %}

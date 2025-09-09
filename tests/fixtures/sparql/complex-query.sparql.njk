@@ -17,14 +17,14 @@ WHERE {
   {% for graph in namedGraphs %}
   GRAPH {{ graph | rdfResource }} {
     {% for pattern in graph.patterns %}
-    {{ pattern.subject | sparqlVar }} {{ pattern.predicate | rdfProperty }} {{ pattern.object | sparqlValue }} .
+    {{ pattern.subject | sparqlVar }} {{ pattern.predicate | rdfPropertyFilter }} {{ pattern.object | sparqlValue }} .
     {% endfor %}
   }
   {% endfor %}
   {% endif %}
   
   {% for pattern in patterns %}
-  {{ pattern.subject | sparqlVar }} {% if pattern.propertyPath %}{{ pattern.propertyPath | sparqlPropertyPath }}{% else %}{{ pattern.predicate | rdfProperty }}{% endif %} {{ pattern.object | sparqlValue }} .
+  {{ pattern.subject | sparqlVar }} {% if pattern.propertyPath %}{{ pattern.propertyPath | sparqlPropertyPath }}{% else %}{{ pattern.predicate | rdfPropertyFilter }}{% endif %} {{ pattern.object | sparqlValue }} .
   {% endfor %}
   
   {% if regexFilters %}
@@ -55,7 +55,7 @@ WHERE {
   {% for exists in existsPatterns %}
   FILTER({% if exists.negated %}NOT {% endif %}EXISTS {
     {% for pattern in exists.patterns %}
-    {{ pattern.subject | sparqlVar }} {{ pattern.predicate | rdfProperty }} {{ pattern.object | sparqlValue }} .
+    {{ pattern.subject | sparqlVar }} {{ pattern.predicate | rdfPropertyFilter }} {{ pattern.object | sparqlValue }} .
     {% endfor %}
   })
   {% endfor %}
@@ -65,7 +65,7 @@ WHERE {
   {% for service in serviceQueries %}
   SERVICE {% if service.silent %}SILENT {% endif %}{{ service.endpoint | rdfResource }} {
     {% for pattern in service.patterns %}
-    {{ pattern.subject | sparqlVar }} {{ pattern.predicate | rdfProperty }} {{ pattern.object | sparqlValue }} .
+    {{ pattern.subject | sparqlVar }} {{ pattern.predicate | rdfPropertyFilter }} {{ pattern.object | sparqlValue }} .
     {% endfor %}
   }
   {% endfor %}

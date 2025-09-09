@@ -27,6 +27,58 @@ export class RDFFilters {
   }
 
   /**
+   * Clear the RDF store
+   */
+  clearStore() {
+    this.store = new Store();
+    this.queryCache.clear();
+  }
+
+  /**
+   * Update the store with new triples
+   * @param {Array} triples - RDF triples
+   */
+  updateStore(triples) {
+    this.clearStore();
+    
+    for (const triple of triples) {
+      try {
+        const subject = this.createTerm(triple.subject);
+        const predicate = this.createTerm(triple.predicate);
+        const object = this.createTerm(triple.object);
+        
+        const n3Quad = quad(subject, predicate, object);
+        this.store.add(n3Quad);
+      } catch (error) {
+        console.warn('Failed to add triple to store:', error, triple);
+      }
+    }
+  }
+
+  /**
+   * Create N3 term from RDF term
+   * @param {Object} rdfTerm - RDF term object
+   * @returns {NamedNode|Literal|BlankNode}
+   */
+  createTerm(rdfTerm) {
+    if (rdfTerm.type === 'uri') {
+      return namedNode(rdfTerm.value);
+    } else if (rdfTerm.type === 'literal') {
+      if (rdfTerm.datatype) {
+        return literal(rdfTerm.value, namedNode(rdfTerm.datatype));
+      } else if (rdfTerm.language) {
+        return literal(rdfTerm.value, rdfTerm.language);
+      } else {
+        return literal(rdfTerm.value);
+      }
+    } else if (rdfTerm.type === 'blank') {
+      return new BlankNode(rdfTerm.value);
+    }
+    // Default to named node
+    return namedNode(rdfTerm.value);
+  }
+
+  /**
    * 1. rdfSubject(predicate, object) - find subjects
    * Find all subjects that have a given predicate-object pair
    */
@@ -280,7 +332,7 @@ export class RDFFilters {
    * Private helper methods
    */
 
-  expandTerm(term) {
+  expandTerm(term, termType = 'uri', datatype = null) {
     if (!term || term === '?s' || term === '?p' || term === '?o') {
       return null; // Variable binding
     }
@@ -293,6 +345,14 @@ export class RDFFilters {
     if (term.startsWith('http://') || term.startsWith('https://')) {
       // Full URI
       return namedNode(term);
+    }
+    
+    // Handle based on term type from parsed data
+    if (termType === 'literal') {
+      if (datatype) {
+        return literal(term, namedNode(datatype));
+      }
+      return literal(term);
     }
     
     // Check if it's a quoted literal
@@ -409,6 +469,52 @@ export class RDFFilters {
       predicate: parts[1] === '?p' ? null : parts[1],
       object: parts[2] === '?o' ? null : parts[2],
     };
+  }
+
+  /**
+   * Update store with triples from parsed data
+   * @param {Array} triples - Array of parsed triples
+   */
+  updateStore(triples) {
+    // Clear existing store
+    this.store = new Store();
+    
+    // Add triples to store
+    for (const triple of triples) {
+      try {
+        const subject = this.expandTerm(triple.subject.value);
+        const predicate = this.expandTerm(triple.predicate.value);
+        const object = this.expandTerm(triple.object.value, triple.object.type, triple.object.datatype);
+        
+        const quad = {
+          subject,
+          predicate, 
+          object,
+          graph: namedNode('')
+        };
+        
+        this.store.add(quad);
+      } catch (error) {
+        console.warn('Failed to add triple to store:', error, triple);
+      }
+    }
+  }
+
+  /**
+   * Clear the RDF store
+   */
+  clearStore() {
+    this.store = new Store();
+    this.queryCache.clear();
+  }
+
+  /**
+   * Get by type helper method
+   * @param {string} typeUri - Type URI to match
+   * @returns {Array}
+   */
+  getByType(typeUri) {
+    return this.rdfSubject('rdf:type', typeUri);
   }
 
   /**

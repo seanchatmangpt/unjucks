@@ -11,7 +11,7 @@ PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 
 CONSTRUCT {
   {% for triple in constructTriples %}
-  {{ triple.subject | sparqlVar }} {{ triple.predicate | rdfProperty }} {{ triple.object | sparqlValue }} .
+  {{ triple.subject | sparqlVar }} {{ triple.predicate | rdfPropertyFilter }} {{ triple.object | sparqlValue }} .
   {% endfor %}
   
   {% if derivedTriples %}
@@ -23,7 +23,7 @@ CONSTRUCT {
 }
 WHERE {
   {% for pattern in wherePatterns %}
-  {{ pattern.subject | sparqlVar }} {{ pattern.predicate | rdfProperty }} {{ pattern.object | sparqlValue }} .
+  {{ pattern.subject | sparqlVar }} {{ pattern.predicate | rdfPropertyFilter }} {{ pattern.object | sparqlValue }} .
   {% endfor %}
   
   {% if filters %}
@@ -38,7 +38,7 @@ WHERE {
     SELECT {{ subquery.variables | map('sparqlVar') | join(' ') }}
     WHERE {
       {% for pattern in subquery.patterns %}
-      {{ pattern.subject | sparqlVar }} {{ pattern.predicate | rdfProperty }} {{ pattern.object | sparqlValue }} .
+      {{ pattern.subject | sparqlVar }} {{ pattern.predicate | rdfPropertyFilter }} {{ pattern.object | sparqlValue }} .
       {% endfor %}
     }
   }

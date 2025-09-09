@@ -420,6 +420,15 @@ export const initCommand = defineCommand({
       // Check if directory exists and is not empty
       if (await fs.pathExists(destPath)) {
         const files = await fs.readdir(destPath);
+        
+        // Specifically check for existing _templates directory
+        const templatesPath = path.join(destPath, '_templates');
+        if (await fs.pathExists(templatesPath) && !args.force) {
+          console.error(chalk.red("_templates directory already exists"));
+          console.log(chalk.blue("\n💡 Use --force to overwrite existing templates"));
+          process.exit(1);
+        }
+        
         if (files.length > 0 && !args.force) {
           throw createCommandError(
             "Directory is not empty",
