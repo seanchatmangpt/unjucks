@@ -4,7 +4,7 @@
  * Generated: 2025-09-08T15:26:05.607Z
  */
 
-module.exports = {
+export default {
   "enableMemoryMonitoring": true,
   "memoryPressureThreshold": 0.8,
   "enableAggressiveCleanup": true,

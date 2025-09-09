@@ -1800,24 +1800,19 @@ export const knowledgeCommand = defineCommand({
  * Generated from RDF ontology: ${cls.uri}
  */
 
-export interface I${className} {
-  id: string;
-  uri: string;
-  // TODO: Add properties based on ontology analysis
-}
-
-export class ${className} implements I${className} {
-  constructor(
-    public id: string,
-    public uri: string = '${cls.uri}'
-  ) {}
+export class ${className} {
+  constructor(id, uri = '${cls.uri}') {
+    this.id = id;
+    this.uri = uri;
+    // TODO: Add properties based on ontology analysis
+  }
   
-  static fromRDF(rdfData: any): ${className} {
+  static fromRDF(rdfData) {
     // TODO: Implement RDF deserialization
     return new ${className}(rdfData.id);
   }
   
-  toRDF(): object {
+  toRDF() {
     // TODO: Implement RDF serialization
     return {
       '@id': this.uri,

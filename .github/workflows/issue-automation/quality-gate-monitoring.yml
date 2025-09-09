@@ -1,0 +1,221 @@
+name: Quality Gate Monitoring
+
+on:
+  workflow_run:
+    workflows: [
+      "CI",
+      "Comprehensive Testing",
+      "PR Validation"
+    ]
+    types: [completed]
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  issues: write
+  contents: read
+  actions: read
+  pull-requests: write
+  checks: read
+
+jobs:
+  monitor-quality-gates:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci --only=prod
+
+      - name: Initialize Quality Gate Swarm
+        run: |
+          npx claude-flow@alpha hooks pre-task --description "Quality gate monitoring and violation tracking"
+          npx claude-flow@alpha hooks session-restore --session-id "swarm-quality-monitor"
+
+      - name: Analyze Quality Metrics
+        id: quality-analysis
+        run: |
+          node scripts/issue-automation/analyze-quality-metrics.js \
+            --workflow-run-id="${{ github.event.workflow_run.id }}" \
+            --pr-number="${{ github.event.pull_request.number }}" \
+            --commit-sha="${{ github.sha }}"
+
+      - name: Check Code Coverage
+        id: coverage-check
+        run: |
+          node scripts/issue-automation/check-coverage.js \
+            --threshold=80 \
+            --format=json \
+            --output=coverage-analysis.json
+
+      - name: Analyze Code Quality
+        id: code-quality
+        run: |
+          node scripts/issue-automation/analyze-code-quality.js \
+            --source-path="src/" \
+            --test-path="tests/" \
+            --config=".github/quality-config.json"
+
+      - name: Check Technical Debt
+        id: tech-debt
+        run: |
+          node scripts/issue-automation/check-technical-debt.js \
+            --complexity-threshold=10 \
+            --duplication-threshold=5 \
+            --output=tech-debt-analysis.json
+
+      - name: Validate Build Quality
+        id: build-quality
+        run: |
+          node scripts/issue-automation/validate-build-quality.js \
+            --build-logs="${{ github.event.workflow_run.logs_url }}" \
+            --warnings-threshold=5
+
+      - name: Create Quality Gate Issues
+        if: steps.quality-analysis.outputs.quality_gates_failed == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const qualityReport = JSON.parse(fs.readFileSync('quality-analysis.json', 'utf8'));
+            
+            for (const violation of qualityReport.violations) {
+              // Check if similar issue exists
+              const existingIssues = await github.rest.issues.listForRepo({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                labels: `quality-gate,${violation.type},automated-tracking`,
+                state: 'open'
+              });
+              
+              const similarIssue = existingIssues.data.find(issue => 
+                issue.title.includes(violation.gate_name)
+              );
+              
+              if (similarIssue) {
+                // Update existing issue
+                await github.rest.issues.createComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: similarIssue.number,
+                  body: `## 📊 Quality Gate Update
+                  
+                  **New Violation Detected**: $(date -u +"%Y-%m-%d %H:%M:%S UTC")
+                  - **Commit**: ${context.sha}
+                  - **Branch**: ${context.ref}
+                  - **Current Value**: ${violation.current_value}
+                  - **Threshold**: ${violation.threshold}
+                  - **Trend**: ${violation.trend}
+                  
+                  ${violation.details}`
+                });
+                continue;
+              }
+              
+              const issueBody = `## 📊 Quality Gate Violation
+              
+              ### Quality Gate Details
+              - **Gate Name**: ${violation.gate_name}
+              - **Violation Type**: ${violation.type}
+              - **Severity**: ${violation.severity}
+              - **Current Value**: ${violation.current_value}
+              - **Required Threshold**: ${violation.threshold}
+              - **Difference**: ${violation.difference}
+              
+              ### Impact Analysis
+              - **Affected Components**: ${violation.affected_components.join(', ')}
+              - **Risk Level**: ${violation.risk_level}
+              - **Technical Debt**: ${violation.tech_debt_impact}
+              - **Maintainability**: ${violation.maintainability_impact}
+              
+              ### Violation Details
+              ${violation.details}
+              
+              ### Historical Trend
+              ${violation.trend_analysis}
+              
+              ### Code Quality Metrics
+              \`\`\`json
+              ${JSON.stringify(violation.metrics, null, 2)}
+              \`\`\`
+              
+              ### Remediation Plan
+              ${violation.remediation_steps.map(step => `- [ ] ${step}`).join('\n')}
+              
+              ### Prevention Measures
+              ${violation.prevention_measures.map(measure => `- [ ] ${measure}`).join('\n')}
+              
+              ### Related Files
+              ${violation.related_files.map(file => `- \`${file.path}\` (Score: ${file.quality_score})`).join('\n')}
+              
+              ### Swarm Quality Agents
+              - **Quality Analyzer**: Continuous quality monitoring
+              - **Code Reviewer**: Automated code quality assessment
+              - **Refactor Agent**: Improvement suggestions and implementation
+              - **Validator**: Quality fix verification
+              
+              ---
+              🤖 **Automated Quality Tracking**
+              - Detected: $(date -u +"%Y-%m-%d %H:%M:%S UTC")
+              - Quality Scanner: ${qualityReport.scanner_version}
+              - Analysis ID: ${violation.analysis_id}
+              - Confidence: ${violation.confidence}%
+              
+              _This issue was automatically created by the quality gate monitoring system._`;
+              
+              const issue = await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title: `Quality Gate: ${violation.gate_name} - ${violation.type} violation`,
+                body: issueBody,
+                labels: [
+                  'quality-gate',
+                  'code-quality',
+                  'automated-tracking',
+                  violation.severity,
+                  violation.type,
+                  `gate:${violation.gate_name}`.toLowerCase().replace(/\s+/g, '-')
+                ],
+                assignees: violation.suggested_assignees,
+                milestone: violation.target_milestone
+              });
+              
+              console.log(`Created quality issue #${issue.data.number}: ${issue.data.title}`);
+            }
+
+      - name: Update Quality Baselines
+        run: |
+          node scripts/issue-automation/update-quality-baselines.js \
+            --metrics-file="quality-analysis.json" \
+            --coverage-file="coverage-analysis.json"
+
+      - name: Generate Quality Report
+        run: |
+          node scripts/issue-automation/generate-quality-report.js \
+            --output-file="docs/automation/quality-report.md" \
+            --format="markdown" \
+            --include-trends=true
+
+      - name: Store Quality Metrics
+        run: |
+          npx claude-flow@alpha hooks post-edit \
+            --file "quality-analysis.json" \
+            --memory-key "swarm/quality/metrics/$(date +%Y-%m-%d)"
+          npx claude-flow@alpha hooks notify \
+            --message "Quality gates checked: ${steps.quality-analysis.outputs.violations_count} violations found"
+
+      - name: Cleanup
+        if: always()
+        run: |
+          npx claude-flow@alpha hooks post-task --task-id "quality-gate-monitoring"
+          npx claude-flow@alpha hooks session-end --export-metrics true

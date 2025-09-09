@@ -1,4 +1,5 @@
-import { Parser, Store } from "n3";
+import { Parser, Store, DataFactory } from "n3";
+const { namedNode, literal, blankNode } = DataFactory;
 
 /**
  * @typedef {'uri' | 'literal' | 'blank'} RDFTermType
@@ -80,7 +81,14 @@ export class TurtleParser {
    * @returns {Promise<TurtleParseResult>}
    */
   async parse(content) {
-    return Promise.resolve(this.parseSync(content));
+    return new Promise((resolve, reject) => {
+      try {
+        const result = this.parseSync(content);
+        resolve(result);
+      } catch (error) {
+        reject(error);
+      }
+    });
   }
 
   /**
@@ -118,14 +126,19 @@ export class TurtleParser {
         predicates.add(parsedTriple.predicate.value);
       }
 
-      // Extract prefixes from content using regex
-      const prefixMatches = content.match(/@prefix\s+(\w*):?\s*<([^>]+)>/g);
-      if (prefixMatches) {
-        for (const match of prefixMatches) {
-          const prefixMatch = match.match(/@prefix\s+(\w*):?\s*<([^>]+)>/);
-          if (prefixMatch) {
-            const [, prefix, uri] = prefixMatch;
-            prefixes[prefix || ""] = uri;
+      // Extract prefixes from parser's internal state if available
+      if (parser.prefixes) {
+        Object.assign(prefixes, parser.prefixes);
+      } else {
+        // Fallback: Extract prefixes from content using regex
+        const prefixMatches = content.match(/@prefix\s+(\w*):?\s*<([^>]+)>/g);
+        if (prefixMatches) {
+          for (const match of prefixMatches) {
+            const prefixMatch = match.match(/@prefix\s+(\w*):?\s*<([^>]+)>/);
+            if (prefixMatch) {
+              const [, prefix, uri] = prefixMatch;
+              prefixes[prefix || ""] = uri;
+            }
           }
         }
       }
@@ -149,10 +162,20 @@ export class TurtleParser {
 
       return result;
     } catch (error) {
+      let line, column;
+      
+      // Extract line/column info if available from N3 error
+      if (error.message && error.message.includes('line')) {
+        const lineMatch = error.message.match(/line (\d+)/);
+        const colMatch = error.message.match(/column (\d+)/);
+        line = lineMatch ? parseInt(lineMatch[1]) : undefined;
+        column = colMatch ? parseInt(colMatch[1]) : undefined;
+      }
+      
       const parseError = new TurtleParseError(
         `Parse error: ${error.message}`,
-        undefined,
-        undefined,
+        line,
+        column,
         error
       );
       throw parseError;
@@ -218,16 +241,17 @@ export class TurtleParser {
         value: term.value,
       };
 
-      // Only include datatype if it exists and is not the default string datatype
-      if (
-        term.datatype &&
-        term.datatype.value !==
-          "http://www.w3.org/1999/02/22-rdf-syntax-ns#langString"
-      ) {
-        result.datatype = term.datatype.value;
+      // Include datatype if it exists and is not the default string datatype
+      if (term.datatype && term.datatype.value) {
+        const datatypeUri = term.datatype.value;
+        // Don't include xsd:string as it's the default
+        if (datatypeUri !== "http://www.w3.org/2001/XMLSchema#string" &&
+            datatypeUri !== "http://www.w3.org/1999/02/22-rdf-syntax-ns#langString") {
+          result.datatype = datatypeUri;
+        }
       }
 
-      // Only include language if it exists and is not empty
+      // Include language if it exists and is not empty
       if (term.language && term.language.length > 0) {
         result.language = term.language;
       }
@@ -242,10 +266,17 @@ export class TurtleParser {
       };
     }
 
+    if (term.termType === "Variable") {
+      return {
+        type: "variable",
+        value: term.value,
+      };
+    }
+
     // Fallback for other term types
     return {
       type: "uri",
-      value: term.value,
+      value: term.value || term.id || String(term),
     };
   }
 

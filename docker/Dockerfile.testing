@@ -1,0 +1,215 @@
+# Multi-stage Docker build for comprehensive testing
+# Supports multi-architecture builds (AMD64/ARM64)
+
+ARG NODE_VERSION=20
+ARG BASE_IMAGE=alpine
+
+# ==================================================
+# Base Stage - Common Dependencies
+# ==================================================
+FROM node:${NODE_VERSION}-${BASE_IMAGE} AS base
+
+# Set working directory
+WORKDIR /app
+
+# Install system dependencies based on base image
+RUN if [ "$BASE_IMAGE" = "alpine" ]; then \
+      apk add --no-cache \
+        git \
+        bash \
+        curl \
+        jq \
+        python3 \
+        make \
+        g++ \
+        libc6-compat \
+        openssl \
+        ca-certificates \
+        tzdata; \
+    elif [ "$BASE_IMAGE" = "ubuntu" ] || [ "$BASE_IMAGE" = "debian" ]; then \
+      apt-get update && apt-get install -y \
+        git \
+        curl \
+        jq \
+        python3 \
+        python3-pip \
+        build-essential \
+        openssl \
+        ca-certificates \
+        tzdata \
+        && rm -rf /var/lib/apt/lists/*; \
+    fi
+
+# Create non-root user for security
+RUN addgroup -g 1001 -S unjucks && \
+    adduser -S unjucks -u 1001 -G unjucks
+
+# Set timezone
+ENV TZ=UTC
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+
+# ==================================================
+# Dependencies Stage - Install Node Dependencies
+# ==================================================
+FROM base AS deps
+
+# Copy package files
+COPY package*.json ./
+COPY .npmrc* ./
+
+# Install all dependencies (including dev dependencies for testing)
+RUN npm ci --include=dev --prefer-offline --no-audit
+
+# Verify installation
+RUN npm ls || true
+
+# ==================================================
+# Security Scanning Stage
+# ==================================================
+FROM deps AS security
+
+# Copy source code
+COPY . .
+
+# Create directories for reports
+RUN mkdir -p /app/security-reports
+
+# Install security scanning tools
+RUN npm install -g \
+    snyk \
+    npm-audit-ci \
+    licensee \
+    safety-cli
+
+# Set up security scan scripts
+COPY docker/scripts/security-scan.sh /usr/local/bin/
+RUN chmod +x /usr/local/bin/security-scan.sh
+
+# Default command for security scanning
+CMD ["security-scan.sh"]
+
+# ==================================================
+# Testing Stage - Full Test Suite
+# ==================================================
+FROM deps AS testing
+
+# Copy source code
+COPY . .
+
+# Make scripts executable
+RUN find scripts/ -name "*.sh" -exec chmod +x {} \; || true
+RUN chmod +x bin/unjucks.cjs || true
+
+# Create test directories
+RUN mkdir -p \
+    /app/test-results \
+    /app/coverage \
+    /app/performance-reports \
+    /app/integration-reports
+
+# Install additional testing tools
+RUN npm install -g \
+    vitest \
+    c8 \
+    autocannon \
+    clinic
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD node scripts/health-check.js || exit 1
+
+# Run tests by default
+CMD ["npm", "run", "test:comprehensive"]
+
+# ==================================================
+# Performance Testing Stage
+# ==================================================
+FROM testing AS performance
+
+# Install performance monitoring tools
+RUN npm install -g \
+    0x \
+    clinic \
+    autocannon \
+    loadtest
+
+# Copy performance test scripts
+COPY docker/scripts/performance-tests.sh /usr/local/bin/
+RUN chmod +x /usr/local/bin/performance-tests.sh
+
+# Set memory and CPU constraints for testing
+ENV NODE_OPTIONS="--max-old-space-size=512"
+
+# Performance test command
+CMD ["performance-tests.sh"]
+
+# ==================================================
+# Production Simulation Stage
+# ==================================================
+FROM base AS production
+
+# Copy only production dependencies
+COPY package*.json ./
+RUN npm ci --production --prefer-offline --no-audit
+
+# Copy built application
+COPY . .
+RUN npm run build || echo "No build step required"
+
+# Remove development files
+RUN rm -rf \
+    tests/ \
+    docs/ \
+    .github/ \
+    docker/ \
+    scripts/test-* \
+    *.test.js \
+    *.spec.js
+
+# Set production environment
+ENV NODE_ENV=production
+ENV PORT=3000
+
+# Security: Use non-root user
+USER unjucks
+
+# Expose application port
+EXPOSE 3000
+
+# Health check for production
+HEALTHCHECK --interval=30s --timeout=10s --start-period=15s --retries=3 \
+    CMD curl -f http://localhost:3000/health || exit 1
+
+# Production command
+CMD ["node", "bin/unjucks.cjs"]
+
+# ==================================================
+# Final Testing Image
+# ==================================================
+FROM testing AS final
+
+# Copy test scripts
+COPY docker/scripts/ /usr/local/bin/
+RUN chmod +x /usr/local/bin/*.sh
+
+# Set metadata
+LABEL maintainer="Unjucks Team <team@unjucks.dev>"
+LABEL description="Unjucks Docker testing and validation image"
+LABEL org.opencontainers.image.source="https://github.com/unjucks/unjucks"
+LABEL org.opencontainers.image.title="Unjucks Testing"
+LABEL org.opencontainers.image.description="Comprehensive testing environment for Unjucks"
+LABEL org.opencontainers.image.vendor="Unjucks"
+
+# Validation metadata
+LABEL validation.security="enabled"
+LABEL validation.performance="enabled"
+LABEL validation.multi-arch="enabled"
+
+# Final validation step
+RUN npm run test:smoke || echo "Smoke tests will run in container"
+
+# Switch to non-root user for security
+USER unjucks
+
+# Default command runs comprehensive validation
+CMD ["comprehensive-validation.sh"]

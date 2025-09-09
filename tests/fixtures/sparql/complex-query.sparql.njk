@@ -15,7 +15,7 @@ SELECT {% for var in variables %}{{ var | sparqlVar }}{% if not loop.last %} {% 
 WHERE {
   {% if namedGraphs %}
   {% for graph in namedGraphs %}
-  GRAPH {{ graph | rdfResource }} {
+  GRAPH {{ graph.uri | rdfResource }} {
     {% for pattern in graph.patterns %}
     {{ pattern.subject | sparqlVar }} {{ pattern.predicate | rdfPropertyFilter }} {{ pattern.object | sparqlValue }} .
     {% endfor %}

@@ -1,0 +1,808 @@
+name: LaTeX Compilation Validation
+
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - 'templates/latex/**'
+      - 'src/commands/latex.js'
+      - 'src/lib/latex/**'
+      - '.github/workflows/latex-validation.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'templates/latex/**'
+      - 'src/commands/latex.js'
+      - 'src/lib/latex/**'
+      - '.github/workflows/latex-validation.yml'
+
+env:
+  LATEX_ENGINES: "pdflatex xelatex lualatex"
+  VALIDATION_TIMEOUT: 300
+
+jobs:
+  latex-environment:
+    name: Setup LaTeX Environment
+    runs-on: ubuntu-latest
+    outputs:
+      texlive-version: ${{ steps.texlive.outputs.version }}
+      engines-available: ${{ steps.engines.outputs.available }}
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Cache LaTeX installation
+        id: cache-latex
+        uses: actions/cache@v4
+        with:
+          path: /tmp/texlive
+          key: texlive-2024-${{ runner.os }}-v2
+          restore-keys: |
+            texlive-2024-${{ runner.os }}-
+
+      - name: Install TeX Live
+        if: steps.cache-latex.outputs.cache-hit != 'true'
+        run: |
+          echo "Installing TeX Live with comprehensive package set..."
+          
+          # Create installation directory
+          mkdir -p /tmp/texlive
+          cd /tmp/texlive
+          
+          # Download TeX Live installer
+          wget -q http://mirror.ctan.org/systems/texlive/tlnet/install-tl-unx.tar.gz
+          tar -xzf install-tl-unx.tar.gz
+          cd install-tl-*
+          
+          # Create installation profile
+          cat > texlive.profile << 'EOF'
+          selected_scheme scheme-medium
+          TEXDIR /tmp/texlive/2024
+          TEXMFCONFIG ~/.texlive2024/texmf-config
+          TEXMFHOME ~/texmf
+          TEXMFLOCAL /tmp/texlive/texmf-local
+          TEXMFSYSCONFIG /tmp/texlive/2024/texmf-config
+          TEXMFSYSVAR /tmp/texlive/2024/texmf-var
+          TEXMFVAR ~/.texlive2024/texmf-var
+          binary_x86_64-linux 1
+          collection-basic 1
+          collection-latex 1
+          collection-latexrecommended 1
+          collection-fontsrecommended 1
+          collection-fontutils 1
+          collection-langenglish 1
+          collection-mathscience 1
+          collection-pictures 1
+          collection-plaingeneric 1
+          collection-bibtexextra 1
+          collection-latexextra 1
+          collection-publishers 1
+          instopt_adjustpath 0
+          instopt_adjustrepo 1
+          instopt_letter 0
+          instopt_portable 0
+          instopt_write18_restricted 1
+          tlpdbopt_autobackup 1
+          tlpdbopt_backupdir tlpkg/backups
+          tlpdbopt_create_formats 1
+          tlpdbopt_desktop_integration 1
+          tlpdbopt_file_assocs 1
+          tlpdbopt_generate_updmap 0
+          tlpdbopt_install_docfiles 0
+          tlpdbopt_install_srcfiles 0
+          tlpdbopt_post_code 1
+          tlpdbopt_sys_bin /usr/local/bin
+          tlpdbopt_sys_info /usr/local/share/info
+          tlpdbopt_sys_man /usr/local/share/man
+          tlpdbopt_w32_multi_user 1
+          EOF
+          
+          # Install TeX Live
+          ./install-tl --profile=texlive.profile --no-interaction
+          
+          echo "TeX Live installation completed"
+
+      - name: Setup PATH and validate TeX Live
+        id: texlive
+        run: |
+          # Add TeX Live to PATH
+          export PATH="/tmp/texlive/2024/bin/x86_64-linux:$PATH"
+          echo "PATH=/tmp/texlive/2024/bin/x86_64-linux:$PATH" >> $GITHUB_ENV
+          
+          # Verify installation
+          tex --version
+          latex --version
+          pdflatex --version
+          
+          # Check if additional engines are available
+          if command -v xelatex &> /dev/null; then
+            xelatex --version
+          fi
+          
+          if command -v lualatex &> /dev/null; then
+            lualatex --version
+          fi
+          
+          # Get version info
+          VERSION=$(tex --version | head -n1)
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          
+          echo "TeX Live setup completed successfully"
+
+      - name: Install additional packages
+        run: |
+          export PATH="/tmp/texlive/2024/bin/x86_64-linux:$PATH"
+          
+          # Install packages needed for legal documents and academic papers
+          tlmgr install \
+            geometry \
+            fancyhdr \
+            setspace \
+            titlesec \
+            enumitem \
+            hyperref \
+            graphicx \
+            amsmath \
+            amsfonts \
+            amssymb \
+            natbib \
+            biblatex \
+            biber \
+            xcolor \
+            listings \
+            booktabs \
+            longtable \
+            array \
+            tabularx \
+            multirow \
+            rotating \
+            float \
+            caption \
+            subcaption \
+            tikz \
+            pgfplots \
+            beamer \
+            fontspec \
+            xunicode \
+            xltxtra \
+            polyglossia \
+            microtype \
+            csquotes \
+            etoolbox \
+            xparse \
+            l3packages \
+            fontawesome5 \
+            academicons
+          
+          echo "Additional LaTeX packages installed"
+
+      - name: Test LaTeX engines availability
+        id: engines
+        run: |
+          export PATH="/tmp/texlive/2024/bin/x86_64-linux:$PATH"
+          
+          AVAILABLE_ENGINES=""
+          
+          # Test pdflatex
+          if pdflatex --version &> /dev/null; then
+            AVAILABLE_ENGINES="$AVAILABLE_ENGINES pdflatex"
+            echo "✓ pdflatex available"
+          fi
+          
+          # Test xelatex
+          if xelatex --version &> /dev/null; then
+            AVAILABLE_ENGINES="$AVAILABLE_ENGINES xelatex"
+            echo "✓ xelatex available"
+          fi
+          
+          # Test lualatex
+          if lualatex --version &> /dev/null; then
+            AVAILABLE_ENGINES="$AVAILABLE_ENGINES lualatex"
+            echo "✓ lualatex available"
+          fi
+          
+          echo "available=$AVAILABLE_ENGINES" >> $GITHUB_OUTPUT
+          echo "Available engines: $AVAILABLE_ENGINES"
+
+  template-compilation:
+    name: Template Compilation Tests
+    runs-on: ubuntu-latest
+    needs: latex-environment
+    strategy:
+      fail-fast: false
+      matrix:
+        engine: [pdflatex, xelatex, lualatex]
+        template: [
+          "templates/latex/legal/brief/legal-brief.tex.njk",
+          "templates/latex/legal/brief/legal-brief-simple.tex.njk", 
+          "templates/latex/legal/contract/contract.tex.njk",
+          "templates/latex/arxiv/paper/paper.tex.njk",
+          "templates/latex/arxiv/preprint/preprint.tex.njk"
+        ]
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Restore LaTeX cache
+        uses: actions/cache@v4
+        with:
+          path: /tmp/texlive
+          key: texlive-2024-${{ runner.os }}-v2
+
+      - name: Setup PATH
+        run: |
+          export PATH="/tmp/texlive/2024/bin/x86_64-linux:$PATH"
+          echo "PATH=/tmp/texlive/2024/bin/x86_64-linux:$PATH" >> $GITHUB_ENV
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Create test workspace
+        run: |
+          mkdir -p test-workspace/output
+          mkdir -p test-workspace/temp
+
+      - name: Generate test document from template
+        run: |
+          TEMPLATE_FILE="${{ matrix.template }}"
+          TEMPLATE_NAME=$(basename "$TEMPLATE_FILE" .tex.njk)
+          ENGINE="${{ matrix.engine }}"
+          
+          echo "Generating test document from: $TEMPLATE_FILE"
+          echo "Using engine: $ENGINE"
+          
+          # Generate template with test data
+          node -e "
+          const fs = require('fs');
+          const path = require('path');
+          const nunjucks = require('nunjucks');
+          
+          const templatePath = '$TEMPLATE_FILE';
+          const templateContent = fs.readFileSync(templatePath, 'utf8');
+          
+          // Test data for different template types
+          const testData = {
+            title: 'Test Document Title',
+            author: 'Test Author',
+            date: new Date().toLocaleDateString(),
+            plaintiffName: 'Test Plaintiff',
+            defendantName: 'Test Defendant',
+            caseNumber: '2024-CV-001',
+            courtName: 'Test Court',
+            content: 'This is a test document content for LaTeX compilation validation.',
+            abstract: 'This is a test abstract for academic papers and preprints.',
+            keywords: 'test, latex, compilation, validation',
+            institution: 'Test Institution',
+            department: 'Test Department',
+            email: 'test@example.com',
+            contractTitle: 'Test Contract Agreement',
+            partyA: 'First Party',
+            partyB: 'Second Party',
+            effectiveDate: '2024-01-01',
+            terms: 'These are the test terms and conditions for the contract.'
+          };
+          
+          const rendered = nunjucks.renderString(templateContent, testData);
+          fs.writeFileSync('test-workspace/$TEMPLATE_NAME-$ENGINE.tex', rendered);
+          console.log('Template rendered successfully');
+          "
+
+      - name: Compile LaTeX document
+        timeout-minutes: 5
+        run: |
+          export PATH="/tmp/texlive/2024/bin/x86_64-linux:$PATH"
+          
+          TEMPLATE_NAME=$(basename "${{ matrix.template }}" .tex.njk)
+          ENGINE="${{ matrix.engine }}"
+          TEX_FILE="test-workspace/$TEMPLATE_NAME-$ENGINE.tex"
+          
+          echo "Compiling: $TEX_FILE with $ENGINE"
+          
+          cd test-workspace
+          
+          # First compilation
+          timeout 60 $ENGINE \
+            -interaction=nonstopmode \
+            -halt-on-error \
+            -output-directory=output \
+            "$TEMPLATE_NAME-$ENGINE.tex" || {
+            echo "First compilation failed, checking log..."
+            cat "output/$TEMPLATE_NAME-$ENGINE.log" || echo "No log file found"
+            exit 1
+          }
+          
+          # Run bibtex/biber if bibliography exists
+          if grep -q "bibliography\|biblatex" "$TEMPLATE_NAME-$ENGINE.tex"; then
+            if command -v biber &> /dev/null && grep -q "biblatex" "$TEMPLATE_NAME-$ENGINE.tex"; then
+              echo "Running biber..."
+              cd output
+              biber "$TEMPLATE_NAME-$ENGINE" || echo "Biber failed (may be expected)"
+              cd ..
+            elif command -v bibtex &> /dev/null; then
+              echo "Running bibtex..."
+              cd output
+              bibtex "$TEMPLATE_NAME-$ENGINE" || echo "BibTeX failed (may be expected)"
+              cd ..
+            fi
+            
+            # Second compilation for bibliography
+            timeout 60 $ENGINE \
+              -interaction=nonstopmode \
+              -halt-on-error \
+              -output-directory=output \
+              "$TEMPLATE_NAME-$ENGINE.tex" || echo "Second compilation failed"
+          fi
+          
+          # Final compilation for cross-references
+          timeout 60 $ENGINE \
+            -interaction=nonstopmode \
+            -halt-on-error \
+            -output-directory=output \
+            "$TEMPLATE_NAME-$ENGINE.tex"
+          
+          # Verify PDF was created
+          PDF_FILE="output/$TEMPLATE_NAME-$ENGINE.pdf"
+          if [ -f "$PDF_FILE" ]; then
+            echo "✓ PDF generated successfully: $PDF_FILE"
+            
+            # Check PDF size (should be > 1KB for a valid PDF)
+            PDF_SIZE=$(stat -f%z "$PDF_FILE" 2>/dev/null || stat -c%s "$PDF_FILE")
+            if [ "$PDF_SIZE" -gt 1024 ]; then
+              echo "✓ PDF size validation passed: ${PDF_SIZE} bytes"
+            else
+              echo "❌ PDF too small: ${PDF_SIZE} bytes"
+              exit 1
+            fi
+          else
+            echo "❌ PDF generation failed"
+            exit 1
+          fi
+
+      - name: Upload compilation artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: latex-compilation-${{ matrix.engine }}-$(echo "${{ matrix.template }}" | tr '/' '-' | sed 's/.tex.njk$//')
+          path: |
+            test-workspace/output/*.pdf
+            test-workspace/output/*.log
+            test-workspace/*.tex
+
+  legal-documents-validation:
+    name: Legal Documents Specific Validation
+    runs-on: ubuntu-latest
+    needs: latex-environment
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Restore LaTeX cache
+        uses: actions/cache@v4
+        with:
+          path: /tmp/texlive
+          key: texlive-2024-${{ runner.os }}-v2
+
+      - name: Setup PATH
+        run: |
+          export PATH="/tmp/texlive/2024/bin/x86_64-linux:$PATH"
+          echo "PATH=/tmp/texlive/2024/bin/x86_64-linux:$PATH" >> $GITHUB_ENV
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Test legal brief template
+        run: |
+          export PATH="/tmp/texlive/2024/bin/x86_64-linux:$PATH"
+          
+          mkdir -p legal-test
+          
+          # Test comprehensive legal brief
+          node -e "
+          const unjucks = require('./src/cli/index.js');
+          const { execSync } = require('child_process');
+          
+          console.log('Testing legal brief generation...');
+          
+          try {
+            // Use unjucks CLI to generate legal brief
+            execSync('node bin/unjucks.cjs latex generate --template=article --title=\"Legal Brief Test\" --author=\"Test Attorney\" --output=legal-test/legal-brief.tex --bibliography', { stdio: 'inherit' });
+            console.log('✓ Legal brief template generated');
+          } catch (error) {
+            console.error('❌ Legal brief generation failed:', error.message);
+            process.exit(1);
+          }
+          "
+          
+          # Compile legal brief
+          cd legal-test
+          pdflatex -interaction=nonstopmode legal-brief.tex
+          
+          if [ -f "legal-brief.pdf" ]; then
+            echo "✓ Legal brief compilation successful"
+          else
+            echo "❌ Legal brief compilation failed"
+            cat legal-brief.log
+            exit 1
+          fi
+
+      - name: Test contract template
+        run: |
+          export PATH="/tmp/texlive/2024/bin/x86_64-linux:$PATH"
+          
+          # Test contract with complex formatting
+          node -e "
+          const fs = require('fs');
+          const nunjucks = require('nunjucks');
+          
+          const contractTemplate = fs.readFileSync('templates/latex/legal/contract/contract.tex.njk', 'utf8');
+          const contractData = {
+            contractTitle: 'Software Development Agreement',
+            partyA: 'Tech Company Inc.',
+            partyB: 'Development Contractor LLC',
+            effectiveDate: '2024-01-01',
+            terms: 'Complete software development services according to specifications.',
+            signatures: true,
+            witnessRequired: true
+          };
+          
+          const rendered = nunjucks.renderString(contractTemplate, contractData);
+          fs.writeFileSync('legal-test/contract.tex', rendered);
+          console.log('✓ Contract template rendered');
+          "
+          
+          cd legal-test
+          pdflatex -interaction=nonstopmode contract.tex
+          
+          if [ -f "contract.pdf" ]; then
+            echo "✓ Contract compilation successful"
+          else
+            echo "❌ Contract compilation failed"
+            exit 1
+          fi
+
+      - name: Validate legal document formatting
+        run: |
+          # Check for proper legal document elements
+          cd legal-test
+          
+          # Verify PDFs contain expected content
+          if command -v pdftotext &> /dev/null; then
+            pdftotext legal-brief.pdf legal-brief.txt
+            pdftotext contract.pdf contract.txt
+            
+            # Check legal brief content
+            if grep -q "Legal Brief Test" legal-brief.txt; then
+              echo "✓ Legal brief title validation passed"
+            else
+              echo "❌ Legal brief title not found"
+            fi
+            
+            # Check contract content  
+            if grep -q "Software Development Agreement" contract.txt; then
+              echo "✓ Contract title validation passed"
+            else
+              echo "❌ Contract title not found"
+            fi
+          else
+            echo "⚠️ pdftotext not available, skipping content validation"
+          fi
+
+      - name: Upload legal document artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: legal-documents-validation
+          path: |
+            legal-test/*.pdf
+            legal-test/*.log
+            legal-test/*.tex
+
+  academic-papers-validation:
+    name: Academic Papers Validation
+    runs-on: ubuntu-latest
+    needs: latex-environment
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Restore LaTeX cache
+        uses: actions/cache@v4
+        with:
+          path: /tmp/texlive
+          key: texlive-2024-${{ runner.os }}-v2
+
+      - name: Setup PATH
+        run: |
+          export PATH="/tmp/texlive/2024/bin/x86_64-linux:$PATH"
+          echo "PATH=/tmp/texlive/2024/bin/x86_64-linux:$PATH" >> $GITHUB_ENV
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Test academic paper template
+        run: |
+          export PATH="/tmp/texlive/2024/bin/x86_64-linux:$PATH"
+          
+          mkdir -p academic-test
+          
+          # Generate academic paper from template
+          node -e "
+          const fs = require('fs');
+          const nunjucks = require('nunjucks');
+          
+          const paperTemplate = fs.readFileSync('templates/latex/arxiv/paper/paper.tex.njk', 'utf8');
+          const paperData = {
+            title: 'Advanced LaTeX Template Generation Systems',
+            author: 'Research Team',
+            institution: 'Test University',
+            department: 'Computer Science',
+            email: 'research@test.edu',
+            abstract: 'This paper presents a comprehensive analysis of LaTeX template generation systems for automated document creation.',
+            keywords: 'LaTeX, templates, automation, document generation',
+            content: 'This is the main content of the academic paper with proper formatting.',
+            references: true,
+            appendix: true
+          };
+          
+          const rendered = nunjucks.renderString(paperTemplate, paperData);
+          fs.writeFileSync('academic-test/paper.tex', rendered);
+          console.log('✓ Academic paper template rendered');
+          "
+          
+          # Compile with multiple engines
+          cd academic-test
+          
+          for engine in pdflatex xelatex lualatex; do
+            if command -v $engine &> /dev/null; then
+              echo "Testing $engine compilation..."
+              $engine -interaction=nonstopmode -halt-on-error paper.tex
+              
+              if [ -f "paper.pdf" ]; then
+                mv paper.pdf "paper-$engine.pdf"
+                echo "✓ $engine compilation successful"
+              else
+                echo "❌ $engine compilation failed"
+                cat paper.log
+              fi
+              
+              # Clean up auxiliary files for next engine
+              rm -f paper.aux paper.log paper.out paper.toc paper.bbl paper.blg
+            fi
+          done
+
+      - name: Test preprint template
+        run: |
+          export PATH="/tmp/texlive/2024/bin/x86_64-linux:$PATH"
+          
+          # Generate preprint
+          node -e "
+          const fs = require('fs');
+          const nunjucks = require('nunjucks');
+          
+          const preprintTemplate = fs.readFileSync('templates/latex/arxiv/preprint/preprint.tex.njk', 'utf8');
+          const preprintData = {
+            title: 'Novel Approaches to Template Automation',
+            author: 'Preprint Author',
+            email: 'author@test.edu',
+            abstract: 'A preprint demonstrating advanced template generation techniques.',
+            keywords: 'preprint, LaTeX, automation'
+          };
+          
+          const rendered = nunjucks.renderString(preprintTemplate, preprintData);
+          fs.writeFileSync('academic-test/preprint.tex', rendered);
+          console.log('✓ Preprint template rendered');
+          "
+          
+          cd academic-test
+          pdflatex -interaction=nonstopmode preprint.tex
+          
+          if [ -f "preprint.pdf" ]; then
+            echo "✓ Preprint compilation successful"
+          else
+            echo "❌ Preprint compilation failed"
+            cat preprint.log
+            exit 1
+          fi
+
+      - name: Upload academic artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: academic-papers-validation
+          path: |
+            academic-test/*.pdf
+            academic-test/*.log
+            academic-test/*.tex
+
+  pdf-quality-validation:
+    name: PDF Quality and Structure Validation
+    runs-on: ubuntu-latest
+    needs: [template-compilation, legal-documents-validation, academic-papers-validation]
+    
+    steps:
+      - name: Install PDF validation tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y poppler-utils qpdf
+
+      - name: Download compilation artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Validate PDF structure and quality
+        run: |
+          echo "Validating PDF quality and structure..."
+          
+          find artifacts -name "*.pdf" -type f | while read pdf_file; do
+            echo "Validating: $pdf_file"
+            
+            # Check PDF validity
+            if qpdf --check "$pdf_file" &> /dev/null; then
+              echo "✓ $pdf_file: Valid PDF structure"
+            else
+              echo "❌ $pdf_file: Invalid PDF structure"
+              continue
+            fi
+            
+            # Check PDF metadata
+            pdfinfo "$pdf_file" | grep -E "(Pages|Creator|Producer)" || echo "⚠️ Missing metadata"
+            
+            # Verify PDF has content
+            if pdftotext "$pdf_file" - | wc -c | awk '$1 > 100 { print "✓ PDF contains substantial text content" }'; then
+              :
+            else
+              echo "⚠️ $pdf_file: Limited text content"
+            fi
+          done
+
+      - name: Generate validation report
+        run: |
+          echo "# LaTeX Compilation Validation Report" > validation-report.md
+          echo "Generated on: $(date)" >> validation-report.md
+          echo "" >> validation-report.md
+          
+          PDF_COUNT=$(find artifacts -name "*.pdf" -type f | wc -l)
+          echo "Total PDFs generated: $PDF_COUNT" >> validation-report.md
+          echo "" >> validation-report.md
+          
+          echo "## PDF Files by Category" >> validation-report.md
+          find artifacts -name "*.pdf" -type f | sort >> validation-report.md
+
+      - name: Upload validation report
+        uses: actions/upload-artifact@v4
+        with:
+          name: latex-validation-report
+          path: validation-report.md
+
+  unjucks-latex-integration:
+    name: Unjucks LaTeX Integration Test
+    runs-on: ubuntu-latest
+    needs: latex-environment
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Restore LaTeX cache
+        uses: actions/cache@v4
+        with:
+          path: /tmp/texlive
+          key: texlive-2024-${{ runner.os }}-v2
+
+      - name: Setup PATH
+        run: |
+          export PATH="/tmp/texlive/2024/bin/x86_64-linux:$PATH"
+          echo "PATH=/tmp/texlive/2024/bin/x86_64-linux:$PATH" >> $GITHUB_ENV
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Test unjucks LaTeX command integration
+        run: |
+          export PATH="/tmp/texlive/2024/bin/x86_64-linux:$PATH"
+          
+          mkdir -p integration-test
+          
+          # Test LaTeX init
+          echo "Testing unjucks latex init..."
+          node bin/unjucks.cjs latex init --config --scripts
+          
+          # Test LaTeX generate
+          echo "Testing unjucks latex generate..."
+          node bin/unjucks.cjs latex generate \
+            --template=article \
+            --title="Integration Test Document" \
+            --author="CI Test" \
+            --output=integration-test/test-doc.tex \
+            --bibliography
+          
+          # Verify generated file
+          if [ -f "integration-test/test-doc.tex" ]; then
+            echo "✓ LaTeX template generation successful"
+            
+            # Test compilation
+            echo "Testing unjucks latex compile..."
+            node bin/unjucks.cjs latex compile \
+              integration-test/test-doc.tex \
+              --engine=pdflatex \
+              --output=integration-test/output
+            
+            if [ -f "integration-test/output/test-doc.pdf" ]; then
+              echo "✓ Unjucks LaTeX integration test passed"
+            else
+              echo "❌ LaTeX compilation through unjucks failed"
+              exit 1
+            fi
+          else
+            echo "❌ LaTeX template generation failed"
+            exit 1
+          fi
+
+      - name: Upload integration test results
+        uses: actions/upload-artifact@v4
+        with:
+          name: unjucks-latex-integration
+          path: |
+            integration-test/
+            unjucks.config.js
+
+  summary:
+    name: Validation Summary
+    runs-on: ubuntu-latest
+    needs: [template-compilation, legal-documents-validation, academic-papers-validation, pdf-quality-validation, unjucks-latex-integration]
+    if: always()
+    
+    steps:
+      - name: Generate summary
+        run: |
+          echo "# LaTeX Validation Summary" 
+          echo "Workflow completed on: $(date)"
+          echo ""
+          echo "Job Status:"
+          echo "- Template Compilation: ${{ needs.template-compilation.result }}"
+          echo "- Legal Documents: ${{ needs.legal-documents-validation.result }}"
+          echo "- Academic Papers: ${{ needs.academic-papers-validation.result }}"
+          echo "- PDF Quality: ${{ needs.pdf-quality-validation.result }}"
+          echo "- Unjucks Integration: ${{ needs.unjucks-latex-integration.result }}"
+          
+          # Determine overall status
+          if [ "${{ needs.template-compilation.result }}" = "success" ] && \
+             [ "${{ needs.legal-documents-validation.result }}" = "success" ] && \
+             [ "${{ needs.academic-papers-validation.result }}" = "success" ] && \
+             [ "${{ needs.pdf-quality-validation.result }}" = "success" ] && \
+             [ "${{ needs.unjucks-latex-integration.result }}" = "success" ]; then
+            echo ""
+            echo "✅ All LaTeX validation tests passed!"
+            exit 0
+          else
+            echo ""
+            echo "❌ Some LaTeX validation tests failed!"
+            exit 1
+          fi

@@ -1,0 +1,115 @@
+# Gitleaks configuration for Unjucks security scanning
+
+title = "Unjucks Security - GitLeaks Configuration"
+
+[extend]
+# Use default rules
+useDefault = true
+
+[[rules]]
+id = "generic-api-key"
+description = "Generic API Key"
+regex = '''(?i)(?:key|api|token|secret|password)[\s]*[:=][\s]*['"]?[0-9a-z\-_]{10,}['"]?'''
+tags = ["key", "API", "generic"]
+
+[[rules]]
+id = "slack-token"
+description = "Slack Token"
+regex = '''xox[baprs]-([0-9a-zA-Z]{10,48})'''
+tags = ["slack", "token"]
+
+[[rules]]
+id = "aws-access-key"
+description = "AWS Access Key"
+regex = '''AKIA[0-9A-Z]{16}'''
+tags = ["aws", "access-key"]
+
+[[rules]]
+id = "aws-secret-key"
+description = "AWS Secret Key"
+regex = '''(?i)aws(.{0,20})?(?-i)['\"][0-9a-zA-Z\/+]{40}['\"]'''
+tags = ["aws", "secret-key"]
+
+[[rules]]
+id = "github-token"
+description = "GitHub Token"
+regex = '''ghp_[0-9a-zA-Z]{36}|gho_[0-9a-zA-Z]{36}|ghu_[0-9a-zA-Z]{36}|ghs_[0-9a-zA-Z]{36}|ghr_[0-9a-zA-Z]{76}'''
+tags = ["github", "token"]
+
+[[rules]]
+id = "private-key"
+description = "Private Key"
+regex = '''-----BEGIN [A-Z]+ PRIVATE KEY-----'''
+tags = ["private-key"]
+
+[[rules]]
+id = "jwt-token"
+description = "JWT Token"
+regex = '''eyJ[A-Za-z0-9_-]*\.eyJ[A-Za-z0-9_-]*\.[A-Za-z0-9_-]*'''
+tags = ["jwt", "token"]
+
+[[rules]]
+id = "discord-webhook"
+description = "Discord Webhook"
+regex = '''https://discord(?:app)?\.com/api/webhooks/[0-9]{18}/[a-zA-Z0-9_-]+'''
+tags = ["discord", "webhook"]
+
+[[rules]]
+id = "npm-token"
+description = "NPM Token"
+regex = '''npm_[A-Za-z0-9]{36}'''
+tags = ["npm", "token"]
+
+[[rules]]
+id = "mailgun-api-key"
+description = "Mailgun API Key"
+regex = '''key-[0-9a-zA-Z]{32}'''
+tags = ["mailgun", "api-key"]
+
+[[rules]]
+id = "sendgrid-api-key"
+description = "SendGrid API Key"
+regex = '''SG\.[0-9A-Za-z\-_]{22}\.[0-9A-Za-z\-_]{43}'''
+tags = ["sendgrid", "api-key"]
+
+# Custom rules for template systems
+[[rules]]
+id = "template-injection-test"
+description = "Potential template injection test pattern"
+regex = '''(?i)({{\s*constructor\s*}}|{{\s*__proto__\s*}}|{{\s*process\s*}}|{{\s*global\s*}})'''
+tags = ["template", "injection", "test"]
+
+[[rules]]
+id = "dangerous-nunjucks-globals"
+description = "Dangerous Nunjucks global access"
+regex = '''(?i)({{\s*(constructor|__proto__|process|global|require)\s*[.\[]|{%\s*set\s+.*\s*=\s*(constructor|__proto__|process|global|require))'''
+tags = ["nunjucks", "template", "injection"]
+
+[allowlist]
+description = "Allowlist for test files and documentation"
+files = [
+  '''tests/.*\.test\.js$''',
+  '''tests/fixtures/.*''',
+  '''docs/.*\.md$''',
+  '''examples/.*''',
+  '''\.github/.*'''
+]
+
+regexes = [
+  '''(?i)password\s*[:=]\s*['"]?(test|example|demo|placeholder)['"]?''',
+  '''(?i)token\s*[:=]\s*['"]?(test|example|demo|placeholder)['"]?''',
+  '''(?i)key\s*[:=]\s*['"]?(test|example|demo|placeholder)['"]?''',
+  '''fake_token_for_testing''',
+  '''test_api_key_12345''',
+  '''example-secret-key'''
+]
+
+# Paths to exclude
+paths = [
+  '''node_modules/.*''',
+  '''dist/.*''',
+  '''build/.*''',
+  '''coverage/.*''',
+  '''\.git/.*''',
+  '''\.nyc_output/.*'''
+]

@@ -1,0 +1,18 @@
+{
+  "id": "failure-1757381173328",
+  "timestamp": "2025-09-09T01:26:13.328Z",
+  "workflow_id": "pipeline-test-123",
+  "workflow_name": "Integration Test Pipeline",
+  "conclusion": "failure",
+  "summary": "The Integration Test Pipeline workflow failed due to unknown issues. Historical success rate: Unknown. Failure pattern: Analysis failed.",
+  "error_type": "unknown",
+  "category": "general",
+  "issues": [],
+  "recommendations": [],
+  "logs_preview": "Unable to retrieve logs: Command failed: gh run view pipeline-test-123 --log\nfailed to get run: HTTP 404: Not Found (https://api.github.com/repos/seanchatmangpt/unjucks/actions/runs/pipeline-test-123?exclude_pull_requests=true)\n",
+  "duration": "Unknown",
+  "success_rate": "Unknown",
+  "pattern": "Analysis failed",
+  "priority": "medium",
+  "suggested_assignees": []
+}

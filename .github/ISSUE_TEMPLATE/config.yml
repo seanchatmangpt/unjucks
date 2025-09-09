@@ -1,0 +1,14 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 💬 Discussion Forum
+    url: https://github.com/unjucks/unjucks/discussions
+    about: Ask questions and discuss ideas with the community
+  - name: 📚 Documentation
+    url: https://unjucks.dev/docs
+    about: Check the documentation for usage guides and examples
+  - name: 💡 Ideas & Feedback
+    url: https://github.com/unjucks/unjucks/discussions/categories/ideas
+    about: Share ideas and feedback with the community
+  - name: 🆘 Support
+    url: https://github.com/unjucks/unjucks/discussions/categories/q-a
+    about: Get help and support from the community

@@ -1,0 +1,51 @@
+{
+  "created": "2025-09-09T01:26:07.215Z",
+  "last_updated": "2025-09-09T01:26:07.215Z",
+  "id": "perf-1757381081687",
+  "timestamp": "2025-09-09T01:24:41.687Z",
+  "workflow_run_id": "test-run-456",
+  "branch": "main",
+  "commit": "test-commit-789",
+  "build_metrics": {
+    "duration": 207,
+    "success": false,
+    "bundle_size": 0,
+    "dependency_count": 32,
+    "compile_time": 0,
+    "memory_usage": 4.7984466552734375
+  },
+  "test_metrics": {
+    "total_duration": 79639,
+    "test_count": 0,
+    "pass_count": 0,
+    "fail_count": 0,
+    "skip_count": 0,
+    "coverage_percentage": 77.25,
+    "slowest_tests": [],
+    "memory_usage": 0
+  },
+  "dependency_metrics": {
+    "install_duration": 3332,
+    "total_dependencies": 32,
+    "security_vulnerabilities": 2,
+    "outdated_packages": 0,
+    "bundle_impact": 0
+  },
+  "workflow_metrics": {
+    "total_jobs": 0,
+    "successful_jobs": 0,
+    "failed_jobs": 0,
+    "average_job_duration": 0,
+    "queue_time": 0,
+    "runner_utilization": 0
+  },
+  "system_metrics": {
+    "cpu_usage": 74.898,
+    "memory_usage": 6.113121032714844,
+    "disk_usage": 435,
+    "network_latency": 226,
+    "runner_os": "darwin",
+    "node_version": "v22.12.0"
+  },
+  "baseline_comparison": {}
+}

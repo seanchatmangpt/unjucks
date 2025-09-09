@@ -1,0 +1,62 @@
+# Semgrep ignore patterns for Unjucks project
+
+# Dependencies and build artifacts
+node_modules/
+dist/
+build/
+coverage/
+.nyc_output/
+
+# Version control
+.git/
+.svn/
+.hg/
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.temp
+/tmp/
+
+# Log files
+*.log
+logs/
+
+# Test fixtures that may contain intentionally vulnerable code
+tests/fixtures/
+tests/security/fixtures/
+examples/vulnerable/
+
+# Documentation that may contain example code
+docs/
+*.md
+README*
+
+# Configuration files that may contain sensitive patterns for testing
+config/test/
+.env.test
+.env.example
+
+# Ignore specific files that are known to be safe
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Ignore minified files
+*.min.js
+*.min.css
+*.bundle.js
+
+# Ignore generated files
+generated/
+auto-generated/

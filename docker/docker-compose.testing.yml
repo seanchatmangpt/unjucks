@@ -1,0 +1,193 @@
+services:
+  # Main testing service with full environment
+  unjucks-test:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.testing
+      target: testing
+      args:
+        NODE_ENV: test
+    container_name: unjucks-test-main
+    environment:
+      - NODE_ENV=test
+      - CI=true
+      - VITEST_POOL_SIZE=2
+      - VITEST_MIN_THREADS=1
+      - VITEST_MAX_THREADS=4
+      - FORCE_COLOR=1
+      - UNJUCKS_TEST_MODE=docker
+      - TEST_TIMEOUT=30000
+    volumes:
+      # Source code mapping (read-only)
+      - ../src:/app/src:ro
+      - ../tests:/app/tests:ro
+      - ../_templates:/app/_templates:ro
+      - ../bin:/app/bin:ro
+      - ../scripts:/app/scripts:ro
+      - ../config:/app/config:ro
+      # Test results and reports (read-write)
+      - ../test-results-docker:/app/test-results
+      - ../coverage:/app/coverage
+      - ../reports:/app/reports
+      # Configuration files
+      - ../package.json:/app/package.json:ro
+      - ../vitest.ci.config.js:/app/vitest.ci.config.js:ro
+      - ../vitest.minimal.config.js:/app/vitest.minimal.config.js:ro
+    working_dir: /app
+    command: npm run test:comprehensive
+    networks:
+      - unjucks-test-network
+    healthcheck:
+      test: ["CMD", "node", "-e", "console.log('Container healthy')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    mem_limit: 1g
+    cpus: 2.0
+    restart: unless-stopped
+
+  # Minimal testing service for quick validation
+  unjucks-test-minimal:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.testing
+      target: minimal-testing
+    container_name: unjucks-test-minimal
+    environment:
+      - NODE_ENV=test
+      - CI=true
+      - UNJUCKS_TEST_MODE=minimal
+    volumes:
+      - ../src:/app/src:ro
+      - ../tests:/app/tests:ro
+      - ../test-results-docker:/app/test-results
+    working_dir: /app
+    command: npm run test:minimal
+    networks:
+      - unjucks-test-network
+    mem_limit: 512m
+    cpus: 1.0
+    profiles:
+      - minimal
+
+  # Security testing service
+  unjucks-security-test:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.testing
+      target: testing
+    container_name: unjucks-security-test
+    environment:
+      - NODE_ENV=test
+      - CI=true
+      - SECURITY_TEST_MODE=true
+    volumes:
+      - ../src:/app/src:ro
+      - ../tests:/app/tests:ro
+      - ../scripts:/app/scripts:ro
+      - ../test-results-docker:/app/test-results
+    working_dir: /app
+    command: npm run test:security
+    networks:
+      - unjucks-test-network
+    mem_limit: 768m
+    cpus: 1.5
+    profiles:
+      - security
+
+  # Performance testing service
+  unjucks-perf-test:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.testing
+      target: testing
+    container_name: unjucks-perf-test
+    environment:
+      - NODE_ENV=test
+      - CI=true
+      - PERFORMANCE_TEST_MODE=true
+    volumes:
+      - ../src:/app/src:ro
+      - ../tests:/app/tests:ro
+      - ../benchmarks:/app/benchmarks:ro
+      - ../test-results-docker:/app/test-results
+    working_dir: /app
+    command: npm run perf:all
+    networks:
+      - unjucks-test-network
+    mem_limit: 2g
+    cpus: 3.0
+    profiles:
+      - performance
+
+  # Integration testing with external dependencies
+  unjucks-integration-test:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.testing
+      target: testing
+    container_name: unjucks-integration-test
+    environment:
+      - NODE_ENV=test
+      - CI=true
+      - INTEGRATION_TEST_MODE=true
+    volumes:
+      - ../src:/app/src:ro
+      - ../tests:/app/tests:ro
+      - ../_templates:/app/_templates:ro
+      - ../test-results-docker:/app/test-results
+    working_dir: /app
+    command: npm run test:integration
+    networks:
+      - unjucks-test-network
+    mem_limit: 1.5g
+    cpus: 2.5
+    profiles:
+      - integration
+    depends_on:
+      - test-db
+
+  # Mock database for integration tests
+  test-db:
+    image: alpine:latest
+    container_name: unjucks-test-db
+    command: sh -c "echo 'Mock database running' && sleep infinity"
+    networks:
+      - unjucks-test-network
+    profiles:
+      - integration
+
+  # Test result aggregator service
+  test-aggregator:
+    image: node:20-alpine
+    container_name: unjucks-test-aggregator
+    environment:
+      - NODE_ENV=test
+    volumes:
+      - ../test-results-docker:/test-results:ro
+      - ../reports:/reports
+      - ../scripts/docker:/scripts:ro
+    working_dir: /scripts
+    command: sh -c "sleep 5 && node aggregate-test-results.js"
+    networks:
+      - unjucks-test-network
+    depends_on:
+      - unjucks-test
+    profiles:
+      - aggregation
+
+networks:
+  unjucks-test-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+
+volumes:
+  test-results:
+    driver: local
+  coverage-data:
+    driver: local
+  reports-data:
+    driver: local

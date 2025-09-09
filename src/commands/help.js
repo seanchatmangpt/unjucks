@@ -79,7 +79,7 @@ export const helpCommand = defineCommand({
           availableGenerators.forEach(g => {
             console.log(chalk.blue(`  • ${g.name}`));
           });
-          process.exit(1);
+          return { success: false, message: `Generator "${args.generator}" not found`, files: [] };
         } else {
           console.log(chalk.yellow("Available templates:"));
           for (const template of templates) {
@@ -118,7 +118,7 @@ export const helpCommand = defineCommand({
         availableGenerators.forEach(g => {
           console.log(chalk.blue(`  • ${g.name}`));
         });
-        process.exit(1);
+        return { success: false, message: `Generator "${args.generator}" not found`, files: [] };
       }
 
       const templates = await this.scanTemplates(templatesDir, args.generator);
@@ -130,7 +130,7 @@ export const helpCommand = defineCommand({
         templates.forEach(t => {
           console.log(chalk.blue(`  • ${t.name}`));
         });
-        process.exit(1);
+        return { success: false, message: `Template "${args.template}" not found in generator "${args.generator}"`, files: [] };
       }
 
       console.log(chalk.blue.bold(`🆘 Help for Template: ${args.generator}/${args.template}`));

@@ -42,9 +42,14 @@ export class TestHelper {
     
     return new Promise((resolve, reject) => {
       const child = spawn('node', fullArgs, {
-        cwd: options.cwd || this.tempDir || this.originalCwd,
+        cwd: PROJECT_ROOT, // Always run from project root to access dependencies
         stdio: ['pipe', 'pipe', 'pipe'],
-        env: { ...process.env, ...options.env }
+        env: { 
+          ...process.env, 
+          ...options.env,
+          // Override PWD to simulate running from test directory
+          PWD: options.cwd || this.tempDir || this.originalCwd
+        }
       });
 
       let stdout = '';

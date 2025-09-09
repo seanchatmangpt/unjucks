@@ -6,7 +6,8 @@
  */
 
 import { readFileSync, writeFileSync, mkdirSync } from 'fs';
-import { glob } from 'glob';
+import pkg from 'glob';
+const { glob } = pkg;
 import { dirname, join } from 'path';
 import { fileURLToPath } from 'url';
 import { performance } from 'perf_hooks';

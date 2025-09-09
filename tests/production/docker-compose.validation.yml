@@ -1,0 +1,46 @@
+version: '3.8'
+
+services:
+  validation:
+    build:
+      context: ../..
+      dockerfile: tests/production/Dockerfile.validation
+    volumes:
+      - validation-results:/app/validation-results
+      - ./validation-scripts:/app/validation-scripts:ro
+    environment:
+      - NODE_ENV=test
+      - CI=true
+      - VALIDATION_MODE=production
+    networks:
+      - validation-net
+    command: ["/app/validation-scripts/run-full-validation.sh"]
+
+  security-scanner:
+    image: aquasec/trivy:latest
+    volumes:
+      - ../..:/workspace:ro
+      - validation-results:/results
+    command: ["fs", "--format", "json", "--output", "/results/security-scan.json", "/workspace"]
+    networks:
+      - validation-net
+
+  performance-tester:
+    build:
+      context: ../..
+      dockerfile: tests/production/Dockerfile.validation
+    volumes:
+      - validation-results:/app/validation-results
+    environment:
+      - NODE_ENV=production
+      - PERFORMANCE_TEST=true
+    command: ["npm", "run", "test:performance"]
+    networks:
+      - validation-net
+
+volumes:
+  validation-results:
+
+networks:
+  validation-net:
+    driver: bridge

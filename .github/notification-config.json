@@ -1,0 +1,66 @@
+{
+  "channels": {
+    "github_issue": {
+      "enabled": true,
+      "priority_threshold": "low"
+    },
+    "github_discussion": {
+      "enabled": true,
+      "priority_threshold": "medium"
+    },
+    "action_summary": {
+      "enabled": true,
+      "priority_threshold": "low"
+    },
+    "webhook": {
+      "enabled": false,
+      "priority_threshold": "high"
+    }
+  },
+  "type_mapping": {
+    "ci-failure": {
+      "assignees": ["sac"],
+      "teams": ["ci-team"]
+    },
+    "security-vulnerability": {
+      "assignees": ["sac"],
+      "teams": ["security-team"]
+    },
+    "performance-regression": {
+      "assignees": ["sac"],
+      "teams": ["performance-team"]
+    },
+    "quality-gate-failure": {
+      "assignees": ["sac"],
+      "teams": ["quality-team"]
+    },
+    "workflow-health": {
+      "assignees": ["sac"],
+      "teams": ["devops-team"]
+    }
+  },
+  "severity_mapping": {
+    "critical": {
+      "assignees": ["sac"],
+      "teams": ["on-call"]
+    },
+    "high": {
+      "assignees": ["sac"],
+      "teams": ["senior-team"]
+    },
+    "medium": {
+      "assignees": [],
+      "teams": ["dev-team"]
+    },
+    "low": {
+      "assignees": [],
+      "teams": []
+    }
+  },
+  "escalation_timeouts": {
+    "critical": "15m",
+    "high": "1h",
+    "medium": "4h",
+    "low": "24h"
+  }
+}

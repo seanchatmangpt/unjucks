@@ -1,290 +1,412 @@
-name: PR Validation & Quality Gate
+name: PR Validation & Automation
 
 on:
   pull_request:
-    branches: [main, develop]
-    types: [opened, synchronize, reopened, ready_for_review]
+    types: [opened, synchronize, reopened, ready_for_review, labeled, unlabeled]
+  pull_request_review:
+    types: [submitted]
+  issue_comment:
+    types: [created]
 
-env:
-  NODE_VERSION: '20'
+concurrency:
+  group: pr-${{ github.event.number }}
+  cancel-in-progress: true
 
 jobs:
-  # Quick validation first
-  quick-checks:
-    name: Quick Quality Checks
+  # PR Metadata and Validation
+  pr-validation:
+    name: PR Validation
+    if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
-    if: github.event.pull_request.draft == false
-    
+    outputs:
+      is_draft: ${{ steps.pr-info.outputs.is_draft }}
+      is_dependabot: ${{ steps.pr-info.outputs.is_dependabot }}
+      has_breaking_changes: ${{ steps.analyze.outputs.has_breaking_changes }}
+      pr_size: ${{ steps.analyze.outputs.pr_size }}
+      should_auto_merge: ${{ steps.analyze.outputs.should_auto_merge }}
     steps:
-      - name: Checkout PR
+      - name: Checkout code
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Lint check
-        run: npm run lint
-
-      - name: Quick smoke tests
-        run: npm run test:smoke
-
-      - name: Check build
-        run: npm run build:validate
-
-  # Comprehensive security and performance validation
-  security-validation:
-    name: Security & Performance Validation
-    runs-on: ubuntu-latest
-    needs: quick-checks
-    
-    steps:
-      - name: Checkout PR
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Security analysis
-        run: npm run security:sast
-
-      - name: Dependency vulnerability scan
-        run: npm run security:deps
-
-      - name: LaTeX security validation
-        run: npm run validate:latex
-
-      - name: Performance benchmarks
-        run: npm run benchmark:full
-
-      - name: Upload security artifacts
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: security-reports
-          path: |
-            tests/sast-report.json
-            tests/dependency-report.json
-            tests/security-report.json
-            benchmarks/results.json
-
-  # Template and functionality testing
-  template-testing:
-    name: Template System Testing
-    runs-on: ubuntu-latest
-    needs: quick-checks
-    strategy:
-      matrix:
-        test-type: [unit, integration, chaos]
-    
-    steps:
-      - name: Checkout PR
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Run unit tests
-        if: matrix.test-type == 'unit'
-        run: npm run test:latex-filters
-
-      - name: Run integration tests
-        if: matrix.test-type == 'integration'
-        run: npm run test:integration
-
-      - name: Run chaos engineering tests
-        if: matrix.test-type == 'chaos'
-        run: npm run test:chaos
-
-      - name: Template validation
-        run: npm run validate:templates
-
-  # Cross-platform compatibility
-  cross-platform:
-    name: Cross-Platform Testing
-    runs-on: ${{ matrix.os }}
-    needs: quick-checks
-    strategy:
-      matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
-        node-version: [18, 20]
-    
-    steps:
-      - name: Checkout PR
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ matrix.node-version }}
-          cache: 'npm'
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Run core tests
-        run: npm test
-
-      - name: Test CLI functionality
-        run: npm run test:cli
-
-  # Quality gate checks
-  quality-gate:
-    name: Quality Gate
-    runs-on: ubuntu-latest
-    needs: [security-validation, template-testing, cross-platform]
-    if: always()
-    
-    steps:
-      - name: Checkout PR
-        uses: actions/checkout@v4
-
-      - name: Download artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: security-reports
-          path: ./reports
-
-      - name: Quality gate analysis
+      - name: Get PR information
+        id: pr-info
         run: |
-          echo "🔍 Analyzing quality gate results..."
+          echo "is_draft=${{ github.event.pull_request.draft }}" >> $GITHUB_OUTPUT
+          echo "is_dependabot=${{ contains(github.actor, 'dependabot') }}" >> $GITHUB_OUTPUT
+
+      - name: Analyze PR changes
+        id: analyze
+        run: |
+          # Calculate PR size
+          added=$(git diff --numstat ${{ github.event.pull_request.base.sha }}..${{ github.event.pull_request.head.sha }} | awk '{sum+=$1} END {print sum}')
+          deleted=$(git diff --numstat ${{ github.event.pull_request.base.sha }}..${{ github.event.pull_request.head.sha }} | awk '{sum+=$2} END {print sum}')
+          total_changes=$((added + deleted))
           
-          # Check if security reports exist and contain issues
-          CRITICAL_ISSUES=0
-          HIGH_ISSUES=0
-          
-          if [ -f "./reports/sast-report.json" ]; then
-            CRITICAL_ISSUES=$(jq '.summary.critical // 0' ./reports/sast-report.json)
-            HIGH_ISSUES=$(jq '.summary.high // 0' ./reports/sast-report.json)
-          fi
-          
-          echo "Critical security issues: $CRITICAL_ISSUES"
-          echo "High security issues: $HIGH_ISSUES"
-          
-          # Quality gate decision
-          if [ "$CRITICAL_ISSUES" -gt 0 ]; then
-            echo "❌ Quality gate FAILED: Critical security issues found"
-            exit 1
-          elif [ "$HIGH_ISSUES" -gt 5 ]; then
-            echo "⚠️  Quality gate WARNING: High number of security issues ($HIGH_ISSUES)"
-            # Don't fail for warnings, but log them
+          if [[ $total_changes -lt 50 ]]; then
+            pr_size="small"
+          elif [[ $total_changes -lt 200 ]]; then
+            pr_size="medium"
           else
-            echo "✅ Quality gate PASSED: Security requirements met"
+            pr_size="large"
           fi
+          
+          echo "pr_size=$pr_size" >> $GITHUB_OUTPUT
+          
+          # Check for breaking changes
+          has_breaking=false
+          if git diff --name-only ${{ github.event.pull_request.base.sha }}..${{ github.event.pull_request.head.sha }} | grep -E "(BREAKING|breaking)" || \
+             git log --oneline ${{ github.event.pull_request.base.sha }}..${{ github.event.pull_request.head.sha }} | grep -i "BREAKING CHANGE"; then
+            has_breaking=true
+          fi
+          echo "has_breaking_changes=$has_breaking" >> $GITHUB_OUTPUT
+          
+          # Determine if should auto-merge (dependabot + small + no breaking)
+          should_auto_merge=false
+          if [[ "${{ steps.pr-info.outputs.is_dependabot }}" == "true" && "$pr_size" == "small" && "$has_breaking" == "false" ]]; then
+            should_auto_merge=true
+          fi
+          echo "should_auto_merge=$should_auto_merge" >> $GITHUB_OUTPUT
 
-      - name: Check job statuses
+      - name: Validate PR title
         run: |
-          echo "Checking overall job results..."
+          title="${{ github.event.pull_request.title }}"
           
-          # This will be populated by GitHub Actions context
-          echo "Security validation: ${{ needs.security-validation.result }}"
-          echo "Template testing: ${{ needs.template-testing.result }}"
-          echo "Cross-platform: ${{ needs.cross-platform.result }}"
-          
-          if [[ "${{ needs.security-validation.result }}" == "failure" ]]; then
-            echo "❌ Security validation failed"
+          # Check conventional commits format
+          if [[ ! $title =~ ^(feat|fix|docs|style|refactor|perf|test|chore|ci|build)(\(.+\))?: .+ ]]; then
+            echo "❌ PR title must follow conventional commits format"
+            echo "Examples:"
+            echo "  feat: add new template generator"
+            echo "  fix(parser): resolve nunjucks filter issue"
+            echo "  docs: update API documentation"
             exit 1
           fi
           
-          if [[ "${{ needs.template-testing.result }}" == "failure" ]]; then
-            echo "❌ Template testing failed"
-            exit 1
-          fi
-          
-          # Cross-platform can have some failures without blocking
-          if [[ "${{ needs.cross-platform.result }}" == "failure" ]]; then
-            echo "⚠️  Cross-platform testing had failures - review required"
-          fi
+          echo "✅ PR title follows conventional commits format"
 
-  # PR readiness check
-  pr-readiness:
-    name: PR Readiness Assessment
+  # Automated Labeling
+  auto-label:
+    name: Auto Label PR
+    needs: pr-validation
+    if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
-    needs: quality-gate
-    if: always()
-    
     steps:
-      - name: PR readiness summary
-        run: |
-          echo "📋 PR Readiness Assessment"
-          echo "=========================="
-          
-          if [[ "${{ needs.quality-gate.result }}" == "success" ]]; then
-            echo "✅ Quality gate: PASSED"
-            echo "🎉 PR is ready for review and merge"
-            echo "READY_FOR_MERGE=true" >> $GITHUB_ENV
-          else
-            echo "❌ Quality gate: FAILED"
-            echo "🚫 PR requires fixes before merge"
-            echo "READY_FOR_MERGE=false" >> $GITHUB_ENV
-          fi
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-      - name: Update PR status
-        if: always()
-        run: |
-          if [[ "${{ env.READY_FOR_MERGE }}" == "true" ]]; then
-            echo "✅ All quality checks passed - PR ready for merge"
-          else
-            echo "❌ Quality checks failed - address issues before merge"
-            exit 1
-          fi
-
-  # Auto-comment on PR with results
-  pr-comment:
-    name: PR Results Comment
-    runs-on: ubuntu-latest
-    needs: [quality-gate, pr-readiness]
-    if: always() && github.event_name == 'pull_request'
-    
-    steps:
-      - name: Comment PR results
+      - name: Apply size label
         uses: actions/github-script@v7
         with:
           script: |
-            const status = '${{ needs.quality-gate.result }}' === 'success' ? '✅ PASSED' : '❌ FAILED';
-            const readyStatus = '${{ needs.pr-readiness.result }}' === 'success' ? '🎉 Ready for merge' : '🚫 Needs fixes';
+            const { owner, repo } = context.repo;
+            const pr_number = context.issue.number;
+            const size = '${{ needs.pr-validation.outputs.pr_size }}';
             
-            const body = `## 🤖 Automated Quality Gate Results
+            // Remove existing size labels
+            const { data: labels } = await github.rest.issues.listLabelsOnIssue({
+              owner,
+              repo,
+              issue_number: pr_number
+            });
             
-            **Overall Status:** ${status}
-            **PR Status:** ${readyStatus}
+            const sizeLabels = labels.filter(l => l.name.startsWith('size/'));
+            for (const label of sizeLabels) {
+              await github.rest.issues.removeLabel({
+                owner,
+                repo,
+                issue_number: pr_number,
+                name: label.name
+              });
+            }
             
-            ### 📊 Test Results
-            - **Security Validation:** ${{ needs.security-validation.result }}
-            - **Template Testing:** ${{ needs.template-testing.result }}  
-            - **Cross-Platform:** ${{ needs.cross-platform.result }}
-            - **Quality Gate:** ${{ needs.quality-gate.result }}
+            // Add new size label
+            await github.rest.issues.addLabels({
+              owner,
+              repo,
+              issue_number: pr_number,
+              labels: [`size/${size}`]
+            });
+
+      - name: Apply type labels
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { owner, repo } = context.repo;
+            const pr_number = context.issue.number;
             
-            ### 📈 Reports
-            Security and performance reports are available in the workflow artifacts.
+            // Get changed files
+            const { data: files } = await github.rest.pulls.listFiles({
+              owner,
+              repo,
+              pull_number: pr_number
+            });
+            
+            const labels = [];
+            
+            // Check file types
+            const hasTests = files.some(f => f.filename.includes('test') || f.filename.includes('spec'));
+            const hasDocs = files.some(f => f.filename.includes('docs/') || f.filename.endsWith('.md'));
+            const hasTemplates = files.some(f => f.filename.includes('templates/') || f.filename.includes('_templates/'));
+            const hasSrc = files.some(f => f.filename.includes('src/'));
+            const hasCI = files.some(f => f.filename.includes('.github/'));
+            
+            if (hasTests) labels.push('tests');
+            if (hasDocs) labels.push('documentation');
+            if (hasTemplates) labels.push('templates');
+            if (hasSrc) labels.push('enhancement');
+            if (hasCI) labels.push('ci/cd');
+            
+            if ('${{ needs.pr-validation.outputs.has_breaking_changes }}' === 'true') {
+              labels.push('breaking-change');
+            }
+            
+            if ('${{ needs.pr-validation.outputs.is_dependabot }}' === 'true') {
+              labels.push('dependencies');
+            }
+            
+            if (labels.length > 0) {
+              await github.rest.issues.addLabels({
+                owner,
+                repo,
+                issue_number: pr_number,
+                labels: labels
+              });
+            }
+
+  # Code Quality Checks
+  code-quality:
+    name: Code Quality
+    if: github.event_name == 'pull_request' && !github.event.pull_request.draft
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: '9.12.0'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run linter
+        run: npm run lint 2>&1 | tee lint-results.txt
+
+      - name: Run tests with coverage
+        run: npm run test:minimal -- --coverage 2>&1 | tee test-results.txt
+
+      - name: Comment PR with results
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const { owner, repo } = context.repo;
+            const pr_number = context.issue.number;
+            
+            let lintResults = '';
+            let testResults = '';
+            
+            try {
+              lintResults = fs.readFileSync('lint-results.txt', 'utf8');
+            } catch (e) {
+              lintResults = 'Lint results not available';
+            }
+            
+            try {
+              testResults = fs.readFileSync('test-results.txt', 'utf8');
+            } catch (e) {
+              testResults = 'Test results not available';
+            }
+            
+            const body = `## 🤖 Automated Code Quality Report
+            
+            ### Lint Results
+            \`\`\`
+            ${lintResults.slice(-1000)}
+            \`\`\`
+            
+            ### Test Results
+            \`\`\`
+            ${testResults.slice(-1000)}
+            \`\`\`
             
             ---
-            _This comment was automatically generated by the PR validation workflow._`;
+            *This comment is automatically updated on each push*`;
             
-            github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: body
+            // Find existing comment
+            const { data: comments } = await github.rest.issues.listComments({
+              owner,
+              repo,
+              issue_number: pr_number
             });
+            
+            const botComment = comments.find(c => 
+              c.user.type === 'Bot' && c.body.includes('🤖 Automated Code Quality Report')
+            );
+            
+            if (botComment) {
+              await github.rest.issues.updateComment({
+                owner,
+                repo,
+                comment_id: botComment.id,
+                body: body
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner,
+                repo,
+                issue_number: pr_number,
+                body: body
+              });
+            }
+
+  # Auto-merge for dependabot
+  auto-merge:
+    name: Auto Merge
+    needs: [pr-validation, code-quality]
+    if: needs.pr-validation.outputs.should_auto_merge == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Wait for status checks
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { owner, repo } = context.repo;
+            const pr_number = context.issue.number;
+            
+            // Wait for CI checks to complete
+            let attempts = 0;
+            const maxAttempts = 30;
+            
+            while (attempts < maxAttempts) {
+              const { data: pr } = await github.rest.pulls.get({
+                owner,
+                repo,
+                pull_number: pr_number
+              });
+              
+              const { data: checks } = await github.rest.checks.listForRef({
+                owner,
+                repo,
+                ref: pr.head.sha
+              });
+              
+              const allComplete = checks.check_runs.every(check => 
+                check.status === 'completed'
+              );
+              
+              const allSuccessful = checks.check_runs.every(check => 
+                check.conclusion === 'success' || check.conclusion === 'neutral'
+              );
+              
+              if (allComplete && allSuccessful) {
+                console.log('✅ All checks passed, proceeding with auto-merge');
+                break;
+              }
+              
+              if (allComplete && !allSuccessful) {
+                console.log('❌ Some checks failed, cannot auto-merge');
+                return;
+              }
+              
+              console.log(`⏳ Waiting for checks to complete... (${attempts + 1}/${maxAttempts})`);
+              attempts++;
+              await new Promise(resolve => setTimeout(resolve, 30000)); // Wait 30 seconds
+            }
+
+      - name: Enable auto-merge
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { owner, repo } = context.repo;
+            const pr_number = context.issue.number;
+            
+            await github.rest.pulls.merge({
+              owner,
+              repo,
+              pull_number: pr_number,
+              merge_method: 'squash',
+              commit_title: `${{ github.event.pull_request.title }} (#${pr_number})`,
+              commit_message: 'Auto-merged by GitHub Actions'
+            });
+            
+            console.log('✅ PR auto-merged successfully');
+
+  # PR Commands Handler
+  pr-commands:
+    name: PR Commands
+    if: github.event_name == 'issue_comment' && contains(github.event.comment.body, '/unjucks')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Process commands
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { owner, repo } = context.repo;
+            const comment = context.payload.comment;
+            const pr_number = context.issue.number;
+            
+            const commands = {
+              '/unjucks test': 'Run full test suite',
+              '/unjucks build': 'Trigger build validation',
+              '/unjucks security': 'Run security scan',
+              '/unjucks merge': 'Enable auto-merge (maintainers only)',
+              '/unjucks help': 'Show available commands'
+            };
+            
+            const body = comment.body.trim();
+            
+            if (body === '/unjucks help') {
+              const helpText = Object.entries(commands)
+                .map(([cmd, desc]) => `- \`${cmd}\`: ${desc}`)
+                .join('\n');
+              
+              await github.rest.issues.createComment({
+                owner,
+                repo,
+                issue_number: pr_number,
+                body: `## 🤖 Available Commands\n\n${helpText}`
+              });
+              return;
+            }
+            
+            // Handle other commands
+            const [command, ...args] = body.split(' ');
+            
+            switch (command) {
+              case '/unjucks':
+                const subCommand = args[0];
+                if (['test', 'build', 'security'].includes(subCommand)) {
+                  await github.rest.issues.createComment({
+                    owner,
+                    repo,
+                    issue_number: pr_number,
+                    body: `🚀 Triggering ${subCommand} workflow...`
+                  });
+                  
+                  // Trigger workflow
+                  await github.rest.actions.createWorkflowDispatch({
+                    owner,
+                    repo,
+                    workflow_id: 'ci-cd-validation.yml',
+                    ref: 'main',
+                    inputs: {
+                      run_full_suite: 'true'
+                    }
+                  });
+                }
+                break;
+            }

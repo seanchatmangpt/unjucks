@@ -1,0 +1,225 @@
+name: Workflow Health Monitoring
+
+on:
+  schedule:
+    # Monitor workflow health every 6 hours
+    - cron: '0 */6 * * *'
+  workflow_dispatch:
+    inputs:
+      force_check:
+        description: 'Force health check regardless of conditions'
+        required: false
+        default: false
+        type: boolean
+      monitoring_period:
+        description: 'Monitoring period in hours'
+        required: false
+        default: '24'
+        type: string
+
+permissions:
+  issues: write
+  contents: read
+  actions: read
+  pull-requests: read
+
+jobs:
+  monitor-workflow-health:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci --only=prod
+
+      - name: Initialize Health Monitoring Swarm
+        run: |
+          npx claude-flow@alpha hooks pre-task --description "Workflow health monitoring and alerting"
+          npx claude-flow@alpha hooks session-restore --session-id "swarm-health-monitor"
+
+      - name: Collect Workflow Statistics
+        id: collect-stats
+        run: |
+          node scripts/issue-automation/collect-workflow-stats.js \
+            --period="${{ github.event.inputs.monitoring_period || '24' }}" \
+            --output="workflow-stats.json"
+
+      - name: Analyze Workflow Health
+        id: analyze-health
+        run: |
+          node scripts/issue-automation/analyze-workflow-health.js \
+            --stats-file="workflow-stats.json" \
+            --thresholds-config=".github/health-thresholds.json" \
+            --output="health-analysis.json"
+
+      - name: Check for Health Degradation
+        id: health-check
+        run: |
+          node scripts/issue-automation/check-health-degradation.js \
+            --analysis-file="health-analysis.json" \
+            --historical-data="scripts/health-baselines.json"
+
+      - name: Create Health Issues
+        if: steps.health-check.outputs.health_issues_found == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const healthReport = JSON.parse(fs.readFileSync('health-analysis.json', 'utf8'));
+            
+            for (const healthIssue of healthReport.issues) {
+              // Check if similar health issue exists
+              const existingIssues = await github.rest.issues.listForRepo({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                labels: `workflow-health,${healthIssue.type},automated-tracking`,
+                state: 'open'
+              });
+              
+              const similarIssue = existingIssues.data.find(issue => 
+                issue.title.includes(healthIssue.workflow_name) && 
+                issue.title.includes(healthIssue.metric_type)
+              );
+              
+              if (similarIssue) {
+                // Update existing issue with new data
+                await github.rest.issues.createComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: similarIssue.number,
+                  body: `## 📈 Health Monitoring Update
+                  
+                  **Updated**: $(date -u +"%Y-%m-%d %H:%M:%S UTC")
+                  - **Current Status**: ${healthIssue.current_status}
+                  - **Trend**: ${healthIssue.trend}
+                  - **Impact Level**: ${healthIssue.impact_level}
+                  - **Duration**: ${healthIssue.duration}
+                  
+                  ### Latest Metrics
+                  ${Object.entries(healthIssue.metrics).map(([key, value]) => `- **${key}**: ${value}`).join('\n')}
+                  
+                  ### Health Score: ${healthIssue.health_score}%`
+                });
+                continue;
+              }
+              
+              const issueBody = `## 📊 Workflow Health Issue Detected
+              
+              ### Health Issue Summary
+              - **Workflow**: ${healthIssue.workflow_name}
+              - **Issue Type**: ${healthIssue.type}
+              - **Severity**: ${healthIssue.severity}
+              - **Health Score**: ${healthIssue.health_score}%
+              - **Duration**: ${healthIssue.duration}
+              - **Impact Level**: ${healthIssue.impact_level}
+              
+              ### Current Metrics
+              | Metric | Current | Baseline | Change |
+              |--------|---------|----------|--------|
+              ${Object.entries(healthIssue.metrics_comparison).map(([metric, data]) => 
+                `| ${metric} | ${data.current} | ${data.baseline} | ${data.change} |`
+              ).join('\n')}
+              
+              ### Health Indicators
+              ${healthIssue.indicators.map(indicator => `- **${indicator.name}**: ${indicator.status} (${indicator.value})`).join('\n')}
+              
+              ### Trend Analysis
+              ${healthIssue.trend_analysis}
+              
+              ### Performance Impact
+              - **Success Rate**: ${healthIssue.success_rate}%
+              - **Average Duration**: ${healthIssue.avg_duration}
+              - **Failure Pattern**: ${healthIssue.failure_pattern}
+              - **Resource Usage**: ${healthIssue.resource_usage}
+              
+              ### Health History
+              \`\`\`json
+              ${JSON.stringify(healthIssue.health_history, null, 2)}
+              \`\`\`
+              
+              ### Recommended Actions
+              ${healthIssue.recommendations.map(rec => `- [ ] ${rec.action} (Priority: ${rec.priority})`).join('\n')}
+              
+              ### Alert Conditions
+              ${healthIssue.alert_conditions.map(condition => `- ${condition}`).join('\n')}
+              
+              ### Related Workflows
+              ${healthIssue.related_workflows.map(workflow => `- ${workflow}`).join('\n')}
+              
+              ### Swarm Health Agents
+              - **Health Monitor**: Continuous workflow performance tracking
+              - **Trend Analyzer**: Pattern recognition and prediction
+              - **Alert Manager**: Intelligent notification and escalation
+              - **Optimizer**: Performance improvement recommendations
+              
+              ---
+              🤖 **Automated Health Monitoring**
+              - Detected: $(date -u +"%Y-%m-%d %H:%M:%S UTC")
+              - Monitoring Period: ${healthIssue.monitoring_period}
+              - Analysis ID: ${healthIssue.analysis_id}
+              - Confidence: ${healthIssue.confidence}%
+              
+              _This issue was automatically created by the workflow health monitoring system._`;
+              
+              const issue = await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title: `Workflow Health: ${healthIssue.workflow_name} - ${healthIssue.type} (${healthIssue.severity})`,
+                body: issueBody,
+                labels: [
+                  'workflow-health',
+                  'monitoring',
+                  'automated-tracking',
+                  healthIssue.severity,
+                  healthIssue.type,
+                  `workflow:${healthIssue.workflow_name}`.toLowerCase().replace(/\s+/g, '-')
+                ],
+                assignees: healthIssue.suggested_assignees,
+                milestone: healthIssue.target_milestone
+              });
+              
+              console.log(`Created health issue #${issue.data.number}: ${issue.data.title}`);
+            }
+
+      - name: Generate Health Dashboard
+        run: |
+          node scripts/issue-automation/generate-health-dashboard.js \
+            --analysis-file="health-analysis.json" \
+            --output-dir="docs/automation/health"
+
+      - name: Update Health Baselines
+        run: |
+          node scripts/issue-automation/update-health-baselines.js \
+            --stats-file="workflow-stats.json" \
+            --analysis-file="health-analysis.json"
+
+      - name: Send Critical Alerts
+        if: steps.health-check.outputs.critical_issues == 'true'
+        run: |
+          node scripts/issue-automation/send-critical-alerts.js \
+            --analysis-file="health-analysis.json" \
+            --notification-config=".github/notification-config.json"
+
+      - name: Store Health Metrics
+        run: |
+          npx claude-flow@alpha hooks post-edit \
+            --file "health-analysis.json" \
+            --memory-key "swarm/health/monitoring/$(date +%Y-%m-%d-%H)"
+          npx claude-flow@alpha hooks notify \
+            --message "Workflow health monitoring completed: ${steps.health-check.outputs.issues_count} issues found"
+
+      - name: Cleanup
+        if: always()
+        run: |
+          npx claude-flow@alpha hooks post-task --task-id "workflow-health-monitoring"
+          npx claude-flow@alpha hooks session-end --export-metrics true

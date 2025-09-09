@@ -10,7 +10,7 @@ import { injectCommand } from '../commands/inject.js';
 import { initCommand } from '../commands/init.js';
 import { semanticCommand } from '../commands/semantic.js';
 import { migrateCommand } from '../commands/migrate.js';
-import { githubCommand } from '../commands/github.js';
+// Temporarily disabled: import { githubCommand } from '../commands/github.js';
 import { versionCommand } from '../commands/version.js';
 import { newCommand } from '../commands/new.js';
 import { previewCommand } from '../commands/preview.js';
@@ -131,7 +131,7 @@ const main = defineCommand({
     
     // ADVANCED FEATURES
     semantic: semanticCommand,
-    github: githubCommand,
+    // github: githubCommand, // Temporarily disabled
     migrate: migrateCommand,
     latex: latexCommand,
     perf: perfCommand,

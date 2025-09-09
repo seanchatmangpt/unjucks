@@ -1,0 +1,82 @@
+{
+  "version": "1.0.0",
+  "description": "Historical performance data for unjucks template engine",
+  "lastUpdated": "2025-01-09T01:00:00.000Z",
+  "maxEntries": 1000,
+  "currentEntries": 1,
+  "dataPoints": [
+    {
+      "id": "1736380800000-baseline",
+      "timestamp": "2025-01-09T01:00:00.000Z",
+      "metadata": {
+        "commitSha": "13f6fe5",
+        "branch": "main",
+        "environment": "ci",
+        "version": "2025.9.071605",
+        "isBaseline": true
+      },
+      "performance": {
+        "averageLatency": 12.5,
+        "p95Latency": 25.8,
+        "throughput": 850.0,
+        "successRate": 99.2
+      },
+      "memory": {
+        "heapGrowthRate": 2048,
+        "peakHeapUsed": 52428800,
+        "suspectedLeaks": 0
+      },
+      "quality": {
+        "errorRate": 0.8,
+        "consistency": 0.15
+      },
+      "composite": {
+        "performance": 85.2,
+        "memory": 92.1,
+        "quality": 99.2,
+        "overall": 92.2
+      },
+      "dataQuality": {
+        "completeness": 100,
+        "validity": 100,
+        "score": 100,
+        "issues": []
+      }
+    }
+  ],
+  "summaryStats": {
+    "performanceTrend": {
+      "direction": "stable",
+      "averageChange": 0.0,
+      "volatility": "low"
+    },
+    "memoryTrend": {
+      "direction": "stable", 
+      "averageGrowthRate": 2048,
+      "leakIncidents": 0
+    },
+    "qualityTrend": {
+      "direction": "stable",
+      "averageErrorRate": 0.8,
+      "regressionCount": 0
+    }
+  },
+  "benchmarkTargets": {
+    "speedImprovement": {
+      "min": 2.8,
+      "max": 4.4,
+      "current": 3.6,
+      "status": "achieved"
+    },
+    "cacheEffectiveness": {
+      "hitRatioTarget": 85,
+      "current": 92,
+      "status": "exceeded"
+    },
+    "memoryEfficiency": {
+      "maxGrowthRate": 5120,
+      "current": 2048,
+      "status": "excellent"
+    }
+  }
+}

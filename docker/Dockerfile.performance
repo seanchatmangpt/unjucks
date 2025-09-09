@@ -1,0 +1,61 @@
+# Performance-focused Docker image for resource constraint testing
+FROM node:20-alpine AS base
+
+# Install performance monitoring tools
+RUN apk add --no-cache \
+    bash \
+    curl \
+    htop \
+    iotop \
+    procps \
+    util-linux \
+    coreutils
+
+# Create performance user
+RUN addgroup -g 1001 -S perf && \
+    adduser -S perf -u 1001 -G perf
+
+WORKDIR /app
+
+# Copy package files
+COPY package*.json ./
+
+# Install minimal dependencies for performance testing
+RUN npm ci --production --prefer-offline --no-audit
+
+# Copy application code
+COPY . .
+
+# Create performance monitoring directories
+RUN mkdir -p \
+    /app/performance-logs \
+    /app/metrics \
+    /app/profiles
+
+# Install global performance tools
+RUN npm install -g \
+    clinic \
+    0x \
+    autocannon \
+    @clinicjs/bubbleprof \
+    @clinicjs/doctor \
+    @clinicjs/flame
+
+# Copy performance testing scripts
+COPY docker/scripts/performance-monitor.sh /usr/local/bin/
+COPY docker/scripts/resource-stress.sh /usr/local/bin/
+RUN chmod +x /usr/local/bin/*.sh
+
+# Set resource monitoring environment
+ENV NODE_OPTIONS="--expose-gc --trace-warnings"
+ENV PERFORMANCE_MODE=true
+
+# Performance health check that validates resource usage
+HEALTHCHECK --interval=15s --timeout=5s --start-period=10s --retries=5 \
+    CMD node scripts/health-check.js --performance || exit 1
+
+# Switch to performance user
+USER perf
+
+# Default command runs performance monitoring
+CMD ["performance-monitor.sh"]

@@ -193,12 +193,22 @@ export class RDFDataLoader {
         }
       };
     } catch (parseError) {
-      // Return failure for malformed data
+      console.warn('RDF Parse Error:', parseError.message, { cacheKey });
+      
+      // Return failure for malformed data with detailed error info
       const failureResult = {
         success: false,
         source: cacheKey,
         error: parseError.message,
-        errors: [parseError.message],
+        errors: [{
+          type: 'parse_error',
+          message: parseError.message,
+          code: 'RDF_PARSE_ERROR',
+          severity: 'error',
+          line: parseError.line,
+          column: parseError.column,
+          originalError: parseError.originalError
+        }],
         data: {
           triples: [],
           prefixes: {},
@@ -206,6 +216,16 @@ export class RDFDataLoader {
           namedGraphs: [],
           subjects: {}
         },
+        metadata: {
+          tripleCount: 0,
+          loadTime: 0,
+          subjects: 0,
+          errorDetails: {
+            type: parseError.name || 'TurtleParseError',
+            line: parseError.line,
+            column: parseError.column
+          }
+        }
       };
       
       return failureResult;
@@ -396,40 +416,65 @@ export class RDFDataLoader {
    * @returns {Promise<string>}
    */
   async loadFromURI(uri) {
-    const maxRetries = 2;
+    // Validate URI format
+    try {
+      new URL(uri);
+    } catch (error) {
+      throw new Error(`Invalid URI format: ${uri}`);
+    }
+    
+    const maxRetries = this.options.maxRetries || 3;
+    const httpTimeout = this.options.httpTimeout || 30000;
     let lastError;
     
     for (let attempt = 0; attempt < maxRetries; attempt++) {
       try {
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), this.options.httpTimeout || 30000);
+        const timeoutId = setTimeout(() => controller.abort(), httpTimeout);
         
         const response = await fetch(uri, {
           headers: {
-            Accept:
-              "text/turtle, application/rdf+xml, text/n3, application/n-triples, application/ld+json",
+            'Accept': 'text/turtle, application/rdf+xml, text/n3, application/n-triples, application/ld+json, application/trig',
+            'User-Agent': 'Unjucks-RDF-Loader/1.0',
           },
-          signal: controller.signal
+          signal: controller.signal,
+          redirect: 'follow',
+          timeout: httpTimeout
         });
         
         clearTimeout(timeoutId);
 
         if (!response.ok) {
-          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+          const errorText = await response.text().catch(() => 'Unknown error');
+          throw new Error(`HTTP ${response.status}: ${response.statusText}. ${errorText}`);
         }
 
-        return await response.text();
+        const contentType = response.headers.get('content-type') || '';
+        const content = await response.text();
+        
+        // Validate content is not empty
+        if (!content || content.trim().length === 0) {
+          throw new Error(`Empty response from URI: ${uri}`);
+        }
+        
+        // Log successful fetch for debugging
+        console.debug(`Successfully fetched RDF from ${uri}, content-type: ${contentType}, size: ${content.length}`);
+        
+        return content;
       } catch (error) {
         lastError = error;
+        console.warn(`Attempt ${attempt + 1}/${maxRetries} failed for URI ${uri}:`, error.message);
+        
         if (attempt < maxRetries - 1) {
-          // Wait before retry
-          await new Promise(resolve => setTimeout(resolve, 1000 * (attempt + 1)));
+          // Exponential backoff: wait 1s, 2s, 4s...
+          const waitTime = Math.min(1000 * Math.pow(2, attempt), 10000);
+          await new Promise(resolve => setTimeout(resolve, waitTime));
         }
       }
     }
     
     const errorMessage = lastError.name === 'AbortError' 
-      ? `Request aborted after timeout`
+      ? `Request timeout after ${httpTimeout}ms for URI: ${uri}`
       : `Failed to fetch URI ${uri} after ${maxRetries} attempts: ${lastError.message}`;
     throw new Error(errorMessage);
   }
@@ -651,16 +696,32 @@ export class RDFDataLoader {
    */
   getCacheStats() {
     const keys = Array.from(this.cache.keys());
+    const now = Date.now();
+    let expiredCount = 0;
+    let totalSize = 0;
+    
+    for (const key of keys) {
+      const entry = this.cache.get(key);
+      if (entry) {
+        if (now - entry.timestamp > entry.ttl) {
+          expiredCount++;
+        }
+        totalSize += JSON.stringify(entry).length;
+      }
+    }
+    
     return {
       size: this.cache.size,
       maxSize: this.options.maxCacheSize,
-      keys,
-      totalSize: keys.reduce((sum, key) => {
-        const entry = this.cache.get(key);
-        return sum + (entry ? JSON.stringify(entry).length : 0);
-      }, 0),
-      hitCount: 0, // Could be tracked if needed
-      missCount: 0, // Could be tracked if needed
+      expiredEntries: expiredCount,
+      totalSizeBytes: totalSize,
+      keys: keys.slice(0, 10), // Only show first 10 keys to avoid spam
+      cacheEnabled: this.options.cacheEnabled,
+      defaultTTL: this.options.defaultTTL,
+      hitCount: this.hitCount || 0,
+      missCount: this.missCount || 0,
+      hitRate: this.hitCount && this.missCount ? 
+        (this.hitCount / (this.hitCount + this.missCount) * 100).toFixed(2) + '%' : 'N/A'
     };
   }
 

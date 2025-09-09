@@ -1,0 +1,118 @@
+# GitHub Security Policy Configuration
+security:
+  # Vulnerability reporting
+  reporting:
+    # Email for security issues
+    contact: security@unjucks.dev
+    # Security advisory process
+    process: |
+      1. Report security issues privately via security@unjucks.dev
+      2. Allow 90 days for investigation and fix
+      3. Coordinate disclosure timeline
+      4. Publish security advisory after fix
+
+  # Security requirements
+  requirements:
+    # Minimum Node.js version for security
+    node_version: ">=16.0.0"
+    
+    # Dependency security requirements
+    dependencies:
+      # Maximum allowed vulnerability levels
+      critical: 0
+      high: 0
+      medium: 2
+      low: 10
+      
+      # Dependency age limits (days)
+      max_age:
+        critical_deps: 90
+        regular_deps: 365
+        dev_deps: 730
+    
+    # Code quality gates
+    code_quality:
+      # Security test coverage minimum
+      security_coverage: 95
+      # SAST scan requirements
+      sast_required: true
+      # Secret scanning required
+      secrets_scan: true
+      # License compliance required
+      license_check: true
+
+  # Automated security actions
+  automation:
+    # Auto-fix enabled for these types
+    auto_fix:
+      - dependency_updates
+      - security_patches
+      - license_corrections
+    
+    # Auto-create issues for these
+    auto_issue:
+      - critical_vulnerabilities
+      - license_violations
+      - failed_security_scans
+    
+    # Auto-block PRs for these
+    auto_block:
+      - critical_security_issues
+      - secrets_detected
+      - license_violations
+
+  # Incident response
+  incident_response:
+    # Security incident severity levels
+    severity_levels:
+      critical:
+        description: "Immediate threat to security"
+        response_time: "1 hour"
+        escalation: "Security team + Leadership"
+      
+      high:
+        description: "Significant security risk"
+        response_time: "4 hours"
+        escalation: "Security team"
+      
+      medium:
+        description: "Moderate security concern"
+        response_time: "24 hours"
+        escalation: "Development team"
+      
+      low:
+        description: "Minor security issue"
+        response_time: "72 hours"
+        escalation: "Assigned developer"
+
+  # Security training and awareness
+  training:
+    required_training:
+      - secure_coding_practices
+      - template_injection_prevention
+      - path_traversal_protection
+      - input_sanitization
+    
+    frequency: "quarterly"
+    
+    documentation:
+      - security_guidelines.md
+      - threat_model.md
+      - incident_response_plan.md
+
+  # Compliance and standards
+  compliance:
+    standards:
+      - "OWASP Top 10"
+      - "NIST Cybersecurity Framework"
+      - "CWE/SANS Top 25"
+    
+    frameworks:
+      - security_by_design
+      - defense_in_depth
+      - principle_of_least_privilege
+    
+    auditing:
+      frequency: "monthly"
+      external_audit: "annually"
+      penetration_testing: "quarterly"

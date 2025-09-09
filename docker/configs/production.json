@@ -1,0 +1,89 @@
+{
+  "name": "unjucks-production",
+  "version": "1.0.0",
+  "environment": "production",
+  "server": {
+    "port": 3000,
+    "host": "0.0.0.0",
+    "timeout": 30000,
+    "keepAliveTimeout": 65000
+  },
+  "logging": {
+    "level": "info",
+    "format": "json",
+    "destination": "/app/logs/app.log",
+    "maxSize": "100MB",
+    "maxFiles": 10
+  },
+  "cache": {
+    "enabled": true,
+    "redis": {
+      "host": "redis-cache",
+      "port": 6379,
+      "maxRetriesPerRequest": 3
+    }
+  },
+  "database": {
+    "enabled": true,
+    "postgres": {
+      "host": "postgres-db",
+      "port": 5432,
+      "database": "unjucks_test",
+      "username": "unjucks",
+      "password": "test_password",
+      "pool": {
+        "min": 2,
+        "max": 10
+      }
+    }
+  },
+  "security": {
+    "helmet": {
+      "enabled": true,
+      "contentSecurityPolicy": true,
+      "hsts": true
+    },
+    "cors": {
+      "enabled": true,
+      "origin": ["http://localhost:8080"],
+      "credentials": true
+    },
+    "rateLimit": {
+      "enabled": true,
+      "windowMs": 900000,
+      "max": 100
+    }
+  },
+  "performance": {
+    "compression": {
+      "enabled": true,
+      "level": 6
+    },
+    "metrics": {
+      "enabled": true,
+      "endpoint": "/metrics"
+    }
+  },
+  "templates": {
+    "cacheTemplates": true,
+    "templateDirectory": "_templates",
+    "outputDirectory": "generated"
+  },
+  "validation": {
+    "enabled": true,
+    "strictMode": true,
+    "validateInputs": true,
+    "sanitizeOutputs": true
+  },
+  "monitoring": {
+    "healthCheck": {
+      "enabled": true,
+      "endpoint": "/health",
+      "checks": ["memory", "disk", "database", "cache"]
+    },
+    "metrics": {
+      "enabled": true,
+      "interval": 30000
+    }
+  }
+}

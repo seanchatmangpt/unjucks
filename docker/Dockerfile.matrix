@@ -1,0 +1,54 @@
+# Matrix testing Dockerfile for multiple base images and Node versions
+ARG BASE_IMAGE=alpine
+ARG NODE_VERSION=20
+
+FROM node:${NODE_VERSION}-${BASE_IMAGE}
+
+# Install base dependencies based on image type
+RUN if [ "$BASE_IMAGE" = "alpine" ]; then \
+      apk add --no-cache \
+        git \
+        bash \
+        curl \
+        python3 \
+        make \
+        g++ \
+        libc6-compat; \
+    elif [ "$BASE_IMAGE" = "ubuntu" ] || [ "$BASE_IMAGE" = "debian" ]; then \
+      apt-get update && apt-get install -y \
+        git \
+        curl \
+        python3 \
+        build-essential \
+        && rm -rf /var/lib/apt/lists/*; \
+    fi
+
+WORKDIR /app
+
+# Copy package files
+COPY package*.json ./
+
+# Install dependencies
+RUN npm ci --include=dev --prefer-offline
+
+# Copy source code
+COPY . .
+
+# Create test result directories
+RUN mkdir -p test-results cli-results
+
+# Make scripts executable
+RUN find scripts/ -name "*.sh" -exec chmod +x {} \; || true
+RUN chmod +x bin/unjucks.cjs
+
+# Set environment variables for matrix testing
+ENV MATRIX_BASE_IMAGE=${BASE_IMAGE}
+ENV MATRIX_NODE_VERSION=${NODE_VERSION}
+ENV TEST_TIMEOUT=300000
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD node -e "console.log('healthy')" || exit 1
+
+# Default command runs comprehensive tests
+CMD ["npm", "run", "test:comprehensive"]

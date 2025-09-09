@@ -1,0 +1,322 @@
+version: '3.8'
+
+# Docker Compose configuration for coordinated validation testing
+# This orchestrates multiple validation services with proper networking and coordination
+
+services:
+  # ==================================================
+  # Coordination Controller
+  # ==================================================
+  coordination-controller:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.coordination
+    container_name: unjucks-coordination
+    networks:
+      - unjucks-validation
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - validation-shared:/shared
+      - coordination-logs:/app/coordination-logs
+    environment:
+      - COORDINATION_ENABLED=true
+      - SWARM_ID=docker-validation
+      - COORDINATION_NETWORK=unjucks-validation
+    healthcheck:
+      test: ["CMD", "coordination-init.sh", "--health-check"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+    command: ["coordination-init.sh"]
+
+  # ==================================================
+  # Security Validation Service
+  # ==================================================
+  security-validator:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.testing
+      target: security
+    container_name: unjucks-security
+    networks:
+      - unjucks-validation
+    volumes:
+      - validation-shared:/shared
+      - security-reports:/app/security-reports
+    environment:
+      - VALIDATION_TYPE=security
+      - COORDINATION_ENDPOINT=coordination-controller:3000
+    depends_on:
+      coordination-controller:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "node", "-e", "console.log('healthy')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    command: ["security-scan.sh"]
+
+  # ==================================================
+  # Performance Validation Service
+  # ==================================================
+  performance-validator:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.performance
+    container_name: unjucks-performance
+    networks:
+      - unjucks-validation
+    volumes:
+      - validation-shared:/shared
+      - performance-reports:/app/performance-logs
+    environment:
+      - VALIDATION_TYPE=performance
+      - COORDINATION_ENDPOINT=coordination-controller:3000
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '1.0'
+        reservations:
+          memory: 256M
+          cpus: '0.5'
+    depends_on:
+      coordination-controller:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "node", "scripts/health-check.js", "--performance"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    command: ["performance-monitor.sh"]
+
+  # ==================================================
+  # Multi-Architecture Test Matrix
+  # ==================================================
+  matrix-validator-alpine:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.matrix
+      args:
+        BASE_IMAGE: alpine
+        NODE_VERSION: "20"
+    container_name: unjucks-matrix-alpine
+    networks:
+      - unjucks-validation
+    volumes:
+      - validation-shared:/shared
+      - matrix-reports:/app/test-results
+    environment:
+      - VALIDATION_TYPE=matrix
+      - MATRIX_CONFIG=alpine-node20
+      - COORDINATION_ENDPOINT=coordination-controller:3000
+    depends_on:
+      coordination-controller:
+        condition: service_healthy
+    command: ["npm", "run", "test:comprehensive"]
+
+  matrix-validator-ubuntu:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.matrix
+      args:
+        BASE_IMAGE: ubuntu
+        NODE_VERSION: "20"
+    container_name: unjucks-matrix-ubuntu
+    networks:
+      - unjucks-validation
+    volumes:
+      - validation-shared:/shared
+      - matrix-reports:/app/test-results
+    environment:
+      - VALIDATION_TYPE=matrix
+      - MATRIX_CONFIG=ubuntu-node20
+      - COORDINATION_ENDPOINT=coordination-controller:3000
+    depends_on:
+      coordination-controller:
+        condition: service_healthy
+    command: ["npm", "run", "test:comprehensive"]
+
+  # ==================================================
+  # Production Simulation Environment
+  # ==================================================
+  production-app:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.production
+    container_name: unjucks-prod-app
+    networks:
+      - unjucks-validation
+      - unjucks-prod
+    volumes:
+      - app-data:/app/data
+      - app-logs:/app/logs
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - VALIDATION_MODE=true
+      - COORDINATION_ENDPOINT=coordination-controller:3000
+    depends_on:
+      - coordination-controller
+      - redis-cache
+      - postgres-db
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+  # Production support services
+  redis-cache:
+    image: redis:7-alpine
+    container_name: unjucks-redis
+    networks:
+      - unjucks-prod
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    command: redis-server --appendonly yes
+
+  postgres-db:
+    image: postgres:15-alpine
+    container_name: unjucks-postgres
+    networks:
+      - unjucks-prod
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=unjucks_test
+      - POSTGRES_USER=unjucks
+      - POSTGRES_PASSWORD=test_password
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U unjucks -d unjucks_test"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Load balancer for production simulation
+  nginx-lb:
+    image: nginx:alpine
+    container_name: unjucks-nginx
+    networks:
+      - unjucks-validation
+      - unjucks-prod
+    ports:
+      - "8080:80"
+    volumes:
+      - ./configs/nginx.conf:/etc/nginx/nginx.conf:ro
+      - nginx-logs:/var/log/nginx
+    depends_on:
+      production-app:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # ==================================================
+  # Load Testing Service
+  # ==================================================
+  load-tester:
+    image: williamyeh/wrk2
+    container_name: unjucks-load-test
+    networks:
+      - unjucks-validation
+    volumes:
+      - load-test-results:/results
+    depends_on:
+      nginx-lb:
+        condition: service_healthy
+    command: >
+      sh -c "
+        echo 'Starting load tests...' &&
+        wrk2 -t4 -c20 -d60s -R100 --latency http://nginx-lb/ > /results/load-test-1.txt &&
+        wrk2 -t8 -c50 -d30s -R200 --latency http://nginx-lb/ > /results/load-test-2.txt &&
+        echo 'Load tests completed'
+      "
+
+  # ==================================================
+  # Report Aggregator
+  # ==================================================
+  report-aggregator:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.testing
+      target: testing
+    container_name: unjucks-reports
+    networks:
+      - unjucks-validation
+    volumes:
+      - validation-shared:/shared
+      - security-reports:/security:ro
+      - performance-reports:/performance:ro
+      - matrix-reports:/matrix:ro
+      - load-test-results:/load-tests:ro
+      - final-reports:/reports
+    environment:
+      - REPORT_AGGREGATION=true
+      - COORDINATION_ENDPOINT=coordination-controller:3000
+    depends_on:
+      - security-validator
+      - performance-validator
+      - matrix-validator-alpine
+      - matrix-validator-ubuntu
+      - load-tester
+    command: >
+      sh -c "
+        echo 'Waiting for validation services to complete...' &&
+        sleep 120 &&
+        node scripts/docker-validation-report.js --input /shared --output /reports &&
+        echo 'Report aggregation completed'
+      "
+
+# ==================================================
+# Networks
+# ==================================================
+networks:
+  unjucks-validation:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+  unjucks-prod:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.21.0.0/16
+
+# ==================================================
+# Volumes
+# ==================================================
+volumes:
+  validation-shared:
+    driver: local
+  coordination-logs:
+    driver: local
+  security-reports:
+    driver: local
+  performance-reports:
+    driver: local
+  matrix-reports:
+    driver: local
+  load-test-results:
+    driver: local
+  final-reports:
+    driver: local
+  app-data:
+    driver: local
+  app-logs:
+    driver: local
+  redis-data:
+    driver: local
+  postgres-data:
+    driver: local
+  nginx-logs:
+    driver: local

@@ -1,0 +1,274 @@
+---
+{
+  "outputPath": "arxiv-{{arxivId | default('YYYY.NNNNN')}}-paper.tex",
+  "documentClass": "article",
+  "arxivId": "2024.12345",
+  "title": "Advanced Methods in Machine Learning",
+  "authors": [
+    {
+      "name": "John Researcher",
+      "affiliation": "University of Example",
+      "email": "john@example.edu"
+    },
+    {
+      "name": "Jane Scientist", 
+      "affiliation": "Research Institute",
+      "email": "jane@research.org"
+    }
+  ],
+  "abstract": "This paper presents novel approaches to machine learning problems.",
+  "keywords": ["machine learning", "artificial intelligence", "algorithms"],
+  "subjects": ["cs.LG", "cs.AI"],
+  "usePackages": ["amsmath", "amssymb", "graphicx", "hyperref", "natbib"]
+}
+---
+{% if engine == 'xelatex' or engine == 'lualatex' -%}
+\documentclass[11pt]{article}
+\usepackage{fontspec}
+\setmainfont{Latin Modern Roman}
+{% else -%}
+\documentclass[11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+{% endif -%}
+
+% Standard packages for arXiv papers
+\usepackage[margin=1in]{geometry}
+{% for package in usePackages | default(['amsmath', 'amssymb', 'graphicx', 'hyperref', 'natbib']) -%}
+\usepackage{{{ package }}}
+{% endfor %}
+
+% arXiv specific settings
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\fancyhf{}
+\rhead{arXiv:{{ arxivId | default('YYYY.NNNNN') }}}
+\cfoot{\thepage}
+
+% Bibliography style
+\bibliographystyle{{{ bibStyle | default('plain') }}}
+
+% Math environments and commands
+{% if customCommands %}
+{% for command in customCommands %}
+\newcommand{{{ command.name }}}{{{ command.definition }}}
+{% endfor %}
+{% endif %}
+
+% Title and author information
+\title{{{ title | latex_escape | default('Paper Title') }}}
+
+\author{
+{% for author in authors -%}
+{{ author.name | latex_escape }}{% if author.affiliation %} \\
+\small {{ author.affiliation | latex_escape }}{% endif %}{% if author.email %} \\
+\small \texttt{{{ author.email }}}{% endif %}{% if not loop.last %} \\[1em]
+\and
+{% endif %}
+{% endfor %}
+}
+
+\date{{{ submissionDate | latex_date | default(now | latex_date) }}}
+
+\begin{document}
+
+\maketitle
+
+{% if subjects %}
+\noindent \textbf{Subject Classifications:} {{ subjects | join(', ') }}
+{% endif %}
+
+{% if keywords %}
+\noindent \textbf{Keywords:} {{ keywords | join(', ') }}
+{% endif %}
+
+\begin{abstract}
+{{ abstract | latex_escape | default('Abstract text goes here.') }}
+{% if funding %}
+
+\noindent \textbf{Funding:} {{ funding | latex_escape }}
+{% endif %}
+\end{abstract}
+
+\section{Introduction}
+\label{sec:introduction}
+
+{% if introduction %}
+{{ introduction | latex_escape }}
+{% else %}
+The field of {{ domain | default('machine learning') }} has seen significant advances in recent years. This paper addresses the problem of {{ problem | latex_escape | default('[insert problem statement]') }} by proposing {{ contribution | latex_escape | default('[insert main contribution]') }}.
+
+The main contributions of this work are:
+\begin{itemize}
+{% for contribution in contributions | default(['First contribution', 'Second contribution']) %}
+    \item {{ contribution | latex_escape }}
+{% endfor %}
+\end{itemize %}
+
+The remainder of this paper is organized as follows. Section~\ref{sec:related-work} reviews related work. Section~\ref{sec:methodology} presents our methodology. Section~\ref{sec:experiments} describes our experimental setup and results. Section~\ref{sec:conclusion} concludes the paper.
+{% endif %}
+
+\section{Related Work}
+\label{sec:related-work}
+
+{% if relatedWork %}
+{{ relatedWork | latex_escape }}
+{% else %}
+Previous work in this area includes {{ relatedWorkSummary | latex_escape | default('[insert related work summary]') }}.
+
+{% for work in priorWork | default([]) %}
+{{ work.authors | cite }} {{ work.description | latex_escape }}
+
+{% endfor %}
+{% endif %}
+
+\section{Methodology}
+\label{sec:methodology}
+
+{% if methodology %}
+{{ methodology | latex_escape }}
+{% else %}
+Our approach consists of the following steps:
+
+\begin{enumerate}
+{% for step in methodologySteps | default(['Data preprocessing', 'Model training', 'Evaluation']) %}
+    \item {{ step | latex_escape }}
+{% endfor %}
+\end{enumerate}
+
+{% if algorithm %}
+\subsection{Algorithm}
+
+The main algorithm is presented in Algorithm~\ref{alg:main}.
+
+\begin{algorithm}
+\caption{{{ algorithmName | default('Main Algorithm') }}}
+\label{alg:main}
+\begin{algorithmic}
+{{ algorithm | latex_escape }}
+\end{algorithmic}
+\end{algorithm}
+{% endif %}
+
+{% if theorems %}
+{% for theorem in theorems %}
+\begin{theorem}[{{ theorem.name | latex_escape }}]
+{{ theorem.statement | latex_escape }}
+\end{theorem}
+
+{% if theorem.proof %}
+\begin{proof}
+{{ theorem.proof | latex_escape }}
+\end{proof}
+{% endif %}
+
+{% endfor %}
+{% endif %}
+{% endif %}
+
+\section{Experiments}
+\label{sec:experiments}
+
+{% if experiments %}
+{{ experiments | latex_escape }}
+{% else %}
+We evaluate our approach on {{ datasets | join(', ') | default('standard benchmark datasets') }}.
+
+\subsection{Experimental Setup}
+
+{% if experimentalSetup %}
+{{ experimentalSetup | latex_escape }}
+{% else %}
+All experiments were conducted using {{ framework | default('Python') }} on {{ hardware | default('NVIDIA GPUs') }}. We compare against the following baselines:
+
+\begin{itemize}
+{% for baseline in baselines | default(['Baseline 1', 'Baseline 2']) %}
+    \item {{ baseline | latex_escape }}
+{% endfor %}
+\end{itemize %}
+{% endif %}
+
+\subsection{Results}
+
+{% if results %}
+{{ results | latex_escape }}
+{% else %}
+Table~\ref{tab:results} shows the performance comparison.
+
+\begin{table}[htbp]
+\centering
+\caption{Performance comparison on {{ dataset | default('benchmark datasets') }}}
+\label{tab:results}
+\begin{tabular}{lcc}
+\hline
+Method & Accuracy & F1-Score \\
+\hline
+{% for result in resultTable | default([{'method': 'Our Method', 'accuracy': '95.2', 'f1': '94.8'}]) %}
+{{ result.method }} & {{ result.accuracy }}\% & {{ result.f1 }}\% \\
+{% endfor %}
+\hline
+\end{tabular}
+\end{table}
+
+{% if figures %}
+{% for figure in figures %}
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.8\columnwidth]{{{ figure.path }}}
+\caption{{{ figure.caption | latex_escape }}}
+\label{{{ figure.label }}}
+\end{figure}
+
+{% endfor %}
+{% endif %}
+{% endif %}
+{% endif %}
+
+\section{Discussion}
+\label{sec:discussion}
+
+{% if discussion %}
+{{ discussion | latex_escape }}
+{% else %}
+The results demonstrate that {{ mainFinding | latex_escape | default('our approach outperforms existing methods') }}. This improvement can be attributed to {{ explanation | latex_escape | default('[insert explanation]') }}.
+
+{% if limitations %}
+\subsection{Limitations}
+
+{{ limitations | latex_escape }}
+{% endif %}
+{% endif %}
+
+\section{Conclusion}
+\label{sec:conclusion}
+
+{% if conclusion %}
+{{ conclusion | latex_escape }}
+{% else %}
+In this paper, we have presented {{ summary | latex_escape | default('a novel approach to [problem]') }}. Our experimental results show {{ conclusionResults | latex_escape | default('significant improvements over existing methods') }}.
+
+Future work includes {{ futureWork | latex_escape | default('extending the approach to additional domains and conducting larger-scale experiments') }}.
+{% endif %}
+
+{% if acknowledgments %}
+\section*{Acknowledgments}
+
+{{ acknowledgments | latex_escape }}
+{% endif %}
+
+% Bibliography
+\bibliography{{{ bibFile | default('references') }}}
+
+{% if appendices %}
+\appendix
+
+{% for appendix in appendices %}
+\section{{{ appendix.title | latex_escape }}}
+\label{app:{{ appendix.label }}}
+
+{{ appendix.content | latex_escape }}
+
+{% endfor %}
+{% endif %}
+
+\end{document}

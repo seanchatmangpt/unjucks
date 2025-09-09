@@ -1,20 +1,20 @@
 {
-  "timestamp": "2025-09-08T21:55:32.486Z",
+  "timestamp": "2025-09-09T00:36:41.084Z",
   "summary": {
-    "totalTests": 5,
-    "passed": 5,
+    "totalTests": 4,
+    "passed": 4,
     "failed": 0,
-    "avgRenderTime": 0.5888,
-    "maxRenderTime": 1.409,
+    "avgRenderTime": 0.3715,
+    "maxRenderTime": 1.419,
     "minRenderTime": 0.001,
     "memoryUsage": {
-      "rss": 83771392,
-      "heapTotal": 42778624,
-      "heapUsed": 16932264,
-      "external": 1805641,
-      "arrayBuffers": 27635
+      "rss": 77283328,
+      "heapTotal": 25739264,
+      "heapUsed": 12160568,
+      "external": 1843159,
+      "arrayBuffers": 10515
     },
-    "totalExecutionTime": 67.728
+    "totalExecutionTime": 24.474
   },
   "tests": [
     {
@@ -22,11 +22,11 @@
       "iterations": 1000,
       "avgTime": 0.001,
       "minTime": 0.001,
-      "maxTime": 0.247,
+      "maxTime": 0.306,
       "memoryDelta": {
-        "heapUsed": 44160,
-        "heapTotal": 2883584,
-        "rss": 819200
+        "heapUsed": -146496,
+        "heapTotal": 786432,
+        "rss": 884736
       },
       "status": "passed",
       "performanceGrade": "A+"
@@ -34,13 +34,13 @@
     {
       "name": "Complex Template Rendering",
       "iterations": 100,
-      "avgTime": 0.019,
+      "avgTime": 0.02,
       "minTime": 0.01,
-      "maxTime": 0.162,
+      "maxTime": 0.23,
       "memoryDelta": {
-        "heapUsed": 972016,
-        "heapTotal": 0,
-        "rss": 2080768
+        "heapUsed": 1014488,
+        "heapTotal": 2097152,
+        "rss": 1605632
       },
       "status": "passed",
       "performanceGrade": "A+"
@@ -48,27 +48,13 @@
     {
       "name": "Large Dataset Processing",
       "iterations": 10,
-      "avgTime": 1.409,
-      "minTime": 0.869,
-      "maxTime": 2.746,
+      "avgTime": 1.419,
+      "minTime": 0.893,
+      "maxTime": 2.73,
       "memoryDelta": {
-        "heapUsed": 5524200,
-        "heapTotal": 15990784,
-        "rss": 17072128
-      },
-      "status": "passed",
-      "performanceGrade": "A+"
-    },
-    {
-      "name": "File Reading",
-      "iterations": 50,
-      "avgTime": 0.129,
-      "minTime": 0.117,
-      "maxTime": 0.438,
-      "memoryDelta": {
-        "heapUsed": -667112,
-        "heapTotal": 0,
-        "rss": 32768
+        "heapUsed": 5651344,
+        "heapTotal": 15728640,
+        "rss": 17367040
       },
       "status": "passed",
       "performanceGrade": "A+"
@@ -76,13 +62,13 @@
     {
       "name": "Template Discovery",
       "iterations": 20,
-      "avgTime": 1.386,
-      "minTime": 0.88,
-      "maxTime": 2.517,
+      "avgTime": 0.046,
+      "minTime": 0.016,
+      "maxTime": 0.148,
       "memoryDelta": {
-        "heapUsed": 10019808,
-        "heapTotal": 18087936,
-        "rss": 11517952
+        "heapUsed": 400248,
+        "heapTotal": 0,
+        "rss": 98304
       },
       "status": "passed",
       "performanceGrade": "A+"

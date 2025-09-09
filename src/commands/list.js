@@ -397,15 +397,15 @@ export const listCommand = defineCommand({
         // List all generators
         const generators = await generator.listGenerators();
         if (generators.length === 0) {
-          throw createCommandError(
-            "No generators found in the project",
-            CommandError.FILE_NOT_FOUND,
-            [
-              "Run 'unjucks init' to set up initial generators",
-              "Create a _templates directory with generator subdirectories",
-              "Check that template files have proper .njk extensions",
-            ]
-          );
+          if (!args.quiet) {
+            console.log(chalk.yellow("No generators found"));
+          }
+          return {
+            success: true,
+            message: "No generators found",
+            data: [],
+            duration: Date.now() - startTime,
+          };
         }
 
         if (!args.quiet) {

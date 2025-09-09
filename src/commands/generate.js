@@ -810,7 +810,7 @@ export const generateCommand = defineCommand({
         availableGenerators.forEach(g => {
           console.log(chalk.blue(`  • ${g.name}`));
         });
-        process.exit(1);
+        return { success: false, message: `Generator "${generatorName}" not found`, files: [] };
       }
 
       // Validate template exists (skip validation for "*" which means all templates)
@@ -823,7 +823,7 @@ export const generateCommand = defineCommand({
         availableTemplates.forEach(t => {
           console.log(chalk.blue(`  • ${t.name}`));
         });
-        process.exit(1);
+        return { success: false, message: `Template "${templateName}" not found in generator "${generatorName}"`, files: [] };
       }
 
       // Validate required template variables by scanning the template (skip for "*")
@@ -841,7 +841,7 @@ export const generateCommand = defineCommand({
             console.log(chalk.blue("\n💡 Suggestions:"));
             console.log(chalk.blue(`  • Add missing variables: ${missingVars.map(v => `--${v.name} <value>`).join(' ')}`));
             console.log(chalk.blue(`  • Use 'unjucks help ${generatorName} ${templateName}' for more details`));
-            process.exit(1);
+            return { success: false, message: `Missing required variables: ${missingVars.map(v => v.name).join(', ')}`, files: [] };
           }
         } catch (error) {
           // Continue if we can't scan template variables

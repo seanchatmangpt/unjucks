@@ -1,0 +1,28 @@
+name: "Unjucks Security CodeQL Configuration"
+
+disable-default-queries: false
+
+queries:
+  - name: security-extended
+    uses: security-extended
+  - name: security-and-quality
+    uses: security-and-quality
+  - name: custom-javascript-security
+    uses: ./.github/codeql/custom-queries/
+
+paths:
+  - src/
+  - tests/
+  - scripts/
+
+paths-ignore:
+  - node_modules/
+  - dist/
+  - build/
+  - coverage/
+  - "**/*.min.js"
+  - "**/*.bundle.js"
+
+packs:
+  - codeql/javascript-queries
+  - codeql/javascript-security-queries

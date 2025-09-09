@@ -4,7 +4,7 @@
  * Generated: 2025-09-08T15:26:05.608Z
  */
 
-module.exports = {
+export default {
   "enableStreaming": true,
   "chunkSize": 131072,
   "maxMemoryUsage": 134217728,

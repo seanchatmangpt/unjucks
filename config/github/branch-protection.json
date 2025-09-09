@@ -1,0 +1,265 @@
+{
+  "repository": "unjucks/unjucks",
+  "branches": {
+    "main": {
+      "protection": {
+        "required_status_checks": {
+          "strict": true,
+          "contexts": [
+            "✓ Lint Check",
+            "✓ Type Check", 
+            "✓ Unit Tests",
+            "✓ Build Check",
+            "✓ Security Audit",
+            "Status Check Summary"
+          ]
+        },
+        "enforce_admins": false,
+        "required_pull_request_reviews": {
+          "required_approving_review_count": 1,
+          "dismiss_stale_reviews": true,
+          "require_code_owner_reviews": true,
+          "require_last_push_approval": false
+        },
+        "restrictions": null,
+        "required_linear_history": false,
+        "allow_force_pushes": false,
+        "allow_deletions": false,
+        "block_creations": false,
+        "required_conversation_resolution": true,
+        "lock_branch": false,
+        "allow_fork_syncing": true
+      }
+    },
+    "develop": {
+      "protection": {
+        "required_status_checks": {
+          "strict": false,
+          "contexts": [
+            "✓ Lint Check",
+            "✓ Type Check",
+            "✓ Unit Tests"
+          ]
+        },
+        "enforce_admins": false,
+        "required_pull_request_reviews": {
+          "required_approving_review_count": 1,
+          "dismiss_stale_reviews": false,
+          "require_code_owner_reviews": false,
+          "require_last_push_approval": false
+        },
+        "restrictions": null,
+        "required_linear_history": false,
+        "allow_force_pushes": true,
+        "allow_deletions": false,
+        "block_creations": false,
+        "required_conversation_resolution": false,
+        "lock_branch": false,
+        "allow_fork_syncing": true
+      }
+    }
+  },
+  "repository_settings": {
+    "allow_squash_merge": true,
+    "allow_merge_commit": false,
+    "allow_rebase_merge": true,
+    "delete_branch_on_merge": true,
+    "allow_auto_merge": true,
+    "use_squash_pr_title_as_default": true,
+    "squash_merge_commit_title": "PR_TITLE",
+    "squash_merge_commit_message": "PR_BODY",
+    "merge_commit_title": "PR_TITLE",
+    "merge_commit_message": "PR_BODY"
+  },
+  "security_settings": {
+    "security_and_analysis": {
+      "secret_scanning": {
+        "status": "enabled"
+      },
+      "secret_scanning_push_protection": {
+        "status": "enabled"
+      },
+      "dependency_graph": {
+        "status": "enabled"
+      },
+      "dependabot_security_updates": {
+        "status": "enabled"
+      }
+    },
+    "vulnerability_alerts": true,
+    "automated_security_fixes": true
+  },
+  "webhook_settings": {
+    "webhooks": [
+      {
+        "name": "ci-cd-webhook",
+        "config": {
+          "url": "https://api.github.com/repos/unjucks/unjucks/actions",
+          "content_type": "json",
+          "insecure_ssl": "0"
+        },
+        "events": [
+          "push",
+          "pull_request",
+          "pull_request_review",
+          "issue_comment",
+          "workflow_run",
+          "check_run",
+          "check_suite"
+        ],
+        "active": true
+      }
+    ]
+  },
+  "labels": [
+    {
+      "name": "bug",
+      "color": "d73a49",
+      "description": "Something isn't working"
+    },
+    {
+      "name": "enhancement",
+      "color": "a2eeef",
+      "description": "New feature or request"
+    },
+    {
+      "name": "feature-request",
+      "color": "7057ff",
+      "description": "Request for a new feature"
+    },
+    {
+      "name": "documentation",
+      "color": "0075ca",
+      "description": "Improvements or additions to documentation"
+    },
+    {
+      "name": "breaking-change",
+      "color": "b60205",
+      "description": "Introduces breaking changes"
+    },
+    {
+      "name": "dependencies",
+      "color": "0366d6",
+      "description": "Pull requests that update a dependency file"
+    },
+    {
+      "name": "security",
+      "color": "ee0701",
+      "description": "Security related issue or fix"
+    },
+    {
+      "name": "performance",
+      "color": "fbca04",
+      "description": "Performance improvement"
+    },
+    {
+      "name": "ci/cd",
+      "color": "28a745",
+      "description": "Continuous integration and deployment"
+    },
+    {
+      "name": "tests",
+      "color": "c2e0c6",
+      "description": "Test related changes"
+    },
+    {
+      "name": "templates",
+      "color": "f9d0c4",
+      "description": "Template engine related"
+    },
+    {
+      "name": "latex",
+      "color": "d4c5f9",
+      "description": "LaTeX export functionality"
+    },
+    {
+      "name": "rdf",
+      "color": "c5def5",
+      "description": "RDF/Turtle semantic web features"
+    },
+    {
+      "name": "size/small",
+      "color": "00ff00",
+      "description": "Small PR (< 50 lines changed)"
+    },
+    {
+      "name": "size/medium",
+      "color": "ffff00",
+      "description": "Medium PR (50-200 lines changed)"
+    },
+    {
+      "name": "size/large",
+      "color": "ff0000",
+      "description": "Large PR (> 200 lines changed)"
+    },
+    {
+      "name": "priority/low",
+      "color": "c2e0c6",
+      "description": "Low priority"
+    },
+    {
+      "name": "priority/medium",
+      "color": "fbca04",
+      "description": "Medium priority"
+    },
+    {
+      "name": "priority/high",
+      "color": "d93f0b",
+      "description": "High priority"
+    },
+    {
+      "name": "priority/critical",
+      "color": "b60205",
+      "description": "Critical priority"
+    },
+    {
+      "name": "good first issue",
+      "color": "7057ff",
+      "description": "Good for newcomers"
+    },
+    {
+      "name": "help wanted",
+      "color": "008672",
+      "description": "Extra attention is needed"
+    },
+    {
+      "name": "wontfix",
+      "color": "ffffff",
+      "description": "This will not be worked on"
+    },
+    {
+      "name": "duplicate",
+      "color": "cfd3d7",
+      "description": "This issue or pull request already exists"
+    },
+    {
+      "name": "invalid",
+      "color": "e4e669",
+      "description": "This doesn't seem right"
+    },
+    {
+      "name": "question",
+      "color": "d876e3",
+      "description": "Further information is requested"
+    },
+    {
+      "name": "triage",
+      "color": "ededed",
+      "description": "Needs to be triaged"
+    }
+  ],
+  "team_permissions": {
+    "maintainers": {
+      "permission": "admin",
+      "members": ["core-team"]
+    },
+    "contributors": {
+      "permission": "write", 
+      "members": ["regular-contributors"]
+    },
+    "community": {
+      "permission": "read",
+      "members": ["community"]
+    }
+  }
+}

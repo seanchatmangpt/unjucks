@@ -1,0 +1,526 @@
+name: Performance Benchmarking & Monitoring
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+  schedule:
+    # Run performance tests daily at 3 AM UTC
+    - cron: '0 3 * * *'
+  workflow_dispatch:
+    inputs:
+      benchmark_type:
+        description: 'Type of benchmark to run'
+        required: false
+        default: 'all'
+        type: choice
+        options:
+        - all
+        - template-performance
+        - memory-profiling
+        - load-testing
+        - regression-detection
+
+concurrency:
+  group: performance-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  NODE_VERSION: '20'
+  PERFORMANCE_BASELINE_BRANCH: 'main'
+  ENABLE_PERFORMANCE_ALERTS: 'true'
+
+jobs:
+  prepare-performance-environment:
+    name: 'Prepare Performance Environment'
+    runs-on: ubuntu-latest
+    outputs:
+      baseline-exists: ${{ steps.check-baseline.outputs.exists }}
+      benchmark-type: ${{ steps.determine-type.outputs.type }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: |
+          npm ci
+          npm install --save-dev clinic autocannon artillery@latest benchmark
+
+      - name: Check for performance baseline
+        id: check-baseline
+        run: |
+          if [ -f ".github/performance-baseline.json" ]; then
+            echo "exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "exists=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Determine benchmark type
+        id: determine-type
+        run: |
+          TYPE="${{ github.event.inputs.benchmark_type || 'all' }}"
+          echo "type=$TYPE" >> $GITHUB_OUTPUT
+
+      - name: Initialize coordination hooks
+        run: |
+          npx claude-flow@alpha hooks pre-task --description "Performance benchmarking CI pipeline"
+          npx claude-flow@alpha hooks session-restore --session-id "perf-ci-${{ github.run_id }}"
+
+  template-performance-benchmarks:
+    name: 'Template Performance Benchmarks'
+    runs-on: ubuntu-latest
+    needs: prepare-performance-environment
+    if: ${{ needs.prepare-performance-environment.outputs.benchmark-type == 'all' || needs.prepare-performance-environment.outputs.benchmark-type == 'template-performance' }}
+    strategy:
+      matrix:
+        template-type: [simple, complex, nested, conditional]
+        concurrency: [1, 10, 50, 100]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run template performance benchmarks
+        run: |
+          node scripts/performance/template-benchmarks.js \
+            --type ${{ matrix.template-type }} \
+            --concurrency ${{ matrix.concurrency }} \
+            --output-format json \
+            --output-file "template-perf-${{ matrix.template-type }}-${{ matrix.concurrency }}.json"
+
+      - name: Upload template performance results
+        uses: actions/upload-artifact@v4
+        with:
+          name: template-performance-${{ matrix.template-type }}-${{ matrix.concurrency }}
+          path: template-perf-*.json
+          retention-days: 30
+
+      - name: Update coordination memory
+        run: |
+          npx claude-flow@alpha hooks post-edit \
+            --file "template-perf-${{ matrix.template-type }}-${{ matrix.concurrency }}.json" \
+            --memory-key "perf/template/${{ matrix.template-type }}/${{ matrix.concurrency }}"
+
+  memory-profiling:
+    name: 'Memory Profiling & Leak Detection'
+    runs-on: ubuntu-latest
+    needs: prepare-performance-environment
+    if: ${{ needs.prepare-performance-environment.outputs.benchmark-type == 'all' || needs.prepare-performance-environment.outputs.benchmark-type == 'memory-profiling' }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies and profiling tools
+        run: |
+          npm ci
+          npm install --save-dev clinic memwatch-next heapdump
+
+      - name: Run memory profiling
+        run: |
+          # Generate heap snapshots during template operations
+          node scripts/performance/memory-profiler.js \
+            --duration 300 \
+            --samples 100 \
+            --output-dir memory-profiles \
+            --detect-leaks true
+
+      - name: Analyze memory usage patterns
+        run: |
+          node scripts/performance/analyze-memory.js \
+            --profiles-dir memory-profiles \
+            --output memory-analysis.json
+
+      - name: Check for memory leaks
+        run: |
+          node scripts/performance/leak-detector.js \
+            --analysis memory-analysis.json \
+            --threshold 10 \
+            --fail-on-leak true
+
+      - name: Upload memory profiling results
+        uses: actions/upload-artifact@v4
+        with:
+          name: memory-profiling-results
+          path: |
+            memory-profiles/
+            memory-analysis.json
+          retention-days: 30
+
+      - name: Update coordination memory
+        run: |
+          npx claude-flow@alpha hooks post-edit \
+            --file "memory-analysis.json" \
+            --memory-key "perf/memory/analysis"
+
+  load-testing:
+    name: 'Load Testing & Concurrency'
+    runs-on: ubuntu-latest
+    needs: prepare-performance-environment
+    if: ${{ needs.prepare-performance-environment.outputs.benchmark-type == 'all' || needs.prepare-performance-environment.outputs.benchmark-type == 'load-testing' }}
+    strategy:
+      matrix:
+        scenario: [burst, sustained, gradual, spike]
+        workers: [1, 2, 4, 8]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run load testing scenario
+        run: |
+          node scripts/performance/load-tester.js \
+            --scenario ${{ matrix.scenario }} \
+            --workers ${{ matrix.workers }} \
+            --duration 180 \
+            --ramp-up 30 \
+            --output "load-test-${{ matrix.scenario }}-${{ matrix.workers }}.json"
+
+      - name: Validate concurrency performance
+        run: |
+          node scripts/performance/validate-concurrency.js \
+            --results "load-test-${{ matrix.scenario }}-${{ matrix.workers }}.json" \
+            --expected-improvement "2.8x" \
+            --fail-on-regression true
+
+      - name: Upload load testing results
+        uses: actions/upload-artifact@v4
+        with:
+          name: load-testing-${{ matrix.scenario }}-${{ matrix.workers }}
+          path: load-test-*.json
+          retention-days: 30
+
+  regression-detection:
+    name: 'Regression Detection & Baseline Comparison'
+    runs-on: ubuntu-latest
+    needs: [prepare-performance-environment, template-performance-benchmarks, memory-profiling, load-testing]
+    if: always() && !cancelled()
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Download all performance artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: performance-results
+
+      - name: Load performance baseline
+        id: load-baseline
+        run: |
+          if [ "${{ needs.prepare-performance-environment.outputs.baseline-exists }}" == "true" ]; then
+            cp .github/performance-baseline.json current-baseline.json
+            echo "baseline-loaded=true" >> $GITHUB_OUTPUT
+          else
+            echo "baseline-loaded=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Aggregate performance metrics
+        run: |
+          node scripts/performance/aggregate-metrics.js \
+            --results-dir performance-results \
+            --output aggregated-metrics.json \
+            --include-memory true \
+            --include-load true
+
+      - name: Compare against baseline
+        if: steps.load-baseline.outputs.baseline-loaded == 'true'
+        run: |
+          node scripts/performance/regression-detector.js \
+            --current aggregated-metrics.json \
+            --baseline current-baseline.json \
+            --threshold 15 \
+            --output regression-report.json \
+            --fail-on-regression true
+
+      - name: Update performance baseline
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        run: |
+          cp aggregated-metrics.json .github/performance-baseline.json
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add .github/performance-baseline.json
+          git commit -m "Update performance baseline [skip ci]" || exit 0
+          git push
+
+      - name: Generate performance report
+        run: |
+          node scripts/performance/generate-report.js \
+            --metrics aggregated-metrics.json \
+            --regression-report regression-report.json \
+            --output performance-report.md \
+            --format markdown
+
+      - name: Comment performance results on PR
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const report = fs.readFileSync('performance-report.md', 'utf8');
+            
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `## 🚀 Performance Benchmarking Results\n\n${report}`
+            });
+
+      - name: Upload regression analysis
+        uses: actions/upload-artifact@v4
+        with:
+          name: regression-analysis
+          path: |
+            aggregated-metrics.json
+            regression-report.json
+            performance-report.md
+          retention-days: 90
+
+      - name: Send performance alerts
+        if: env.ENABLE_PERFORMANCE_ALERTS == 'true' && failure()
+        run: |
+          node scripts/performance/send-alerts.js \
+            --webhook-url "${{ secrets.PERFORMANCE_WEBHOOK_URL }}" \
+            --report regression-report.json \
+            --severity critical
+
+  metrics-collection:
+    name: 'Metrics Collection & Historical Tracking'
+    runs-on: ubuntu-latest
+    needs: regression-detection
+    if: always() && !cancelled()
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Download aggregated metrics
+        uses: actions/download-artifact@v4
+        with:
+          name: regression-analysis
+          path: final-results
+
+      - name: Store metrics in time series
+        run: |
+          node scripts/performance/store-metrics.js \
+            --metrics final-results/aggregated-metrics.json \
+            --timestamp "${{ github.event.head_commit.timestamp }}" \
+            --commit-sha "${{ github.sha }}" \
+            --branch "${{ github.ref_name }}" \
+            --output-file "metrics-timeseries-${{ github.run_id }}.json"
+
+      - name: Update historical performance data
+        run: |
+          node scripts/performance/update-history.js \
+            --new-metrics "metrics-timeseries-${{ github.run_id }}.json" \
+            --history-file .github/performance-history.json \
+            --max-entries 1000
+
+      - name: Generate performance trends
+        run: |
+          node scripts/performance/analyze-trends.js \
+            --history .github/performance-history.json \
+            --output performance-trends.json \
+            --window 30
+
+      - name: Commit updated historical data
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add .github/performance-history.json
+          git commit -m "Update performance history [skip ci]" || exit 0
+          git push
+
+      - name: Upload metrics collection
+        uses: actions/upload-artifact@v4
+        with:
+          name: metrics-collection
+          path: |
+            metrics-timeseries-*.json
+            performance-trends.json
+          retention-days: 365
+
+      - name: Finalize coordination session
+        run: |
+          npx claude-flow@alpha hooks post-task --task-id "perf-ci-${{ github.run_id }}"
+          npx claude-flow@alpha hooks session-end --export-metrics true
+
+  validate-performance-improvements:
+    name: 'Validate 2.8-4.4x Speed Improvements'
+    runs-on: ubuntu-latest
+    needs: metrics-collection
+    if: always() && !cancelled()
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Download performance trends
+        uses: actions/download-artifact@v4
+        with:
+          name: metrics-collection
+          path: trends-data
+
+      - name: Validate speed improvements
+        run: |
+          node scripts/performance/validate-improvements.js \
+            --trends trends-data/performance-trends.json \
+            --expected-min-improvement 2.8 \
+            --expected-max-improvement 4.4 \
+            --metric throughput \
+            --fail-on-below-threshold true
+
+      - name: Validate caching effectiveness
+        run: |
+          node scripts/performance/validate-caching.js \
+            --cache-hit-threshold 85 \
+            --cache-miss-penalty-max 2.0 \
+            --output cache-validation.json
+
+      - name: Generate validation summary
+        run: |
+          node scripts/performance/validation-summary.js \
+            --speed-validation "true" \
+            --cache-validation cache-validation.json \
+            --output validation-summary.md
+
+      - name: Upload validation results
+        uses: actions/upload-artifact@v4
+        with:
+          name: performance-validation
+          path: |
+            cache-validation.json
+            validation-summary.md
+          retention-days: 90
+
+  performance-dashboard:
+    name: 'Performance Dashboard Update'
+    runs-on: ubuntu-latest
+    needs: validate-performance-improvements
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Download all performance data
+        uses: actions/download-artifact@v4
+        with:
+          path: all-performance-data
+
+      - name: Generate performance dashboard
+        run: |
+          node scripts/performance/generate-dashboard.js \
+            --data-dir all-performance-data \
+            --output docs/performance/dashboard.html \
+            --include-charts true \
+            --include-trends true
+
+      - name: Update performance README
+        run: |
+          node scripts/performance/update-readme.js \
+            --template docs/performance/README.template.md \
+            --data all-performance-data \
+            --output docs/performance/README.md
+
+      - name: Commit dashboard updates
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add docs/performance/
+          git commit -m "Update performance dashboard [skip ci]" || exit 0
+          git push
+
+  cleanup-artifacts:
+    name: 'Cleanup Old Performance Artifacts'
+    runs-on: ubuntu-latest
+    needs: performance-dashboard
+    if: always()
+    steps:
+      - name: Delete old performance artifacts
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { data: artifacts } = await github.rest.actions.listArtifactsForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+            });
+            
+            const oldArtifacts = artifacts.artifacts.filter(artifact => {
+              const isPerformanceArtifact = artifact.name.includes('template-performance') || 
+                                          artifact.name.includes('memory-profiling') || 
+                                          artifact.name.includes('load-testing');
+              const isOld = Date.now() - new Date(artifact.created_at).getTime() > 7 * 24 * 60 * 60 * 1000; // 7 days
+              return isPerformanceArtifact && isOld;
+            });
+            
+            for (const artifact of oldArtifacts) {
+              await github.rest.actions.deleteArtifact({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                artifact_id: artifact.id,
+              });
+            }

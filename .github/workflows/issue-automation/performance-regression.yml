@@ -1,0 +1,160 @@
+name: Performance Regression Detection
+
+on:
+  workflow_run:
+    workflows: [
+      "CI",
+      "Comprehensive Testing",
+      "Cross-Platform CI"
+    ]
+    types: [completed]
+  schedule:
+    # Run performance analysis daily at 2 AM UTC
+    - cron: '0 2 * * *'
+
+permissions:
+  issues: write
+  contents: read
+  actions: read
+
+jobs:
+  detect-performance-regression:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name == 'schedule' }}
+    
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 50  # Get enough history for trend analysis
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci --only=prod
+
+      - name: Initialize Performance Monitoring Swarm
+        run: |
+          npx claude-flow@alpha hooks pre-task --description "Performance regression detection and analysis"
+          npx claude-flow@alpha hooks session-restore --session-id "swarm-performance-monitor"
+
+      - name: Collect Performance Metrics
+        id: collect-metrics
+        run: |
+          node scripts/issue-automation/collect-performance-metrics.js \
+            --workflow-run-id="${{ github.event.workflow_run.id || 'scheduled' }}" \
+            --branch="${{ github.ref_name }}" \
+            --commit="${{ github.sha }}"
+
+      - name: Analyze Performance Trends
+        id: analyze-trends
+        run: |
+          node scripts/issue-automation/analyze-performance-trends.js \
+            --metrics-file="performance-metrics.json" \
+            --history-days=30 \
+            --regression-threshold=20
+
+      - name: Create Performance Regression Issue
+        if: steps.analyze-trends.outputs.regression_detected == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const analysis = JSON.parse(fs.readFileSync('performance-analysis.json', 'utf8'));
+            
+            const issueBody = `## ⚡ Performance Regression Detected
+            
+            ### Performance Impact Summary
+            - **Regression Type**: ${analysis.regression_type}
+            - **Impact Severity**: ${analysis.severity}
+            - **Performance Decrease**: ${analysis.percentage_decrease}%
+            - **Affected Area**: ${analysis.affected_component}
+            
+            ### Metrics Comparison
+            | Metric | Previous | Current | Change |
+            |--------|----------|---------|--------|
+            ${analysis.metrics_comparison.map(metric => 
+              `| ${metric.name} | ${metric.previous} | ${metric.current} | ${metric.change} |`
+            ).join('\n')}
+            
+            ### Trend Analysis
+            ${analysis.trend_chart}
+            
+            ### Potential Causes
+            ${analysis.potential_causes.map(cause => `- ${cause}`).join('\n')}
+            
+            ### Recent Changes
+            The following commits may be related to this regression:
+            ${analysis.recent_commits.map(commit => 
+              `- [\`${commit.sha.substring(0,7)}\`](${commit.url}): ${commit.message}`
+            ).join('\n')}
+            
+            ### Performance Benchmarks
+            \`\`\`json
+            ${JSON.stringify(analysis.benchmarks, null, 2)}
+            \`\`\`
+            
+            ### Recommended Actions
+            ${analysis.recommendations.map(rec => `- [ ] ${rec}`).join('\n')}
+            
+            ### Swarm Analysis Agents
+            - **Performance Analyzer**: Continuous monitoring and trend analysis
+            - **Regression Hunter**: Root cause identification
+            - **Optimizer**: Performance improvement suggestions
+            - **Benchmarker**: Automated performance testing
+            
+            ---
+            🤖 **Automated Performance Tracking**
+            - Detected: $(date -u +"%Y-%m-%d %H:%M:%S UTC")
+            - Analysis ID: ${analysis.id}
+            - Threshold: ${analysis.threshold}%
+            - Confidence: ${analysis.confidence}%
+            
+            _This issue was automatically created by the performance regression detection system._`;
+            
+            const issue = await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `Performance Regression: ${analysis.regression_type} - ${analysis.percentage_decrease}% decrease`,
+              body: issueBody,
+              labels: [
+                'performance',
+                'regression',
+                'automated-tracking',
+                analysis.severity,
+                `component:${analysis.affected_component}`.toLowerCase()
+              ],
+              assignees: analysis.suggested_assignees
+            });
+            
+            core.setOutput('issue-number', issue.data.number);
+
+      - name: Update Performance Baselines
+        if: steps.analyze-trends.outputs.should_update_baseline == 'true'
+        run: |
+          node scripts/issue-automation/update-performance-baselines.js \
+            --metrics-file="performance-metrics.json"
+          
+          # Commit updated baselines
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add scripts/performance-baselines.json
+          git commit -m "chore: update performance baselines [skip ci]" || echo "No changes to commit"
+          git push || echo "No changes to push"
+
+      - name: Store Performance History
+        run: |
+          npx claude-flow@alpha hooks post-edit \
+            --file "performance-metrics.json" \
+            --memory-key "swarm/performance/history/$(date +%Y-%m-%d)"
+
+      - name: Cleanup
+        if: always()
+        run: |
+          npx claude-flow@alpha hooks post-task --task-id "performance-monitoring"
+          npx claude-flow@alpha hooks session-end --export-metrics true

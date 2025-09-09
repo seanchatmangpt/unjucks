@@ -1,0 +1,146 @@
+---
+{
+  "outputPath": "legal-{{caseNumber | default('XXXX')}}-brief.tex",
+  "documentClass": "article",
+  "courtName": "Supreme Court of Example State",
+  "caseNumber": "No. 2024-CV-001",
+  "parties": {
+    "plaintiff": "John Doe",
+    "defendant": "Acme Corporation"
+  },
+  "attorney": {
+    "name": "Jane Smith, Esq.",
+    "firm": "Smith & Associates",
+    "address": "123 Legal Street, Law City, LC 12345",
+    "phone": "(555) 123-4567",
+    "email": "jane.smith@law.com"
+  }
+}
+---
+\documentclass[12pt,letterpaper]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{setspace}
+\usepackage{fancyhdr}
+\usepackage{titling}
+\usepackage{url}
+
+% Page setup
+\doublespacing
+\pagestyle{fancy}
+\fancyhf{}
+\rhead{{{ caseNumber | default('No. XXXX') }}}
+\cfoot{\thepage}
+
+% Title information
+\title{Brief in Support of Motion}
+\author{{{ attorney.name | default('Attorney Name') }}}
+\date{{{ now | latex_date }}}
+
+\begin{document}
+
+% Header section
+\begin{center}
+    {\bf {{ courtName | upper | default('COURT NAME') }}} \\[0.5em]
+    {\bf {{ caseNumber | default('Case Number') }}} \\[1em]
+    
+    {\bf {{ parties.plaintiff | latex_escape | default('PLAINTIFF') }},} \\
+    \hspace{2em} Plaintiff, \\[0.5em]
+    v. \\[0.5em]
+    {\bf {{ parties.defendant | latex_escape | default('DEFENDANT') }},} \\
+    \hspace{2em} Defendant. \\[1em]
+    
+    {\bf BRIEF IN SUPPORT OF {{ briefType | upper | default('MOTION') }}}
+\end{center}
+
+\vspace{1em}
+
+% Attorney information
+\noindent TO THE HONORABLE COURT:
+
+\section{INTRODUCTION}
+
+{{ parties.plaintiff | latex_escape }} (``Plaintiff'') respectfully submits this brief in support of {{ briefType | default('the pending motion') }} filed on {{ filingDate | latex_date | default('the date of filing') }}.
+
+\section{STATEMENT OF FACTS}
+
+{% if facts %}
+{% for fact in facts %}
+{{ loop.index }}. {{ fact | latex_escape }}
+
+{% endfor %}
+{% else %}
+The relevant facts are as follows:
+
+[Insert statement of facts here]
+{% endif %}
+
+\section{LEGAL ARGUMENT}
+
+{% if arguments %}
+{% for argument in arguments %}
+\subsection{{{ argument.title | latex_escape }}}
+
+{{ argument.content | latex_escape }}
+
+{% endfor %}
+{% else %}
+\subsection{Standard of Review}
+
+[Insert legal standard]
+
+\subsection{Analysis}
+
+[Insert legal analysis]
+{% endif %}
+
+\section{CONCLUSION}
+
+For the foregoing reasons, Plaintiff respectfully requests that this Honorable Court {{ relief | latex_escape | default('grant the pending motion') }}.
+
+\vspace{2em}
+
+\noindent Respectfully submitted,
+
+\vspace{2em}
+
+\noindent {{ attorney.name | latex_escape | default('Attorney Name') }} \\
+{{ attorney.firm | latex_escape | default('Law Firm') }} \\
+{{ attorney.address | latex_escape | default('Address') }} \\
+Phone: {{ attorney.phone | default('Phone') }} \\
+Email: \url{{{ attorney.email | default('email@example.com') }}}
+
+\vspace{1em}
+
+\noindent Attorney for {{ parties.plaintiff | latex_escape | default('Plaintiff') }}
+
+{% if exhibits %}
+\newpage
+\section{EXHIBITS}
+
+{% for exhibit in exhibits %}
+\subsection{Exhibit {{ exhibit.label }}: {{ exhibit.title | latex_escape }}}
+
+{{ exhibit.description | latex_escape }}
+
+{% endfor %}
+{% endif %}
+
+{% if certificate %}
+\newpage
+\section{CERTIFICATE OF SERVICE}
+
+I hereby certify that a true and correct copy of the foregoing {{ briefType | default('Brief') }} was served upon the parties listed below on {{ serviceDate | latex_date | default(now | latex_date) }}, by the method(s) indicated:
+
+{% for party in serviceList %}
+\noindent {{ party.name | latex_escape }} \\
+{{ party.address | latex_escape }} \\
+Method: {{ party.method | default('Email') }}
+
+{% endfor %}
+
+\vspace{2em}
+
+\noindent {{ attorney.name | latex_escape }}
+{% endif %}
+
+\end{document}

@@ -1,0 +1,43 @@
+# Production Validation Docker Container
+FROM node:20-alpine
+
+# Install system dependencies for testing
+RUN apk add --no-cache \
+    git \
+    bash \
+    curl \
+    jq \
+    python3 \
+    py3-pip \
+    make \
+    g++ \
+    texlive-full \
+    pandoc
+
+# Set working directory
+WORKDIR /app
+
+# Copy package files first for dependency caching
+COPY package*.json ./
+COPY .npmrc* ./
+
+# Clean install dependencies
+RUN npm ci --no-optional --no-audit --prefer-offline
+
+# Copy source code
+COPY . .
+
+# Create validation user (non-root)
+RUN addgroup -g 1001 -S nodejs && \
+    adduser -S validator -u 1001 -G nodejs
+
+# Set permissions
+RUN chown -R validator:nodejs /app
+USER validator
+
+# Set environment for testing
+ENV NODE_ENV=test
+ENV CI=true
+
+# Default command runs validation suite
+CMD ["npm", "run", "test:validation"]

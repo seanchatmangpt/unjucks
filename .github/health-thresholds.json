@@ -1,0 +1,28 @@
+{
+  "success_rate_threshold": 80,
+  "duration_threshold_seconds": 7200,
+  "failure_pattern_threshold": 3,
+  "performance_degradation_threshold": 20,
+  "security_vulnerability_threshold": "medium",
+  "quality_gate_thresholds": {
+    "code_coverage": 80,
+    "complexity_score": 10,
+    "duplication_percentage": 5,
+    "maintainability_index": 60
+  },
+  "health_monitoring": {
+    "check_frequency_hours": 6,
+    "alert_threshold_hours": 24,
+    "escalation_threshold_hours": 72
+  },
+  "notification_settings": {
+    "immediate_alert_types": ["security-vulnerability", "ci-failure"],
+    "batch_notification_types": ["quality-gate-failure", "workflow-health"],
+    "escalation_delay_minutes": {
+      "critical": 15,
+      "high": 60,
+      "medium": 240,
+      "low": 1440
+    }
+  }
+}

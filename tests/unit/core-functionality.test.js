@@ -7,7 +7,12 @@ import { FileInjector } from '../../src/lib/file-injector.js';
 import { FrontmatterParser } from '../../src/lib/frontmatter-parser.js';
 
 describe('Core Functionality Unit Tests - Real Operations', () => {
-  let tempDir => {
+  let tempDir;
+  let generator;
+  let fileInjector;
+  let frontmatterParser;
+
+  beforeEach(async () => {
     tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'unjucks-unit-test-'));
     process.chdir(tempDir);
     
@@ -31,32 +36,37 @@ describe('Core Functionality Unit Tests - Real Operations', () => {
     await fs.ensureDir('_templates/component/basic');
     await fs.writeFile(
       '_templates/component/basic/component.ts.njk',
-      `---\nto) {}\n\n  greet() {\n    return \`Hello, \${this.name}!\`;\n  }\n}\n`
+      `---\nto: src/components/{{ name }}.ts\n---\nexport class {{ name | pascalCase }} {\n  private name: string;\n\n  constructor(name: string) {\n    this.name = name;\n  }\n\n  greet() {\n    return \`Hello, \${this.name}!\`;\n  }\n}\n`
     );
 
     // Template with variables for scanning
     await fs.writeFile(
       '_templates/component/basic/with-vars.njk',
-      `---\nto: src/{{ outputDir }}/{{ name }}.{{ fileExtension }}\n---\n{{ content }}\n\n// Generated with: {{ generatorName }}\n// Version: {{ version }}\n// Author: {{ author }}\n// Timestamp);
+      `---\nto: src/{{ outputDir }}/{{ name }}.{{ fileExtension }}\n---\n{{ content }}\n\n// Generated with: {{ generatorName }}\n// Version: {{ version }}\n// Author: {{ author }}\n// Timestamp: {{ timestamp }}\n`
+    );
 
     // Injection test templates
     await fs.ensureDir('_templates/inject/test');
     await fs.writeFile(
       '_templates/inject/test/append.js',
-      `---\nto: target.js\nappend);
+      `---\nto: target.js\nappend: true\n---\n// Appended content\nconst appended = true;\n`
+    );
 
     await fs.writeFile(
       '_templates/inject/test/inject-after.js',
-      `---\nto: target.js\ninject: true\nafter);
+      `---\nto: target.js\ninject: true\nafter: "// MARKER_AFTER"\n---\n// Injected content\nconst injected = true;\n`
+    );
 
     await fs.writeFile(
       '_templates/inject/test/conditional.js',
-      `---\nto: conditional.js\nskipIf);
+      `---\nto: conditional.js\nskipIf: "{{ skip === true }}"\n---\nconst conditional = true;\n`
+    );
 
     // Complex frontmatter template
     await fs.writeFile(
       '_templates/complex/advanced/config.yaml',
-      `---\nto: config/{{ environment }}.yaml\nchmod: "644"\nsh: ["echo 'Config generated'"]\nskipIf: "{{ environment === 'test' && !generateTestConfig }}"\n---\nenvironment: {{ environment }}\ndebug: {{ debug || false }}\nport);
+      `---\nto: config/{{ environment }}.yaml\nchmod: "644"\nsh: ["echo 'Config generated'"]\nskipIf: "{{ environment === 'test' && !generateTestConfig }}"\n---\nenvironment: {{ environment }}\ndebug: {{ debug || false }}\nport: {{ port || 3000 }}\nfeatures:\n  - logging\n  - metrics\n  - auth\n`
+    );
   }
 
   describe('Generator Class', () => {

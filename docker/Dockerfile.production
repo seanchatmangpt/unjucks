@@ -1,0 +1,102 @@
+# Production-ready Docker image for deployment simulation
+FROM node:20-alpine AS base
+
+# Install production system dependencies
+RUN apk add --no-cache \
+    dumb-init \
+    curl \
+    ca-certificates \
+    openssl \
+    tzdata
+
+# Create application user
+RUN addgroup -g 1001 -S unjucks && \
+    adduser -S unjucks -u 1001 -G unjucks
+
+WORKDIR /app
+
+# Set timezone
+ENV TZ=UTC
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+
+# ==================================================
+# Dependencies Stage
+# ==================================================
+FROM base AS deps
+
+# Copy package files
+COPY package*.json ./
+
+# Install only production dependencies
+RUN npm ci --production --prefer-offline --no-audit --no-fund
+
+# ==================================================
+# Build Stage
+# ==================================================
+FROM deps AS build
+
+# Install dev dependencies for build
+RUN npm ci --include=dev --prefer-offline --no-audit
+
+# Copy source code
+COPY . .
+
+# Build application (if build step exists)
+RUN npm run build || echo "No build step configured"
+
+# Clean up dev dependencies
+RUN npm prune --production
+
+# ==================================================
+# Production Stage
+# ==================================================
+FROM base AS production
+
+# Copy production dependencies
+COPY --from=build /app/node_modules ./node_modules
+
+# Copy application code
+COPY --from=build /app .
+
+# Remove unnecessary files for production
+RUN rm -rf \
+    tests/ \
+    docs/ \
+    .github/ \
+    docker/ \
+    scripts/test-* \
+    *.test.js \
+    *.spec.js \
+    .git/ \
+    .gitignore \
+    README.md \
+    CHANGELOG.md
+
+# Set production environment variables
+ENV NODE_ENV=production
+ENV PORT=3000
+ENV UNJUCKS_LOG_LEVEL=info
+ENV UNJUCKS_METRICS_ENABLED=true
+
+# Create logs and data directories
+RUN mkdir -p /app/logs /app/data && \
+    chown -R unjucks:unjucks /app
+
+# Configure application
+COPY docker/configs/production.json /app/config/production.json
+
+# Health check endpoint
+HEALTHCHECK --interval=30s --timeout=10s --start-period=15s --retries=3 \
+    CMD curl -f http://localhost:${PORT}/health || exit 1
+
+# Switch to non-root user
+USER unjucks
+
+# Expose application port
+EXPOSE 3000
+
+# Use dumb-init for proper signal handling
+ENTRYPOINT ["dumb-init", "--"]
+
+# Start application
+CMD ["node", "bin/unjucks.cjs", "serve", "--port", "3000"]

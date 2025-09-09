@@ -1,0 +1,279 @@
+# GitHub Repository Configuration
+# This file defines the repository settings and can be applied via GitHub API
+
+repository:
+  name: unjucks
+  description: "Nunjucks + Hygen style scaffolding with RDF/Turtle support - Production-ready template engine and generator"
+  homepage: https://unjucks.dev
+  topics:
+    - template-engine
+    - scaffolding
+    - code-generation
+    - nunjucks
+    - hygen
+    - rdf
+    - turtle
+    - semantic-web
+    - latex
+    - cli-tool
+    - javascript
+    - nodejs
+    - generator
+    - boilerplate
+
+  # Repository visibility and features
+  private: false
+  has_issues: true
+  has_projects: true
+  has_wiki: false
+  has_pages: true
+  has_downloads: true
+  
+  # Advanced settings
+  allow_squash_merge: true
+  allow_merge_commit: false
+  allow_rebase_merge: true
+  delete_branch_on_merge: true
+  allow_auto_merge: true
+  
+  # Default branch
+  default_branch: main
+  
+  # Merge settings
+  use_squash_pr_title_as_default: true
+  squash_merge_commit_title: PR_TITLE
+  squash_merge_commit_message: PR_BODY
+  
+  # Security settings
+  vulnerability_alerts: true
+  automated_security_fixes: true
+
+# Branch protection rules
+branch_protection:
+  main:
+    required_status_checks:
+      strict: true
+      contexts:
+        - "✓ Lint Check"
+        - "✓ Type Check"
+        - "✓ Unit Tests"
+        - "✓ Build Check"
+        - "✓ Security Audit"
+        - "Status Check Summary"
+    
+    required_pull_request_reviews:
+      required_approving_review_count: 1
+      dismiss_stale_reviews: true
+      require_code_owner_reviews: true
+      require_last_push_approval: false
+      bypass_pull_request_allowances:
+        users: []
+        teams: ["maintainers"]
+    
+    enforce_admins: false
+    restrictions: null
+    required_linear_history: false
+    allow_force_pushes: false
+    allow_deletions: false
+    required_conversation_resolution: true
+
+  develop:
+    required_status_checks:
+      strict: false
+      contexts:
+        - "✓ Lint Check"
+        - "✓ Type Check"
+        - "✓ Unit Tests"
+    
+    required_pull_request_reviews:
+      required_approving_review_count: 1
+      dismiss_stale_reviews: false
+      require_code_owner_reviews: false
+    
+    enforce_admins: false
+    allow_force_pushes: true
+    required_conversation_resolution: false
+
+# Security and analysis
+security:
+  secret_scanning: enabled
+  secret_scanning_push_protection: enabled
+  dependency_graph: enabled
+  dependabot_security_updates: enabled
+  dependabot_alerts: enabled
+  code_scanning_default_setup: enabled
+
+# GitHub Apps and integrations
+apps:
+  - name: "CodeQL"
+    enabled: true
+  - name: "Dependabot"
+    enabled: true
+  - name: "GitHub Actions"
+    enabled: true
+
+# Environments
+environments:
+  production:
+    protection_rules:
+      required_reviewers:
+        - type: team
+          name: maintainers
+      wait_timer: 0
+      prevent_self_review: true
+    deployment_branch_policy:
+      protected_branches: true
+      custom_branch_policies: false
+    
+  staging:
+    protection_rules:
+      required_reviewers: []
+      wait_timer: 0
+    deployment_branch_policy:
+      protected_branches: false
+      custom_branch_policies: true
+      custom_branches:
+        - develop
+        - staging/*
+
+# Repository secrets (names only, values set manually)
+secrets:
+  - NPM_TOKEN  # For publishing to npm
+  - CODECOV_TOKEN  # For code coverage reporting
+  - SLACK_WEBHOOK  # For notifications
+  - DEPLOYMENT_KEY  # For deployment
+  - SENTRY_DSN  # For error tracking
+
+# Variables
+variables:
+  NODE_VERSION: "18"
+  PNPM_VERSION: "9.12.0"
+  REGISTRY_URL: "https://registry.npmjs.org"
+  DOCS_URL: "https://unjucks.dev"
+
+# Issue and PR templates
+templates:
+  issue_templates:
+    - name: bug_report
+      about: "File a bug report"
+      title: "[Bug]: "
+      labels: ["bug", "triage"]
+    
+    - name: feature_request
+      about: "Suggest a new feature"
+      title: "[Feature]: "
+      labels: ["enhancement", "feature-request"]
+  
+  pull_request_template: true
+
+# Discussion categories
+discussions:
+  categories:
+    - name: "General"
+      emoji: "💬"
+      description: "General discussions about the project"
+    
+    - name: "Ideas"
+      emoji: "💡"
+      description: "Ideas and feature suggestions"
+    
+    - name: "Q&A"
+      emoji: "❓"
+      description: "Questions and help requests"
+    
+    - name: "Show and tell"
+      emoji: "🙌"
+      description: "Show off your work with unjucks"
+
+# Webhooks
+webhooks:
+  - name: ci-webhook
+    url: https://api.github.com/repos/unjucks/unjucks/actions
+    content_type: json
+    events:
+      - push
+      - pull_request
+      - pull_request_review
+      - issue_comment
+      - workflow_run
+      - check_run
+    active: true
+    
+  - name: security-webhook
+    url: https://security-monitor.unjucks.dev/webhook
+    content_type: json
+    events:
+      - security_advisory
+      - repository_vulnerability_alert
+    active: true
+
+# Repository rules (beta feature)
+rules:
+  - name: "Protect main branch"
+    target: "main"
+    enforcement: "active"
+    conditions:
+      ref_name:
+        include: ["refs/heads/main"]
+    rules:
+      - type: "required_status_checks"
+        parameters:
+          required_status_checks:
+            - context: "✓ Lint Check"
+              integration_id: 15368
+            - context: "✓ Type Check"
+              integration_id: 15368
+            - context: "✓ Unit Tests"
+              integration_id: 15368
+            - context: "✓ Build Check"
+              integration_id: 15368
+            - context: "✓ Security Audit"
+              integration_id: 15368
+          strict_required_status_checks_policy: true
+      
+      - type: "pull_request"
+        parameters:
+          required_approving_review_count: 1
+          dismiss_stale_reviews: true
+          require_code_owner_reviews: true
+          require_last_push_approval: false
+      
+      - type: "required_conversations"
+        parameters: {}
+
+# Teams (if using GitHub Enterprise)
+teams:
+  maintainers:
+    description: "Core maintainers with admin access"
+    privacy: closed
+    members:
+      - seanchatman  # Primary maintainer
+    permission: admin
+  
+  contributors:
+    description: "Regular contributors with write access"
+    privacy: closed
+    permission: push
+  
+  community:
+    description: "Community members with read access"
+    privacy: closed
+    permission: pull
+
+# Pages configuration
+pages:
+  source:
+    branch: gh-pages
+    path: /
+  build_type: workflow
+  cname: unjucks.dev
+
+# Projects
+projects:
+  - name: "Unjucks Roadmap"
+    description: "Project roadmap and feature planning"
+    columns:
+      - name: "Backlog"
+      - name: "In Progress"  
+      - name: "Review"
+      - name: "Done"

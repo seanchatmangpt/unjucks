@@ -1,0 +1,66 @@
+{
+  "timestamp": "2025-09-09T00:27:09.881Z",
+  "tests": [
+    {
+      "name": "Docker Installation",
+      "status": "passed",
+      "duration": 18,
+      "error": null
+    },
+    {
+      "name": "Docker Daemon Running",
+      "status": "passed",
+      "duration": 67,
+      "error": null
+    },
+    {
+      "name": "Docker Compose Available",
+      "status": "passed",
+      "duration": 55,
+      "error": null
+    },
+    {
+      "name": "Container Creation and Execution",
+      "status": "passed",
+      "duration": 2772,
+      "error": null
+    },
+    {
+      "name": "Security: Resource Limits",
+      "status": "passed",
+      "duration": 326,
+      "error": null
+    },
+    {
+      "name": "Security: Network Isolation",
+      "status": "passed",
+      "duration": 229,
+      "error": null
+    },
+    {
+      "name": "Performance: Node.js Container",
+      "status": "passed",
+      "duration": 1218,
+      "error": null
+    },
+    {
+      "name": "Cleanup: Container Removal",
+      "status": "passed",
+      "duration": 194,
+      "error": null
+    },
+    {
+      "name": "System Resource Usage",
+      "status": "passed",
+      "duration": 813,
+      "error": null
+    }
+  ],
+  "summary": {
+    "total": 9,
+    "passed": 9,
+    "failed": 0,
+    "passRate": 100
+  },
+  "systemInfo": "TYPE            TOTAL     ACTIVE    SIZE      RECLAIMABLE\nImages          107       36        82.27GB   69.22GB (84%)\nContainers      37        21        514.2MB   501.4MB (97%)\nLocal Volumes   130       14        11.18GB   9.728GB (87%)\nBuild Cache     153       0         9.008GB   9.008GB\n"
+}

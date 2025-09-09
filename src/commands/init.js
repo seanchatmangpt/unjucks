@@ -137,8 +137,7 @@ storybook-static/
 /out/
 
 # Next.js production build files
-*.tsbuildinfo
-next-env.d.ts
+# TypeScript files not needed in JS project
 `,
     node: `
 # Node.js specific
@@ -163,7 +162,7 @@ package-lock.json
 # Library specific
 lib/
 types/
-*.d.ts
+# TypeScript definition files not needed
 `
   };
 
@@ -426,7 +425,7 @@ export const initCommand = defineCommand({
         if (await fs.pathExists(templatesPath) && !args.force) {
           console.error(chalk.red("_templates directory already exists"));
           console.log(chalk.blue("\n💡 Use --force to overwrite existing templates"));
-          process.exit(1);
+          return { success: false, message: "_templates directory already exists", files: [] };
         }
         
         if (files.length > 0 && !args.force) {
