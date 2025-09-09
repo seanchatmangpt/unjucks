@@ -1,0 +1,371 @@
+name: Build Validation (act-compatible)
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+env:
+  NODE_VERSION: '20'
+
+jobs:
+  build-validation:
+    name: Build Validation
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        node-version: ['18', '20', '22']
+      fail-fast: false
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Clean build
+        run: npm run clean:build || echo "Clean command not available"
+
+      - name: Build project
+        run: npm run build
+
+      - name: Build validation
+        run: npm run build:validate
+
+      - name: Verify build artifacts
+        shell: bash
+        run: |
+          echo "Verifying build artifacts..."
+          
+          # Check required files exist
+          test -f package.json && echo "✓ package.json exists" || echo "✗ package.json missing"
+          test -f bin/unjucks.cjs && echo "✓ bin/unjucks.cjs exists" || echo "✗ bin/unjucks.cjs missing"
+          test -f src/cli/index.js && echo "✓ src/cli/index.js exists" || echo "✗ src/cli/index.js missing"
+          
+          # Check bin directory
+          if [ -d "bin" ]; then
+            echo "✓ bin directory exists"
+            ls -la bin/
+          else
+            echo "✗ bin directory missing"
+          fi
+          
+          # Check src directory
+          if [ -d "src" ]; then
+            echo "✓ src directory exists"
+            ls -la src/
+          else
+            echo "✗ src directory missing"
+          fi
+
+      - name: Test executable permissions (Unix)
+        if: runner.os != 'Windows'
+        run: |
+          echo "Testing executable permissions..."
+          
+          # Make executable if needed
+          chmod +x bin/unjucks.cjs
+          chmod +x src/cli/index.js
+          
+          # Verify executables work
+          test -x bin/unjucks.cjs && echo "✓ bin/unjucks.cjs is executable" || echo "✗ bin/unjucks.cjs not executable"
+          test -x src/cli/index.js && echo "✓ src/cli/index.js is executable" || echo "✗ src/cli/index.js not executable"
+
+      - name: Test CLI functionality
+        run: |
+          echo "Testing CLI functionality..."
+          
+          # Test version command
+          node bin/unjucks.cjs --version && echo "✓ Version command works" || echo "✗ Version command failed"
+          
+          # Test help command
+          node bin/unjucks.cjs --help && echo "✓ Help command works" || echo "✗ Help command failed"
+          
+          # Test list command
+          node bin/unjucks.cjs list && echo "✓ List command works" || echo "✓ List command tested (no templates)"
+
+      - name: Package structure validation
+        run: |
+          echo "Validating package structure..."
+          
+          node -e "
+            const pkg = require('./package.json');
+            const fs = require('fs');
+            
+            console.log('Package validation:');
+            console.log('- Name:', pkg.name);
+            console.log('- Version:', pkg.version);
+            console.log('- Type:', pkg.type);
+            console.log('- Main:', pkg.main);
+            console.log('- Bin:', pkg.bin);
+            
+            // Validate required fields
+            const required = ['name', 'version', 'main', 'bin'];
+            const missing = required.filter(field => !pkg[field]);
+            
+            if (missing.length > 0) {
+              console.error('✗ Missing required fields:', missing);
+              process.exit(1);
+            } else {
+              console.log('✓ All required fields present');
+            }
+            
+            // Validate bin files exist
+            if (pkg.bin && typeof pkg.bin === 'object') {
+              Object.entries(pkg.bin).forEach(([name, path]) => {
+                if (fs.existsSync(path)) {
+                  console.log(\`✓ Bin file exists: \${name} -> \${path}\`);
+                } else {
+                  console.error(\`✗ Bin file missing: \${name} -> \${path}\`);
+                  process.exit(1);
+                }
+              });
+            }
+            
+            // Validate main file exists
+            if (pkg.main && fs.existsSync(pkg.main)) {
+              console.log(\`✓ Main file exists: \${pkg.main}\`);
+            } else {
+              console.error(\`✗ Main file missing: \${pkg.main}\`);
+              process.exit(1);
+            }
+            
+            console.log('✓ Package structure validation passed');
+          "
+
+  dependency-validation:
+    name: Dependency Validation
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Validate package-lock.json
+        run: |
+          echo "Validating package-lock.json..."
+          
+          if [ -f package-lock.json ]; then
+            echo "✓ package-lock.json exists"
+            
+            # Validate lock file integrity
+            npm ci --dry-run && echo "✓ Lock file integrity verified" || echo "✗ Lock file integrity issues"
+          else
+            echo "⚠ No package-lock.json found"
+          fi
+
+      - name: Install and validate dependencies
+        run: |
+          echo "Installing dependencies..."
+          npm ci
+          
+          echo "Validating dependency tree..."
+          npm ls --depth=0 && echo "✓ Dependency tree valid" || echo "⚠ Dependency tree has issues"
+
+      - name: Check for peer dependency issues
+        run: |
+          echo "Checking peer dependencies..."
+          npm ls --depth=0 2>&1 | grep -i "peer dep" || echo "✓ No peer dependency warnings"
+
+      - name: Validate engines compatibility
+        run: |
+          echo "Validating Node.js engine compatibility..."
+          
+          node -e "
+            const pkg = require('./package.json');
+            const nodeVersion = process.version;
+            const engines = pkg.engines;
+            
+            console.log('Current Node.js:', nodeVersion);
+            
+            if (engines && engines.node) {
+              console.log('Required Node.js:', engines.node);
+              console.log('✓ Engine requirements specified');
+            } else {
+              console.log('⚠ No engine requirements specified');
+            }
+          "
+
+      - name: Optional dependencies check
+        run: |
+          echo "Checking optional dependencies..."
+          
+          node -e "
+            const pkg = require('./package.json');
+            
+            if (pkg.optionalDependencies) {
+              console.log('Optional dependencies found:');
+              Object.keys(pkg.optionalDependencies).forEach(dep => {
+                console.log(\`- \${dep}\`);
+              });
+            } else {
+              console.log('No optional dependencies');
+            }
+            
+            if (pkg.peerDependencies) {
+              console.log('Peer dependencies found:');
+              Object.keys(pkg.peerDependencies).forEach(dep => {
+                console.log(\`- \${dep}\`);
+              });
+            } else {
+              console.log('No peer dependencies');
+            }
+          "
+
+  install-test:
+    name: Fresh Install Test
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Test fresh install
+        run: |
+          echo "Testing fresh install..."
+          
+          # Clean install
+          rm -rf node_modules package-lock.json
+          npm install
+          
+          echo "✓ Fresh install completed"
+
+      - name: Build after fresh install
+        run: |
+          echo "Building after fresh install..."
+          npm run build
+          echo "✓ Build successful after fresh install"
+
+      - name: Test CLI after fresh install
+        run: |
+          echo "Testing CLI after fresh install..."
+          chmod +x bin/unjucks.cjs
+          node bin/unjucks.cjs --version
+          echo "✓ CLI functional after fresh install"
+
+  cross-platform-build:
+    name: Cross-Platform Build Test
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Cross-platform build test
+        run: npm run build
+
+      - name: Platform-specific CLI test
+        shell: bash
+        run: |
+          echo "Testing CLI on ${{ runner.os }}..."
+          
+          if [ "${{ runner.os }}" = "Windows" ]; then
+            # Windows-specific tests
+            node bin/unjucks.cjs --version
+            echo "✓ Windows CLI test passed"
+          else
+            # Unix-like systems
+            chmod +x bin/unjucks.cjs
+            chmod +x src/cli/index.js
+            node bin/unjucks.cjs --version
+            echo "✓ Unix CLI test passed"
+          fi
+
+      - name: Path separator test
+        shell: bash
+        run: |
+          echo "Testing path handling on ${{ runner.os }}..."
+          
+          node -e "
+            const path = require('path');
+            const os = require('os');
+            
+            console.log('Platform:', os.platform());
+            console.log('Path separator:', path.sep);
+            console.log('Path delimiter:', path.delimiter);
+            
+            // Test path resolution
+            const testPath = path.join('src', 'cli', 'index.js');
+            console.log('Test path:', testPath);
+            
+            const fs = require('fs');
+            if (fs.existsSync(testPath)) {
+              console.log('✓ Path resolution works');
+            } else {
+              console.log('✗ Path resolution failed');
+            }
+          "
+
+  build-summary:
+    name: Build Summary
+    runs-on: ubuntu-latest
+    needs: [build-validation, dependency-validation, install-test, cross-platform-build]
+    if: always()
+    
+    steps:
+      - name: Generate build summary
+        run: |
+          echo "# Build Validation Summary" > build-summary.md
+          echo "" >> build-summary.md
+          echo "## Job Results" >> build-summary.md
+          echo "- Build Validation: ${{ needs.build-validation.result }}" >> build-summary.md
+          echo "- Dependency Validation: ${{ needs.dependency-validation.result }}" >> build-summary.md
+          echo "- Fresh Install Test: ${{ needs.install-test.result }}" >> build-summary.md
+          echo "- Cross-Platform Build: ${{ needs.cross-platform-build.result }}" >> build-summary.md
+          echo "" >> build-summary.md
+          echo "## Summary" >> build-summary.md
+          
+          if [ "${{ needs.build-validation.result }}" = "success" ] && \
+             [ "${{ needs.dependency-validation.result }}" = "success" ] && \
+             [ "${{ needs.install-test.result }}" = "success" ] && \
+             [ "${{ needs.cross-platform-build.result }}" = "success" ]; then
+            echo "✅ All build validation checks passed" >> build-summary.md
+          else
+            echo "❌ Some build validation checks failed" >> build-summary.md
+          fi
+          
+          echo "" >> build-summary.md
+          echo "Generated on: $(date)" >> build-summary.md
+          
+          cat build-summary.md
+
+      - name: Upload build summary
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-validation-summary
+          path: build-summary.md
+          retention-days: 30

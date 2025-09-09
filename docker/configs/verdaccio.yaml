@@ -1,0 +1,43 @@
+storage: /app/verdaccio-storage
+plugins: /app/verdaccio-plugins
+
+web:
+  title: Unjucks Test Registry
+  gravatar: false
+  sort_packages: asc
+  darkMode: false
+
+auth:
+  htpasswd:
+    file: /app/htpasswd
+    max_users: 1000
+
+uplinks:
+  npmjs:
+    url: https://registry.npmjs.org/
+    timeout: 30s
+    maxage: 2m
+    max_fails: 2
+    fail_timeout: 5m
+
+packages:
+  '@*/*':
+    access: $all
+    publish: $authenticated
+    unpublish: $authenticated
+    proxy: npmjs
+
+  '**':
+    access: $all
+    publish: $authenticated
+    unpublish: $authenticated
+    proxy: npmjs
+
+server:
+  keepAliveTimeout: 60
+
+middlewares:
+  audit:
+    enabled: true
+
+logs: {type: stdout, format: pretty, level: info}

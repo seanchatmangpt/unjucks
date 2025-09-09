@@ -1,0 +1,247 @@
+name: Security Scanning (act-compatible)
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+  schedule:
+    - cron: '0 2 * * 1' # Weekly on Monday at 2 AM
+  workflow_dispatch:
+
+env:
+  NODE_VERSION: '20'
+
+jobs:
+  security-audit:
+    name: Security Audit
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: NPM Security Audit
+        run: |
+          echo "Running npm security audit..."
+          npm audit --audit-level=moderate || echo "Audit completed with warnings"
+
+      - name: Custom security scan
+        run: npm run security:scan
+
+      - name: Check for known vulnerabilities in package.json
+        run: |
+          echo "Checking package.json for security issues..."
+          
+          # Check for suspicious scripts
+          node -e "
+            const pkg = require('./package.json');
+            const scripts = pkg.scripts || {};
+            
+            // Check for potentially dangerous script patterns
+            const dangerous = Object.entries(scripts).filter(([name, script]) => {
+              return script.includes('rm -rf') || 
+                     script.includes('curl') || 
+                     script.includes('wget') ||
+                     script.includes('eval');
+            });
+            
+            if (dangerous.length > 0) {
+              console.log('Warning: Potentially dangerous scripts found:', dangerous);
+            } else {
+              console.log('No dangerous script patterns detected');
+            }
+          "
+
+      - name: Check file permissions
+        run: |
+          echo "Checking for overly permissive files..."
+          find . -type f -perm -002 -not -path "./node_modules/*" || echo "No world-writable files found"
+
+  dependency-security:
+    name: Dependency Security Check
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Check for malicious packages
+        run: |
+          echo "Checking for known malicious packages..."
+          
+          # Check package.json for suspicious dependencies
+          node -e "
+            const pkg = require('./package.json');
+            const allDeps = {
+              ...pkg.dependencies,
+              ...pkg.devDependencies,
+              ...pkg.optionalDependencies
+            };
+            
+            // List of packages to watch out for (example patterns)
+            const suspiciousPatterns = [
+              'event-stream',
+              'eslint-scope',
+              'bootstrap-sass'
+            ];
+            
+            const found = Object.keys(allDeps).filter(dep => 
+              suspiciousPatterns.some(pattern => dep.includes(pattern))
+            );
+            
+            if (found.length > 0) {
+              console.log('Warning: Packages matching suspicious patterns:', found);
+            } else {
+              console.log('No suspicious package patterns detected');
+            }
+            
+            console.log('Total dependencies:', Object.keys(allDeps).length);
+          "
+
+      - name: Analyze package lock for integrity
+        run: |
+          echo "Checking package-lock.json integrity..."
+          if [ -f package-lock.json ]; then
+            npm ci --dry-run
+            echo "Package lock integrity verified"
+          else
+            echo "No package-lock.json found"
+          fi
+
+  codeql:
+    name: CodeQL Analysis
+    runs-on: ubuntu-latest
+    if: github.event_name != 'schedule'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: javascript
+          queries: +security-and-quality
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build project
+        run: npm run build
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: "/language:javascript"
+
+  secret-scan:
+    name: Secret Scanning
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Basic secret pattern detection
+        run: |
+          echo "Scanning for common secret patterns..."
+          
+          # Check for common secret patterns
+          echo "Checking for API keys..."
+          if grep -r -i "api.key\|apikey\|api_key" --include="*.js" --include="*.json" --include="*.md" --exclude-dir=node_modules . | grep -v "example\|sample\|placeholder\|dummy"; then
+            echo "Warning: Potential API key references found"
+          else
+            echo "No obvious API key patterns found"
+          fi
+          
+          echo "Checking for tokens..."
+          if grep -r -i "token\|secret\|password" --include="*.js" --include="*.json" --exclude-dir=node_modules . | grep -v "example\|sample\|placeholder\|dummy\|console.log\|description\|comment" | head -5; then
+            echo "Warning: Potential secret references found (showing first 5)"
+          else
+            echo "No obvious secret patterns found"
+          fi
+          
+          echo "Checking for hardcoded credentials..."
+          if grep -r -E "(password|passwd|pwd).*=.*['\"][^'\"]{3,}" --include="*.js" --exclude-dir=node_modules . | head -3; then
+            echo "Warning: Potential hardcoded passwords found"
+          else
+            echo "No hardcoded password patterns found"
+          fi
+
+      - name: Environment variable check
+        run: |
+          echo "Checking for exposed environment variables..."
+          if grep -r "process\.env\." --include="*.js" --exclude-dir=node_modules . | grep -v "NODE_ENV\|npm_" | head -5; then
+            echo "Environment variable usage detected (review for sensitive data)"
+          else
+            echo "No process.env usage patterns found"
+          fi
+
+  license-compliance:
+    name: License Compliance
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Check license compliance
+        run: |
+          echo "Checking license compliance..."
+          
+          # Verify project has a license
+          if [ -f LICENSE ]; then
+            echo "License file found"
+            head -3 LICENSE
+          else
+            echo "Warning: No LICENSE file found"
+          fi
+          
+          # Check package.json license field
+          node -e "
+            const pkg = require('./package.json');
+            if (pkg.license) {
+              console.log('Package license:', pkg.license);
+            } else {
+              console.log('Warning: No license field in package.json');
+            }
+          "
+
+      - name: Scan dependency licenses
+        run: |
+          echo "Scanning dependency licenses..."
+          npx license-checker --summary || npm install -g license-checker && license-checker --summary || echo "License checker not available"

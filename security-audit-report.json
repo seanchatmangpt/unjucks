@@ -1,0 +1,134 @@
+{
+  "summary": {
+    "timestamp": "2025-09-09T03:02:41.636Z",
+    "total_checks": 13,
+    "passed": 10,
+    "failed": 2,
+    "warnings": 1,
+    "security_score": 76.9,
+    "compliance_level": "Production Ready"
+  },
+  "details": [
+    {
+      "level": "INFO",
+      "message": "Starting comprehensive security audit...",
+      "details": null,
+      "timestamp": "2025-09-09T03:02:41.637Z"
+    },
+    {
+      "level": "INFO",
+      "message": "Checking environment file security...",
+      "details": null,
+      "timestamp": "2025-09-09T03:02:41.638Z"
+    },
+    {
+      "level": "FAIL",
+      "message": "Environment security issues found: 5",
+      "details": "Line 5: Debug/development setting in .env\n  Line 14: Weak password detected\n  Line 51: Weak password detected\n  Line 61: Wildcard CORS origin - security risk\n  Line 77: Debug/development setting in .env",
+      "timestamp": "2025-09-09T03:02:41.638Z"
+    },
+    {
+      "level": "PASS",
+      "message": ".env.example file exists for secure template",
+      "details": null,
+      "timestamp": "2025-09-09T03:02:41.638Z"
+    },
+    {
+      "level": "INFO",
+      "message": "Checking file permissions...",
+      "details": null,
+      "timestamp": "2025-09-09T03:02:41.638Z"
+    },
+    {
+      "level": "PASS",
+      "message": ".env has appropriate permissions (644)",
+      "details": null,
+      "timestamp": "2025-09-09T03:02:41.638Z"
+    },
+    {
+      "level": "PASS",
+      "message": "package.json has appropriate permissions (644)",
+      "details": null,
+      "timestamp": "2025-09-09T03:02:41.638Z"
+    },
+    {
+      "level": "PASS",
+      "message": "bin/unjucks.cjs has appropriate permissions (755)",
+      "details": null,
+      "timestamp": "2025-09-09T03:02:41.638Z"
+    },
+    {
+      "level": "PASS",
+      "message": "src/cli/index.js has appropriate permissions (755)",
+      "details": null,
+      "timestamp": "2025-09-09T03:02:41.638Z"
+    },
+    {
+      "level": "INFO",
+      "message": "Checking dependency vulnerabilities...",
+      "details": null,
+      "timestamp": "2025-09-09T03:02:41.639Z"
+    },
+    {
+      "level": "PASS",
+      "message": "No dependency vulnerabilities found",
+      "details": null,
+      "timestamp": "2025-09-09T03:02:42.171Z"
+    },
+    {
+      "level": "INFO",
+      "message": "Checking security tools configuration...",
+      "details": null,
+      "timestamp": "2025-09-09T03:02:42.171Z"
+    },
+    {
+      "level": "PASS",
+      "message": "Gitleaks secret scanning configuration found",
+      "details": null,
+      "timestamp": "2025-09-09T03:02:42.171Z"
+    },
+    {
+      "level": "PASS",
+      "message": "ESLint security rules configuration found",
+      "details": null,
+      "timestamp": "2025-09-09T03:02:42.171Z"
+    },
+    {
+      "level": "PASS",
+      "message": "Semgrep static analysis configuration found",
+      "details": null,
+      "timestamp": "2025-09-09T03:02:42.171Z"
+    },
+    {
+      "level": "PASS",
+      "message": "Security headers configuration configuration found",
+      "details": null,
+      "timestamp": "2025-09-09T03:02:42.171Z"
+    },
+    {
+      "level": "INFO",
+      "message": "Checking secure coding practices...",
+      "details": null,
+      "timestamp": "2025-09-09T03:02:42.171Z"
+    },
+    {
+      "level": "FAIL",
+      "message": "eval() usage found in 5 files - potential security risk",
+      "details": ".eslintrc.security.js, docs/book/book/html/searchindex.js, lint-staged.config.js, scripts/security-analysis.js, scripts/security-audit.js",
+      "timestamp": "2025-09-09T03:02:42.315Z"
+    },
+    {
+      "level": "WARN",
+      "message": "console.log usage found in 105 files - remove for production",
+      "details": ".claude/helpers/github-safe.js, config/security-headers.js, debug-rdf-loader.js, docs/book/book/html/searchindex.js, docs/book/examples/03-plugin-system-implementation.js",
+      "timestamp": "2025-09-09T03:02:42.315Z"
+    }
+  ],
+  "recommendations": [
+    "Address all failed security checks before production deployment",
+    "Implement automated security testing in CI/CD pipeline",
+    "Regular security audits should be performed monthly",
+    "Keep all dependencies updated to latest secure versions",
+    "Implement runtime security monitoring and alerting"
+  ]
+}

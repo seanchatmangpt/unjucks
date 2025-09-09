@@ -1,10 +1,11 @@
 # Multi-stage Docker build for Unjucks cleanroom testing
 # This container provides an isolated environment for testing package functionality
+# Security-hardened with minimal attack surface
 
-# Stage 1: Base environment with Node.js and build tools
-FROM node:18-alpine AS base
+# Stage 1: Security-hardened base environment
+FROM node:20-alpine AS base
 
-# Install system dependencies
+# Security: Install only essential dependencies
 RUN apk add --no-cache \
     bash \
     curl \
@@ -13,149 +14,142 @@ RUN apk add --no-cache \
     python3 \
     python3-dev \
     py3-pip \
-    && rm -rf /var/cache/apk/*
+    ca-certificates \
+    openssl \
+    tzdata \
+    dumb-init \
+    && rm -rf /var/cache/apk/* \
+    && rm -rf /tmp/* \
+    && rm -rf /var/tmp/*
+
+# Security: Set timezone and remove unnecessary packages
+ENV TZ=UTC
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
 # Set working directory
 WORKDIR /app
 
-# Create non-root user for testing
-RUN addgroup -g 1001 -S nodejs && \
-    adduser -S testuser -u 1001 -G nodejs
+# Security: Create non-root user with minimal privileges
+RUN addgroup -g 1001 -S unjucks && \
+    adduser -S testuser -u 1001 -G unjucks \
+    --disabled-password \
+    --no-create-home \
+    --shell /bin/false \
+    && mkdir -p /home/testuser \
+    && chown testuser:unjucks /home/testuser
 
-# Stage 2: Verdaccio registry setup
+# Stage 2: Verdaccio registry setup (isolated)
 FROM base AS registry
 
-# Install Verdaccio globally
-RUN npm install -g verdaccio@latest
+# Security: Install specific Verdaccio version
+RUN npm install -g verdaccio@5.29.0 --no-audit --no-fund \
+    && npm cache clean --force
 
-# Copy Verdaccio configuration
-COPY config/verdaccio.yaml /app/verdaccio.yaml
+# Copy Verdaccio configuration with security settings
+COPY docker/configs/verdaccio.yaml /app/verdaccio.yaml
 
-# Create necessary directories
-RUN mkdir -p /app/verdaccio-storage /app/logs && \
-    chown -R testuser:nodejs /app
+# Security: Create necessary directories with proper permissions
+RUN mkdir -p /app/verdaccio-storage /app/verdaccio-plugins /app/logs && \
+    chown -R testuser:unjucks /app && \
+    chmod 755 /app/verdaccio-storage /app/logs
 
-# Expose Verdaccio port
+# Security: Expose only necessary port
 EXPOSE 4873
 
-# Stage 3: Testing environment
+# Stage 3: Secure testing environment
 FROM base AS testing
 
-# Copy package files
+# Security: Copy package files with verification
 COPY package*.json ./
 COPY bin/ ./bin/
 COPY src/ ./src/
 COPY _templates/ ./_templates/
 COPY scripts/ ./scripts/
-COPY config/ ./config/
 
-# Install dependencies
-RUN npm ci --only=production
+# Security: Install dependencies with audit and verification
+RUN npm ci --only=production --no-audit --no-fund \
+    && npm audit fix --audit-level=high || true \
+    && npm cache clean --force
 
-# Make CLI executable
-RUN chmod +x bin/unjucks.cjs src/cli/index.js
+# Security: Make CLI executable with minimal permissions
+RUN chmod 755 bin/unjucks.cjs src/cli/index.js \
+    && find bin/ -type f -exec chmod 755 {} \; \
+    && find src/ -type f -exec chmod 644 {} \; \
+    && find _templates/ -type f -exec chmod 644 {} \; \
+    && find scripts/ -type f -exec chmod 755 {} \;
 
-# Create test directories
-RUN mkdir -p /app/test-workspace /app/test-results && \
-    chown -R testuser:nodejs /app
+# Security: Create test directories with proper permissions
+RUN mkdir -p \
+    /app/test-workspace \
+    /app/test-results \
+    /app/cleanroom-output \
+    /app/security-reports \
+    /app/performance-reports \
+    && chown -R testuser:unjucks /app \
+    && chmod 755 /app/test-workspace /app/test-results
 
-# Stage 4: Complete cleanroom environment
+# Stage 4: Complete cleanroom environment with security hardening
 FROM testing AS cleanroom
 
-# Install additional testing tools
+# Security: Install testing tools with specific versions
 RUN npm install -g \
-    npm-check-updates \
-    npm-audit-html \
-    npm-license-checker \
-    clinic \
-    0x
+    npm-check-updates@16.14.12 \
+    npm-audit-html@1.5.0 \
+    npm-license-checker@25.0.1 \
+    clinic@12.1.0 \
+    0x@5.7.0 \
+    snyk@1.1291.0 \
+    --no-audit --no-fund \
+    && npm cache clean --force
 
-# Copy cleanroom test scripts
-COPY scripts/cleanroom-test.sh /app/cleanroom-test.sh
-COPY scripts/validation-checklist.js /app/validation-checklist.js
+# Security: Copy and validate test scripts
+COPY docker/scripts/cleanroom-test.sh /app/cleanroom-test.sh
+COPY docker/scripts/validation-checklist.js /app/validation-checklist.js
+COPY docker/scripts/security-scan.sh /app/security-scan.sh
+COPY docker/scripts/performance-monitor.sh /app/performance-monitor.sh
 
-# Make scripts executable
-RUN chmod +x /app/cleanroom-test.sh /app/validation-checklist.js
+# Security: Set executable permissions only where needed
+RUN chmod 755 /app/cleanroom-test.sh /app/validation-checklist.js \
+    /app/security-scan.sh /app/performance-monitor.sh
 
-# Set up environment variables
+# Security: Environment variables with secure defaults
 ENV NODE_ENV=test
 ENV CLEANROOM_MODE=docker
 ENV VERDACCIO_PORT=4873
 ENV NPM_REGISTRY=http://localhost:4873/
+ENV NODE_OPTIONS="--max-old-space-size=512 --no-deprecation"
+ENV FORCE_COLOR=1
+ENV CI=true
 
-# Create cleanroom test script wrapper
-RUN cat > /app/run-cleanroom-tests.sh << 'EOF'
-#!/bin/bash
-set -euo pipefail
+# Copy comprehensive cleanroom test script wrapper
+COPY docker/scripts/cleanroom-test-wrapper.sh /app/run-cleanroom-tests.sh
 
-echo "Starting Unjucks Cleanroom Test Environment"
-echo "==========================================="
+RUN chmod 755 /app/run-cleanroom-tests.sh
 
-# Start Verdaccio in background
-echo "Starting Verdaccio registry..."
-verdaccio --config /app/verdaccio.yaml --listen 0.0.0.0:4873 &
-VERDACCIO_PID=$!
-
-# Wait for Verdaccio to be ready
-echo "Waiting for Verdaccio to start..."
-timeout=60
-count=0
-while ! curl -s http://localhost:4873 >/dev/null 2>&1; do
-    if [ $count -ge $timeout ]; then
-        echo "ERROR: Verdaccio failed to start within $timeout seconds"
-        kill $VERDACCIO_PID 2>/dev/null || true
-        exit 1
-    fi
-    sleep 1
-    ((count++))
-done
-
-echo "Verdaccio started successfully"
-
-# Set up npm to use local registry
-npm config set registry http://localhost:4873/
-
-# Run cleanroom tests
-echo "Running cleanroom tests..."
-if /app/cleanroom-test.sh docker; then
-    echo "✅ All cleanroom tests passed!"
-    TEST_RESULT=0
-else
-    echo "❌ Some cleanroom tests failed"
-    TEST_RESULT=1
-fi
-
-# Cleanup
-echo "Cleaning up..."
-kill $VERDACCIO_PID 2>/dev/null || true
-
-# Copy results to output directory
-mkdir -p /output
-cp -r /app/temp/cleanroom-*/reports/* /output/ 2>/dev/null || true
-cp -r /app/temp/cleanroom-*/logs/* /output/ 2>/dev/null || true
-cp /app/temp/cleanroom-*/validation-report.json /output/ 2>/dev/null || true
-
-echo "Results copied to /output/"
-exit $TEST_RESULT
-EOF
-
-RUN chmod +x /app/run-cleanroom-tests.sh
-
-# Switch to non-root user
+# Security: Switch to non-root user
 USER testuser
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD curl -f http://localhost:4873/ || exit 1
+# Enhanced health check with timeout
+HEALTHCHECK --interval=30s --timeout=10s --start-period=15s --retries=3 \
+    CMD curl -sf http://localhost:4873/ --max-time 5 || exit 1
 
-# Default command
+# Security: Use dumb-init for proper signal handling
+ENTRYPOINT ["dumb-init", "--"]
+
+# Default command runs comprehensive tests
 CMD ["/app/run-cleanroom-tests.sh"]
 
-# Labels for metadata
-LABEL maintainer="Unjucks Team"
-LABEL description="Cleanroom testing environment for Unjucks"
-LABEL version="1.0.0"
-LABEL org.opencontainers.image.title="Unjucks Cleanroom"
-LABEL org.opencontainers.image.description="Isolated testing environment for Unjucks package validation"
+# Security and metadata labels
+LABEL maintainer="Unjucks Team <team@unjucks.dev>"
+LABEL description="Security-hardened cleanroom testing environment for Unjucks"
+LABEL version="2.0.0"
+LABEL org.opencontainers.image.title="Unjucks Cleanroom Security Edition"
+LABEL org.opencontainers.image.description="Isolated, security-hardened testing environment for Unjucks package validation"
 LABEL org.opencontainers.image.vendor="Unjucks"
 LABEL org.opencontainers.image.licenses="MIT"
+LABEL org.opencontainers.image.source="https://github.com/unjucks/unjucks"
+LABEL security.scan.enabled="true"
+LABEL security.user.nonroot="true"
+LABEL security.verdaccio.isolated="true"
+LABEL testing.comprehensive="true"
+LABEL testing.performance="true"

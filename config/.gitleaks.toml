@@ -1,0 +1,88 @@
+# Gitleaks configuration for Fortune 5 enterprise security
+title = "Unjucks Enterprise Gitleaks Config"
+
+[extend]
+useDefault = true
+
+[[rules]]
+description = "NPM Token"
+id = "npm-token"
+regex = '''npm_[a-zA-Z0-9]{36}'''
+tags = ["key", "NPM"]
+
+[[rules]]
+description = "Generic API Key"
+id = "generic-api-key"
+regex = '''(?i)(api_?key|apikey)\s*[:=]\s*['""]?[a-zA-Z0-9]{16,}['""]?'''
+tags = ["key", "API"]
+
+[[rules]]
+description = "JWT Secret"
+id = "jwt-secret"
+regex = '''(?i)(jwt_?secret|jwt_?key)\s*[:=]\s*['""]?[a-zA-Z0-9+/=]{32,}['""]?'''
+tags = ["secret", "JWT"]
+
+[[rules]]
+description = "Database Password"
+id = "db-password"
+regex = '''(?i)(db_?password|database_?password)\s*[:=]\s*['""]?[a-zA-Z0-9@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]{8,}['""]?'''
+tags = ["password", "database"]
+
+[[rules]]
+description = "Private Key"
+id = "private-key"
+regex = '''-----BEGIN (RSA )?PRIVATE KEY-----'''
+tags = ["key", "private"]
+
+[[rules]]
+description = "OAuth Client Secret"
+id = "oauth-secret"
+regex = '''(?i)(client_?secret|oauth_?secret)\s*[:=]\s*['""]?[a-zA-Z0-9+/=]{16,}['""]?'''
+tags = ["secret", "oauth"]
+
+[[rules]]
+description = "AWS Secret Access Key"
+id = "aws-secret"
+regex = '''(?i)(aws_?secret_?access_?key)\s*[:=]\s*['""]?[a-zA-Z0-9+/=]{40}['""]?'''
+tags = ["key", "AWS"]
+
+[[rules]]
+description = "Generic Secret"
+id = "generic-secret"
+regex = '''(?i)(secret|password|token|key)\s*[:=]\s*['""]?[a-zA-Z0-9+/=]{20,}['""]?'''
+tags = ["secret", "generic"]
+
+[allowlist]
+description = "Global allow list"
+paths = [
+    '''.env.example$''',
+    '''^\.git/''',
+    '''node_modules/''',
+    '''\.md$''',
+    '''\.txt$''',
+    '''LICENSE$''',
+    '''test/fixtures/'''
+]
+
+commits = [
+    "allowedcommithash1",
+    "allowedcommithash2"
+]
+
+[[allowlist.regexes]]
+description = "Example secrets"
+regex = '''(your-|example-|placeholder-|test-|mock-|dummy-)'''
+
+[[allowlist.regexes]]
+description = "Common placeholders"
+regex = '''(YOUR_|EXAMPLE_|TEST_|<.*>|\{\{.*\}\}|\$\{.*\})'''
+
+[allowlist.stopwords]
+stopwords = [
+    "example",
+    "test",
+    "placeholder",
+    "dummy",
+    "mock",
+    "sample"
+]

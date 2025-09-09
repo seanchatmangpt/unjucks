@@ -18,7 +18,7 @@ class SessionManager {
     /** @private @type {SessionConfig} */
     this.sessionConfig = {
       name: 'secure_session',
-      secret: process.env.SESSION_SECRET || 'change-me-in-production',
+      secret: this.validateSessionSecret(),
       maxAge: 24 * 60 * 60 * 1000, // 24 hours
       secure: process.env.NODE_ENV === 'production',
       httpOnly: true,
@@ -36,6 +36,30 @@ class SessionManager {
     this.sessions = new Map()
     /** @private @type {Map<string, CSRFToken>} */
     this.csrfTokens = new Map()
+  }
+
+  /**
+   * Validate session secret configuration
+   * @private
+   * @returns {string}
+   */
+  validateSessionSecret() {
+    const secret = process.env.SESSION_SECRET;
+    
+    if (!secret) {
+      throw new Error('SESSION_SECRET environment variable is required and must be at least 32 characters');
+    }
+
+    if (secret.length < 32) {
+      throw new Error('SESSION_SECRET must be at least 32 characters for security');
+    }
+
+    // Warn if using development-like secrets
+    if (secret.includes('dev') || secret.includes('test') || secret.includes('example') || secret.includes('change-me')) {
+      console.warn('WARNING: SESSION_SECRET appears to be a development secret. Use a cryptographically secure secret in production.');
+    }
+
+    return secret;
   }
 
   /**

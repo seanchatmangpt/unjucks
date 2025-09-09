@@ -198,11 +198,20 @@ class EncryptionService {
    * @returns {Promise<Buffer>}
    */
   async loadMasterKey() {
-    // In production, load from HSM, key vault, or secure environment variable
-    const keyMaterial = process.env.ENCRYPTION_MASTER_KEY || 'dev-key-not-for-production'
+    // SECURITY: Always require explicit master key configuration
+    const keyMaterial = process.env.ENCRYPTION_MASTER_KEY
     
-    if (keyMaterial === 'dev-key-not-for-production' && process.env.NODE_ENV === 'production') {
-      throw new Error('Production master key not configured')
+    if (!keyMaterial) {
+      throw new Error('ENCRYPTION_MASTER_KEY environment variable is required and must be at least 32 characters')
+    }
+
+    if (keyMaterial.length < 32) {
+      throw new Error('ENCRYPTION_MASTER_KEY must be at least 32 characters for security')
+    }
+
+    // Warn if using development-like keys in any environment
+    if (keyMaterial.includes('dev') || keyMaterial.includes('test') || keyMaterial.includes('example')) {
+      console.warn('WARNING: ENCRYPTION_MASTER_KEY appears to be a development key. Use a cryptographically secure key in production.')
     }
 
     // Derive 256-bit master key from key material

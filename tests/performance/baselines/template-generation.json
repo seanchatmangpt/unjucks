@@ -1,0 +1,130 @@
+{
+  "timestamp": "2025-09-09T00:00:00.000Z",
+  "version": "2025.9.8",
+  "description": "Performance baselines for Fortune 5 scale template generation",
+  "environment": {
+    "nodeVersion": "18.0.0",
+    "platform": "darwin",
+    "cpuCores": 8,
+    "memoryGB": 16
+  },
+  "metrics": {
+    "simpleTemplateRendering": {
+      "operationsPerSecond": 50000,
+      "averageLatencyMs": 0.02,
+      "p95LatencyMs": 0.05,
+      "p99LatencyMs": 0.1,
+      "memoryUsageMB": 1.5,
+      "description": "Simple variable substitution template"
+    },
+    "complexTemplateWithLoops": {
+      "operationsPerSecond": 5000,
+      "averageLatencyMs": 0.2,
+      "p95LatencyMs": 0.5,
+      "p99LatencyMs": 1.0,
+      "memoryUsageMB": 8.0,
+      "description": "Complex template with loops and conditionals (100 users)"
+    },
+    "largeDatasetRendering": {
+      "operationsPerSecond": 100,
+      "averageLatencyMs": 10.0,
+      "p95LatencyMs": 25.0,
+      "p99LatencyMs": 50.0,
+      "memoryUsageMB": 45.0,
+      "description": "Large dataset template (10,000 records)"
+    },
+    "templateCompilationAndCaching": {
+      "operationsPerSecond": 2000,
+      "averageLatencyMs": 0.5,
+      "p95LatencyMs": 1.2,
+      "p99LatencyMs": 2.5,
+      "memoryUsageMB": 5.0,
+      "description": "Template compilation with macro support"
+    },
+    "fileBasedTemplateLoading": {
+      "operationsPerSecond": 1000,
+      "averageLatencyMs": 1.0,
+      "p95LatencyMs": 2.5,
+      "p99LatencyMs": 5.0,
+      "memoryUsageMB": 3.0,
+      "description": "File system template loading and rendering"
+    },
+    "concurrentTemplateRendering": {
+      "operationsPerSecond": 500,
+      "averageLatencyMs": 2.0,
+      "p95LatencyMs": 5.0,
+      "p99LatencyMs": 10.0,
+      "memoryUsageMB": 15.0,
+      "description": "10 concurrent template rendering operations"
+    },
+    "memoryIntensiveOperations": {
+      "operationsPerSecond": 50,
+      "averageLatencyMs": 20.0,
+      "p95LatencyMs": 50.0,
+      "p99LatencyMs": 100.0,
+      "memoryUsageMB": 75.0,
+      "description": "Memory-intensive nested template operations"
+    }
+  },
+  "thresholds": {
+    "regressionTolerancePercent": 15,
+    "memoryLeakThresholdMB": 10,
+    "maxLatencyIncreasePercent": 25,
+    "minThroughputDecreasePercent": 20
+  },
+  "loadTestBaselines": {
+    "concurrentUsers": {
+      "low": 100,
+      "medium": 500,
+      "high": 1000,
+      "peak": 2000,
+      "stress": 5000
+    },
+    "expectedThroughput": {
+      "simpleTemplates": {
+        "100users": 5000,
+        "500users": 20000,
+        "1000users": 35000,
+        "2000users": 60000
+      },
+      "complexTemplates": {
+        "100users": 500,
+        "500users": 2000,
+        "1000users": 3500,
+        "2000users": 6000
+      }
+    },
+    "responseTimeTargets": {
+      "p95UnderLoadMs": 500,
+      "p99UnderLoadMs": 1000,
+      "p95UnderStressMs": 2000,
+      "p99UnderStressMs": 5000
+    },
+    "resourceLimits": {
+      "maxMemoryUsageGB": 4,
+      "maxCpuUsagePercent": 80,
+      "maxDiskIOKBps": 10000,
+      "maxNetworkMBps": 100
+    }
+  },
+  "regressionDetection": {
+    "enabled": true,
+    "checkFrequency": "daily",
+    "alertThresholds": {
+      "latencyIncrease": 20,
+      "throughputDecrease": 15,
+      "memoryIncrease": 25,
+      "errorRateIncrease": 5
+    },
+    "historicalDataRetentionDays": 90,
+    "baselineUpdateFrequency": "weekly"
+  },
+  "cicdGates": {
+    "performanceTestRequired": true,
+    "minimumPassingTests": "95%",
+    "maxRegressionPercent": 10,
+    "loadTestDurationMinutes": 15,
+    "memoryLeakDetection": true,
+    "failOnPerformanceRegression": true
+  }
+}

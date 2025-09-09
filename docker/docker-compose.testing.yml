@@ -1,193 +1,451 @@
-services:
-  # Main testing service with full environment
-  unjucks-test:
-    build:
-      context: ..
-      dockerfile: docker/Dockerfile.testing
-      target: testing
-      args:
-        NODE_ENV: test
-    container_name: unjucks-test-main
-    environment:
-      - NODE_ENV=test
-      - CI=true
-      - VITEST_POOL_SIZE=2
-      - VITEST_MIN_THREADS=1
-      - VITEST_MAX_THREADS=4
-      - FORCE_COLOR=1
-      - UNJUCKS_TEST_MODE=docker
-      - TEST_TIMEOUT=30000
-    volumes:
-      # Source code mapping (read-only)
-      - ../src:/app/src:ro
-      - ../tests:/app/tests:ro
-      - ../_templates:/app/_templates:ro
-      - ../bin:/app/bin:ro
-      - ../scripts:/app/scripts:ro
-      - ../config:/app/config:ro
-      # Test results and reports (read-write)
-      - ../test-results-docker:/app/test-results
-      - ../coverage:/app/coverage
-      - ../reports:/app/reports
-      # Configuration files
-      - ../package.json:/app/package.json:ro
-      - ../vitest.ci.config.js:/app/vitest.ci.config.js:ro
-      - ../vitest.minimal.config.js:/app/vitest.minimal.config.js:ro
-    working_dir: /app
-    command: npm run test:comprehensive
-    networks:
-      - unjucks-test-network
-    healthcheck:
-      test: ["CMD", "node", "-e", "console.log('Container healthy')"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 10s
-    mem_limit: 1g
-    cpus: 2.0
-    restart: unless-stopped
+# Docker Compose for Full Stack Testing Environment
+# Comprehensive testing orchestration with database containers,
+# service dependencies, network isolation, and health checks
 
-  # Minimal testing service for quick validation
-  unjucks-test-minimal:
-    build:
-      context: ..
-      dockerfile: docker/Dockerfile.testing
-      target: minimal-testing
-    container_name: unjucks-test-minimal
-    environment:
-      - NODE_ENV=test
-      - CI=true
-      - UNJUCKS_TEST_MODE=minimal
-    volumes:
-      - ../src:/app/src:ro
-      - ../tests:/app/tests:ro
-      - ../test-results-docker:/app/test-results
-    working_dir: /app
-    command: npm run test:minimal
-    networks:
-      - unjucks-test-network
-    mem_limit: 512m
-    cpus: 1.0
-    profiles:
-      - minimal
+version: '3.8'
 
-  # Security testing service
-  unjucks-security-test:
-    build:
-      context: ..
-      dockerfile: docker/Dockerfile.testing
-      target: testing
-    container_name: unjucks-security-test
-    environment:
-      - NODE_ENV=test
-      - CI=true
-      - SECURITY_TEST_MODE=true
-    volumes:
-      - ../src:/app/src:ro
-      - ../tests:/app/tests:ro
-      - ../scripts:/app/scripts:ro
-      - ../test-results-docker:/app/test-results
-    working_dir: /app
-    command: npm run test:security
-    networks:
-      - unjucks-test-network
-    mem_limit: 768m
-    cpus: 1.5
-    profiles:
-      - security
-
-  # Performance testing service
-  unjucks-perf-test:
-    build:
-      context: ..
-      dockerfile: docker/Dockerfile.testing
-      target: testing
-    container_name: unjucks-perf-test
-    environment:
-      - NODE_ENV=test
-      - CI=true
-      - PERFORMANCE_TEST_MODE=true
-    volumes:
-      - ../src:/app/src:ro
-      - ../tests:/app/tests:ro
-      - ../benchmarks:/app/benchmarks:ro
-      - ../test-results-docker:/app/test-results
-    working_dir: /app
-    command: npm run perf:all
-    networks:
-      - unjucks-test-network
-    mem_limit: 2g
-    cpus: 3.0
-    profiles:
-      - performance
-
-  # Integration testing with external dependencies
-  unjucks-integration-test:
-    build:
-      context: ..
-      dockerfile: docker/Dockerfile.testing
-      target: testing
-    container_name: unjucks-integration-test
-    environment:
-      - NODE_ENV=test
-      - CI=true
-      - INTEGRATION_TEST_MODE=true
-    volumes:
-      - ../src:/app/src:ro
-      - ../tests:/app/tests:ro
-      - ../_templates:/app/_templates:ro
-      - ../test-results-docker:/app/test-results
-    working_dir: /app
-    command: npm run test:integration
-    networks:
-      - unjucks-test-network
-    mem_limit: 1.5g
-    cpus: 2.5
-    profiles:
-      - integration
-    depends_on:
-      - test-db
-
-  # Mock database for integration tests
-  test-db:
-    image: alpine:latest
-    container_name: unjucks-test-db
-    command: sh -c "echo 'Mock database running' && sleep infinity"
-    networks:
-      - unjucks-test-network
-    profiles:
-      - integration
-
-  # Test result aggregator service
-  test-aggregator:
-    image: node:20-alpine
-    container_name: unjucks-test-aggregator
-    environment:
-      - NODE_ENV=test
-    volumes:
-      - ../test-results-docker:/test-results:ro
-      - ../reports:/reports
-      - ../scripts/docker:/scripts:ro
-    working_dir: /scripts
-    command: sh -c "sleep 5 && node aggregate-test-results.js"
-    networks:
-      - unjucks-test-network
-    depends_on:
-      - unjucks-test
-    profiles:
-      - aggregation
-
+# ==============================================
+# NETWORKS - Isolated network environments
+# ==============================================
 networks:
-  unjucks-test-network:
+  testing-frontend:
     driver: bridge
     ipam:
       config:
-        - subnet: 172.20.0.0/16
+        - subnet: 172.20.0.0/24
+  testing-backend:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.21.0.0/24
+  testing-database:
+    driver: bridge
+    internal: true  # Database network is internal only
+    ipam:
+      config:
+        - subnet: 172.22.0.0/24
+  testing-monitoring:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.23.0.0/24
 
+# ==============================================
+# VOLUMES - Persistent storage for testing
+# ==============================================
 volumes:
-  test-results:
+  postgres_test_data:
     driver: local
-  coverage-data:
+  redis_test_data:
     driver: local
-  reports-data:
+  mongodb_test_data:
     driver: local
+  elasticsearch_test_data:
+    driver: local
+  test_results:
+    driver: local
+  coverage_reports:
+    driver: local
+
+# ==============================================
+# SERVICES - Complete testing stack
+# ==============================================
+services:
+  # ==============================================
+  # DATABASE CONTAINERS
+  # ==============================================
+  
+  # PostgreSQL Test Database
+  postgres-test:
+    image: postgres:15-alpine
+    container_name: unjucks-postgres-test
+    environment:
+      POSTGRES_DB: unjucks_test
+      POSTGRES_USER: test_user
+      POSTGRES_PASSWORD: test_password
+      POSTGRES_HOST_AUTH_METHOD: md5
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - postgres_test_data:/var/lib/postgresql/data
+      - ./database/init:/docker-entrypoint-initdb.d:ro
+      - ./database/test-fixtures:/test-fixtures:ro
+    ports:
+      - "5433:5432"  # Different port to avoid conflicts
+    networks:
+      - testing-database
+    command: >
+      postgres
+      -c shared_preload_libraries=pg_stat_statements
+      -c pg_stat_statements.track=all
+      -c max_connections=100
+      -c shared_buffers=256MB
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U test_user -d unjucks_test"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '0.5'
+
+  # Redis Test Cache
+  redis-test:
+    image: redis:7-alpine
+    container_name: unjucks-redis-test
+    command: >
+      redis-server
+      --maxmemory 128mb
+      --maxmemory-policy allkeys-lru
+      --save 60 1
+      --loglevel warning
+    volumes:
+      - redis_test_data:/data
+      - ./redis/redis-test.conf:/etc/redis/redis.conf:ro
+    ports:
+      - "6380:6379"  # Different port to avoid conflicts
+    networks:
+      - testing-database
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: '0.25'
+
+  # MongoDB Test Database
+  mongodb-test:
+    image: mongo:6-focal
+    container_name: unjucks-mongodb-test
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: test_admin
+      MONGO_INITDB_ROOT_PASSWORD: test_admin_password
+      MONGO_INITDB_DATABASE: unjucks_test
+    volumes:
+      - mongodb_test_data:/data/db
+      - ./database/mongo-init:/docker-entrypoint-initdb.d:ro
+    ports:
+      - "27018:27017"  # Different port to avoid conflicts
+    networks:
+      - testing-database
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/unjucks_test --quiet
+      interval: 10s
+      timeout: 10s
+      retries: 5
+      start_period: 40s
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '0.5'
+
+  # Elasticsearch for Search Testing
+  elasticsearch-test:
+    image: elasticsearch:8.8.0
+    container_name: unjucks-elasticsearch-test
+    environment:
+      - discovery.type=single-node
+      - ES_JAVA_OPTS=-Xms256m -Xmx256m
+      - xpack.security.enabled=false
+      - xpack.security.enrollment.enabled=false
+    volumes:
+      - elasticsearch_test_data:/usr/share/elasticsearch/data
+    ports:
+      - "9201:9200"  # Different port to avoid conflicts
+    networks:
+      - testing-database
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:9200/_cluster/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '0.5'
+
+  # ==============================================
+  # APPLICATION TESTING SERVICES
+  # ==============================================
+
+  # Main Application Under Test
+  app-test:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.testing
+      target: testing
+    container_name: unjucks-app-test
+    environment:
+      NODE_ENV: test
+      DATABASE_URL: postgresql://test_user:test_password@postgres-test:5432/unjucks_test
+      REDIS_URL: redis://redis-test:6379
+      MONGODB_URL: mongodb://test_admin:test_admin_password@mongodb-test:27017/unjucks_test
+      ELASTICSEARCH_URL: http://elasticsearch-test:9200
+      LOG_LEVEL: debug
+      TEST_TIMEOUT: 60000
+      COVERAGE_THRESHOLD: 80
+    volumes:
+      - ../src:/app/src:ro
+      - ../tests:/app/tests:ro
+      - ../package.json:/app/package.json:ro
+      - test_results:/app/test-results
+      - coverage_reports:/app/coverage
+      - /var/run/docker.sock:/var/run/docker.sock:ro  # For container testing
+    ports:
+      - "3001:3000"
+    networks:
+      - testing-frontend
+      - testing-backend
+    depends_on:
+      postgres-test:
+        condition: service_healthy
+      redis-test:
+        condition: service_healthy
+      mongodb-test:
+        condition: service_healthy
+      elasticsearch-test:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "node", "scripts/health-check.js"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    restart: "no"  # Don't restart test containers automatically
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '1.0'
+
+  # Unit Testing Service
+  unit-tests:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.testing
+      target: testing
+    container_name: unjucks-unit-tests
+    environment:
+      NODE_ENV: test
+      TEST_TYPE: unit
+      PARALLEL_TESTS: "true"
+      MAX_WORKERS: 4
+    volumes:
+      - ../src:/app/src:ro
+      - ../tests:/app/tests:ro
+      - test_results:/app/test-results
+      - coverage_reports:/app/coverage
+    networks:
+      - testing-backend
+    command: ["npm", "run", "test:unit"]
+    restart: "no"
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '0.5'
+
+  # Integration Testing Service
+  integration-tests:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.testing
+      target: testing
+    container_name: unjucks-integration-tests
+    environment:
+      NODE_ENV: test
+      TEST_TYPE: integration
+      DATABASE_URL: postgresql://test_user:test_password@postgres-test:5432/unjucks_test
+      REDIS_URL: redis://redis-test:6379
+      MONGODB_URL: mongodb://test_admin:test_admin_password@mongodb-test:27017/unjucks_test
+    volumes:
+      - ../src:/app/src:ro
+      - ../tests:/app/tests:ro
+      - test_results:/app/test-results
+      - coverage_reports:/app/coverage
+    networks:
+      - testing-backend
+      - testing-database
+    depends_on:
+      postgres-test:
+        condition: service_healthy
+      redis-test:
+        condition: service_healthy
+      mongodb-test:
+        condition: service_healthy
+    command: ["npm", "run", "test:integration"]
+    restart: "no"
+    deploy:
+      resources:
+        limits:
+          memory: 768M
+          cpus: '0.75'
+
+  # End-to-End Testing Service
+  e2e-tests:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.testing
+      target: testing
+    container_name: unjucks-e2e-tests
+    environment:
+      NODE_ENV: test
+      TEST_TYPE: e2e
+      APP_URL: http://app-test:3000
+      HEADLESS: "true"
+      BROWSER: chromium
+    volumes:
+      - ../tests:/app/tests:ro
+      - test_results:/app/test-results
+      - coverage_reports:/app/coverage
+    networks:
+      - testing-frontend
+    depends_on:
+      app-test:
+        condition: service_healthy
+    command: ["npm", "run", "test:e2e"]
+    restart: "no"
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '1.0'
+
+  # Performance Testing Service
+  performance-tests:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.testing
+      target: performance
+    container_name: unjucks-performance-tests
+    environment:
+      NODE_ENV: test
+      TEST_TYPE: performance
+      TARGET_URL: http://app-test:3000
+      CONCURRENT_USERS: 50
+      TEST_DURATION: 60
+    volumes:
+      - ../tests:/app/tests:ro
+      - test_results:/app/test-results
+    networks:
+      - testing-frontend
+    depends_on:
+      app-test:
+        condition: service_healthy
+    command: ["performance-tests.sh"]
+    restart: "no"
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '0.5'
+
+  # ==============================================
+  # MONITORING & OBSERVABILITY
+  # ==============================================
+
+  # Test Results Collector
+  test-collector:
+    image: alpine:latest
+    container_name: unjucks-test-collector
+    volumes:
+      - test_results:/test-results
+      - coverage_reports:/coverage
+      - ../scripts/collect-test-results.sh:/collect-results.sh:ro
+    networks:
+      - testing-monitoring
+    command: >
+      sh -c "
+        apk add --no-cache jq curl &&
+        chmod +x /collect-results.sh &&
+        /collect-results.sh
+      "
+    restart: "no"
+    depends_on:
+      - unit-tests
+      - integration-tests
+      - e2e-tests
+      - performance-tests
+
+  # Health Check Monitor
+  health-monitor:
+    image: alpine:latest
+    container_name: unjucks-health-monitor
+    environment:
+      CHECK_INTERVAL: 30
+      ALERT_THRESHOLD: 3
+    volumes:
+      - ../scripts/health-monitor.sh:/health-monitor.sh:ro
+    networks:
+      - testing-monitoring
+      - testing-backend
+      - testing-database
+    command: >
+      sh -c "
+        apk add --no-cache curl jq &&
+        chmod +x /health-monitor.sh &&
+        /health-monitor.sh
+      "
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 64M
+          cpus: '0.1'
+
+  # ==============================================
+  # SECURITY TESTING
+  # ==============================================
+
+  # Security Scanner
+  security-scanner:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.testing
+      target: security
+    container_name: unjucks-security-scanner
+    environment:
+      SCAN_TARGET: http://app-test:3000
+      SECURITY_LEVEL: comprehensive
+    volumes:
+      - test_results:/app/security-reports
+      - ../src:/app/src:ro
+    networks:
+      - testing-frontend
+    depends_on:
+      app-test:
+        condition: service_healthy
+    command: ["security-scan.sh"]
+    restart: "no"
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '0.5'
+
+# ==============================================
+# HEALTHCHECK CONFIGURATIONS
+# ==============================================
+
+# Global configuration for all services
+x-logging: &default-logging
+  driver: "json-file"
+  options:
+    max-size: "10m"
+    max-file: "3"
+
+# Logging configuration applied to all services via the x-logging template above

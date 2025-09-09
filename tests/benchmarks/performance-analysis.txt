@@ -1,0 +1,79 @@
+
+Unjucks Performance Analysis Report
+===================================
+Generated: 2025-09-09T03:09:06.279Z
+
+System Information:
+  Platform: darwin (arm64)
+  Node.js: v22.12.0
+  CPU Cores: 16
+  Memory: 48.00GB
+
+Performance Baseline Metrics:
+  CLI Startup Times:
+    Help Command: 283.35ms
+    List Command: 295.36ms
+    Version Command: 271.06ms
+    
+  Build Process:
+    Full Build: 1670.71ms
+    Validation: 1630.35ms
+    
+  Template Rendering:
+    Simple Templates: 3.56ms
+    Complex Templates: 0.39ms
+    
+  Memory Usage:
+    Baseline: 7.07MB
+    Peak: 17.92MB
+    Increase: +10.85MB
+
+Bundle Analysis:
+  Binary Files:
+    unjucks-optimized.cjs: 4.33KB
+    unjucks-safe.cjs: 3.07KB
+    unjucks-standalone.cjs: 1.79KB
+    unjucks-wrapper.cjs: 0.04KB
+    unjucks.cjs: 3.09KB
+    unjucks.js: 0.61KB
+  Source Code: 4.93MB
+  Dependencies: 30.89MB
+
+Critical Bottlenecks Found: 0
+
+  ✅ No critical bottlenecks detected!
+
+Optimization Plan:
+
+Quick Wins (Immediate Implementation):
+  • Add template compilation cache
+  • Implement CLI command result caching
+  • Optimize import statements
+  • Add performance monitoring
+
+Infrastructure Improvements:
+  • Set up performance regression testing
+  • Implement automated benchmarking
+  • Add performance budgets to CI/CD
+  • Create performance dashboard
+
+Detailed Benchmark Results:
+  CLI Help Command: 283.35ms avg (5 runs)
+  CLI List Command: 295.36ms avg (5 runs)
+  CLI Version Command: 271.06ms avg (5 runs)
+  Full Build Process: 1670.71ms avg (3 runs)
+  Build Validation: 1630.35ms avg (3 runs)
+  Simple Template Rendering: 3.56ms avg (10 runs)
+  Complex Template Rendering: 0.39ms avg (10 runs)
+  File Write Operations: 0.6ms avg (5 runs)
+  File Read Operations: 0.33ms avg (5 runs)
+  File Injection Simulation: 0.97ms avg (3 runs)
+  Memory Allocation Test: 2.4ms avg (3 runs)
+
+Summary:
+  Total Tests: 11
+  Successful: 11
+  Average Execution Time: 378.10ms
+  Total Memory Impact: 3.55MB
+
+Performance Grade: A+ (Excellent)

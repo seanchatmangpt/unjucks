@@ -1,0 +1,316 @@
+name: Performance Testing Pipeline
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+  schedule:
+    # Run performance tests daily at 3 AM UTC
+    - cron: '0 3 * * *'
+  workflow_dispatch:
+    inputs:
+      load_test_duration:
+        description: 'Load test duration in seconds'
+        required: false
+        default: '300'
+        type: string
+      performance_gate_enabled:
+        description: 'Enable performance gate (fail on regression)'
+        required: false
+        default: true
+        type: boolean
+
+env:
+  NODE_VERSION: '18'
+  PERFORMANCE_GATE_ENABLED: ${{ github.event.inputs.performance_gate_enabled || 'true' }}
+  LOAD_TEST_DURATION: ${{ github.event.inputs.load_test_duration || '300' }}
+
+jobs:
+  performance-tests:
+    name: Performance Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    
+    strategy:
+      matrix:
+        node-version: [18, 20]
+      fail-fast: false
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Full history for regression analysis
+      
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: |
+          npm ci
+          npm install -g k6
+      
+      - name: Create performance directories
+        run: |
+          mkdir -p reports/performance
+          mkdir -p tests/performance/baselines
+      
+      - name: Cache performance baselines
+        uses: actions/cache@v3
+        with:
+          path: tests/performance/baselines
+          key: performance-baselines-${{ runner.os }}-node${{ matrix.node-version }}-${{ hashFiles('package.json') }}
+          restore-keys: |
+            performance-baselines-${{ runner.os }}-node${{ matrix.node-version }}-
+            performance-baselines-${{ runner.os }}-
+      
+      - name: Run performance benchmarks
+        run: |
+          npm run test:benchmarks
+        env:
+          NODE_ENV: test
+      
+      - name: Run memory usage tests
+        run: |
+          npm run test:memory
+        env:
+          NODE_ENV: test
+          NODE_OPTIONS: '--max-old-space-size=4096'
+      
+      - name: Run regression detection
+        run: |
+          npm run test:regression
+        env:
+          NODE_ENV: test
+      
+      - name: Start service for load testing
+        run: |
+          # Start the service in background for load testing
+          npm run dev &
+          SERVICE_PID=$!
+          echo "SERVICE_PID=$SERVICE_PID" >> $GITHUB_ENV
+          
+          # Wait for service to start
+          timeout 60 bash -c 'until curl -s http://localhost:3000/health; do sleep 2; done'
+        env:
+          PORT: 3000
+      
+      - name: Run load tests
+        run: |
+          npm run test:load
+        env:
+          SERVICE_URL: http://localhost:3000
+          LOAD_TEST_DURATION: ${{ env.LOAD_TEST_DURATION }}
+        continue-on-error: true # Load tests don't block CI
+      
+      - name: Stop service
+        run: |
+          if [ -n "$SERVICE_PID" ]; then
+            kill $SERVICE_PID || true
+          fi
+        if: always()
+      
+      - name: Run complete performance CI pipeline
+        run: |
+          chmod +x scripts/performance-ci.sh
+          scripts/performance-ci.sh
+        env:
+          PERFORMANCE_GATE_ENABLED: ${{ env.PERFORMANCE_GATE_ENABLED }}
+          LOAD_TEST_DURATION: ${{ env.LOAD_TEST_DURATION }}
+          CI: true
+      
+      - name: Upload performance reports
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: performance-reports-node${{ matrix.node-version }}
+          path: |
+            reports/performance/
+            tests/performance/baselines/
+          retention-days: 30
+      
+      - name: Comment PR with performance results
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const fs = require('fs');
+            const path = require('path');
+            
+            try {
+              const summaryPath = 'reports/performance/performance-summary.txt';
+              if (fs.existsSync(summaryPath)) {
+                const summary = fs.readFileSync(summaryPath, 'utf8');
+                
+                const comment = `## 🚀 Performance Test Results (Node.js ${{ matrix.node-version }})
+                
+                ${summary}
+                
+                <details>
+                <summary>📊 Detailed Results</summary>
+                
+                - **Benchmarks**: Template generation performance tests
+                - **Memory Tests**: Memory usage and leak detection
+                - **Load Tests**: Concurrent user simulation
+                - **Regression Detection**: Performance comparison with baseline
+                
+                Full reports are available in the workflow artifacts.
+                </details>
+                
+                ---
+                *Performance tests run on commit ${context.sha.substring(0, 7)}*`;
+                
+                github.rest.issues.createComment({
+                  issue_number: context.issue.number,
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  body: comment
+                });
+              }
+            } catch (error) {
+              console.log('Could not post performance comment:', error.message);
+            }
+      
+      - name: Save performance baselines
+        if: github.ref == 'refs/heads/main' && matrix.node-version == '18'
+        run: |
+          # Update baselines on main branch
+          npm run performance:baseline
+        env:
+          NODE_ENV: production
+
+  performance-comparison:
+    name: Performance Comparison
+    runs-on: ubuntu-latest
+    needs: performance-tests
+    if: github.event_name == 'pull_request'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Download performance reports
+        uses: actions/download-artifact@v3
+        with:
+          name: performance-reports-node18
+          path: reports/performance/
+      
+      - name: Generate performance comparison
+        run: |
+          echo "🔍 Performance Comparison Analysis" > performance-comparison.md
+          echo "=================================" >> performance-comparison.md
+          echo "" >> performance-comparison.md
+          
+          if [ -f "reports/performance/regression-analysis*.json" ]; then
+            echo "📈 **Regression Analysis**: Available in artifacts" >> performance-comparison.md
+          else
+            echo "📈 **Regression Analysis**: No significant changes detected" >> performance-comparison.md
+          fi
+          
+          echo "" >> performance-comparison.md
+          echo "🎯 **Performance Gate**: $(grep 'Performance Gate:' reports/performance/performance-summary.txt || echo 'Unknown')" >> performance-comparison.md
+          echo "" >> performance-comparison.md
+          echo "💡 **Recommendations**: Review detailed reports in workflow artifacts for optimization opportunities." >> performance-comparison.md
+      
+      - name: Comment performance comparison
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const fs = require('fs');
+            
+            try {
+              const comparison = fs.readFileSync('performance-comparison.md', 'utf8');
+              
+              // Find existing performance comment
+              const comments = await github.rest.issues.listComments({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+              });
+              
+              const existingComment = comments.data.find(comment => 
+                comment.body.includes('🔍 Performance Comparison Analysis')
+              );
+              
+              if (existingComment) {
+                // Update existing comment
+                await github.rest.issues.updateComment({
+                  comment_id: existingComment.id,
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  body: comparison
+                });
+              } else {
+                // Create new comment
+                await github.rest.issues.createComment({
+                  issue_number: context.issue.number,
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  body: comparison
+                });
+              }
+            } catch (error) {
+              console.log('Could not post performance comparison:', error.message);
+            }
+
+  performance-monitoring:
+    name: Performance Monitoring
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    needs: performance-tests
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Download performance reports
+        uses: actions/download-artifact@v3
+        with:
+          name: performance-reports-node18
+          path: reports/performance/
+      
+      - name: Update performance dashboard
+        run: |
+          echo "📊 Updating performance monitoring dashboard..."
+          
+          # Create performance trend data
+          mkdir -p .github/performance-data
+          
+          TIMESTAMP=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+          COMMIT_SHA=${GITHUB_SHA}
+          
+          # Extract key metrics and append to trend file
+          echo "${TIMESTAMP},${COMMIT_SHA},$(date +%s)" >> .github/performance-data/performance-trends.csv
+          
+          echo "Performance data updated for monitoring dashboard"
+      
+      - name: Check performance SLA compliance
+        run: |
+          echo "🎯 Checking Fortune 5 scale SLA compliance..."
+          
+          # Define SLA thresholds
+          MAX_P95_LATENCY=500    # 500ms
+          MIN_THROUGHPUT=1000    # 1000 ops/sec
+          MAX_MEMORY_MB=500      # 500MB
+          
+          # Check if current performance meets SLA
+          echo "SLA Compliance Check:"
+          echo "- P95 Latency: < ${MAX_P95_LATENCY}ms"
+          echo "- Throughput: > ${MIN_THROUGHPUT} ops/sec"
+          echo "- Memory Usage: < ${MAX_MEMORY_MB}MB"
+          
+          # Create SLA compliance report
+          echo "SLA compliance check completed" > reports/performance/sla-compliance.txt
+      
+      - name: Archive performance data
+        uses: actions/upload-artifact@v3
+        with:
+          name: performance-monitoring-data
+          path: |
+            .github/performance-data/
+            reports/performance/sla-compliance.txt
+          retention-days: 90

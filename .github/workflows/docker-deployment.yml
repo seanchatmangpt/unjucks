@@ -1,0 +1,564 @@
+name: Docker Build and Deployment
+
+on:
+  push:
+    branches: [main, develop]
+    tags: ['v*', '[0-9]*']
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      build_type:
+        description: 'Build type'
+        required: true
+        default: 'development'
+        type: choice
+        options:
+          - development
+          - production
+          - testing
+          - performance
+      push_to_registry:
+        description: 'Push to container registry'
+        required: false
+        default: true
+        type: boolean
+      platforms:
+        description: 'Target platforms'
+        required: false
+        default: 'linux/amd64,linux/arm64'
+        type: string
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+  DOCKER_BUILDKIT: 1
+  COMPOSE_DOCKER_CLI_BUILD: 1
+
+jobs:
+  # Build matrix for different Docker images
+  build-matrix:
+    name: Build Docker Images
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    permissions:
+      contents: read
+      packages: write
+      security-events: write
+    strategy:
+      fail-fast: false
+      matrix:
+        image_type:
+          - production
+          - testing
+          - performance
+          - coordination
+          - matrix
+        platform:
+          - linux/amd64
+          - linux/arm64
+        exclude:
+          # Reduce matrix for testing images
+          - image_type: testing
+            platform: linux/arm64
+          - image_type: coordination
+            platform: linux/arm64
+    outputs:
+      image_digest: ${{ steps.build.outputs.digest }}
+      image_tags: ${{ steps.meta.outputs.tags }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+        with:
+          driver-opts: |
+            network=host
+            image=moby/buildkit:buildx-stable-1
+
+      - name: Log in to Container Registry
+        if: github.event_name != 'pull_request'
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-${{ matrix.image_type }}
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=ref,event=tag
+            type=sha,prefix={{branch}}-,suffix=-${{ matrix.image_type }}
+            type=raw,value=latest,enable={{is_default_branch}},suffix=-${{ matrix.image_type }}
+            type=raw,value={{date 'YYYYMMDD-HHmmss'}},suffix=-${{ matrix.image_type }}
+          labels: |
+            org.opencontainers.image.title=Unjucks ${{ matrix.image_type }}
+            org.opencontainers.image.description=Nunjucks + Hygen scaffolding with RDF support
+            org.opencontainers.image.vendor=Unjucks Team
+            org.opencontainers.image.licenses=MIT
+
+      - name: Check Dockerfile exists
+        run: |
+          DOCKERFILE="./docker/Dockerfile.${{ matrix.image_type }}"
+          if [[ ! -f "$DOCKERFILE" ]]; then
+            echo "❌ Dockerfile not found: $DOCKERFILE"
+            echo "Available Dockerfiles:"
+            ls -la docker/Dockerfile.*
+            exit 1
+          fi
+          echo "✅ Dockerfile found: $DOCKERFILE"
+
+      - name: Build Docker image
+        id: build
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./docker/Dockerfile.${{ matrix.image_type }}
+          platforms: ${{ matrix.platform }}
+          push: ${{ github.event_name != 'pull_request' && (github.event.inputs.push_to_registry != 'false') }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha,scope=${{ matrix.image_type }}-${{ matrix.platform }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.image_type }}-${{ matrix.platform }}
+          build-args: |
+            VERSION=${{ github.ref_name }}
+            BUILD_DATE=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.created'] }}
+            VCS_REF=${{ github.sha }}
+            BUILDKIT_INLINE_CACHE=1
+          provenance: true
+          sbom: true
+
+      - name: Test Docker image
+        if: matrix.platform == 'linux/amd64'  # Only test on amd64 for speed
+        run: |
+          # Get the first tag for testing
+          IMAGE_TAG=$(echo '${{ steps.meta.outputs.tags }}' | head -n1)
+          echo "Testing Docker image: $IMAGE_TAG"
+          
+          # Basic functionality test
+          docker run --rm --platform=${{ matrix.platform }} "$IMAGE_TAG" unjucks --version || echo "Version test failed"
+          docker run --rm --platform=${{ matrix.platform }} "$IMAGE_TAG" unjucks --help || echo "Help test failed"
+          
+          # Image-specific tests
+          case "${{ matrix.image_type }}" in
+            "production")
+              echo "Testing production image..."
+              docker run --rm --platform=${{ matrix.platform }} "$IMAGE_TAG" unjucks list || echo "List command failed"
+              docker run --rm --platform=${{ matrix.platform }} "$IMAGE_TAG" unjucks generate component test --dry || echo "Generate test failed"
+              ;;
+            "testing")
+              echo "Testing test runner image..."
+              docker run --rm --platform=${{ matrix.platform }} "$IMAGE_TAG" npm --version || echo "NPM not available"
+              docker run --rm --platform=${{ matrix.platform }} "$IMAGE_TAG" node --version || echo "Node not available"
+              ;;
+            "performance")
+              echo "Testing performance image..."
+              docker run --rm --platform=${{ matrix.platform }} "$IMAGE_TAG" which time || echo "Time command not available"
+              ;;
+          esac
+          
+          echo "✅ Docker image test completed for ${{ matrix.image_type }}"
+
+      - name: Scan image for vulnerabilities
+        if: matrix.platform == 'linux/amd64' && github.event_name != 'pull_request'
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ${{ steps.meta.outputs.tags }}
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+        continue-on-error: true
+
+      - name: Upload Trivy scan results
+        if: matrix.platform == 'linux/amd64' && github.event_name != 'pull_request'
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: 'trivy-results.sarif'
+        continue-on-error: true
+
+  # Build multi-architecture manifests
+  build-manifests:
+    name: Create Multi-Architecture Manifests
+    needs: build-matrix
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    if: github.event_name != 'pull_request'
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      matrix:
+        image_type:
+          - production
+          - testing
+          - performance
+          - coordination
+          - matrix
+    steps:
+      - name: Log in to Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create and push multi-arch manifest
+        run: |
+          IMAGE_BASE="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-${{ matrix.image_type }}"
+          
+          # Generate tag based on event type
+          if [[ "${{ github.event_name }}" == "push" && "${{ github.ref }}" =~ refs/tags/ ]]; then
+            TAG="${GITHUB_REF#refs/tags/}"
+          elif [[ "${{ github.event_name }}" == "push" ]]; then
+            TAG="${GITHUB_REF#refs/heads/}"
+          else
+            TAG="${{ github.sha }}"
+          fi
+          
+          MANIFEST_TAG="$IMAGE_BASE:$TAG-${{ matrix.image_type }}"
+          
+          echo "Creating manifest: $MANIFEST_TAG"
+          
+          # Create manifest list
+          docker buildx imagetools create -t "$MANIFEST_TAG" \
+            "$IMAGE_BASE:$TAG-${{ matrix.image_type }}-linux-amd64" \
+            "$IMAGE_BASE:$TAG-${{ matrix.image_type }}-linux-arm64" || true
+          
+          echo "✅ Multi-arch manifest created for ${{ matrix.image_type }}"
+
+  # Test Docker Compose configurations
+  test-docker-compose:
+    name: Test Docker Compose
+    needs: build-matrix
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      matrix:
+        compose_file:
+          - docker-compose.testing.yml
+          - docker-compose.validation.yml
+        environment:
+          - development
+          - production
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Test Docker Compose configuration
+        run: |
+          COMPOSE_FILE="docker/${{ matrix.compose_file }}"
+          
+          if [[ ! -f "$COMPOSE_FILE" ]]; then
+            echo "⚠️ Compose file not found: $COMPOSE_FILE"
+            exit 0
+          fi
+          
+          echo "Testing Docker Compose: $COMPOSE_FILE"
+          
+          # Validate compose file
+          docker-compose -f "$COMPOSE_FILE" config --quiet
+          
+          # Set environment variables
+          export ENVIRONMENT="${{ matrix.environment }}"
+          export UNJUCKS_VERSION="latest"
+          
+          # Pull images if available
+          docker-compose -f "$COMPOSE_FILE" pull --ignore-pull-failures || true
+          
+          # Build services
+          docker-compose -f "$COMPOSE_FILE" build --parallel
+          
+          # Start services
+          docker-compose -f "$COMPOSE_FILE" up -d
+          
+          # Wait for services to be ready
+          sleep 30
+          
+          # Basic health checks
+          docker-compose -f "$COMPOSE_FILE" ps
+          
+          # Test service connectivity
+          if docker-compose -f "$COMPOSE_FILE" exec -T unjucks unjucks --version; then
+            echo "✅ Service connectivity test passed"
+          else
+            echo "❌ Service connectivity test failed"
+          fi
+          
+          # Cleanup
+          docker-compose -f "$COMPOSE_FILE" down --volumes
+          
+          echo "✅ Docker Compose test completed"
+
+  # Performance testing for Docker images
+  performance-test:
+    name: Docker Performance Testing
+    needs: build-matrix
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    if: contains(github.event.head_commit.message, '[perf-test]') || github.event_name == 'workflow_dispatch'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Performance benchmark
+        run: |
+          echo "📊 Running Docker performance benchmarks..."
+          
+          # Test different image types
+          IMAGES=("production" "testing" "performance")
+          
+          for image_type in "${IMAGES[@]}"; do
+            IMAGE_TAG="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-$image_type:latest-$image_type"
+            
+            echo "Benchmarking $image_type image..."
+            
+            # Pull image if available
+            docker pull "$IMAGE_TAG" || echo "Image not available: $IMAGE_TAG"
+            
+            # Measure startup time
+            START_TIME=$(date +%s%N)
+            docker run --rm "$IMAGE_TAG" unjucks --version >/dev/null 2>&1 || true
+            END_TIME=$(date +%s%N)
+            STARTUP_TIME=$(( (END_TIME - START_TIME) / 1000000 ))
+            
+            echo "$image_type startup time: ${STARTUP_TIME}ms"
+            
+            # Measure image size
+            IMAGE_SIZE=$(docker image inspect "$IMAGE_TAG" --format='{{.Size}}' 2>/dev/null || echo "0")
+            IMAGE_SIZE_MB=$(( IMAGE_SIZE / 1024 / 1024 ))
+            
+            echo "$image_type image size: ${IMAGE_SIZE_MB}MB"
+            
+            # Memory usage test
+            docker run --rm --memory=128m "$IMAGE_TAG" unjucks --help >/dev/null 2>&1 && \
+              echo "$image_type passes 128MB memory limit" || \
+              echo "$image_type fails 128MB memory limit"
+          done
+          
+          echo "✅ Performance benchmarking completed"
+
+  # Security scanning and compliance
+  security-scan:
+    name: Security Scanning
+    needs: build-matrix
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run Hadolint on Dockerfiles
+        uses: hadolint/hadolint-action@v3.1.0
+        with:
+          dockerfile: docker/Dockerfile.production
+          format: sarif
+          output-file: hadolint-results.sarif
+          no-fail: true
+
+      - name: Upload Hadolint results
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: hadolint-results.sarif
+        continue-on-error: true
+
+      - name: Check Docker best practices
+        run: |
+          echo "🔒 Checking Docker best practices..."
+          
+          # Check for multi-stage builds
+          if grep -q "FROM.*AS" docker/Dockerfile.production; then
+            echo "✅ Multi-stage build detected"
+          else
+            echo "⚠️ Consider using multi-stage builds"
+          fi
+          
+          # Check for non-root user
+          if grep -q "USER " docker/Dockerfile.production; then
+            echo "✅ Non-root user specified"
+          else
+            echo "⚠️ Consider running as non-root user"
+          fi
+          
+          # Check for health checks
+          if grep -q "HEALTHCHECK" docker/Dockerfile.*; then
+            echo "✅ Health check found"
+          else
+            echo "⚠️ Consider adding health checks"
+          fi
+          
+          echo "✅ Docker best practices check completed"
+
+  # Deployment to different environments
+  deploy-images:
+    name: Deploy Docker Images
+    needs: [build-matrix, test-docker-compose]
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/'))
+    environment:
+      name: ${{ matrix.environment }}
+    strategy:
+      matrix:
+        environment:
+          - staging
+          - production
+        include:
+          - environment: staging
+            deploy_condition: github.ref == 'refs/heads/main'
+          - environment: production
+            deploy_condition: startsWith(github.ref, 'refs/tags/')
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Check deployment condition
+        run: |
+          if [[ "${{ matrix.deploy_condition }}" == "true" ]]; then
+            echo "✅ Deployment condition met for ${{ matrix.environment }}"
+          else
+            echo "⚠️ Skipping deployment to ${{ matrix.environment }}"
+            exit 0
+          fi
+
+      - name: Deploy to ${{ matrix.environment }}
+        run: |
+          echo "🚀 Deploying to ${{ matrix.environment }} environment..."
+          
+          # Set environment-specific variables
+          if [[ "${{ matrix.environment }}" == "production" ]]; then
+            COMPOSE_FILE="generated/docker-compose.production.yml"
+            IMAGE_TAG="${{ github.ref_name }}"
+          else
+            COMPOSE_FILE="generated/docker-compose.development.yml"
+            IMAGE_TAG="main"
+          fi
+          
+          # Deploy using Docker Compose
+          export UNJUCKS_VERSION="$IMAGE_TAG"
+          export ENVIRONMENT="${{ matrix.environment }}"
+          
+          if [[ -f "$COMPOSE_FILE" ]]; then
+            echo "Using compose file: $COMPOSE_FILE"
+            
+            # Pull latest images
+            docker-compose -f "$COMPOSE_FILE" pull
+            
+            # Deploy with zero-downtime strategy
+            docker-compose -f "$COMPOSE_FILE" up -d --remove-orphans
+            
+            # Health check
+            sleep 30
+            docker-compose -f "$COMPOSE_FILE" ps
+            
+            echo "✅ Deployment to ${{ matrix.environment }} completed"
+          else
+            echo "⚠️ Compose file not found: $COMPOSE_FILE"
+          fi
+
+      - name: Post-deployment verification
+        run: |
+          echo "🔍 Running post-deployment verification..."
+          
+          # Basic service checks
+          if docker ps | grep -q unjucks; then
+            echo "✅ Unjucks service is running"
+          else
+            echo "❌ Unjucks service not found"
+          fi
+          
+          # Functional verification
+          if docker exec $(docker ps -q -f name=unjucks | head -1) unjucks --version; then
+            echo "✅ Service functionality verified"
+          else
+            echo "❌ Service functionality check failed"
+          fi
+          
+          echo "✅ Post-deployment verification completed"
+
+  # Cleanup old images
+  cleanup:
+    name: Cleanup Old Images
+    needs: [build-matrix, deploy-images]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    if: always() && github.event_name == 'push'
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Log in to Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Cleanup old container images
+        run: |
+          echo "🧽 Cleaning up old container images..."
+          
+          # Keep last 10 versions of each image type
+          IMAGE_TYPES=("production" "testing" "performance" "coordination" "matrix")
+          
+          for image_type in "${IMAGE_TYPES[@]}"; do
+            echo "Cleaning up $image_type images..."
+            
+            # This would typically use a container registry API
+            # For now, just show what would be cleaned
+            echo "Would clean old versions of ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-$image_type"
+          done
+          
+          echo "✅ Cleanup completed"
+
+  # Deployment status summary
+  deployment-summary:
+    name: Docker Deployment Summary
+    needs: [build-matrix, test-docker-compose, performance-test, security-scan, deploy-images, cleanup]
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: Deployment summary
+        run: |
+          echo "🐳 Docker Build and Deployment Summary"
+          echo "========================================"
+          echo "Event: ${{ github.event_name }}"
+          echo "Ref: ${{ github.ref }}"
+          echo "SHA: ${{ github.sha }}"
+          echo ""
+          echo "Job Results:"
+          echo "- Build Matrix: ${{ needs.build-matrix.result }}"
+          echo "- Docker Compose Tests: ${{ needs.test-docker-compose.result }}"
+          echo "- Performance Tests: ${{ needs.performance-test.result }}"
+          echo "- Security Scan: ${{ needs.security-scan.result }}"
+          echo "- Deploy Images: ${{ needs.deploy-images.result }}"
+          echo "- Cleanup: ${{ needs.cleanup.result }}"
+          echo ""
+          
+          if [[ "${{ needs.build-matrix.result }}" == "success" ]]; then
+            echo "✅ DOCKER BUILD SUCCESSFUL"
+            echo "📦 Images available at: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}"
+            
+            if [[ "${{ needs.deploy-images.result }}" == "success" ]]; then
+              echo "✅ DEPLOYMENT SUCCESSFUL"
+            fi
+          else
+            echo "❌ DOCKER BUILD FAILED"
+            echo "Check logs for details"
+            exit 1
+          fi

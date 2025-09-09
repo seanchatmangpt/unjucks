@@ -1,0 +1,702 @@
+{
+  "timestamp": "2025-09-09T03:09:06.279Z",
+  "environment": {
+    "nodeVersion": "v22.12.0",
+    "platform": "darwin",
+    "arch": "arm64",
+    "cpuCount": 16,
+    "totalMemory": "48.00GB"
+  },
+  "baseline": {
+    "cliStartup": {
+      "help": 283.35,
+      "list": 295.36,
+      "version": 271.06
+    },
+    "templateRendering": {
+      "simple": 3.56,
+      "complex": 0.39
+    },
+    "buildProcess": {
+      "full": 1670.71,
+      "validate": 1630.35
+    },
+    "fileOperations": {
+      "read": null,
+      "write": null,
+      "inject": null
+    },
+    "memoryUsage": {
+      "baseline": 7.0739898681640625,
+      "peak": 17.923912048339844
+    }
+  },
+  "bundleAnalysis": {
+    "binFiles": [
+      {
+        "file": "unjucks-optimized.cjs",
+        "size": "4.33"
+      },
+      {
+        "file": "unjucks-safe.cjs",
+        "size": "3.07"
+      },
+      {
+        "file": "unjucks-standalone.cjs",
+        "size": "1.79"
+      },
+      {
+        "file": "unjucks-wrapper.cjs",
+        "size": "0.04"
+      },
+      {
+        "file": "unjucks.cjs",
+        "size": "3.09"
+      },
+      {
+        "file": "unjucks.js",
+        "size": "0.61"
+      }
+    ],
+    "srcSize": 4.93326473236084,
+    "nodeModulesSize": 30.885632514953613
+  },
+  "bottlenecks": [],
+  "optimizationPlan": {
+    "immediate": [],
+    "shortTerm": [],
+    "longTerm": [],
+    "quickWins": [
+      "Add template compilation cache",
+      "Implement CLI command result caching",
+      "Optimize import statements",
+      "Add performance monitoring"
+    ],
+    "infrastructure": [
+      "Set up performance regression testing",
+      "Implement automated benchmarking",
+      "Add performance budgets to CI/CD",
+      "Create performance dashboard"
+    ]
+  },
+  "benchmarks": [
+    {
+      "name": "CLI Help Command",
+      "iterations": 5,
+      "avgDuration": 283.35,
+      "avgMemory": 0.08,
+      "results": [
+        {
+          "duration": 338.253666,
+          "memory": {
+            "heapUsed": 271752,
+            "rss": 376832
+          },
+          "success": true,
+          "error": null
+        },
+        {
+          "duration": 270.77858299999997,
+          "memory": {
+            "heapUsed": 173168,
+            "rss": 32768
+          },
+          "success": true,
+          "error": null
+        },
+        {
+          "duration": 272.233875,
+          "memory": {
+            "heapUsed": 171608,
+            "rss": 98304
+          },
+          "success": true,
+          "error": null
+        },
+        {
+          "duration": 267.41658400000006,
+          "memory": {
+            "heapUsed": -388584,
+            "rss": 425984
+          },
+          "success": true,
+          "error": null
+        },
+        {
+          "duration": 268.0487499999999,
+          "memory": {
+            "heapUsed": 190320,
+            "rss": 65536
+          },
+          "success": true,
+          "error": null
+        }
+      ],
+      "success": true
+    },
+    {
+      "name": "CLI List Command",
+      "iterations": 5,
+      "avgDuration": 295.36,
+      "avgMemory": 0.25,
+      "results": [
+        {
+          "duration": 323.12541699999997,
+          "memory": {
+            "heapUsed": 256272,
+            "rss": 0
+          },
+          "success": true,
+          "error": null
+        },
+        {
+          "duration": 291.8688750000001,
+          "memory": {
+            "heapUsed": 253320,
+            "rss": 0
+          },
+          "success": true,
+          "error": null
+        },
+        {
+          "duration": 284.04433400000016,
+          "memory": {
+            "heapUsed": 253416,
+            "rss": 65536
+          },
+          "success": true,
+          "error": null
+        },
+        {
+          "duration": 289.07345899999973,
+          "memory": {
+            "heapUsed": 307600,
+            "rss": 294912
+          },
+          "success": true,
+          "error": null
+        },
+        {
+          "duration": 288.6696670000001,
+          "memory": {
+            "heapUsed": 258632,
+            "rss": 294912
+          },
+          "success": true,
+          "error": null
+        }
+      ],
+      "success": true
+    },
+    {
+      "name": "CLI Version Command",
+      "iterations": 5,
+      "avgDuration": 271.06,
+      "avgMemory": -0.08,
+      "results": [
+        {
+          "duration": 271.70041600000013,
+          "memory": {
+            "heapUsed": -737800,
+            "rss": 163840
+          },
+          "success": true,
+          "error": null
+        },
+        {
+          "duration": 262.79079100000035,
+          "memory": {
+            "heapUsed": 84304,
+            "rss": 0
+          },
+          "success": true,
+          "error": null
+        },
+        {
+          "duration": 265.87275,
+          "memory": {
+            "heapUsed": 84416,
+            "rss": 0
+          },
+          "success": true,
+          "error": null
+        },
+        {
+          "duration": 277.1185419999997,
+          "memory": {
+            "heapUsed": 85312,
+            "rss": 16384
+          },
+          "success": true,
+          "error": null
+        },
+        {
+          "duration": 277.82308399999965,
+          "memory": {
+            "heapUsed": 84864,
+            "rss": 278528
+          },
+          "success": true,
+          "error": null
+        }
+      ],
+      "success": true
+    },
+    {
+      "name": "Full Build Process",
+      "iterations": 3,
+      "avgDuration": 1670.71,
+      "avgMemory": -0.49,
+      "results": [
+        {
+          "duration": 1710.3937919999998,
+          "memory": {
+            "heapUsed": 131352,
+            "rss": 688128
+          },
+          "success": true,
+          "error": null
+        },
+        {
+          "duration": 1660.664417,
+          "memory": {
+            "heapUsed": 123104,
+            "rss": 311296
+          },
+          "success": true,
+          "error": null
+        },
+        {
+          "duration": 1641.0784580000009,
+          "memory": {
+            "heapUsed": -1803256,
+            "rss": -2097152
+          },
+          "success": true,
+          "error": null
+        }
+      ],
+      "success": true
+    },
+    {
+      "name": "Build Validation",
+      "iterations": 3,
+      "avgDuration": 1630.35,
+      "avgMemory": 0.12,
+      "results": [
+        {
+          "duration": 1615.3813750000008,
+          "memory": {
+            "heapUsed": 130200,
+            "rss": 212992
+          },
+          "success": true,
+          "error": null
+        },
+        {
+          "duration": 1645.9967079999988,
+          "memory": {
+            "heapUsed": 122464,
+            "rss": 212992
+          },
+          "success": true,
+          "error": null
+        },
+        {
+          "duration": 1629.6578750000008,
+          "memory": {
+            "heapUsed": 122584,
+            "rss": 475136
+          },
+          "success": true,
+          "error": null
+        }
+      ],
+      "success": true
+    },
+    {
+      "name": "Simple Template Rendering",
+      "iterations": 10,
+      "avgDuration": 3.56,
+      "avgMemory": 0.23,
+      "results": [
+        {
+          "duration": 8.900458000000071,
+          "memory": {
+            "heapUsed": 208984,
+            "rss": 2768896
+          },
+          "success": true,
+          "error": null
+        },
+        {
+          "duration": 4.399165999999241,
+          "memory": {
+            "heapUsed": 441752,
+            "rss": 3080192
+          },
+          "success": true,
+          "error": null
+        },
+        {
+          "duration": 3.9471250000005966,
+          "memory": {
+            "heapUsed": 194384,
+            "rss": 2392064
+          },
+          "success": true,
+          "error": null
+        },
+        {
+          "duration": 3.307749999999942,
+          "memory": {
+            "heapUsed": -18176,
+            "rss": 1409024
+          },
+          "success": true,
+          "error": null
+        },
+        {
+          "duration": 3.386624999999185,
+          "memory": {
+            "heapUsed": -83768,
+            "rss": 2785280
+          },
+          "success": true,
+          "error": null
+        },
+        {
+          "duration": 3.2892919999994774,
+          "memory": {
+            "heapUsed": 792072,
+            "rss": 4685824
+          },
+          "success": true,
+          "error": null
+        },
+        {
+          "duration": 2.285250000000815,
+          "memory": {
+            "heapUsed": 851528,
+            "rss": 1409024
+          },
+          "success": true,
+          "error": null
+        },
+        {
+          "duration": 2.320125000000189,
+          "memory": {
+            "heapUsed": -1445760,
+            "rss": 1015808
+          },
+          "success": true,
+          "error": null
+        },
+        {
+          "duration": 1.953749999998763,
+          "memory": {
+            "heapUsed": 763152,
+            "rss": 81920
+          },
+          "success": true,
+          "error": null
+        },
+        {
+          "duration": 1.8372500000004948,
+          "memory": {
+            "heapUsed": 668456,
+            "rss": 0
+          },
+          "success": true,
+          "error": null
+        }
+      ],
+      "success": true
+    },
+    {
+      "name": "Complex Template Rendering",
+      "iterations": 10,
+      "avgDuration": 0.39,
+      "avgMemory": -0.04,
+      "results": [
+        {
+          "duration": 1.5372079999997368,
+          "memory": {
+            "heapUsed": -1842712,
+            "rss": 98304
+          },
+          "success": true,
+          "error": null
+        },
+        {
+          "duration": 0.4053330000006099,
+          "memory": {
+            "heapUsed": 169208,
+            "rss": 0
+          },
+          "success": true,
+          "error": null
+        },
+        {
+          "duration": 0.24108299999898009,
+          "memory": {
+            "heapUsed": 157336,
+            "rss": 0
+          },
+          "success": true,
+          "error": null
+        },
+        {
+          "duration": 0.2279579999994894,
+          "memory": {
+            "heapUsed": 156096,
+            "rss": 0
+          },
+          "success": true,
+          "error": null
+        },
+        {
+          "duration": 0.37358400000084657,
+          "memory": {
+            "heapUsed": 178728,
+            "rss": 32768
+          },
+          "success": true,
+          "error": null
+        },
+        {
+          "duration": 0.243916999999783,
+          "memory": {
+            "heapUsed": 158832,
+            "rss": 0
+          },
+          "success": true,
+          "error": null
+        },
+        {
+          "duration": 0.21154100000057952,
+          "memory": {
+            "heapUsed": 156168,
+            "rss": 0
+          },
+          "success": true,
+          "error": null
+        },
+        {
+          "duration": 0.2196249999997235,
+          "memory": {
+            "heapUsed": 156080,
+            "rss": 0
+          },
+          "success": true,
+          "error": null
+        },
+        {
+          "duration": 0.21066699999937555,
+          "memory": {
+            "heapUsed": 156120,
+            "rss": 16384
+          },
+          "success": true,
+          "error": null
+        },
+        {
+          "duration": 0.20637499999975262,
+          "memory": {
+            "heapUsed": 156216,
+            "rss": 0
+          },
+          "success": true,
+          "error": null
+        }
+      ],
+      "success": true
+    },
+    {
+      "name": "File Write Operations",
+      "iterations": 5,
+      "avgDuration": 0.6,
+      "avgMemory": -0.24,
+      "results": [
+        {
+          "duration": 1.0302499999997963,
+          "memory": {
+            "heapUsed": 117880,
+            "rss": 131072
+          },
+          "success": true,
+          "error": null
+        },
+        {
+          "duration": 0.545458000000508,
+          "memory": {
+            "heapUsed": 77240,
+            "rss": 0
+          },
+          "success": true,
+          "error": null
+        },
+        {
+          "duration": 0.47641699999985576,
+          "memory": {
+            "heapUsed": -1587456,
+            "rss": 0
+          },
+          "success": true,
+          "error": null
+        },
+        {
+          "duration": 0.5094159999989643,
+          "memory": {
+            "heapUsed": 69816,
+            "rss": 0
+          },
+          "success": true,
+          "error": null
+        },
+        {
+          "duration": 0.44729200000074343,
+          "memory": {
+            "heapUsed": 76192,
+            "rss": 16384
+          },
+          "success": true,
+          "error": null
+        }
+      ],
+      "success": true
+    },
+    {
+      "name": "File Read Operations",
+      "iterations": 5,
+      "avgDuration": 0.33,
+      "avgMemory": 0.06,
+      "results": [
+        {
+          "duration": 0.6613750000014988,
+          "memory": {
+            "heapUsed": 88720,
+            "rss": 16384
+          },
+          "success": true,
+          "error": null
+        },
+        {
+          "duration": 0.2037079999990965,
+          "memory": {
+            "heapUsed": 55016,
+            "rss": 0
+          },
+          "success": true,
+          "error": null
+        },
+        {
+          "duration": 0.21333299999969313,
+          "memory": {
+            "heapUsed": 54856,
+            "rss": 0
+          },
+          "success": true,
+          "error": null
+        },
+        {
+          "duration": 0.33087500000146974,
+          "memory": {
+            "heapUsed": 54616,
+            "rss": 0
+          },
+          "success": true,
+          "error": null
+        },
+        {
+          "duration": 0.22454099999958999,
+          "memory": {
+            "heapUsed": 54672,
+            "rss": 32768
+          },
+          "success": true,
+          "error": null
+        }
+      ],
+      "success": true
+    },
+    {
+      "name": "File Injection Simulation",
+      "iterations": 3,
+      "avgDuration": 0.97,
+      "avgMemory": 0.04,
+      "results": [
+        {
+          "duration": 1.0945840000003955,
+          "memory": {
+            "heapUsed": 53984,
+            "rss": 16384
+          },
+          "success": true,
+          "error": null
+        },
+        {
+          "duration": 1.000332999999955,
+          "memory": {
+            "heapUsed": 41536,
+            "rss": 0
+          },
+          "success": true,
+          "error": null
+        },
+        {
+          "duration": 0.8016660000012052,
+          "memory": {
+            "heapUsed": 41808,
+            "rss": 0
+          },
+          "success": true,
+          "error": null
+        }
+      ],
+      "success": true
+    },
+    {
+      "name": "Memory Allocation Test",
+      "iterations": 3,
+      "avgDuration": 2.4,
+      "avgMemory": 3.62,
+      "results": [
+        {
+          "duration": 3.477208000000246,
+          "memory": {
+            "heapUsed": 3612024,
+            "rss": 2457600
+          },
+          "success": true,
+          "error": null
+        },
+        {
+          "duration": 2.965541999999914,
+          "memory": {
+            "heapUsed": 3713776,
+            "rss": 8044544
+          },
+          "success": true,
+          "error": null
+        },
+        {
+          "duration": 0.7454580000012356,
+          "memory": {
+            "heapUsed": 4046584,
+            "rss": 2211840
+          },
+          "success": true,
+          "error": null
+        }
+      ],
+      "success": true
+    }
+  ],
+  "summary": {
+    "totalTests": 11,
+    "successfulTests": 11,
+    "avgExecutionTime": 378.0981818181819,
+    "totalMemoryImpact": 3.5500000000000003
+  }
+}

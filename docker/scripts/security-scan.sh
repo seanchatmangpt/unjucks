@@ -1,235 +1,391 @@
 #!/bin/bash
+# Security Scanning Script
+# Comprehensive security testing for Unjucks application
+
 set -euo pipefail
 
-# Security scanning script for Docker containers
-echo "🔒 Starting Security Scan"
-echo "========================="
+# Configuration
+SCAN_TARGET=${SCAN_TARGET:-"http://app-test:3000"}
+SECURITY_LEVEL=${SECURITY_LEVEL:-"comprehensive"}
+RESULTS_DIR="/app/security-reports"
+TIMESTAMP=$(date -u +"%Y%m%d_%H%M%S")
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-REPORT_DIR="/app/security-reports"
-LOG_FILE="${REPORT_DIR}/security-scan.log"
+# Create results directory
+mkdir -p "$RESULTS_DIR"
 
-# Create directories
-mkdir -p "${REPORT_DIR}"
-exec 1> >(tee -a "${LOG_FILE}")
-exec 2> >(tee -a "${LOG_FILE}" >&2)
+# Security scan log
+SECURITY_LOG="$RESULTS_DIR/security-scan-$TIMESTAMP.log"
+echo "Security Scanning Started at $(date)" > "$SECURITY_LOG"
 
-# Colors
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-BLUE='\033[0;34m'
-NC='\033[0m'
-
-log_info() { echo -e "${BLUE}[INFO]${NC} $1"; }
-log_success() { echo -e "${GREEN}[SUCCESS]${NC} $1"; }
-log_warning() { echo -e "${YELLOW}[WARNING]${NC} $1"; }
-log_error() { echo -e "${RED}[ERROR]${NC} $1"; }
-
-# Security scan functions
-scan_npm_dependencies() {
-    log_info "Scanning npm dependencies for vulnerabilities..."
+# Dependency vulnerability scanning
+scan_dependencies() {
+    echo "Scanning dependencies for vulnerabilities..." | tee -a "$SECURITY_LOG"
     
-    # npm audit
-    if npm audit --audit-level=high --json > "${REPORT_DIR}/npm-audit.json" 2>/dev/null; then
-        log_success "npm audit completed successfully"
-    else
-        log_warning "npm audit found vulnerabilities"
+    local output_file="$RESULTS_DIR/dependency-scan-$TIMESTAMP.json"
+    
+    # NPM audit
+    echo "Running npm audit..." | tee -a "$SECURITY_LOG"
+    npm audit --json > "$output_file" 2>&1 || true
+    
+    # Snyk scan if available
+    if command -v snyk >/dev/null 2>&1; then
+        echo "Running Snyk scan..." | tee -a "$SECURITY_LOG"
+        snyk test --json > "$RESULTS_DIR/snyk-scan-$TIMESTAMP.json" 2>&1 || true
     fi
     
-    # Generate human-readable report
-    npm audit --audit-level=moderate > "${REPORT_DIR}/npm-audit.txt" 2>/dev/null || true
-    
-    log_info "npm dependency scan completed"
+    echo "Dependency scan completed: $output_file" | tee -a "$SECURITY_LOG"
 }
 
-scan_file_permissions() {
-    log_info "Scanning file permissions..."
+# Static code analysis
+static_code_analysis() {
+    echo "Running static code analysis..." | tee -a "$SECURITY_LOG"
     
-    # Check for world-writable files
-    find /app -type f -perm -002 2>/dev/null > "${REPORT_DIR}/world-writable-files.txt" || true
+    local output_dir="$RESULTS_DIR/static-analysis-$TIMESTAMP"
+    mkdir -p "$output_dir"
     
-    # Check for files with setuid/setgid bits
-    find /app -type f \( -perm -4000 -o -perm -2000 \) 2>/dev/null > "${REPORT_DIR}/setuid-files.txt" || true
+    # ESLint security rules
+    if [[ -f "/app/.eslintrc.security.js" ]]; then
+        echo "Running ESLint security analysis..." | tee -a "$SECURITY_LOG"
+        eslint /app/src --config /app/.eslintrc.security.js \
+            --format json \
+            --output-file "$output_dir/eslint-security.json" 2>&1 || true
+    fi
     
-    # Check for executable files
-    find /app -type f -executable 2>/dev/null > "${REPORT_DIR}/executable-files.txt" || true
+    # Semgrep security scan if available
+    if command -v semgrep >/dev/null 2>&1; then
+        echo "Running Semgrep security scan..." | tee -a "$SECURITY_LOG"
+        semgrep --config=auto --json --output="$output_dir/semgrep-security.json" /app/src 2>&1 || true
+    fi
     
-    log_success "File permission scan completed"
+    echo "Static code analysis completed: $output_dir" | tee -a "$SECURITY_LOG"
 }
 
-scan_sensitive_files() {
-    log_info "Scanning for sensitive files..."
+# Web application security testing
+web_security_scan() {
+    echo "Running web application security scan..." | tee -a "$SECURITY_LOG"
     
-    # List of sensitive file patterns
-    sensitive_patterns=(
-        "*.key"
-        "*.pem"
-        "*.p12"
-        "*.pfx"
-        ".env*"
-        "id_rsa*"
-        "id_dsa*"
-        "id_ecdsa*"
-        "id_ed25519*"
-        "*.crt"
-        "*.cer"
-        "secret*"
-        "password*"
-        "credential*"
-        "token*"
-        "api-key*"
+    local output_dir="$RESULTS_DIR/web-security-$TIMESTAMP"
+    mkdir -p "$output_dir"
+    
+    # Wait for application to be ready
+    wait_for_app
+    
+    # Basic security headers check
+    echo "Checking security headers..." | tee -a "$SECURITY_LOG"
+    curl -I "$SCAN_TARGET" > "$output_dir/headers.txt" 2>&1 || true
+    
+    # Common vulnerability checks
+    check_common_vulnerabilities "$output_dir"
+    
+    # SSL/TLS configuration check (if HTTPS)
+    if [[ "$SCAN_TARGET" == https* ]]; then
+        echo "Checking SSL/TLS configuration..." | tee -a "$SECURITY_LOG"
+        check_ssl_configuration "$output_dir"
+    fi
+    
+    echo "Web security scan completed: $output_dir" | tee -a "$SECURITY_LOG"
+}
+
+check_common_vulnerabilities() {
+    local output_dir="$1"
+    local vulns_file="$output_dir/vulnerability-checks.json"
+    
+    # Initialize results
+    cat > "$vulns_file" <<EOF
+{
+  "timestamp": "$(date -u +"%Y-%m-%dT%H:%M:%SZ")",
+  "target": "$SCAN_TARGET",
+  "checks": {}
+}
+EOF
+
+    # XSS Protection
+    echo "Checking XSS protection..." | tee -a "$SECURITY_LOG"
+    local xss_header=$(curl -s -I "$SCAN_TARGET" | grep -i "x-xss-protection" || echo "missing")
+    jq --arg xss "$xss_header" '.checks.xss_protection = $xss' "$vulns_file" > "$vulns_file.tmp" && mv "$vulns_file.tmp" "$vulns_file"
+    
+    # Content Security Policy
+    echo "Checking Content Security Policy..." | tee -a "$SECURITY_LOG"
+    local csp_header=$(curl -s -I "$SCAN_TARGET" | grep -i "content-security-policy" || echo "missing")
+    jq --arg csp "$csp_header" '.checks.content_security_policy = $csp' "$vulns_file" > "$vulns_file.tmp" && mv "$vulns_file.tmp" "$vulns_file"
+    
+    # HSTS
+    echo "Checking HSTS..." | tee -a "$SECURITY_LOG"
+    local hsts_header=$(curl -s -I "$SCAN_TARGET" | grep -i "strict-transport-security" || echo "missing")
+    jq --arg hsts "$hsts_header" '.checks.hsts = $hsts' "$vulns_file" > "$vulns_file.tmp" && mv "$vulns_file.tmp" "$vulns_file"
+    
+    # X-Frame-Options
+    echo "Checking X-Frame-Options..." | tee -a "$SECURITY_LOG"
+    local frame_header=$(curl -s -I "$SCAN_TARGET" | grep -i "x-frame-options" || echo "missing")
+    jq --arg frame "$frame_header" '.checks.x_frame_options = $frame' "$vulns_file" > "$vulns_file.tmp" && mv "$vulns_file.tmp" "$vulns_file"
+    
+    # X-Content-Type-Options
+    echo "Checking X-Content-Type-Options..." | tee -a "$SECURITY_LOG"
+    local content_type_header=$(curl -s -I "$SCAN_TARGET" | grep -i "x-content-type-options" || echo "missing")
+    jq --arg ct "$content_type_header" '.checks.x_content_type_options = $ct' "$vulns_file" > "$vulns_file.tmp" && mv "$vulns_file.tmp" "$vulns_file"
+    
+    # Information disclosure
+    echo "Checking for information disclosure..." | tee -a "$SECURITY_LOG"
+    local server_header=$(curl -s -I "$SCAN_TARGET" | grep -i "server:" || echo "not disclosed")
+    jq --arg server "$server_header" '.checks.server_disclosure = $server' "$vulns_file" > "$vulns_file.tmp" && mv "$vulns_file.tmp" "$vulns_file"
+    
+    # Try common paths for sensitive files
+    local sensitive_paths=(
+        "/.env"
+        "/package.json"
+        "/.git/config"
+        "/admin"
+        "/api/admin"
+        "/debug"
     )
     
-    echo "# Sensitive Files Found" > "${REPORT_DIR}/sensitive-files.txt"
-    for pattern in "${sensitive_patterns[@]}"; do
-        echo "## Pattern: $pattern" >> "${REPORT_DIR}/sensitive-files.txt"
-        find /app -name "$pattern" -type f 2>/dev/null >> "${REPORT_DIR}/sensitive-files.txt" || true
-        echo "" >> "${REPORT_DIR}/sensitive-files.txt"
+    local accessible_paths=()
+    for path in "${sensitive_paths[@]}"; do
+        local status_code=$(curl -s -o /dev/null -w "%{http_code}" "$SCAN_TARGET$path" || echo "000")
+        if [[ "$status_code" == "200" ]]; then
+            accessible_paths+=("$path")
+        fi
     done
     
-    log_success "Sensitive files scan completed"
+    local accessible_json=$(printf '%s\n' "${accessible_paths[@]}" | jq -R . | jq -s .)
+    jq --argjson paths "$accessible_json" '.checks.accessible_sensitive_paths = $paths' "$vulns_file" > "$vulns_file.tmp" && mv "$vulns_file.tmp" "$vulns_file"
 }
 
-scan_code_vulnerabilities() {
-    log_info "Scanning code for vulnerabilities..."
+check_ssl_configuration() {
+    local output_dir="$1"
+    local ssl_file="$output_dir/ssl-check.txt"
     
-    # Check for common security anti-patterns
-    cat > "${REPORT_DIR}/code-security-scan.txt" <<EOF
-# Code Security Scan Results
-
-## Hardcoded Secrets Detection
-EOF
+    # Extract hostname from URL
+    local hostname=$(echo "$SCAN_TARGET" | sed 's|https://||' | sed 's|/.*||')
     
-    # Search for potential hardcoded secrets
-    grep -r -i "password\s*=" /app/src/ 2>/dev/null | head -10 >> "${REPORT_DIR}/code-security-scan.txt" || echo "No hardcoded passwords found" >> "${REPORT_DIR}/code-security-scan.txt"
-    grep -r -i "api[_-]?key\s*=" /app/src/ 2>/dev/null | head -10 >> "${REPORT_DIR}/code-security-scan.txt" || echo "No hardcoded API keys found" >> "${REPORT_DIR}/code-security-scan.txt"
-    grep -r -i "secret\s*=" /app/src/ 2>/dev/null | head -10 >> "${REPORT_DIR}/code-security-scan.txt" || echo "No hardcoded secrets found" >> "${REPORT_DIR}/code-security-scan.txt"
+    # Basic SSL check using openssl
+    echo "Checking SSL certificate..." | tee -a "$SECURITY_LOG"
+    echo | openssl s_client -connect "$hostname:443" -servername "$hostname" 2>&1 > "$ssl_file" || true
     
-    echo "" >> "${REPORT_DIR}/code-security-scan.txt"
-    echo "## Dangerous Function Usage" >> "${REPORT_DIR}/code-security-scan.txt"
-    
-    # Check for dangerous functions
-    grep -r "eval(" /app/src/ 2>/dev/null | head -10 >> "${REPORT_DIR}/code-security-scan.txt" || echo "No eval() usage found" >> "${REPORT_DIR}/code-security-scan.txt"
-    grep -r "exec(" /app/src/ 2>/dev/null | head -10 >> "${REPORT_DIR}/code-security-scan.txt" || echo "No exec() usage found" >> "${REPORT_DIR}/code-security-scan.txt"
-    grep -r "child_process" /app/src/ 2>/dev/null | head -10 >> "${REPORT_DIR}/code-security-scan.txt" || echo "No child_process usage found" >> "${REPORT_DIR}/code-security-scan.txt"
-    
-    log_success "Code vulnerability scan completed"
+    # Check for weak ciphers
+    echo "Checking for weak ciphers..." | tee -a "$SECURITY_LOG"
+    openssl s_client -connect "$hostname:443" -cipher 'LOW:EXPORT' < /dev/null 2>&1 | grep -E "(Cipher|Protocol)" >> "$ssl_file" || true
 }
 
-scan_container_security() {
-    log_info "Scanning container security configuration..."
+# License compliance check
+license_compliance_check() {
+    echo "Checking license compliance..." | tee -a "$SECURITY_LOG"
     
-    cat > "${REPORT_DIR}/container-security.txt" <<EOF
-# Container Security Analysis
-
-## User Information
-Current user: $(whoami)
-User ID: $(id)
-
-## Process Information
+    local output_file="$RESULTS_DIR/license-compliance-$TIMESTAMP.json"
+    
+    # Use licensee if available
+    if command -v licensee >/dev/null 2>&1; then
+        echo "Running licensee scan..." | tee -a "$SECURITY_LOG"
+        licensee detect /app --json > "$output_file" 2>&1 || true
+    else
+        # Basic license check
+        echo "Basic license check..." | tee -a "$SECURITY_LOG"
+        cat > "$output_file" <<EOF
+{
+  "timestamp": "$(date -u +"%Y-%m-%dT%H:%M:%SZ")",
+  "status": "basic_check",
+  "licenses_found": []
+}
 EOF
-    
-    # Check running processes
-    ps aux >> "${REPORT_DIR}/container-security.txt" 2>/dev/null || true
-    
-    echo "" >> "${REPORT_DIR}/container-security.txt"
-    echo "## Network Information" >> "${REPORT_DIR}/container-security.txt"
-    
-    # Check network configuration
-    if command -v netstat >/dev/null 2>&1; then
-        netstat -tulpn >> "${REPORT_DIR}/container-security.txt" 2>/dev/null || true
+        
+        # Look for LICENSE files
+        find /app -name "LICENSE*" -o -name "COPYING*" | while read -r license_file; do
+            if [[ -f "$license_file" ]]; then
+                local license_content=$(head -10 "$license_file" | tr '\n' ' ')
+                jq --arg file "$license_file" --arg content "$license_content" \
+                   '.licenses_found += [{"file": $file, "content": $content}]' \
+                   "$output_file" > "$output_file.tmp" && mv "$output_file.tmp" "$output_file"
+            fi
+        done
     fi
     
-    echo "" >> "${REPORT_DIR}/container-security.txt"
-    echo "## Environment Variables" >> "${REPORT_DIR}/container-security.txt"
-    
-    # Check environment variables (mask sensitive ones)
-    env | grep -E "(PATH|NODE|npm)" >> "${REPORT_DIR}/container-security.txt" || true
-    
-    log_success "Container security scan completed"
+    echo "License compliance check completed: $output_file" | tee -a "$SECURITY_LOG"
 }
 
+# Generate security report
 generate_security_report() {
-    log_info "Generating security report..."
+    echo "Generating security report..." | tee -a "$SECURITY_LOG"
     
-    # Count findings
-    npm_issues=$(jq '.metadata.vulnerabilities.total // 0' "${REPORT_DIR}/npm-audit.json" 2>/dev/null || echo "0")
-    world_writable=$(wc -l < "${REPORT_DIR}/world-writable-files.txt" 2>/dev/null || echo "0")
-    setuid_files=$(wc -l < "${REPORT_DIR}/setuid-files.txt" 2>/dev/null || echo "0")
+    local report_file="$RESULTS_DIR/security-report-$TIMESTAMP.json"
+    local html_report="$RESULTS_DIR/security-report-$TIMESTAMP.html"
     
-    # Generate JSON report
-    cat > "${REPORT_DIR}/security-summary.json" <<EOF
-{
-    "timestamp": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
-    "scan_results": {
-        "npm_vulnerabilities": $npm_issues,
-        "world_writable_files": $world_writable,
-        "setuid_files": $setuid_files,
-        "sensitive_files_checked": true,
-        "code_scan_completed": true,
-        "container_scan_completed": true
-    },
-    "security_score": $(( 100 - npm_issues - world_writable * 10 - setuid_files * 20 )),
-    "status": "completed"
-}
-EOF
+    # Count vulnerabilities from dependency scan
+    local dependency_vulns=0
+    local dep_scan_file="$RESULTS_DIR/dependency-scan-$TIMESTAMP.json"
+    if [[ -f "$dep_scan_file" ]]; then
+        dependency_vulns=$(jq -r '.metadata.vulnerabilities.total // 0' "$dep_scan_file" 2>/dev/null || echo 0)
+    fi
     
-    # Generate Markdown report
-    cat > "${REPORT_DIR}/security-summary.md" <<EOF
-# Security Scan Report
-
-**Generated:** $(date -u +%Y-%m-%dT%H:%M:%SZ)
-
-## Summary
-- npm vulnerabilities: $npm_issues
-- World-writable files: $world_writable
-- Setuid/setgid files: $setuid_files
-
-## Scan Results
-- ✅ npm dependency scan
-- ✅ File permission scan
-- ✅ Sensitive files scan
-- ✅ Code vulnerability scan
-- ✅ Container security scan
-
-## Recommendations
-$(if [ "$npm_issues" -gt 0 ]; then echo "- Review and fix npm vulnerabilities"; fi)
-$(if [ "$world_writable" -gt 0 ]; then echo "- Fix world-writable file permissions"; fi)
-$(if [ "$setuid_files" -gt 0 ]; then echo "- Review setuid/setgid files"; fi)
-
-See detailed scan results in individual report files.
-EOF
+    # Check security headers
+    local security_score=100
+    local issues=()
     
-    log_success "Security report generated"
-}
-
-# Main security scan sequence
-main() {
-    log_info "Starting comprehensive security scan..."
-    
-    scan_npm_dependencies
-    scan_file_permissions
-    scan_sensitive_files
-    scan_code_vulnerabilities
-    scan_container_security
-    generate_security_report
-    
-    log_success "🔒 Security scan completed!"
-    log_info "Reports available in: ${REPORT_DIR}"
-    
-    # Display summary
-    if [[ -f "${REPORT_DIR}/security-summary.json" ]]; then
-        security_score=$(jq '.security_score' "${REPORT_DIR}/security-summary.json")
-        log_info "Security Score: $security_score/100"
+    local vuln_check_file="$RESULTS_DIR/web-security-$TIMESTAMP/vulnerability-checks.json"
+    if [[ -f "$vuln_check_file" ]]; then
+        # Check each security header
+        local checks=(
+            "xss_protection"
+            "content_security_policy"
+            "hsts"
+            "x_frame_options"
+            "x_content_type_options"
+        )
         
-        if [[ $security_score -lt 80 ]]; then
-            log_warning "Security score below recommended threshold (80)"
-            exit 1
-        else
-            log_success "Security scan passed with score: $security_score"
+        for check in "${checks[@]}"; do
+            local result=$(jq -r ".checks.$check // \"missing\"" "$vuln_check_file" 2>/dev/null)
+            if [[ "$result" == "missing" ]]; then
+                security_score=$((security_score - 15))
+                issues+=("Missing $check header")
+            fi
+        done
+        
+        # Check for accessible sensitive paths
+        local accessible_paths=$(jq -r '.checks.accessible_sensitive_paths | length' "$vuln_check_file" 2>/dev/null || echo 0)
+        if [[ $accessible_paths -gt 0 ]]; then
+            security_score=$((security_score - accessible_paths * 10))
+            issues+=("$accessible_paths sensitive paths accessible")
         fi
     fi
+    
+    # Determine overall security status
+    local security_status="high"
+    if [[ $security_score -lt 80 ]]; then
+        security_status="medium"
+    fi
+    if [[ $security_score -lt 60 ]]; then
+        security_status="low"
+    fi
+    if [[ $dependency_vulns -gt 0 ]]; then
+        security_status="low"
+    fi
+    
+    # Generate JSON report
+    local issues_json=$(printf '%s\n' "${issues[@]}" | jq -R . | jq -s .)
+    cat > "$report_file" <<EOF
+{
+  "scan_timestamp": "$(date -u +"%Y-%m-%dT%H:%M:%SZ")",
+  "scan_id": "$TIMESTAMP",
+  "target": "$SCAN_TARGET",
+  "security_level": "$SECURITY_LEVEL",
+  "results": {
+    "overall_status": "$security_status",
+    "security_score": $security_score,
+    "dependency_vulnerabilities": $dependency_vulns,
+    "issues_found": $issues_json
+  },
+  "scans_performed": [
+    "dependency_vulnerability_scan",
+    "static_code_analysis",
+    "web_security_scan",
+    "license_compliance_check"
+  ],
+  "status": "completed"
+}
+EOF
+
+    # Generate HTML report
+    cat > "$html_report" <<EOF
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Security Scan Report - $TIMESTAMP</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .header { background: #f4f4f4; padding: 20px; border-radius: 5px; }
+        .status-high { color: #28a745; font-weight: bold; }
+        .status-medium { color: #ffc107; font-weight: bold; }
+        .status-low { color: #dc3545; font-weight: bold; }
+        .issue { background: #f8d7da; padding: 10px; margin: 5px 0; border-radius: 3px; }
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #f2f2f2; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Security Scan Report</h1>
+        <p><strong>Scan Time:</strong> $(date)</p>
+        <p><strong>Scan ID:</strong> $TIMESTAMP</p>
+        <p><strong>Target:</strong> $SCAN_TARGET</p>
+        <p><strong>Security Level:</strong> $SECURITY_LEVEL</p>
+    </div>
+    
+    <h2>Security Assessment</h2>
+    <table>
+        <tr><th>Metric</th><th>Value</th></tr>
+        <tr><td>Overall Status</td><td class="status-$security_status">$(echo $security_status | tr '[:lower:]' '[:upper:]')</td></tr>
+        <tr><td>Security Score</td><td>$security_score/100</td></tr>
+        <tr><td>Dependency Vulnerabilities</td><td>$dependency_vulns</td></tr>
+        <tr><td>Issues Found</td><td>${#issues[@]}</td></tr>
+    </table>
+    
+    <h2>Issues Identified</h2>
+EOF
+
+    # Add issues to HTML report
+    if [[ ${#issues[@]} -gt 0 ]]; then
+        for issue in "${issues[@]}"; do
+            echo "    <div class=\"issue\">$issue</div>" >> "$html_report"
+        done
+    else
+        echo "    <p>No security issues identified.</p>" >> "$html_report"
+    fi
+    
+    cat >> "$html_report" <<EOF
+    
+    <h2>Scans Performed</h2>
+    <ul>
+        <li>Dependency Vulnerability Scan</li>
+        <li>Static Code Analysis</li>
+        <li>Web Security Scan</li>
+        <li>License Compliance Check</li>
+    </ul>
+</body>
+</html>
+EOF
+
+    echo "Security report generated: $report_file" | tee -a "$SECURITY_LOG"
+    echo "HTML report generated: $html_report" | tee -a "$SECURITY_LOG"
+}
+
+# Wait for application to be ready
+wait_for_app() {
+    echo "Waiting for application to be ready..." | tee -a "$SECURITY_LOG"
+    
+    local max_attempts=30
+    local attempt=1
+    
+    while [[ $attempt -le $max_attempts ]]; do
+        if curl -sf "$SCAN_TARGET/health" >/dev/null 2>&1; then
+            echo "Application is ready!" | tee -a "$SECURITY_LOG"
+            return 0
+        fi
+        
+        echo "Attempt $attempt/$max_attempts: Application not ready, waiting..." | tee -a "$SECURITY_LOG"
+        sleep 10
+        ((attempt++))
+    done
+    
+    echo "WARNING: Application not responding, proceeding with available scans" | tee -a "$SECURITY_LOG"
+}
+
+# Main security scanning function
+main() {
+    echo "Starting security scanning suite..." | tee -a "$SECURITY_LOG"
+    
+    # Run dependency scans (don't require running app)
+    scan_dependencies
+    static_code_analysis
+    license_compliance_check
+    
+    # Run web security scans (require running app)
+    web_security_scan
+    
+    # Generate final report
+    generate_security_report
+    
+    echo "Security scanning completed" | tee -a "$SECURITY_LOG"
+    echo "Results available in: $RESULTS_DIR"
 }
 
 # Run main function

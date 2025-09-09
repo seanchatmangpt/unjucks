@@ -1,0 +1,191 @@
+# Semgrep configuration for Fortune 5 enterprise security
+rules:
+  # JavaScript/Node.js Security Rules
+  - id: dangerous-eval-usage
+    pattern: |
+      eval($X)
+    message: "Dangerous use of eval() detected - potential code injection vulnerability"
+    languages: [javascript, typescript]
+    severity: ERROR
+    
+  - id: sql-injection-risk
+    patterns:
+      - pattern: |
+          $DB.query($QUERY + $VAR)
+      - pattern: |
+          $DB.execute($QUERY + $VAR)
+      - pattern: |
+          `$...{$VAR}$...`
+    message: "Potential SQL injection vulnerability - use parameterized queries"
+    languages: [javascript, typescript]
+    severity: ERROR
+    
+  - id: command-injection-risk
+    patterns:
+      - pattern: |
+          exec($CMD + $VAR)
+      - pattern: |
+          spawn($CMD + $VAR)
+      - pattern: |
+          execSync($CMD + $VAR)
+    message: "Potential command injection vulnerability"
+    languages: [javascript, typescript]
+    severity: ERROR
+    
+  - id: path-traversal-risk
+    patterns:
+      - pattern: |
+          fs.readFile($PATH + $VAR)
+      - pattern: |
+          fs.writeFile($PATH + $VAR)
+      - pattern: |
+          path.join($PATH, $VAR)
+    message: "Potential path traversal vulnerability - validate file paths"
+    languages: [javascript, typescript]
+    severity: WARNING
+    
+  - id: weak-crypto-algorithm
+    patterns:
+      - pattern: |
+          crypto.createHash('md5')
+      - pattern: |
+          crypto.createHash('sha1')
+      - pattern: |
+          crypto.createCipher($ALG, ...)
+    message: "Weak cryptographic algorithm detected - use SHA-256 or stronger"
+    languages: [javascript, typescript]
+    severity: ERROR
+    
+  - id: hardcoded-secrets
+    patterns:
+      - pattern: |
+          password = "$VALUE"
+      - pattern: |
+          secret = "$VALUE"
+      - pattern: |
+          token = "$VALUE"
+      - pattern: |
+          key = "$VALUE"
+    message: "Potential hardcoded secret detected - use environment variables"
+    languages: [javascript, typescript]
+    severity: ERROR
+    
+  - id: insecure-random
+    patterns:
+      - pattern: |
+          Math.random()
+      - pattern: |
+          crypto.pseudoRandomBytes(...)
+    message: "Insecure random number generation - use crypto.randomBytes()"
+    languages: [javascript, typescript]
+    severity: WARNING
+    
+  - id: prototype-pollution
+    patterns:
+      - pattern: |
+          $OBJ['__proto__'] = $VAL
+      - pattern: |
+          $OBJ.constructor.prototype = $VAL
+      - pattern: |
+          merge($TARGET, $SOURCE)
+    message: "Potential prototype pollution vulnerability"
+    languages: [javascript, typescript]
+    severity: ERROR
+    
+  - id: xss-innerHTML
+    patterns:
+      - pattern: |
+          $EL.innerHTML = $VAR
+      - pattern: |
+          $EL.outerHTML = $VAR
+    message: "Potential XSS vulnerability - sanitize HTML content"
+    languages: [javascript, typescript]
+    severity: ERROR
+    
+  - id: unsafe-regex
+    pattern: |
+      new RegExp($PATTERN)
+    message: "Dynamic regex creation - potential ReDoS vulnerability"
+    languages: [javascript, typescript]
+    severity: WARNING
+    
+  - id: insecure-cors
+    patterns:
+      - pattern: |
+          cors({ origin: '*' })
+      - pattern: |
+          'Access-Control-Allow-Origin': '*'
+    message: "Insecure CORS configuration - wildcard origin in production"
+    languages: [javascript, typescript]
+    severity: WARNING
+    
+  - id: debug-code-left
+    patterns:
+      - pattern: |
+          console.log($X)
+      - pattern: |
+          debugger
+      - pattern: |
+          alert($X)
+    message: "Debug code detected - remove before production"
+    languages: [javascript, typescript]
+    severity: INFO
+    
+  - id: unsafe-deserialization
+    patterns:
+      - pattern: |
+          JSON.parse($VAR)
+      - pattern: |
+          eval($VAR)
+      - pattern: |
+          Function($VAR)()
+    message: "Unsafe deserialization - validate input before parsing"
+    languages: [javascript, typescript]
+    severity: WARNING
+    
+  - id: missing-rate-limiting
+    pattern: |
+      app.$METHOD($PATH, $HANDLER)
+    message: "Consider adding rate limiting to API endpoints"
+    languages: [javascript, typescript]
+    severity: INFO
+    
+  - id: missing-input-validation
+    patterns:
+      - pattern: |
+          req.body.$FIELD
+      - pattern: |
+          req.query.$FIELD
+      - pattern: |
+          req.params.$FIELD
+    message: "Consider adding input validation for user data"
+    languages: [javascript, typescript]
+    severity: INFO
+
+# File patterns to include
+include:
+  - "*.js"
+  - "*.ts"
+  - "*.json"
+  - "src/**/*"
+  - "generated/**/*"
+
+# File patterns to exclude
+exclude:
+  - "node_modules/**"
+  - "*.test.js"
+  - "*.spec.js"
+  - "test/**"
+  - "tests/**"
+  - "*.min.js"
+  - "dist/**"
+  - "build/**"
+  - ".git/**"
+
+# Semgrep rulesets to include
+extends:
+  - p/security-audit
+  - p/nodejs
+  - p/javascript
+  - p/owasp-top-ten
+  - p/cwe-top-25
