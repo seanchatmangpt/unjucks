@@ -67,7 +67,7 @@ The Unjucks project demonstrates a **strong security framework foundation** with
 **Critical Issues**:
 ```env
 # SECURITY VIOLATION: Hardcoded secrets in .env
-NPM_TOKEN=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
+NPM_TOKEN=[REDACTED_TOKEN]
 DB_PASSWORD=your_secure_password
 JWT_SECRET=your-super-secure-jwt-secret-key-minimum-32-characters
 CORS_ORIGIN=* # Wildcard CORS - HIGH RISK
@@ -123,7 +123,7 @@ CORS_ORIGIN=* # Wildcard CORS - HIGH RISK
 
 1. **Exposed API Token**:
    ```
-   NPM_TOKEN=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
+   NPM_TOKEN=[REDACTED_TOKEN]
    ```
    **Risk**: Complete package registry compromise
    **Action**: Immediate token rotation required

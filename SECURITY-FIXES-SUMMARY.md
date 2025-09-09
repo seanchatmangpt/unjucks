@@ -11,7 +11,7 @@ All critical security vulnerabilities have been successfully remediated. The sys
 ## Vulnerabilities Fixed
 
 ### 1. ✅ Exposed NPM Token (P0 Critical)
-**Issue**: Live NPM token `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` exposed in `.env` file  
+**Issue**: Live NPM token exposed in `.env` file  
 **Fix**: 
 - Commented out exposed token
 - Added security notice for production secret management
