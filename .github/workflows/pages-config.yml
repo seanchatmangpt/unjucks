@@ -19,7 +19,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Configure GitHub Pages
-        uses: actions/configure-pages@v4
+        uses: actions/configure-pages@v5
         with:
           # Configure for GitHub Pages deployment
           enablement: true
