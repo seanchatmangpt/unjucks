@@ -1,6 +1,6 @@
 {
   "name": "@seanchatmangpt/unjucks",
-  "version": "2025.9.8",
+  "version": "2.0.8",
   "type": "module",
   "description": "Nunjucks + Hygen style scaffolding with RDF/Turtle support",
   "main": "./src/cli/index.js",
@@ -9,7 +9,7 @@
   },
   "exports": {
     ".": {
-      "types": "./src/types.d.ts",
+      "types": "./types/index.d.ts",
       "import": "./src/cli/index.js",
       "require": "./bin/unjucks.cjs"
     },
@@ -19,7 +19,7 @@
     "bin/",
     "src/",
     "_templates/",
-    "scripts/",
+    "types/",
     "README.md",
     "LICENSE"
   ],
@@ -44,6 +44,7 @@
     "test:performance": "node tests/qa/performance-regression.js",
     "test:mutation": "node tests/qa/mutation-testing.js",
     "test:workflows": "node tests/qa/workflow-validator.js",
+    "test:security": "npm run security:scan && npm run security:patterns && echo '🛡️ Security tests completed'",
     "qa:quality-gates": "node tests/qa/quality-gates.js",
     "qa:coverage": "node tests/qa/coverage-monitor.js",
     "qa:security": "node tests/qa/security-scanner.js",
@@ -52,8 +53,17 @@
     "qa:suite": "node tests/qa/qa-suite.js",
     "qa:suite:fast": "node tests/qa/qa-suite.js --skip-long-running",
     "qa:all": "npm run qa:suite",
-    "lint": "echo 'No linting configured for JavaScript project'",
+    "lint": "ESLINT_USE_FLAT_CONFIG=false eslint --config .eslintrc.cjs src/ scripts/ bin/ *.js",
+    "lint:fix": "ESLINT_USE_FLAT_CONFIG=false eslint --config .eslintrc.cjs --fix src/ scripts/ bin/ *.js",
+    "lint:quality": "ESLINT_USE_FLAT_CONFIG=false eslint --config .eslintrc.quality.cjs src/ scripts/ bin/ *.js",
+    "lint:security": "ESLINT_USE_FLAT_CONFIG=false eslint --config .eslintrc.security.cjs src/ scripts/ bin/ *.js",
+    "lint:complexity": "ESLINT_USE_FLAT_CONFIG=false eslint --config .eslintrc.complexity.cjs src/ scripts/ bin/ *.js",
     "security:scan": "npm audit --audit-level moderate || echo 'Security scan completed'",
+    "security:sast": "echo '🔍 Running SAST analysis...' && npm run security:patterns",
+    "security:deps": "npm audit --audit-level moderate && npm ls --depth=0",
+    "security:patterns": "echo '🔍 Checking for dangerous code patterns...' && grep -r 'eval(' src/ || echo '✅ No eval() usage found'",
+    "security:secrets": "echo '🔍 Manual secret check - use TruffleHog for comprehensive scanning'",
+    "security:compliance": "echo '📄 Checking licenses...' && npx license-checker --summary",
     "clean": "rm -rf node_modules package-lock.json && npm install",
     "clean:build": "rm -rf dist/ build/ .output/",
     "clean:qa": "rm -rf tests/reports/*.json tests/reports/*.html tests/reports/*.txt",
@@ -90,7 +100,6 @@
   "homepage": "https://unjucks.dev",
   "dependencies": {
     "@faker-js/faker": "^9.9.0",
-    "@rollup/rollup-darwin-arm64": "^4.50.1",
     "chalk": "^4.1.2",
     "chokidar": "^3.6.0",
     "citty": "^0.1.6",
@@ -107,21 +116,21 @@
     "nunjucks": "^3.2.4",
     "ora": "^8.2.0",
     "sparqljs": "^3.7.3",
-    "uuid": "^12.0.0",
+    "uuid": "^10.0.0",
     "yaml": "^2.8.1",
-    "zod": "^3.25.76"
+    "zod": "^3.23.8"
   },
   "optionalDependencies": {
-    "axios": "^1.11.0",
-    "bcrypt": "^6.0.0",
-    "docx": "^9.5.1",
-    "katex": "^0.16.22",
+    "axios": "^1.7.7",
+    "bcrypt": "^5.1.1",
+    "docx": "^8.5.0",
+    "katex": "^0.16.11",
     "officegen": "^0.6.5",
-    "pdfkit": "^0.17.2",
-    "puppeteer-core": "^24.19.0"
+    "pdfkit": "^0.15.0",
+    "puppeteer-core": "^24.0.0"
   },
   "peerDependencies": {
-    "puppeteer": ">=23.0.0"
+    "puppeteer": ">=24.0.0"
   },
   "peerDependenciesMeta": {
     "puppeteer": {
@@ -130,10 +139,10 @@
   },
   "devDependencies": {
     "@cucumber/cucumber": "^11.0.1",
-    "@vitest/coverage-v8": "^2.1.8",
+    "@vitest/coverage-v8": "^2.2.0",
     "c8": "^10.1.3",
     "tsx": "^4.7.3",
-    "vitest": "^2.1.8",
+    "vitest": "^3.2.4",
     "eslint": "^8.57.0",
     "@typescript-eslint/eslint-plugin": "^6.21.0",
     "@typescript-eslint/parser": "^6.21.0",

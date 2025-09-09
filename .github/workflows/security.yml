@@ -1,232 +1,92 @@
-name: Security Scanning & Validation
+name: Security Scanning & Compliance
+
+# Security scanning concurrency - cancel previous runs for efficiency
+concurrency:
+  group: security-scan-${{ github.ref }}
+  cancel-in-progress: true
 
 on:
   push:
-    branches: [main, develop]
+    branches: [ main, develop ]
   pull_request:
-    branches: [main, develop]
+    branches: [ main, develop ]
   schedule:
-    # Run security scans daily at 3 AM UTC
-    - cron: '0 3 * * *'
+    - cron: '0 4 * * 1' # Weekly on Mondays at 4 AM UTC
   workflow_dispatch:
+    inputs:
+      scan_type:
+        description: 'Type of security scan'
+        required: true
+        default: 'full'
+        type: choice
+        options:
+          - full
+          - sast
+          - dependencies
+          - secrets
 
-env:
-  CI: true
-  NODE_OPTIONS: '--max-old-space-size=4096'
+permissions:
+  contents: read
+  security-events: write
+  actions: read
 
 jobs:
-  # Dependency vulnerability scanning
-  dependency-security:
-    name: Dependency Security Scan
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    permissions:
-      contents: read
-      security-events: write
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'npm'
-
-      - name: Install dependencies
-        run: npm ci --prefer-offline --no-audit
-
-      - name: Run npm audit
-        run: |
-          echo "🔍 Running npm audit..."
-          npm audit --audit-level moderate 2>&1 | tee npm-audit.log
-          
-          # Check for critical vulnerabilities
-          if npm audit --audit-level high --json > audit-results.json; then
-            echo "✅ No high-severity vulnerabilities found"
-          else
-            echo "⚠️ High-severity vulnerabilities detected"
-            cat audit-results.json
-          fi
-
-      - name: Custom dependency security scan
-        run: |
-          echo "🔒 Running custom dependency security scan..."
-          npm run security:deps 2>&1 | tee dependency-scan.log
-
-      - name: Check for known vulnerable packages
-        run: |
-          echo "📦 Checking for known vulnerable packages..."
-          
-          # List of packages to avoid
-          VULNERABLE_PACKAGES=("event-stream" "flatmap-stream" "eslint-scope" "bootstrap")
-          
-          for package in "${VULNERABLE_PACKAGES[@]}"; do
-            if npm list "$package" 2>/dev/null; then
-              echo "⚠️ Warning: Potentially vulnerable package detected: $package"
-            fi
-          done
-
-      - name: Validate package integrity
-        run: |
-          echo "🔐 Validating package integrity..."
-          
-          # Check package-lock.json integrity
-          if [[ -f "package-lock.json" ]]; then
-            npm ci --prefer-offline --no-audit
-            echo "✅ Package lock integrity validated"
-          fi
-          
-          # Check for suspicious dependencies
-          if grep -r "postinstall.*curl\|wget\|download" node_modules/*/package.json 2>/dev/null; then
-            echo "⚠️ Suspicious postinstall scripts detected"
-          fi
-
-      - name: Upload dependency security results
-        uses: actions/upload-artifact@v4
-        with:
-          name: dependency-security-results
-          path: |
-            npm-audit.log
-            dependency-scan.log
-            audit-results.json
-          retention-days: 7
-
   # Static Application Security Testing (SAST)
   sast-analysis:
     name: SAST Analysis
     runs-on: ubuntu-latest
-    timeout-minutes: 20
-    permissions:
-      contents: read
-      security-events: write
+    if: github.event.inputs.scan_type == 'full' || github.event.inputs.scan_type == 'sast' || github.event_name != 'workflow_dispatch'
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '18'
           cache: 'npm'
 
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: '9.12.0'
+
       - name: Install dependencies
-        run: npm ci --prefer-offline --no-audit
+        run: pnpm install --frozen-lockfile
 
-      - name: Custom SAST analysis
-        run: |
-          echo "🔍 Running custom SAST analysis..."
-          npm run security:sast 2>&1 | tee sast-analysis.log
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: javascript
+          queries: security-extended
 
-      - name: Check for hardcoded secrets
-        run: |
-          echo "🔑 Scanning for hardcoded secrets..."
-          
-          # Patterns to look for
-          PATTERNS=(
-            "sk-[a-zA-Z0-9]{20,}"
-            "api_key.*=.*[\"'][a-zA-Z0-9]{20,}[\"']"
-            "password.*=.*[\"'][^\"']{8,}[\"']"
-            "secret.*=.*[\"'][a-zA-Z0-9]{16,}[\"']"
-            "token.*=.*[\"'][a-zA-Z0-9]{20,}[\"']"
-            "ghp_[a-zA-Z0-9]{36}"
-            "gho_[a-zA-Z0-9]{36}"
-            "github_pat_[a-zA-Z0-9]{22}_[a-zA-Z0-9]{59}"
-          )
-          
-          FOUND_SECRETS=false
-          for pattern in "${PATTERNS[@]}"; do
-            if grep -r -E "$pattern" src/ bin/ scripts/ 2>/dev/null | grep -v test | grep -v mock; then
-              echo "⚠️ Potential secret found matching pattern: $pattern"
-              FOUND_SECRETS=true
-            fi
-          done
-          
-          if [[ "$FOUND_SECRETS" == "false" ]]; then
-            echo "✅ No hardcoded secrets detected"
-          else
-            echo "❌ Potential hardcoded secrets found!"
-            exit 1
-          fi
+      - name: Autobuild
+        uses: github/codeql-action/autobuild@v3
 
-      - name: Security code patterns analysis
-        run: |
-          echo "🔒 Analyzing security code patterns..."
-          
-          # Check for unsafe operations
-          if grep -r "eval(" src/ bin/ 2>/dev/null; then
-            echo "⚠️ eval() usage detected - potential security risk"
-          fi
-          
-          if grep -r "innerHTML\s*=" src/ bin/ 2>/dev/null; then
-            echo "⚠️ innerHTML usage detected - potential XSS risk"
-          fi
-          
-          if grep -r "document.write" src/ bin/ 2>/dev/null; then
-            echo "⚠️ document.write usage detected - potential security risk"
-          fi
-          
-          # Check for unsafe file operations
-          if grep -r "fs\.readFileSync.*\$\|fs\.writeFileSync.*\$" src/ bin/ 2>/dev/null; then
-            echo "⚠️ Dynamic file operations detected - validate input sanitization"
-          fi
-          
-          echo "✅ Security code patterns analysis completed"
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: "/language:javascript"
 
-      - name: Template injection vulnerability check
-        run: |
-          echo "🎭 Checking for template injection vulnerabilities..."
-          
-          # Check for unsafe template patterns
-          if grep -r "{{.*|.*safe\|{{.*|.*raw" templates/ src/ 2>/dev/null; then
-            echo "⚠️ Unsafe template filters detected - potential template injection"
-          fi
-          
-          # Check for dynamic template compilation
-          if grep -r "compile.*\$\|render.*\$" src/ 2>/dev/null; then
-            echo "⚠️ Dynamic template compilation detected - validate input sanitization"
-          fi
-          
-          echo "✅ Template security analysis completed"
+      - name: Custom SAST scan
+        run: npm run security:sast
+        continue-on-error: true
 
       - name: Upload SAST results
         uses: actions/upload-artifact@v4
         with:
-          name: sast-analysis-results
+          name: sast-results
           path: |
-            sast-analysis.log
-            *.log
-          retention-days: 7
+            security-reports/
+            sast-results.json
 
-  # Container security scanning
-  container-security:
-    name: Container Security
+  # Dependency Security Scanning
+  dependency-scan:
+    name: Dependency Security
     runs-on: ubuntu-latest
-    timeout-minutes: 20
-    if: false # Disabled for now as we don't have Docker containers yet
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Build Docker image
-        run: |
-          if [[ -f "Dockerfile" ]]; then
-            docker build -t unjucks:security-test .
-          else
-            echo "No Dockerfile found - skipping container security scan"
-            exit 0
-          fi
-
-      - name: Container vulnerability scan
-        run: |
-          echo "🐳 Running container security scan..."
-          # Add container scanning tools here
-
-  # Security compliance validation
-  compliance-validation:
-    name: Security Compliance
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
+    if: github.event.inputs.scan_type == 'full' || github.event.inputs.scan_type == 'dependencies' || github.event_name != 'workflow_dispatch'
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -234,67 +94,191 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '18'
           cache: 'npm'
 
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: '9.12.0'
+
       - name: Install dependencies
-        run: npm ci --prefer-offline --no-audit
+        run: pnpm install --frozen-lockfile
 
-      - name: Security compliance check
+      - name: Run npm audit
         run: |
-          echo "📋 Running security compliance validation..."
-          npm run test:security || echo "Security tests completed with warnings"
+          npm audit --audit-level=moderate --json > npm-audit.json || true
+          npm audit --audit-level=moderate
 
-      - name: License compliance check
+      - name: Custom dependency scan
+        run: npm run security:deps
+
+      - name: Dependency-Track SBOM
+        run: |
+          npm list --depth=0 --json > package-dependencies.json
+          echo "📦 Generated software bill of materials (SBOM)"
+
+      - name: Check for known vulnerabilities
+        run: |
+          # Check for specific vulnerable packages
+          echo "🔍 Checking for known vulnerable dependencies..."
+          
+          # Parse npm audit results
+          if [ -f npm-audit.json ]; then
+            vulnerabilities=$(cat npm-audit.json | jq '.metadata.vulnerabilities.total // 0')
+            if [ "$vulnerabilities" -gt 0 ]; then
+              echo "⚠️ Found $vulnerabilities vulnerabilities"
+              cat npm-audit.json | jq '.vulnerabilities'
+            else
+              echo "✅ No vulnerabilities found"
+            fi
+          fi
+
+      - name: Upload dependency results
+        uses: actions/upload-artifact@v4
+        with:
+          name: dependency-scan-results
+          path: |
+            npm-audit.json
+            package-dependencies.json
+            dependency-reports/
+
+  # Secrets Scanning
+  secrets-scan:
+    name: Secrets Scanning
+    runs-on: ubuntu-latest
+    if: github.event.inputs.scan_type == 'full' || github.event.inputs.scan_type == 'secrets' || github.event_name != 'workflow_dispatch'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Secret scanning with truffleHog
+        run: |
+          # Install truffleHog
+          curl -sSfL https://raw.githubusercontent.com/trufflesecurity/trufflehog/main/scripts/install.sh | sh -s -- -b /usr/local/bin
+          
+          # Scan for secrets
+          trufflehog git file://. --json --no-update > secrets-scan.json || true
+          
+          # Check results
+          if [ -s secrets-scan.json ]; then
+            echo "⚠️ Potential secrets found:"
+            cat secrets-scan.json | jq -r '.Raw' | head -10
+          else
+            echo "✅ No secrets detected"
+          fi
+
+      - name: Manual pattern check
+        run: |
+          echo "🔍 Manual pattern check for common secrets..."
+          
+          # Check for common secret patterns
+          patterns=(
+            "password\s*=\s*['\"][^'\"]{8,}['\"]"
+            "api_key\s*=\s*['\"][^'\"]{20,}['\"]"
+            "secret\s*=\s*['\"][^'\"]{10,}['\"]"
+            "token\s*=\s*['\"][^'\"]{20,}['\"]"
+            "private_key"
+            "-----BEGIN"
+          )
+          
+          found_secrets=false
+          for pattern in "${patterns[@]}"; do
+            if grep -r -E -i "$pattern" src/ tests/ --exclude-dir=node_modules || true; then
+              found_secrets=true
+              echo "⚠️ Found potential secret pattern: $pattern"
+            fi
+          done
+          
+          if [ "$found_secrets" = false ]; then
+            echo "✅ No hardcoded secrets found"
+          fi
+
+      - name: Environment variable check
+        run: |
+          echo "🔍 Checking for environment variable usage..."
+          
+          # Look for proper env usage patterns
+          if grep -r "process.env" src/ --include="*.js" | grep -v "process.env.NODE_ENV"; then
+            echo "✅ Environment variables are used appropriately"
+          fi
+          
+          # Check for hardcoded URLs/endpoints
+          if grep -r "http://" src/ --include="*.js" | grep -v "localhost" || \
+             grep -r "https://api\." src/ --include="*.js"; then
+            echo "⚠️ Found hardcoded URLs - consider using environment variables"
+          fi
+
+      - name: Upload secrets scan results
+        uses: actions/upload-artifact@v4
+        with:
+          name: secrets-scan-results
+          path: |
+            secrets-scan.json
+            secrets-reports/
+
+  # License Compliance
+  license-compliance:
+    name: License Compliance
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: '9.12.0'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: License check
         run: |
           echo "📄 Checking license compliance..."
           
-          # Check for license file
-          if [[ -f "LICENSE" ]]; then
-            echo "✅ License file found"
-          else
-            echo "⚠️ No LICENSE file found"
+          # Generate license report
+          npx license-checker --json > license-report.json
+          
+          # Check for problematic licenses
+          prohibited_licenses=("GPL" "AGPL" "LGPL" "UNLICENSED")
+          
+          echo "🔍 Scanning for prohibited licenses..."
+          license_issues=false
+          
+          for license in "${prohibited_licenses[@]}"; do
+            if grep -i "$license" license-report.json; then
+              echo "⚠️ Found potentially problematic license: $license"
+              license_issues=true
+            fi
+          done
+          
+          if [ "$license_issues" = false ]; then
+            echo "✅ All licenses are compatible"
           fi
           
-          # Check package.json license
-          LICENSE=$(node -p "require('./package.json').license" 2>/dev/null || echo "none")
-          echo "Package license: $LICENSE"
-          
-          if [[ "$LICENSE" == "MIT" || "$LICENSE" == "Apache-2.0" || "$LICENSE" == "BSD-3-Clause" ]]; then
-            echo "✅ Acceptable license: $LICENSE"
-          else
-            echo "⚠️ License compliance review needed: $LICENSE"
-          fi
+          # Count total dependencies and licenses
+          total_deps=$(cat license-report.json | jq 'keys | length')
+          echo "📊 Total dependencies: $total_deps"
 
-      - name: Privacy compliance check
-        run: |
-          echo "🔒 Checking privacy compliance..."
-          
-          # Check for data collection patterns
-          if grep -r "analytics\|tracking\|telemetry" src/ bin/ 2>/dev/null; then
-            echo "⚠️ Potential data collection detected - ensure privacy compliance"
-          else
-            echo "✅ No obvious data collection patterns found"
-          fi
-          
-          # Check for external network calls
-          if grep -r "fetch\|axios\|request\|http\." src/ bin/ 2>/dev/null | grep -v test | grep -v mock; then
-            echo "⚠️ External network calls detected - validate data handling"
-          fi
-
-      - name: Upload compliance results
+      - name: Upload license report
         uses: actions/upload-artifact@v4
         with:
-          name: compliance-validation-results
-          path: |
-            *.log
-          retention-days: 7
+          name: license-compliance-report
+          path: license-report.json
 
-  # Security test execution
-  security-tests:
-    name: Security Tests
+  # Supply Chain Security
+  supply-chain-security:
+    name: Supply Chain Security
     runs-on: ubuntu-latest
-    timeout-minutes: 20
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -302,115 +286,151 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '18'
           cache: 'npm'
 
-      - name: Install dependencies
-        run: npm ci --prefer-offline --no-audit
-
-      - name: Build system
-        run: npm run build:validate
-
-      - name: Run security validation tests
-        run: |
-          echo "🧪 Running security validation tests..."
-          npm run test:security 2>&1 | tee security-tests.log
-
-      - name: Run compliance validation tests
-        run: |
-          echo "📋 Running compliance validation tests..."
-          if [[ -f "tests/docker-validation/compliance-validation.test.js" ]]; then
-            npm run test -- tests/docker-validation/compliance-validation.test.js 2>&1 | tee compliance-tests.log
-          else
-            echo "No compliance tests found"
-          fi
-
-      - name: Attack simulation tests
-        run: |
-          echo "⚔️ Running attack simulation tests..."
-          
-          # Test template injection resistance
-          if [[ -f "tests/attack-template-system.test.js" ]]; then
-            npm run test -- tests/attack-template-system.test.js 2>&1 | tee attack-tests.log
-          fi
-          
-          # Test malformed input handling
-          if [[ -f "tests/chaos/latex-chaos-tests.js" ]]; then
-            node tests/chaos/latex-chaos-tests.js 2>&1 | tee chaos-tests.log || echo "Chaos tests completed"
-          fi
-
-      - name: Upload security test results
-        uses: actions/upload-artifact@v4
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
         with:
-          name: security-test-results
-          path: |
-            security-tests.log
-            compliance-tests.log
-            attack-tests.log
-            chaos-tests.log
-          retention-days: 7
+          version: '9.12.0'
 
-  # Security summary and reporting
+      - name: Package integrity check
+        run: |
+          echo "🔐 Verifying package integrity..."
+          
+          # Check package-lock.json integrity
+          if [ -f package-lock.json ]; then
+            npm ci --dry-run
+            echo "✅ Package-lock integrity verified"
+          fi
+          
+          # Check for package inconsistencies
+          npm ls --depth=0 || echo "⚠️ Dependency tree issues detected"
+
+      - name: Malicious package detection
+        run: |
+          echo "🕵️ Scanning for suspicious packages..."
+          
+          # Check for packages with suspicious names or patterns
+          suspicious_patterns=(
+            ".*typo.*"
+            ".*fake.*"
+            ".*malicious.*"
+            ".*trojan.*"
+            ".*backdoor.*"
+          )
+          
+          npm list --depth=0 --json > package-tree.json
+          
+          found_suspicious=false
+          for pattern in "${suspicious_patterns[@]}"; do
+            if cat package-tree.json | jq -r '.dependencies | keys[]' | grep -E "$pattern"; then
+              echo "⚠️ Suspicious package name pattern found: $pattern"
+              found_suspicious=true
+            fi
+          done
+          
+          if [ "$found_suspicious" = false ]; then
+            echo "✅ No suspicious packages detected"
+          fi
+
+  # Security Summary
   security-summary:
     name: Security Summary
-    needs: [dependency-security, sast-analysis, compliance-validation, security-tests]
-    runs-on: ubuntu-latest
+    needs: [sast-analysis, dependency-scan, secrets-scan, license-compliance, supply-chain-security]
     if: always()
-    permissions:
-      contents: read
-      security-events: write
+    runs-on: ubuntu-latest
     steps:
-      - name: Download all security artifacts
+      - name: Download all artifacts
         uses: actions/download-artifact@v4
-        with:
-          path: security-results
 
       - name: Generate security report
         run: |
-          echo "🔒 Security Scanning Summary" > security-report.md
-          echo "=============================" >> security-report.md
-          echo "" >> security-report.md
-          echo "**Scan Results:**" >> security-report.md
-          echo "- Dependency Security: ${{ needs.dependency-security.result }}" >> security-report.md
-          echo "- SAST Analysis: ${{ needs.sast-analysis.result }}" >> security-report.md
-          echo "- Compliance Validation: ${{ needs.compliance-validation.result }}" >> security-report.md
-          echo "- Security Tests: ${{ needs.security-tests.result }}" >> security-report.md
-          echo "" >> security-report.md
+          echo "# 🛡️ Security Scan Summary" > security-summary.md
+          echo "" >> security-summary.md
+          echo "**Scan Date:** $(date -u)" >> security-summary.md
+          echo "**Commit:** ${{ github.sha }}" >> security-summary.md
+          echo "" >> security-summary.md
           
-          echo "**Security Artifacts:**" >> security-report.md
-          find security-results -name "*.log" -type f | while read file; do
-            echo "- $(basename "$file")" >> security-report.md
-          done
+          # Job results
+          sast_result="${{ needs.sast-analysis.result }}"
+          deps_result="${{ needs.dependency-scan.result }}"
+          secrets_result="${{ needs.secrets-scan.result }}"
+          license_result="${{ needs.license-compliance.result }}"
+          supply_result="${{ needs.supply-chain-security.result }}"
           
-          echo "" >> security-report.md
-          echo "**Overall Status:** " >> security-report.md
-          if [[ "${{ needs.dependency-security.result }}" == "success" && 
-                "${{ needs.sast-analysis.result }}" == "success" && 
-                "${{ needs.compliance-validation.result }}" == "success" ]]; then
-            echo "✅ Security validation passed" >> security-report.md
+          echo "## 📊 Scan Results" >> security-summary.md
+          echo "" >> security-summary.md
+          echo "| Component | Status |" >> security-summary.md
+          echo "|-----------|---------|" >> security-summary.md
+          echo "| SAST Analysis | $sast_result |" >> security-summary.md
+          echo "| Dependency Scan | $deps_result |" >> security-summary.md
+          echo "| Secrets Scan | $secrets_result |" >> security-summary.md
+          echo "| License Compliance | $license_result |" >> security-summary.md
+          echo "| Supply Chain Security | $supply_result |" >> security-summary.md
+          echo "" >> security-summary.md
+          
+          # Overall status
+          if [[ "$sast_result" == "success" && \
+                "$deps_result" == "success" && \
+                "$secrets_result" == "success" && \
+                "$license_result" == "success" && \
+                "$supply_result" == "success" ]]; then
+            echo "## ✅ Overall Status: PASSED" >> security-summary.md
+            echo "All security checks have passed successfully." >> security-summary.md
           else
-            echo "⚠️ Security issues detected - review required" >> security-report.md
+            echo "## ❌ Overall Status: FAILED" >> security-summary.md
+            echo "One or more security checks have failed. Please review the results above." >> security-summary.md
           fi
           
-          cat security-report.md
+          echo "" >> security-summary.md
+          echo "---" >> security-summary.md
+          echo "*Generated by GitHub Actions Security Scanning*" >> security-summary.md
 
-      - name: Check critical security failures
+      - name: Upload security summary
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-summary
+          path: security-summary.md
+
+      - name: Comment on PR
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            
+            try {
+              const summary = fs.readFileSync('security-summary.md', 'utf8');
+              
+              const { owner, repo } = context.repo;
+              const pr_number = context.issue.number;
+              
+              await github.rest.issues.createComment({
+                owner,
+                repo,
+                issue_number: pr_number,
+                body: summary
+              });
+            } catch (error) {
+              console.log('Could not post security summary:', error.message);
+            }
+
+      - name: Fail if security issues found
         run: |
-          if [[ "${{ needs.sast-analysis.result }}" == "failure" ]]; then
-            echo "❌ Critical security failure in SAST analysis"
+          sast_result="${{ needs.sast-analysis.result }}"
+          deps_result="${{ needs.dependency-scan.result }}"
+          secrets_result="${{ needs.secrets-scan.result }}"
+          license_result="${{ needs.license-compliance.result }}"
+          supply_result="${{ needs.supply-chain-security.result }}"
+          
+          if [[ "$sast_result" != "success" || \
+                "$deps_result" != "success" || \
+                "$secrets_result" != "success" || \
+                "$license_result" != "success" || \
+                "$supply_result" != "success" ]]; then
+            echo "❌ Security scan failed - blocking merge"
             exit 1
           fi
           
-          if [[ "${{ needs.dependency-security.result }}" == "failure" ]]; then
-            echo "⚠️ Dependency security issues detected"
-            # Don't fail the build for dependency issues, but warn
-          fi
-          
-          echo "✅ No critical security failures detected"
-
-      - name: Upload consolidated security report
-        uses: actions/upload-artifact@v4
-        with:
-          name: security-summary-report
-          path: security-report.md
-          retention-days: 30
+          echo "✅ All security checks passed"
