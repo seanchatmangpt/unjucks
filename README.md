@@ -1,4 +1,4 @@
-# 🌆 Unjucks v2025.09.07.15.45  
+# 🌆 Unjucks v2025.9.8  
 
 [![npm version](https://img.shields.io/npm/v/@seanchatmangpt/unjucks?color=yellow)](https://npmjs.com/package/@seanchatmangpt/unjucks)
 [![npm downloads](https://img.shields.io/npm/dm/@seanchatmangpt/unjucks?color=yellow)](https://npmjs.com/package/@seanchatmangpt/unjucks)

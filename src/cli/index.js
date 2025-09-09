@@ -3,28 +3,46 @@
 import { defineCommand, runMain as cittyRunMain } from "citty";
 import chalk from "chalk";
 
-// Import all commands (fixed paths - CLI is in src/cli/, commands in src/commands/)
-import { generateCommand } from '../commands/generate.js';
-import { listCommand } from '../commands/list.js';
-import { injectCommand } from '../commands/inject.js';
-import { initCommand } from '../commands/init.js';
-import { semanticCommand } from '../commands/semantic.js';
-import { migrateCommand } from '../commands/migrate.js';
-// Temporarily disabled: import { githubCommand } from '../commands/github.js';
-import { versionCommand } from '../commands/version.js';
-import { newCommand } from '../commands/new.js';
-import { previewCommand } from '../commands/preview.js';
-import { helpCommand as advancedHelpCommand } from '../commands/help.js';
-import { latexCommand } from '../commands/latex.js';
-import { perfCommand } from '../commands/perf.js';
-import { specifyCommand } from '../commands/specify.js';
-import { exportCommand } from '../commands/export.js';
-import pdfCommand from '../commands/pdf.js';
-import exportDocxCommand from './commands/export-docx.js';
+// PERFORMANCE OPTIMIZATION: Lazy load commands to reduce startup time
+// Only load commands when they're actually needed
+const lazyCommands = {
+  generate: () => import('../commands/generate.js').then(m => m.generateCommand),
+  list: () => import('../commands/list.js').then(m => m.listCommand),
+  inject: () => import('../commands/inject.js').then(m => m.injectCommand),
+  init: () => import('../commands/init.js').then(m => m.initCommand),
+  semantic: () => import('../commands/semantic.js').then(m => m.semanticCommand),
+  migrate: () => import('../commands/migrate.js').then(m => m.migrateCommand),
+  version: () => import('../commands/version.js').then(m => m.versionCommand),
+  new: () => import('../commands/new.js').then(m => m.newCommand),
+  preview: () => import('../commands/preview.js').then(m => m.previewCommand),
+  help: () => import('../commands/help.js').then(m => m.helpCommand),
+  latex: () => import('../commands/latex.js').then(m => m.latexCommand),
+  perf: () => import('../commands/perf.js').then(m => m.perfCommand),
+  specify: () => import('../commands/specify.js').then(m => m.specifyCommand),
+  export: () => import('../commands/export.js').then(m => m.exportCommand),
+  pdf: () => import('../commands/pdf.js').then(m => m.default),
+  'export-docx': () => import('./commands/export-docx.js').then(m => m.default)
+};
 
-// All commands now imported from their respective modules
+// Cache for loaded commands
+const commandCache = new Map();
 
-// Template help command - using simple implementation
+// Lazy command loader utility
+async function loadCommand(commandName) {
+  if (commandCache.has(commandName)) {
+    return commandCache.get(commandName);
+  }
+  
+  if (!lazyCommands[commandName]) {
+    throw new Error(`Unknown command: ${commandName}`);
+  }
+  
+  const command = await lazyCommands[commandName]();
+  commandCache.set(commandName, command);
+  return command;
+}
+
+// Template help command - using simple implementation (kept synchronous for speed)
 const helpCommand = defineCommand({
   meta: {
     name: "help",
@@ -42,6 +60,25 @@ const helpCommand = defineCommand({
 
 // Import fast version resolver
 import { getVersion } from '../lib/fast-version-resolver.js';
+
+// Lazy command wrapper for performance optimization
+function createLazyCommand(commandName) {
+  return defineCommand({
+    meta: {
+      name: commandName,
+      description: `${commandName} command (lazy-loaded)`,
+    },
+    async run(context) {
+      try {
+        const command = await loadCommand(commandName);
+        return await command.run(context);
+      } catch (error) {
+        console.error(chalk.red(`Failed to load command '${commandName}': ${error.message}`));
+        process.exit(1);
+      }
+    },
+  });
+}
 
 /**
  * Enhanced pre-process arguments to handle comprehensive Hygen-style positional syntax
@@ -115,30 +152,24 @@ const main = defineCommand({
     }
   },
   subCommands: {
-    // PRIMARY UNIFIED COMMANDS
-    new: newCommand,            // Primary command - clear intent
-    preview: previewCommand,    // Safe exploration
-    help: advancedHelpCommand,  // Context-sensitive help
-    
-    // SECONDARY COMMANDS
-    list: listCommand,
-    init: initCommand,
-    inject: injectCommand,
-    version: versionCommand,
-    
-    // LEGACY SUPPORT
-    generate: generateCommand,  // Legacy command with deprecation warnings
-    
-    // ADVANCED FEATURES
-    semantic: semanticCommand,
-    // github: githubCommand, // Temporarily disabled
-    migrate: migrateCommand,
-    latex: latexCommand,
-    perf: perfCommand,
-    specify: specifyCommand,
-    export: exportCommand,
-    'export-docx': exportDocxCommand,
-    pdf: pdfCommand,
+    // PERFORMANCE OPTIMIZATION: Use lazy-loading wrapper for all commands
+    // This reduces initial memory footprint and startup time significantly
+    new: createLazyCommand('new'),
+    preview: createLazyCommand('preview'), 
+    help: createLazyCommand('help'),
+    list: createLazyCommand('list'),
+    init: createLazyCommand('init'),
+    inject: createLazyCommand('inject'),
+    version: createLazyCommand('version'),
+    generate: createLazyCommand('generate'),
+    semantic: createLazyCommand('semantic'),
+    migrate: createLazyCommand('migrate'),
+    latex: createLazyCommand('latex'),
+    perf: createLazyCommand('perf'),
+    specify: createLazyCommand('specify'),
+    export: createLazyCommand('export'),
+    'export-docx': createLazyCommand('export-docx'),
+    pdf: createLazyCommand('pdf'),
   },
   /**
    * @param {{ args: any }} params - Command parameters

@@ -1,7 +1,7 @@
 # Enhanced Build System Report
 
-**Generated:** 2025-09-08T16:04:19.935Z  
-**Duration:** 8.06s  
+**Generated:** 2025-09-09T04:34:02.948Z  
+**Duration:** 8.79s  
 **Status:** FAILED
 
 ## Quality Gates Status
@@ -17,7 +17,7 @@
 ## Metrics
 
 - Package Size: N/A MB
-- Build Duration: 8.06s
+- Build Duration: 8.79s
 
 ## Errors (1)
 
@@ -35,21 +35,16 @@ npm warn config dev Please use --include=dev instead.
 
 Oops! Something went wrong! :(
 
-ESLint: 9.35.0
+ESLint: 8.57.1
 
 You are linting "bin/", but all of the files matching the glob pattern "bin/" are ignored.
 
 If you don't want to lint these files, remove the pattern "bin/" from the list of arguments passed to ESLint.
 
-If you do want to lint these files, explicitly list one or more of the files from this glob that you'd like to lint to see more details about why they are ignored.
+If you do want to lint these files, try the following solutions:
 
-  * If the file is ignored because of a matching ignore pattern, check global ignores in your config file.
-    https://eslint.org/docs/latest/use/configure/ignore
-
-  * If the file is ignored because no matching configuration was supplied, check file patterns in your config file.
-    https://eslint.org/docs/latest/use/configure/configuration-files#specifying-files-with-arbitrary-extensions
-
-  * If the file is ignored because it is located outside of the base path, change the location of your config file to be in a parent directory.
+* Check your .eslintignore file, or the eslintIgnore property in package.json, to ensure that the files are not configured to be ignored.
+* Explicitly list the files from this glob that you'd like to lint on the command-line, rather than providing a glob as an argument.
 
 
 - ⚠️  Security audit failed: Command failed: npm audit --audit-level moderate --json

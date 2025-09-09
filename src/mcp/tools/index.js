@@ -6,10 +6,10 @@
  * to ensure compatibility and avoid dependencies on TypeScript-specific features.
  */
 
-// Import core tools first
-import { unjucksList } from './unjucks-list.js';
+// Import core tools first - using simplified implementations for stability
+import { unjucksList } from './safe-unjucks-list.js';
 import { unjucksGenerate } from './unjucks-generate.js';
-import { unjucksHelp } from './unjucks-help.js';
+import { unjucksHelp } from './simplified-unjucks-help.js';
 import { unjucksDryRun } from './unjucks-dry-run.js';
 import { unjucksInject } from './unjucks-inject.js';
 

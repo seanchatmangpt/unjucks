@@ -1,11 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
-
-
 const { createServer } = require('http');
-
-
 
 const { errorHandler, notFound } = require('./middleware/error-handler');
 const { healthRoutes } = require('./routes/health');
@@ -15,8 +11,20 @@ const database = require('./database');
 const logger = require('./utils/logger');
 const config = require('./config');
 
+// Import security modules
+const secretManager = require('./security/secret-manager');
+const secureLogger = require('./utils/secure-logger');
+
 class Server {
   constructor() {
+    // Validate secrets before starting server
+    try {
+      secretManager.validateForProduction();
+    } catch (error) {
+      secureLogger.error('Server startup failed due to security validation:', error.message);
+      process.exit(1);
+    }
+
     this.app = express();
     this.server = null;
     this.setupMiddleware();
@@ -42,12 +50,30 @@ class Server {
       }
     }));
 
-    // CORS configuration
+    // Secure CORS configuration
     this.app.use(cors({
-      origin: config.cors.allowedOrigins,
+      origin: function (origin, callback) {
+        // Allow requests with no origin (like mobile apps or curl requests)
+        if (!origin) return callback(null, true);
+        
+        // Check if origin is in allowed list
+        if (config.cors.allowedOrigins.includes(origin)) {
+          return callback(null, true);
+        }
+        
+        // Reject wildcard origins in production
+        if (config.cors.allowedOrigins.includes('*') && process.env.NODE_ENV === 'production') {
+          secureLogger.error('SECURITY: Wildcard CORS origin detected in production', { origin });
+          return callback(new Error('Wildcard CORS not allowed in production'), false);
+        }
+        
+        secureLogger.warn('CORS request from unauthorized origin', { origin });
+        return callback(new Error('Not allowed by CORS'), false);
+      },
       credentials: true,
       methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-      allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
+      allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+      optionsSuccessStatus: 200
     }));
 
     // Body parsing

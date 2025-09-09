@@ -1,0 +1,86 @@
+{
+  "app": {
+    "name": "unjucks-enterprise",
+    "version": "1.0.0",
+    "description": "Unjucks Enterprise Application",
+    "environment": "production"
+  },
+  "server": {
+    "port": 8080,
+    "host": "0.0.0.0",
+    "timeout": 30000,
+    "keepAliveTimeout": 65000,
+    "maxConnections": 10000
+  },
+  "security": {
+    "cors": {
+      "origin": [
+        "https://app.unjucks.dev",
+        "https://admin.unjucks.dev"
+      ],
+      "credentials": true,
+      "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+      "allowedHeaders": ["Content-Type", "Authorization", "X-Requested-With"]
+    },
+    "rateLimit": {
+      "enabled": true,
+      "windowMs": 900000,
+      "maxRequests": 1000,
+      "skipSuccessfulRequests": false,
+      "skipFailedRequests": false
+    },
+    "headers": {
+      "hsts": true,
+      "noSniff": true,
+      "xframe": true,
+      "xss": true
+    }
+  },
+  "database": {
+    "type": "postgresql",
+    "ssl": true,
+    "pool": {
+      "min": 5,
+      "max": 50,
+      "acquireTimeoutMillis": 60000,
+      "idleTimeoutMillis": 30000
+    },
+    "retries": {
+      "max": 3,
+      "backoffBase": 300,
+      "backoffExponent": 2
+    }
+  },
+  "cache": {
+    "type": "redis",
+    "ttl": 3600,
+    "maxSize": 100000
+  },
+  "logging": {
+    "level": "info",
+    "format": "json",
+    "enableAudit": true,
+    "enablePerformance": true,
+    "retention": {
+      "days": 90,
+      "maxSize": "1GB"
+    }
+  },
+  "monitoring": {
+    "enabled": true,
+    "metrics": {
+      "enabled": true,
+      "endpoint": "/metrics",
+      "interval": 10000
+    },
+    "health": {
+      "enabled": true,
+      "endpoint": "/health",
+      "detailed": false
+    },
+    "tracing": {
+      "enabled": true,
+      "sampleRate": 0.01
+    }
+  }
+}

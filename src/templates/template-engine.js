@@ -285,17 +285,74 @@ class TemplateEngine {
    * Extract variables from template
    */
   extractVariables(templateContent) {
-    const variableRegex = /\{\{\s*([^}]+)\s*\}\}/g;
     const variables = new Set();
+    
+    if (!templateContent || typeof templateContent !== 'string') {
+      return Array.from(variables);
+    }
+
+    // Enhanced variable extraction that handles complex expressions
+    const variableRegex = /{{\s*([a-zA-Z_$][a-zA-Z0-9_$]*(?:\.[a-zA-Z_$][a-zA-Z0-9_$]*)*)(?:\s*\|[^}]*)?/g;
     let match;
 
     while ((match = variableRegex.exec(templateContent)) !== null) {
-      // Extract variable name (remove filters and functions)
-      const varName = match[1].split('|')[0].split('(')[0].trim();
-      variables.add(varName);
+      const fullExpression = match[1];
+      const rootVar = fullExpression.split('.')[0];
+      
+      if (rootVar && this.isValidVariableName(rootVar)) {
+        variables.add(rootVar);
+      }
+    }
+
+    // Also extract from control flow statements
+    const controlFlowRegex = /{%\s*(if|for|elif|unless)\s+([^%]+)\s*%}/g;
+    while ((match = controlFlowRegex.exec(templateContent)) !== null) {
+      const statement = match[2];
+      
+      if (match[1] === 'for') {
+        // Handle {% for item in items %}
+        const forMatch = statement.match(/\w+\s+in\s+([a-zA-Z_$][a-zA-Z0-9_$]*)/);
+        if (forMatch && this.isValidVariableName(forMatch[1])) {
+          variables.add(forMatch[1]);
+        }
+      } else {
+        // Handle conditionals
+        const conditionVars = statement.match(/\b([a-zA-Z_$][a-zA-Z0-9_$]*)/g);
+        if (conditionVars) {
+          for (const varName of conditionVars) {
+            if (this.isValidVariableName(varName) &&
+                !['and', 'or', 'not', 'in', 'is', 'true', 'false', 'null', 'undefined'].includes(varName)) {
+              variables.add(varName);
+            }
+          }
+        }
+      }
     }
 
     return Array.from(variables);
+  }
+
+  /**
+   * Check if variable name is valid
+   */
+  isValidVariableName(name) {
+    if (!name || typeof name !== 'string') return false;
+    
+    // Must start with letter, $, or _
+    if (!/^[a-zA-Z_$]/.test(name)) return false;
+    
+    // Must contain only valid characters
+    if (!/^[a-zA-Z_$][a-zA-Z0-9_$]*$/.test(name)) return false;
+    
+    // Exclude filters and reserved words
+    const reserved = [
+      'default', 'length', 'first', 'last', 'random', 'sort', 'reverse',
+      'join', 'upper', 'lower', 'title', 'trim', 'safe', 'escape',
+      'replace', 'split', 'slice', 'round', 'abs', 'min', 'max',
+      'pascalCase', 'camelCase', 'kebabCase', 'snakeCase', 'capitalize'
+    ];
+    
+    return !reserved.includes(name.toLowerCase());
   }
 }
 
