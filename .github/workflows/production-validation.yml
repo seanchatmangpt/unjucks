@@ -22,7 +22,7 @@ on:
         type: boolean
 
 env:
-  NODE_VERSION: '18'
+  NODE_VERSION: '20'
   VALIDATION_ENVIRONMENT: ${{ github.event.inputs.environment || 'staging' }}
 
 jobs:
