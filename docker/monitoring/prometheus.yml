@@ -1,0 +1,141 @@
+# =============================================================================
+# PROMETHEUS CONFIGURATION
+# Unjucks Cleanroom Testing Environment Monitoring
+# =============================================================================
+
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    monitor: 'unjucks-cleanroom'
+    environment: 'testing'
+
+# Rule files
+rule_files:
+  # - "first_rules.yml"
+  # - "second_rules.yml"
+
+# Alerting configuration
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+          # - alertmanager:9093
+
+# Scrape configurations
+scrape_configs:
+  # Prometheus self-monitoring
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+    scrape_interval: 5s
+    metrics_path: /metrics
+
+  # Container metrics via cAdvisor
+  - job_name: 'cadvisor'
+    static_configs:
+      - targets: ['cadvisor:8080']
+    scrape_interval: 10s
+    metrics_path: /metrics
+
+  # Node exporter for system metrics
+  - job_name: 'node-exporter'
+    static_configs:
+      - targets: ['node-exporter:9100']
+    scrape_interval: 10s
+    metrics_path: /metrics
+
+  # Application metrics from test containers
+  - job_name: 'unjucks-app'
+    static_configs:
+      - targets: ['unjucks-test:3000']
+    scrape_interval: 10s
+    metrics_path: /metrics
+    scrape_timeout: 10s
+
+  # Database metrics
+  - job_name: 'postgres'
+    static_configs:
+      - targets: ['postgres-exporter:9187']
+    scrape_interval: 15s
+
+  # Redis metrics
+  - job_name: 'redis'
+    static_configs:
+      - targets: ['redis-exporter:9121']
+    scrape_interval: 15s
+
+  # Docker daemon metrics
+  - job_name: 'docker'
+    static_configs:
+      - targets: ['host.docker.internal:9323']
+    scrape_interval: 15s
+    metrics_path: /metrics
+
+# Recording rules for performance analysis
+recording_rules:
+  - name: unjucks_performance_rules
+    rules:
+      - record: instance:cpu_usage:rate5m
+        expr: 100 - (avg by(instance) (irate(node_cpu_seconds_total{mode="idle"}[5m])) * 100)
+      
+      - record: instance:memory_usage:percentage
+        expr: (1 - ((node_memory_MemFree_bytes + node_memory_Cached_bytes + node_memory_Buffers_bytes) / node_memory_MemTotal_bytes)) * 100
+      
+      - record: instance:disk_usage:percentage
+        expr: (1 - (node_filesystem_avail_bytes / node_filesystem_size_bytes)) * 100
+      
+      - record: unjucks:test_duration:p95
+        expr: histogram_quantile(0.95, rate(test_duration_seconds_bucket[5m]))
+      
+      - record: unjucks:test_success_rate
+        expr: rate(test_success_total[5m]) / rate(test_total[5m]) * 100
+
+# Alerting rules for critical issues
+alert_rules:
+  - name: unjucks_alerts
+    rules:
+      - alert: HighCPUUsage
+        expr: instance:cpu_usage:rate5m > 80
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High CPU usage detected"
+          description: "CPU usage is above 80% for more than 2 minutes"
+
+      - alert: HighMemoryUsage
+        expr: instance:memory_usage:percentage > 85
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High memory usage detected"
+          description: "Memory usage is above 85% for more than 2 minutes"
+
+      - alert: TestFailureRate
+        expr: unjucks:test_success_rate < 95
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "High test failure rate"
+          description: "Test success rate is below 95% for more than 1 minute"
+
+      - alert: ContainerDown
+        expr: up == 0
+        for: 30s
+        labels:
+          severity: critical
+        annotations:
+          summary: "Container is down"
+          description: "Container {{ $labels.instance }} is down for more than 30 seconds"
+
+      - alert: DiskSpaceHigh
+        expr: instance:disk_usage:percentage > 90
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Disk space usage high"
+          description: "Disk space usage is above 90% for more than 5 minutes"

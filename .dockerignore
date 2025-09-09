@@ -1,0 +1,142 @@
+# =============================================================================
+# DOCKER IGNORE - OPTIMIZE BUILD CONTEXT
+# Exclude unnecessary files from Docker build context
+# =============================================================================
+
+# Version control
+.git
+.gitignore
+.gitattributes
+.github
+
+# Node.js
+node_modules
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+.pnpm-debug.log*
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Test and coverage results
+test-results*
+coverage/
+.nyc_output
+test-*.log
+*.tgz
+
+# Temporary files
+tmp/
+temp/
+temp-*/
+*.tmp
+*.temp
+
+# Build artifacts
+dist/
+build/
+.output/
+generated/
+
+# Cache directories
+.cache/
+.npm/
+.pnpm/
+.yarn/
+.unjucks-cache/
+
+# Editor and IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Documentation (exclude from build, but keep essential)
+docs/
+*.md
+!README.md
+!docker/README.md
+
+# Logs
+*.log
+logs/
+reports/
+
+# Backup files
+*.backup
+*.bak
+*.old
+
+# Lock files for other package managers
+yarn.lock
+package-lock.json
+
+# Development and testing artifacts
+.eslintcache
+.vitest/
+benchmarks/
+examples/
+vscode-extension/
+
+# Sensitive files
+security-*.json
+failure-analysis.json
+performance-*.json
+*-emergency-*.md
+
+# Archive files
+*.tar.gz
+*.zip
+*.rar
+*.7z
+
+# Development Docker files
+docker-compose.override.yml
+Dockerfile.dev
+.dockerignore.dev
+
+# LaTeX artifacts
+*.aux
+*.log
+*.out
+*.toc
+*.synctex.gz
+*.fdb_latexmk
+*.fls
+*.pdf
+
+# Package tarballs
+*.tgz
+seanchatmangpt-unjucks-*.tgz
+
+# User-specific directories
+Users/
+homebrew/
+hive/
+memory/
+
+# Configuration that might contain secrets
+.mcp.json
+*.config.js
+!vitest.config.js
+!cucumber.config.cjs
+
+# Testing directories that aren't needed in container
+bdd-test/
+final-test/
+test-*/
+validation-results/

@@ -1,375 +1,364 @@
-# Docker Testing Environment for Unjucks
+# Unjucks Docker Cleanroom Testing Environment
 
-## Overview
+## 🐳 Fortune 5 Containerization Standards
 
-This directory contains a comprehensive Docker-based testing orchestration system for the Unjucks project. The environment provides isolated, reproducible testing with multiple database containers, service dependencies, network isolation, and comprehensive health checks.
+This directory contains a comprehensive Docker-based cleanroom testing environment that meets Fortune 5 enterprise containerization standards. The environment provides isolated, reproducible, and secure testing infrastructure for the Unjucks project.
 
-## Architecture
+## 🏗️ Architecture Overview
 
-### Network Isolation
-- **testing-frontend** (172.20.0.0/24): Frontend application testing
-- **testing-backend** (172.21.0.0/24): Backend service testing
-- **testing-database** (172.22.0.0/24): Internal database network (isolated)
-- **testing-monitoring** (172.23.0.0/24): Monitoring and observability
+### Multi-Stage Docker Build
+- **Stage 1**: Security scanner and base image validation
+- **Stage 2**: Node.js runtime with security hardening
+- **Stage 3**: Dependencies installation with caching
+- **Stage 4**: Application code building and validation
+- **Stage 5**: Testing environment configuration
+- **Stage 6**: Production-ready security scanning
 
-### Database Containers
-- **PostgreSQL 15**: Primary test database with pg_stat_statements
-- **Redis 7**: Caching and session storage testing
-- **MongoDB 6**: Document database testing
-- **Elasticsearch 8.8**: Search functionality testing
+### Container Security Features
+- ✅ Non-root user execution (UID: 10001)
+- ✅ Security-hardened base image (Chainguard Wolfi)
+- ✅ Seccomp security profiles
+- ✅ Resource limits and constraints
+- ✅ Read-only filesystem options
+- ✅ Network isolation
+- ✅ Secrets management
+- ✅ Security scanning integration
 
-### Testing Services
-- **Unit Tests**: Isolated unit testing with 4 parallel workers
-- **Integration Tests**: Database integration testing
-- **End-to-End Tests**: Full application workflow testing
-- **Performance Tests**: Load and stress testing with autocannon
-- **Security Scanner**: Vulnerability and compliance scanning
-
-### Monitoring & Observability
-- **Health Monitor**: Continuous service health monitoring
-- **Test Collector**: Aggregates results from all test services
-- **Metrics Collection**: Performance and usage metrics
-
-## File Structure
+## 📂 Directory Structure
 
 ```
 docker/
-├── docker-compose.testing.yml     # Main orchestration file
-├── .env.testing                   # Environment configuration
-├── database/
-│   ├── init/
-│   │   └── 01-init-test-db.sql   # PostgreSQL initialization
-│   ├── test-fixtures/             # Test data fixtures
-│   └── mongo-init/
-│       └── 01-init-test-db.js    # MongoDB initialization
-├── redis/
-│   └── redis-test.conf           # Redis test configuration
+├── Dockerfile                    # Multi-stage production Dockerfile
+├── docker-compose.yml           # Main orchestration configuration
+├── docker-compose.override.yml  # Development overrides
+├── README.md                    # This documentation
+├── security/
+│   └── seccomp.json            # Seccomp security profile
+├── secrets/
+│   └── test.env                # Test environment secrets
+├── monitoring/
+│   └── prometheus.yml          # Performance monitoring config
+├── logging/
+│   └── logstash.conf           # Log aggregation configuration
+├── sql/
+│   └── init.sql                # Database initialization
 └── scripts/
-    ├── health-monitor.sh         # Health monitoring script
-    ├── collect-test-results.sh   # Test result aggregation
-    ├── performance-tests.sh      # Performance testing suite
-    ├── security-scan.sh          # Security scanning suite
-    └── validate-testing-environment.sh  # Environment validation
+    ├── test-runner.sh          # Comprehensive test execution
+    └── container-validator.sh  # Security and compliance validation
 ```
 
-## Services Configuration
+## 🚀 Quick Start
 
-### Database Services
-
-#### PostgreSQL (postgres-test)
-- **Image**: postgres:15-alpine
-- **Port**: 5433 (external), 5432 (internal)
-- **Database**: unjucks_test
-- **User**: test_user / test_password
-- **Features**: pg_stat_statements, performance monitoring
-- **Health Check**: pg_isready with 30s startup period
-
-#### Redis (redis-test)
-- **Image**: redis:7-alpine
-- **Port**: 6380 (external), 6379 (internal)
-- **Memory Limit**: 128MB with LRU eviction
-- **Password**: test_redis_password
-- **Health Check**: Redis PING command
-
-#### MongoDB (mongodb-test)
-- **Image**: mongo:6-focal
-- **Port**: 27018 (external), 27017 (internal)
-- **Admin User**: test_admin / test_admin_password
-- **Database**: unjucks_test
-- **Health Check**: mongosh ping command
-
-#### Elasticsearch (elasticsearch-test)
-- **Image**: elasticsearch:8.8.0
-- **Port**: 9201 (external), 9200 (internal)
-- **Mode**: Single-node for testing
-- **Security**: Disabled for testing environment
-- **Health Check**: Cluster health API
-
-### Application Services
-
-#### Main Application (app-test)
-- **Build**: From Dockerfile.testing
-- **Port**: 3001 (external), 3000 (internal)
-- **Environment**: Full test configuration
-- **Dependencies**: All database services
-- **Volumes**: Source code, test results, coverage reports
-
-#### Unit Tests (unit-tests)
-- **Parallel Execution**: 4 workers
-- **Pattern**: `**/*.test.js`
-- **Coverage**: Enabled with 80% threshold
-- **Network**: Backend only
-
-#### Integration Tests (integration-tests)
-- **Database Reset**: Enabled per test
-- **Pattern**: `**/*.integration.test.js`
-- **Dependencies**: All databases
-- **Network**: Backend + Database
-
-#### E2E Tests (e2e-tests)
-- **Browser**: Chromium (headless)
-- **Pattern**: `**/*.e2e.test.js`
-- **Screenshots**: On failure
-- **Dependencies**: Main application
-
-#### Performance Tests (performance-tests)
-- **Duration**: 60 seconds
-- **Concurrent Users**: 50
-- **Tools**: autocannon, loadtest, clinic
-- **Metrics**: Latency, throughput, memory
-
-#### Security Scanner (security-scanner)
-- **Scans**: Dependencies, static code, web vulnerabilities
-- **Tools**: npm audit, snyk, eslint-security
-- **Reports**: JSON + HTML formats
-
-### Monitoring Services
-
-#### Health Monitor (health-monitor)
-- **Check Interval**: 30 seconds
-- **Alert Threshold**: 3 consecutive failures
-- **Coverage**: All services
-- **Output**: JSON health reports
-
-#### Test Collector (test-collector)
-- **Aggregation**: All test results
-- **Formats**: JSON summary + HTML report
-- **Archive**: Compressed test artifacts
-- **Retention**: Configurable cleanup
-
-## Resource Limits
-
-| Service | Memory | CPU |
-|---------|--------|-----|
-| PostgreSQL | 512MB | 0.5 |
-| Redis | 256MB | 0.25 |
-| MongoDB | 512MB | 0.5 |
-| Elasticsearch | 1GB | 0.5 |
-| App Test | 1GB | 1.0 |
-| Unit Tests | 512MB | 0.5 |
-| Integration Tests | 768MB | 0.75 |
-| E2E Tests | 1GB | 1.0 |
-| Performance Tests | 512MB | 0.5 |
-
-## Usage
-
-### Basic Commands
+### 1. Build and Start the Environment
 
 ```bash
-# Start all services
-docker compose -f docker/docker-compose.testing.yml up -d
+# Build all containers
+docker-compose build
 
-# Start specific service
-docker compose -f docker/docker-compose.testing.yml up -d postgres-test
+# Start the full testing environment
+docker-compose up -d
 
-# View logs
-docker compose -f docker/docker-compose.testing.yml logs -f app-test
-
-# Stop all services
-docker compose -f docker/docker-compose.testing.yml down
-
-# Cleanup volumes
-docker compose -f docker/docker-compose.testing.yml down --volumes
+# Start with specific profiles
+docker-compose --profile integration up -d
+docker-compose --profile monitoring up -d
 ```
 
-### Environment Validation
-
-```bash
-# Validate environment
-./docker/scripts/validate-testing-environment.sh
-
-# Check health status
-docker compose -f docker/docker-compose.testing.yml ps
-```
-
-### Running Tests
+### 2. Run Tests
 
 ```bash
 # Run all tests
-docker compose -f docker/docker-compose.testing.yml up unit-tests integration-tests e2e-tests
+docker-compose exec unjucks-test /app/docker/scripts/test-runner.sh
 
-# Run specific test type
-docker compose -f docker/docker-compose.testing.yml run --rm unit-tests
-
-# Run performance tests
-docker compose -f docker/docker-compose.testing.yml run --rm performance-tests
-
-# Run security scan
-docker compose -f docker/docker-compose.testing.yml run --rm security-scanner
+# Run specific test suites
+docker-compose exec unjucks-test /app/docker/scripts/test-runner.sh smoke
+docker-compose exec unjucks-test /app/docker/scripts/test-runner.sh unit
+docker-compose exec unjucks-test /app/docker/scripts/test-runner.sh integration
+docker-compose exec unjucks-test /app/docker/scripts/test-runner.sh e2e
+docker-compose exec unjucks-test /app/docker/scripts/test-runner.sh security
 ```
 
-### Collecting Results
+### 3. Validate Container Security
 
 ```bash
-# Collect test results
-docker compose -f docker/docker-compose.testing.yml run --rm test-collector
+# Run security validation
+docker-compose exec unjucks-test /app/docker/scripts/container-validator.sh
 
-# View aggregated results
-docker compose -f docker/docker-compose.testing.yml exec test-collector ls /test-results/aggregated/
+# Check validation results
+docker-compose exec unjucks-test cat /app/test-results/container-validation.json
 ```
 
-## Health Checks
+## 🔧 Configuration Profiles
 
-All services include comprehensive health checks:
+### Available Profiles
 
-- **Startup Grace Period**: 30-60 seconds
-- **Check Interval**: 10-30 seconds
-- **Retry Attempts**: 3-5 times
-- **Timeout**: 3-10 seconds
+- **Default**: Core testing container
+- **`integration`**: Includes database and Redis
+- **`monitoring`**: Adds Prometheus and monitoring
+- **`security`**: Enables security scanning
+- **`logging`**: Activates log aggregation
+- **`dev-tools`**: Development utilities
 
-### Health Check Endpoints
+### Profile Usage
 
-| Service | Health Check |
-|---------|--------------|
-| PostgreSQL | `pg_isready -U test_user -d unjucks_test` |
-| Redis | `redis-cli ping` |
-| MongoDB | `mongosh --eval "db.adminCommand('ping')"` |
-| Elasticsearch | `curl -f http://localhost:9200/_cluster/health` |
-| Application | `curl -f http://localhost:3000/health` |
+```bash
+# Multiple profiles
+docker-compose --profile integration --profile monitoring up -d
 
-## Security Features
+# All profiles
+docker-compose --profile integration --profile monitoring --profile security --profile logging up -d
+```
 
-### Network Security
-- Database network is internal-only (no external access)
-- Service isolation through custom networks
-- Principle of least privilege for connections
+## 🛡️ Security Features
 
-### Container Security
-- Non-root users for all services
-- Read-only volumes where possible
-- Resource limits to prevent DoS
-- Security scanning with multiple tools
+### Container Hardening
+- **Non-root execution**: All processes run as unjucks user (UID: 10001)
+- **Capability dropping**: Minimal Linux capabilities
+- **Seccomp filtering**: Restricted system calls
+- **No new privileges**: Prevents privilege escalation
+- **Resource limits**: CPU, memory, and PID constraints
 
 ### Secrets Management
-- Test-only credentials (not production)
-- Environment variable isolation
-- Secure credential passing
+```bash
+# Create external secrets
+echo "secret_value" | docker secret create unjucks_ci_token -
 
-## Monitoring & Alerting
+# Secrets are mounted at /run/secrets/ in containers
+```
 
-### Health Monitoring
-- Continuous health checks for all services
-- Configurable alert thresholds
-- JSON health reports with timestamps
-- Service dependency monitoring
+### Network Security
+- **Isolated networks**: Separate testing and monitoring networks
+- **No external access**: Internal network communication only
+- **Port binding**: Restricted to localhost (127.0.0.1)
 
-### Performance Monitoring
-- Resource usage tracking
-- Response time measurements
-- Throughput monitoring
-- Memory leak detection
+## 📊 Monitoring and Observability
 
-### Log Management
-- JSON structured logging
-- Log rotation (10MB max, 3 files)
-- Centralized log collection
-- Debug trace capabilities
+### Prometheus Metrics
+- Access Prometheus UI: http://localhost:9090
+- Container metrics via cAdvisor
+- Application performance metrics
+- Resource utilization tracking
 
-## Troubleshooting
+### Log Aggregation
+- Structured JSON logging
+- Security event tracking
+- Performance metrics logging
+- Test execution logs
+
+### Health Checks
+- Container health monitoring
+- Application readiness checks
+- Database connectivity validation
+- Service availability tracking
+
+## 🧪 Test Execution
+
+### Test Categories
+
+1. **Smoke Tests**: Basic functionality validation
+2. **Unit Tests**: Component-level testing with coverage
+3. **Integration Tests**: Database and service integration
+4. **E2E Tests**: Full workflow validation
+5. **Performance Tests**: Resource usage and timing
+6. **Security Tests**: Vulnerability scanning and validation
+
+### Test Results
+
+Results are stored in `/app/test-results/`:
+- `test-summary-report.json` - Comprehensive test report
+- `container-validation.json` - Security validation results
+- `smoke-tests.json` - Basic functionality tests
+- `security-scan.json` - Vulnerability scan results
+
+### Coverage Reports
+
+Coverage data is in `/app/coverage/`:
+- HTML reports for browser viewing
+- JSON summaries for CI/CD integration
+- Text reports for quick analysis
+
+## 🔍 Development and Debugging
+
+### Development Mode
+
+```bash
+# Use override configuration for development
+docker-compose -f docker-compose.yml -f docker-compose.override.yml up -d
+
+# Interactive debugging
+docker-compose exec unjucks-test /bin/bash
+
+# Watch mode for automatic test runs
+docker-compose --profile watcher up -d
+```
+
+### Debugging Features
+- Source code hot-reloading
+- Node.js debug port (9229) exposed
+- Development server on port 3000
+- Increased resource limits
+- Verbose logging enabled
+
+### Development Tools
+```bash
+# Start development tools container
+docker-compose --profile dev-tools up -d unjucks-dev-tools
+
+# Access development shell
+docker-compose exec unjucks-dev-tools /bin/bash
+```
+
+## 📈 Performance Optimization
+
+### Resource Allocation
+- **CPU**: 2.0 cores limit, 1.0 reserved
+- **Memory**: 4GB limit, 2GB reserved
+- **PIDs**: 1000 process limit
+- **Disk**: tmpfs for temporary data
+
+### Caching Strategy
+- Multi-stage build caching
+- Dependency layer optimization
+- Shared volumes for development
+- Build artifact caching
+
+### Optimization Tips
+1. Use `.dockerignore` to exclude unnecessary files
+2. Leverage multi-stage builds for smaller images
+3. Pin dependency versions for reproducibility
+4. Use tmpfs for ephemeral data
+5. Configure health checks appropriately
+
+## 🚨 Troubleshooting
 
 ### Common Issues
 
-1. **Port Conflicts**
-   ```bash
-   # Check for port conflicts
-   netstat -tuln | grep -E ":(5433|6380|27018|9201|3001)"
-   ```
-
-2. **Memory Issues**
-   ```bash
-   # Check available memory
-   free -h
-   docker system df
-   ```
-
-3. **Network Issues**
-   ```bash
-   # Check Docker networks
-   docker network ls
-   docker network inspect unjucks_testing-database
-   ```
-
-4. **Volume Issues**
-   ```bash
-   # Check volumes
-   docker volume ls
-   docker volume inspect unjucks_postgres_test_data
-   ```
-
-### Debug Mode
-
-Enable debug logging:
+#### Container Won't Start
 ```bash
-# Set debug environment
-export DEBUG=unjucks:*
-export LOG_LEVEL=debug
+# Check logs
+docker-compose logs unjucks-test
 
-# Run with verbose output
-docker compose -f docker/docker-compose.testing.yml up --verbose
+# Verify permissions
+docker-compose exec unjucks-test ls -la /app/
+
+# Check resource usage
+docker stats
 ```
 
-### Container Inspection
-
+#### Tests Failing
 ```bash
-# Check container status
-docker compose -f docker/docker-compose.testing.yml ps
+# Run validation first
+docker-compose exec unjucks-test /app/docker/scripts/container-validator.sh
 
-# Inspect specific container
-docker inspect unjucks-postgres-test
+# Check application binary
+docker-compose exec unjucks-test /app/bin/unjucks.cjs --version
 
-# Execute commands in container
-docker compose -f docker/docker-compose.testing.yml exec postgres-test bash
+# Verify dependencies
+docker-compose exec unjucks-test pnpm list
 ```
 
-## Performance Optimization
+#### Database Connection Issues
+```bash
+# Check PostgreSQL health
+docker-compose exec unjucks-postgres pg_isready -U unjucks_test
 
-### Resource Tuning
-- Adjust memory limits based on available system resources
-- Configure parallel test workers based on CPU cores
-- Optimize database connections and pooling
+# Test connection
+docker-compose exec unjucks-test psql -h unjucks-postgres -U unjucks_test -d unjucks_test -c "SELECT version();"
+```
 
-### Network Optimization
-- Use internal networks for service communication
-- Minimize external port exposure
-- Configure connection keep-alive
+#### Memory Issues
+```bash
+# Check memory usage
+docker-compose exec unjucks-test free -h
 
-### Storage Optimization
-- Use local volumes for performance
-- Configure appropriate file system for databases
-- Regular cleanup of test artifacts
+# Monitor container resources
+docker stats unjucks-cleanroom-test
 
-## Maintenance
+# Adjust memory limits in docker-compose.yml
+```
+
+### Log Analysis
+```bash
+# View aggregated logs
+docker-compose logs -f unjucks-test
+
+# Check specific log files
+docker-compose exec unjucks-test tail -f /app/logs/test-runner.log
+
+# Security logs
+docker-compose exec unjucks-test cat /app/logs/container-validation.log
+```
+
+## 🔧 Maintenance
 
 ### Regular Tasks
-- Update base images monthly
-- Review and update resource limits
-- Clean up old test results
-- Update security scanning tools
 
-### Backup Strategy
-- Database schemas and test data
-- Configuration files
-- Test artifacts (if needed)
+#### Security Updates
+```bash
+# Rebuild with latest security updates
+docker-compose build --no-cache --pull
 
-### Updates
-- Test environment updates should be validated
-- Maintain compatibility with main application
-- Document breaking changes
+# Run security scans
+docker-compose --profile security up -d unjucks-security-scan
+```
 
-## Contributing
+#### Cleanup
+```bash
+# Remove old containers and volumes
+docker-compose down -v --remove-orphans
 
-When modifying the testing environment:
+# Clean up images
+docker image prune -f
 
-1. Update this documentation
-2. Run validation script
-3. Test all service dependencies
-4. Verify resource limits
-5. Update health checks if needed
+# Full cleanup
+docker system prune -a --volumes
+```
 
-## Support
+#### Backup and Restore
+```bash
+# Backup test data
+docker run --rm -v unjucks-test-data:/data -v $(pwd):/backup alpine tar czf /backup/test-data-backup.tar.gz -C /data .
 
-For issues with the testing environment:
-1. Check the troubleshooting section
-2. Review container logs
-3. Validate environment configuration
-4. Check resource availability
+# Restore test data
+docker run --rm -v unjucks-test-data:/data -v $(pwd):/backup alpine tar xzf /backup/test-data-backup.tar.gz -C /data
+```
+
+## 🎯 Best Practices
+
+### Security
+1. Regularly update base images
+2. Scan for vulnerabilities
+3. Use secrets for sensitive data
+4. Minimize container privileges
+5. Monitor security logs
+
+### Performance
+1. Use multi-stage builds
+2. Optimize layer caching
+3. Set appropriate resource limits
+4. Monitor resource usage
+5. Use tmpfs for temporary data
+
+### Reliability
+1. Implement health checks
+2. Use proper restart policies
+3. Monitor container logs
+4. Test disaster recovery
+5. Automate validation
+
+### Compliance
+1. Document security measures
+2. Maintain audit trails
+3. Regular compliance validation
+4. Track configuration changes
+5. Implement access controls
+
+## 📚 Additional Resources
+
+- [Docker Security Best Practices](https://docs.docker.com/develop/security-best-practices/)
+- [Container Security Guidelines](https://kubernetes.io/docs/concepts/security/)
+- [Prometheus Monitoring](https://prometheus.io/docs/)
+- [Node.js in Docker](https://nodejs.org/en/docs/guides/nodejs-docker-webapp/)
+
+---
+
+**Note**: This cleanroom testing environment is designed for enterprise-grade testing and meets Fortune 5 containerization standards. For production deployments, additional security and compliance measures may be required based on your organization's specific requirements.

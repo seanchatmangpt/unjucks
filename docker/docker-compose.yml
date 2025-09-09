@@ -1,0 +1,400 @@
+# =============================================================================
+# UNJUCKS CLEANROOM TESTING ENVIRONMENT
+# Docker Compose Configuration - Fortune 5 Standards
+# =============================================================================
+
+version: '3.8'
+
+# -----------------------------------------------------------------------------
+# NETWORKS: Isolated testing networks with security controls
+# -----------------------------------------------------------------------------
+networks:
+  unjucks-testing:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.20.0.0/16
+          gateway: 172.20.0.1
+    driver_opts:
+      com.docker.network.bridge.name: "unjucks-test-br"
+      com.docker.network.bridge.enable_icc: "false"
+      com.docker.network.bridge.enable_ip_masquerade: "true"
+      com.docker.network.bridge.host_binding_ipv4: "127.0.0.1"
+
+  unjucks-monitoring:
+    driver: bridge
+    internal: true
+
+# -----------------------------------------------------------------------------
+# VOLUMES: Persistent and temporary storage
+# -----------------------------------------------------------------------------
+volumes:
+  unjucks-test-data:
+    driver: local
+    driver_opts:
+      type: tmpfs
+      device: tmpfs
+      o: size=1g,uid=10001,gid=10001
+
+  unjucks-logs:
+    driver: local
+
+  unjucks-coverage:
+    driver: local
+
+  unjucks-cache:
+    driver: local
+    driver_opts:
+      type: tmpfs
+      device: tmpfs
+      o: size=512m,uid=10001,gid=10001
+
+# -----------------------------------------------------------------------------
+# SECRETS: Secure secrets management
+# -----------------------------------------------------------------------------
+secrets:
+  test-env:
+    file: ./secrets/test.env
+  ci-token:
+    external: true
+    external_name: unjucks_ci_token
+
+# -----------------------------------------------------------------------------
+# SERVICES: Multi-container testing environment
+# -----------------------------------------------------------------------------
+services:
+
+  # ---------------------------------------------------------------------------
+  # PRIMARY TESTING CONTAINER
+  # ---------------------------------------------------------------------------
+  unjucks-test:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+      target: testing
+      args:
+        NODE_ENV: test
+        BUILD_DATE: ${BUILD_DATE:-$(date -u +'%Y-%m-%dT%H:%M:%SZ')}
+        VCS_REF: ${VCS_REF:-HEAD}
+    image: unjucks:test-${VERSION:-latest}
+    container_name: unjucks-cleanroom-test
+    hostname: unjucks-test
+    
+    # Security Configuration
+    security_opt:
+      - no-new-privileges:true
+      - seccomp:./security/seccomp.json
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN
+      - DAC_OVERRIDE
+      - SETGID
+      - SETUID
+    read_only: false  # Set to true for maximum security, but may affect testing
+    tmpfs:
+      - /tmp:noexec,nosuid,size=100m
+      - /app/tmp:noexec,nosuid,size=200m
+    
+    # Resource Limits (Fortune 5 standards)
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 4G
+          pids: 1000
+        reservations:
+          cpus: '1.0'
+          memory: 2G
+    
+    # Environment Configuration
+    environment:
+      - NODE_ENV=test
+      - CI=true
+      - CONTAINER_MODE=testing
+      - LOG_LEVEL=info
+      - TEST_TIMEOUT=300000
+      - COVERAGE_THRESHOLD=80
+      - SECURITY_SCAN=enabled
+      - PERFORMANCE_MONITORING=enabled
+      - CHROME_BIN=/usr/bin/chromium-browser
+      - PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
+      - PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
+    
+    # Volume Mounts
+    volumes:
+      - type: volume
+        source: unjucks-test-data
+        target: /app/test-results
+      - type: volume
+        source: unjucks-logs
+        target: /app/logs
+      - type: volume
+        source: unjucks-coverage
+        target: /app/coverage
+      - type: volume
+        source: unjucks-cache
+        target: /home/unjucks/.cache
+      # Mount source for development (remove in production)
+      - type: bind
+        source: ../src
+        target: /app/src
+        read_only: true
+      - type: bind
+        source: ../tests
+        target: /app/tests
+        read_only: true
+    
+    # Network Configuration
+    networks:
+      - unjucks-testing
+      - unjucks-monitoring
+    
+    # Secrets
+    secrets:
+      - test-env
+    
+    # Health Check
+    healthcheck:
+      test: ["CMD", "node", "-e", "process.exit(0)"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    
+    # Restart Policy
+    restart: unless-stopped
+    
+    # Labels for monitoring and management
+    labels:
+      - "com.unjucks.service=testing"
+      - "com.unjucks.environment=cleanroom"
+      - "com.unjucks.version=${VERSION:-latest}"
+      - "traefik.enable=false"
+    
+    # Override default command for interactive testing
+    # command: ["tail", "-f", "/dev/null"]
+
+  # ---------------------------------------------------------------------------
+  # SECURITY SCANNING CONTAINER
+  # ---------------------------------------------------------------------------
+  unjucks-security-scan:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+      target: security-scan
+    image: unjucks:security-${VERSION:-latest}
+    container_name: unjucks-security-scanner
+    
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    read_only: true
+    tmpfs:
+      - /tmp:noexec,nosuid,size=100m
+    
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 2G
+        reservations:
+          cpus: '0.5'
+          memory: 1G
+    
+    environment:
+      - SCAN_MODE=comprehensive
+      - OUTPUT_FORMAT=json
+      - SEVERITY_LEVEL=HIGH
+    
+    volumes:
+      - type: volume
+        source: unjucks-logs
+        target: /app/logs
+    
+    networks:
+      - unjucks-monitoring
+    
+    profiles:
+      - security
+    
+    command: ["sh", "-c", "trivy fs /app --format json --output /app/logs/security-scan.json && grype /app --output json --file /app/logs/vulnerability-scan.json"]
+
+  # ---------------------------------------------------------------------------
+  # PERFORMANCE MONITORING CONTAINER
+  # ---------------------------------------------------------------------------
+  unjucks-monitor:
+    image: prom/prometheus:latest
+    container_name: unjucks-performance-monitor
+    
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    cap_add:
+      - NET_BIND_SERVICE
+    read_only: true
+    tmpfs:
+      - /tmp:noexec,nosuid,size=50m
+    
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 1G
+        reservations:
+          cpus: '0.2'
+          memory: 512M
+    
+    ports:
+      - "127.0.0.1:9090:9090"
+    
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - unjucks-logs:/var/log/unjucks:ro
+    
+    networks:
+      - unjucks-monitoring
+    
+    profiles:
+      - monitoring
+    
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--web.listen-address=0.0.0.0:9090'
+      - '--storage.tsdb.retention.time=24h'
+
+  # ---------------------------------------------------------------------------
+  # DATABASE CONTAINER (For Integration Testing)
+  # ---------------------------------------------------------------------------
+  unjucks-postgres:
+    image: postgres:16-alpine
+    container_name: unjucks-test-db
+    
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN
+      - DAC_OVERRIDE
+      - SETGID
+      - SETUID
+    
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1G
+        reservations:
+          cpus: '0.2'
+          memory: 256M
+    
+    environment:
+      - POSTGRES_DB=unjucks_test
+      - POSTGRES_USER=unjucks_test
+      - POSTGRES_PASSWORD=test_password_123
+      - POSTGRES_INITDB_ARGS=--auth-host=scram-sha-256
+    
+    volumes:
+      - type: volume
+        source: unjucks-test-data
+        target: /var/lib/postgresql/data
+      - ./sql/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    
+    networks:
+      - unjucks-testing
+    
+    profiles:
+      - integration
+    
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U unjucks_test -d unjucks_test"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  # ---------------------------------------------------------------------------
+  # REDIS CONTAINER (For Caching Tests)
+  # ---------------------------------------------------------------------------
+  unjucks-redis:
+    image: redis:7-alpine
+    container_name: unjucks-test-redis
+    
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    read_only: true
+    tmpfs:
+      - /tmp:noexec,nosuid,size=50m
+    
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+        reservations:
+          cpus: '0.1'
+          memory: 128M
+    
+    networks:
+      - unjucks-testing
+    
+    profiles:
+      - integration
+    
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+
+  # ---------------------------------------------------------------------------
+  # LOG AGGREGATION CONTAINER
+  # ---------------------------------------------------------------------------
+  unjucks-logstash:
+    image: elastic/logstash:8.11.0
+    container_name: unjucks-log-aggregator
+    
+    security_opt:
+      - no-new-privileges:true
+    
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1G
+        reservations:
+          cpus: '0.3'
+          memory: 512M
+    
+    environment:
+      - "LS_JAVA_OPTS=-Xmx512m -Xms512m"
+      - XPACK_MONITORING_ENABLED=false
+    
+    volumes:
+      - ./logging/logstash.conf:/usr/share/logstash/pipeline/logstash.conf:ro
+      - unjucks-logs:/app/logs:ro
+    
+    networks:
+      - unjucks-monitoring
+    
+    profiles:
+      - logging
+    
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:9600/_node/stats || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s

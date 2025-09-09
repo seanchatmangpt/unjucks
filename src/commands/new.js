@@ -9,7 +9,7 @@ import path from 'node:path';
  */
 class ProjectCreator {
   constructor() {
-    this.templatesDir = '_templates';
+    this.templatesDir = 'templates';
     this.projectTemplates = new Map([
       ['webapp', { name: 'Web Application', generator: 'project', template: 'webapp' }],
       ['api', { name: 'REST API', generator: 'project', template: 'api' }],

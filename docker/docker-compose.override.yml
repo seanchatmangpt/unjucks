@@ -1,0 +1,152 @@
+# =============================================================================
+# DOCKER COMPOSE OVERRIDE - DEVELOPMENT & DEBUGGING
+# Use this file for local development and debugging
+# =============================================================================
+
+version: '3.8'
+
+services:
+  # Development override for the main testing container
+  unjucks-test:
+    # Override command for interactive development
+    # Uncomment the following line for interactive debugging
+    # command: ["tail", "-f", "/dev/null"]
+    
+    # Additional volume mounts for development
+    volumes:
+      # Mount source code for live development
+      - ../src:/app/src:cached
+      - ../tests:/app/tests:cached
+      - ../_templates:/app/_templates:cached
+      - ../package.json:/app/package.json:ro
+      - ../pnpm-lock.yaml:/app/pnpm-lock.yaml:ro
+      
+      # Mount configuration files
+      - ../vitest.config.js:/app/vitest.config.js:ro
+      - ../cucumber.config.cjs:/app/cucumber.config.cjs:ro
+      
+      # Development logs and results
+      - ./dev-logs:/app/logs
+      - ./dev-results:/app/test-results
+      - ./dev-coverage:/app/coverage
+    
+    # Development environment variables
+    environment:
+      - NODE_ENV=development
+      - DEBUG=unjucks:*
+      - LOG_LEVEL=debug
+      - WATCH_MODE=true
+      - HOT_RELOAD=true
+      - DEVELOPMENT_MODE=true
+    
+    # Expose additional ports for debugging
+    ports:
+      - "127.0.0.1:9229:9229"  # Node.js debug port
+      - "127.0.0.1:3000:3000"  # Development server
+      - "127.0.0.1:8080:8080"  # Test results server
+    
+    # Override resource limits for development
+    deploy:
+      resources:
+        limits:
+          cpus: '4.0'
+          memory: 8G
+        reservations:
+          cpus: '2.0'
+          memory: 4G
+
+  # Development database with more relaxed settings
+  unjucks-postgres:
+    environment:
+      - POSTGRES_DB=unjucks_dev
+      - POSTGRES_USER=unjucks_dev
+      - POSTGRES_PASSWORD=dev_password_123
+    
+    # Expose database port for external tools
+    ports:
+      - "127.0.0.1:5432:5432"
+    
+    # Development command with logging
+    command: postgres -c log_statement=all -c log_destination=stderr
+
+  # Development Redis instance
+  unjucks-redis:
+    # Expose Redis port for external tools
+    ports:
+      - "127.0.0.1:6379:6379"
+    
+    # Development command with logging
+    command: redis-server --loglevel debug --save "" --appendonly no
+
+  # Add development tools container
+  unjucks-dev-tools:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+      target: dependencies
+    image: unjucks:dev-tools
+    container_name: unjucks-dev-tools
+    
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN
+      - SETGID
+      - SETUID
+    
+    environment:
+      - NODE_ENV=development
+      - DEBUG=*
+    
+    volumes:
+      - ../:/app:cached
+      - ./dev-tools:/app/tools
+    
+    networks:
+      - unjucks-testing
+    
+    profiles:
+      - dev-tools
+    
+    command: ["tail", "-f", "/dev/null"]
+    
+    labels:
+      - "com.unjucks.service=dev-tools"
+      - "com.unjucks.environment=development"
+
+  # File watcher for automatic test runs
+  unjucks-watcher:
+    image: node:20-alpine
+    container_name: unjucks-test-watcher
+    
+    working_dir: /app
+    
+    environment:
+      - NODE_ENV=development
+      - CHOKIDAR_USEPOLLING=true
+    
+    volumes:
+      - ../src:/app/src:ro
+      - ../tests:/app/tests:ro
+      - ./watcher.js:/app/watcher.js:ro
+    
+    networks:
+      - unjucks-testing
+    
+    profiles:
+      - watcher
+    
+    command: ["node", "watcher.js"]
+
+# Development-specific volumes
+volumes:
+  dev-logs:
+    driver: local
+  dev-results:
+    driver: local
+  dev-coverage:
+    driver: local
+  dev-tools:
+    driver: local
