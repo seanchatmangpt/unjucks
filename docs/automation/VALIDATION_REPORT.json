@@ -1,0 +1,60 @@
+{
+  "validation_summary": {
+    "total_tests": 6,
+    "passed": 4,
+    "failed": 2,
+    "success_rate": 67
+  },
+  "test_details": [
+    {
+      "test": "test-environment-setup",
+      "passed": true,
+      "details": "Test environment setup completed",
+      "timestamp": "2025-09-09T03:44:14.050Z"
+    },
+    {
+      "test": "basic-orchestration",
+      "passed": true,
+      "details": "Orchestration completed with status: failed",
+      "timestamp": "2025-09-09T03:44:22.075Z"
+    },
+    {
+      "test": "workflow-failure-handling",
+      "passed": false,
+      "details": "Failed to process workflow failure correctly",
+      "timestamp": "2025-09-09T03:44:31.467Z"
+    },
+    {
+      "test": "intelligent-triage",
+      "passed": false,
+      "details": "Only triaged 0/3 test cases",
+      "timestamp": "2025-09-09T03:44:40.379Z"
+    },
+    {
+      "test": "notification-routing",
+      "passed": true,
+      "details": "Notification routing completed without errors",
+      "timestamp": "2025-09-09T03:44:40.386Z"
+    },
+    {
+      "test": "learning-feedback",
+      "passed": true,
+      "details": "Learning feedback processed successfully",
+      "timestamp": "2025-09-09T03:44:41.069Z"
+    }
+  ],
+  "system_validation": {
+    "basic_functionality": true,
+    "failure_handling": false,
+    "intelligent_triage": false,
+    "notification_system": true,
+    "learning_system": true
+  },
+  "recommendations": [
+    "Review failed tests and address underlying issues",
+    "Some tests failed - requires investigation before deployment",
+    "Continue monitoring system performance in production",
+    "Implement regular validation testing schedule"
+  ],
+  "generated_at": "2025-09-09T03:44:41.069Z"
+}

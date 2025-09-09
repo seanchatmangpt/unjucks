@@ -1,0 +1,320 @@
+# Custom Semgrep Security Rules for Fortune 5 Standards
+# This file defines custom security patterns specific to the Unjucks project
+
+rules:
+  # ============================================================================
+  # CRITICAL SECURITY PATTERNS
+  # ============================================================================
+  
+  - id: hardcoded-secrets-detection
+    pattern-either:
+      - pattern: |
+          var $VAR = "$SECRET"
+      - pattern: |
+          const $VAR = "$SECRET"  
+      - pattern: |
+          let $VAR = "$SECRET"
+    pattern-where-python: |
+      import re
+      # Look for common secret patterns
+      secret_patterns = [
+          r'[A-Za-z0-9]{20,}',  # Long alphanumeric strings
+          r'sk_[a-zA-Z0-9]{24,}',  # Stripe secret keys
+          r'AKIA[0-9A-Z]{16}',  # AWS access keys
+          r'ghp_[A-Za-z0-9]{36}',  # GitHub personal access tokens
+          r'xoxp-[0-9]+-[0-9]+-[0-9]+-[a-f0-9]{64}',  # Slack tokens
+      ]
+      return any(re.search(pattern, vars['SECRET']) for pattern in secret_patterns)
+    message: "Potential hardcoded secret or API key detected"
+    severity: ERROR
+    languages: [javascript]
+    
+  - id: sql-injection-risk
+    patterns:
+      - pattern: |
+          $DB.query($QUERY + $INPUT)
+      - pattern: |
+          $DB.execute($QUERY + $INPUT)
+      - pattern: |
+          `$QUERY${$INPUT}`
+    message: "Potential SQL injection vulnerability - use parameterized queries"
+    severity: ERROR
+    languages: [javascript]
+    
+  - id: command-injection-risk
+    patterns:
+      - pattern: |
+          exec($CMD + $INPUT)
+      - pattern: |
+          spawn($CMD, [$INPUT])
+      - pattern: |
+          execSync($CMD + $INPUT)
+    message: "Potential command injection vulnerability"
+    severity: ERROR
+    languages: [javascript]
+    
+  - id: path-traversal-risk
+    patterns:
+      - pattern: |
+          fs.readFile($PATH + $INPUT)
+      - pattern: |
+          fs.writeFile($PATH + $INPUT, $DATA)
+      - pattern: |
+          path.join($PATH, $INPUT)
+    pattern-not: |
+      path.join($PATH, path.basename($INPUT))
+    message: "Potential path traversal vulnerability - validate and sanitize file paths"
+    severity: ERROR
+    languages: [javascript]
+    
+  # ============================================================================
+  # HIGH SEVERITY PATTERNS
+  # ============================================================================
+  
+  - id: unsafe-eval-usage
+    patterns:
+      - pattern: eval($CODE)
+      - pattern: Function($CODE)()
+      - pattern: new Function($CODE)
+      - pattern: setTimeout($CODE, $TIME)
+      - pattern: setInterval($CODE, $TIME)
+    pattern-not-inside: |
+      // Safe eval usage
+      if (isSafeEnvironment) {
+        ...
+      }
+    message: "Unsafe eval usage detected - avoid dynamic code execution"
+    severity: ERROR
+    languages: [javascript]
+    
+  - id: prototype-pollution-risk
+    patterns:
+      - pattern: |
+          $OBJ["__proto__"] = $VALUE
+      - pattern: |
+          $OBJ.constructor.prototype = $VALUE
+      - pattern: |
+          Object.setPrototypeOf($OBJ, $VALUE)
+    message: "Potential prototype pollution vulnerability"
+    severity: ERROR
+    languages: [javascript]
+    
+  - id: weak-crypto-usage
+    patterns:
+      - pattern: |
+          crypto.createHash("md5")
+      - pattern: |
+          crypto.createHash("sha1")
+      - pattern: |
+          Math.random()
+    message: "Weak cryptographic function usage - use secure alternatives"
+    severity: WARNING
+    languages: [javascript]
+    
+  - id: insecure-random-generation
+    patterns:
+      - pattern: |
+          Math.random()
+      - pattern: |
+          Math.floor(Math.random() * $N)
+    pattern-inside: |
+      function $FUNC(...) {
+        ...
+      }
+    pattern-where-python: |
+      # Check if this is in a security-sensitive context
+      func_name = vars['FUNC'].lower()
+      security_keywords = ['token', 'password', 'secret', 'key', 'auth', 'session', 'csrf']
+      return any(keyword in func_name for keyword in security_keywords)
+    message: "Insecure random number generation in security context - use crypto.randomBytes()"
+    severity: ERROR
+    languages: [javascript]
+    
+  # ============================================================================
+  # MEDIUM SEVERITY PATTERNS  
+  # ============================================================================
+  
+  - id: information-disclosure-console
+    patterns:
+      - pattern: |
+          console.log($SECRET)
+      - pattern: |
+          console.error($SECRET)
+      - pattern: |
+          console.info($SECRET)
+    pattern-where-python: |
+      # Check if variable name suggests sensitive data
+      secret_var = str(vars['SECRET']).lower()
+      sensitive_keywords = ['password', 'token', 'key', 'secret', 'auth', 'credential']
+      return any(keyword in secret_var for keyword in sensitive_keywords)
+    message: "Potential information disclosure through console logging"
+    severity: WARNING
+    languages: [javascript]
+    
+  - id: insecure-http-usage
+    patterns:
+      - pattern: |
+          "http://$URL"
+      - pattern: |
+          'http://$URL'
+      - pattern: |
+          `http://$URL`
+    pattern-not-inside: |
+      // Development or test environment
+      if (process.env.NODE_ENV === 'development') {
+        ...
+      }
+    message: "Insecure HTTP usage - use HTTPS in production"
+    severity: WARNING
+    languages: [javascript]
+    
+  - id: missing-input-validation
+    patterns:
+      - pattern: |
+          function $FUNC($PARAM) {
+            $BODY
+          }
+      - pattern: |
+          ($PARAM) => {
+            $BODY
+          }
+    pattern-not-inside: |
+      if (typeof $PARAM !== 'undefined') {
+        ...
+      }
+    pattern-not-inside: |
+      if ($PARAM) {
+        ...
+      }
+    pattern-where-python: |
+      # Check if this looks like a public API function
+      func_name = str(vars['FUNC']).lower() if 'FUNC' in vars else ''
+      api_keywords = ['api', 'route', 'endpoint', 'handler', 'controller']
+      return any(keyword in func_name for keyword in api_keywords)
+    message: "Missing input validation in API function"
+    severity: INFO
+    languages: [javascript]
+    
+  # ============================================================================
+  # UNJUCKS-SPECIFIC SECURITY PATTERNS
+  # ============================================================================
+  
+  - id: template-injection-risk
+    patterns:
+      - pattern: |
+          nunjucks.renderString($TEMPLATE + $INPUT, $DATA)
+      - pattern: |
+          env.renderString($TEMPLATE + $INPUT, $DATA)
+      - pattern: |
+          template.render($DATA + $INPUT)
+    message: "Potential template injection vulnerability - sanitize template inputs"
+    severity: ERROR
+    languages: [javascript]
+    
+  - id: unsafe-file-generation
+    patterns:
+      - pattern: |
+          fs.writeFileSync($PATH, $CONTENT)
+      - pattern: |
+          fs.writeFile($PATH, $CONTENT, $CALLBACK)
+    pattern-inside: |
+      function generate$TYPE(...) {
+        ...
+      }
+    pattern-not-inside: |
+      if (isValidPath($PATH)) {
+        ...
+      }
+    message: "Unsafe file generation - validate output paths"
+    severity: WARNING
+    languages: [javascript]
+    
+  - id: rdf-injection-risk
+    patterns:
+      - pattern: |
+          `$QUERY ${$INPUT}`
+      - pattern: |
+          $QUERY + $INPUT
+    pattern-inside: |
+      function sparql$TYPE(...) {
+        ...
+      }
+    message: "Potential SPARQL injection vulnerability"
+    severity: ERROR
+    languages: [javascript]
+    
+  - id: yaml-frontmatter-injection
+    patterns:
+      - pattern: |
+          yaml.load($CONTENT + $INPUT)
+      - pattern: |
+          yaml.safeLoad($CONTENT + $INPUT)
+    message: "Potential YAML injection in frontmatter processing"
+    severity: WARNING
+    languages: [javascript]
+    
+  # ============================================================================
+  # CONFIGURATION SECURITY PATTERNS
+  # ============================================================================
+  
+  - id: insecure-cors-configuration
+    patterns:
+      - pattern: |
+          cors({
+            origin: "*"
+          })
+      - pattern: |
+          res.header("Access-Control-Allow-Origin", "*")
+    message: "Insecure CORS configuration - avoid wildcard origins in production"
+    severity: WARNING
+    languages: [javascript]
+    
+  - id: debug-mode-enabled
+    patterns:
+      - pattern: |
+          debug: true
+      - pattern: |
+          DEBUG: true  
+      - pattern: |
+          development: true
+    pattern-inside: |
+      module.exports = {
+        ...
+      }
+    message: "Debug mode enabled - ensure this is disabled in production"
+    severity: INFO
+    languages: [javascript]
+    
+  # ============================================================================
+  # DEPENDENCY SECURITY PATTERNS
+  # ============================================================================
+  
+  - id: vulnerable-dependency-usage
+    patterns:
+      - pattern: |
+          require("lodash")
+      - pattern: |
+          require("moment")
+      - pattern: |
+          require("request")
+    message: "Usage of dependency with known vulnerabilities - consider alternatives"
+    severity: INFO
+    languages: [javascript]
+    
+  - id: unsafe-deserialization
+    patterns:
+      - pattern: |
+          JSON.parse($INPUT)
+      - pattern: |
+          eval($INPUT)
+      - pattern: |
+          deserialize($INPUT)
+    pattern-not-inside: |
+      try {
+        ...
+      } catch ($ERR) {
+        ...
+      }
+    message: "Unsafe deserialization - validate input and handle errors"
+    severity: WARNING
+    languages: [javascript]

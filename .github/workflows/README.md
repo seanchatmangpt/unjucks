@@ -1,6 +1,6 @@
-# GitHub Actions CI/CD Workflows
+# Enterprise Workflows - Fortune 5 Quality Standards
 
-This directory contains GitHub Actions workflows for comprehensive CI/CD pipeline with local testing support using [act](https://github.com/nektos/act).
+This directory contains the consolidated enterprise-grade workflows implementing Fortune 5 quality standards with comprehensive validation, security scanning, release management, and monitoring capabilities.\n\n## \ud83d\ude80 NEW: Core Consolidated Workflows\n\n### 1. Core CI/CD Pipeline (`core-cicd.yml`)\n**Fortune 5 enterprise-grade continuous integration and deployment**\n\n### 2. Enterprise Security (`enterprise-security.yml`)\n**Multi-tier security scanning and compliance validation**\n\n### 3. Enterprise Release Management (`enterprise-release.yml`)\n**Automated release pipeline with semantic versioning**\n\n### 4. Enterprise Monitoring (`enterprise-monitoring.yml`)\n**Comprehensive monitoring, health checks, and observability**\n\n---\n\n## Legacy GitHub Actions CI/CD Workflows\n\nThe following workflows are maintained for backwards compatibility:"
 
 ## Available Workflows
 

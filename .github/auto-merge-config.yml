@@ -1,0 +1,386 @@
+# Auto-Merge Configuration for Fortune 5 Standards
+# This file defines the criteria and rules for automated merging of pull requests
+
+auto_merge:
+  # ============================================================================
+  # GLOBAL AUTO-MERGE SETTINGS
+  # ============================================================================
+  enabled: true
+  
+  # Default merge method
+  merge_method: "squash"  # Options: "merge", "squash", "rebase"
+  
+  # Auto-delete head branch after merge
+  delete_branch_after_merge: true
+  
+  # Require branch to be up to date before merging
+  require_up_to_date: true
+  
+  # ============================================================================
+  # ELIGIBILITY CRITERIA
+  # ============================================================================
+  eligibility:
+    # Author-based criteria
+    authors:
+      # Always eligible for auto-merge
+      trusted:
+        - "dependabot[bot]"
+        - "renovate[bot]"
+        - "github-actions[bot]"
+        
+      # Eligible with additional checks
+      maintainers:
+        - "seanchatmangpt"
+        
+      # Never auto-merge (security review required)
+      blocked: []
+      
+    # PR size-based criteria
+    size_limits:
+      # Auto-merge only for small PRs
+      max_files_changed: 10
+      max_lines_added: 200
+      max_lines_deleted: 100
+      
+      # Exception: allow larger dependency updates
+      dependency_update_exception:
+        max_files_changed: 50
+        max_lines_added: 1000
+        max_lines_deleted: 1000
+        
+    # Label-based criteria
+    labels:
+      # Labels that enable auto-merge
+      auto_merge_enabled:
+        - "auto-merge"
+        - "dependencies"
+        - "patch"
+        - "safe-update"
+        
+      # Labels that block auto-merge
+      auto_merge_blocked:
+        - "breaking-change"
+        - "security"
+        - "manual-review-required"
+        - "wip"
+        - "do-not-merge"
+        - "hold"
+        
+    # File path-based criteria
+    file_patterns:
+      # Auto-merge allowed for these patterns
+      safe_patterns:
+        - "*.md"              # Documentation
+        - "*.json"            # Package manifests
+        - "package-lock.json" # Lock files
+        - ".github/workflows/*.yml" # CI/CD (non-security)
+        - "docs/**/*"         # Documentation
+        - "examples/**/*"     # Examples
+        - "tests/**/*"        # Test files
+        
+      # Patterns that require manual review
+      restricted_patterns:
+        - "src/security/**/*"    # Security code
+        - "src/auth/**/*"        # Authentication
+        - "src/crypto/**/*"      # Cryptography
+        - ".github/workflows/security-*.yml" # Security workflows
+        - "**/Dockerfile"        # Container configs
+        - "**/*-production.yml"  # Production configs
+        - "bin/**/*"            # Binary files
+        
+  # ============================================================================
+  # QUALITY GATE REQUIREMENTS
+  # ============================================================================
+  quality_gates:
+    # Fortune 5 quality standards
+    fortune_5:
+      # Code coverage requirements
+      coverage:
+        minimum_lines: 85
+        minimum_functions: 90
+        minimum_branches: 80
+        minimum_statements: 85
+        
+      # Security requirements
+      security:
+        max_critical_vulnerabilities: 0
+        max_high_vulnerabilities: 0
+        max_medium_vulnerabilities: 2
+        
+      # Code quality requirements
+      quality:
+        max_complexity_average: 10
+        max_duplication_percentage: 3
+        minimum_maintainability_grade: "B"
+        
+      # Performance requirements
+      performance:
+        max_bundle_size_kb: 250
+        max_cli_startup_ms: 500
+        
+    # Enterprise quality standards (fallback)
+    enterprise:
+      coverage:
+        minimum_lines: 80
+        minimum_functions: 85
+        minimum_branches: 75
+        
+      security:
+        max_critical_vulnerabilities: 0
+        max_high_vulnerabilities: 1
+        max_medium_vulnerabilities: 5
+        
+  # ============================================================================
+  # REQUIRED STATUS CHECKS
+  # ============================================================================
+  required_checks:
+    # Core status checks (always required)
+    core:
+      - "unified-quality-gate / coverage-validation"
+      - "unified-quality-gate / security-validation"
+      - "unified-quality-gate / quality-analysis"
+      - "unified-quality-gate / quality-gate-summary"
+      - "status-checks / lint-check"
+      - "status-checks / type-check"
+      - "status-checks / unit-tests"
+      - "status-checks / build-check"
+      - "status-checks / security-audit"
+      
+    # Additional checks for main branch
+    main_branch:
+      - "production-validation / security-scan"
+      - "production-validation / performance-benchmarks"
+      - "production-validation / cross-platform"
+      
+    # Dependency-specific checks
+    dependencies:
+      - "security-scanning / dependency-scan"
+      - "performance / bundle-size-check"
+      
+  # ============================================================================
+  # REVIEW REQUIREMENTS
+  # ============================================================================
+  review_requirements:
+    # Default review requirements
+    default:
+      required_approvals: 1
+      dismiss_stale_reviews: true
+      require_code_owner_reviews: false
+      
+    # Stricter requirements for sensitive changes
+    sensitive:
+      required_approvals: 2
+      dismiss_stale_reviews: true
+      require_code_owner_reviews: true
+      
+      # Files that trigger sensitive review requirements
+      trigger_patterns:
+        - "src/security/**/*"
+        - "src/auth/**/*"
+        - ".github/workflows/security-*.yml"
+        - "**/production-*.yml"
+        
+    # Relaxed requirements for certain types
+    relaxed:
+      required_approvals: 0
+      dismiss_stale_reviews: false
+      require_code_owner_reviews: false
+      
+      # Conditions for relaxed requirements
+      conditions:
+        - author: "dependabot[bot]"
+          labels: ["dependencies", "patch"]
+          size_limit: { files: 5, lines: 100 }
+          
+        - author: "renovate[bot]"
+          labels: ["dependencies"]
+          size_limit: { files: 10, lines: 200 }
+          
+  # ============================================================================
+  # TIMING AND DELAY SETTINGS
+  # ============================================================================
+  timing:
+    # Minimum age before auto-merge (in minutes)
+    minimum_age: 5
+    
+    # Maximum wait time for checks (in minutes)
+    max_wait_time: 30
+    
+    # Delay between approval and merge (in minutes)
+    approval_delay: 2
+    
+    # Additional delay for different PR types
+    type_delays:
+      breaking_change: 60    # 1 hour
+      security_fix: 30       # 30 minutes
+      dependency_major: 15   # 15 minutes
+      dependency_minor: 5    # 5 minutes
+      dependency_patch: 0    # Immediate
+      
+  # ============================================================================
+  # FAILURE HANDLING
+  # ============================================================================
+  failure_handling:
+    # Retry settings for failed checks
+    retry:
+      enabled: true
+      max_attempts: 3
+      delay_minutes: 5
+      
+    # Actions to take on failure
+    on_failure:
+      # Remove auto-merge label
+      remove_auto_merge_label: true
+      
+      # Add failure label
+      add_failure_label: "auto-merge-failed"
+      
+      # Comment on PR
+      add_comment: true
+      comment_template: |
+        🤖 **Auto-merge Failed**
+        
+        The automated merge process failed due to:
+        - Failed status checks
+        - Quality gate violations
+        - Review requirements not met
+        
+        Please review the failing checks and address any issues before re-enabling auto-merge.
+        
+        Add the `auto-merge` label to retry once issues are resolved.
+        
+    # Recovery actions
+    recovery:
+      # Auto-retry after fixes
+      auto_retry_on_push: true
+      
+      # Recheck after review approval
+      recheck_on_approval: true
+      
+  # ============================================================================
+  # NOTIFICATION SETTINGS
+  # ============================================================================
+  notifications:
+    # Slack notifications (if configured)
+    slack:
+      enabled: false
+      webhook_url: ""  # Set via secrets
+      channels:
+        success: "#deployment"
+        failure: "#dev-alerts"
+        
+    # GitHub notifications
+    github:
+      # Comment on successful merge
+      success_comment: |
+        ✅ **Auto-merged successfully**
+        
+        This PR met all Fortune 5 quality standards and was automatically merged:
+        - ✅ All status checks passed
+        - ✅ Quality gates satisfied
+        - ✅ Review requirements met
+        - ✅ Security scans clean
+        
+        **Quality Score:** {{quality_score}}
+        **Coverage:** {{coverage}}%
+        **Security Issues:** {{security_issues}}
+        
+      # Issue creation for repeated failures
+      create_issue_on_repeated_failure: true
+      issue_title: "Auto-merge repeatedly failing for {{pr_title}}"
+      
+  # ============================================================================
+  # EMERGENCY SETTINGS
+  # ============================================================================
+  emergency:
+    # Emergency override conditions
+    override_conditions:
+      # Security hotfixes
+      security_hotfix:
+        labels: ["security", "hotfix", "emergency"]
+        bypass_delay: true
+        bypass_age_requirement: true
+        required_approvals: 1
+        
+      # Critical production fixes
+      production_hotfix:
+        labels: ["production", "hotfix", "critical"]
+        bypass_delay: true
+        bypass_age_requirement: false
+        required_approvals: 2
+        
+    # Emergency contacts (GitHub usernames)
+    emergency_contacts:
+      - "seanchatmangpt"
+      
+  # ============================================================================
+  # COMPLIANCE AND AUDIT
+  # ============================================================================
+  compliance:
+    # Audit trail requirements
+    audit_trail:
+      enabled: true
+      log_all_decisions: true
+      include_quality_metrics: true
+      
+    # Compliance checks
+    compliance_checks:
+      # SOX compliance
+      sox:
+        enabled: false  # Enable for regulated environments
+        require_dual_approval: true
+        require_audit_trail: true
+        
+      # GDPR compliance
+      gdpr:
+        enabled: false
+        data_impact_review: true
+        
+    # Regulatory approval requirements
+    regulatory:
+      enabled: false
+      required_for_patterns:
+        - "**/data-processing/**/*"
+        - "**/personal-data/**/*"
+        - "**/financial/**/*"
+
+# ============================================================================
+# BRANCH-SPECIFIC CONFIGURATIONS
+# ============================================================================
+branch_configurations:
+  # Main branch - strictest requirements
+  main:
+    auto_merge: true
+    quality_standard: "fortune_5"
+    required_checks: "core + main_branch"
+    review_requirements: "default"
+    minimum_age: 10
+    
+  # Develop branch - enterprise standards
+  develop:
+    auto_merge: true
+    quality_standard: "enterprise"
+    required_checks: "core"
+    review_requirements: "default"
+    minimum_age: 5
+    
+  # Feature branches - relaxed for development
+  "feature/*":
+    auto_merge: true
+    quality_standard: "enterprise"
+    required_checks: "core"
+    review_requirements: "relaxed"
+    minimum_age: 2
+    
+  # Release branches - strict requirements
+  "release/*":
+    auto_merge: false  # Manual merge for releases
+    quality_standard: "fortune_5"
+    review_requirements: "sensitive"
+    
+  # Hotfix branches - emergency procedures
+  "hotfix/*":
+    auto_merge: true
+    quality_standard: "fortune_5"
+    emergency_mode: true
+    minimum_age: 0

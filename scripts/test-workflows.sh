@@ -83,10 +83,27 @@ run_workflow() {
     # Determine workflow file
     local workflow_file=""
     case "$workflow" in
-        ci|continuous-integration)
+        # New consolidated enterprise workflows
+        ci|continuous-integration|core|core-cicd)
+            workflow_file="$WORKFLOWS_DIR/act-core-cicd.yml"
+            ;;
+        ci-simple|simple)
+            workflow_file="$WORKFLOWS_DIR/act-core-cicd-simple.yml"
+            ;;
+        security|sec|enterprise-security)
+            workflow_file="$WORKFLOWS_DIR/act-enterprise-security.yml"
+            ;;
+        release|rel|enterprise-release)
+            workflow_file="$WORKFLOWS_DIR/enterprise-release.yml"
+            ;;
+        monitoring|mon|health|enterprise-monitoring)
+            workflow_file="$WORKFLOWS_DIR/enterprise-monitoring.yml"
+            ;;
+        # Legacy workflows (backwards compatibility)
+        legacy-ci)
             workflow_file="$WORKFLOWS_DIR/act-ci.yml"
             ;;
-        security|sec)
+        legacy-security)
             workflow_file="$WORKFLOWS_DIR/act-security.yml"
             ;;
         performance|perf|bench)
@@ -135,24 +152,24 @@ run_workflow() {
 
 # Run quick tests
 quick_test() {
-    log "Running quick validation tests..." $GREEN
+    log "Running Fortune 5 quick validation tests..." $GREEN
     echo
     
-    log "1. Testing CI lint job..." $YELLOW
-    act push -W "$WORKFLOWS_DIR/act-ci.yml" -j lint --reuse
+    log "1. Testing Core CI/CD setup..." $YELLOW
+    act push -W "$WORKFLOWS_DIR/act-core-cicd.yml" -j setup --reuse
     
-    log "2. Testing build validation..." $YELLOW
-    act push -W "$WORKFLOWS_DIR/act-build-validation.yml" -j dependency-validation --reuse
+    log "2. Testing Enterprise Security basic scan..." $YELLOW
+    act push -W "$WORKFLOWS_DIR/act-enterprise-security.yml" -j basic-security --reuse
     
-    log "Quick tests completed!" $GREEN
+    log "Fortune 5 quick tests completed!" $GREEN
 }
 
 # Run full test suite
 full_test() {
-    log "Running full test suite..." $GREEN
+    log "Running Fortune 5 enterprise test suite..." $GREEN
     echo
     
-    workflows=("act-ci.yml" "act-security.yml" "act-build-validation.yml")
+    workflows=("act-core-cicd.yml" "act-enterprise-security.yml")
     
     for workflow in "${workflows[@]}"; do
         workflow_path="$WORKFLOWS_DIR/$workflow"
@@ -162,7 +179,7 @@ full_test() {
         fi
     done
     
-    log "Full test suite completed!" $GREEN
+    log "Fortune 5 enterprise test suite completed!" $GREEN
 }
 
 # Clean act containers and cache
@@ -194,17 +211,30 @@ Commands:
     full                    Run full test suite
     clean                   Clean act containers and cache
     
-    ci [job]               Run CI workflow (optionally specific job)
-    security [job]         Run security workflow
+    # New Consolidated Enterprise Workflows
+    ci [job]               Run Core CI/CD workflow (Fortune 5 quality)
+    core [job]             Alias for ci - Core CI/CD workflow
+    security [job]         Run Enterprise Security workflow
+    release [job]          Run Enterprise Release workflow (full workflow only)
+    monitoring [job]       Run Enterprise Monitoring workflow (full workflow only)
+    
+    # Legacy Workflows (backwards compatibility)
+    legacy-ci [job]        Run legacy CI workflow
+    legacy-security [job]  Run legacy security workflow
     performance [job]      Run performance workflow  
     build [job]           Run build validation workflow
 
 Examples:
+    # New Enterprise Workflows
     $0 list                         # List all workflows
-    $0 quick                        # Quick tests
-    $0 ci                          # Run full CI workflow
-    $0 ci test                     # Run CI test job only
-    $0 security secret-scan        # Run security secret scan
+    $0 quick                        # Quick Fortune 5 validation tests
+    $0 ci                          # Run Core CI/CD workflow
+    $0 ci setup                    # Run CI setup job only
+    $0 security                    # Run Enterprise Security workflow
+    $0 security basic-security     # Run basic security scan only
+    
+    # Legacy Examples
+    $0 legacy-ci                   # Run legacy CI workflow
     $0 performance cli-performance # Run CLI performance benchmarks
     $0 build cross-platform-build # Run cross-platform build test
     $0 clean                       # Clean up containers
@@ -247,7 +277,7 @@ main() {
             check_docker
             clean
             ;;
-        ci|security|performance|build)
+        ci|core|core-cicd|ci-simple|simple|security|enterprise-security|release|enterprise-release|monitoring|enterprise-monitoring|legacy-ci|legacy-security|performance|build)
             check_act
             check_docker
             run_workflow "$1" "$2" "${ACT_EVENT:-push}"

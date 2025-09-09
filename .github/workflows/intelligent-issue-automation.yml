@@ -1,0 +1,339 @@
+name: Intelligent Issue Automation - Unified System
+
+on:
+  workflow_run:
+    workflows: ["*"]
+    types: [completed]
+  issues:
+    types: [opened, closed, reopened]
+  schedule:
+    - cron: '0 */4 * * *'  # Monitor every 4 hours
+  workflow_dispatch:
+    inputs:
+      trigger_type:
+        description: 'Type of automation trigger'
+        required: true
+        default: 'manual'
+        type: choice
+        options:
+          - manual
+          - workflow_failure
+          - performance_regression
+          - security_alert
+          - quality_gate
+          - health_monitoring
+      target_data:
+        description: 'JSON data for the trigger (optional)'
+        required: false
+        type: string
+
+permissions:
+  issues: write
+  contents: read
+  actions: read
+  pull-requests: read
+  security-events: read
+
+jobs:
+  intelligent-automation:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 2
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: |
+          npm ci --only=prod
+          # Install additional ML/AI dependencies if needed
+          # npm install @tensorflow/tfjs-node
+
+      - name: Initialize Intelligent Swarm
+        run: |
+          npx claude-flow@alpha hooks pre-task --description "Intelligent issue automation orchestration"
+          npx claude-flow@alpha hooks session-restore --session-id "intelligent-automation-${{ github.run_id }}"
+
+      - name: Determine Trigger Context
+        id: trigger-context
+        run: |
+          echo "Determining automation trigger context..."
+          
+          TRIGGER_TYPE="unknown"
+          TRIGGER_DATA="{}"
+          
+          # Workflow run trigger
+          if [ "${{ github.event_name }}" == "workflow_run" ]; then
+            TRIGGER_TYPE="workflow_failure"
+            TRIGGER_DATA=$(cat <<EOF
+          {
+            "type": "workflow_failure",
+            "workflow_run": {
+              "id": "${{ github.event.workflow_run.id }}",
+              "name": "${{ github.event.workflow_run.name }}",
+              "conclusion": "${{ github.event.workflow_run.conclusion }}",
+              "status": "${{ github.event.workflow_run.status }}",
+              "html_url": "${{ github.event.workflow_run.html_url }}",
+              "head_sha": "${{ github.event.workflow_run.head_sha }}",
+              "head_branch": "${{ github.event.workflow_run.head_branch }}",
+              "created_at": "${{ github.event.workflow_run.created_at }}",
+              "updated_at": "${{ github.event.workflow_run.updated_at }}"
+            }
+          }
+          EOF
+          )
+          fi
+          
+          # Schedule trigger (health monitoring)
+          if [ "${{ github.event_name }}" == "schedule" ]; then
+            TRIGGER_TYPE="health_monitoring"
+            TRIGGER_DATA=$(cat <<EOF
+          {
+            "type": "health_monitoring",
+            "scheduled_check": {
+              "trigger_time": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+              "check_type": "routine",
+              "monitoring_period": "4h"
+            }
+          }
+          EOF
+          )
+          fi
+          
+          # Manual trigger
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            TRIGGER_TYPE="${{ github.event.inputs.trigger_type }}"
+            if [ -n "${{ github.event.inputs.target_data }}" ]; then
+              TRIGGER_DATA="${{ github.event.inputs.target_data }}"
+            else
+              TRIGGER_DATA=$(cat <<EOF
+          {
+            "type": "${{ github.event.inputs.trigger_type }}",
+            "manual_trigger": {
+              "trigger_time": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+              "triggered_by": "${{ github.actor }}"
+            }
+          }
+          EOF
+          )
+            fi
+          fi
+          
+          # Issues trigger
+          if [ "${{ github.event_name }}" == "issues" ]; then
+            TRIGGER_TYPE="issue_lifecycle"
+            TRIGGER_DATA=$(cat <<EOF
+          {
+            "type": "issue_lifecycle",
+            "issue_event": {
+              "action": "${{ github.event.action }}",
+              "issue_number": ${{ github.event.issue.number }},
+              "issue_title": "${{ github.event.issue.title }}",
+              "issue_state": "${{ github.event.issue.state }}",
+              "issue_labels": $(echo '${{ toJson(github.event.issue.labels) }}' | jq -c '[.[].name]'),
+              "created_at": "${{ github.event.issue.created_at }}"
+            }
+          }
+          EOF
+          )
+          fi
+          
+          echo "trigger_type=$TRIGGER_TYPE" >> $GITHUB_OUTPUT
+          echo "trigger_data<<EOF" >> $GITHUB_OUTPUT
+          echo "$TRIGGER_DATA" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+          
+          echo "🎯 Trigger Type: $TRIGGER_TYPE"
+          echo "📊 Trigger Data: $TRIGGER_DATA"
+
+      - name: Run Intelligent Automation Engine
+        id: automation
+        run: |
+          echo "🧠 Starting Intelligent Automation Engine..."
+          
+          # Create automation directory if it doesn't exist
+          mkdir -p temp/automation/sessions
+          
+          # Run the intelligent automation engine
+          node scripts/issue-automation/intelligent-automation-engine.js \
+            --session-id "intelligent-automation-${{ github.run_id }}" \
+            --trigger-data '${{ steps.trigger-context.outputs.trigger_data }}' \
+            --config-path ".github/automation-config.json" \
+            --verbose true
+          
+          # Check if automation was successful
+          if [ $? -eq 0 ]; then
+            echo "automation_success=true" >> $GITHUB_OUTPUT
+            echo "✅ Intelligent automation completed successfully"
+          else
+            echo "automation_success=false" >> $GITHUB_OUTPUT
+            echo "❌ Intelligent automation encountered errors"
+          fi
+
+      - name: Process Automation Results
+        if: steps.automation.outputs.automation_success == 'true'
+        run: |
+          echo "📊 Processing automation results..."
+          
+          # Look for result files
+          if [ -f "temp/automation/execution-result.json" ]; then
+            echo "📄 Execution results found"
+            cat temp/automation/execution-result.json | jq .
+          fi
+          
+          # Look for learning feedback
+          if [ -f "temp/automation/learning-feedback.json" ]; then
+            echo "🧠 Learning feedback found"
+            cat temp/automation/learning-feedback.json | jq .
+          fi
+          
+          # Look for created issues
+          if [ -f "temp/automation/created-issues.json" ]; then
+            echo "📝 Created issues found"
+            cat temp/automation/created-issues.json | jq .
+          fi
+
+      - name: Update Automation Metrics
+        run: |
+          echo "📈 Updating automation system metrics..."
+          
+          # Store metrics in swarm memory
+          npx claude-flow@alpha hooks post-edit \
+            --file "temp/automation/execution-result.json" \
+            --memory-key "automation/metrics/session-${{ github.run_id }}"
+          
+          # Update performance baselines
+          if [ -f "scripts/automation-baselines.json" ]; then
+            node scripts/issue-automation/update-automation-baselines.js \
+              --session-id "intelligent-automation-${{ github.run_id }}" \
+              --results-file "temp/automation/execution-result.json"
+          fi
+
+      - name: Generate Automation Dashboard
+        run: |
+          echo "📊 Generating automation dashboard..."
+          
+          # Create automation dashboard
+          mkdir -p docs/automation/dashboard
+          
+          # Generate dashboard data
+          node scripts/issue-automation/generate-automation-dashboard.js \
+            --session-id "intelligent-automation-${{ github.run_id }}" \
+            --output-dir "docs/automation/dashboard" \
+            --include-metrics true \
+            --include-learning-data true
+
+      - name: Intelligent Notification Routing
+        if: always()
+        run: |
+          echo "📢 Processing intelligent notifications..."
+          
+          NOTIFICATION_TYPE="automation_completed"
+          PRIORITY="medium"
+          
+          # Determine notification priority based on results
+          if [ "${{ steps.automation.outputs.automation_success }}" == "false" ]; then
+            NOTIFICATION_TYPE="automation_failed"
+            PRIORITY="high"
+          fi
+          
+          # Check for critical issues detected
+          if [ -f "temp/automation/execution-result.json" ]; then
+            CRITICAL_ISSUES=$(cat temp/automation/execution-result.json | jq -r '.actions_executed[] | select(.result.severity == "critical") | .result.issue_id' | wc -l)
+            if [ "$CRITICAL_ISSUES" -gt 0 ]; then
+              PRIORITY="critical"
+            fi
+          fi
+          
+          # Send notifications through the intelligent system
+          node scripts/issue-automation/intelligent-automation-engine.js \
+            --action "send_notification" \
+            --notification-type "$NOTIFICATION_TYPE" \
+            --priority "$PRIORITY" \
+            --session-id "intelligent-automation-${{ github.run_id }}" \
+            --context '${{ steps.trigger-context.outputs.trigger_data }}'
+
+      - name: Archive Session Data
+        if: always()
+        run: |
+          echo "📚 Archiving session data..."
+          
+          # Archive session data for learning
+          SESSION_ARCHIVE="temp/automation/archives/session-${{ github.run_id }}-$(date +%Y%m%d-%H%M%S).tar.gz"
+          mkdir -p temp/automation/archives
+          
+          tar -czf "$SESSION_ARCHIVE" \
+            temp/automation/execution-result.json \
+            temp/automation/learning-feedback.json \
+            temp/automation/created-issues.json \
+            2>/dev/null || echo "Some files not found, continuing..."
+          
+          echo "📦 Session archived: $SESSION_ARCHIVE"
+          
+          # Store archive location in swarm memory
+          npx claude-flow@alpha hooks post-edit \
+            --file "$SESSION_ARCHIVE" \
+            --memory-key "automation/archives/session-${{ github.run_id }}"
+
+      - name: Swarm Coordination Cleanup
+        if: always()
+        run: |
+          echo "🧹 Performing swarm coordination cleanup..."
+          
+          # Finalize swarm session
+          npx claude-flow@alpha hooks post-task \
+            --task-id "intelligent-automation-${{ github.run_id }}" \
+            --status "completed" \
+            --metrics-file "temp/automation/execution-result.json"
+          
+          # Export session metrics
+          npx claude-flow@alpha hooks session-end \
+            --session-id "intelligent-automation-${{ github.run_id }}" \
+            --export-metrics true \
+            --archive-session true
+          
+          # Send session summary notification
+          npx claude-flow@alpha hooks notify \
+            --message "Intelligent automation session completed: ${{ github.run_id }}" \
+            --type "session_summary" \
+            --data '{"trigger_type": "${{ steps.trigger-context.outputs.trigger_type }}", "success": "${{ steps.automation.outputs.automation_success }}"}'
+
+      - name: Upload Automation Artifacts
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: intelligent-automation-session-${{ github.run_id }}
+          path: |
+            temp/automation/
+            docs/automation/dashboard/
+          retention-days: 30
+
+      - name: Summary Report
+        if: always()
+        run: |
+          echo "## 🧠 Intelligent Automation Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Session ID**: intelligent-automation-${{ github.run_id }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Trigger Type**: ${{ steps.trigger-context.outputs.trigger_type }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Status**: ${{ steps.automation.outputs.automation_success == 'true' && '✅ Success' || '❌ Failed' }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Timestamp**: $(date -u +%Y-%m-%dT%H:%M:%SZ)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          if [ -f "temp/automation/execution-result.json" ]; then
+            echo "### Execution Results" >> $GITHUB_STEP_SUMMARY
+            echo "\`\`\`json" >> $GITHUB_STEP_SUMMARY
+            cat temp/automation/execution-result.json | jq . >> $GITHUB_STEP_SUMMARY
+            echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "---" >> $GITHUB_STEP_SUMMARY
+          echo "*Generated by Intelligent Automation Engine*" >> $GITHUB_STEP_SUMMARY

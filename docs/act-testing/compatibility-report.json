@@ -1,0 +1,1920 @@
+{
+  "supported": [
+    {
+      "name": "Build Validation (act-compatible)",
+      "file": "act-build-validation.yml",
+      "triggers": {
+        "supported": [
+          "push",
+          "pull_request",
+          "workflow_dispatch"
+        ],
+        "unsupported": [],
+        "issues": []
+      },
+      "jobs": {
+        "totalJobs": 5,
+        "matrixJobs": 2,
+        "serviceJobs": 0,
+        "containerJobs": 0,
+        "issues": [
+          {
+            "type": "matrix",
+            "job": "build-validation",
+            "severity": "low",
+            "message": "Matrix builds may have limited parallelism in act"
+          },
+          {
+            "type": "matrix",
+            "job": "cross-platform-build",
+            "severity": "low",
+            "message": "Matrix builds may have limited parallelism in act"
+          }
+        ]
+      },
+      "compatibility": "supported",
+      "issues": [],
+      "actCommand": {
+        "push": "act push --platform ubuntu-latest=catthehacker/ubuntu:act-latest --artifact-server-path /tmp/artifacts --reuse --matrix --matrix -W .github/workflows/act-build-validation.yml",
+        "pull_request": "act pull_request --platform ubuntu-latest=catthehacker/ubuntu:act-latest --artifact-server-path /tmp/artifacts --reuse --matrix --matrix -W .github/workflows/act-build-validation.yml",
+        "workflow_dispatch": "act workflow_dispatch --platform ubuntu-latest=catthehacker/ubuntu:act-latest --artifact-server-path /tmp/artifacts --reuse --matrix --matrix -W .github/workflows/act-build-validation.yml",
+        "manual": "act --platform ubuntu-latest=catthehacker/ubuntu:act-latest --artifact-server-path /tmp/artifacts --reuse --matrix --matrix -W .github/workflows/act-build-validation.yml"
+      }
+    },
+    {
+      "name": "Continuous Integration (act-compatible)",
+      "file": "act-ci.yml",
+      "triggers": {
+        "supported": [
+          "push",
+          "pull_request",
+          "workflow_dispatch"
+        ],
+        "unsupported": [],
+        "issues": []
+      },
+      "jobs": {
+        "totalJobs": 4,
+        "matrixJobs": 1,
+        "serviceJobs": 0,
+        "containerJobs": 0,
+        "issues": [
+          {
+            "type": "matrix",
+            "job": "cross-platform",
+            "severity": "low",
+            "message": "Matrix builds may have limited parallelism in act"
+          }
+        ]
+      },
+      "compatibility": "supported",
+      "issues": [],
+      "actCommand": {
+        "push": "act push --platform ubuntu-latest=catthehacker/ubuntu:act-latest --artifact-server-path /tmp/artifacts --reuse --matrix -W .github/workflows/act-ci.yml",
+        "pull_request": "act pull_request --platform ubuntu-latest=catthehacker/ubuntu:act-latest --artifact-server-path /tmp/artifacts --reuse --matrix -W .github/workflows/act-ci.yml",
+        "workflow_dispatch": "act workflow_dispatch --platform ubuntu-latest=catthehacker/ubuntu:act-latest --artifact-server-path /tmp/artifacts --reuse --matrix -W .github/workflows/act-ci.yml",
+        "manual": "act --platform ubuntu-latest=catthehacker/ubuntu:act-latest --artifact-server-path /tmp/artifacts --reuse --matrix -W .github/workflows/act-ci.yml"
+      }
+    },
+    {
+      "name": "Performance Benchmarks (act-compatible)",
+      "file": "act-performance.yml",
+      "triggers": {
+        "supported": [
+          "push",
+          "pull_request",
+          "workflow_dispatch"
+        ],
+        "unsupported": [
+          "schedule"
+        ],
+        "issues": [
+          {
+            "type": "trigger",
+            "trigger": "schedule",
+            "severity": "medium",
+            "message": "Cron jobs not supported in act"
+          }
+        ]
+      },
+      "jobs": {
+        "totalJobs": 4,
+        "matrixJobs": 0,
+        "serviceJobs": 0,
+        "containerJobs": 0,
+        "issues": []
+      },
+      "compatibility": "supported",
+      "issues": [],
+      "actCommand": {
+        "push": "act push --platform ubuntu-latest=catthehacker/ubuntu:act-latest --artifact-server-path /tmp/artifacts --reuse -W .github/workflows/act-performance.yml",
+        "pull_request": "act pull_request --platform ubuntu-latest=catthehacker/ubuntu:act-latest --artifact-server-path /tmp/artifacts --reuse -W .github/workflows/act-performance.yml",
+        "workflow_dispatch": "act workflow_dispatch --platform ubuntu-latest=catthehacker/ubuntu:act-latest --artifact-server-path /tmp/artifacts --reuse -W .github/workflows/act-performance.yml",
+        "manual": "act --platform ubuntu-latest=catthehacker/ubuntu:act-latest --artifact-server-path /tmp/artifacts --reuse -W .github/workflows/act-performance.yml"
+      }
+    },
+    {
+      "name": "Security Scanning (act-compatible)",
+      "file": "act-security.yml",
+      "triggers": {
+        "supported": [
+          "push",
+          "pull_request",
+          "workflow_dispatch"
+        ],
+        "unsupported": [
+          "schedule"
+        ],
+        "issues": [
+          {
+            "type": "trigger",
+            "trigger": "schedule",
+            "severity": "medium",
+            "message": "Cron jobs not supported in act"
+          }
+        ]
+      },
+      "jobs": {
+        "totalJobs": 5,
+        "matrixJobs": 0,
+        "serviceJobs": 0,
+        "containerJobs": 0,
+        "issues": []
+      },
+      "compatibility": "supported",
+      "issues": [],
+      "actCommand": {
+        "push": "act push --platform ubuntu-latest=catthehacker/ubuntu:act-latest --artifact-server-path /tmp/artifacts --reuse -W .github/workflows/act-security.yml",
+        "pull_request": "act pull_request --platform ubuntu-latest=catthehacker/ubuntu:act-latest --artifact-server-path /tmp/artifacts --reuse -W .github/workflows/act-security.yml",
+        "workflow_dispatch": "act workflow_dispatch --platform ubuntu-latest=catthehacker/ubuntu:act-latest --artifact-server-path /tmp/artifacts --reuse -W .github/workflows/act-security.yml",
+        "manual": "act --platform ubuntu-latest=catthehacker/ubuntu:act-latest --artifact-server-path /tmp/artifacts --reuse -W .github/workflows/act-security.yml"
+      }
+    },
+    {
+      "name": "🚀 Auto Build & Publish",
+      "file": "auto-build-publish.yml",
+      "triggers": {
+        "supported": [
+          "workflow_dispatch"
+        ],
+        "unsupported": [
+          "repository_dispatch"
+        ],
+        "issues": [
+          {
+            "type": "trigger",
+            "trigger": "repository_dispatch",
+            "severity": "medium",
+            "message": "External webhooks not supported"
+          }
+        ]
+      },
+      "jobs": {
+        "totalJobs": 1,
+        "matrixJobs": 0,
+        "serviceJobs": 0,
+        "containerJobs": 0,
+        "issues": []
+      },
+      "compatibility": "supported",
+      "issues": [],
+      "actCommand": {
+        "push": "act push --platform ubuntu-latest=catthehacker/ubuntu:act-latest --artifact-server-path /tmp/artifacts --reuse -W .github/workflows/auto-build-publish.yml",
+        "pull_request": "act pull_request --platform ubuntu-latest=catthehacker/ubuntu:act-latest --artifact-server-path /tmp/artifacts --reuse -W .github/workflows/auto-build-publish.yml",
+        "workflow_dispatch": "act workflow_dispatch --platform ubuntu-latest=catthehacker/ubuntu:act-latest --artifact-server-path /tmp/artifacts --reuse -W .github/workflows/auto-build-publish.yml",
+        "manual": "act --platform ubuntu-latest=catthehacker/ubuntu:act-latest --artifact-server-path /tmp/artifacts --reuse -W .github/workflows/auto-build-publish.yml"
+      }
+    },
+    {
+      "name": "autofix.ci",
+      "file": "autofix.yml",
+      "triggers": {
+        "supported": [
+          "push",
+          "pull_request"
+        ],
+        "unsupported": [],
+        "issues": []
+      },
+      "jobs": {
+        "totalJobs": 1,
+        "matrixJobs": 0,
+        "serviceJobs": 0,
+        "containerJobs": 0,
+        "issues": []
+      },
+      "compatibility": "supported",
+      "issues": [],
+      "actCommand": {
+        "push": "act push --platform ubuntu-latest=catthehacker/ubuntu:act-latest --artifact-server-path /tmp/artifacts --reuse -W .github/workflows/autofix.yml",
+        "pull_request": "act pull_request --platform ubuntu-latest=catthehacker/ubuntu:act-latest --artifact-server-path /tmp/artifacts --reuse -W .github/workflows/autofix.yml",
+        "workflow_dispatch": "act workflow_dispatch --platform ubuntu-latest=catthehacker/ubuntu:act-latest --artifact-server-path /tmp/artifacts --reuse -W .github/workflows/autofix.yml",
+        "manual": "act --platform ubuntu-latest=catthehacker/ubuntu:act-latest --artifact-server-path /tmp/artifacts --reuse -W .github/workflows/autofix.yml"
+      }
+    },
+    {
+      "name": "checks",
+      "file": "checks.yml",
+      "triggers": {
+        "supported": [
+          "push",
+          "pull_request"
+        ],
+        "unsupported": [],
+        "issues": []
+      },
+      "jobs": {
+        "totalJobs": 1,
+        "matrixJobs": 0,
+        "serviceJobs": 0,
+        "containerJobs": 0,
+        "issues": []
+      },
+      "compatibility": "supported",
+      "issues": [],
+      "actCommand": {
+        "push": "act push --platform ubuntu-latest=catthehacker/ubuntu:act-latest --artifact-server-path /tmp/artifacts --reuse -W .github/workflows/checks.yml",
+        "pull_request": "act pull_request --platform ubuntu-latest=catthehacker/ubuntu:act-latest --artifact-server-path /tmp/artifacts --reuse -W .github/workflows/checks.yml",
+        "workflow_dispatch": "act workflow_dispatch --platform ubuntu-latest=catthehacker/ubuntu:act-latest --artifact-server-path /tmp/artifacts --reuse -W .github/workflows/checks.yml",
+        "manual": "act --platform ubuntu-latest=catthehacker/ubuntu:act-latest --artifact-server-path /tmp/artifacts --reuse -W .github/workflows/checks.yml"
+      }
+    },
+    {
+      "name": "CI/CD Validation Pipeline",
+      "file": "ci-cd-validation.yml",
+      "triggers": {
+        "supported": [
+          "push",
+          "pull_request",
+          "workflow_dispatch"
+        ],
+        "unsupported": [],
+        "issues": []
+      },
+      "jobs": {
+        "totalJobs": 9,
+        "matrixJobs": 1,
+        "serviceJobs": 0,
+        "containerJobs": 0,
+        "issues": [
+          {
+            "type": "matrix",
+            "job": "test-core",
+            "severity": "low",
+            "message": "Matrix builds may have limited parallelism in act"
+          }
+        ]
+      },
+      "compatibility": "supported",
+      "issues": [],
+      "actCommand": {
+        "push": "act push --platform ubuntu-latest=catthehacker/ubuntu:act-latest --artifact-server-path /tmp/artifacts --reuse --matrix -W .github/workflows/ci-cd-validation.yml",
+        "pull_request": "act pull_request --platform ubuntu-latest=catthehacker/ubuntu:act-latest --artifact-server-path /tmp/artifacts --reuse --matrix -W .github/workflows/ci-cd-validation.yml",
+        "workflow_dispatch": "act workflow_dispatch --platform ubuntu-latest=catthehacker/ubuntu:act-latest --artifact-server-path /tmp/artifacts --reuse --matrix -W .github/workflows/ci-cd-validation.yml",
+        "manual": "act --platform ubuntu-latest=catthehacker/ubuntu:act-latest --artifact-server-path /tmp/artifacts --reuse --matrix -W .github/workflows/ci-cd-validation.yml"
+      }
+    },
+    {
+      "name": "Main CI Pipeline",
+      "file": "ci-main.yml",
+      "triggers": {
+        "supported": [
+          "push",
+          "pull_request",
+          "workflow_dispatch"
+        ],
+        "unsupported": [],
+        "issues": []
+      },
+      "jobs": {
+        "totalJobs": 8,
+        "matrixJobs": 2,
+        "serviceJobs": 0,
+        "containerJobs": 0,
+        "issues": [
+          {
+            "type": "matrix",
+            "job": "test-matrix",
+            "severity": "low",
+            "message": "Matrix builds may have limited parallelism in act"
+          },
+          {
+            "type": "matrix",
+            "job": "build-validation",
+            "severity": "low",
+            "message": "Matrix builds may have limited parallelism in act"
+          }
+        ]
+      },
+      "compatibility": "supported",
+      "issues": [],
+      "actCommand": {
+        "push": "act push --platform ubuntu-latest=catthehacker/ubuntu:act-latest --artifact-server-path /tmp/artifacts --reuse --matrix --matrix -W .github/workflows/ci-main.yml",
+        "pull_request": "act pull_request --platform ubuntu-latest=catthehacker/ubuntu:act-latest --artifact-server-path /tmp/artifacts --reuse --matrix --matrix -W .github/workflows/ci-main.yml",
+        "workflow_dispatch": "act workflow_dispatch --platform ubuntu-latest=catthehacker/ubuntu:act-latest --artifact-server-path /tmp/artifacts --reuse --matrix --matrix -W .github/workflows/ci-main.yml",
+        "manual": "act --platform ubuntu-latest=catthehacker/ubuntu:act-latest --artifact-server-path /tmp/artifacts --reuse --matrix --matrix -W .github/workflows/ci-main.yml"
+      }
+    },
+    {
+      "name": "CI/CD Pipeline",
+      "file": "ci.yml",
+      "triggers": {
+        "supported": [
+          "push",
+          "pull_request"
+        ],
+        "unsupported": [
+          "release"
+        ],
+        "issues": [
+          {
+            "type": "trigger",
+            "trigger": "release",
+            "severity": "medium",
+            "message": "Release events require manual simulation"
+          }
+        ]
+      },
+      "jobs": {
+        "totalJobs": 7,
+        "matrixJobs": 3,
+        "serviceJobs": 0,
+        "containerJobs": 0,
+        "issues": [
+          {
+            "type": "matrix",
+            "job": "build-and-test",
+            "severity": "low",
+            "message": "Matrix builds may have limited parallelism in act"
+          },
+          {
+            "type": "action",
+            "job": "publish",
+            "step": 5,
+            "severity": "high",
+            "message": "github-script action has limited GitHub API access in act"
+          },
+          {
+            "type": "matrix",
+            "job": "cleanroom-test",
+            "severity": "low",
+            "message": "Matrix builds may have limited parallelism in act"
+          },
+          {
+            "type": "matrix",
+            "job": "integration-test",
+            "severity": "low",
+            "message": "Matrix builds may have limited parallelism in act"
+          }
+        ]
+      },
+      "compatibility": "supported",
+      "issues": [],
+      "actCommand": {
+        "push": "act push --platform ubuntu-latest=catthehacker/ubuntu:act-latest --artifact-server-path /tmp/artifacts --reuse --matrix --matrix --matrix -W .github/workflows/ci.yml",
+        "pull_request": "act pull_request --platform ubuntu-latest=catthehacker/ubuntu:act-latest --artifact-server-path /tmp/artifacts --reuse --matrix --matrix --matrix -W .github/workflows/ci.yml",
+        "workflow_dispatch": "act workflow_dispatch --platform ubuntu-latest=catthehacker/ubuntu:act-latest --artifact-server-path /tmp/artifacts --reuse --matrix --matrix --matrix -W .github/workflows/ci.yml",
+        "manual": "act --platform ubuntu-latest=catthehacker/ubuntu:act-latest --artifact-server-path /tmp/artifacts --reuse --matrix --matrix --matrix -W .github/workflows/ci.yml"
+      }
+    },
+    {
+      "name": "🔍 Code Quality Validation",
+      "file": "code-quality.yml",
+      "triggers": {
+        "supported": [
+          "push",
+          "pull_request",
+          "workflow_dispatch"
+        ],
+        "unsupported": [],
+        "issues": []
+      },
+      "jobs": {
+        "totalJobs": 7,
+        "matrixJobs": 0,
+        "serviceJobs": 0,
+        "containerJobs": 0,
+        "issues": []
+      },
+      "compatibility": "supported",
+      "issues": [],
+      "actCommand": {
+        "push": "act push --platform ubuntu-latest=catthehacker/ubuntu:act-latest --artifact-server-path /tmp/artifacts --reuse -W .github/workflows/code-quality.yml",
+        "pull_request": "act pull_request --platform ubuntu-latest=catthehacker/ubuntu:act-latest --artifact-server-path /tmp/artifacts --reuse -W .github/workflows/code-quality.yml",
+        "workflow_dispatch": "act workflow_dispatch --platform ubuntu-latest=catthehacker/ubuntu:act-latest --artifact-server-path /tmp/artifacts --reuse -W .github/workflows/code-quality.yml",
+        "manual": "act --platform ubuntu-latest=catthehacker/ubuntu:act-latest --artifact-server-path /tmp/artifacts --reuse -W .github/workflows/code-quality.yml"
+      }
+    },
+    {
+      "name": "🧪 Comprehensive Testing Suite",
+      "file": "comprehensive-testing.yml",
+      "triggers": {
+        "supported": [
+          "push",
+          "pull_request",
+          "workflow_dispatch"
+        ],
+        "unsupported": [
+          "schedule"
+        ],
+        "issues": [
+          {
+            "type": "trigger",
+            "trigger": "schedule",
+            "severity": "medium",
+            "message": "Cron jobs not supported in act"
+          }
+        ]
+      },
+      "jobs": {
+        "totalJobs": 7,
+        "matrixJobs": 1,
+        "serviceJobs": 0,
+        "containerJobs": 0,
+        "issues": [
+          {
+            "type": "matrix",
+            "job": "test-matrix",
+            "severity": "low",
+            "message": "Matrix builds may have limited parallelism in act"
+          },
+          {
+            "type": "action",
+            "job": "test-matrix",
+            "step": 12,
+            "severity": "medium",
+            "message": "External service integrations require API keys"
+          },
+          {
+            "type": "action",
+            "job": "report-results",
+            "step": 5,
+            "severity": "high",
+            "message": "github-script action has limited GitHub API access in act"
+          }
+        ]
+      },
+      "compatibility": "supported",
+      "issues": [],
+      "actCommand": {
+        "push": "act push --platform ubuntu-latest=catthehacker/ubuntu:act-latest --artifact-server-path /tmp/artifacts --reuse --matrix -W .github/workflows/comprehensive-testing.yml",
+        "pull_request": "act pull_request --platform ubuntu-latest=catthehacker/ubuntu:act-latest --artifact-server-path /tmp/artifacts --reuse --matrix -W .github/workflows/comprehensive-testing.yml",
+        "workflow_dispatch": "act workflow_dispatch --platform ubuntu-latest=catthehacker/ubuntu:act-latest --artifact-server-path /tmp/artifacts --reuse --matrix -W .github/workflows/comprehensive-testing.yml",
+        "manual": "act --platform ubuntu-latest=catthehacker/ubuntu:act-latest --artifact-server-path /tmp/artifacts --reuse --matrix -W .github/workflows/comprehensive-testing.yml"
+      }
+    },
+    {
+      "name": "🚀 Core CI/CD Pipeline - Fortune 5 Quality",
+      "file": "core-cicd.yml",
+      "triggers": {
+        "supported": [
+          "push",
+          "pull_request",
+          "workflow_dispatch"
+        ],
+        "unsupported": [],
+        "issues": []
+      },
+      "jobs": {
+        "totalJobs": 5,
+        "matrixJobs": 1,
+        "serviceJobs": 0,
+        "containerJobs": 0,
+        "issues": [
+          {
+            "type": "matrix",
+            "job": "enterprise-testing",
+            "severity": "low",
+            "message": "Matrix builds may have limited parallelism in act"
+          },
+          {
+            "type": "action",
+            "job": "enterprise-testing",
+            "step": 5,
+            "severity": "medium",
+            "message": "External service integrations require API keys"
+          }
+        ]
+      },
+      "compatibility": "supported",
+      "issues": [],
+      "actCommand": {
+        "push": "act push --platform ubuntu-latest=catthehacker/ubuntu:act-latest --artifact-server-path /tmp/artifacts --reuse --matrix -W .github/workflows/core-cicd.yml",
+        "pull_request": "act pull_request --platform ubuntu-latest=catthehacker/ubuntu:act-latest --artifact-server-path /tmp/artifacts --reuse --matrix -W .github/workflows/core-cicd.yml",
+        "workflow_dispatch": "act workflow_dispatch --platform ubuntu-latest=catthehacker/ubuntu:act-latest --artifact-server-path /tmp/artifacts --reuse --matrix -W .github/workflows/core-cicd.yml",
+        "manual": "act --platform ubuntu-latest=catthehacker/ubuntu:act-latest --artifact-server-path /tmp/artifacts --reuse --matrix -W .github/workflows/core-cicd.yml"
+      }
+    },
+    {
+      "name": "Cross-Platform Compatibility CI",
+      "file": "cross-platform-ci.yml",
+      "triggers": {
+        "supported": [
+          "push",
+          "pull_request"
+        ],
+        "unsupported": [
+          "schedule"
+        ],
+        "issues": [
+          {
+            "type": "trigger",
+            "trigger": "schedule",
+            "severity": "medium",
+            "message": "Cron jobs not supported in act"
+          }
+        ]
+      },
+      "jobs": {
+        "totalJobs": 2,
+        "matrixJobs": 1,
+        "serviceJobs": 0,
+        "containerJobs": 0,
+        "issues": [
+          {
+            "type": "matrix",
+            "job": "cross-platform-test",
+            "severity": "low",
+            "message": "Matrix builds may have limited parallelism in act"
+          }
+        ]
+      },
+      "compatibility": "supported",
+      "issues": [],
+      "actCommand": {
+        "push": "act push --platform ubuntu-latest=catthehacker/ubuntu:act-latest --artifact-server-path /tmp/artifacts --reuse --matrix -W .github/workflows/cross-platform-ci.yml",
+        "pull_request": "act pull_request --platform ubuntu-latest=catthehacker/ubuntu:act-latest --artifact-server-path /tmp/artifacts --reuse --matrix -W .github/workflows/cross-platform-ci.yml",
+        "workflow_dispatch": "act workflow_dispatch --platform ubuntu-latest=catthehacker/ubuntu:act-latest --artifact-server-path /tmp/artifacts --reuse --matrix -W .github/workflows/cross-platform-ci.yml",
+        "manual": "act --platform ubuntu-latest=catthehacker/ubuntu:act-latest --artifact-server-path /tmp/artifacts --reuse --matrix -W .github/workflows/cross-platform-ci.yml"
+      }
+    },
+    {
+      "name": "Deploy mdbook to GitHub Pages",
+      "file": "deploy-book.yml",
+      "triggers": {
+        "supported": [
+          "push",
+          "workflow_dispatch"
+        ],
+        "unsupported": [],
+        "issues": []
+      },
+      "jobs": {
+        "totalJobs": 3,
+        "matrixJobs": 0,
+        "serviceJobs": 0,
+        "containerJobs": 0,
+        "issues": [
+          {
+            "type": "action",
+            "job": "build",
+            "step": 4,
+            "severity": "high",
+            "message": "Deployment actions not supported in act"
+          },
+          {
+            "type": "action",
+            "job": "build",
+            "step": 8,
+            "severity": "high",
+            "message": "Deployment actions not supported in act"
+          },
+          {
+            "type": "action",
+            "job": "deploy",
+            "step": 0,
+            "severity": "high",
+            "message": "Deployment actions not supported in act"
+          }
+        ]
+      },
+      "compatibility": "supported",
+      "issues": [],
+      "actCommand": {
+        "push": "act push --platform ubuntu-latest=catthehacker/ubuntu:act-latest --artifact-server-path /tmp/artifacts --reuse -W .github/workflows/deploy-book.yml",
+        "pull_request": "act pull_request --platform ubuntu-latest=catthehacker/ubuntu:act-latest --artifact-server-path /tmp/artifacts --reuse -W .github/workflows/deploy-book.yml",
+        "workflow_dispatch": "act workflow_dispatch --platform ubuntu-latest=catthehacker/ubuntu:act-latest --artifact-server-path /tmp/artifacts --reuse -W .github/workflows/deploy-book.yml",
+        "manual": "act --platform ubuntu-latest=catthehacker/ubuntu:act-latest --artifact-server-path /tmp/artifacts --reuse -W .github/workflows/deploy-book.yml"
+      }
+    },
+    {
+      "name": "Production Deployment Pipeline",
+      "file": "deployment-production.yml",
+      "triggers": {
+        "supported": [
+          "push",
+          "workflow_dispatch"
+        ],
+        "unsupported": [],
+        "issues": []
+      },
+      "jobs": {
+        "totalJobs": 7,
+        "matrixJobs": 1,
+        "serviceJobs": 0,
+        "containerJobs": 0,
+        "issues": [
+          {
+            "type": "matrix",
+            "job": "build-docker",
+            "severity": "low",
+            "message": "Matrix builds may have limited parallelism in act"
+          }
+        ]
+      },
+      "compatibility": "supported",
+      "issues": [],
+      "actCommand": {
+        "push": "act push --platform ubuntu-latest=catthehacker/ubuntu:act-latest --artifact-server-path /tmp/artifacts --reuse --matrix -W .github/workflows/deployment-production.yml",
+        "pull_request": "act pull_request --platform ubuntu-latest=catthehacker/ubuntu:act-latest --artifact-server-path /tmp/artifacts --reuse --matrix -W .github/workflows/deployment-production.yml",
+        "workflow_dispatch": "act workflow_dispatch --platform ubuntu-latest=catthehacker/ubuntu:act-latest --artifact-server-path /tmp/artifacts --reuse --matrix -W .github/workflows/deployment-production.yml",
+        "manual": "act --platform ubuntu-latest=catthehacker/ubuntu:act-latest --artifact-server-path /tmp/artifacts --reuse --matrix -W .github/workflows/deployment-production.yml"
+      }
+    },
+    {
+      "name": "Bulletproof Deployment Validation",
+      "file": "deployment-validation.yml",
+      "triggers": {
+        "supported": [
+          "push",
+          "pull_request",
+          "workflow_dispatch"
+        ],
+        "unsupported": [],
+        "issues": []
+      },
+      "jobs": {
+        "totalJobs": 8,
+        "matrixJobs": 0,
+        "serviceJobs": 1,
+        "containerJobs": 0,
+        "issues": [
+          {
+            "type": "services",
+            "job": "staging-environment-validation",
+            "severity": "medium",
+            "message": "Service containers require Docker network configuration"
+          }
+        ]
+      },
+      "compatibility": "supported",
+      "issues": [],
+      "actCommand": {
+        "push": "act push --platform ubuntu-latest=catthehacker/ubuntu:act-latest --artifact-server-path /tmp/artifacts --reuse --bind -W .github/workflows/deployment-validation.yml",
+        "pull_request": "act pull_request --platform ubuntu-latest=catthehacker/ubuntu:act-latest --artifact-server-path /tmp/artifacts --reuse --bind -W .github/workflows/deployment-validation.yml",
+        "workflow_dispatch": "act workflow_dispatch --platform ubuntu-latest=catthehacker/ubuntu:act-latest --artifact-server-path /tmp/artifacts --reuse --bind -W .github/workflows/deployment-validation.yml",
+        "manual": "act --platform ubuntu-latest=catthehacker/ubuntu:act-latest --artifact-server-path /tmp/artifacts --reuse --bind -W .github/workflows/deployment-validation.yml"
+      }
+    },
+    {
+      "name": "Deployment and Distribution",
+      "file": "deployment.yml",
+      "triggers": {
+        "supported": [
+          "push",
+          "pull_request",
+          "workflow_dispatch"
+        ],
+        "unsupported": [],
+        "issues": []
+      },
+      "jobs": {
+        "totalJobs": 6,
+        "matrixJobs": 1,
+        "serviceJobs": 0,
+        "containerJobs": 1,
+        "issues": [
+          {
+            "type": "matrix",
+            "job": "test",
+            "severity": "low",
+            "message": "Matrix builds may have limited parallelism in act"
+          },
+          {
+            "type": "container",
+            "job": "cleanroom-test",
+            "severity": "low",
+            "message": "Container jobs require additional act configuration"
+          }
+        ]
+      },
+      "compatibility": "supported",
+      "issues": [],
+      "actCommand": {
+        "push": "act push --platform ubuntu-latest=catthehacker/ubuntu:act-latest --artifact-server-path /tmp/artifacts --reuse --matrix -W .github/workflows/deployment.yml",
+        "pull_request": "act pull_request --platform ubuntu-latest=catthehacker/ubuntu:act-latest --artifact-server-path /tmp/artifacts --reuse --matrix -W .github/workflows/deployment.yml",
+        "workflow_dispatch": "act workflow_dispatch --platform ubuntu-latest=catthehacker/ubuntu:act-latest --artifact-server-path /tmp/artifacts --reuse --matrix -W .github/workflows/deployment.yml",
+        "manual": "act --platform ubuntu-latest=catthehacker/ubuntu:act-latest --artifact-server-path /tmp/artifacts --reuse --matrix -W .github/workflows/deployment.yml"
+      }
+    },
+    {
+      "name": "Docker Build and Deployment",
+      "file": "docker-deployment.yml",
+      "triggers": {
+        "supported": [
+          "push",
+          "pull_request",
+          "workflow_dispatch"
+        ],
+        "unsupported": [],
+        "issues": []
+      },
+      "jobs": {
+        "totalJobs": 8,
+        "matrixJobs": 4,
+        "serviceJobs": 0,
+        "containerJobs": 0,
+        "issues": [
+          {
+            "type": "matrix",
+            "job": "build-matrix",
+            "severity": "low",
+            "message": "Matrix builds may have limited parallelism in act"
+          },
+          {
+            "type": "matrix",
+            "job": "build-manifests",
+            "severity": "low",
+            "message": "Matrix builds may have limited parallelism in act"
+          },
+          {
+            "type": "matrix",
+            "job": "test-docker-compose",
+            "severity": "low",
+            "message": "Matrix builds may have limited parallelism in act"
+          },
+          {
+            "type": "matrix",
+            "job": "deploy-images",
+            "severity": "low",
+            "message": "Matrix builds may have limited parallelism in act"
+          }
+        ]
+      },
+      "compatibility": "supported",
+      "issues": [],
+      "actCommand": {
+        "push": "act push --platform ubuntu-latest=catthehacker/ubuntu:act-latest --artifact-server-path /tmp/artifacts --reuse --matrix --matrix --matrix --matrix -W .github/workflows/docker-deployment.yml",
+        "pull_request": "act pull_request --platform ubuntu-latest=catthehacker/ubuntu:act-latest --artifact-server-path /tmp/artifacts --reuse --matrix --matrix --matrix --matrix -W .github/workflows/docker-deployment.yml",
+        "workflow_dispatch": "act workflow_dispatch --platform ubuntu-latest=catthehacker/ubuntu:act-latest --artifact-server-path /tmp/artifacts --reuse --matrix --matrix --matrix --matrix -W .github/workflows/docker-deployment.yml",
+        "manual": "act --platform ubuntu-latest=catthehacker/ubuntu:act-latest --artifact-server-path /tmp/artifacts --reuse --matrix --matrix --matrix --matrix -W .github/workflows/docker-deployment.yml"
+      }
+    },
+    {
+      "name": "Unified Docker Workflow",
+      "file": "docker-unified.yml",
+      "triggers": {
+        "supported": [
+          "push",
+          "pull_request",
+          "workflow_dispatch"
+        ],
+        "unsupported": [
+          "schedule"
+        ],
+        "issues": [
+          {
+            "type": "trigger",
+            "trigger": "schedule",
+            "severity": "medium",
+            "message": "Cron jobs not supported in act"
+          }
+        ]
+      },
+      "jobs": {
+        "totalJobs": 9,
+        "matrixJobs": 5,
+        "serviceJobs": 0,
+        "containerJobs": 0,
+        "issues": [
+          {
+            "type": "matrix",
+            "job": "build-images",
+            "severity": "low",
+            "message": "Matrix builds may have limited parallelism in act"
+          },
+          {
+            "type": "matrix",
+            "job": "security-scanning",
+            "severity": "low",
+            "message": "Matrix builds may have limited parallelism in act"
+          },
+          {
+            "type": "matrix",
+            "job": "compose-testing",
+            "severity": "low",
+            "message": "Matrix builds may have limited parallelism in act"
+          },
+          {
+            "type": "matrix",
+            "job": "performance-testing",
+            "severity": "low",
+            "message": "Matrix builds may have limited parallelism in act"
+          },
+          {
+            "type": "matrix",
+            "job": "deploy",
+            "severity": "low",
+            "message": "Matrix builds may have limited parallelism in act"
+          },
+          {
+            "type": "action",
+            "job": "generate-report",
+            "step": 5,
+            "severity": "high",
+            "message": "github-script action has limited GitHub API access in act"
+          },
+          {
+            "type": "action",
+            "job": "cleanup",
+            "step": 2,
+            "severity": "high",
+            "message": "github-script action has limited GitHub API access in act"
+          }
+        ]
+      },
+      "compatibility": "supported",
+      "issues": [],
+      "actCommand": {
+        "push": "act push --platform ubuntu-latest=catthehacker/ubuntu:act-latest --artifact-server-path /tmp/artifacts --reuse --matrix --matrix --matrix --matrix --matrix -W .github/workflows/docker-unified.yml",
+        "pull_request": "act pull_request --platform ubuntu-latest=catthehacker/ubuntu:act-latest --artifact-server-path /tmp/artifacts --reuse --matrix --matrix --matrix --matrix --matrix -W .github/workflows/docker-unified.yml",
+        "workflow_dispatch": "act workflow_dispatch --platform ubuntu-latest=catthehacker/ubuntu:act-latest --artifact-server-path /tmp/artifacts --reuse --matrix --matrix --matrix --matrix --matrix -W .github/workflows/docker-unified.yml",
+        "manual": "act --platform ubuntu-latest=catthehacker/ubuntu:act-latest --artifact-server-path /tmp/artifacts --reuse --matrix --matrix --matrix --matrix --matrix -W .github/workflows/docker-unified.yml"
+      }
+    },
+    {
+      "name": "Docker-based Testing & Validation",
+      "file": "docker-validation.yml",
+      "triggers": {
+        "supported": [
+          "push",
+          "pull_request",
+          "workflow_dispatch"
+        ],
+        "unsupported": [
+          "schedule"
+        ],
+        "issues": [
+          {
+            "type": "trigger",
+            "trigger": "schedule",
+            "severity": "medium",
+            "message": "Cron jobs not supported in act"
+          }
+        ]
+      },
+      "jobs": {
+        "totalJobs": 8,
+        "matrixJobs": 4,
+        "serviceJobs": 1,
+        "containerJobs": 0,
+        "issues": [
+          {
+            "type": "matrix",
+            "job": "multi-arch-build",
+            "severity": "low",
+            "message": "Matrix builds may have limited parallelism in act"
+          },
+          {
+            "type": "matrix",
+            "job": "security-validation",
+            "severity": "low",
+            "message": "Matrix builds may have limited parallelism in act"
+          },
+          {
+            "type": "matrix",
+            "job": "performance-validation",
+            "severity": "low",
+            "message": "Matrix builds may have limited parallelism in act"
+          },
+          {
+            "type": "services",
+            "job": "production-simulation",
+            "severity": "medium",
+            "message": "Service containers require Docker network configuration"
+          },
+          {
+            "type": "matrix",
+            "job": "docker-test-matrix",
+            "severity": "low",
+            "message": "Matrix builds may have limited parallelism in act"
+          },
+          {
+            "type": "action",
+            "job": "generate-validation-report",
+            "step": 7,
+            "severity": "high",
+            "message": "github-script action has limited GitHub API access in act"
+          },
+          {
+            "type": "action",
+            "job": "cleanup-and-notify",
+            "step": 1,
+            "severity": "high",
+            "message": "github-script action has limited GitHub API access in act"
+          }
+        ]
+      },
+      "compatibility": "supported",
+      "issues": [],
+      "actCommand": {
+        "push": "act push --platform ubuntu-latest=catthehacker/ubuntu:act-latest --artifact-server-path /tmp/artifacts --reuse --matrix --matrix --matrix --bind --matrix -W .github/workflows/docker-validation.yml",
+        "pull_request": "act pull_request --platform ubuntu-latest=catthehacker/ubuntu:act-latest --artifact-server-path /tmp/artifacts --reuse --matrix --matrix --matrix --bind --matrix -W .github/workflows/docker-validation.yml",
+        "workflow_dispatch": "act workflow_dispatch --platform ubuntu-latest=catthehacker/ubuntu:act-latest --artifact-server-path /tmp/artifacts --reuse --matrix --matrix --matrix --bind --matrix -W .github/workflows/docker-validation.yml",
+        "manual": "act --platform ubuntu-latest=catthehacker/ubuntu:act-latest --artifact-server-path /tmp/artifacts --reuse --matrix --matrix --matrix --bind --matrix -W .github/workflows/docker-validation.yml"
+      }
+    },
+    {
+      "name": "🛡️ Enterprise Security & Compliance - Fortune 5",
+      "file": "enterprise-security.yml",
+      "triggers": {
+        "supported": [
+          "push",
+          "pull_request",
+          "workflow_dispatch"
+        ],
+        "unsupported": [
+          "schedule"
+        ],
+        "issues": [
+          {
+            "type": "trigger",
+            "trigger": "schedule",
+            "severity": "medium",
+            "message": "Cron jobs not supported in act"
+          }
+        ]
+      },
+      "jobs": {
+        "totalJobs": 5,
+        "matrixJobs": 0,
+        "serviceJobs": 0,
+        "containerJobs": 0,
+        "issues": [
+          {
+            "type": "action",
+            "job": "security-reporting",
+            "step": 3,
+            "severity": "high",
+            "message": "github-script action has limited GitHub API access in act"
+          }
+        ]
+      },
+      "compatibility": "supported",
+      "issues": [],
+      "actCommand": {
+        "push": "act push --platform ubuntu-latest=catthehacker/ubuntu:act-latest --artifact-server-path /tmp/artifacts --reuse -W .github/workflows/enterprise-security.yml",
+        "pull_request": "act pull_request --platform ubuntu-latest=catthehacker/ubuntu:act-latest --artifact-server-path /tmp/artifacts --reuse -W .github/workflows/enterprise-security.yml",
+        "workflow_dispatch": "act workflow_dispatch --platform ubuntu-latest=catthehacker/ubuntu:act-latest --artifact-server-path /tmp/artifacts --reuse -W .github/workflows/enterprise-security.yml",
+        "manual": "act --platform ubuntu-latest=catthehacker/ubuntu:act-latest --artifact-server-path /tmp/artifacts --reuse -W .github/workflows/enterprise-security.yml"
+      }
+    },
+    {
+      "name": "Environment-Specific Deployments",
+      "file": "environment-deployment.yml",
+      "triggers": {
+        "supported": [
+          "push",
+          "workflow_dispatch"
+        ],
+        "unsupported": [],
+        "issues": []
+      },
+      "jobs": {
+        "totalJobs": 9,
+        "matrixJobs": 0,
+        "serviceJobs": 0,
+        "containerJobs": 0,
+        "issues": []
+      },
+      "compatibility": "supported",
+      "issues": [],
+      "actCommand": {
+        "push": "act push --platform ubuntu-latest=catthehacker/ubuntu:act-latest --artifact-server-path /tmp/artifacts --reuse -W .github/workflows/environment-deployment.yml",
+        "pull_request": "act pull_request --platform ubuntu-latest=catthehacker/ubuntu:act-latest --artifact-server-path /tmp/artifacts --reuse -W .github/workflows/environment-deployment.yml",
+        "workflow_dispatch": "act workflow_dispatch --platform ubuntu-latest=catthehacker/ubuntu:act-latest --artifact-server-path /tmp/artifacts --reuse -W .github/workflows/environment-deployment.yml",
+        "manual": "act --platform ubuntu-latest=catthehacker/ubuntu:act-latest --artifact-server-path /tmp/artifacts --reuse -W .github/workflows/environment-deployment.yml"
+      }
+    },
+    {
+      "name": "Intelligent Issue Automation - Unified System",
+      "file": "intelligent-issue-automation.yml",
+      "triggers": {
+        "supported": [
+          "workflow_dispatch"
+        ],
+        "unsupported": [
+          "schedule"
+        ],
+        "issues": [
+          {
+            "type": "trigger",
+            "trigger": "workflow_run",
+            "severity": "low",
+            "message": "Unknown trigger compatibility: workflow_run"
+          },
+          {
+            "type": "trigger",
+            "trigger": "issues",
+            "severity": "low",
+            "message": "Unknown trigger compatibility: issues"
+          },
+          {
+            "type": "trigger",
+            "trigger": "schedule",
+            "severity": "medium",
+            "message": "Cron jobs not supported in act"
+          }
+        ]
+      },
+      "jobs": {
+        "totalJobs": 1,
+        "matrixJobs": 0,
+        "serviceJobs": 0,
+        "containerJobs": 0,
+        "issues": []
+      },
+      "compatibility": "supported",
+      "issues": [],
+      "actCommand": {
+        "push": "act push --platform ubuntu-latest=catthehacker/ubuntu:act-latest --artifact-server-path /tmp/artifacts --reuse -W .github/workflows/intelligent-issue-automation.yml",
+        "pull_request": "act pull_request --platform ubuntu-latest=catthehacker/ubuntu:act-latest --artifact-server-path /tmp/artifacts --reuse -W .github/workflows/intelligent-issue-automation.yml",
+        "workflow_dispatch": "act workflow_dispatch --platform ubuntu-latest=catthehacker/ubuntu:act-latest --artifact-server-path /tmp/artifacts --reuse -W .github/workflows/intelligent-issue-automation.yml",
+        "manual": "act --platform ubuntu-latest=catthehacker/ubuntu:act-latest --artifact-server-path /tmp/artifacts --reuse -W .github/workflows/intelligent-issue-automation.yml"
+      }
+    },
+    {
+      "name": "LaTeX Security & Performance CI",
+      "file": "latex-ci.yml",
+      "triggers": {
+        "supported": [
+          "push",
+          "pull_request"
+        ],
+        "unsupported": [],
+        "issues": []
+      },
+      "jobs": {
+        "totalJobs": 5,
+        "matrixJobs": 1,
+        "serviceJobs": 0,
+        "containerJobs": 0,
+        "issues": [
+          {
+            "type": "matrix",
+            "job": "latex-security",
+            "severity": "low",
+            "message": "Matrix builds may have limited parallelism in act"
+          }
+        ]
+      },
+      "compatibility": "supported",
+      "issues": [],
+      "actCommand": {
+        "push": "act push --platform ubuntu-latest=catthehacker/ubuntu:act-latest --artifact-server-path /tmp/artifacts --reuse --matrix -W .github/workflows/latex-ci.yml",
+        "pull_request": "act pull_request --platform ubuntu-latest=catthehacker/ubuntu:act-latest --artifact-server-path /tmp/artifacts --reuse --matrix -W .github/workflows/latex-ci.yml",
+        "workflow_dispatch": "act workflow_dispatch --platform ubuntu-latest=catthehacker/ubuntu:act-latest --artifact-server-path /tmp/artifacts --reuse --matrix -W .github/workflows/latex-ci.yml",
+        "manual": "act --platform ubuntu-latest=catthehacker/ubuntu:act-latest --artifact-server-path /tmp/artifacts --reuse --matrix -W .github/workflows/latex-ci.yml"
+      }
+    },
+    {
+      "name": "LaTeX Compilation Validation",
+      "file": "latex-validation.yml",
+      "triggers": {
+        "supported": [
+          "push",
+          "pull_request"
+        ],
+        "unsupported": [],
+        "issues": []
+      },
+      "jobs": {
+        "totalJobs": 7,
+        "matrixJobs": 1,
+        "serviceJobs": 0,
+        "containerJobs": 0,
+        "issues": [
+          {
+            "type": "matrix",
+            "job": "template-compilation",
+            "severity": "low",
+            "message": "Matrix builds may have limited parallelism in act"
+          }
+        ]
+      },
+      "compatibility": "supported",
+      "issues": [],
+      "actCommand": {
+        "push": "act push --platform ubuntu-latest=catthehacker/ubuntu:act-latest --artifact-server-path /tmp/artifacts --reuse --matrix -W .github/workflows/latex-validation.yml",
+        "pull_request": "act pull_request --platform ubuntu-latest=catthehacker/ubuntu:act-latest --artifact-server-path /tmp/artifacts --reuse --matrix -W .github/workflows/latex-validation.yml",
+        "workflow_dispatch": "act workflow_dispatch --platform ubuntu-latest=catthehacker/ubuntu:act-latest --artifact-server-path /tmp/artifacts --reuse --matrix -W .github/workflows/latex-validation.yml",
+        "manual": "act --platform ubuntu-latest=catthehacker/ubuntu:act-latest --artifact-server-path /tmp/artifacts --reuse --matrix -W .github/workflows/latex-validation.yml"
+      }
+    },
+    {
+      "name": "Node.js CI",
+      "file": "nodejs-ci.yml",
+      "triggers": {
+        "supported": [
+          "push",
+          "pull_request"
+        ],
+        "unsupported": [],
+        "issues": []
+      },
+      "jobs": {
+        "totalJobs": 1,
+        "matrixJobs": 1,
+        "serviceJobs": 0,
+        "containerJobs": 0,
+        "issues": [
+          {
+            "type": "matrix",
+            "job": "test",
+            "severity": "low",
+            "message": "Matrix builds may have limited parallelism in act"
+          }
+        ]
+      },
+      "compatibility": "supported",
+      "issues": [],
+      "actCommand": {
+        "push": "act push --platform ubuntu-latest=catthehacker/ubuntu:act-latest --artifact-server-path /tmp/artifacts --reuse --matrix -W .github/workflows/nodejs-ci.yml",
+        "pull_request": "act pull_request --platform ubuntu-latest=catthehacker/ubuntu:act-latest --artifact-server-path /tmp/artifacts --reuse --matrix -W .github/workflows/nodejs-ci.yml",
+        "workflow_dispatch": "act workflow_dispatch --platform ubuntu-latest=catthehacker/ubuntu:act-latest --artifact-server-path /tmp/artifacts --reuse --matrix -W .github/workflows/nodejs-ci.yml",
+        "manual": "act --platform ubuntu-latest=catthehacker/ubuntu:act-latest --artifact-server-path /tmp/artifacts --reuse --matrix -W .github/workflows/nodejs-ci.yml"
+      }
+    },
+    {
+      "name": "NPM Publishing Workflow",
+      "file": "npm-publish.yml",
+      "triggers": {
+        "supported": [
+          "push",
+          "workflow_dispatch"
+        ],
+        "unsupported": [],
+        "issues": []
+      },
+      "jobs": {
+        "totalJobs": 5,
+        "matrixJobs": 1,
+        "serviceJobs": 0,
+        "containerJobs": 1,
+        "issues": [
+          {
+            "type": "matrix",
+            "job": "test-installation",
+            "severity": "low",
+            "message": "Matrix builds may have limited parallelism in act"
+          },
+          {
+            "type": "container",
+            "job": "test-installation",
+            "severity": "low",
+            "message": "Container jobs require additional act configuration"
+          }
+        ]
+      },
+      "compatibility": "supported",
+      "issues": [],
+      "actCommand": {
+        "push": "act push --platform ubuntu-latest=catthehacker/ubuntu:act-latest --artifact-server-path /tmp/artifacts --reuse --matrix -W .github/workflows/npm-publish.yml",
+        "pull_request": "act pull_request --platform ubuntu-latest=catthehacker/ubuntu:act-latest --artifact-server-path /tmp/artifacts --reuse --matrix -W .github/workflows/npm-publish.yml",
+        "workflow_dispatch": "act workflow_dispatch --platform ubuntu-latest=catthehacker/ubuntu:act-latest --artifact-server-path /tmp/artifacts --reuse --matrix -W .github/workflows/npm-publish.yml",
+        "manual": "act --platform ubuntu-latest=catthehacker/ubuntu:act-latest --artifact-server-path /tmp/artifacts --reuse --matrix -W .github/workflows/npm-publish.yml"
+      }
+    },
+    {
+      "name": "🚀 Optimized CI/CD Pipeline",
+      "file": "optimized-ci.yml",
+      "triggers": {
+        "supported": [
+          "push",
+          "pull_request"
+        ],
+        "unsupported": [
+          "release"
+        ],
+        "issues": [
+          {
+            "type": "trigger",
+            "trigger": "release",
+            "severity": "medium",
+            "message": "Release events require manual simulation"
+          }
+        ]
+      },
+      "jobs": {
+        "totalJobs": 6,
+        "matrixJobs": 1,
+        "serviceJobs": 0,
+        "containerJobs": 0,
+        "issues": [
+          {
+            "type": "matrix",
+            "job": "test",
+            "severity": "low",
+            "message": "Matrix builds may have limited parallelism in act"
+          },
+          {
+            "type": "action",
+            "job": "test",
+            "step": 4,
+            "severity": "medium",
+            "message": "External service integrations require API keys"
+          },
+          {
+            "type": "action",
+            "job": "cleanup",
+            "step": 0,
+            "severity": "high",
+            "message": "github-script action has limited GitHub API access in act"
+          }
+        ]
+      },
+      "compatibility": "supported",
+      "issues": [],
+      "actCommand": {
+        "push": "act push --platform ubuntu-latest=catthehacker/ubuntu:act-latest --artifact-server-path /tmp/artifacts --reuse --matrix -W .github/workflows/optimized-ci.yml",
+        "pull_request": "act pull_request --platform ubuntu-latest=catthehacker/ubuntu:act-latest --artifact-server-path /tmp/artifacts --reuse --matrix -W .github/workflows/optimized-ci.yml",
+        "workflow_dispatch": "act workflow_dispatch --platform ubuntu-latest=catthehacker/ubuntu:act-latest --artifact-server-path /tmp/artifacts --reuse --matrix -W .github/workflows/optimized-ci.yml",
+        "manual": "act --platform ubuntu-latest=catthehacker/ubuntu:act-latest --artifact-server-path /tmp/artifacts --reuse --matrix -W .github/workflows/optimized-ci.yml"
+      }
+    },
+    {
+      "name": "Configure GitHub Pages",
+      "file": "pages-config.yml",
+      "triggers": {
+        "supported": [
+          "workflow_dispatch",
+          "push"
+        ],
+        "unsupported": [],
+        "issues": []
+      },
+      "jobs": {
+        "totalJobs": 1,
+        "matrixJobs": 0,
+        "serviceJobs": 0,
+        "containerJobs": 0,
+        "issues": [
+          {
+            "type": "action",
+            "job": "configure-pages",
+            "step": 1,
+            "severity": "high",
+            "message": "Deployment actions not supported in act"
+          }
+        ]
+      },
+      "compatibility": "supported",
+      "issues": [],
+      "actCommand": {
+        "push": "act push --platform ubuntu-latest=catthehacker/ubuntu:act-latest --artifact-server-path /tmp/artifacts --reuse -W .github/workflows/pages-config.yml",
+        "pull_request": "act pull_request --platform ubuntu-latest=catthehacker/ubuntu:act-latest --artifact-server-path /tmp/artifacts --reuse -W .github/workflows/pages-config.yml",
+        "workflow_dispatch": "act workflow_dispatch --platform ubuntu-latest=catthehacker/ubuntu:act-latest --artifact-server-path /tmp/artifacts --reuse -W .github/workflows/pages-config.yml",
+        "manual": "act --platform ubuntu-latest=catthehacker/ubuntu:act-latest --artifact-server-path /tmp/artifacts --reuse -W .github/workflows/pages-config.yml"
+      }
+    },
+    {
+      "name": "Performance Benchmarks",
+      "file": "performance-benchmarks.yml",
+      "triggers": {
+        "supported": [
+          "push",
+          "pull_request",
+          "workflow_dispatch"
+        ],
+        "unsupported": [
+          "schedule"
+        ],
+        "issues": [
+          {
+            "type": "trigger",
+            "trigger": "schedule",
+            "severity": "medium",
+            "message": "Cron jobs not supported in act"
+          }
+        ]
+      },
+      "jobs": {
+        "totalJobs": 5,
+        "matrixJobs": 1,
+        "serviceJobs": 0,
+        "containerJobs": 0,
+        "issues": [
+          {
+            "type": "matrix",
+            "job": "cross-platform-performance",
+            "severity": "low",
+            "message": "Matrix builds may have limited parallelism in act"
+          }
+        ]
+      },
+      "compatibility": "supported",
+      "issues": [],
+      "actCommand": {
+        "push": "act push --platform ubuntu-latest=catthehacker/ubuntu:act-latest --artifact-server-path /tmp/artifacts --reuse --matrix -W .github/workflows/performance-benchmarks.yml",
+        "pull_request": "act pull_request --platform ubuntu-latest=catthehacker/ubuntu:act-latest --artifact-server-path /tmp/artifacts --reuse --matrix -W .github/workflows/performance-benchmarks.yml",
+        "workflow_dispatch": "act workflow_dispatch --platform ubuntu-latest=catthehacker/ubuntu:act-latest --artifact-server-path /tmp/artifacts --reuse --matrix -W .github/workflows/performance-benchmarks.yml",
+        "manual": "act --platform ubuntu-latest=catthehacker/ubuntu:act-latest --artifact-server-path /tmp/artifacts --reuse --matrix -W .github/workflows/performance-benchmarks.yml"
+      }
+    },
+    {
+      "name": "Performance Benchmarking & Monitoring",
+      "file": "performance.yml",
+      "triggers": {
+        "supported": [
+          "push",
+          "pull_request",
+          "workflow_dispatch"
+        ],
+        "unsupported": [
+          "schedule"
+        ],
+        "issues": [
+          {
+            "type": "trigger",
+            "trigger": "schedule",
+            "severity": "medium",
+            "message": "Cron jobs not supported in act"
+          }
+        ]
+      },
+      "jobs": {
+        "totalJobs": 9,
+        "matrixJobs": 2,
+        "serviceJobs": 0,
+        "containerJobs": 0,
+        "issues": [
+          {
+            "type": "matrix",
+            "job": "template-performance-benchmarks",
+            "severity": "low",
+            "message": "Matrix builds may have limited parallelism in act"
+          },
+          {
+            "type": "matrix",
+            "job": "load-testing",
+            "severity": "low",
+            "message": "Matrix builds may have limited parallelism in act"
+          },
+          {
+            "type": "action",
+            "job": "regression-detection",
+            "step": 9,
+            "severity": "high",
+            "message": "github-script action has limited GitHub API access in act"
+          },
+          {
+            "type": "action",
+            "job": "cleanup-artifacts",
+            "step": 0,
+            "severity": "high",
+            "message": "github-script action has limited GitHub API access in act"
+          }
+        ]
+      },
+      "compatibility": "supported",
+      "issues": [],
+      "actCommand": {
+        "push": "act push --platform ubuntu-latest=catthehacker/ubuntu:act-latest --artifact-server-path /tmp/artifacts --reuse --matrix --matrix -W .github/workflows/performance.yml",
+        "pull_request": "act pull_request --platform ubuntu-latest=catthehacker/ubuntu:act-latest --artifact-server-path /tmp/artifacts --reuse --matrix --matrix -W .github/workflows/performance.yml",
+        "workflow_dispatch": "act workflow_dispatch --platform ubuntu-latest=catthehacker/ubuntu:act-latest --artifact-server-path /tmp/artifacts --reuse --matrix --matrix -W .github/workflows/performance.yml",
+        "manual": "act --platform ubuntu-latest=catthehacker/ubuntu:act-latest --artifact-server-path /tmp/artifacts --reuse --matrix --matrix -W .github/workflows/performance.yml"
+      }
+    },
+    {
+      "name": "PR Validation & Automation",
+      "file": "pr-validation.yml",
+      "triggers": {
+        "supported": [
+          "pull_request"
+        ],
+        "unsupported": [],
+        "issues": [
+          {
+            "type": "trigger",
+            "trigger": "pull_request_review",
+            "severity": "low",
+            "message": "Unknown trigger compatibility: pull_request_review"
+          },
+          {
+            "type": "trigger",
+            "trigger": "issue_comment",
+            "severity": "low",
+            "message": "Unknown trigger compatibility: issue_comment"
+          }
+        ]
+      },
+      "jobs": {
+        "totalJobs": 5,
+        "matrixJobs": 0,
+        "serviceJobs": 0,
+        "containerJobs": 0,
+        "issues": [
+          {
+            "type": "action",
+            "job": "auto-label",
+            "step": 1,
+            "severity": "high",
+            "message": "github-script action has limited GitHub API access in act"
+          },
+          {
+            "type": "action",
+            "job": "auto-label",
+            "step": 2,
+            "severity": "high",
+            "message": "github-script action has limited GitHub API access in act"
+          },
+          {
+            "type": "action",
+            "job": "code-quality",
+            "step": 6,
+            "severity": "high",
+            "message": "github-script action has limited GitHub API access in act"
+          },
+          {
+            "type": "action",
+            "job": "auto-merge",
+            "step": 0,
+            "severity": "high",
+            "message": "github-script action has limited GitHub API access in act"
+          },
+          {
+            "type": "action",
+            "job": "auto-merge",
+            "step": 1,
+            "severity": "high",
+            "message": "github-script action has limited GitHub API access in act"
+          },
+          {
+            "type": "action",
+            "job": "pr-commands",
+            "step": 1,
+            "severity": "high",
+            "message": "github-script action has limited GitHub API access in act"
+          }
+        ]
+      },
+      "compatibility": "supported",
+      "issues": [],
+      "actCommand": {
+        "push": "act push --platform ubuntu-latest=catthehacker/ubuntu:act-latest --artifact-server-path /tmp/artifacts --reuse -W .github/workflows/pr-validation.yml",
+        "pull_request": "act pull_request --platform ubuntu-latest=catthehacker/ubuntu:act-latest --artifact-server-path /tmp/artifacts --reuse -W .github/workflows/pr-validation.yml",
+        "workflow_dispatch": "act workflow_dispatch --platform ubuntu-latest=catthehacker/ubuntu:act-latest --artifact-server-path /tmp/artifacts --reuse -W .github/workflows/pr-validation.yml",
+        "manual": "act --platform ubuntu-latest=catthehacker/ubuntu:act-latest --artifact-server-path /tmp/artifacts --reuse -W .github/workflows/pr-validation.yml"
+      }
+    },
+    {
+      "name": "Production Validation Pipeline",
+      "file": "production-validation.yml",
+      "triggers": {
+        "supported": [
+          "push",
+          "pull_request",
+          "workflow_dispatch"
+        ],
+        "unsupported": [
+          "schedule"
+        ],
+        "issues": [
+          {
+            "type": "trigger",
+            "trigger": "schedule",
+            "severity": "medium",
+            "message": "Cron jobs not supported in act"
+          }
+        ]
+      },
+      "jobs": {
+        "totalJobs": 10,
+        "matrixJobs": 2,
+        "serviceJobs": 1,
+        "containerJobs": 0,
+        "issues": [
+          {
+            "type": "matrix",
+            "job": "performance-benchmarks",
+            "severity": "low",
+            "message": "Matrix builds may have limited parallelism in act"
+          },
+          {
+            "type": "matrix",
+            "job": "cross-platform",
+            "severity": "low",
+            "message": "Matrix builds may have limited parallelism in act"
+          },
+          {
+            "type": "services",
+            "job": "enterprise-integration",
+            "severity": "medium",
+            "message": "Service containers require Docker network configuration"
+          }
+        ]
+      },
+      "compatibility": "supported",
+      "issues": [],
+      "actCommand": {
+        "push": "act push --platform ubuntu-latest=catthehacker/ubuntu:act-latest --artifact-server-path /tmp/artifacts --reuse --matrix --matrix --bind -W .github/workflows/production-validation.yml",
+        "pull_request": "act pull_request --platform ubuntu-latest=catthehacker/ubuntu:act-latest --artifact-server-path /tmp/artifacts --reuse --matrix --matrix --bind -W .github/workflows/production-validation.yml",
+        "workflow_dispatch": "act workflow_dispatch --platform ubuntu-latest=catthehacker/ubuntu:act-latest --artifact-server-path /tmp/artifacts --reuse --matrix --matrix --bind -W .github/workflows/production-validation.yml",
+        "manual": "act --platform ubuntu-latest=catthehacker/ubuntu:act-latest --artifact-server-path /tmp/artifacts --reuse --matrix --matrix --bind -W .github/workflows/production-validation.yml"
+      }
+    },
+    {
+      "name": "Release Automation",
+      "file": "release-automation.yml",
+      "triggers": {
+        "supported": [
+          "push",
+          "workflow_dispatch"
+        ],
+        "unsupported": [],
+        "issues": []
+      },
+      "jobs": {
+        "totalJobs": 5,
+        "matrixJobs": 0,
+        "serviceJobs": 0,
+        "containerJobs": 0,
+        "issues": []
+      },
+      "compatibility": "supported",
+      "issues": [],
+      "actCommand": {
+        "push": "act push --platform ubuntu-latest=catthehacker/ubuntu:act-latest --artifact-server-path /tmp/artifacts --reuse -W .github/workflows/release-automation.yml",
+        "pull_request": "act pull_request --platform ubuntu-latest=catthehacker/ubuntu:act-latest --artifact-server-path /tmp/artifacts --reuse -W .github/workflows/release-automation.yml",
+        "workflow_dispatch": "act workflow_dispatch --platform ubuntu-latest=catthehacker/ubuntu:act-latest --artifact-server-path /tmp/artifacts --reuse -W .github/workflows/release-automation.yml",
+        "manual": "act --platform ubuntu-latest=catthehacker/ubuntu:act-latest --artifact-server-path /tmp/artifacts --reuse -W .github/workflows/release-automation.yml"
+      }
+    },
+    {
+      "name": "Release Pipeline",
+      "file": "release.yml",
+      "triggers": {
+        "supported": [
+          "workflow_dispatch"
+        ],
+        "unsupported": [],
+        "issues": []
+      },
+      "jobs": {
+        "totalJobs": 5,
+        "matrixJobs": 1,
+        "serviceJobs": 0,
+        "containerJobs": 0,
+        "issues": [
+          {
+            "type": "matrix",
+            "job": "build-and-test",
+            "severity": "low",
+            "message": "Matrix builds may have limited parallelism in act"
+          }
+        ]
+      },
+      "compatibility": "supported",
+      "issues": [],
+      "actCommand": {
+        "push": "act push --platform ubuntu-latest=catthehacker/ubuntu:act-latest --artifact-server-path /tmp/artifacts --reuse --matrix -W .github/workflows/release.yml",
+        "pull_request": "act pull_request --platform ubuntu-latest=catthehacker/ubuntu:act-latest --artifact-server-path /tmp/artifacts --reuse --matrix -W .github/workflows/release.yml",
+        "workflow_dispatch": "act workflow_dispatch --platform ubuntu-latest=catthehacker/ubuntu:act-latest --artifact-server-path /tmp/artifacts --reuse --matrix -W .github/workflows/release.yml",
+        "manual": "act --platform ubuntu-latest=catthehacker/ubuntu:act-latest --artifact-server-path /tmp/artifacts --reuse --matrix -W .github/workflows/release.yml"
+      }
+    },
+    {
+      "name": "Repository Size Monitor",
+      "file": "repo-size-monitor.yml",
+      "triggers": {
+        "supported": [
+          "push",
+          "pull_request"
+        ],
+        "unsupported": [
+          "schedule"
+        ],
+        "issues": [
+          {
+            "type": "trigger",
+            "trigger": "schedule",
+            "severity": "medium",
+            "message": "Cron jobs not supported in act"
+          }
+        ]
+      },
+      "jobs": {
+        "totalJobs": 2,
+        "matrixJobs": 0,
+        "serviceJobs": 0,
+        "containerJobs": 0,
+        "issues": [
+          {
+            "type": "action",
+            "job": "monitor-repo-size",
+            "step": 5,
+            "severity": "high",
+            "message": "github-script action has limited GitHub API access in act"
+          }
+        ]
+      },
+      "compatibility": "supported",
+      "issues": [],
+      "actCommand": {
+        "push": "act push --platform ubuntu-latest=catthehacker/ubuntu:act-latest --artifact-server-path /tmp/artifacts --reuse -W .github/workflows/repo-size-monitor.yml",
+        "pull_request": "act pull_request --platform ubuntu-latest=catthehacker/ubuntu:act-latest --artifact-server-path /tmp/artifacts --reuse -W .github/workflows/repo-size-monitor.yml",
+        "workflow_dispatch": "act workflow_dispatch --platform ubuntu-latest=catthehacker/ubuntu:act-latest --artifact-server-path /tmp/artifacts --reuse -W .github/workflows/repo-size-monitor.yml",
+        "manual": "act --platform ubuntu-latest=catthehacker/ubuntu:act-latest --artifact-server-path /tmp/artifacts --reuse -W .github/workflows/repo-size-monitor.yml"
+      }
+    },
+    {
+      "name": "Security Scanning & Compliance",
+      "file": "security-scanning.yml",
+      "triggers": {
+        "supported": [
+          "push",
+          "pull_request",
+          "workflow_dispatch"
+        ],
+        "unsupported": [
+          "schedule"
+        ],
+        "issues": [
+          {
+            "type": "trigger",
+            "trigger": "schedule",
+            "severity": "medium",
+            "message": "Cron jobs not supported in act"
+          }
+        ]
+      },
+      "jobs": {
+        "totalJobs": 6,
+        "matrixJobs": 0,
+        "serviceJobs": 0,
+        "containerJobs": 0,
+        "issues": [
+          {
+            "type": "action",
+            "job": "security-summary",
+            "step": 3,
+            "severity": "high",
+            "message": "github-script action has limited GitHub API access in act"
+          }
+        ]
+      },
+      "compatibility": "supported",
+      "issues": [],
+      "actCommand": {
+        "push": "act push --platform ubuntu-latest=catthehacker/ubuntu:act-latest --artifact-server-path /tmp/artifacts --reuse -W .github/workflows/security-scanning.yml",
+        "pull_request": "act pull_request --platform ubuntu-latest=catthehacker/ubuntu:act-latest --artifact-server-path /tmp/artifacts --reuse -W .github/workflows/security-scanning.yml",
+        "workflow_dispatch": "act workflow_dispatch --platform ubuntu-latest=catthehacker/ubuntu:act-latest --artifact-server-path /tmp/artifacts --reuse -W .github/workflows/security-scanning.yml",
+        "manual": "act --platform ubuntu-latest=catthehacker/ubuntu:act-latest --artifact-server-path /tmp/artifacts --reuse -W .github/workflows/security-scanning.yml"
+      }
+    },
+    {
+      "name": "Security Scanning & Validation",
+      "file": "security.yml",
+      "triggers": {
+        "supported": [
+          "push",
+          "pull_request",
+          "workflow_dispatch"
+        ],
+        "unsupported": [
+          "schedule"
+        ],
+        "issues": [
+          {
+            "type": "trigger",
+            "trigger": "schedule",
+            "severity": "medium",
+            "message": "Cron jobs not supported in act"
+          }
+        ]
+      },
+      "jobs": {
+        "totalJobs": 6,
+        "matrixJobs": 0,
+        "serviceJobs": 0,
+        "containerJobs": 0,
+        "issues": []
+      },
+      "compatibility": "supported",
+      "issues": [],
+      "actCommand": {
+        "push": "act push --platform ubuntu-latest=catthehacker/ubuntu:act-latest --artifact-server-path /tmp/artifacts --reuse -W .github/workflows/security.yml",
+        "pull_request": "act pull_request --platform ubuntu-latest=catthehacker/ubuntu:act-latest --artifact-server-path /tmp/artifacts --reuse -W .github/workflows/security.yml",
+        "workflow_dispatch": "act workflow_dispatch --platform ubuntu-latest=catthehacker/ubuntu:act-latest --artifact-server-path /tmp/artifacts --reuse -W .github/workflows/security.yml",
+        "manual": "act --platform ubuntu-latest=catthehacker/ubuntu:act-latest --artifact-server-path /tmp/artifacts --reuse -W .github/workflows/security.yml"
+      }
+    },
+    {
+      "name": "Status Checks & Quality Gates",
+      "file": "status-checks.yml",
+      "triggers": {
+        "supported": [
+          "push",
+          "pull_request"
+        ],
+        "unsupported": [
+          "schedule"
+        ],
+        "issues": [
+          {
+            "type": "trigger",
+            "trigger": "schedule",
+            "severity": "medium",
+            "message": "Cron jobs not supported in act"
+          }
+        ]
+      },
+      "jobs": {
+        "totalJobs": 9,
+        "matrixJobs": 1,
+        "serviceJobs": 0,
+        "containerJobs": 0,
+        "issues": [
+          {
+            "type": "matrix",
+            "job": "unit-tests",
+            "severity": "low",
+            "message": "Matrix builds may have limited parallelism in act"
+          },
+          {
+            "type": "action",
+            "job": "status-check-summary",
+            "step": 1,
+            "severity": "high",
+            "message": "github-script action has limited GitHub API access in act"
+          },
+          {
+            "type": "action",
+            "job": "daily-health-check",
+            "step": 7,
+            "severity": "high",
+            "message": "github-script action has limited GitHub API access in act"
+          }
+        ]
+      },
+      "compatibility": "supported",
+      "issues": [],
+      "actCommand": {
+        "push": "act push --platform ubuntu-latest=catthehacker/ubuntu:act-latest --artifact-server-path /tmp/artifacts --reuse --matrix -W .github/workflows/status-checks.yml",
+        "pull_request": "act pull_request --platform ubuntu-latest=catthehacker/ubuntu:act-latest --artifact-server-path /tmp/artifacts --reuse --matrix -W .github/workflows/status-checks.yml",
+        "workflow_dispatch": "act workflow_dispatch --platform ubuntu-latest=catthehacker/ubuntu:act-latest --artifact-server-path /tmp/artifacts --reuse --matrix -W .github/workflows/status-checks.yml",
+        "manual": "act --platform ubuntu-latest=catthehacker/ubuntu:act-latest --artifact-server-path /tmp/artifacts --reuse --matrix -W .github/workflows/status-checks.yml"
+      }
+    },
+    {
+      "name": "📊 Test Status Badges",
+      "file": "test-status-badges.yml",
+      "triggers": {
+        "supported": [],
+        "unsupported": [],
+        "issues": [
+          {
+            "type": "trigger",
+            "trigger": "workflow_run",
+            "severity": "low",
+            "message": "Unknown trigger compatibility: workflow_run"
+          }
+        ]
+      },
+      "jobs": {
+        "totalJobs": 1,
+        "matrixJobs": 0,
+        "serviceJobs": 0,
+        "containerJobs": 0,
+        "issues": [
+          {
+            "type": "action",
+            "job": "update-badges",
+            "step": 1,
+            "severity": "high",
+            "message": "github-script action has limited GitHub API access in act"
+          }
+        ]
+      },
+      "compatibility": "supported",
+      "issues": [],
+      "actCommand": {
+        "push": "act push --platform ubuntu-latest=catthehacker/ubuntu:act-latest --artifact-server-path /tmp/artifacts --reuse -W .github/workflows/test-status-badges.yml",
+        "pull_request": "act pull_request --platform ubuntu-latest=catthehacker/ubuntu:act-latest --artifact-server-path /tmp/artifacts --reuse -W .github/workflows/test-status-badges.yml",
+        "workflow_dispatch": "act workflow_dispatch --platform ubuntu-latest=catthehacker/ubuntu:act-latest --artifact-server-path /tmp/artifacts --reuse -W .github/workflows/test-status-badges.yml",
+        "manual": "act --platform ubuntu-latest=catthehacker/ubuntu:act-latest --artifact-server-path /tmp/artifacts --reuse -W .github/workflows/test-status-badges.yml"
+      }
+    },
+    {
+      "name": "🏛️ Unified Quality Gate - Fortune 5 Standards",
+      "file": "unified-quality-gate.yml",
+      "triggers": {
+        "supported": [
+          "push",
+          "pull_request",
+          "workflow_dispatch"
+        ],
+        "unsupported": [
+          "schedule"
+        ],
+        "issues": [
+          {
+            "type": "trigger",
+            "trigger": "schedule",
+            "severity": "medium",
+            "message": "Cron jobs not supported in act"
+          }
+        ]
+      },
+      "jobs": {
+        "totalJobs": 7,
+        "matrixJobs": 0,
+        "serviceJobs": 0,
+        "containerJobs": 0,
+        "issues": []
+      },
+      "compatibility": "supported",
+      "issues": [],
+      "actCommand": {
+        "push": "act push --platform ubuntu-latest=catthehacker/ubuntu:act-latest --artifact-server-path /tmp/artifacts --reuse -W .github/workflows/unified-quality-gate.yml",
+        "pull_request": "act pull_request --platform ubuntu-latest=catthehacker/ubuntu:act-latest --artifact-server-path /tmp/artifacts --reuse -W .github/workflows/unified-quality-gate.yml",
+        "workflow_dispatch": "act workflow_dispatch --platform ubuntu-latest=catthehacker/ubuntu:act-latest --artifact-server-path /tmp/artifacts --reuse -W .github/workflows/unified-quality-gate.yml",
+        "manual": "act --platform ubuntu-latest=catthehacker/ubuntu:act-latest --artifact-server-path /tmp/artifacts --reuse -W .github/workflows/unified-quality-gate.yml"
+      }
+    },
+    {
+      "name": "Validate Swarm Improvements",
+      "file": "validate-swarm-improvements.yml",
+      "triggers": {
+        "supported": [
+          "push",
+          "pull_request",
+          "workflow_dispatch"
+        ],
+        "unsupported": [],
+        "issues": []
+      },
+      "jobs": {
+        "totalJobs": 4,
+        "matrixJobs": 0,
+        "serviceJobs": 0,
+        "containerJobs": 0,
+        "issues": []
+      },
+      "compatibility": "supported",
+      "issues": [],
+      "actCommand": {
+        "push": "act push --platform ubuntu-latest=catthehacker/ubuntu:act-latest --artifact-server-path /tmp/artifacts --reuse -W .github/workflows/validate-swarm-improvements.yml",
+        "pull_request": "act pull_request --platform ubuntu-latest=catthehacker/ubuntu:act-latest --artifact-server-path /tmp/artifacts --reuse -W .github/workflows/validate-swarm-improvements.yml",
+        "workflow_dispatch": "act workflow_dispatch --platform ubuntu-latest=catthehacker/ubuntu:act-latest --artifact-server-path /tmp/artifacts --reuse -W .github/workflows/validate-swarm-improvements.yml",
+        "manual": "act --platform ubuntu-latest=catthehacker/ubuntu:act-latest --artifact-server-path /tmp/artifacts --reuse -W .github/workflows/validate-swarm-improvements.yml"
+      }
+    },
+    {
+      "name": "🔧 Workflow Optimizer & Health Monitor",
+      "file": "workflow-optimizer.yml",
+      "triggers": {
+        "supported": [
+          "workflow_dispatch"
+        ],
+        "unsupported": [
+          "schedule"
+        ],
+        "issues": [
+          {
+            "type": "trigger",
+            "trigger": "schedule",
+            "severity": "medium",
+            "message": "Cron jobs not supported in act"
+          }
+        ]
+      },
+      "jobs": {
+        "totalJobs": 4,
+        "matrixJobs": 0,
+        "serviceJobs": 0,
+        "containerJobs": 0,
+        "issues": [
+          {
+            "type": "action",
+            "job": "optimize-caching",
+            "step": 1,
+            "severity": "high",
+            "message": "github-script action has limited GitHub API access in act"
+          }
+        ]
+      },
+      "compatibility": "supported",
+      "issues": [],
+      "actCommand": {
+        "push": "act push --platform ubuntu-latest=catthehacker/ubuntu:act-latest --artifact-server-path /tmp/artifacts --reuse -W .github/workflows/workflow-optimizer.yml",
+        "pull_request": "act pull_request --platform ubuntu-latest=catthehacker/ubuntu:act-latest --artifact-server-path /tmp/artifacts --reuse -W .github/workflows/workflow-optimizer.yml",
+        "workflow_dispatch": "act workflow_dispatch --platform ubuntu-latest=catthehacker/ubuntu:act-latest --artifact-server-path /tmp/artifacts --reuse -W .github/workflows/workflow-optimizer.yml",
+        "manual": "act --platform ubuntu-latest=catthehacker/ubuntu:act-latest --artifact-server-path /tmp/artifacts --reuse -W .github/workflows/workflow-optimizer.yml"
+      }
+    }
+  ],
+  "partiallySupported": [],
+  "unsupported": [],
+  "issues": []
+}

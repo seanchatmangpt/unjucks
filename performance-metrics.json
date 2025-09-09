@@ -1,0 +1,54 @@
+{
+  "id": "perf-1757389472853",
+  "timestamp": "2025-09-09T03:44:32.853Z",
+  "build_metrics": {
+    "duration": 1770,
+    "success": true,
+    "bundle_size": 106723797,
+    "dependency_count": 20,
+    "compile_time": 0,
+    "memory_usage": 4.823890686035156
+  },
+  "test_metrics": {
+    "total_duration": 139,
+    "test_count": 0,
+    "pass_count": 0,
+    "fail_count": 0,
+    "skip_count": 0,
+    "coverage_percentage": 77.25,
+    "slowest_tests": [],
+    "memory_usage": 0
+  },
+  "dependency_metrics": {
+    "install_duration": 1173,
+    "total_dependencies": 20,
+    "security_vulnerabilities": 0,
+    "outdated_packages": 0,
+    "bundle_impact": 0
+  },
+  "workflow_metrics": {
+    "total_jobs": 0,
+    "successful_jobs": 0,
+    "failed_jobs": 0,
+    "average_job_duration": 0,
+    "queue_time": 0,
+    "runner_utilization": 0
+  },
+  "system_metrics": {
+    "cpu_usage": 84.913,
+    "memory_usage": 5.1125030517578125,
+    "disk_usage": 484,
+    "network_latency": 230,
+    "runner_os": "darwin",
+    "node_version": "v22.12.0"
+  },
+  "baseline_comparison": {
+    "baseline_exists": true,
+    "build_duration_change": 755.0724637681159,
+    "test_duration_change": -99.82546239907583,
+    "dependency_install_change": -64.79591836734694,
+    "memory_usage_change": -16.368365285132523,
+    "regression_detected": true,
+    "improvements_detected": true
+  }
+}

@@ -1,0 +1,221 @@
+{
+  "triage": {
+    "confidence_threshold": 0.75,
+    "ml_model_path": "./models/triage-classifier.json",
+    "historical_weight": 0.35,
+    "pattern_weight": 0.4,
+    "context_weight": 0.25,
+    "classification_rules": {
+      "security_vulnerability": {
+        "patterns": ["CVE-", "vulnerability", "security", "exploit"],
+        "priority_boost": 0.3,
+        "auto_assign": ["security-team"]
+      },
+      "ci_failure": {
+        "patterns": ["build failed", "test failed", "compilation error"],
+        "priority_boost": 0.2,
+        "auto_assign": ["devops-team"]
+      },
+      "performance_regression": {
+        "patterns": ["regression", "performance", "slow", "timeout"],
+        "priority_boost": 0.15,
+        "auto_assign": ["performance-team"]
+      }
+    }
+  },
+  "escalation": {
+    "critical_threshold": 0.85,
+    "high_threshold": 0.65,
+    "medium_threshold": 0.35,
+    "escalation_delays": {
+      "critical": [10, 30, 120],
+      "high": [30, 120, 480],
+      "medium": [480, 1440],
+      "low": [1440]
+    },
+    "escalation_paths": {
+      "security_vulnerability": {
+        "levels": ["security-lead", "security-team", "ciso", "executive"],
+        "parallel_notify": ["compliance-team"]
+      },
+      "ci_failure": {
+        "levels": ["devops-lead", "engineering-team", "vp-engineering"],
+        "parallel_notify": ["qa-team"]
+      },
+      "performance_regression": {
+        "levels": ["performance-lead", "architecture-team", "cto"],
+        "parallel_notify": ["product-team"]
+      }
+    },
+    "intelligent_routing": {
+      "timezone_aware": true,
+      "workload_balancing": true,
+      "expertise_matching": true,
+      "availability_checking": true
+    }
+  },
+  "notifications": {
+    "channels": [
+      {
+        "name": "github-issue",
+        "enabled": true,
+        "priority_threshold": "low",
+        "rate_limit": 10,
+        "batch_size": 5
+      },
+      {
+        "name": "github-discussion",
+        "enabled": true,
+        "priority_threshold": "medium",
+        "rate_limit": 5,
+        "categories": {
+          "security": "security-discussions",
+          "performance": "performance-discussions",
+          "ci": "devops-discussions"
+        }
+      },
+      {
+        "name": "action-summary",
+        "enabled": true,
+        "priority_threshold": "low",
+        "max_length": 65536
+      },
+      {
+        "name": "webhook",
+        "enabled": false,
+        "priority_threshold": "high",
+        "endpoints": {
+          "slack": "https://hooks.slack.com/services/...",
+          "teams": "https://hooks.office.com/...",
+          "pagerduty": "https://events.pagerduty.com/..."
+        }
+      }
+    ],
+    "intelligent_features": {
+      "noise_reduction": {
+        "enabled": true,
+        "similar_issue_threshold": 0.8,
+        "duplicate_detection_window": "24h",
+        "batch_threshold": 3
+      },
+      "smart_routing": {
+        "enabled": true,
+        "expertise_based": true,
+        "workload_aware": true,
+        "timezone_aware": true
+      },
+      "adaptive_timing": {
+        "enabled": true,
+        "business_hours_only": false,
+        "urgent_override": true,
+        "escalation_acceleration": true
+      }
+    }
+  },
+  "learning": {
+    "feedback_retention_days": 90,
+    "pattern_threshold": 0.65,
+    "model_update_frequency": "weekly",
+    "learning_rate": 0.1,
+    "success_pattern_weight": 0.7,
+    "failure_pattern_weight": 0.3,
+    "historical_data_sources": [
+      "github_issues",
+      "github_actions",
+      "performance_metrics",
+      "security_scans"
+    ],
+    "ml_features": {
+      "text_analysis": true,
+      "pattern_recognition": true,
+      "trend_analysis": true,
+      "correlation_detection": true
+    }
+  },
+  "swarm_coordination": {
+    "topology": "adaptive-mesh",
+    "max_agents": 8,
+    "agent_specializations": {
+      "triage_specialist": {
+        "capabilities": ["classification", "priority_assessment"],
+        "auto_assign": true
+      },
+      "notification_router": {
+        "capabilities": ["channel_optimization", "recipient_selection"],
+        "auto_assign": true
+      },
+      "escalation_manager": {
+        "capabilities": ["escalation_logic", "stakeholder_coordination"],
+        "auto_assign": false
+      },
+      "learning_coordinator": {
+        "capabilities": ["pattern_analysis", "model_updates"],
+        "auto_assign": true
+      }
+    },
+    "coordination_strategies": {
+      "high_priority": "immediate-response",
+      "medium_priority": "coordinated-analysis",
+      "low_priority": "batch-processing"
+    }
+  },
+  "integration": {
+    "github": {
+      "api_version": "2022-11-28",
+      "rate_limit_buffer": 0.2,
+      "retry_policy": {
+        "max_retries": 3,
+        "backoff_factor": 2,
+        "base_delay": 1000
+      }
+    },
+    "claude_flow": {
+      "hooks_enabled": true,
+      "memory_namespace": "intelligent-automation",
+      "session_management": true,
+      "metrics_collection": true
+    },
+    "external_services": {
+      "monitoring": {
+        "enabled": false,
+        "endpoints": []
+      },
+      "ticketing": {
+        "enabled": false,
+        "systems": []
+      }
+    }
+  },
+  "performance": {
+    "parallel_processing": true,
+    "max_concurrent_actions": 5,
+    "timeout_settings": {
+      "triage_timeout": 30000,
+      "notification_timeout": 15000,
+      "escalation_timeout": 60000
+    },
+    "caching": {
+      "enabled": true,
+      "ttl": 3600,
+      "max_size": 1000
+    }
+  },
+  "security": {
+    "sensitive_data_masking": true,
+    "audit_logging": true,
+    "encryption_at_rest": false,
+    "access_control": {
+      "admin_users": ["sac"],
+      "restricted_actions": ["model_updates", "config_changes"]
+    }
+  },
+  "monitoring": {
+    "metrics_collection": true,
+    "health_checks": true,
+    "alerting": {
+      "system_errors": true,
+      "performance_degradation": true,
+      "learning_model_drift": true
+    }
+  }
+}
