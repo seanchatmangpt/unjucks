@@ -1,0 +1,337 @@
+name: Error Handler Examples
+
+on:
+  workflow_dispatch:
+    inputs:
+      test-scenario:
+        description: 'Test scenario to run'
+        required: true
+        default: 'all'
+        type: choice
+        options:
+          - all
+          - basic-success
+          - basic-failure
+          - retry-logic
+          - timeout-handling
+          - graceful-degradation
+          - notification-test
+
+jobs:
+  basic-success:
+    if: github.event.inputs.test-scenario == 'all' || github.event.inputs.test-scenario == 'basic-success'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        
+      - name: Test Basic Success
+        id: basic-success
+        uses: ./.github/actions/error-handler
+        with:
+          command: 'echo "This should succeed" && exit 0'
+          max-retries: 2
+          error-classification: 'info'
+          
+      - name: Verify Success
+        run: |
+          echo "Success: ${{ steps.basic-success.outputs.success }}"
+          echo "Exit Code: ${{ steps.basic-success.outputs.exit-code }}"
+          echo "Attempts: ${{ steps.basic-success.outputs.attempts }}"
+          echo "Error Type: ${{ steps.basic-success.outputs.error-type }}"
+          
+          if [ "${{ steps.basic-success.outputs.success }}" != "true" ]; then
+            echo "❌ Basic success test failed"
+            exit 1
+          fi
+          echo "✅ Basic success test passed"
+
+  basic-failure:
+    if: github.event.inputs.test-scenario == 'all' || github.event.inputs.test-scenario == 'basic-failure'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        
+      - name: Test Basic Failure
+        id: basic-failure
+        uses: ./.github/actions/error-handler
+        with:
+          command: 'echo "This should fail" && exit 1'
+          max-retries: 2
+          error-classification: 'warning'
+          graceful-degradation: true
+          
+      - name: Verify Graceful Degradation
+        run: |
+          echo "Success: ${{ steps.basic-failure.outputs.success }}"
+          echo "Exit Code: ${{ steps.basic-failure.outputs.exit-code }}"
+          echo "Recovery Action: ${{ steps.basic-failure.outputs.recovery-action }}"
+          
+          if [ "${{ steps.basic-failure.outputs.success }}" != "true" ]; then
+            echo "❌ Graceful degradation test failed"
+            exit 1
+          fi
+          echo "✅ Graceful degradation test passed"
+
+  retry-logic:
+    if: github.event.inputs.test-scenario == 'all' || github.event.inputs.test-scenario == 'retry-logic'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        
+      - name: Create Retry Test Script
+        run: |
+          cat > retry_test.sh << 'EOF'
+          #!/bin/bash
+          counter_file="/tmp/retry_counter_$RANDOM"
+          
+          if [ ! -f "$counter_file" ]; then
+            echo "1" > "$counter_file"
+            echo "Attempt 1: Failing"
+            exit 1
+          elif [ "$(cat "$counter_file")" = "1" ]; then
+            echo "2" > "$counter_file"
+            echo "Attempt 2: Still failing"
+            exit 1
+          else
+            echo "Attempt 3: Success!"
+            rm -f "$counter_file"
+            exit 0
+          fi
+          EOF
+          chmod +x retry_test.sh
+          
+      - name: Test Retry Logic
+        id: retry-test
+        uses: ./.github/actions/error-handler
+        with:
+          command: './retry_test.sh'
+          max-retries: 4
+          retry-delay: 2
+          exponential-backoff: false
+          error-classification: 'warning'
+          
+      - name: Verify Retry Logic
+        run: |
+          echo "Success: ${{ steps.retry-test.outputs.success }}"
+          echo "Attempts: ${{ steps.retry-test.outputs.attempts }}"
+          
+          if [ "${{ steps.retry-test.outputs.success }}" != "true" ] || [ "${{ steps.retry-test.outputs.attempts }}" != "3" ]; then
+            echo "❌ Retry logic test failed"
+            exit 1
+          fi
+          echo "✅ Retry logic test passed"
+
+  timeout-handling:
+    if: github.event.inputs.test-scenario == 'all' || github.event.inputs.test-scenario == 'timeout-handling'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        
+      - name: Test Timeout Handling
+        id: timeout-test
+        uses: ./.github/actions/error-handler
+        with:
+          command: 'echo "Starting long task" && sleep 30'
+          max-retries: 1
+          timeout: 0.1  # 0.1 minutes = 6 seconds
+          error-classification: 'warning'
+          graceful-degradation: true
+          
+      - name: Verify Timeout Handling
+        run: |
+          echo "Success: ${{ steps.timeout-test.outputs.success }}"
+          echo "Exit Code: ${{ steps.timeout-test.outputs.exit-code }}"
+          
+          # With graceful degradation, should succeed even after timeout
+          if [ "${{ steps.timeout-test.outputs.success }}" != "true" ]; then
+            echo "❌ Timeout handling test failed"
+            exit 1
+          fi
+          echo "✅ Timeout handling test passed"
+
+  error-classification:
+    if: github.event.inputs.test-scenario == 'all' || github.event.inputs.test-scenario == 'error-classification'
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        test-case:
+          - { command: 'nonexistent_command', expected-type: 'command_not_found' }
+          - { command: 'bash -c "echo network timeout >&2; exit 1"', expected-type: 'network_error' }
+          - { command: 'bash -c "echo authentication failed >&2; exit 1"', expected-type: 'authentication_error' }
+          - { command: 'bash -c "echo rate limit exceeded >&2; exit 1"', expected-type: 'rate_limit_error' }
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        
+      - name: Test Error Classification - ${{ matrix.test-case.expected-type }}
+        id: error-classification
+        uses: ./.github/actions/error-handler
+        with:
+          command: ${{ matrix.test-case.command }}
+          max-retries: 1
+          error-classification: 'warning'
+          graceful-degradation: true
+          
+      - name: Verify Error Classification
+        run: |
+          echo "Error Type: ${{ steps.error-classification.outputs.error-type }}"
+          echo "Expected: ${{ matrix.test-case.expected-type }}"
+          
+          if [ "${{ steps.error-classification.outputs.error-type }}" != "${{ matrix.test-case.expected-type }}" ]; then
+            echo "❌ Error classification test failed"
+            echo "Expected: ${{ matrix.test-case.expected-type }}"
+            echo "Got: ${{ steps.error-classification.outputs.error-type }}"
+            exit 1
+          fi
+          echo "✅ Error classification test passed"
+
+  diagnostics-collection:
+    if: github.event.inputs.test-scenario == 'all' || github.event.inputs.test-scenario == 'diagnostics'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        
+      - name: Test Diagnostics Collection
+        id: diagnostics-test
+        uses: ./.github/actions/error-handler
+        with:
+          command: 'echo "Failing for diagnostics" && exit 1'
+          max-retries: 1
+          collect-diagnostics: true
+          error-classification: 'warning'
+          graceful-degradation: true
+          
+      - name: Verify Diagnostics Collection
+        run: |
+          echo "Diagnostics collected: ${{ steps.diagnostics-test.outputs.diagnostics != '' }}"
+          
+          if [ -z "${{ steps.diagnostics-test.outputs.diagnostics }}" ]; then
+            echo "❌ Diagnostics collection test failed"
+            exit 1
+          fi
+          
+          # Decode and verify diagnostics content
+          echo "${{ steps.diagnostics-test.outputs.diagnostics }}" | base64 -d > diagnostics.txt
+          
+          if ! grep -q "System Information" diagnostics.txt; then
+            echo "❌ Diagnostics missing system information"
+            exit 1
+          fi
+          
+          if ! grep -q "Environment Variables" diagnostics.txt; then
+            echo "❌ Diagnostics missing environment variables"
+            exit 1
+          fi
+          
+          echo "✅ Diagnostics collection test passed"
+          echo "Sample diagnostics:"
+          head -20 diagnostics.txt
+
+  recovery-strategies:
+    if: github.event.inputs.test-scenario == 'all' || github.event.inputs.test-scenario == 'recovery-strategies'
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        strategy: ['skip', 'fail']
+        
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        
+      - name: Test Recovery Strategy - ${{ matrix.strategy }}
+        id: recovery-test
+        uses: ./.github/actions/error-handler
+        with:
+          command: 'exit 1'
+          max-retries: 3
+          recovery-strategy: ${{ matrix.strategy }}
+          error-classification: 'warning'
+          
+      - name: Verify Recovery Strategy
+        run: |
+          echo "Recovery Action: ${{ steps.recovery-test.outputs.recovery-action }}"
+          echo "Success: ${{ steps.recovery-test.outputs.success }}"
+          echo "Attempts: ${{ steps.recovery-test.outputs.attempts }}"
+          
+          case "${{ matrix.strategy }}" in
+            "skip")
+              if [ "${{ steps.recovery-test.outputs.success }}" != "true" ] || [ "${{ steps.recovery-test.outputs.recovery-action }}" != "skip" ]; then
+                echo "❌ Skip recovery strategy test failed"
+                exit 1
+              fi
+              ;;
+            "fail")
+              if [ "${{ steps.recovery-test.outputs.success }}" == "true" ] || [ "${{ steps.recovery-test.outputs.attempts }}" != "1" ]; then
+                echo "❌ Fail recovery strategy test failed"
+                exit 1
+              fi
+              ;;
+          esac
+          
+          echo "✅ Recovery strategy (${{ matrix.strategy }}) test passed"
+
+  environment-variables:
+    if: github.event.inputs.test-scenario == 'all' || github.event.inputs.test-scenario == 'environment'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        
+      - name: Test Environment Variables
+        id: env-test
+        uses: ./.github/actions/error-handler
+        with:
+          command: 'echo "TEST_VAR=$TEST_VAR" && echo "NODE_ENV=$NODE_ENV"'
+          max-retries: 1
+          error-classification: 'info'
+          environment: '{"TEST_VAR": "test_value", "NODE_ENV": "test"}'
+          
+      - name: Verify Environment Variables
+        run: |
+          echo "Success: ${{ steps.env-test.outputs.success }}"
+          
+          if [ "${{ steps.env-test.outputs.success }}" != "true" ]; then
+            echo "❌ Environment variables test failed"
+            exit 1
+          fi
+          echo "✅ Environment variables test passed"
+
+  comprehensive-integration:
+    if: github.event.inputs.test-scenario == 'all'
+    runs-on: ubuntu-latest
+    needs: [basic-success, basic-failure, retry-logic, timeout-handling, error-classification, diagnostics-collection, recovery-strategies, environment-variables]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        
+      - name: Comprehensive Integration Test
+        uses: ./.github/actions/error-handler
+        with:
+          command: |
+            echo "🚀 Running comprehensive integration test"
+            echo "✅ All individual tests passed"
+            echo "🎯 Error handler is production ready"
+          max-retries: 1
+          error-classification: 'info'
+          collect-diagnostics: true
+          
+      - name: Summary
+        run: |
+          echo "🎉 All error handler tests completed successfully!"
+          echo ""
+          echo "✅ Basic success handling"
+          echo "✅ Basic failure handling with graceful degradation"
+          echo "✅ Retry logic with configurable attempts"
+          echo "✅ Timeout handling"
+          echo "✅ Error classification system"
+          echo "✅ Diagnostics collection"
+          echo "✅ Recovery strategies (skip, fail)"
+          echo "✅ Environment variable handling"
+          echo ""
+          echo "🚀 Error Handler Action is ready for production use!"

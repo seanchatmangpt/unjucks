@@ -1,0 +1,250 @@
+name: Production Deployment
+
+# Critical production deployment - strict queue management
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to deploy (tag or commit SHA)'
+        required: true
+        type: string
+      skip_tests:
+        description: 'Skip pre-deployment tests (emergency only)'
+        required: false
+        default: false
+        type: boolean
+      rollback_on_failure:
+        description: 'Automatically rollback on deployment failure'
+        required: false
+        default: true
+        type: boolean
+
+env:
+  DEPLOYMENT_ENVIRONMENT: production
+  CRITICAL_DEPLOYMENT: true
+  DEPLOYMENT_TIMEOUT: 1800 # 30 minutes
+
+jobs:
+  pre-deployment-validation:
+    name: Pre-Deployment Validation
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: 
+      name: production-approval
+      url: https://unjucks.production.example.com
+    outputs:
+      validation_passed: ${{ steps.validate.outputs.passed }}
+      deployment_ready: ${{ steps.ready.outputs.ready }}
+    steps:
+      - name: Checkout deployment version
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.version }}
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci --prefer-offline --no-audit
+
+      - name: Validate deployment version
+        id: validate
+        run: |
+          echo "Validating version: ${{ github.event.inputs.version }}"
+          
+          # Verify version exists and is valid
+          if git rev-parse "${{ github.event.inputs.version }}" >/dev/null 2>&1; then
+            echo "✅ Version exists: ${{ github.event.inputs.version }}"
+            echo "passed=true" >> $GITHUB_OUTPUT
+          else
+            echo "❌ Invalid version: ${{ github.event.inputs.version }}"
+            echo "passed=false" >> $GITHUB_OUTPUT
+            exit 1
+          fi
+
+      - name: Pre-deployment tests
+        if: github.event.inputs.skip_tests != 'true'
+        run: |
+          echo "🧪 Running pre-deployment test suite..."
+          npm run test:production
+          npm run test:smoke
+          npm run security:scan
+
+      - name: Production readiness check
+        id: ready
+        run: |
+          echo "🔍 Checking production readiness..."
+          
+          # Check environment variables and secrets
+          if [[ -z "${{ secrets.PRODUCTION_API_KEY }}" ]]; then
+            echo "❌ Missing production secrets"
+            echo "ready=false" >> $GITHUB_OUTPUT
+            exit 1
+          fi
+          
+          echo "✅ Production environment ready"
+          echo "ready=true" >> $GITHUB_OUTPUT
+
+  production-deployment:
+    name: Deploy to Production
+    needs: pre-deployment-validation
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment: 
+      name: production
+      url: https://unjucks.production.example.com
+    if: needs.pre-deployment-validation.outputs.deployment_ready == 'true'
+    outputs:
+      deployment_id: ${{ steps.deploy.outputs.deployment_id }}
+      deployment_url: ${{ steps.deploy.outputs.url }}
+    steps:
+      - name: Checkout deployment version
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.version }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Install dependencies
+        run: npm ci --prefer-offline --no-audit
+
+      - name: Build production package
+        run: |
+          echo "🏗️ Building production package..."
+          npm run build:production
+          npm run package:optimize
+
+      - name: Deploy to production
+        id: deploy
+        run: |
+          echo "🚀 Deploying to production..."
+          
+          # Create deployment record
+          DEPLOYMENT_ID="prod-$(date +%Y%m%d-%H%M%S)-${{ github.run_id }}"
+          echo "deployment_id=$DEPLOYMENT_ID" >> $GITHUB_OUTPUT
+          echo "url=https://unjucks.production.example.com" >> $GITHUB_OUTPUT
+          
+          # Actual deployment commands would go here
+          # Example: kubectl apply -f k8s/production/
+          # Example: helm upgrade unjucks ./charts/unjucks --namespace production
+          
+          echo "✅ Deployment completed: $DEPLOYMENT_ID"
+
+      - name: Post-deployment verification
+        run: |
+          echo "🔍 Verifying production deployment..."
+          
+          # Health check endpoints
+          curl -f https://unjucks.production.example.com/health || exit 1
+          curl -f https://unjucks.production.example.com/api/version || exit 1
+          
+          # Functional tests
+          npm run test:smoke:production
+          
+          echo "✅ Production verification passed"
+
+  rollback-on-failure:
+    name: Rollback on Failure
+    needs: production-deployment
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    if: failure() && github.event.inputs.rollback_on_failure == 'true'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Perform automatic rollback
+        run: |
+          echo "⚠️ Production deployment failed - initiating rollback..."
+          
+          # Get previous stable deployment
+          PREVIOUS_VERSION=$(cat .github/production-state.json | jq -r '.stable_version')
+          
+          echo "Rolling back to: $PREVIOUS_VERSION"
+          
+          # Rollback commands would go here
+          # Example: kubectl rollout undo deployment/unjucks -n production
+          # Example: helm rollback unjucks -n production
+          
+          echo "✅ Rollback completed to version: $PREVIOUS_VERSION"
+
+      - name: Notify rollback
+        run: |
+          echo "📢 Production rollback notification sent"
+          # Send alerts to monitoring systems
+
+  update-production-state:
+    name: Update Production State
+    needs: production-deployment
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    if: success()
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Update production state
+        run: |
+          echo "📝 Updating production state record..."
+          
+          cat > .github/production-state.json << EOF
+          {
+            "stable_version": "${{ github.event.inputs.version }}",
+            "deployment_id": "${{ needs.production-deployment.outputs.deployment_id }}",
+            "deployment_time": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+            "deployment_url": "${{ needs.production-deployment.outputs.deployment_url }}",
+            "deployed_by": "${{ github.actor }}",
+            "workflow_run_id": "${{ github.run_id }}"
+          }
+          EOF
+
+      - name: Commit production state
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add .github/production-state.json
+          git commit -m "Update production state: ${{ github.event.inputs.version }} [skip ci]"
+          git push
+
+  deployment-notification:
+    name: Deployment Notifications
+    needs: [production-deployment, update-production-state]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    if: always()
+    steps:
+      - name: Deployment success notification
+        if: needs.production-deployment.result == 'success'
+        run: |
+          echo "🎉 Production deployment successful!"
+          echo "Version: ${{ github.event.inputs.version }}"
+          echo "Deployment ID: ${{ needs.production-deployment.outputs.deployment_id }}"
+          echo "URL: ${{ needs.production-deployment.outputs.deployment_url }}"
+          
+          # Send success notifications
+          # Example: Slack webhook, email, etc.
+
+      - name: Deployment failure notification
+        if: needs.production-deployment.result == 'failure'
+        run: |
+          echo "❌ Production deployment failed!"
+          echo "Version: ${{ github.event.inputs.version }}"
+          echo "Check logs for details"
+          
+          # Send failure notifications
+          # Example: PagerDuty alert, Slack webhook, etc.

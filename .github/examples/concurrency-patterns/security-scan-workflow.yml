@@ -1,0 +1,54 @@
+name: Example - Security Scan with Smart Concurrency
+
+# Security scans should cancel previous runs for efficiency
+# Latest scan results are most important
+concurrency:
+  group: security-scan-${{ github.ref }}
+  cancel-in-progress: true
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+  schedule:
+    - cron: '0 2 * * *' # Daily at 2 AM
+
+jobs:
+  dependency-scan:
+    name: Dependency Security Scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - run: npm ci
+      - run: npm audit --audit-level high
+
+  sast-scan:
+    name: Static Analysis Security Testing
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run SAST
+        run: |
+          echo "Running static analysis security testing"
+          # SAST logic here
+
+  code-scan:
+    name: Code Security Scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: github/codeql-action/init@v3
+        with:
+          languages: javascript
+      - uses: github/codeql-action/analyze@v3
+
+# This configuration:
+# ✅ Cancels previous runs (only latest scan results matter)
+# ✅ Uses per-branch grouping (different branches can scan in parallel)
+# ✅ Efficient resource usage (doesn't run redundant scans)
+# ✅ Provides fast feedback on security issues

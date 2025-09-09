@@ -198,7 +198,7 @@ class FIPSCryptoProvider {
       cipher.setAAD(aad)
     }
 
-    let encrypted = cipher.update(plaintext)
+    const encrypted = cipher.update(plaintext)
     cipher.final()
     
     const authTag = cipher.getAuthTag()
@@ -232,7 +232,7 @@ class FIPSCryptoProvider {
       decipher.setAAD(aad)
     }
 
-    let decrypted = decipher.update(encryptedData.ciphertext)
+    const decrypted = decipher.update(encryptedData.ciphertext)
     decipher.final()
     
     return decrypted

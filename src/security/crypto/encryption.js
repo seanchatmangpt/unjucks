@@ -62,7 +62,7 @@ class EncryptionService {
       const aad = Buffer.from(context || 'default', 'utf8')
       cipher.setAAD(aad)
 
-      let encrypted = cipher.update(plaintext)
+      const encrypted = cipher.update(plaintext)
       cipher.final()
 
       const authTag = cipher.getAuthTag()
@@ -105,7 +105,7 @@ class EncryptionService {
       const aad = Buffer.from(encryptedData.keyDerivationContext || 'default', 'utf8')
       decipher.setAAD(aad)
 
-      let decrypted = decipher.update(ciphertext)
+      const decrypted = decipher.update(ciphertext)
       decipher.final()
 
       return decrypted

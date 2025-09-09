@@ -1,0 +1,221 @@
+{
+  "version": "1.0.0",
+  "description": "Smart exclusion rules for intelligent matrix generation",
+  "updated": "2025-01-09",
+  "exclusions": {
+    "nodeCompatibility": {
+      "16": {
+        "reason": "Node 16 has reached end-of-life and has known security vulnerabilities",
+        "excludeFrom": ["main", "develop", "feature/*", "hotfix/*"],
+        "onlyFor": ["release", "compatibility"],
+        "severity": "high",
+        "alternatives": ["18", "20", "22"]
+      },
+      "18": {
+        "reason": "Node 18 performance issues on specific platforms",
+        "excludeWhen": {
+          "os": ["windows-latest", "macos-latest"],
+          "unless": ["core", "security", "performance"],
+          "changeThreshold": "minor"
+        },
+        "severity": "medium"
+      }
+    },
+    
+    "osCompatibility": {
+      "windows": {
+        "skipForPatterns": {
+          "docs": {
+            "patterns": ["docs/**", "*.md", "README.*"],
+            "reason": "Documentation changes don't require Windows validation"
+          },
+          "config": {
+            "patterns": ["*.config.*", ".eslintrc*", ".prettierrc*"],
+            "reason": "Configuration changes typically don't have OS-specific impacts"
+          },
+          "tests": {
+            "patterns": ["tests/**/*.md", "test/fixtures/**"],
+            "reason": "Test documentation and fixtures don't need cross-platform testing"
+          }
+        },
+        "performanceIssues": {
+          "node18": {
+            "reason": "Node 18 + Windows shows 20% slower build times",
+            "skipUnless": ["security", "core", "performance"],
+            "severity": "medium"
+          }
+        }
+      },
+      
+      "macos": {
+        "skipForPatterns": {
+          "docs": {
+            "patterns": ["docs/**", "*.md", "CHANGELOG.*"],
+            "reason": "macOS runners are expensive; docs don't need macOS validation"
+          },
+          "dependencies": {
+            "patterns": ["package*.json"],
+            "unless": ["core", "security"],
+            "reason": "Dependency updates rarely have macOS-specific issues"
+          },
+          "config": {
+            "patterns": ["*.config.*", "tsconfig.json"],
+            "reason": "Config changes typically don't require macOS testing"
+          }
+        },
+        "costOptimization": {
+          "reason": "macOS runners cost 10x more than Linux",
+          "skipUnless": ["core", "security", "performance", "release"],
+          "severity": "low"
+        }
+      }
+    },
+    
+    "performanceOptimizations": {
+      "redundantCombinations": {
+        "description": "Skip combinations that provide minimal additional coverage",
+        "rules": [
+          {
+            "skip": { "os": "windows-latest", "node": "18" },
+            "unless": ["core", "security", "ci"],
+            "reason": "Windows + Node 18 combination has highest failure rate",
+            "alternativeCoverage": { "os": "windows-latest", "node": "20" }
+          },
+          {
+            "skip": { "os": "macos-latest", "node": "18" },
+            "unless": ["core", "security"],
+            "reason": "macOS + Node 18 has compilation issues with optional dependencies",
+            "alternativeCoverage": { "os": "macos-latest", "node": "20" }
+          },
+          {
+            "skip": { "os": "macos-latest", "node": "22" },
+            "unless": ["performance", "core"],
+            "reason": "Node 22 on macOS occasionally has module resolution issues",
+            "alternativeCoverage": { "os": "ubuntu-latest", "node": "22" }
+          }
+        ]
+      }
+    },
+    
+    "testTypeExclusions": {
+      "e2e": {
+        "runOnlyOn": [
+          { "os": "ubuntu-latest", "node": "20" }
+        ],
+        "reason": "E2E tests are expensive and typically OS-agnostic",
+        "exceptions": ["release", "e2e-specific-changes"]
+      },
+      
+      "performance": {
+        "runOnlyOn": [
+          { "os": "ubuntu-latest", "node": "20" },
+          { "os": "ubuntu-latest", "node": "22" }
+        ],
+        "reason": "Performance benchmarks need consistent environment",
+        "exceptions": ["performance-specific-changes"]
+      },
+      
+      "security": {
+        "alwaysRun": true,
+        "reason": "Security tests must run on all supported platforms",
+        "minimumCoverage": [
+          { "os": "ubuntu-latest", "node": "20" },
+          { "os": "windows-latest", "node": "20" }
+        ]
+      }
+    },
+    
+    "branchSpecificExclusions": {
+      "feature/*": {
+        "maxJobs": 5,
+        "preferredCombinations": [
+          { "os": "ubuntu-latest", "node": "20" }
+        ],
+        "reason": "Feature branches need fast feedback, comprehensive testing happens on main"
+      },
+      
+      "hotfix/*": {
+        "forceMatrix": "full",
+        "reason": "Hotfixes must be thoroughly tested as they bypass normal review",
+        "noExclusions": true
+      },
+      
+      "dependabot/*": {
+        "maxJobs": 3,
+        "preferredCombinations": [
+          { "os": "ubuntu-latest", "node": "18" },
+          { "os": "ubuntu-latest", "node": "20" },
+          { "os": "ubuntu-latest", "node": "22" }
+        ],
+        "reason": "Dependency updates primarily need version compatibility testing"
+      }
+    },
+    
+    "resourceConstraints": {
+      "concurrencyLimits": {
+        "maxParallelJobs": 20,
+        "reason": "GitHub Actions concurrent job limits and cost optimization"
+      },
+      
+      "timeoutLimits": {
+        "maxDurationMinutes": 60,
+        "reason": "Jobs exceeding 60 minutes indicate underlying issues"
+      },
+      
+      "costThresholds": {
+        "maxJobsPerBranch": {
+          "feature": 5,
+          "develop": 15,
+          "main": 25,
+          "release": 30
+        },
+        "reason": "Balance comprehensive testing with CI costs"
+      }
+    }
+  },
+  
+  "historicalData": {
+    "description": "Historical failure patterns to inform exclusion decisions",
+    "failureRates": {
+      "ubuntu-latest-20": 0.02,
+      "ubuntu-latest-18": 0.03,
+      "ubuntu-latest-22": 0.04,
+      "windows-latest-20": 0.08,
+      "windows-latest-18": 0.15,
+      "windows-latest-22": 0.06,
+      "macos-latest-20": 0.05,
+      "macos-latest-18": 0.12,
+      "macos-latest-22": 0.08
+    },
+    
+    "avgDurations": {
+      "ubuntu-latest": 8,
+      "windows-latest": 12,
+      "macos-latest": 15
+    },
+    
+    "costMultipliers": {
+      "ubuntu-latest": 1.0,
+      "windows-latest": 2.0,
+      "macos-latest": 10.0
+    }
+  },
+  
+  "emergencyOverrides": {
+    "description": "Emergency overrides for critical situations",
+    "forceMinimal": {
+      "triggers": ["[skip-ci]", "[minimal-ci]"],
+      "reason": "Emergency deployments or critical fixes"
+    },
+    
+    "forceFull": {
+      "triggers": ["[full-ci]", "[test-all]"],
+      "reason": "Force comprehensive testing regardless of changes"
+    },
+    
+    "skipMatrix": {
+      "triggers": ["[skip-matrix]", "[docs-only]"],
+      "reason": "Skip matrix entirely for documentation-only changes"
+    }
+  }
+}

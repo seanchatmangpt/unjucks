@@ -75,7 +75,7 @@ async function fixFile(filePath) {
     console.log(`Fixing ${filePath}...`);
     
     let content = await fs.readFile(filePath, 'utf8');
-    let originalContent = content;
+    const originalContent = content;
     let fixCount = 0;
     
     // Apply all syntax fixes

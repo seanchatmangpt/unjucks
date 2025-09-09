@@ -1,0 +1,78 @@
+{
+  "monitoring": {
+    "enabled": true,
+    "retention": {
+      "daily_reports": 30,
+      "weekly_reports": 12,
+      "monthly_reports": 6
+    },
+    "workflows_to_monitor": [
+      "ci.yml",
+      "cd.yml",
+      "test.yml",
+      "build.yml",
+      "release.yml",
+      "security.yml",
+      "monitoring.yml"
+    ],
+    "metrics": {
+      "success_rate": {
+        "enabled": true,
+        "threshold_warning": 90,
+        "threshold_critical": 80
+      },
+      "execution_time": {
+        "enabled": true,
+        "threshold_warning_increase": 30,
+        "threshold_critical_increase": 50
+      },
+      "resource_usage": {
+        "enabled": true,
+        "track_runner_minutes": true,
+        "cost_threshold_warning": 20,
+        "cost_threshold_critical": 35
+      },
+      "failure_patterns": {
+        "enabled": true,
+        "track_common_failures": true,
+        "alert_on_new_patterns": true
+      }
+    },
+    "alerts": {
+      "slack": {
+        "enabled": false,
+        "webhook_url_secret": "SLACK_WEBHOOK_URL",
+        "channel": "#ci-cd-alerts",
+        "severity_levels": ["warning", "critical"]
+      },
+      "github_issues": {
+        "enabled": true,
+        "create_for_critical": true,
+        "labels": ["monitoring", "performance", "alert"]
+      },
+      "email": {
+        "enabled": false,
+        "recipients": []
+      }
+    },
+    "dashboard": {
+      "enabled": true,
+      "auto_deploy": true,
+      "include_charts": true,
+      "refresh_interval": "daily"
+    }
+  },
+  "reporting": {
+    "weekly": {
+      "enabled": true,
+      "day": "monday",
+      "include_trends": true,
+      "include_recommendations": true
+    },
+    "monthly": {
+      "enabled": true,
+      "include_cost_analysis": true,
+      "include_optimization_suggestions": true
+    }
+  }
+}

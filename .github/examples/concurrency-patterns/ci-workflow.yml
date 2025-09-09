@@ -1,0 +1,44 @@
+name: Example - CI Workflow with Proper Concurrency
+
+# CI workflows should cancel previous runs for efficiency
+# Use per-branch grouping to allow parallel work on different branches
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' || github.ref != 'refs/heads/main' }}
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    name: Run Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - run: npm ci
+      - run: npm test
+
+  lint:
+    name: Run Linting
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - run: npm ci
+      - run: npm run lint
+
+# This configuration:
+# ✅ Cancels previous runs for PRs and non-main branches (saves resources)
+# ✅ Preserves main branch runs (important for release tracking)
+# ✅ Uses per-branch grouping (allows parallel work on different branches)
+# ✅ Provides fast feedback on PRs

@@ -1,0 +1,54 @@
+name: Example - Deployment Workflow with Queue Management
+
+# Deployment workflows should queue without cancellation
+# Use environment-specific grouping to allow parallel deploys to different environments
+concurrency:
+  group: deploy-${{ inputs.environment || 'staging' }}
+  cancel-in-progress: false
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Target environment'
+        required: true
+        default: 'staging'
+        type: choice
+        options:
+          - staging
+          - production
+      version:
+        description: 'Version to deploy'
+        required: true
+        type: string
+
+jobs:
+  deploy:
+    name: Deploy to ${{ inputs.environment }}
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.version }}
+      
+      - name: Deploy to ${{ inputs.environment }}
+        run: |
+          echo "Deploying ${{ inputs.version }} to ${{ inputs.environment }}"
+          # Deployment logic here
+
+  verify:
+    name: Verify Deployment
+    needs: deploy
+    runs-on: ubuntu-latest
+    steps:
+      - name: Health Check
+        run: |
+          echo "Verifying deployment health"
+          # Health check logic here
+
+# This configuration:
+# ✅ Queues deployments to prevent concurrent deploys to same environment
+# ✅ Allows parallel deploys to different environments
+# ✅ Never cancels running deployments (prevents partial deploys)
+# ✅ Uses GitHub environments for approval workflows

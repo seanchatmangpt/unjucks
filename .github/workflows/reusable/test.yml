@@ -1,0 +1,159 @@
+name: 'Reusable Test Workflow'
+
+on:
+  workflow_call:
+    inputs:
+      node-version:
+        description: 'Node.js version to use'
+        required: false
+        default: '18'
+        type: string
+      pnpm-version:
+        description: 'PNPM version to use'
+        required: false
+        default: '9.12.0'
+        type: string
+      test-command:
+        description: 'Test command to run'
+        required: false
+        default: 'npm test'
+        type: string
+      test-matrix:
+        description: 'JSON array of Node.js versions for matrix testing'
+        required: false
+        default: '["18", "20", "22"]'
+        type: string
+      enable-matrix:
+        description: 'Enable matrix testing across multiple Node versions'
+        required: false
+        default: true
+        type: boolean
+      enable-coverage:
+        description: 'Enable code coverage collection'
+        required: false
+        default: true
+        type: boolean
+      coverage-threshold:
+        description: 'Minimum coverage percentage required'
+        required: false
+        default: '80'
+        type: string
+      test-timeout:
+        description: 'Test timeout in minutes'
+        required: false
+        default: 10
+        type: number
+      working-directory:
+        description: 'Working directory for all steps'
+        required: false
+        default: '.'
+        type: string
+      additional-test-commands:
+        description: 'Additional test commands (JSON array of strings)'
+        required: false
+        default: '[]'
+        type: string
+      upload-results:
+        description: 'Upload test results as artifacts'
+        required: false
+        default: true
+        type: boolean
+
+jobs:
+  test:
+    name: 'Run Tests'
+    runs-on: ubuntu-latest
+    timeout-minutes: ${{ inputs.test-timeout }}
+    strategy:
+      matrix:
+        node-version: ${{ inputs.enable-matrix && fromJSON(inputs.test-matrix) || fromJSON(format('["{0}"]', inputs.node-version)) }}
+      fail-fast: false
+    env:
+      NODE_ENV: test
+      FORCE_COLOR: 1
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Enable corepack
+        run: npm i -fg corepack && corepack enable
+        working-directory: ${{ inputs.working-directory }}
+
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'pnpm'
+          cache-dependency-path: ${{ inputs.working-directory }}/pnpm-lock.yaml
+
+      - name: Install PNPM
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ inputs.pnpm-version }}
+
+      - name: Get PNPM store directory
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+        working-directory: ${{ inputs.working-directory }}
+
+      - name: Setup PNPM cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+        working-directory: ${{ inputs.working-directory }}
+
+      - name: Run main test suite
+        run: ${{ inputs.test-command }}
+        working-directory: ${{ inputs.working-directory }}
+
+      - name: Run additional test commands
+        if: inputs.additional-test-commands != '[]'
+        run: |
+          echo '${{ inputs.additional-test-commands }}' | jq -r '.[]' | while read cmd; do
+            echo "Running: $cmd"
+            eval "$cmd"
+          done
+        working-directory: ${{ inputs.working-directory }}
+
+      - name: Check coverage threshold
+        if: inputs.enable-coverage
+        run: |
+          if [ -f "coverage/coverage-summary.json" ]; then
+            COVERAGE=$(jq -r '.total.lines.pct' coverage/coverage-summary.json)
+            THRESHOLD=${{ inputs.coverage-threshold }}
+            if (( $(echo "$COVERAGE < $THRESHOLD" | bc -l) )); then
+              echo "❌ Coverage $COVERAGE% is below threshold $THRESHOLD%"
+              exit 1
+            else
+              echo "✅ Coverage $COVERAGE% meets threshold $THRESHOLD%"
+            fi
+          else
+            echo "⚠️ No coverage report found"
+          fi
+        working-directory: ${{ inputs.working-directory }}
+
+      - name: Upload test results
+        if: always() && inputs.upload-results
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-node-${{ matrix.node-version }}
+          path: |
+            ${{ inputs.working-directory }}/coverage/
+            ${{ inputs.working-directory }}/test-results.xml
+            ${{ inputs.working-directory }}/junit.xml
+          retention-days: 30
+
+      - name: Upload coverage to Codecov
+        if: inputs.enable-coverage && matrix.node-version == inputs.node-version
+        uses: codecov/codecov-action@v4
+        with:
+          directory: ${{ inputs.working-directory }}/coverage
+          fail_ci_if_error: true
+          verbose: true

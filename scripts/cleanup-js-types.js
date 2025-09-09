@@ -92,7 +92,7 @@ async function cleanupFile(filePath) {
     console.log(`Cleaning up ${filePath}...`);
     
     let content = await fs.readFile(filePath, 'utf8');
-    let originalContent = content;
+    const originalContent = content;
     let changesCount = 0;
     
     // Apply all cleanup patterns

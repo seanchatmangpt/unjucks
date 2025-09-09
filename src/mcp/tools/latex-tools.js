@@ -538,8 +538,8 @@ export class LaTeXCompileToolHandler {
     const startTime = Date.now();
     const basename = path.basename(sourceFile, '.tex');
     let success = false;
-    let errors = [];
-    let warnings = [];
+    const errors = [];
+    const warnings = [];
 
     try {
       // Multiple compilation passes for references

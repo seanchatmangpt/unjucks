@@ -1,0 +1,250 @@
+name: PR Checks - Fast Validation
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    branches: [ main, develop ]
+
+concurrency:
+  group: pr-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  pr-checks:
+    name: Essential PR Validation
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    
+    outputs:
+      lint-status: ${{ steps.lint.outcome }}
+      test-status: ${{ steps.test.outcome }}
+      build-status: ${{ steps.build.outcome }}
+    
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1  # Shallow clone for speed
+
+      - name: ⚡ Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: 📦 Install dependencies (with smart caching)
+        id: deps
+        run: |
+          # Check if package-lock.json exists and use appropriate install
+          if [ -f "package-lock.json" ]; then
+            npm ci --prefer-offline --no-audit --no-fund
+          elif [ -f "pnpm-lock.yaml" ]; then
+            npm install -g pnpm@latest
+            pnpm install --frozen-lockfile --prefer-offline
+          else
+            npm install --prefer-offline --no-audit --no-fund
+          fi
+        timeout-minutes: 3
+
+      - name: 🧹 Lint Check
+        id: lint
+        run: |
+          echo "::group::Running lint checks"
+          if npm run lint --if-present; then
+            echo "✅ Lint checks passed"
+            echo "status=passed" >> $GITHUB_OUTPUT
+          else
+            echo "❌ Lint checks failed"
+            echo "status=failed" >> $GITHUB_OUTPUT
+            exit 1
+          fi
+          echo "::endgroup::"
+        timeout-minutes: 2
+
+      - name: 🧪 Unit Tests
+        id: test
+        run: |
+          echo "::group::Running unit tests"
+          # Run only fast unit tests, skip integration tests
+          if npm run test 2>/dev/null || npm run test:unit --if-present || npm run test:vitest --if-present; then
+            echo "✅ Unit tests passed"
+            echo "status=passed" >> $GITHUB_OUTPUT
+          else
+            echo "❌ Unit tests failed"
+            echo "status=failed" >> $GITHUB_OUTPUT
+            exit 1
+          fi
+          echo "::endgroup::"
+        timeout-minutes: 4
+
+      - name: 🏗️ Build Check
+        id: build
+        run: |
+          echo "::group::Running build"
+          if npm run build --if-present; then
+            echo "✅ Build successful"
+            echo "status=passed" >> $GITHUB_OUTPUT
+          else
+            echo "❌ Build failed"
+            echo "status=failed" >> $GITHUB_OUTPUT
+            exit 1
+          fi
+          echo "::endgroup::"
+        timeout-minutes: 3
+
+      - name: 🔍 Type Check (if available)
+        id: typecheck
+        continue-on-error: true  # Non-blocking for JS projects
+        run: |
+          if npm run typecheck --if-present; then
+            echo "✅ Type checking passed"
+          else
+            echo "⚠️ Type checking failed or not available"
+          fi
+        timeout-minutes: 1
+
+  # Status reporting job
+  pr-status-report:
+    name: PR Status Report
+    needs: pr-checks
+    runs-on: ubuntu-latest
+    if: always()  # Run even if pr-checks fails
+    
+    steps:
+      - name: 📊 Generate Status Report
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { owner, repo } = context.repo;
+            const pr_number = context.issue.number;
+            const run_id = context.runId;
+            
+            // Get job results
+            const lintStatus = '${{ needs.pr-checks.outputs.lint-status }}' || 'skipped';
+            const testStatus = '${{ needs.pr-checks.outputs.test-status }}' || 'skipped';
+            const buildStatus = '${{ needs.pr-checks.outputs.build-status }}' || 'skipped';
+            
+            // Create status emojis
+            const getStatusEmoji = (status) => {
+              switch(status) {
+                case 'success': return '✅';
+                case 'failure': return '❌';
+                case 'skipped': return '⏭️';
+                default: return '⚠️';
+              }
+            };
+            
+            // Calculate overall status
+            const allPassed = [lintStatus, testStatus, buildStatus].every(s => s === 'success');
+            const overallStatus = allPassed ? '✅ PASSED' : '❌ FAILED';
+            const overallColor = allPassed ? '28a745' : 'dc3545';
+            
+            const body = `## 🚀 PR Checks Status Report
+            
+            | Check | Status | Result |
+            |-------|--------|---------|
+            | **Lint** | ${getStatusEmoji(lintStatus)} | \`${lintStatus}\` |
+            | **Unit Tests** | ${getStatusEmoji(testStatus)} | \`${testStatus}\` |
+            | **Build** | ${getStatusEmoji(buildStatus)} | \`${buildStatus}\` |
+            
+            ### Overall Status: ${overallStatus}
+            
+            ${allPassed ? 
+              '🎉 All essential checks passed! This PR is ready for review.' : 
+              '🔧 Some checks failed. Please review and fix the issues above.'
+            }
+            
+            ---
+            
+            **⚡ Fast PR Checks** completed in under 10 minutes  
+            📊 [View detailed results](https://github.com/${owner}/${repo}/actions/runs/${run_id})
+            
+            *This lightweight workflow focuses on essential validations only. Heavy integration tests run on the main branch.*`;
+            
+            // Find and update existing comment or create new one
+            const { data: comments } = await github.rest.issues.listComments({
+              owner,
+              repo,
+              issue_number: pr_number
+            });
+            
+            const existingComment = comments.find(comment => 
+              comment.body.includes('🚀 PR Checks Status Report') && 
+              comment.user.type === 'Bot'
+            );
+            
+            if (existingComment) {
+              await github.rest.issues.updateComment({
+                owner,
+                repo,
+                comment_id: existingComment.id,
+                body: body
+              });
+              console.log('📝 Updated existing status comment');
+            } else {
+              await github.rest.issues.createComment({
+                owner,
+                repo,
+                issue_number: pr_number,
+                body: body
+              });
+              console.log('📝 Created new status comment');
+            }
+
+  # Security check - lightweight version
+  security-check:
+    name: Security Scan (Light)
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    continue-on-error: true  # Non-blocking
+    
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: 🔒 Run npm audit
+        run: |
+          echo "::group::Security audit"
+          npm audit --audit-level=high --production || true
+          echo "::endgroup::"
+        timeout-minutes: 2
+
+  # Quick smoke test
+  smoke-test:
+    name: Smoke Test
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    continue-on-error: true  # Non-blocking
+    
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: ⚡ Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: 🚀 Smoke test
+        run: |
+          # Quick install and basic functionality test
+          npm install --prefer-offline --no-audit --no-fund
+          
+          # Test CLI if available
+          if [ -f "bin/unjucks.cjs" ] || [ -f "bin/unjucks" ]; then
+            echo "Testing CLI..."
+            npm run test:smoke --if-present || node bin/unjucks* --version || echo "CLI test skipped"
+          fi
+          
+          echo "✅ Smoke test completed"
+        timeout-minutes: 2
+
+# Required status checks for branch protection
+# Add these check names to your branch protection rules:
+# - Essential PR Validation
+# - pr-checks

@@ -1,5 +1,10 @@
 name: Unified Docker Workflow
 
+# Docker workflow concurrency control
+concurrency:
+  group: docker-unified-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 on:
   push:
     branches: [main, develop]

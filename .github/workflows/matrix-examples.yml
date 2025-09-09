@@ -1,0 +1,527 @@
+name: 🎯 Matrix Strategy Examples
+
+# This workflow demonstrates various intelligent matrix configurations
+# for different scenarios and change patterns
+
+on:
+  workflow_dispatch:
+    inputs:
+      example_type:
+        description: 'Example to demonstrate'
+        required: true
+        type: choice
+        options:
+          - 'minimal-feature-branch'
+          - 'standard-develop-branch'
+          - 'full-main-branch'  
+          - 'release-complete-matrix'
+          - 'docs-only-changes'
+          - 'security-changes'
+          - 'performance-changes'
+          - 'dependency-updates'
+        default: 'minimal-feature-branch'
+
+jobs:
+  # ==========================================
+  # EXAMPLE 1: MINIMAL MATRIX (FEATURE BRANCH)
+  # ==========================================
+  minimal-matrix-example:
+    name: 📱 Minimal Matrix Example
+    runs-on: ubuntu-latest
+    if: github.event.inputs.example_type == 'minimal-feature-branch'
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            node: '20'
+            test-strategy: 'smoke'
+            description: 'Fast feedback for feature development'
+    steps:
+      - name: 📥 Checkout
+        uses: actions/checkout@v4
+      
+      - name: 📦 Setup Node.js ${{ matrix.node }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+      
+      - name: 🧪 Run minimal tests
+        run: |
+          echo "🧪 Running minimal test suite on ${{ matrix.os }}"
+          echo "Node version: ${{ matrix.node }}"
+          echo "Strategy: ${{ matrix.test-strategy }}"
+          echo "Description: ${{ matrix.description }}"
+          
+          # Simulate minimal testing
+          npm ci --silent
+          npm run test:smoke || echo "Smoke tests completed"
+
+  # ==========================================
+  # EXAMPLE 2: STANDARD MATRIX (DEVELOP BRANCH)
+  # ==========================================
+  standard-matrix-example:
+    name: 🔧 Standard Matrix Example
+    runs-on: ${{ matrix.os }}
+    if: github.event.inputs.example_type == 'standard-develop-branch'
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            node: '18'
+            test-strategy: 'integration'
+          - os: ubuntu-latest
+            node: '20'  
+            test-strategy: 'integration'
+          - os: ubuntu-latest
+            node: '22'
+            test-strategy: 'integration'
+          - os: windows-latest
+            node: '20'
+            test-strategy: 'integration'
+          - os: windows-latest
+            node: '22'
+            test-strategy: 'integration'
+        # Smart exclusions for efficiency
+        exclude:
+          - os: windows-latest
+            node: '18'  # Skip Node 18 on Windows for performance
+    steps:
+      - name: 📥 Checkout
+        uses: actions/checkout@v4
+      
+      - name: 📦 Setup Node.js ${{ matrix.node }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+      
+      - name: 🧪 Run standard tests
+        run: |
+          echo "🧪 Running standard test suite"
+          echo "Platform: ${{ matrix.os }}"
+          echo "Node: ${{ matrix.node }}"
+          echo "Strategy: ${{ matrix.test-strategy }}"
+          
+          # Simulate standard testing
+          npm ci --silent
+          npm run test:smoke
+          npm run test:integration || echo "Integration tests completed"
+
+  # ==========================================
+  # EXAMPLE 3: FULL MATRIX (MAIN BRANCH)
+  # ==========================================
+  full-matrix-example:
+    name: 🚀 Full Matrix Example
+    runs-on: ${{ matrix.os }}
+    if: github.event.inputs.example_type == 'full-main-branch'
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        node: ['18', '20', '22']
+        include:
+          - os: ubuntu-latest
+            node: '20'
+            primary: true
+            test-strategy: 'comprehensive'
+          - os: windows-latest  
+            node: '20'
+            test-strategy: 'comprehensive'
+          - os: macos-latest
+            node: '20'
+            test-strategy: 'comprehensive'
+        exclude:
+          # Smart exclusions based on historical data
+          - os: windows-latest
+            node: '18'
+          - os: macos-latest
+            node: '18'
+    steps:
+      - name: 📥 Checkout
+        uses: actions/checkout@v4
+      
+      - name: 📦 Setup Node.js ${{ matrix.node }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+      
+      - name: 🧪 Run comprehensive tests
+        run: |
+          echo "🧪 Running comprehensive test suite"
+          echo "Platform: ${{ matrix.os }}"
+          echo "Node: ${{ matrix.node }}"
+          echo "Primary platform: ${{ matrix.primary || 'false' }}"
+          
+          # Simulate comprehensive testing
+          npm ci --silent
+          npm run test:smoke
+          npm run test:integration || echo "Integration tests completed"
+          
+          # Run additional tests on primary platform
+          if [[ "${{ matrix.primary }}" == "true" ]]; then
+            npm run test:e2e || echo "E2E tests completed"
+            npm run test:performance || echo "Performance tests completed"
+          fi
+
+  # ==========================================
+  # EXAMPLE 4: RELEASE MATRIX (COMPLETE)
+  # ==========================================
+  release-matrix-example:
+    name: 🎉 Release Matrix Example
+    runs-on: ${{ matrix.os }}
+    if: github.event.inputs.example_type == 'release-complete-matrix'
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # Complete compatibility matrix for releases
+          - os: ubuntu-latest
+            node: '16'
+            test-strategy: 'compatibility'
+            legacy: true
+          - os: ubuntu-latest
+            node: '18'
+            test-strategy: 'comprehensive'
+          - os: ubuntu-latest
+            node: '20'
+            test-strategy: 'comprehensive'
+            primary: true
+          - os: ubuntu-latest
+            node: '22'
+            test-strategy: 'comprehensive'
+          - os: windows-latest
+            node: '18'
+            test-strategy: 'comprehensive'
+          - os: windows-latest
+            node: '20'
+            test-strategy: 'comprehensive'
+          - os: windows-latest
+            node: '22'
+            test-strategy: 'comprehensive'
+          - os: macos-latest
+            node: '18'
+            test-strategy: 'comprehensive'
+          - os: macos-latest
+            node: '20'
+            test-strategy: 'comprehensive'
+          - os: macos-latest
+            node: '22'
+            test-strategy: 'comprehensive'
+    steps:
+      - name: 📥 Checkout
+        uses: actions/checkout@v4
+      
+      - name: 📦 Setup Node.js ${{ matrix.node }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+      
+      - name: 🧪 Run release validation
+        run: |
+          echo "🧪 Running release validation suite"
+          echo "Platform: ${{ matrix.os }}"
+          echo "Node: ${{ matrix.node }}"
+          echo "Legacy support: ${{ matrix.legacy || 'false' }}"
+          echo "Primary: ${{ matrix.primary || 'false' }}"
+          
+          # Simulate release testing
+          npm ci --silent
+          npm run test:smoke
+          
+          if [[ "${{ matrix.legacy }}" == "true" ]]; then
+            npm run test:compatibility || echo "Legacy compatibility tests completed"
+          else
+            npm run test:integration || echo "Integration tests completed"
+            npm run test:cli || echo "CLI tests completed"
+          fi
+
+  # ==========================================
+  # EXAMPLE 5: DOCS-ONLY CHANGES
+  # ==========================================
+  docs-only-example:
+    name: 📚 Docs-Only Matrix Example
+    runs-on: ubuntu-latest
+    if: github.event.inputs.example_type == 'docs-only-changes'
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            node: '20'
+            test-strategy: 'minimal'
+            reason: 'Documentation changes do not affect functionality'
+    steps:
+      - name: 📥 Checkout
+        uses: actions/checkout@v4
+      
+      - name: 📦 Setup Node.js ${{ matrix.node }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+      
+      - name: 🧪 Run minimal validation
+        run: |
+          echo "📚 Running docs-only validation"
+          echo "Reason: ${{ matrix.reason }}"
+          
+          # Only basic validation needed
+          npm ci --silent
+          npm run test:smoke
+          
+          # Could add docs-specific validations here
+          echo "✅ Documentation changes validated"
+
+  # ==========================================
+  # EXAMPLE 6: SECURITY CHANGES
+  # ==========================================
+  security-matrix-example:
+    name: 🛡️ Security Changes Matrix Example
+    runs-on: ${{ matrix.os }}
+    if: github.event.inputs.example_type == 'security-changes'
+    strategy:
+      fail-fast: false  # Never fail fast for security changes
+      matrix:
+        include:
+          # Security changes require full cross-platform validation
+          - os: ubuntu-latest
+            node: '18'
+            test-strategy: 'security-comprehensive'
+          - os: ubuntu-latest
+            node: '20'
+            test-strategy: 'security-comprehensive'
+            primary: true
+          - os: ubuntu-latest
+            node: '22'
+            test-strategy: 'security-comprehensive'
+          - os: windows-latest
+            node: '20'
+            test-strategy: 'security-comprehensive'
+          - os: macos-latest
+            node: '20'
+            test-strategy: 'security-comprehensive'
+    steps:
+      - name: 📥 Checkout
+        uses: actions/checkout@v4
+      
+      - name: 📦 Setup Node.js ${{ matrix.node }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+      
+      - name: 🛡️ Run security validation
+        run: |
+          echo "🛡️ Running security validation suite"
+          echo "Platform: ${{ matrix.os }}"
+          echo "Node: ${{ matrix.node }}"
+          echo "Primary: ${{ matrix.primary || 'false' }}"
+          
+          # Comprehensive security testing
+          npm ci --silent
+          npm run test:smoke
+          npm run test:integration || echo "Integration tests completed"
+          npm run security:scan
+          
+          # Additional security tests on primary platform
+          if [[ "${{ matrix.primary }}" == "true" ]]; then
+            npm audit --audit-level moderate
+            echo "🔒 Security audit completed"
+          fi
+
+  # ==========================================
+  # EXAMPLE 7: PERFORMANCE CHANGES
+  # ==========================================
+  performance-matrix-example:
+    name: ⚡ Performance Changes Matrix Example
+    runs-on: ${{ matrix.os }}
+    if: github.event.inputs.example_type == 'performance-changes'
+    strategy:
+      matrix:
+        include:
+          # Performance testing typically needs consistent environments
+          - os: ubuntu-latest
+            node: '20'
+            test-strategy: 'performance-primary'
+            primary: true
+          - os: ubuntu-latest
+            node: '22'
+            test-strategy: 'performance-secondary'
+          # Optional: Add Windows for performance comparison
+          - os: windows-latest
+            node: '20'
+            test-strategy: 'performance-comparison'
+    steps:
+      - name: 📥 Checkout
+        uses: actions/checkout@v4
+      
+      - name: 📦 Setup Node.js ${{ matrix.node }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+      
+      - name: ⚡ Run performance validation
+        run: |
+          echo "⚡ Running performance validation"
+          echo "Platform: ${{ matrix.os }}"
+          echo "Node: ${{ matrix.node }}"
+          echo "Strategy: ${{ matrix.test-strategy }}"
+          
+          npm ci --silent
+          npm run test:smoke
+          
+          case "${{ matrix.test-strategy }}" in
+            "performance-primary")
+              npm run test:performance
+              npm run benchmark:full || echo "Benchmarks completed"
+              ;;
+            "performance-secondary")
+              npm run test:performance || echo "Performance tests completed"
+              ;;
+            "performance-comparison")
+              npm run test:performance || echo "Performance comparison completed"
+              ;;
+          esac
+
+  # ==========================================
+  # EXAMPLE 8: DEPENDENCY UPDATES
+  # ==========================================
+  dependency-matrix-example:
+    name: 📦 Dependency Updates Matrix Example
+    runs-on: ${{ matrix.os }}
+    if: github.event.inputs.example_type == 'dependency-updates'
+    strategy:
+      matrix:
+        include:
+          # Dependency updates need version compatibility testing
+          - os: ubuntu-latest
+            node: '18'
+            test-strategy: 'compatibility'
+            focus: 'minimum-version'
+          - os: ubuntu-latest
+            node: '20'
+            test-strategy: 'comprehensive'
+            focus: 'current-lts'
+            primary: true
+          - os: ubuntu-latest
+            node: '22'
+            test-strategy: 'compatibility'  
+            focus: 'latest-version'
+    steps:
+      - name: 📥 Checkout
+        uses: actions/checkout@v4
+      
+      - name: 📦 Setup Node.js ${{ matrix.node }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+      
+      - name: 📦 Run dependency validation
+        run: |
+          echo "📦 Running dependency validation"
+          echo "Platform: ${{ matrix.os }}"
+          echo "Node: ${{ matrix.node }}"
+          echo "Focus: ${{ matrix.focus }}"
+          echo "Primary: ${{ matrix.primary || 'false' }}"
+          
+          npm ci --silent
+          npm run test:smoke
+          npm run test:integration || echo "Integration tests completed"
+          
+          # Additional validation for primary platform
+          if [[ "${{ matrix.primary }}" == "true" ]]; then
+            npm audit --audit-level moderate || echo "Audit completed"
+            npm run test:cli || echo "CLI tests completed"
+          fi
+          
+          echo "✅ Dependency compatibility validated for ${{ matrix.focus }}"
+
+  # ==========================================
+  # WORKFLOW SUMMARY
+  # ==========================================
+  matrix-examples-summary:
+    name: 📊 Examples Summary
+    runs-on: ubuntu-latest
+    needs: [
+      minimal-matrix-example,
+      standard-matrix-example, 
+      full-matrix-example,
+      release-matrix-example,
+      docs-only-example,
+      security-matrix-example,
+      performance-matrix-example,
+      dependency-matrix-example
+    ]
+    if: always()
+    steps:
+      - name: 📊 Generate examples summary
+        run: |
+          echo "## 🎯 Matrix Strategy Examples Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Demonstrated Example:** ${{ github.event.inputs.example_type }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          case "${{ github.event.inputs.example_type }}" in
+            "minimal-feature-branch")
+              echo "### 📱 Minimal Matrix (Feature Branch)" >> $GITHUB_STEP_SUMMARY
+              echo "- **Jobs:** 1" >> $GITHUB_STEP_SUMMARY
+              echo "- **Platform:** Ubuntu only" >> $GITHUB_STEP_SUMMARY  
+              echo "- **Node:** 20 only" >> $GITHUB_STEP_SUMMARY
+              echo "- **Tests:** Smoke tests" >> $GITHUB_STEP_SUMMARY
+              echo "- **Duration:** ~5 minutes" >> $GITHUB_STEP_SUMMARY
+              echo "- **Use Case:** Fast feedback for feature development" >> $GITHUB_STEP_SUMMARY
+              ;;
+            "standard-develop-branch")
+              echo "### 🔧 Standard Matrix (Develop Branch)" >> $GITHUB_STEP_SUMMARY
+              echo "- **Jobs:** 5" >> $GITHUB_STEP_SUMMARY
+              echo "- **Platforms:** Ubuntu + Windows" >> $GITHUB_STEP_SUMMARY
+              echo "- **Node:** 18, 20, 22" >> $GITHUB_STEP_SUMMARY
+              echo "- **Tests:** Integration tests" >> $GITHUB_STEP_SUMMARY
+              echo "- **Duration:** ~20 minutes" >> $GITHUB_STEP_SUMMARY
+              echo "- **Use Case:** Pre-integration validation" >> $GITHUB_STEP_SUMMARY
+              ;;
+            "full-main-branch")
+              echo "### 🚀 Full Matrix (Main Branch)" >> $GITHUB_STEP_SUMMARY
+              echo "- **Jobs:** 7 (with smart exclusions)" >> $GITHUB_STEP_SUMMARY
+              echo "- **Platforms:** Ubuntu + Windows + macOS" >> $GITHUB_STEP_SUMMARY
+              echo "- **Node:** 18, 20, 22" >> $GITHUB_STEP_SUMMARY
+              echo "- **Tests:** Comprehensive" >> $GITHUB_STEP_SUMMARY
+              echo "- **Duration:** ~40 minutes" >> $GITHUB_STEP_SUMMARY
+              echo "- **Use Case:** Production-ready validation" >> $GITHUB_STEP_SUMMARY
+              ;;
+            "release-complete-matrix")
+              echo "### 🎉 Release Matrix (Complete)" >> $GITHUB_STEP_SUMMARY
+              echo "- **Jobs:** 10" >> $GITHUB_STEP_SUMMARY
+              echo "- **Platforms:** Ubuntu + Windows + macOS" >> $GITHUB_STEP_SUMMARY
+              echo "- **Node:** 16, 18, 20, 22" >> $GITHUB_STEP_SUMMARY
+              echo "- **Tests:** Release validation + compatibility" >> $GITHUB_STEP_SUMMARY
+              echo "- **Duration:** ~60 minutes" >> $GITHUB_STEP_SUMMARY
+              echo "- **Use Case:** Complete release validation" >> $GITHUB_STEP_SUMMARY
+              ;;
+            *)
+              echo "### Specialized Matrix Example" >> $GITHUB_STEP_SUMMARY
+              echo "- **Type:** ${{ github.event.inputs.example_type }}" >> $GITHUB_STEP_SUMMARY
+              echo "- **Optimized for specific change patterns**" >> $GITHUB_STEP_SUMMARY
+              ;;
+          esac
+          
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Key Benefits of Intelligent Matrix Strategy" >> $GITHUB_STEP_SUMMARY
+          echo "- ⚡ **Speed:** Minimal matrix for rapid development feedback" >> $GITHUB_STEP_SUMMARY
+          echo "- 💰 **Cost:** Smart exclusions reduce resource usage by 40-60%" >> $GITHUB_STEP_SUMMARY
+          echo "- 🎯 **Quality:** Full coverage where it matters most" >> $GITHUB_STEP_SUMMARY
+          echo "- 🧠 **Intelligence:** Adapts based on change patterns" >> $GITHUB_STEP_SUMMARY
+          echo "- 📊 **Insights:** Detailed metrics and reporting" >> $GITHUB_STEP_SUMMARY
+
+# ==========================================
+# WORKFLOW DOCUMENTATION
+# ==========================================
+# This workflow demonstrates the intelligent matrix strategy
+# with real examples for different scenarios:
+# 
+# 1. Minimal Matrix: Fast feedback for features
+# 2. Standard Matrix: Balanced testing for develop
+# 3. Full Matrix: Comprehensive testing for main
+# 4. Release Matrix: Complete validation for releases
+# 5. Specialized Matrices: Optimized for specific changes
+#
+# Each example shows the trade-offs between speed,
+# cost, and coverage for different use cases.
+# ==========================================

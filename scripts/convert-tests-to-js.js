@@ -63,7 +63,7 @@ async function convertFile(filePath) {
     console.log(`Converting ${filePath}...`);
     
     let content = await fs.readFile(filePath, 'utf8');
-    let originalContent = content;
+    const originalContent = content;
     
     // Apply all conversions
     for (const conversion of conversions) {

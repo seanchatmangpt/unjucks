@@ -1,0 +1,64 @@
+name: Example - Release Workflow with Global Mutex
+
+# Release workflows need global mutex to prevent concurrent releases
+# Never cancel release workflows to avoid partial releases
+concurrency:
+  group: release-pipeline
+  cancel-in-progress: false
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_type:
+        description: 'Type of release'
+        required: true
+        default: 'patch'
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+
+jobs:
+  prepare:
+    name: Prepare Release
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Bump version
+        id: version
+        run: |
+          # Version bumping logic
+          NEW_VERSION=$(npm version ${{ inputs.release_type }} --no-git-tag-version)
+          echo "version=${NEW_VERSION}" >> $GITHUB_OUTPUT
+
+  build:
+    name: Build Release
+    needs: prepare
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build
+        run: |
+          echo "Building version ${{ needs.prepare.outputs.version }}"
+          # Build logic here
+
+  publish:
+    name: Publish Release
+    needs: [prepare, build]
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+      - name: Publish
+        run: |
+          echo "Publishing version ${{ needs.prepare.outputs.version }}"
+          # Publish logic here
+
+# This configuration:
+# ✅ Uses global mutex to prevent concurrent releases
+# ✅ Never cancels running releases (prevents incomplete releases)
+# ✅ Queues multiple release requests sequentially
+# ✅ Uses production environment for final approval

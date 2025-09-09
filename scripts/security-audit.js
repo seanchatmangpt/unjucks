@@ -60,7 +60,7 @@ class SecurityAuditor {
 
       const envContent = fs.readFileSync(envPath, 'utf8');
       const lines = envContent.split('\n');
-      let insecureConfigs = [];
+      const insecureConfigs = [];
 
       lines.forEach((line, index) => {
         const lineNum = index + 1;
@@ -214,8 +214,8 @@ class SecurityAuditor {
     try {
       // Check for eval usage
       const jsFiles = this.findFiles('.', /\.(js|ts)$/, ['node_modules', 'dist', 'build']);
-      let evalUsage = [];
-      let consoleUsage = [];
+      const evalUsage = [];
+      const consoleUsage = [];
       
       jsFiles.forEach(file => {
         try {

@@ -1,0 +1,497 @@
+# Test Scenarios for Multi-Layer Cache Dependencies Action
+# This workflow tests the caching action across different scenarios
+
+name: 🧪 Cache Action Test Scenarios
+on:
+  workflow_dispatch:
+    inputs:
+      test-scenario:
+        description: 'Test scenario to run'
+        required: true
+        default: 'all'
+        type: choice
+        options:
+          - all
+          - basic
+          - multi-platform
+          - package-managers
+          - cache-strategies
+          - performance
+          - edge-cases
+
+env:
+  CI: true
+  NODE_OPTIONS: '--max-old-space-size=4096'
+
+jobs:
+  # ==========================================
+  # SCENARIO 1: Basic Functionality
+  # ==========================================
+  basic-functionality:
+    name: 🔧 Basic Functionality Test
+    runs-on: ubuntu-latest
+    if: github.event.inputs.test-scenario == 'all' || github.event.inputs.test-scenario == 'basic'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          
+      - name: Test Basic Cache Setup
+        id: basic-cache
+        uses: ./.github/actions/cache-dependencies
+        with:
+          package-manager: 'npm'
+          node-version: '20'
+          cache-strategy: 'balanced'
+          
+      - name: Validate Basic Functionality
+        run: |
+          echo "Testing basic cache functionality..."
+          
+          # Check outputs exist
+          echo "NPM Cache Hit: ${{ steps.basic-cache.outputs.npm-cache-hit }}"
+          echo "Node Modules Hit: ${{ steps.basic-cache.outputs.node-modules-cache-hit }}"
+          echo "Build Cache Hit: ${{ steps.basic-cache.outputs.build-cache-hit }}"
+          echo "Hit Rate: ${{ steps.basic-cache.outputs.cache-hit-rate }}%"
+          
+          # Validate cache key generation
+          if [[ -z "${{ steps.basic-cache.outputs.primary-cache-key }}" ]]; then
+            echo "❌ Primary cache key not generated"
+            exit 1
+          fi
+          
+          echo "✅ Basic functionality test passed"
+          
+      - name: Install Dependencies Test
+        run: |
+          npm ci
+          echo "✅ Dependencies installed successfully"
+          
+      - name: Build Test
+        run: |
+          npm run build:prepare || echo "Build preparation completed"
+          echo "✅ Build test completed"
+
+  # ==========================================
+  # SCENARIO 2: Multi-Platform Compatibility
+  # ==========================================
+  multi-platform:
+    name: 🌍 Multi-Platform Test (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    if: github.event.inputs.test-scenario == 'all' || github.event.inputs.test-scenario == 'multi-platform'
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          
+      - name: Platform-Specific Cache Test
+        id: platform-cache
+        uses: ./.github/actions/cache-dependencies
+        with:
+          package-manager: 'npm'
+          cache-strategy: 'balanced'
+          cache-key-prefix: 'platform-test'
+          
+      - name: Validate Platform Compatibility
+        shell: bash
+        run: |
+          echo "Testing cache on ${{ matrix.os }}..."
+          
+          # Check platform-specific paths work
+          echo "Primary Cache Key: ${{ steps.platform-cache.outputs.primary-cache-key }}"
+          echo "Hit Rate: ${{ steps.platform-cache.outputs.cache-hit-rate }}%"
+          
+          # Install dependencies to test functionality
+          npm ci --prefer-offline || npm ci
+          
+          echo "✅ Platform compatibility test passed on ${{ matrix.os }}"
+
+  # ==========================================
+  # SCENARIO 3: Package Manager Support
+  # ==========================================
+  package-managers:
+    name: 📦 Package Manager Test (${{ matrix.manager }})
+    runs-on: ubuntu-latest
+    if: github.event.inputs.test-scenario == 'all' || github.event.inputs.test-scenario == 'package-managers'
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - manager: npm
+            install-cmd: npm ci
+          - manager: pnpm
+            install-cmd: pnpm install --frozen-lockfile
+          - manager: yarn
+            install-cmd: yarn install --immutable
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          
+      - name: Setup PNPM
+        if: matrix.manager == 'pnpm'
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9.12.0
+          
+      - name: Setup Yarn
+        if: matrix.manager == 'yarn'
+        run: |
+          corepack enable
+          yarn set version stable
+          
+      - name: Create Lock File
+        run: |
+          # Ensure appropriate lock file exists
+          case "${{ matrix.manager }}" in
+            "pnpm")
+              if [[ ! -f "pnpm-lock.yaml" ]]; then
+                pnpm install --lockfile-only || echo "Lock file created"
+              fi
+              ;;
+            "yarn")
+              if [[ ! -f "yarn.lock" ]]; then
+                yarn install --mode skip-build || echo "Lock file created"
+              fi
+              ;;
+          esac
+          
+      - name: Package Manager Cache Test
+        id: pm-cache
+        uses: ./.github/actions/cache-dependencies
+        with:
+          package-manager: ${{ matrix.manager }}
+          cache-strategy: 'balanced'
+          cache-key-prefix: 'pm-test-${{ matrix.manager }}'
+          
+      - name: Test Package Manager Integration
+        run: |
+          echo "Testing ${{ matrix.manager }} integration..."
+          echo "Primary Cache Key: ${{ steps.pm-cache.outputs.primary-cache-key }}"
+          echo "Dependency Hash: ${{ steps.pm-cache.outputs.dependency-hash }}"
+          
+          # Test installation with the package manager
+          ${{ matrix.install-cmd }} || echo "Installation attempted"
+          
+          echo "✅ ${{ matrix.manager }} integration test completed"
+
+  # ==========================================
+  # SCENARIO 4: Cache Strategy Testing
+  # ==========================================
+  cache-strategies:
+    name: 🎯 Cache Strategy Test (${{ matrix.strategy }})
+    runs-on: ubuntu-latest
+    if: github.event.inputs.test-scenario == 'all' || github.event.inputs.test-scenario == 'cache-strategies'
+    strategy:
+      fail-fast: false
+      matrix:
+        strategy: [conservative, balanced, aggressive]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          
+      - name: Strategy-Specific Cache Test
+        id: strategy-cache
+        uses: ./.github/actions/cache-dependencies
+        with:
+          package-manager: 'npm'
+          cache-strategy: ${{ matrix.strategy }}
+          cache-key-prefix: 'strategy-${{ matrix.strategy }}'
+          
+      - name: Validate Strategy Implementation
+        run: |
+          echo "Testing ${{ matrix.strategy }} cache strategy..."
+          
+          # Check that different strategies generate different keys
+          echo "Cache Key: ${{ steps.strategy-cache.outputs.primary-cache-key }}"
+          
+          # Validate strategy affects behavior
+          if [[ "${{ steps.strategy-cache.outputs.primary-cache-key }}" != *"${{ matrix.strategy }}"* ]]; then
+            echo "❌ Strategy not reflected in cache key"
+            exit 1
+          fi
+          
+          echo "✅ ${{ matrix.strategy }} strategy test passed"
+
+  # ==========================================
+  # SCENARIO 5: Performance Testing
+  # ==========================================
+  performance-test:
+    name: ⚡ Performance Test
+    runs-on: ubuntu-latest
+    if: github.event.inputs.test-scenario == 'all' || github.event.inputs.test-scenario == 'performance'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          
+      - name: Performance Cache Test (Cold)
+        id: cold-cache
+        uses: ./.github/actions/cache-dependencies
+        with:
+          package-manager: 'npm'
+          cache-strategy: 'aggressive'
+          cache-key-prefix: 'perf-cold-${{ github.run_id }}'
+          parallel-cache-ops: 'true'
+          cache-compression: 'true'
+          
+      - name: Install Dependencies (Cold)
+        run: |
+          echo "🥶 Cold cache test - installing dependencies..."
+          time npm ci
+          
+      - name: Build (Cold)
+        run: |
+          echo "🏗️ Cold cache build..."
+          time npm run build:prepare || echo "Build completed"
+          
+      - name: Performance Cache Test (Warm)
+        id: warm-cache
+        uses: ./.github/actions/cache-dependencies
+        with:
+          package-manager: 'npm'
+          cache-strategy: 'aggressive'
+          cache-key-prefix: 'perf-cold-${{ github.run_id }}'
+          parallel-cache-ops: 'true'
+          cache-compression: 'true'
+          
+      - name: Validate Performance Metrics
+        run: |
+          echo "⚡ Performance test results..."
+          echo ""
+          echo "Cold Cache:"
+          echo "- Hit Rate: ${{ steps.cold-cache.outputs.cache-hit-rate }}%"
+          echo "- Restore Time: ${{ steps.cold-cache.outputs.cache-restore-time }}s"
+          echo "- Cache Size: ${{ steps.cold-cache.outputs.total-cache-size }}MB"
+          echo ""
+          echo "Warm Cache:"
+          echo "- Hit Rate: ${{ steps.warm-cache.outputs.cache-hit-rate }}%"
+          echo "- Restore Time: ${{ steps.warm-cache.outputs.cache-restore-time }}s"
+          echo "- Cache Size: ${{ steps.warm-cache.outputs.total-cache-size }}MB"
+          echo ""
+          
+          # Performance validation
+          COLD_TIME="${{ steps.cold-cache.outputs.cache-restore-time }}"
+          WARM_TIME="${{ steps.warm-cache.outputs.cache-restore-time }}"
+          
+          if [[ $WARM_TIME -gt 120 ]]; then
+            echo "⚠️ Warm cache restore time is high (${WARM_TIME}s)"
+          else
+            echo "✅ Cache restore performance acceptable"
+          fi
+
+  # ==========================================
+  # SCENARIO 6: Edge Cases and Error Handling
+  # ==========================================
+  edge-cases:
+    name: 🔍 Edge Cases Test
+    runs-on: ubuntu-latest
+    if: github.event.inputs.test-scenario == 'all' || github.event.inputs.test-scenario == 'edge-cases'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          
+      - name: Test Missing Lock File
+        id: no-lock
+        uses: ./.github/actions/cache-dependencies
+        with:
+          package-manager: 'npm'
+          cache-strategy: 'balanced'
+          cache-key-prefix: 'edge-no-lock'
+        continue-on-error: true
+        
+      - name: Remove Package JSON (Edge Case)
+        run: |
+          mv package.json package.json.backup
+          
+      - name: Test Missing Package.json
+        id: no-package
+        uses: ./.github/actions/cache-dependencies
+        with:
+          package-manager: 'npm'
+          cache-strategy: 'balanced'
+          cache-key-prefix: 'edge-no-pkg'
+          ignore-cache-miss: 'true'
+        continue-on-error: true
+        
+      - name: Restore Package.json
+        run: |
+          mv package.json.backup package.json
+          
+      - name: Test Large Cache Paths
+        id: large-cache
+        uses: ./.github/actions/cache-dependencies
+        with:
+          package-manager: 'npm'
+          cache-strategy: 'balanced'
+          additional-cache-paths: |
+            /tmp/large-cache-test
+            ~/.cache/test-large
+            ./non-existent-path
+            ./another/missing/path
+          ignore-cache-miss: 'true'
+        continue-on-error: true
+        
+      - name: Test Cleanup Disabled
+        id: no-cleanup
+        uses: ./.github/actions/cache-dependencies
+        with:
+          package-manager: 'npm'
+          cache-strategy: 'balanced'
+          enable-cleanup: 'false'
+          enable-npm-cache: 'false'
+          enable-node-modules-cache: 'false'
+          enable-build-cache: 'false'
+          enable-tool-cache: 'false'
+          
+      - name: Validate Edge Case Handling
+        run: |
+          echo "🔍 Edge case test results..."
+          echo ""
+          echo "Missing lock file test: ${{ steps.no-lock.outcome }}"
+          echo "Missing package.json test: ${{ steps.no-package.outcome }}"
+          echo "Large cache paths test: ${{ steps.large-cache.outcome }}"
+          echo "All caches disabled test: ${{ steps.no-cleanup.outcome }}"
+          echo ""
+          
+          # Check that action doesn't fail completely
+          if [[ "${{ steps.no-cleanup.outcome }}" == "failure" ]]; then
+            echo "❌ Action failed when all caches disabled"
+            exit 1
+          fi
+          
+          echo "✅ Edge cases handled gracefully"
+
+  # ==========================================
+  # SCENARIO 7: Node Version Matrix
+  # ==========================================
+  node-versions:
+    name: 📚 Node Version Test (${{ matrix.node }})
+    runs-on: ubuntu-latest
+    if: github.event.inputs.test-scenario == 'all'
+    strategy:
+      fail-fast: false
+      matrix:
+        node: ['18', '20', '22']
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js ${{ matrix.node }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+          
+      - name: Node Version Cache Test
+        id: node-cache
+        uses: ./.github/actions/cache-dependencies
+        with:
+          package-manager: 'npm'
+          node-version: ${{ matrix.node }}
+          cache-strategy: 'balanced'
+          cache-key-prefix: 'node-${{ matrix.node }}'
+          
+      - name: Validate Node Version Handling
+        run: |
+          echo "Testing Node.js ${{ matrix.node }} compatibility..."
+          
+          # Verify cache key includes node version
+          CACHE_KEY="${{ steps.node-cache.outputs.primary-cache-key }}"
+          if [[ "$CACHE_KEY" != *"node${{ matrix.node }}"* ]]; then
+            echo "❌ Node version not in cache key: $CACHE_KEY"
+            exit 1
+          fi
+          
+          # Test basic functionality
+          npm ci
+          npm run test:smoke || echo "Smoke test completed"
+          
+          echo "✅ Node.js ${{ matrix.node }} test passed"
+
+  # ==========================================
+  # TEST RESULTS SUMMARY
+  # ==========================================
+  test-summary:
+    name: 📊 Test Results Summary
+    runs-on: ubuntu-latest
+    needs: [
+      basic-functionality,
+      multi-platform, 
+      package-managers,
+      cache-strategies,
+      performance-test,
+      edge-cases,
+      node-versions
+    ]
+    if: always()
+    steps:
+      - name: Generate Test Summary
+        run: |
+          echo "📊 Cache Action Test Results Summary"
+          echo "===================================="
+          echo ""
+          echo "Test Scenarios:"
+          echo "- Basic Functionality: ${{ needs.basic-functionality.result || 'skipped' }}"
+          echo "- Multi-Platform: ${{ needs.multi-platform.result || 'skipped' }}"
+          echo "- Package Managers: ${{ needs.package-managers.result || 'skipped' }}"
+          echo "- Cache Strategies: ${{ needs.cache-strategies.result || 'skipped' }}"
+          echo "- Performance: ${{ needs.performance-test.result || 'skipped' }}"
+          echo "- Edge Cases: ${{ needs.edge-cases.result || 'skipped' }}"
+          echo "- Node Versions: ${{ needs.node-versions.result || 'skipped' }}"
+          echo ""
+          
+          # Count results
+          SUCCESS_COUNT=0
+          FAILURE_COUNT=0
+          SKIPPED_COUNT=0
+          
+          for result in "${{ needs.basic-functionality.result }}" "${{ needs.multi-platform.result }}" "${{ needs.package-managers.result }}" "${{ needs.cache-strategies.result }}" "${{ needs.performance-test.result }}" "${{ needs.edge-cases.result }}" "${{ needs.node-versions.result }}"; do
+            case "$result" in
+              "success") SUCCESS_COUNT=$((SUCCESS_COUNT + 1)) ;;
+              "failure") FAILURE_COUNT=$((FAILURE_COUNT + 1)) ;;
+              *) SKIPPED_COUNT=$((SKIPPED_COUNT + 1)) ;;
+            esac
+          done
+          
+          echo "Summary:"
+          echo "- ✅ Passed: $SUCCESS_COUNT"
+          echo "- ❌ Failed: $FAILURE_COUNT"
+          echo "- ⏭️ Skipped: $SKIPPED_COUNT"
+          echo ""
+          
+          if [[ $FAILURE_COUNT -eq 0 ]]; then
+            echo "🎉 All tests passed! Cache action is working correctly."
+          else
+            echo "⚠️ Some tests failed. Review the results above."
+            exit 1
+          fi

@@ -1,0 +1,249 @@
+name: Workflow Monitoring & Reporting
+
+on:
+  schedule:
+    # Run daily at 6:00 AM UTC
+    - cron: '0 6 * * *'
+    # Weekly report on Mondays at 8:00 AM UTC
+    - cron: '0 8 * * 1'
+  workflow_dispatch:
+    inputs:
+      report_type:
+        description: 'Type of report to generate'
+        required: true
+        default: 'daily'
+        type: choice
+        options:
+          - daily
+          - weekly
+          - monthly
+          - custom
+      days_back:
+        description: 'Number of days to analyze (for custom reports)'
+        required: false
+        default: '7'
+        type: number
+
+env:
+  MONITORING_CONFIG_PATH: '.github/scripts/monitoring/config.json'
+  REPORTS_PATH: '.github/monitoring-reports'
+
+permissions:
+  actions: read
+  contents: write
+  issues: write
+  pull-requests: read
+
+jobs:
+  collect-metrics:
+    name: Collect Workflow Metrics
+    runs-on: ubuntu-latest
+    outputs:
+      metrics-collected: ${{ steps.collection.outputs.success }}
+      report-path: ${{ steps.collection.outputs.report_path }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: |
+          npm ci --prefer-offline --no-audit
+          cd .github/scripts/monitoring && npm install --production
+
+      - name: Collect workflow metrics
+        id: collection
+        run: |
+          node .github/scripts/monitoring/collect-metrics.js \
+            --repo "${{ github.repository }}" \
+            --token "${{ secrets.GITHUB_TOKEN }}" \
+            --days-back "${{ github.event.inputs.days_back || '7' }}" \
+            --report-type "${{ github.event.inputs.report_type || 'daily' }}"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload metrics artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: workflow-metrics-${{ github.run_number }}
+          path: |
+            .github/monitoring-reports/
+            .github/scripts/monitoring/data/
+          retention-days: 30
+
+  analyze-trends:
+    name: Analyze Performance Trends
+    runs-on: ubuntu-latest
+    needs: collect-metrics
+    if: needs.collect-metrics.outputs.metrics-collected == 'true'
+    outputs:
+      trends-analyzed: ${{ steps.analysis.outputs.success }}
+      alerts-triggered: ${{ steps.analysis.outputs.alerts }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download metrics artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: workflow-metrics-${{ github.run_number }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Analyze trends and detect anomalies
+        id: analysis
+        run: |
+          node .github/scripts/monitoring/analyze-trends.js \
+            --report-type "${{ github.event.inputs.report_type || 'daily' }}"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Check for performance degradation
+        id: degradation
+        run: |
+          node .github/scripts/monitoring/check-degradation.js \
+            --threshold-failure-rate 15 \
+            --threshold-duration-increase 50 \
+            --threshold-cost-increase 25
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  generate-reports:
+    name: Generate Monitoring Reports
+    runs-on: ubuntu-latest
+    needs: [collect-metrics, analyze-trends]
+    if: always() && needs.collect-metrics.outputs.metrics-collected == 'true'
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download metrics artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: workflow-metrics-${{ github.run_number }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Generate HTML dashboard
+        run: |
+          node .github/scripts/monitoring/generate-dashboard.js \
+            --report-type "${{ github.event.inputs.report_type || 'daily' }}" \
+            --output-format html
+
+      - name: Generate weekly summary (if Monday)
+        if: github.event.schedule == '0 8 * * 1'
+        run: |
+          node .github/scripts/monitoring/generate-weekly-report.js
+
+      - name: Commit and push reports
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add .github/monitoring-reports/
+          if ! git diff --staged --quiet; then
+            git commit -m "📊 Update monitoring reports - $(date -u '+%Y-%m-%d %H:%M UTC')"
+            git push
+          fi
+
+      - name: Create GitHub Pages deployment
+        if: github.ref == 'refs/heads/main'
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./.github/monitoring-reports/dashboard
+          destination_dir: monitoring
+
+  send-alerts:
+    name: Send Performance Alerts
+    runs-on: ubuntu-latest
+    needs: [collect-metrics, analyze-trends]
+    if: needs.analyze-trends.outputs.alerts-triggered == 'true'
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download metrics artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: workflow-metrics-${{ github.run_number }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Send Slack notification (if configured)
+        if: env.SLACK_WEBHOOK_URL != ''
+        run: |
+          node .github/scripts/monitoring/send-slack-alert.js
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+
+      - name: Create GitHub issue for critical alerts
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const alertsFile = '.github/monitoring-reports/alerts.json';
+            
+            if (fs.existsSync(alertsFile)) {
+              const alerts = JSON.parse(fs.readFileSync(alertsFile, 'utf8'));
+              const criticalAlerts = alerts.filter(alert => alert.severity === 'critical');
+              
+              if (criticalAlerts.length > 0) {
+                const title = `🚨 Critical Workflow Performance Alert - ${new Date().toISOString().split('T')[0]}`;
+                const body = criticalAlerts.map(alert => 
+                  `## ${alert.title}\n\n**Severity**: ${alert.severity}\n\n${alert.description}\n\n**Metrics**:\n${alert.metrics.map(m => `- ${m}`).join('\n')}`
+                ).join('\n\n---\n\n');
+                
+                await github.rest.issues.create({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  title: title,
+                  body: body,
+                  labels: ['monitoring', 'performance', 'alert']
+                });
+              }
+            }
+
+  cleanup:
+    name: Cleanup Old Reports
+    runs-on: ubuntu-latest
+    needs: [generate-reports]
+    if: always()
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Clean up old monitoring data
+        run: |
+          # Keep last 30 days of daily reports
+          find .github/monitoring-reports/daily -name "*.json" -mtime +30 -delete || true
+          # Keep last 12 weekly reports
+          ls -t .github/monitoring-reports/weekly/*.json 2>/dev/null | tail -n +13 | xargs rm -f || true
+          # Keep last 6 monthly reports
+          ls -t .github/monitoring-reports/monthly/*.json 2>/dev/null | tail -n +7 | xargs rm -f || true
+
+      - name: Commit cleanup changes
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add .github/monitoring-reports/
+          if ! git diff --staged --quiet; then
+            git commit -m "🧹 Cleanup old monitoring reports"
+            git push
+          fi

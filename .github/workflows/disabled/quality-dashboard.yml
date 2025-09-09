@@ -1,0 +1,666 @@
+name: 📊 Quality Metrics Dashboard
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+  schedule:
+    - cron: '0 8 * * *' # Daily at 8 AM UTC
+  workflow_dispatch:
+    inputs:
+      force_regenerate:
+        description: 'Force regenerate all metrics'
+        required: false
+        default: false
+        type: boolean
+
+env:
+  NODE_VERSION: '20'
+
+jobs:
+  # ============================================================================
+  # COLLECT QUALITY METRICS
+  # ============================================================================
+  collect-metrics:
+    name: 📈 Collect Quality Metrics
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    
+    outputs:
+      metrics_version: ${{ steps.metrics.outputs.version }}
+      quality_score: ${{ steps.metrics.outputs.quality_score }}
+      
+    steps:
+      - name: 📥 Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          
+      - name: 📦 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          
+      - name: 📋 Install dependencies
+        run: |
+          npm ci --prefer-offline --no-audit
+          npm install -g jscpd complexity-report c8 lighthouse-ci semgrep
+          
+      - name: 🔧 Setup Claude Flow coordination
+        run: |
+          npx claude-flow@alpha hooks pre-task --description "Quality metrics collection and dashboard generation"
+          
+      - name: 📊 Generate code coverage metrics
+        run: |
+          echo "📊 Generating coverage metrics..."
+          
+          # Run tests with comprehensive coverage
+          c8 --reporter=json --reporter=lcov --reporter=text-summary \
+             --exclude='**/tests/**' \
+             --exclude='**/*.test.js' \
+             --exclude='**/*.spec.js' \
+             --exclude='**/node_modules/**' \
+             --exclude='**/coverage/**' \
+             --include='src/**/*.js' \
+             --all \
+             npm test || true
+             
+          # Generate coverage badge data
+          COVERAGE_PCT=$(cat coverage/coverage-summary.json | jq '.total.lines.pct // 0')
+          echo "COVERAGE_PERCENTAGE=$COVERAGE_PCT" >> $GITHUB_ENV
+          
+      - name: 🧠 Generate complexity metrics
+        run: |
+          echo "🧠 Analyzing code complexity..."
+          
+          # Create complexity analyzer script
+          cat > complexity-analyzer.js << 'EOF'
+          import { promises as fs } from 'fs';
+          import path from 'path';
+          import glob from 'glob';
+          
+          const analyzeComplexity = async () => {
+            const files = glob.sync('src/**/*.js', { ignore: ['**/*.test.js', '**/*.spec.js'] });
+            let totalComplexity = 0;
+            let totalFunctions = 0;
+            let filesAnalyzed = 0;
+            const issues = [];
+            
+            for (const file of files) {
+              try {
+                const content = await fs.readFile(file, 'utf8');
+                
+                // Simple complexity calculation
+                const functionMatches = content.match(/function\s+\w+|=>\s*{|\w+\s*:\s*function/g) || [];
+                const ifStatements = content.match(/\bif\s*\(/g) || [];
+                const loops = content.match(/\b(for|while|do)\s*\(/g) || [];
+                const switches = content.match(/\bswitch\s*\(/g) || [];
+                const catches = content.match(/\bcatch\s*\(/g) || [];
+                
+                const complexity = ifStatements.length + loops.length + switches.length + catches.length + 1;
+                totalComplexity += complexity;
+                filesAnalyzed++;
+                
+                if (functionMatches.length > 0) {
+                  totalFunctions += functionMatches.length;
+                  
+                  if (complexity > 10) {
+                    issues.push({
+                      file: file,
+                      complexity: complexity,
+                      functions: functionMatches.length,
+                      type: 'high_complexity'
+                    });
+                  }
+                }
+                
+              } catch (error) {
+                console.warn(`Could not analyze ${file}: ${error.message}`);
+              }
+            }
+            
+            const averageComplexity = totalFunctions > 0 ? (totalComplexity / totalFunctions).toFixed(2) : 0;
+            
+            const report = {
+              summary: {
+                filesAnalyzed,
+                totalFunctions,
+                averageComplexity: parseFloat(averageComplexity),
+                totalIssues: issues.length,
+                qualityGrade: averageComplexity <= 5 ? 'A' : averageComplexity <= 10 ? 'B' : averageComplexity <= 15 ? 'C' : 'D'
+              },
+              issues,
+              timestamp: new Date().toISOString()
+            };
+            
+            await fs.writeFile('complexity-report.json', JSON.stringify(report, null, 2));
+            console.log(`Complexity analysis complete: ${averageComplexity} average complexity`);
+          };
+          
+          analyzeComplexity().catch(console.error);
+          EOF
+          
+          node complexity-analyzer.js
+          
+      - name: 🔄 Generate duplication metrics
+        run: |
+          echo "🔄 Analyzing code duplication..."
+          
+          jscpd --format json --output ./duplication-report.json \
+            --threshold 3 \
+            --gitignore \
+            --min-lines 5 \
+            --min-tokens 50 \
+            src/ || true
+            
+      - name: 🔒 Generate security metrics
+        run: |
+          echo "🔒 Running security analysis..."
+          
+          # Run semgrep with custom rules
+          semgrep --config=.semgrep-rules.yml --json --output=security-report.json src/ || true
+          
+          # Run ESLint security scan
+          npx eslint --config .eslintrc.security.js --format json --output-file security-eslint.json src/ || true
+          
+      - name: ⚡ Generate performance metrics
+        run: |
+          echo "⚡ Analyzing performance..."
+          
+          # Bundle size analysis
+          npm run build || true
+          
+          # Create performance metrics
+          cat > performance-metrics.js << 'EOF'
+          import { promises as fs } from 'fs';
+          import path from 'path';
+          import { execSync } from 'child_process';
+          
+          const analyzePerformance = async () => {
+            const metrics = {
+              timestamp: new Date().toISOString(),
+              buildSize: {},
+              cliPerformance: {},
+              memoryUsage: {}
+            };
+            
+            // Analyze build output sizes
+            try {
+              const buildDir = 'dist';
+              if (await fs.access(buildDir).then(() => true).catch(() => false)) {
+                const files = await fs.readdir(buildDir);
+                for (const file of files) {
+                  const filePath = path.join(buildDir, file);
+                  const stats = await fs.stat(filePath);
+                  if (stats.isFile()) {
+                    metrics.buildSize[file] = {
+                      size: stats.size,
+                      sizeKB: Math.round(stats.size / 1024 * 100) / 100
+                    };
+                  }
+                }
+              }
+            } catch (error) {
+              console.warn('Could not analyze build size:', error.message);
+            }
+            
+            // Test CLI performance
+            try {
+              const startTime = Date.now();
+              execSync('node bin/unjucks.cjs --version', { timeout: 5000 });
+              const endTime = Date.now();
+              metrics.cliPerformance.startupTime = endTime - startTime;
+            } catch (error) {
+              metrics.cliPerformance.startupTime = -1;
+            }
+            
+            await fs.writeFile('performance-metrics.json', JSON.stringify(metrics, null, 2));
+            console.log('Performance analysis complete');
+          };
+          
+          analyzePerformance().catch(console.error);
+          EOF
+          
+          node performance-metrics.js
+          
+      - name: 📊 Generate consolidated metrics
+        id: metrics
+        run: |
+          echo "📊 Consolidating all metrics..."
+          
+          # Create metrics consolidator
+          cat > consolidate-metrics.js << 'EOF'
+          import { promises as fs } from 'fs';
+          
+          const consolidateMetrics = async () => {
+            const metrics = {
+              timestamp: new Date().toISOString(),
+              version: process.env.GITHUB_SHA?.substring(0, 7) || 'local',
+              branch: process.env.GITHUB_REF_NAME || 'unknown',
+              coverage: {},
+              complexity: {},
+              duplication: {},
+              security: {},
+              performance: {},
+              qualityScore: 0
+            };
+            
+            // Load coverage metrics
+            try {
+              const coverage = JSON.parse(await fs.readFile('coverage/coverage-summary.json', 'utf8'));
+              metrics.coverage = {
+                lines: coverage.total.lines.pct || 0,
+                functions: coverage.total.functions.pct || 0,
+                branches: coverage.total.branches.pct || 0,
+                statements: coverage.total.statements.pct || 0
+              };
+            } catch (error) {
+              console.warn('No coverage data available');
+              metrics.coverage = { lines: 0, functions: 0, branches: 0, statements: 0 };
+            }
+            
+            // Load complexity metrics
+            try {
+              const complexity = JSON.parse(await fs.readFile('complexity-report.json', 'utf8'));
+              metrics.complexity = {
+                averageComplexity: complexity.summary.averageComplexity || 0,
+                totalIssues: complexity.summary.totalIssues || 0,
+                qualityGrade: complexity.summary.qualityGrade || 'D',
+                filesAnalyzed: complexity.summary.filesAnalyzed || 0
+              };
+            } catch (error) {
+              console.warn('No complexity data available');
+              metrics.complexity = { averageComplexity: 0, totalIssues: 0, qualityGrade: 'D' };
+            }
+            
+            // Load duplication metrics
+            try {
+              const duplication = JSON.parse(await fs.readFile('duplication-report.json', 'utf8'));
+              metrics.duplication = {
+                percentage: duplication.statistics?.total?.percentage || 0,
+                duplicates: duplication.statistics?.total?.duplicates || 0
+              };
+            } catch (error) {
+              console.warn('No duplication data available');
+              metrics.duplication = { percentage: 0, duplicates: 0 };
+            }
+            
+            // Load security metrics
+            try {
+              const security = JSON.parse(await fs.readFile('security-report.json', 'utf8'));
+              const criticalIssues = security.results?.filter(r => r.extra.severity === 'ERROR').length || 0;
+              const warningIssues = security.results?.filter(r => r.extra.severity === 'WARNING').length || 0;
+              
+              metrics.security = {
+                criticalIssues,
+                warningIssues,
+                totalIssues: criticalIssues + warningIssues
+              };
+            } catch (error) {
+              console.warn('No security data available');
+              metrics.security = { criticalIssues: 0, warningIssues: 0, totalIssues: 0 };
+            }
+            
+            // Load performance metrics
+            try {
+              const performance = JSON.parse(await fs.readFile('performance-metrics.json', 'utf8'));
+              metrics.performance = performance;
+            } catch (error) {
+              console.warn('No performance data available');
+              metrics.performance = {};
+            }
+            
+            // Calculate overall quality score (0-100)
+            const coverageScore = (metrics.coverage.lines + metrics.coverage.functions + metrics.coverage.branches + metrics.coverage.statements) / 4;
+            const complexityScore = Math.max(0, 100 - (metrics.complexity.averageComplexity * 5));
+            const duplicationScore = Math.max(0, 100 - (metrics.duplication.percentage * 10));
+            const securityScore = metrics.security.criticalIssues === 0 && metrics.security.warningIssues <= 5 ? 100 : Math.max(0, 100 - (metrics.security.totalIssues * 10));
+            
+            metrics.qualityScore = Math.round((coverageScore + complexityScore + duplicationScore + securityScore) / 4);
+            
+            // Add quality assessment
+            metrics.assessment = {
+              grade: metrics.qualityScore >= 90 ? 'A' : metrics.qualityScore >= 80 ? 'B' : metrics.qualityScore >= 70 ? 'C' : metrics.qualityScore >= 60 ? 'D' : 'F',
+              status: metrics.qualityScore >= 80 ? 'excellent' : metrics.qualityScore >= 60 ? 'good' : metrics.qualityScore >= 40 ? 'needs-improvement' : 'critical',
+              recommendations: []
+            };
+            
+            // Generate recommendations
+            if (metrics.coverage.lines < 80) {
+              metrics.assessment.recommendations.push('Increase test coverage to at least 80%');
+            }
+            if (metrics.complexity.averageComplexity > 10) {
+              metrics.assessment.recommendations.push('Reduce code complexity through refactoring');
+            }
+            if (metrics.security.criticalIssues > 0) {
+              metrics.assessment.recommendations.push('Address critical security issues immediately');
+            }
+            if (metrics.duplication.percentage > 5) {
+              metrics.assessment.recommendations.push('Reduce code duplication below 5%');
+            }
+            
+            await fs.writeFile('quality-metrics.json', JSON.stringify(metrics, null, 2));
+            
+            // Output for GitHub Actions
+            console.log(`Quality Score: ${metrics.qualityScore}`);
+            console.log(`Grade: ${metrics.assessment.grade}`);
+            
+            return metrics;
+          };
+          
+          consolidateMetrics().then(metrics => {
+            // Set GitHub Actions outputs
+            process.env.GITHUB_OUTPUT && require('fs').appendFileSync(process.env.GITHUB_OUTPUT, 
+              `version=${metrics.version}\nquality_score=${metrics.qualityScore}\n`);
+          }).catch(console.error);
+          EOF
+          
+          node consolidate-metrics.js
+          
+      - name: 📈 Generate quality dashboard
+        run: |
+          echo "📈 Generating quality dashboard..."
+          
+          # Create dashboard generator
+          cat > generate-dashboard.js << 'EOF'
+          import { promises as fs } from 'fs';
+          
+          const generateDashboard = async () => {
+            const metrics = JSON.parse(await fs.readFile('quality-metrics.json', 'utf8'));
+            
+            const html = `
+          <!DOCTYPE html>
+          <html lang="en">
+          <head>
+              <meta charset="UTF-8">
+              <meta name="viewport" content="width=device-width, initial-scale=1.0">
+              <title>Quality Dashboard - Unjucks</title>
+              <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+              <style>
+                  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; margin: 0; padding: 20px; background: #f5f5f5; }
+                  .container { max-width: 1200px; margin: 0 auto; }
+                  .header { background: white; padding: 30px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+                  .metrics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin-bottom: 20px; }
+                  .metric-card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+                  .metric-value { font-size: 2.5em; font-weight: bold; margin: 10px 0; }
+                  .metric-label { color: #666; text-transform: uppercase; font-size: 0.9em; letter-spacing: 1px; }
+                  .quality-score { color: ${metrics.qualityScore >= 80 ? '#28a745' : metrics.qualityScore >= 60 ? '#ffc107' : '#dc3545'}; }
+                  .charts-container { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; }
+                  .chart-card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+                  .recommendations { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+                  .recommendation { background: #f8f9fa; padding: 10px; margin: 10px 0; border-left: 4px solid #007bff; }
+                  .status-badge { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 0.8em; font-weight: bold; }
+                  .status-excellent { background: #d4edda; color: #155724; }
+                  .status-good { background: #fff3cd; color: #856404; }
+                  .status-needs-improvement { background: #f8d7da; color: #721c24; }
+                  .status-critical { background: #f5c6cb; color: #721c24; }
+                  .timestamp { color: #666; font-size: 0.9em; }
+              </style>
+          </head>
+          <body>
+              <div class="container">
+                  <div class="header">
+                      <h1>🏛️ Quality Dashboard - Fortune 5 Standards</h1>
+                      <p>Comprehensive quality metrics for the Unjucks project</p>
+                      <div class="timestamp">Last updated: ${new Date(metrics.timestamp).toLocaleString()}</div>
+                      <div class="timestamp">Branch: ${metrics.branch} | Version: ${metrics.version}</div>
+                  </div>
+                  
+                  <div class="metrics-grid">
+                      <div class="metric-card">
+                          <div class="metric-label">Overall Quality Score</div>
+                          <div class="metric-value quality-score">${metrics.qualityScore}</div>
+                          <div class="status-badge status-${metrics.assessment.status}">${metrics.assessment.grade} Grade</div>
+                      </div>
+                      
+                      <div class="metric-card">
+                          <div class="metric-label">Code Coverage</div>
+                          <div class="metric-value">${metrics.coverage.lines.toFixed(1)}%</div>
+                          <div>Lines: ${metrics.coverage.lines}% | Functions: ${metrics.coverage.functions}%</div>
+                      </div>
+                      
+                      <div class="metric-card">
+                          <div class="metric-label">Code Complexity</div>
+                          <div class="metric-value">${metrics.complexity.averageComplexity}</div>
+                          <div>Grade: ${metrics.complexity.qualityGrade} | Issues: ${metrics.complexity.totalIssues}</div>
+                      </div>
+                      
+                      <div class="metric-card">
+                          <div class="metric-label">Security Issues</div>
+                          <div class="metric-value" style="color: ${metrics.security.criticalIssues > 0 ? '#dc3545' : '#28a745'}">${metrics.security.totalIssues}</div>
+                          <div>Critical: ${metrics.security.criticalIssues} | Warnings: ${metrics.security.warningIssues}</div>
+                      </div>
+                      
+                      <div class="metric-card">
+                          <div class="metric-label">Code Duplication</div>
+                          <div class="metric-value">${metrics.duplication.percentage.toFixed(1)}%</div>
+                          <div>Duplicates found: ${metrics.duplication.duplicates}</div>
+                      </div>
+                      
+                      <div class="metric-card">
+                          <div class="metric-label">Files Analyzed</div>
+                          <div class="metric-value">${metrics.complexity.filesAnalyzed || 0}</div>
+                          <div>Source code files</div>
+                      </div>
+                  </div>
+                  
+                  <div class="charts-container">
+                      <div class="chart-card">
+                          <h3>Coverage Breakdown</h3>
+                          <canvas id="coverageChart"></canvas>
+                      </div>
+                      
+                      <div class="chart-card">
+                          <h3>Quality Trend</h3>
+                          <canvas id="qualityChart"></canvas>
+                      </div>
+                  </div>
+                  
+                  ${metrics.assessment.recommendations.length > 0 ? `
+                  <div class="recommendations">
+                      <h3>💡 Recommendations</h3>
+                      ${metrics.assessment.recommendations.map(rec => `<div class="recommendation">${rec}</div>`).join('')}
+                  </div>
+                  ` : ''}
+              </div>
+              
+              <script>
+                  // Coverage Chart
+                  const coverageCtx = document.getElementById('coverageChart').getContext('2d');
+                  new Chart(coverageCtx, {
+                      type: 'doughnut',
+                      data: {
+                          labels: ['Lines', 'Functions', 'Branches', 'Statements'],
+                          datasets: [{
+                              data: [${metrics.coverage.lines}, ${metrics.coverage.functions}, ${metrics.coverage.branches}, ${metrics.coverage.statements}],
+                              backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0']
+                          }]
+                      },
+                      options: {
+                          responsive: true,
+                          plugins: {
+                              legend: { position: 'bottom' }
+                          }
+                      }
+                  });
+                  
+                  // Quality Trend Chart (simplified)
+                  const qualityCtx = document.getElementById('qualityChart').getContext('2d');
+                  new Chart(qualityCtx, {
+                      type: 'line',
+                      data: {
+                          labels: ['Coverage', 'Complexity', 'Security', 'Duplication'],
+                          datasets: [{
+                              label: 'Quality Score',
+                              data: [
+                                  ${(metrics.coverage.lines + metrics.coverage.functions + metrics.coverage.branches + metrics.coverage.statements) / 4},
+                                  ${Math.max(0, 100 - (metrics.complexity.averageComplexity * 5))},
+                                  ${metrics.security.criticalIssues === 0 && metrics.security.warningIssues <= 5 ? 100 : Math.max(0, 100 - (metrics.security.totalIssues * 10))},
+                                  ${Math.max(0, 100 - (metrics.duplication.percentage * 10))}
+                              ],
+                              borderColor: '#36A2EB',
+                              backgroundColor: 'rgba(54, 162, 235, 0.1)',
+                              fill: true
+                          }]
+                      },
+                      options: {
+                          responsive: true,
+                          scales: {
+                              y: { beginAtZero: true, max: 100 }
+                          }
+                      }
+                  });
+              </script>
+          </body>
+          </html>
+            `;
+            
+            await fs.writeFile('quality-dashboard.html', html);
+            console.log('Quality dashboard generated successfully');
+          };
+          
+          generateDashboard().catch(console.error);
+          EOF
+          
+          node generate-dashboard.js
+          
+      - name: 🔄 Post coordination
+        if: always()
+        run: |
+          npx claude-flow@alpha hooks post-task --task-id "quality-metrics-collection"
+          npx claude-flow@alpha hooks notify --message "Quality metrics collected: Score ${{ steps.metrics.outputs.quality_score }}"
+          
+      - name: 📤 Upload quality artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: quality-metrics-${{ github.run_number }}
+          path: |
+            quality-metrics.json
+            quality-dashboard.html
+            coverage/
+            complexity-report.json
+            duplication-report.json
+            security-report.json
+            performance-metrics.json
+          retention-days: 30
+
+  # ============================================================================
+  # DEPLOY DASHBOARD TO GITHUB PAGES
+  # ============================================================================
+  deploy-dashboard:
+    name: 🚀 Deploy Dashboard
+    runs-on: ubuntu-latest
+    needs: collect-metrics
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+      
+    environment:
+      name: quality-dashboard
+      url: ${{ steps.deployment.outputs.page_url }}
+      
+    steps:
+      - name: 📥 Download quality metrics
+        uses: actions/download-artifact@v4
+        with:
+          name: quality-metrics-${{ github.run_number }}
+          path: dashboard
+          
+      - name: 📋 Setup Pages
+        uses: actions/configure-pages@v4
+        
+      - name: 📤 Upload dashboard
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: dashboard
+          
+      - name: 🚀 Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+
+  # ============================================================================
+  # QUALITY GATE ENFORCEMENT
+  # ============================================================================
+  quality-gate-enforcement:
+    name: 🚨 Quality Gate Enforcement
+    runs-on: ubuntu-latest
+    needs: collect-metrics
+    if: always()
+    
+    steps:
+      - name: 📥 Download metrics
+        uses: actions/download-artifact@v4
+        with:
+          name: quality-metrics-${{ github.run_number }}
+          path: metrics
+          
+      - name: 🎯 Evaluate quality gates
+        id: gates
+        run: |
+          QUALITY_SCORE=$(cat metrics/quality-metrics.json | jq '.qualityScore')
+          CRITICAL_ISSUES=$(cat metrics/quality-metrics.json | jq '.security.criticalIssues')
+          COVERAGE=$(cat metrics/quality-metrics.json | jq '.coverage.lines')
+          
+          echo "Quality Score: $QUALITY_SCORE"
+          echo "Critical Issues: $CRITICAL_ISSUES"
+          echo "Coverage: $COVERAGE%"
+          
+          # Fortune 5 standards
+          FORTUNE_5_THRESHOLD=80
+          MAX_CRITICAL_ISSUES=0
+          MIN_COVERAGE=85
+          
+          PASSED=true
+          
+          if (( $(echo "$QUALITY_SCORE < $FORTUNE_5_THRESHOLD" | bc -l) )); then
+            echo "❌ Quality score below Fortune 5 threshold ($FORTUNE_5_THRESHOLD)"
+            PASSED=false
+          fi
+          
+          if (( CRITICAL_ISSUES > MAX_CRITICAL_ISSUES )); then
+            echo "❌ Critical security issues found ($CRITICAL_ISSUES)"
+            PASSED=false
+          fi
+          
+          if (( $(echo "$COVERAGE < $MIN_COVERAGE" | bc -l) )); then
+            echo "❌ Coverage below Fortune 5 threshold ($MIN_COVERAGE%)"
+            PASSED=false
+          fi
+          
+          echo "quality_gate_passed=$PASSED" >> $GITHUB_OUTPUT
+          
+      - name: 📊 Generate quality report
+        run: |
+          cat metrics/quality-metrics.json | jq '{
+            timestamp,
+            qualityScore,
+            assessment: .assessment.grade,
+            status: .assessment.status,
+            coverage: .coverage.lines,
+            security: .security.criticalIssues,
+            recommendations: .assessment.recommendations
+          }' > quality-summary.json
+          
+          echo "## 📊 Quality Dashboard Report" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Quality Score:** ${{ needs.collect-metrics.outputs.quality_score }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Quality Gate:** ${{ steps.gates.outputs.quality_gate_passed == 'true' && '✅ PASSED' || '❌ FAILED' }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "[📈 View Full Dashboard](https://unjucks.github.io/quality-dashboard/)" >> $GITHUB_STEP_SUMMARY
+          
+      - name: 🚨 Fail on quality gate violation
+        if: steps.gates.outputs.quality_gate_passed == 'false' && github.event_name == 'pull_request'
+        run: |
+          echo "❌ Quality gate failed - Fortune 5 standards not met"
+          exit 1
+          
+      - name: ✅ Quality gate success
+        if: steps.gates.outputs.quality_gate_passed == 'true'
+        run: |
+          echo "✅ Quality gate passed - Fortune 5 standards met"

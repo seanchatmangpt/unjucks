@@ -433,7 +433,7 @@ class EnterpriseRateLimiter {
     const now = Date.now();
     
     let tokens = parseFloat(bucketData[0] || config.burstSize.toString());
-    let lastRefill = parseInt(bucketData[1] || now.toString());
+    const lastRefill = parseInt(bucketData[1] || now.toString());
 
     // Refill tokens based on time passed
     const timePassed = (now - lastRefill) / 1000; // seconds

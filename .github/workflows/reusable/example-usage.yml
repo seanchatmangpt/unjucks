@@ -1,0 +1,165 @@
+name: 'Example: Using Reusable Workflows'
+
+# This is an example workflow demonstrating how to use the reusable components
+# You can copy and modify this for your actual workflows
+
+on:
+  workflow_dispatch:
+    inputs:
+      run_tests:
+        description: 'Run test suite'
+        required: false
+        default: true
+        type: boolean
+      run_build:
+        description: 'Run build process'
+        required: false
+        default: true
+        type: boolean
+      publish_package:
+        description: 'Publish to NPM (dry run)'
+        required: false
+        default: false
+        type: boolean
+
+concurrency:
+  group: example-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # Example: Basic test workflow with matrix
+  test:
+    name: 'Test Suite'
+    if: github.event.inputs.run_tests == 'true'
+    uses: ./.github/workflows/reusable/test.yml
+    with:
+      # Test across multiple Node.js versions
+      test-matrix: '["18", "20", "22"]'
+      enable-matrix: true
+      
+      # Enable coverage with 85% threshold
+      enable-coverage: true
+      coverage-threshold: '85'
+      
+      # Run additional test suites
+      additional-test-commands: |
+        [
+          "npm run test:unit",
+          "npm run test:integration",
+          "npm run test:lint"
+        ]
+      
+      # Custom test timeout
+      test-timeout: 15
+      upload-results: true
+
+  # Example: Build workflow with pre/post commands
+  build:
+    name: 'Build Project'
+    needs: test
+    if: always() && (success() || failure()) && github.event.inputs.run_build == 'true'
+    uses: ./.github/workflows/reusable/build.yml
+    with:
+      # Use Node 20 for builds
+      node-version: '20'
+      
+      # Custom build configuration
+      build-command: 'npm run build:production'
+      enable-lint: true
+      enable-typecheck: true
+      enable-security-scan: true
+      
+      # Commands to run before building
+      pre-build-commands: |
+        [
+          "npm run clean",
+          "npm run generate:types",
+          "npm run validate:schema"
+        ]
+      
+      # Commands to run after building
+      post-build-commands: |
+        [
+          "npm run validate:build",
+          "npm run compress:assets"
+        ]
+      
+      # Additional paths to include in artifacts
+      additional-build-paths: |
+        [
+          "build",
+          "types",
+          "docs/generated"
+        ]
+      
+      build-timeout: 20
+
+  # Example: Conditional publishing (dry run for this example)
+  publish:
+    name: 'Publish Package'
+    needs: [test, build]
+    if: |
+      always() && 
+      needs.test.result == 'success' && 
+      needs.build.result == 'success' && 
+      github.event.inputs.publish_package == 'true'
+    uses: ./.github/workflows/reusable/publish.yml
+    with:
+      # Node version for publishing
+      node-version: '20'
+      
+      # NPM configuration
+      registry-url: 'https://registry.npmjs.org'
+      publish-command: 'npm publish'
+      
+      # Safety: Always dry run in example
+      dry-run: true
+      
+      # Enable modern NPM features
+      enable-provenance: true
+      create-github-release: false  # Don't create release for dry run
+      
+      # Prepare package before publishing
+      pre-publish-commands: |
+        [
+          "npm run build",
+          "npm run test",
+          "npm run package:validate",
+          "npm run docs:generate"
+        ]
+      
+      # Post-publish actions (won't run in dry mode)
+      post-publish-commands: |
+        [
+          "npm run notify:slack",
+          "npm run update:docs"
+        ]
+      
+      publish-timeout: 10
+    secrets:
+      # Note: These would need to be set in repository secrets
+      NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # Example: Summary job
+  summary:
+    name: 'Workflow Summary'
+    needs: [test, build, publish]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Generate summary
+        run: |
+          echo "## 🚀 Workflow Execution Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Job | Status | Notes |" >> $GITHUB_STEP_SUMMARY
+          echo "|-----|--------|-------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Test | ${{ needs.test.result == 'success' && '✅' || needs.test.result == 'failure' && '❌' || '⏸️' }} | ${{ needs.test.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Build | ${{ needs.build.result == 'success' && '✅' || needs.build.result == 'failure' && '❌' || '⏸️' }} | ${{ needs.build.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Publish | ${{ needs.publish.result == 'success' && '✅' || needs.publish.result == 'failure' && '❌' || '⏸️' }} | ${{ needs.publish.result }} (dry run) |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Usage Notes" >> $GITHUB_STEP_SUMMARY
+          echo "- Tests run across Node.js 18, 20, and 22" >> $GITHUB_STEP_SUMMARY
+          echo "- Build includes linting, type checking, and security scanning" >> $GITHUB_STEP_SUMMARY
+          echo "- Publish is in dry-run mode for safety" >> $GITHUB_STEP_SUMMARY
+          echo "- All workflows use reusable components from \`.github/workflows/reusable/\`" >> $GITHUB_STEP_SUMMARY

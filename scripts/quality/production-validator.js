@@ -464,7 +464,7 @@ class ProductionValidator {
     ];
     
     const files = await this.getSourceFiles();
-    let envVarsUsed = new Set();
+    const envVarsUsed = new Set();
     
     for (const file of files) {
       try {

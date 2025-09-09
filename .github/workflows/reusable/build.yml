@@ -1,0 +1,233 @@
+name: 'Reusable Build Workflow'
+
+on:
+  workflow_call:
+    inputs:
+      node-version:
+        description: 'Node.js version to use'
+        required: false
+        default: '18'
+        type: string
+      pnpm-version:
+        description: 'PNPM version to use'
+        required: false
+        default: '9.12.0'
+        type: string
+      build-command:
+        description: 'Build command to run'
+        required: false
+        default: 'npm run build'
+        type: string
+      lint-command:
+        description: 'Lint command to run'
+        required: false
+        default: 'npm run lint'
+        type: string
+      typecheck-command:
+        description: 'Type check command to run'
+        required: false
+        default: 'npm run typecheck'
+        type: string
+      enable-lint:
+        description: 'Enable linting step'
+        required: false
+        default: true
+        type: boolean
+      enable-typecheck:
+        description: 'Enable type checking step'
+        required: false
+        default: true
+        type: boolean
+      enable-security-scan:
+        description: 'Enable security scanning'
+        required: false
+        default: true
+        type: boolean
+      build-output-path:
+        description: 'Path to build output directory'
+        required: false
+        default: 'dist'
+        type: string
+      additional-build-paths:
+        description: 'Additional paths to include in build artifacts (JSON array)'
+        required: false
+        default: '["build", "bin"]'
+        type: string
+      working-directory:
+        description: 'Working directory for all steps'
+        required: false
+        default: '.'
+        type: string
+      pre-build-commands:
+        description: 'Commands to run before build (JSON array of strings)'
+        required: false
+        default: '[]'
+        type: string
+      post-build-commands:
+        description: 'Commands to run after build (JSON array of strings)'
+        required: false
+        default: '[]'
+        type: string
+      build-timeout:
+        description: 'Build timeout in minutes'
+        required: false
+        default: 15
+        type: number
+
+    outputs:
+      build-success:
+        description: 'Whether the build succeeded'
+        value: ${{ jobs.build.outputs.build-success }}
+      artifact-name:
+        description: 'Name of the uploaded build artifact'
+        value: ${{ jobs.build.outputs.artifact-name }}
+
+jobs:
+  build:
+    name: 'Build Project'
+    runs-on: ubuntu-latest
+    timeout-minutes: ${{ inputs.build-timeout }}
+    outputs:
+      build-success: ${{ steps.build-status.outputs.success }}
+      artifact-name: ${{ steps.artifact-info.outputs.name }}
+    env:
+      NODE_ENV: production
+      FORCE_COLOR: 1
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Enable corepack
+        run: npm i -fg corepack && corepack enable
+        working-directory: ${{ inputs.working-directory }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ inputs.node-version }}
+          cache: 'pnpm'
+          cache-dependency-path: ${{ inputs.working-directory }}/pnpm-lock.yaml
+
+      - name: Install PNPM
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ inputs.pnpm-version }}
+
+      - name: Get PNPM store directory
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+        working-directory: ${{ inputs.working-directory }}
+
+      - name: Setup PNPM cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+        working-directory: ${{ inputs.working-directory }}
+
+      - name: Run linting
+        if: inputs.enable-lint
+        run: ${{ inputs.lint-command }}
+        working-directory: ${{ inputs.working-directory }}
+
+      - name: Run type checking
+        if: inputs.enable-typecheck
+        run: ${{ inputs.typecheck-command }}
+        working-directory: ${{ inputs.working-directory }}
+
+      - name: Run security audit
+        if: inputs.enable-security-scan
+        run: pnpm audit --audit-level moderate
+        continue-on-error: true
+        working-directory: ${{ inputs.working-directory }}
+
+      - name: Run pre-build commands
+        if: inputs.pre-build-commands != '[]'
+        run: |
+          echo '${{ inputs.pre-build-commands }}' | jq -r '.[]' | while read cmd; do
+            echo "Running pre-build: $cmd"
+            eval "$cmd"
+          done
+        working-directory: ${{ inputs.working-directory }}
+
+      - name: Build project
+        id: build
+        run: ${{ inputs.build-command }}
+        working-directory: ${{ inputs.working-directory }}
+
+      - name: Run post-build commands
+        if: inputs.post-build-commands != '[]'
+        run: |
+          echo '${{ inputs.post-build-commands }}' | jq -r '.[]' | while read cmd; do
+            echo "Running post-build: $cmd"
+            eval "$cmd"
+          done
+        working-directory: ${{ inputs.working-directory }}
+
+      - name: Validate build output
+        run: |
+          if [ -d "${{ inputs.working-directory }}/${{ inputs.build-output-path }}" ]; then
+            echo "✅ Build output directory exists"
+            ls -la "${{ inputs.working-directory }}/${{ inputs.build-output-path }}"
+          else
+            echo "⚠️ Build output directory not found: ${{ inputs.build-output-path }}"
+          fi
+
+      - name: Set build status
+        id: build-status
+        run: |
+          if [ "${{ steps.build.outcome }}" == "success" ]; then
+            echo "success=true" >> $GITHUB_OUTPUT
+          else
+            echo "success=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Set artifact info
+        id: artifact-info
+        run: |
+          ARTIFACT_NAME="build-artifacts-${{ github.sha }}"
+          echo "name=$ARTIFACT_NAME" >> $GITHUB_OUTPUT
+
+      - name: Prepare artifact paths
+        id: prepare-paths
+        run: |
+          PATHS="${{ inputs.build-output-path }}"
+          ADDITIONAL_PATHS='${{ inputs.additional-build-paths }}'
+          
+          if [ "$ADDITIONAL_PATHS" != "[]" ]; then
+            for path in $(echo "$ADDITIONAL_PATHS" | jq -r '.[]'); do
+              if [ -d "${{ inputs.working-directory }}/$path" ] || [ -f "${{ inputs.working-directory }}/$path" ]; then
+                PATHS="$PATHS"$'\n'"$path"
+              fi
+            done
+          fi
+          
+          # Save multiline output
+          echo "paths<<EOF" >> $GITHUB_OUTPUT
+          echo "$PATHS" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.artifact-info.outputs.name }}
+          path: |
+            ${{ steps.prepare-paths.outputs.paths }}
+          retention-days: 30
+          if-no-files-found: warn
+
+      - name: Generate build summary
+        run: |
+          echo "## 🔧 Build Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- **Status**: ${{ steps.build-status.outputs.success == 'true' && '✅ Success' || '❌ Failed' }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Node.js**: ${{ inputs.node-version }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **PNPM**: ${{ inputs.pnpm-version }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Build Output**: \`${{ inputs.build-output-path }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "- **Artifact**: \`${{ steps.artifact-info.outputs.name }}\`" >> $GITHUB_STEP_SUMMARY

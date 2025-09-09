@@ -325,6 +325,55 @@ unjucks generate template extend component/react --customizations
 - 🔒 **Security First** - Built-in security patterns and compliance
 - 📊 **Quality Metrics** - Automated quality gates and validation
 - 🌐 **Cross-Platform** - Works on macOS, Linux, and Windows
+- 📊 **Workflow Monitoring** - Built-in CI/CD monitoring and reporting system
+
+## 🔍 Workflow Monitoring & Reporting
+
+Unjucks includes a comprehensive workflow monitoring system that automatically tracks GitHub Actions performance:
+
+### Key Features
+
+- **📊 Performance Tracking** - Monitors success rates, execution times, and resource usage
+- **📈 Trend Analysis** - Detects performance degradation and improvement patterns  
+- **🚨 Smart Alerts** - Notifications via Slack, GitHub Issues, and email
+- **📋 Automated Reports** - Daily metrics and weekly performance summaries
+- **🎯 Interactive Dashboard** - HTML dashboard with real-time charts and visualizations
+- **🔍 Degradation Detection** - Identifies issues before they become critical
+
+### Quick Setup
+
+The monitoring system runs automatically. To enable Slack alerts:
+
+```bash
+# Configure Slack webhook (optional)
+gh secret set SLACK_WEBHOOK_URL --body "https://hooks.slack.com/services/..."
+
+# View monitoring dashboard 
+# Available at: https://your-username.github.io/unjucks/monitoring
+```
+
+### Monitoring Capabilities
+
+```bash
+# Manual report generation (for testing)
+node .github/scripts/monitoring/collect-metrics.js --repo owner/repo --days-back 7
+node .github/scripts/monitoring/generate-dashboard.js --output-format html
+node .github/scripts/monitoring/test-monitoring.js --component all
+
+# The system automatically:
+# - Collects metrics daily at 6:00 AM UTC
+# - Generates weekly reports every Monday
+# - Creates alerts for critical performance issues
+# - Maintains 30 days of historical data
+# - Provides performance trend analysis
+```
+
+**Alert Thresholds:**
+- 🔴 **Critical**: Success rate < 80%, Duration increase > 50%
+- 🟡 **Warning**: Success rate 80-90%, Duration increase 30-50%
+- ✅ **Healthy**: Success rate > 90%, Stable performance trends
+
+For detailed configuration, see [Monitoring Documentation](./.github/scripts/monitoring/README.md)
 
 ## 🤝 Getting Help
 

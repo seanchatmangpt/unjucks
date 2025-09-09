@@ -1,0 +1,12 @@
+# repo-size-monitor.yml - DISABLED
+
+**Disabled on:** 2025-09-09 15:49:46 UTC
+**Reason:** Monitoring - repository size (disabled for cleanup)
+
+**Consolidated into:** See README.md in this directory
+
+To re-enable:
+1. Move back to .github/workflows/
+2. Remove this .disabled-reason file
+3. Update any outdated syntax
+4. Test thoroughly

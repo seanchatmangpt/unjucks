@@ -1,0 +1,462 @@
+# Basic Usage Examples for Multi-Layer Cache Dependencies Action
+
+# ==========================================
+# Example 1: Simple Node.js Project
+# ==========================================
+name: Simple Node.js CI
+on: [push, pull_request]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          
+      - name: Multi-Layer Cache
+        uses: ./.github/actions/cache-dependencies
+        with:
+          package-manager: 'npm'
+          node-version: '20'
+          cache-strategy: 'balanced'
+          
+      - name: Install dependencies
+        run: npm ci
+        
+      - name: Run tests
+        run: npm test
+
+---
+
+# ==========================================
+# Example 2: Multi-Platform Matrix Build
+# ==========================================
+name: Multi-Platform CI
+on: [push, pull_request]
+
+jobs:
+  test:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        node: ['18', '20', '22']
+        exclude:
+          - os: windows-latest
+            node: '18'
+    
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js ${{ matrix.node }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+          
+      - name: Platform-Optimized Cache
+        id: cache
+        uses: ./.github/actions/cache-dependencies
+        with:
+          package-manager: 'npm'
+          node-version: ${{ matrix.node }}
+          cache-strategy: 'balanced'
+          cache-key-prefix: 'matrix-build'
+          
+      - name: Install dependencies
+        run: npm ci
+        
+      - name: Build project
+        run: npm run build
+        
+      - name: Run tests
+        run: npm test
+        
+      - name: Cache Performance Report
+        run: |
+          echo "Cache Hit Rate: ${{ steps.cache.outputs.cache-hit-rate }}%"
+          echo "Total Cache Size: ${{ steps.cache.outputs.total-cache-size }}MB"
+          echo "Restore Time: ${{ steps.cache.outputs.cache-restore-time }}s"
+
+---
+
+# ==========================================
+# Example 3: Performance-Critical Build
+# ==========================================
+name: High-Performance Build
+on: [push, pull_request]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          
+      - name: Aggressive Cache Setup
+        uses: ./.github/actions/cache-dependencies
+        with:
+          package-manager: 'npm'
+          cache-strategy: 'aggressive'
+          cache-compression: 'true'
+          parallel-cache-ops: 'true'
+          build-artifacts: |
+            dist
+            build
+            .next
+            coverage
+            .storybook-static
+            docs/_site
+          additional-cache-paths: |
+            .webpack-cache
+            .babel-cache
+            .typescript-cache
+          
+      - name: Install dependencies
+        run: npm ci
+        
+      - name: Build with caching
+        run: |
+          npm run build
+          npm run build:docs
+          npm run build:storybook
+
+---
+
+# ==========================================
+# Example 4: Enterprise Monorepo
+# ==========================================
+name: Enterprise Monorepo CI
+on: [push, pull_request]
+
+jobs:
+  setup:
+    runs-on: ubuntu-latest
+    outputs:
+      cache-hit-rate: ${{ steps.cache.outputs.cache-hit-rate }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Full history for monorepo analysis
+          
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          
+      - name: Enterprise Cache Configuration
+        id: cache
+        uses: ./.github/actions/cache-dependencies
+        with:
+          package-manager: 'pnpm'
+          cache-strategy: 'balanced'
+          cache-key-prefix: 'enterprise-monorepo'
+          enable-cleanup: 'true'
+          max-cache-age-days: '14'
+          build-artifacts: |
+            packages/*/dist
+            packages/*/build
+            packages/*/.next
+            apps/*/dist
+            apps/*/build
+            coverage
+            .turbo
+          additional-cache-paths: |
+            .pnpm-store
+            .turbo-cache
+            node_modules/.cache
+            .gradle/caches
+            
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+        
+      - name: Build all packages
+        run: pnpm build
+        
+  test:
+    needs: setup
+    runs-on: ubuntu-latest
+    if: needs.setup.outputs.cache-hit-rate >= '70'
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Restore Enterprise Cache
+        uses: ./.github/actions/cache-dependencies
+        with:
+          package-manager: 'pnpm'
+          cache-strategy: 'balanced'
+          cache-key-prefix: 'enterprise-monorepo'
+          
+      - name: Run tests
+        run: pnpm test
+
+---
+
+# ==========================================
+# Example 5: Custom Package Manager (PNPM)
+# ==========================================
+name: PNPM with Custom Cache
+on: [push, pull_request]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          
+      - name: Setup PNPM
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9.12.0
+          
+      - name: PNPM-Optimized Cache
+        uses: ./.github/actions/cache-dependencies
+        with:
+          package-manager: 'pnpm'
+          cache-strategy: 'aggressive'
+          additional-cache-paths: |
+            .pnpm-store
+            ~/.local/share/pnpm/store
+            node_modules/.pnpm
+          
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+        
+      - name: Run tests
+        run: pnpm test
+
+---
+
+# ==========================================
+# Example 6: Yarn with Workspaces
+# ==========================================
+name: Yarn Workspaces CI
+on: [push, pull_request]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          
+      - name: Setup Yarn
+        run: |
+          corepack enable
+          yarn set version stable
+          
+      - name: Yarn-Optimized Cache
+        uses: ./.github/actions/cache-dependencies
+        with:
+          package-manager: 'yarn'
+          cache-strategy: 'balanced'
+          additional-cache-paths: |
+            .yarn/cache
+            .yarn/install-state.gz
+            .pnp.cjs
+            .pnp.loader.mjs
+          
+      - name: Install dependencies
+        run: yarn install --immutable
+        
+      - name: Build workspaces
+        run: yarn workspaces foreach -pt run build
+        
+      - name: Test workspaces
+        run: yarn workspaces foreach -pt run test
+
+---
+
+# ==========================================
+# Example 7: Branch-Specific Caching
+# ==========================================
+name: Branch-Specific Cache Strategy
+on: [push, pull_request]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          
+      - name: Branch-Specific Cache
+        uses: ./.github/actions/cache-dependencies
+        with:
+          package-manager: 'npm'
+          cache-strategy: >-
+            ${{
+              github.ref == 'refs/heads/main' && 'aggressive' ||
+              github.ref == 'refs/heads/develop' && 'balanced' ||
+              'conservative'
+            }}
+          cache-key-prefix: ${{ github.ref_name }}
+          enable-cleanup: ${{ github.ref == 'refs/heads/main' }}
+          max-cache-age-days: >-
+            ${{
+              github.ref == 'refs/heads/main' && '14' ||
+              github.ref == 'refs/heads/develop' && '7' ||
+              '3'
+            }}
+          
+      - name: Install and test
+        run: |
+          npm ci
+          npm test
+
+---
+
+# ==========================================
+# Example 8: Docker-aware Caching
+# ==========================================
+name: Docker Build with Cache
+on: [push, pull_request]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          
+      - name: Docker-aware Cache
+        uses: ./.github/actions/cache-dependencies
+        with:
+          package-manager: 'npm'
+          cache-strategy: 'balanced'
+          additional-cache-paths: |
+            .docker-cache
+            /tmp/docker-cache
+            ~/.docker
+          
+      - name: Build application
+        run: |
+          npm ci
+          npm run build
+          
+      - name: Build Docker image
+        run: |
+          docker build \
+            --cache-from type=local,src=.docker-cache \
+            --cache-to type=local,dest=.docker-cache \
+            -t my-app .
+
+---
+
+# ==========================================
+# Example 9: Testing with Coverage Caching
+# ==========================================
+name: Tests with Coverage Cache
+on: [push, pull_request]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          
+      - name: Coverage-Optimized Cache
+        uses: ./.github/actions/cache-dependencies
+        with:
+          package-manager: 'npm'
+          cache-strategy: 'balanced'
+          build-artifacts: |
+            coverage
+            .nyc_output
+            .coverage
+            junit.xml
+            test-results.xml
+          
+      - name: Install dependencies
+        run: npm ci
+        
+      - name: Run tests with coverage
+        run: |
+          npm run test:coverage
+          npm run test:integration
+          
+      - name: Upload coverage
+        uses: codecov/codecov-action@v4
+        with:
+          files: coverage/lcov.info
+
+---
+
+# ==========================================
+# Example 10: Conditional Cache Setup
+# ==========================================
+name: Conditional Cache Strategy
+on: [push, pull_request]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Detect changes
+        id: changes
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            dependencies:
+              - 'package*.json'
+              - 'yarn.lock'
+              - 'pnpm-lock.yaml'
+            source:
+              - 'src/**'
+              - 'lib/**'
+              
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          
+      - name: Conditional Cache Setup
+        uses: ./.github/actions/cache-dependencies
+        with:
+          package-manager: 'npm'
+          cache-strategy: >-
+            ${{
+              steps.changes.outputs.dependencies == 'true' && 'conservative' ||
+              steps.changes.outputs.source == 'true' && 'balanced' ||
+              'aggressive'
+            }}
+          enable-node-modules-cache: ${{ steps.changes.outputs.dependencies == 'true' }}
+          enable-build-cache: ${{ steps.changes.outputs.source == 'true' }}
+          
+      - name: Install and build
+        run: |
+          npm ci
+          npm run build
+          npm test

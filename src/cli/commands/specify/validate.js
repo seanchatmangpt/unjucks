@@ -1066,7 +1066,7 @@ class SpecificationFixer {
     
     try {
       const content = await fs.readFile(filePath, 'utf8');
-      let spec = yaml.parse(content);
+      const spec = yaml.parse(content);
       let modified = false;
 
       for (const issue of issues) {

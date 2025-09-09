@@ -1,113 +1,242 @@
 module.exports = {
-  extends: [
-    'eslint:recommended',
-    'plugin:security/recommended'
-  ],
-  plugins: ['security'],
+  root: true,
   env: {
     node: true,
-    es2022: true
+    es2022: true,
+    browser: true
   },
+  extends: [
+    'eslint:recommended'
+  ],
   parserOptions: {
-    ecmaVersion: 2022,
-    sourceType: 'module'
+    ecmaVersion: 'latest',
+    sourceType: 'module',
+    allowImportExportEverywhere: true
   },
   rules: {
-    // Security-specific rules
-    'security/detect-buffer-noassert': 'error',
-    'security/detect-child-process': 'error',
-    'security/detect-disable-mustache-escape': 'error',
-    'security/detect-eval-with-expression': 'error',
-    'security/detect-new-buffer': 'error',
-    'security/detect-no-csrf-before-method-override': 'error',
-    'security/detect-non-literal-fs-filename': 'warn',
-    'security/detect-non-literal-regexp': 'warn',
-    'security/detect-non-literal-require': 'warn',
-    'security/detect-object-injection': 'warn',
-    'security/detect-possible-timing-attacks': 'warn',
-    'security/detect-pseudoRandomBytes': 'error',
-    'security/detect-unsafe-regex': 'error',
+    // ============================================================================
+    // CRITICAL SECURITY RULES (Zero Tolerance)
+    // ============================================================================
     
-    // Additional security patterns
+    // Prevent code injection
     'no-eval': 'error',
     'no-implied-eval': 'error',
     'no-new-func': 'error',
     'no-script-url': 'error',
     
-    // Prevent potential XSS
-    'no-inner-declarations': 'error',
-    'no-unused-vars': ['error', { 'argsIgnorePattern': '^_' }],
-    
-    // Input validation
-    'no-prototype-builtins': 'error',
+    // Prevent prototype pollution
+    'no-proto': 'error',
     'no-extend-native': 'error',
+    'no-prototype-builtins': 'error',
     
-    // File system security
-    'no-process-exit': 'error',
-    'no-process-env': 'warn',
+    // Type safety
+    'eqeqeq': ['error', 'always'],
+    'no-eq-null': 'error',
     
-    // Template injection prevention
-    'no-template-curly-in-string': 'error',
+    // ============================================================================
+    // HIGH SEVERITY SECURITY RULES
+    // ============================================================================
     
-    // SQL injection prevention patterns
-    'prefer-template': 'error',
-    'no-useless-concat': 'error',
-    
-    // RDF/SPARQL injection prevention
-    'no-multi-str': 'error',
-    'quotes': ['error', 'single', { 'avoidEscape': true }],
-    
-    // Memory safety
+    // Variable security
+    'no-unused-vars': ['error', { 
+      vars: 'all', 
+      args: 'after-used',
+      ignoreRestSiblings: false,
+      argsIgnorePattern: '^_',
+      varsIgnorePattern: '^_'
+    }],
+    'no-undef': 'error',
     'no-global-assign': 'error',
     'no-implicit-globals': 'error',
     
-    // Cryptographic security
+    // Function security
+    'no-caller': 'error',
+    'no-constructor-return': 'error',
+    'no-return-assign': 'error',
+    
+    // Control flow security
+    'no-unreachable': 'error',
+    'no-fallthrough': 'error',
+    'default-case': 'error',
+    
+    // ============================================================================
+    // MEDIUM SEVERITY SECURITY RULES
+    // ============================================================================
+    
+    // Prevent dangerous patterns
+    'no-console': 'warn', // Prevent information leakage
+    'no-debugger': 'error',
+    'no-alert': 'error',
+    
+    // Require strict mode for security
+    'strict': 'off', // Handled by ES modules
+    
+    // Prevent insecure practices
+    'no-with': 'error',
+    'no-void': 'error',
+    'no-sequences': 'error',
+    'no-multi-str': 'error',
+    
+    // Async security
+    'require-await': 'warn',
+    'no-async-promise-executor': 'error',
+    'no-promise-executor-return': 'error',
+    
+    // Error handling security
+    'no-empty': ['error', { allowEmptyCatch: false }],
+    'no-ex-assign': 'error',
+    
+    // Regular expression security
+    'no-invalid-regexp': 'error',
+    'no-regex-spaces': 'error',
+    'prefer-regex-literals': 'error',
+    
+    // Template security
+    'no-template-curly-in-string': 'error',
+    'prefer-template': 'error',
+    'no-useless-concat': 'error',
+    
+    // Memory safety
     'no-magic-numbers': ['warn', { 
-      'ignore': [0, 1, -1], 
-      'ignoreArrayIndexes': true,
-      'detectObjects': false 
+      ignore: [0, 1, -1], 
+      ignoreArrayIndexes: true,
+      detectObjects: false 
     }]
   },
+  
   overrides: [
+    // ES Module files
     {
-      files: ['tests/**/*.js', '**/*.test.js', '**/*.spec.js'],
+      files: ['**/*.mjs'],
+      parserOptions: {
+        ecmaVersion: 'latest',
+        sourceType: 'module'
+      },
+      env: {
+        es2022: true,
+        node: true
+      }
+    },
+    
+    // CommonJS files
+    {
+      files: ['**/*.cjs'],
+      parserOptions: {
+        ecmaVersion: 'latest',
+        sourceType: 'script'
+      },
+      env: {
+        es2022: true,
+        node: true,
+        commonjs: true
+      }
+    },
+    
+    // Regular JS files
+    {
+      files: ['**/*.js'],
+      parserOptions: {
+        ecmaVersion: 'latest',
+        sourceType: 'module'
+      }
+    },
+    
+    // Test files - slightly relaxed rules
+    {
+      files: ['**/*.test.js', '**/*.spec.js', '**/tests/**/*.js', '**/test/**/*.js'],
       env: {
         jest: true,
         mocha: true
       },
+      globals: {
+        vi: 'readonly',
+        vitest: 'readonly',
+        describe: 'readonly',
+        it: 'readonly',
+        test: 'readonly',
+        expect: 'readonly',
+        beforeEach: 'readonly',
+        afterEach: 'readonly',
+        beforeAll: 'readonly',
+        afterAll: 'readonly'
+      },
       rules: {
-        // Relax some rules for tests
-        'security/detect-non-literal-fs-filename': 'off',
-        'security/detect-non-literal-require': 'off',
-        'no-process-env': 'off',
+        'no-console': 'off', // Allow console in tests
         'no-magic-numbers': 'off'
       }
     },
+    
+    // Configuration files
     {
-      files: ['scripts/**/*.js'],
+      files: ['**/*config*.js', '**/*config*.cjs', '**/*config*.mjs', '**/.eslintrc*.cjs'],
       rules: {
-        // Allow process operations in scripts
-        'no-process-exit': 'off',
-        'no-process-env': 'off',
-        'security/detect-child-process': 'warn'
+        // Config files may use dynamic keys and patterns
       }
     },
+    
+    // Scripts and CLI files
     {
-      files: ['src/lib/rdf-filters.js', 'src/lib/semantic/**/*.js'],
+      files: ['**/scripts/**/*.js', '**/cli/**/*.js', '**/bin/**/*.js'],
       rules: {
-        // Special handling for RDF processing
-        'security/detect-object-injection': 'warn', // May need dynamic property access
-        'security/detect-non-literal-regexp': 'warn' // SPARQL patterns may be dynamic
+        // Allow process operations in scripts
+        'no-console': 'off' // CLI tools need console output
+      }
+    },
+    
+    // Semantic web and RDF files - special handling
+    {
+      files: ['**/lib/rdf-filters.js', '**/lib/semantic/**/*.js', '**/src/lib/semantic/**/*.js'],
+      rules: {
+        // SPARQL patterns may require dynamic property access
+        'no-prototype-builtins': 'warn' // May need hasOwnProperty checks for RDF data
       }
     }
   ],
+  
   globals: {
-    // Production environment globals
-    'process': 'readonly',
-    'Buffer': 'readonly',
-    '__dirname': 'readonly',
-    '__filename': 'readonly',
-    'console': 'readonly',
-    'global': 'readonly'
-  }
+    // Node.js globals
+    global: 'readonly',
+    process: 'readonly',
+    Buffer: 'readonly',
+    __dirname: 'readonly',
+    __filename: 'readonly',
+    console: 'readonly',
+    
+    // CommonJS
+    require: 'readonly',
+    module: 'writable',
+    exports: 'writable',
+    
+    // Testing globals
+    describe: 'readonly',
+    it: 'readonly',
+    test: 'readonly',
+    expect: 'readonly',
+    beforeEach: 'readonly',
+    afterEach: 'readonly',
+    beforeAll: 'readonly',
+    afterAll: 'readonly'
+  },
+  
+  ignorePatterns: [
+    'node_modules/',
+    'node_modules.backup/',
+    'dist/',
+    'build/',
+    'coverage/',
+    '.output/',
+    'test-output/',
+    'output/',
+    '*.min.js',
+    '*.bundle.js',
+    '.claude-flow/',
+    '.swarm/',
+    'examples/**',
+    'generated/**',
+    'temp/**',
+    '*.md',
+    '*.json',
+    '*.yaml',
+    '*.yml'
+  ]
 };

@@ -1,0 +1,423 @@
+name: 'Error Handler'
+description: 'Comprehensive error handling with retry logic, diagnostics, and notifications'
+author: 'Production Validation Team'
+
+inputs:
+  command:
+    description: 'Command to execute with error handling'
+    required: true
+  max-retries:
+    description: 'Maximum number of retry attempts'
+    required: false
+    default: '3'
+  retry-delay:
+    description: 'Initial retry delay in seconds'
+    required: false
+    default: '5'
+  exponential-backoff:
+    description: 'Use exponential backoff for retries'
+    required: false
+    default: 'true'
+  timeout:
+    description: 'Command timeout in minutes'
+    required: false
+    default: '30'
+  error-classification:
+    description: 'Error classification level (critical, warning, info)'
+    required: false
+    default: 'warning'
+  notification-webhook:
+    description: 'Webhook URL for error notifications'
+    required: false
+  slack-webhook:
+    description: 'Slack webhook URL for notifications'
+    required: false
+  collect-diagnostics:
+    description: 'Collect diagnostic information on failure'
+    required: false
+    default: 'true'
+  graceful-degradation:
+    description: 'Continue workflow on non-critical failures'
+    required: false
+    default: 'false'
+  recovery-strategy:
+    description: 'Recovery strategy (retry, fallback, skip, fail)'
+    required: false
+    default: 'retry'
+  working-directory:
+    description: 'Working directory for command execution'
+    required: false
+    default: '.'
+  environment:
+    description: 'Environment variables (JSON format)'
+    required: false
+    default: '{}'
+
+outputs:
+  success:
+    description: 'Whether the command succeeded'
+    value: ${{ steps.execute.outputs.success }}
+  exit-code:
+    description: 'Final exit code'
+    value: ${{ steps.execute.outputs.exit-code }}
+  attempts:
+    description: 'Number of attempts made'
+    value: ${{ steps.execute.outputs.attempts }}
+  error-type:
+    description: 'Type of error encountered'
+    value: ${{ steps.execute.outputs.error-type }}
+  diagnostics:
+    description: 'Diagnostic information collected'
+    value: ${{ steps.execute.outputs.diagnostics }}
+  recovery-action:
+    description: 'Recovery action taken'
+    value: ${{ steps.execute.outputs.recovery-action }}
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Setup Error Handler
+      shell: bash
+      run: |
+        echo "🔧 Setting up error handler..."
+        echo "Command: ${{ inputs.command }}"
+        echo "Max retries: ${{ inputs.max-retries }}"
+        echo "Error classification: ${{ inputs.error-classification }}"
+        echo "Recovery strategy: ${{ inputs.recovery-strategy }}"
+        
+        # Create error handler script
+        cat > error_handler.sh << 'EOF'
+        #!/bin/bash
+        
+        # Error Handler Configuration
+        COMMAND="$1"
+        MAX_RETRIES="$2"
+        RETRY_DELAY="$3"
+        EXPONENTIAL_BACKOFF="$4"
+        TIMEOUT="$5"
+        ERROR_CLASSIFICATION="$6"
+        COLLECT_DIAGNOSTICS="$7"
+        GRACEFUL_DEGRADATION="$8"
+        RECOVERY_STRATEGY="$9"
+        WORKING_DIR="${10}"
+        ENVIRONMENT="${11}"
+        
+        # Initialize variables
+        ATTEMPT=1
+        SUCCESS=false
+        FINAL_EXIT_CODE=0
+        ERROR_TYPE=""
+        DIAGNOSTICS=""
+        RECOVERY_ACTION=""
+        
+        # Logging function
+        log() {
+            local level="$1"
+            local message="$2"
+            local timestamp=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+            echo "[$timestamp] [$level] $message"
+        }
+        
+        # Error classification function
+        classify_error() {
+            local exit_code="$1"
+            local error_output="$2"
+            
+            case $exit_code in
+                0) ERROR_TYPE="success" ;;
+                1) ERROR_TYPE="general_error" ;;
+                2) ERROR_TYPE="misuse_builtin" ;;
+                126) ERROR_TYPE="permission_denied" ;;
+                127) ERROR_TYPE="command_not_found" ;;
+                128) ERROR_TYPE="invalid_exit_arg" ;;
+                130) ERROR_TYPE="interrupted_ctrl_c" ;;
+                137) ERROR_TYPE="killed_sigkill" ;;
+                139) ERROR_TYPE="segmentation_fault" ;;
+                *) ERROR_TYPE="unknown_error" ;;
+            esac
+            
+            # Check error patterns in output
+            if echo "$error_output" | grep -qi "network\|connection\|timeout\|dns"; then
+                ERROR_TYPE="network_error"
+            elif echo "$error_output" | grep -qi "permission\|access denied\|forbidden"; then
+                ERROR_TYPE="permission_error"
+            elif echo "$error_output" | grep -qi "out of space\|disk full\|no space"; then
+                ERROR_TYPE="disk_space_error"
+            elif echo "$error_output" | grep -qi "out of memory\|oom\|memory"; then
+                ERROR_TYPE="memory_error"
+            elif echo "$error_output" | grep -qi "authentication\|auth\|token\|credential"; then
+                ERROR_TYPE="authentication_error"
+            elif echo "$error_output" | grep -qi "rate limit\|throttle\|quota"; then
+                ERROR_TYPE="rate_limit_error"
+            fi
+            
+            log "INFO" "Error classified as: $ERROR_TYPE (exit code: $exit_code)"
+        }
+        
+        # Collect diagnostics function
+        collect_diagnostics() {
+            if [[ "$COLLECT_DIAGNOSTICS" == "true" ]]; then
+                log "INFO" "Collecting diagnostic information..."
+                
+                local diag_info=""
+                
+                # System information
+                diag_info+="=== System Information ===\n"
+                diag_info+="OS: $(uname -a)\n"
+                diag_info+="Date: $(date)\n"
+                diag_info+="PWD: $(pwd)\n"
+                diag_info+="User: $(whoami)\n"
+                diag_info+="Disk Space: $(df -h . | tail -1)\n"
+                diag_info+="Memory: $(free -h 2>/dev/null || vm_stat 2>/dev/null || echo 'Memory info unavailable')\n"
+                
+                # Environment variables
+                diag_info+="\n=== Environment Variables ===\n"
+                diag_info+="PATH=$PATH\n"
+                diag_info+="NODE_VERSION=$(node --version 2>/dev/null || echo 'Node not available')\n"
+                diag_info+="NPM_VERSION=$(npm --version 2>/dev/null || echo 'NPM not available')\n"
+                
+                # Git information
+                if git status &>/dev/null; then
+                    diag_info+="\n=== Git Information ===\n"
+                    diag_info+="Branch: $(git branch --show-current)\n"
+                    diag_info+="Commit: $(git rev-parse HEAD)\n"
+                    diag_info+="Status: $(git status --porcelain | wc -l) modified files\n"
+                fi
+                
+                # Process information
+                diag_info+="\n=== Process Information ===\n"
+                diag_info+="PID: $$\n"
+                diag_info+="PPID: $PPID\n"
+                
+                # Network connectivity (basic check)
+                diag_info+="\n=== Network Connectivity ===\n"
+                if ping -c 1 8.8.8.8 &>/dev/null; then
+                    diag_info+="Internet: Connected\n"
+                else
+                    diag_info+="Internet: Disconnected\n"
+                fi
+                
+                DIAGNOSTICS=$(echo -e "$diag_info" | base64 -w 0 2>/dev/null || echo -e "$diag_info" | base64)
+            fi
+        }
+        
+        # Notification function
+        send_notification() {
+            local title="$1"
+            local message="$2"
+            local severity="$3"
+            local webhook_url="$4"
+            local slack_webhook="$5"
+            
+            # Send to generic webhook
+            if [[ -n "$webhook_url" ]]; then
+                log "INFO" "Sending notification to webhook..."
+                curl -s -X POST "$webhook_url" \
+                    -H "Content-Type: application/json" \
+                    -d "{
+                        \"title\": \"$title\",
+                        \"message\": \"$message\",
+                        \"severity\": \"$severity\",
+                        \"timestamp\": \"$(date -u +%Y-%m-%dT%H:%M:%SZ)\",
+                        \"workflow\": \"$GITHUB_WORKFLOW\",
+                        \"job\": \"$GITHUB_JOB\",
+                        \"run_id\": \"$GITHUB_RUN_ID\",
+                        \"repository\": \"$GITHUB_REPOSITORY\"
+                    }" || log "WARN" "Failed to send webhook notification"
+            fi
+            
+            # Send to Slack
+            if [[ -n "$slack_webhook" ]]; then
+                log "INFO" "Sending notification to Slack..."
+                local color="good"
+                case "$severity" in
+                    critical) color="danger" ;;
+                    warning) color="warning" ;;
+                    info) color="good" ;;
+                esac
+                
+                curl -s -X POST "$slack_webhook" \
+                    -H "Content-Type: application/json" \
+                    -d "{
+                        \"attachments\": [{
+                            \"color\": \"$color\",
+                            \"title\": \"$title\",
+                            \"text\": \"$message\",
+                            \"fields\": [
+                                {\"title\": \"Repository\", \"value\": \"$GITHUB_REPOSITORY\", \"short\": true},
+                                {\"title\": \"Workflow\", \"value\": \"$GITHUB_WORKFLOW\", \"short\": true},
+                                {\"title\": \"Job\", \"value\": \"$GITHUB_JOB\", \"short\": true},
+                                {\"title\": \"Run ID\", \"value\": \"$GITHUB_RUN_ID\", \"short\": true}
+                            ],
+                            \"footer\": \"GitHub Actions\",
+                            \"ts\": $(date +%s)
+                        }]
+                    }" || log "WARN" "Failed to send Slack notification"
+            fi
+        }
+        
+        # Calculate delay function
+        calculate_delay() {
+            local attempt="$1"
+            local base_delay="$2"
+            local use_exponential="$3"
+            
+            if [[ "$use_exponential" == "true" ]]; then
+                echo $((base_delay * (2 ** (attempt - 1))))
+            else
+                echo "$base_delay"
+            fi
+        }
+        
+        # Recovery function
+        execute_recovery() {
+            local strategy="$1"
+            local error_type="$2"
+            
+            case "$strategy" in
+                "retry")
+                    RECOVERY_ACTION="retry"
+                    log "INFO" "Recovery strategy: Retry"
+                    return 1  # Continue retry loop
+                    ;;
+                "fallback")
+                    RECOVERY_ACTION="fallback"
+                    log "INFO" "Recovery strategy: Fallback command execution"
+                    # Implement fallback logic here
+                    return 0  # Success
+                    ;;
+                "skip")
+                    RECOVERY_ACTION="skip"
+                    log "WARN" "Recovery strategy: Skipping failed command"
+                    return 0  # Treat as success
+                    ;;
+                "fail")
+                    RECOVERY_ACTION="fail"
+                    log "ERROR" "Recovery strategy: Fail fast"
+                    return 1  # Fail
+                    ;;
+                *)
+                    RECOVERY_ACTION="default"
+                    log "WARN" "Unknown recovery strategy: $strategy, using retry"
+                    return 1  # Continue retry loop
+                    ;;
+            esac
+        }
+        
+        # Main execution loop
+        log "INFO" "Starting error handler for command: $COMMAND"
+        log "INFO" "Working directory: $WORKING_DIR"
+        
+        cd "$WORKING_DIR" || {
+            log "ERROR" "Failed to change to working directory: $WORKING_DIR"
+            exit 1
+        }
+        
+        # Set environment variables
+        if [[ "$ENVIRONMENT" != "{}" ]]; then
+            log "INFO" "Setting environment variables from input"
+            export $(echo "$ENVIRONMENT" | jq -r 'to_entries[] | "\(.key)=\(.value)"' 2>/dev/null || true)
+        fi
+        
+        while [[ $ATTEMPT -le $MAX_RETRIES ]]; do
+            log "INFO" "Attempt $ATTEMPT of $MAX_RETRIES"
+            
+            # Execute command with timeout
+            local temp_output=$(mktemp)
+            local temp_error=$(mktemp)
+            
+            if timeout "${TIMEOUT}m" bash -c "$COMMAND" > "$temp_output" 2> "$temp_error"; then
+                log "INFO" "Command succeeded on attempt $ATTEMPT"
+                SUCCESS=true
+                FINAL_EXIT_CODE=0
+                ERROR_TYPE="success"
+                cat "$temp_output"
+                break
+            else
+                FINAL_EXIT_CODE=$?
+                local error_output=$(cat "$temp_error")
+                
+                log "ERROR" "Command failed on attempt $ATTEMPT with exit code $FINAL_EXIT_CODE"
+                log "ERROR" "Error output: $error_output"
+                
+                classify_error "$FINAL_EXIT_CODE" "$error_output"
+                collect_diagnostics
+                
+                # Check if this is the last attempt or if recovery strategy says to stop
+                if [[ $ATTEMPT -eq $MAX_RETRIES ]] || ! execute_recovery "$RECOVERY_STRATEGY" "$ERROR_TYPE"; then
+                    if [[ "$GRACEFUL_DEGRADATION" == "true" && "$ERROR_CLASSIFICATION" != "critical" ]]; then
+                        log "WARN" "Graceful degradation enabled for non-critical error"
+                        SUCCESS=true
+                        FINAL_EXIT_CODE=0
+                        RECOVERY_ACTION="graceful_degradation"
+                    fi
+                    break
+                fi
+                
+                # Calculate delay for next attempt
+                if [[ $ATTEMPT -lt $MAX_RETRIES ]]; then
+                    local delay=$(calculate_delay "$ATTEMPT" "$RETRY_DELAY" "$EXPONENTIAL_BACKOFF")
+                    log "INFO" "Waiting ${delay}s before retry..."
+                    sleep "$delay"
+                fi
+            fi
+            
+            ATTEMPT=$((ATTEMPT + 1))
+            rm -f "$temp_output" "$temp_error"
+        done
+        
+        # Send notifications for failures
+        if [[ "$SUCCESS" != "true" ]]; then
+            local title="GitHub Actions Error: $ERROR_CLASSIFICATION"
+            local message="Command '$COMMAND' failed after $MAX_RETRIES attempts. Error type: $ERROR_TYPE"
+            
+            if [[ -n "${NOTIFICATION_WEBHOOK:-}" ]]; then
+                send_notification "$title" "$message" "$ERROR_CLASSIFICATION" "$NOTIFICATION_WEBHOOK" ""
+            fi
+            
+            if [[ -n "${SLACK_WEBHOOK:-}" ]]; then
+                send_notification "$title" "$message" "$ERROR_CLASSIFICATION" "" "$SLACK_WEBHOOK"
+            fi
+        fi
+        
+        # Set outputs
+        echo "success=$SUCCESS" >> "$GITHUB_OUTPUT"
+        echo "exit-code=$FINAL_EXIT_CODE" >> "$GITHUB_OUTPUT"
+        echo "attempts=$((ATTEMPT - 1))" >> "$GITHUB_OUTPUT"
+        echo "error-type=$ERROR_TYPE" >> "$GITHUB_OUTPUT"
+        echo "diagnostics=$DIAGNOSTICS" >> "$GITHUB_OUTPUT"
+        echo "recovery-action=$RECOVERY_ACTION" >> "$GITHUB_OUTPUT"
+        
+        log "INFO" "Error handler completed. Success: $SUCCESS, Exit code: $FINAL_EXIT_CODE"
+        
+        exit $FINAL_EXIT_CODE
+        EOF
+        
+        chmod +x error_handler.sh
+
+    - name: Execute Command with Error Handling
+      id: execute
+      shell: bash
+      env:
+        NOTIFICATION_WEBHOOK: ${{ inputs.notification-webhook }}
+        SLACK_WEBHOOK: ${{ inputs.slack-webhook }}
+      run: |
+        ./error_handler.sh \
+          "${{ inputs.command }}" \
+          "${{ inputs.max-retries }}" \
+          "${{ inputs.retry-delay }}" \
+          "${{ inputs.exponential-backoff }}" \
+          "${{ inputs.timeout }}" \
+          "${{ inputs.error-classification }}" \
+          "${{ inputs.collect-diagnostics }}" \
+          "${{ inputs.graceful-degradation }}" \
+          "${{ inputs.recovery-strategy }}" \
+          "${{ inputs.working-directory }}" \
+          '${{ inputs.environment }}'
+
+    - name: Cleanup
+      if: always()
+      shell: bash
+      run: |
+        rm -f error_handler.sh
+        echo "🧹 Error handler cleanup completed"

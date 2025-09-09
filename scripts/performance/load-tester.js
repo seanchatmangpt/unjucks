@@ -685,8 +685,8 @@ class LoadTester {
 if (!isMainThread) {
   const { workerId, templatesDir, templateTypes } = workerData;
   
-  let templateCache = {};
-  let dataCache = {};
+  const templateCache = {};
+  const dataCache = {};
   
   // Load templates and data
   async function loadTemplates() {

@@ -1,0 +1,34 @@
+{
+  "name": "workflow-monitoring",
+  "version": "1.0.0",
+  "description": "GitHub Actions workflow monitoring and reporting system",
+  "main": "collect-metrics.js",
+  "scripts": {
+    "collect": "node collect-metrics.js",
+    "analyze": "node analyze-trends.js",
+    "dashboard": "node generate-dashboard.js",
+    "report": "node generate-weekly-report.js",
+    "alert": "node check-degradation.js"
+  },
+  "dependencies": {
+    "@octokit/rest": "^20.0.0",
+    "chalk": "^4.1.2",
+    "date-fns": "^2.30.0",
+    "chart.js": "^4.4.0",
+    "chartjs-node-canvas": "^4.1.6",
+    "commander": "^11.0.0",
+    "lodash": "^4.17.21",
+    "node-fetch": "^2.7.0",
+    "fs-extra": "^11.1.1"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "keywords": [
+    "github-actions",
+    "monitoring",
+    "workflow",
+    "reporting",
+    "metrics"
+  ]
+}

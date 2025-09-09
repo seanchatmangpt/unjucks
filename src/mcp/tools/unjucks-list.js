@@ -37,7 +37,7 @@ export async function unjucksList(params) {
         const generatorPath = `${templatesDir}/${generator}`;
         
         /** @type {any} */
-        let result = {
+        const result = {
           generator,
           templatesDir,
           generatorPath,
@@ -108,7 +108,7 @@ export async function unjucksList(params) {
         const generators = await gen.listGenerators();
         
         /** @type {any} */
-        let result = {
+        const result = {
           templatesDir,
           generators: generators.map(gen => ({
             name: gen.name,

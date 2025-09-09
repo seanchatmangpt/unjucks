@@ -1,0 +1,180 @@
+# Post-run cache cleanup and maintenance
+# This file is automatically executed after the main action completes
+
+name: 'Cache Cleanup & Maintenance'
+description: 'Post-run cleanup for multi-layer cache dependencies'
+
+runs:
+  using: 'composite'
+  steps:
+    # ==========================================
+    # CACHE SAVE PERFORMANCE TRACKING
+    # ==========================================
+    - name: ⏱️ Track Cache Save Performance
+      id: save-perf
+      shell: bash
+      run: |
+        echo "⏱️ Tracking cache save performance..."
+        START_TIME=$(date +%s)
+        echo "save-start-time=$START_TIME" >> $GITHUB_OUTPUT
+
+    # ==========================================
+    # CACHE CLEANUP BASED ON SETTINGS
+    # ==========================================
+    - name: 🧹 Intelligent Cache Cleanup
+      shell: bash
+      run: |
+        echo "🧹 Starting intelligent cache cleanup..."
+        
+        # Skip if cleanup disabled
+        if [[ "${{ inputs.enable-cleanup }}" != "true" ]]; then
+          echo "Cache cleanup disabled - skipping"
+          exit 0
+        fi
+        
+        MAX_AGE_DAYS="${{ inputs.max-cache-age-days || '7' }}"
+        echo "Cleaning caches older than $MAX_AGE_DAYS days..."
+        
+        # Clean old npm cache
+        if command -v npm >/dev/null 2>&1; then
+          echo "Cleaning npm cache..."
+          npm cache clean --force 2>/dev/null || echo "NPM cache clean completed"
+        fi
+        
+        # Clean old build artifacts
+        echo "Cleaning old build artifacts..."
+        find . -name "*.log" -type f -mtime +$MAX_AGE_DAYS -delete 2>/dev/null || true
+        find . -name "coverage" -type d -mtime +$MAX_AGE_DAYS -exec rm -rf {} + 2>/dev/null || true
+        find . -name ".cache" -type d -mtime +$MAX_AGE_DAYS -exec rm -rf {} + 2>/dev/null || true
+        
+        # Clean temporary directories
+        echo "Cleaning temporary directories..."
+        rm -rf /tmp/npm-* 2>/dev/null || true
+        rm -rf /tmp/.npm 2>/dev/null || true
+        
+        echo "Cache cleanup completed"
+
+    # ==========================================
+    # CACHE SIZE OPTIMIZATION
+    # ==========================================
+    - name: 💾 Cache Size Optimization
+      shell: bash
+      run: |
+        echo "💾 Optimizing cache sizes..."
+        
+        # Only run if compression is enabled
+        if [[ "${{ inputs.cache-compression }}" == "true" ]]; then
+          echo "Cache compression enabled - running optimization..."
+          
+          # Compress large directories if tools are available
+          if command -v gzip >/dev/null 2>&1; then
+            echo "Compressing large cache files..."
+            find . -name "*.log" -size +10M -exec gzip {} \; 2>/dev/null || true
+          fi
+          
+          # Clean up redundant files
+          echo "Removing redundant cache files..."
+          find . -name "*.tmp" -delete 2>/dev/null || true
+          find . -name "*.temp" -delete 2>/dev/null || true
+          
+        else
+          echo "Cache compression disabled - skipping optimization"
+        fi
+
+    # ==========================================
+    # CACHE HEALTH CHECK
+    # ==========================================
+    - name: 🔍 Cache Health Check
+      shell: bash
+      run: |
+        echo "🔍 Running cache health check..."
+        
+        HEALTH_ISSUES=0
+        
+        # Check for corrupted node_modules
+        if [[ -d "node_modules" ]]; then
+          if [[ ! -f "node_modules/.package-lock.json" ]] && [[ -f "package-lock.json" ]]; then
+            echo "⚠️ node_modules may be corrupted - missing .package-lock.json"
+            HEALTH_ISSUES=$((HEALTH_ISSUES + 1))
+          fi
+        fi
+        
+        # Check for oversized caches
+        if [[ -d ".cache" ]]; then
+          CACHE_SIZE=$(du -sm .cache 2>/dev/null | cut -f1 || echo "0")
+          if [[ $CACHE_SIZE -gt 1000 ]]; then
+            echo "⚠️ Large cache directory detected: ${CACHE_SIZE}MB"
+            HEALTH_ISSUES=$((HEALTH_ISSUES + 1))
+          fi
+        fi
+        
+        # Check for stale lock files
+        if [[ -f "package-lock.json" ]]; then
+          LOCK_AGE=$(find package-lock.json -mtime +30 2>/dev/null | wc -l)
+          if [[ $LOCK_AGE -gt 0 ]]; then
+            echo "⚠️ package-lock.json is older than 30 days"
+            HEALTH_ISSUES=$((HEALTH_ISSUES + 1))
+          fi
+        fi
+        
+        if [[ $HEALTH_ISSUES -eq 0 ]]; then
+          echo "✅ Cache health check passed"
+        else
+          echo "⚠️ $HEALTH_ISSUES cache health issues detected"
+        fi
+
+    # ==========================================
+    # CACHE METRICS FINALIZATION
+    # ==========================================
+    - name: 📊 Finalize Cache Metrics
+      shell: bash
+      run: |
+        echo "📊 Finalizing cache metrics..."
+        
+        # Calculate final save time
+        START_TIME="${{ steps.save-perf.outputs.save-start-time }}"
+        END_TIME=$(date +%s)
+        SAVE_TIME=$((END_TIME - START_TIME))
+        
+        echo "Cache save operations completed in: ${SAVE_TIME}s"
+        
+        # Generate final cache report
+        echo ""
+        echo "📋 Final Cache Report"
+        echo "===================="
+        echo "Strategy: ${{ inputs.cache-strategy }}"
+        echo "Package Manager: ${{ inputs.package-manager }}"
+        echo "Node Version: ${{ inputs.node-version }}"
+        echo "Save Time: ${SAVE_TIME}s"
+        echo "Cleanup Enabled: ${{ inputs.enable-cleanup }}"
+        echo "Compression: ${{ inputs.cache-compression }}"
+        echo ""
+        
+        # Cache size summary
+        if [[ -d "node_modules" ]]; then
+          NM_SIZE=$(du -sh node_modules 2>/dev/null | cut -f1 || echo "unknown")
+          echo "Node Modules Size: $NM_SIZE"
+        fi
+        
+        if [[ -d ".cache" ]]; then
+          CACHE_SIZE=$(du -sh .cache 2>/dev/null | cut -f1 || echo "unknown")
+          echo "Cache Directory Size: $CACHE_SIZE"
+        fi
+        
+        echo "✅ Cache metrics finalized"
+
+    # ==========================================
+    # SUCCESS SUMMARY
+    # ==========================================
+    - name: ✅ Post-Run Summary
+      shell: bash
+      run: |
+        echo "✅ Multi-Layer Cache Post-Run Complete"
+        echo "====================================="
+        echo ""
+        echo "🧹 Cleanup: ${{ inputs.enable-cleanup == 'true' && 'Completed' || 'Skipped' }}"
+        echo "💾 Optimization: ${{ inputs.cache-compression == 'true' && 'Completed' || 'Skipped' }}"
+        echo "🔍 Health Check: Completed"
+        echo "📊 Metrics: Finalized"
+        echo ""
+        echo "Cache maintenance successfully completed"

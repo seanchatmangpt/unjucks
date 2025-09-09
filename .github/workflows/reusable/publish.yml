@@ -1,0 +1,318 @@
+name: 'Reusable Publish Workflow'
+
+on:
+  workflow_call:
+    inputs:
+      node-version:
+        description: 'Node.js version to use'
+        required: false
+        default: '18'
+        type: string
+      pnpm-version:
+        description: 'PNPM version to use'
+        required: false
+        default: '9.12.0'
+        type: string
+      registry-url:
+        description: 'NPM registry URL'
+        required: false
+        default: 'https://registry.npmjs.org'
+        type: string
+      publish-command:
+        description: 'Publish command to run'
+        required: false
+        default: 'npm publish'
+        type: string
+      package-path:
+        description: 'Path to package directory'
+        required: false
+        default: '.'
+        type: string
+      dry-run:
+        description: 'Perform dry run only'
+        required: false
+        default: false
+        type: boolean
+      enable-provenance:
+        description: 'Enable package provenance'
+        required: false
+        default: true
+        type: boolean
+      pre-publish-commands:
+        description: 'Commands to run before publish (JSON array of strings)'
+        required: false
+        default: '[]'
+        type: string
+      post-publish-commands:
+        description: 'Commands to run after publish (JSON array of strings)'
+        required: false
+        default: '[]'
+        type: string
+      create-github-release:
+        description: 'Create GitHub release'
+        required: false
+        default: true
+        type: boolean
+      working-directory:
+        description: 'Working directory for all steps'
+        required: false
+        default: '.'
+        type: string
+      publish-timeout:
+        description: 'Publish timeout in minutes'
+        required: false
+        default: 10
+        type: number
+
+    secrets:
+      NPM_TOKEN:
+        description: 'NPM authentication token'
+        required: true
+      GITHUB_TOKEN:
+        description: 'GitHub token for releases'
+        required: false
+
+    outputs:
+      published:
+        description: 'Whether package was published'
+        value: ${{ jobs.publish.outputs.published }}
+      version:
+        description: 'Published package version'
+        value: ${{ jobs.publish.outputs.version }}
+      package-name:
+        description: 'Published package name'
+        value: ${{ jobs.publish.outputs.package-name }}
+
+jobs:
+  publish:
+    name: 'Publish Package'
+    runs-on: ubuntu-latest
+    timeout-minutes: ${{ inputs.publish-timeout }}
+    outputs:
+      published: ${{ steps.publish-status.outputs.published }}
+      version: ${{ steps.package-info.outputs.version }}
+      package-name: ${{ steps.package-info.outputs.name }}
+    environment: 
+      name: production
+      url: ${{ steps.package-info.outputs.npm-url }}
+    permissions:
+      contents: write
+      id-token: write
+    env:
+      NODE_ENV: production
+      FORCE_COLOR: 1
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Enable corepack
+        run: npm i -fg corepack && corepack enable
+        working-directory: ${{ inputs.working-directory }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ inputs.node-version }}
+          registry-url: ${{ inputs.registry-url }}
+          cache: 'pnpm'
+          cache-dependency-path: ${{ inputs.working-directory }}/pnpm-lock.yaml
+
+      - name: Install PNPM
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ inputs.pnpm-version }}
+
+      - name: Get PNPM store directory
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+        working-directory: ${{ inputs.working-directory }}
+
+      - name: Setup PNPM cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+        working-directory: ${{ inputs.working-directory }}
+
+      - name: Extract package information
+        id: package-info
+        run: |
+          PACKAGE_NAME=$(jq -r '.name' ${{ inputs.package-path }}/package.json)
+          PACKAGE_VERSION=$(jq -r '.version' ${{ inputs.package-path }}/package.json)
+          NPM_URL="https://www.npmjs.com/package/$PACKAGE_NAME/v/$PACKAGE_VERSION"
+          
+          echo "name=$PACKAGE_NAME" >> $GITHUB_OUTPUT
+          echo "version=$PACKAGE_VERSION" >> $GITHUB_OUTPUT
+          echo "npm-url=$NPM_URL" >> $GITHUB_OUTPUT
+        working-directory: ${{ inputs.working-directory }}
+
+      - name: Check if version already exists
+        id: version-check
+        run: |
+          PACKAGE_NAME="${{ steps.package-info.outputs.name }}"
+          VERSION="${{ steps.package-info.outputs.version }}"
+          
+          if npm view "$PACKAGE_NAME@$VERSION" version 2>/dev/null; then
+            echo "exists=true" >> $GITHUB_OUTPUT
+            echo "⚠️ Version $VERSION already exists on NPM"
+          else
+            echo "exists=false" >> $GITHUB_OUTPUT
+            echo "✅ Version $VERSION is new"
+          fi
+
+      - name: Validate package before publishing
+        run: |
+          echo "Validating package structure..."
+          
+          # Check required files
+          if [ ! -f "${{ inputs.package-path }}/package.json" ]; then
+            echo "❌ package.json not found"
+            exit 1
+          fi
+          
+          # Validate package.json
+          jq empty ${{ inputs.package-path }}/package.json || {
+            echo "❌ Invalid package.json"
+            exit 1
+          }
+          
+          # Check for main/module/exports fields
+          MAIN_FIELD=$(jq -r '.main // empty' ${{ inputs.package-path }}/package.json)
+          MODULE_FIELD=$(jq -r '.module // empty' ${{ inputs.package-path }}/package.json)
+          EXPORTS_FIELD=$(jq -r '.exports // empty' ${{ inputs.package-path }}/package.json)
+          
+          if [ -z "$MAIN_FIELD" ] && [ -z "$MODULE_FIELD" ] && [ -z "$EXPORTS_FIELD" ]; then
+            echo "⚠️ No main, module, or exports field found"
+          fi
+          
+          echo "✅ Package validation passed"
+        working-directory: ${{ inputs.working-directory }}
+
+      - name: Run pre-publish commands
+        if: inputs.pre-publish-commands != '[]'
+        run: |
+          echo '${{ inputs.pre-publish-commands }}' | jq -r '.[]' | while read cmd; do
+            echo "Running pre-publish: $cmd"
+            eval "$cmd"
+          done
+        working-directory: ${{ inputs.working-directory }}
+
+      - name: Dry run publish
+        if: inputs.dry-run
+        run: |
+          echo "🔍 Performing dry run..."
+          cd ${{ inputs.package-path }}
+          npm publish --dry-run
+          echo "✅ Dry run completed successfully"
+        working-directory: ${{ inputs.working-directory }}
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Publish to NPM
+        if: ${{ !inputs.dry-run && steps.version-check.outputs.exists == 'false' }}
+        id: publish
+        run: |
+          echo "📦 Publishing package..."
+          cd ${{ inputs.package-path }}
+          
+          if [ "${{ inputs.enable-provenance }}" == "true" ]; then
+            ${{ inputs.publish-command }} --provenance
+          else
+            ${{ inputs.publish-command }}
+          fi
+          
+          echo "✅ Package published successfully"
+        working-directory: ${{ inputs.working-directory }}
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Verify publication
+        if: ${{ !inputs.dry-run && steps.version-check.outputs.exists == 'false' }}
+        run: |
+          PACKAGE_NAME="${{ steps.package-info.outputs.name }}"
+          VERSION="${{ steps.package-info.outputs.version }}"
+          
+          echo "🔍 Verifying publication..."
+          
+          # Wait a moment for NPM to propagate
+          sleep 10
+          
+          # Check if package is available
+          if npm view "$PACKAGE_NAME@$VERSION" version; then
+            echo "✅ Package verified on NPM registry"
+          else
+            echo "❌ Package verification failed"
+            exit 1
+          fi
+
+      - name: Set publish status
+        id: publish-status
+        run: |
+          if [ "${{ inputs.dry-run }}" == "true" ]; then
+            echo "published=false" >> $GITHUB_OUTPUT
+            echo "status=dry-run" >> $GITHUB_OUTPUT
+          elif [ "${{ steps.version-check.outputs.exists }}" == "true" ]; then
+            echo "published=false" >> $GITHUB_OUTPUT
+            echo "status=version-exists" >> $GITHUB_OUTPUT
+          elif [ "${{ steps.publish.outcome }}" == "success" ]; then
+            echo "published=true" >> $GITHUB_OUTPUT
+            echo "status=success" >> $GITHUB_OUTPUT
+          else
+            echo "published=false" >> $GITHUB_OUTPUT
+            echo "status=failed" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Run post-publish commands
+        if: inputs.post-publish-commands != '[]' && steps.publish-status.outputs.published == 'true'
+        run: |
+          echo '${{ inputs.post-publish-commands }}' | jq -r '.[]' | while read cmd; do
+            echo "Running post-publish: $cmd"
+            eval "$cmd"
+          done
+        working-directory: ${{ inputs.working-directory }}
+
+      - name: Create GitHub Release
+        if: inputs.create-github-release && steps.publish-status.outputs.published == 'true'
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: v${{ steps.package-info.outputs.version }}
+          release_name: Release ${{ steps.package-info.outputs.version }}
+          body: |
+            ## 📦 NPM Package Release
+            
+            **Package**: [`${{ steps.package-info.outputs.name }}@${{ steps.package-info.outputs.version }}`](${{ steps.package-info.outputs.npm-url }})
+            
+            ### Installation
+            ```bash
+            npm install ${{ steps.package-info.outputs.name }}
+            # or
+            pnpm add ${{ steps.package-info.outputs.name }}
+            ```
+            
+            ### Changes
+            See [CHANGELOG.md](./CHANGELOG.md) for detailed changes.
+          draft: false
+          prerelease: false
+
+      - name: Generate publish summary
+        run: |
+          echo "## 📦 Publish Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- **Package**: \`${{ steps.package-info.outputs.name }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "- **Version**: \`${{ steps.package-info.outputs.version }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "- **Status**: ${{ steps.publish-status.outputs.published == 'true' && '✅ Published' || '⏸️ Not Published' }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Registry**: ${{ inputs.registry-url }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Dry Run**: ${{ inputs.dry-run && '✅ Yes' || '❌ No' }}" >> $GITHUB_STEP_SUMMARY
+          if [ "${{ steps.publish-status.outputs.published }}" == "true" ]; then
+            echo "- **NPM URL**: [${{ steps.package-info.outputs.npm-url }}](${{ steps.package-info.outputs.npm-url }})" >> $GITHUB_STEP_SUMMARY
+          fi

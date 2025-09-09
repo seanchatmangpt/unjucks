@@ -1,0 +1,256 @@
+name: 'Smart Matrix Generator'
+description: 'Generate intelligent CI/CD matrices based on changes and context'
+author: 'Unjucks Team'
+
+inputs:
+  github-token:
+    description: 'GitHub token for API access'
+    required: true
+    default: ${{ github.token }}
+  
+  force-matrix:
+    description: 'Force specific matrix type (minimal|standard|full|release)'
+    required: false
+    default: 'auto'
+  
+  changed-files:
+    description: 'JSON array of changed files'
+    required: false
+    default: '[]'
+  
+  base-branch:
+    description: 'Base branch for comparison'
+    required: false
+    default: 'main'
+  
+  enable-caching:
+    description: 'Enable matrix configuration caching'
+    required: false
+    default: 'true'
+  
+  max-jobs:
+    description: 'Maximum number of matrix jobs'
+    required: false
+    default: '20'
+  
+  cost-optimization:
+    description: 'Enable cost optimization features'
+    required: false
+    default: 'true'
+
+outputs:
+  matrix:
+    description: 'Generated matrix configuration (JSON)'
+    value: ${{ steps.generate.outputs.matrix }}
+  
+  test-strategy:
+    description: 'Recommended test strategy'
+    value: ${{ steps.generate.outputs.test-strategy }}
+  
+  matrix-type:
+    description: 'Matrix type used (minimal|standard|full|release)'
+    value: ${{ steps.generate.outputs.matrix-type }}
+  
+  job-count:
+    description: 'Number of jobs in the matrix'
+    value: ${{ steps.generate.outputs.job-count }}
+  
+  estimated-duration:
+    description: 'Estimated duration in minutes'
+    value: ${{ steps.generate.outputs.estimated-duration }}
+  
+  resource-cost:
+    description: 'Resource cost level (low|medium|high|very-high)'
+    value: ${{ steps.generate.outputs.resource-cost }}
+  
+  skip-matrix:
+    description: 'Whether to skip matrix execution'
+    value: ${{ steps.generate.outputs.skip-matrix }}
+
+runs:
+  using: 'composite'
+  steps:
+    - name: 🔍 Validate inputs
+      shell: bash
+      run: |
+        echo "🔍 Validating smart matrix inputs..."
+        
+        # Validate force-matrix input
+        if [[ "${{ inputs.force-matrix }}" =~ ^(auto|minimal|standard|full|release)$ ]]; then
+          echo "✅ Valid force-matrix: ${{ inputs.force-matrix }}"
+        else
+          echo "❌ Invalid force-matrix: ${{ inputs.force-matrix }}"
+          echo "Must be one of: auto, minimal, standard, full, release"
+          exit 1
+        fi
+        
+        # Validate max-jobs
+        if [[ "${{ inputs.max-jobs }}" =~ ^[0-9]+$ ]] && [ "${{ inputs.max-jobs }}" -le 50 ]; then
+          echo "✅ Valid max-jobs: ${{ inputs.max-jobs }}"
+        else
+          echo "❌ Invalid max-jobs: ${{ inputs.max-jobs }}"
+          echo "Must be a number between 1 and 50"
+          exit 1
+        fi
+
+    - name: 📦 Setup Node.js for matrix generation
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+
+    - name: 🧠 Generate intelligent matrix
+      id: generate
+      shell: bash
+      run: |
+        echo "🧠 Generating intelligent matrix with smart analysis..."
+        
+        # Set up environment variables
+        export GITHUB_REF="${{ github.ref }}"
+        export GITHUB_REF_TYPE="${{ github.ref_type }}"
+        export GITHUB_EVENT_NAME="${{ github.event_name }}"
+        export CHANGED_FILES='${{ inputs.changed-files }}'
+        export FORCE_MATRIX="${{ inputs.force-matrix }}"
+        export MAX_JOBS="${{ inputs.max-jobs }}"
+        export COST_OPTIMIZATION="${{ inputs.cost-optimization }}"
+        export BASE_BRANCH="${{ inputs.base-branch }}"
+        
+        # Make matrix generator executable
+        chmod +x ${{ github.action_path }}/../../scripts/generate-matrix.js
+        
+        # Generate matrix
+        node ${{ github.action_path }}/../../scripts/generate-matrix.js
+
+    - name: 🎯 Apply cost optimization
+      shell: bash
+      if: inputs.cost-optimization == 'true'
+      run: |
+        echo "🎯 Applying cost optimization strategies..."
+        
+        # Get current matrix configuration
+        MATRIX_TYPE="${{ steps.generate.outputs.matrix-type }}"
+        JOB_COUNT="${{ steps.generate.outputs.job-count }}"
+        ESTIMATED_COST="${{ steps.generate.outputs.resource-cost }}"
+        
+        echo "Current configuration:"
+        echo "- Matrix type: $MATRIX_TYPE"
+        echo "- Job count: $JOB_COUNT"  
+        echo "- Estimated cost: $ESTIMATED_COST"
+        
+        # Apply cost reduction strategies if needed
+        if [ "$JOB_COUNT" -gt "${{ inputs.max-jobs }}" ]; then
+          echo "⚠️ Job count ($JOB_COUNT) exceeds maximum (${{ inputs.max-jobs }})"
+          echo "Applying cost reduction strategies..."
+          
+          # Reduce matrix size by removing least critical combinations
+          # This would trigger a re-generation with stricter parameters
+          export FORCE_COST_REDUCTION="true"
+          node ${{ github.action_path }}/../../scripts/generate-matrix.js
+        fi
+
+    - name: 📊 Matrix validation and summary
+      shell: bash
+      run: |
+        echo "📊 Validating generated matrix configuration..."
+        
+        MATRIX_JSON="${{ steps.generate.outputs.matrix }}"
+        
+        # Validate JSON structure
+        if echo "$MATRIX_JSON" | jq . > /dev/null 2>&1; then
+          echo "✅ Matrix JSON is valid"
+        else
+          echo "❌ Matrix JSON is invalid"
+          echo "$MATRIX_JSON"
+          exit 1
+        fi
+        
+        # Count actual matrix combinations
+        ACTUAL_COUNT=$(echo "$MATRIX_JSON" | jq '.include | length')
+        REPORTED_COUNT="${{ steps.generate.outputs.job-count }}"
+        
+        if [ "$ACTUAL_COUNT" == "$REPORTED_COUNT" ]; then
+          echo "✅ Matrix job count matches: $ACTUAL_COUNT"
+        else
+          echo "⚠️ Matrix job count mismatch: actual=$ACTUAL_COUNT, reported=$REPORTED_COUNT"
+        fi
+        
+        # Generate summary
+        echo "## Smart Matrix Summary" >> $GITHUB_STEP_SUMMARY
+        echo "| Property | Value |" >> $GITHUB_STEP_SUMMARY
+        echo "|----------|--------|" >> $GITHUB_STEP_SUMMARY
+        echo "| Matrix Type | ${{ steps.generate.outputs.matrix-type }} |" >> $GITHUB_STEP_SUMMARY
+        echo "| Job Count | ${{ steps.generate.outputs.job-count }} |" >> $GITHUB_STEP_SUMMARY
+        echo "| Estimated Duration | ${{ steps.generate.outputs.estimated-duration }} min |" >> $GITHUB_STEP_SUMMARY
+        echo "| Resource Cost | ${{ steps.generate.outputs.resource-cost }} |" >> $GITHUB_STEP_SUMMARY
+        echo "| Test Strategy | ${{ steps.generate.outputs.test-strategy }} |" >> $GITHUB_STEP_SUMMARY
+
+    - name: 💾 Cache matrix configuration
+      uses: actions/cache@v4
+      if: inputs.enable-caching == 'true'
+      with:
+        path: |
+          .github/data/matrix-cache/
+          .github/data/last-matrix-config.json
+        key: matrix-cache-${{ runner.os }}-${{ hashFiles('src/**', 'package*.json') }}-${{ github.sha }}
+        restore-keys: |
+          matrix-cache-${{ runner.os }}-${{ hashFiles('src/**', 'package*.json') }}-
+          matrix-cache-${{ runner.os }}-
+
+    - name: 🔒 Security validation
+      shell: bash
+      run: |
+        echo "🔒 Performing security validation on matrix configuration..."
+        
+        # Check for suspicious patterns in matrix
+        MATRIX_JSON="${{ steps.generate.outputs.matrix }}"
+        
+        # Validate OS values
+        INVALID_OS=$(echo "$MATRIX_JSON" | jq -r '.include[]?.os // empty' | grep -v -E '^(ubuntu-latest|windows-latest|macos-latest)$' || true)
+        if [ -n "$INVALID_OS" ]; then
+          echo "❌ Invalid OS detected: $INVALID_OS"
+          exit 1
+        fi
+        
+        # Validate Node versions
+        INVALID_NODE=$(echo "$MATRIX_JSON" | jq -r '.include[]?.node // empty' | grep -v -E '^(16|18|20|22)$' || true)
+        if [ -n "$INVALID_NODE" ]; then
+          echo "❌ Invalid Node version detected: $INVALID_NODE"
+          exit 1
+        fi
+        
+        echo "✅ Security validation passed"
+
+    - name: 📈 Performance metrics collection
+      shell: bash
+      run: |
+        echo "📈 Collecting performance metrics..."
+        
+        # Create metrics file
+        cat > matrix-metrics.json << EOF
+        {
+          "timestamp": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+          "inputs": {
+            "force_matrix": "${{ inputs.force-matrix }}",
+            "max_jobs": ${{ inputs.max-jobs }},
+            "cost_optimization": ${{ inputs.cost-optimization }},
+            "changed_files_count": $(echo '${{ inputs.changed-files }}' | jq 'length')
+          },
+          "outputs": {
+            "matrix_type": "${{ steps.generate.outputs.matrix-type }}",
+            "job_count": ${{ steps.generate.outputs.job-count }},
+            "estimated_duration": ${{ steps.generate.outputs.estimated-duration }},
+            "resource_cost": "${{ steps.generate.outputs.resource-cost }}"
+          },
+          "efficiency": {
+            "jobs_per_minute": $(echo "scale=2; ${{ steps.generate.outputs.job-count }} / ${{ steps.generate.outputs.estimated-duration }}" | bc -l),
+            "cost_efficiency": "${{ steps.generate.outputs.resource-cost }}"
+          }
+        }
+        EOF
+        
+        echo "📊 Performance metrics collected"
+        cat matrix-metrics.json
+
+branding:
+  icon: 'grid'
+  color: 'blue'

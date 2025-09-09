@@ -164,7 +164,7 @@ class TestResultsAggregator {
     parseVitestTextOutput(content) {
         const lines = content.split('\n');
         const tests = [];
-        let summary = { passed: 0, failed: 0, skipped: 0, total: 0 };
+        const summary = { passed: 0, failed: 0, skipped: 0, total: 0 };
 
         for (const line of lines) {
             if (line.includes('✓') || line.includes('PASS')) {
