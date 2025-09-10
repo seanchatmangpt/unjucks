@@ -1,0 +1,458 @@
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix person: <http://ontology.resume/person#> .
+@prefix skill: <http://ontology.resume/skill#> .
+@prefix job: <http://ontology.resume/job#> .
+@prefix company: <http://ontology.resume/company#> .
+@prefix education: <http://ontology.resume/education#> .
+
+# Sample Person Profiles in Turtle Format
+# Production-ready examples for resume matching system
+
+# ===========================
+# EDUCATIONAL INSTITUTIONS
+# ===========================
+
+education:StanfordUniversity a education:University ;
+    education:hasInstitutionName "Stanford University" .
+
+education:MIT a education:University ;
+    education:hasInstitutionName "Massachusetts Institute of Technology" .
+
+education:UCBerkeley a education:University ;
+    education:hasInstitutionName "University of California, Berkeley" .
+
+education:BootcampGeneral a education:Bootcamp ;
+    education:hasInstitutionName "General Assembly" .
+
+education:Coursera a education:OnlineProvider ;
+    education:hasInstitutionName "Coursera" .
+
+education:AWS a education:OnlineProvider ;
+    education:hasInstitutionName "Amazon Web Services" .
+
+# ===========================
+# SAMPLE COMPANIES FOR EXPERIENCE
+# ===========================
+
+company:GoogleInc a company:Enterprise ;
+    company:hasName "Google Inc." ;
+    company:inIndustry company:Technology .
+
+company:MetaInc a company:Enterprise ;
+    company:hasName "Meta Inc." ;
+    company:inIndustry company:Technology .
+
+company:AmazonInc a company:Enterprise ;
+    company:hasName "Amazon Inc." ;
+    company:inIndustry company:Technology .
+
+company:StartupXYZ a company:Startup ;
+    company:hasName "StartupXYZ" ;
+    company:inIndustry company:Technology .
+
+company:ConsultingFirm a company:Company ;
+    company:hasName "Tech Consulting Partners" ;
+    company:inIndustry company:Technology .
+
+# ===========================
+# PERSON PROFILES
+# ===========================
+
+# Senior Full Stack Developer Profile
+person:JohnDoe a person:JobSeeker ;
+    person:hasFirstName "John" ;
+    person:hasLastName "Doe" ;
+    person:hasFullName "John Doe" ;
+    person:hasEmail "john.doe@email.com" ;
+    person:hasPhone "+1-555-123-4567" ;
+    person:hasAddress "San Francisco, CA" ;
+    person:hasLinkedIn <https://linkedin.com/in/johndoe> ;
+    person:hasGitHub <https://github.com/johndoe> ;
+    person:hasPortfolio <https://johndoe.dev> ;
+    person:hasSummary "Senior Full Stack Developer with 6 years of experience building scalable web applications. Expertise in React, Node.js, and cloud technologies. Passionate about clean code and user experience." ;
+    person:totalYearsExperience 6.0 ;
+    person:hasCareerLevel job:SeniorLevel ;
+    person:interestedInIndustry company:Technology ;
+    person:preferredLocation "San Francisco, CA" ;
+    person:willingToRelocate false ;
+    person:minSalary 120000.00 ;
+    person:preferredEmploymentType job:FullTime ;
+    person:availabilityDate "2025-10-01"^^xsd:date .
+
+# John's Skills
+person:JohnDoe person:hasSkillProficiency person:JohnJavaScript .
+person:JohnJavaScript a person:SkillProficiency ;
+    person:skillFor skill:JavaScript ;
+    person:proficiencyLevel "Expert" ;
+    person:yearsExperience 6.0 ;
+    person:lastUsed "2025-09-01"^^xsd:date .
+
+person:JohnDoe person:hasSkillProficiency person:JohnReact .
+person:JohnReact a person:SkillProficiency ;
+    person:skillFor skill:React ;
+    person:proficiencyLevel "Advanced" ;
+    person:yearsExperience 4.0 ;
+    person:lastUsed "2025-09-01"^^xsd:date .
+
+person:JohnDoe person:hasSkillProficiency person:JohnNodeJS .
+person:JohnNodeJS a person:SkillProficiency ;
+    person:skillFor skill:NodeJS ;
+    person:proficiencyLevel "Advanced" ;
+    person:yearsExperience 5.0 ;
+    person:lastUsed "2025-08-15"^^xsd:date .
+
+person:JohnDoe person:hasSkillProficiency person:JohnTypeScript .
+person:JohnTypeScript a person:SkillProficiency ;
+    person:skillFor skill:TypeScript ;
+    person:proficiencyLevel "Advanced" ;
+    person:yearsExperience 3.0 ;
+    person:lastUsed "2025-09-01"^^xsd:date .
+
+person:JohnDoe person:hasSkillProficiency person:JohnAWS .
+person:JohnAWS a person:SkillProficiency ;
+    person:skillFor skill:AWS ;
+    person:proficiencyLevel "Intermediate" ;
+    person:yearsExperience 3.0 ;
+    person:lastUsed "2025-07-20"^^xsd:date .
+
+person:JohnDoe person:hasSkillProficiency person:JohnPostgreSQL .
+person:JohnPostgreSQL a person:SkillProficiency ;
+    person:skillFor skill:PostgreSQL ;
+    person:proficiencyLevel "Advanced" ;
+    person:yearsExperience 4.0 ;
+    person:lastUsed "2025-08-30"^^xsd:date .
+
+# John's Work Experience
+person:JohnDoe person:hasExperience person:JohnExp1 .
+person:JohnExp1 a person:JobExperience ;
+    person:hasJobTitle "Senior Software Engineer" ;
+    person:hasCompany company:GoogleInc ;
+    person:hasStartDate "2022-01-15"^^xsd:date ;
+    person:isCurrent true ;
+    person:hasDescription "Lead full-stack development of high-traffic web applications serving millions of users. Implemented microservices architecture and improved system performance by 40%." ;
+    person:hasAchievements "Reduced API response time by 60%, mentored 3 junior developers, led migration to TypeScript" ;
+    person:usedSkill skill:JavaScript ;
+    person:usedSkill skill:TypeScript ;
+    person:usedSkill skill:React ;
+    person:usedSkill skill:NodeJS ;
+    person:usedSkill skill:AWS ;
+    person:usedSkill skill:PostgreSQL .
+
+person:JohnDoe person:hasExperience person:JohnExp2 .
+person:JohnExp2 a person:JobExperience ;
+    person:hasJobTitle "Full Stack Developer" ;
+    person:hasCompany company:StartupXYZ ;
+    person:hasStartDate "2020-06-01"^^xsd:date ;
+    person:hasEndDate "2021-12-31"^^xsd:date ;
+    person:hasDescription "Developed and maintained multiple client-facing applications using React and Node.js. Collaborated with design team to implement responsive user interfaces." ;
+    person:hasAchievements "Built 5 production applications from scratch, implemented CI/CD pipeline, improved test coverage to 85%" ;
+    person:usedSkill skill:JavaScript ;
+    person:usedSkill skill:React ;
+    person:usedSkill skill:NodeJS ;
+    person:usedSkill skill:MongoDB ;
+    person:usedSkill skill:Docker .
+
+person:JohnDoe person:hasExperience person:JohnExp3 .
+person:JohnExp3 a person:JobExperience ;
+    person:hasJobTitle "Junior Software Developer" ;
+    person:hasCompany company:ConsultingFirm ;
+    person:hasStartDate "2019-03-01"^^xsd:date ;
+    person:hasEndDate "2020-05-31"^^xsd:date ;
+    person:hasDescription "Contributed to web development projects for various clients. Gained experience in multiple technologies and agile development practices." ;
+    person:hasAchievements "Completed 8 client projects, learned React and Node.js, received 'Rising Star' award" ;
+    person:usedSkill skill:JavaScript ;
+    person:usedSkill skill:HTML5 ;
+    person:usedSkill skill:CSS3 ;
+    person:usedSkill skill:Git .
+
+# John's Projects
+person:JohnDoe person:hasProject person:JohnProject1 .
+person:JohnProject1 a person:SoftwareProject ;
+    person:projectName "E-commerce Platform" ;
+    person:projectDescription "Full-stack e-commerce platform with React frontend, Node.js backend, and PostgreSQL database. Features include user authentication, payment processing, and inventory management." ;
+    person:projectURL <https://github.com/johndoe/ecommerce-platform> ;
+    person:projectStartDate "2024-01-01"^^xsd:date ;
+    person:projectEndDate "2024-06-30"^^xsd:date ;
+    person:projectRole "Lead Developer" ;
+    person:projectTechnologies skill:React ;
+    person:projectTechnologies skill:NodeJS ;
+    person:projectTechnologies skill:PostgreSQL ;
+    person:projectTechnologies skill:AWS ;
+    person:partOfExperience person:JohnExp1 .
+
+person:JohnDoe person:hasProject person:JohnProject2 .
+person:JohnProject2 a person:OpenSourceProject ;
+    person:projectName "React Data Visualization Library" ;
+    person:projectDescription "Open-source React component library for creating interactive data visualizations. Used by 500+ developers worldwide." ;
+    person:projectURL <https://github.com/johndoe/react-dataviz> ;
+    person:projectStartDate "2023-03-01"^^xsd:date ;
+    person:projectRole "Creator and Maintainer" ;
+    person:projectTechnologies skill:React ;
+    person:projectTechnologies skill:TypeScript ;
+    person:projectTechnologies skill:D3 .
+
+# John's Education
+person:JohnDoe person:hasEducation person:JohnEdu1 .
+person:JohnEdu1 a education:BachelorDegree ;
+    education:hasInstitution education:UCBerkeley ;
+    education:hasDegreeTitle "Bachelor of Science in Computer Science" ;
+    education:hasMajor "Computer Science" ;
+    education:hasGPA 3.7 ;
+    education:hasStartDate "2015-09-01"^^xsd:date ;
+    education:hasGraduationDate "2019-05-15"^^xsd:date ;
+    education:isCompleted true ;
+    education:hasHonors "Magna Cum Laude" .
+
+person:JohnDoe person:hasEducation person:JohnCert1 .
+person:JohnCert1 a education:Certification ;
+    education:hasCertificationName "AWS Certified Solutions Architect" ;
+    education:hasIssuingOrganization "Amazon Web Services" ;
+    education:hasIssueDate "2023-06-15"^^xsd:date ;
+    education:hasExpirationDate "2026-06-15"^^xsd:date ;
+    education:hasCredentialID "AWS-SA-12345" ;
+    education:hasCredentialURL <https://aws.amazon.com/verification/AWS-SA-12345> .
+
+# ===========================
+# MACHINE LEARNING ENGINEER PROFILE
+# ===========================
+
+person:AliceSmith a person:JobSeeker ;
+    person:hasFirstName "Alice" ;
+    person:hasLastName "Smith" ;
+    person:hasFullName "Alice Smith" ;
+    person:hasEmail "alice.smith@email.com" ;
+    person:hasPhone "+1-555-987-6543" ;
+    person:hasAddress "Austin, TX" ;
+    person:hasLinkedIn <https://linkedin.com/in/alicesmith> ;
+    person:hasGitHub <https://github.com/alicesmith> ;
+    person:hasSummary "Machine Learning Engineer with 4 years of experience in building and deploying ML models. Expertise in Python, TensorFlow, and cloud platforms. Strong background in statistics and data analysis." ;
+    person:totalYearsExperience 4.0 ;
+    person:hasCareerLevel job:MidLevel ;
+    person:interestedInIndustry company:Technology ;
+    person:preferredLocation "Austin, TX" ;
+    person:willingToRelocate true ;
+    person:minSalary 95000.00 ;
+    person:preferredEmploymentType job:FullTime ;
+    person:availabilityDate "2025-09-15"^^xsd:date .
+
+# Alice's Skills
+person:AliceSmith person:hasSkillProficiency person:AlicePython .
+person:AlicePython a person:SkillProficiency ;
+    person:skillFor skill:Python ;
+    person:proficiencyLevel "Expert" ;
+    person:yearsExperience 4.0 ;
+    person:lastUsed "2025-09-10"^^xsd:date .
+
+person:AliceSmith person:hasSkillProficiency person:AliceTensorFlow .
+person:AliceTensorFlow a person:SkillProficiency ;
+    person:skillFor skill:TensorFlow ;
+    person:proficiencyLevel "Advanced" ;
+    person:yearsExperience 3.0 ;
+    person:lastUsed "2025-09-05"^^xsd:date .
+
+person:AliceSmith person:hasSkillProficiency person:AlicePyTorch .
+person:AlicePyTorch a person:SkillProficiency ;
+    person:skillFor skill:PyTorch ;
+    person:proficiencyLevel "Intermediate" ;
+    person:yearsExperience 2.0 ;
+    person:lastUsed "2025-08-20"^^xsd:date .
+
+person:AliceSmith person:hasSkillProficiency person:AlicePandas .
+person:AlicePandas a person:SkillProficiency ;
+    person:skillFor skill:Pandas ;
+    person:proficiencyLevel "Advanced" ;
+    person:yearsExperience 4.0 ;
+    person:lastUsed "2025-09-08"^^xsd:date .
+
+person:AliceSmith person:hasSkillProficiency person:AliceSQL .
+person:AliceSQL a person:SkillProficiency ;
+    person:skillFor skill:SQL ;
+    person:proficiencyLevel "Advanced" ;
+    person:yearsExperience 4.0 ;
+    person:lastUsed "2025-09-07"^^xsd:date .
+
+# Alice's Work Experience
+person:AliceSmith person:hasExperience person:AliceExp1 .
+person:AliceExp1 a person:JobExperience ;
+    person:hasJobTitle "Machine Learning Engineer" ;
+    person:hasCompany company:MetaInc ;
+    person:hasStartDate "2023-02-01"^^xsd:date ;
+    person:isCurrent true ;
+    person:hasDescription "Develop and deploy machine learning models for recommendation systems. Work with large-scale datasets and implement A/B testing frameworks for model evaluation." ;
+    person:hasAchievements "Improved recommendation accuracy by 25%, deployed 15 ML models to production, reduced model training time by 50%" ;
+    person:usedSkill skill:Python ;
+    person:usedSkill skill:TensorFlow ;
+    person:usedSkill skill:PyTorch ;
+    person:usedSkill skill:Spark ;
+    person:usedSkill skill:AWS .
+
+person:AliceSmith person:hasExperience person:AliceExp2 .
+person:AliceExp2 a person:JobExperience ;
+    person:hasJobTitle "Data Scientist" ;
+    person:hasCompany company:AmazonInc ;
+    person:hasStartDate "2021-07-01"^^xsd:date ;
+    person:hasEndDate "2023-01-31"^^xsd:date ;
+    person:hasDescription "Analyzed customer data to drive business insights and built predictive models for inventory management. Collaborated with product teams to implement data-driven solutions." ;
+    person:hasAchievements "Built demand forecasting model saving $2M annually, created automated reporting dashboard, published 3 internal research papers" ;
+    person:usedSkill skill:Python ;
+    person:usedSkill skill:R ;
+    person:usedSkill skill:SQL ;
+    person:usedSkill skill:Tableau ;
+    person:usedSkill skill:Statistics .
+
+# Alice's Education
+person:AliceSmith person:hasEducation person:AliceEdu1 .
+person:AliceEdu1 a education:MasterDegree ;
+    education:hasInstitution education:StanfordUniversity ;
+    education:hasDegreeTitle "Master of Science in Statistics" ;
+    education:hasMajor "Statistics" ;
+    education:hasGPA 3.8 ;
+    education:hasStartDate "2019-09-01"^^xsd:date ;
+    education:hasGraduationDate "2021-06-15"^^xsd:date ;
+    education:isCompleted true .
+
+person:AliceSmith person:hasEducation person:AliceEdu2 .
+person:AliceEdu2 a education:BachelorDegree ;
+    education:hasInstitution education:MIT ;
+    education:hasDegreeTitle "Bachelor of Science in Mathematics" ;
+    education:hasMajor "Mathematics" ;
+    education:hasMinor "Computer Science" ;
+    education:hasGPA 3.9 ;
+    education:hasStartDate "2015-09-01"^^xsd:date ;
+    education:hasGraduationDate "2019-05-15"^^xsd:date ;
+    education:isCompleted true ;
+    education:hasHonors "Summa Cum Laude" .
+
+# ===========================
+# ENTRY-LEVEL FRONTEND DEVELOPER PROFILE
+# ===========================
+
+person:MikeJohnson a person:JobSeeker ;
+    person:hasFirstName "Mike" ;
+    person:hasLastName "Johnson" ;
+    person:hasFullName "Mike Johnson" ;
+    person:hasEmail "mike.johnson@email.com" ;
+    person:hasPhone "+1-555-456-7890" ;
+    person:hasAddress "San Francisco, CA" ;
+    person:hasLinkedIn <https://linkedin.com/in/mikejohnson> ;
+    person:hasGitHub <https://github.com/mikejohnson> ;
+    person:hasPortfolio <https://mikejohnson.dev> ;
+    person:hasSummary "Recent Computer Science graduate with internship experience in frontend development. Passionate about creating intuitive user interfaces and learning new technologies. Strong foundation in JavaScript and React." ;
+    person:totalYearsExperience 1.5 ;
+    person:hasCareerLevel job:EntryLevel ;
+    person:interestedInIndustry company:Technology ;
+    person:preferredLocation "San Francisco, CA" ;
+    person:willingToRelocate false ;
+    person:minSalary 70000.00 ;
+    person:preferredEmploymentType job:FullTime ;
+    person:availabilityDate "2025-09-20"^^xsd:date .
+
+# Mike's Skills
+person:MikeJohnson person:hasSkillProficiency person:MikeJavaScript .
+person:MikeJavaScript a person:SkillProficiency ;
+    person:skillFor skill:JavaScript ;
+    person:proficiencyLevel "Intermediate" ;
+    person:yearsExperience 2.0 ;
+    person:lastUsed "2025-09-10"^^xsd:date .
+
+person:MikeJohnson person:hasSkillProficiency person:MikeReact .
+person:MikeReact a person:SkillProficiency ;
+    person:skillFor skill:React ;
+    person:proficiencyLevel "Intermediate" ;
+    person:yearsExperience 1.5 ;
+    person:lastUsed "2025-09-10"^^xsd:date .
+
+person:MikeJohnson person:hasSkillProficiency person:MikeHTML5 .
+person:MikeHTML5 a person:SkillProficiency ;
+    person:skillFor skill:HTML5 ;
+    person:proficiencyLevel "Advanced" ;
+    person:yearsExperience 3.0 ;
+    person:lastUsed "2025-09-10"^^xsd:date .
+
+person:MikeJohnson person:hasSkillProficiency person:MikeCSS3 .
+person:MikeCSS3 a person:SkillProficiency ;
+    person:skillFor skill:CSS3 ;
+    person:proficiencyLevel "Advanced" ;
+    person:yearsExperience 3.0 ;
+    person:lastUsed "2025-09-10"^^xsd:date .
+
+person:MikeJohnson person:hasSkillProficiency person:MikeTypeScript .
+person:MikeTypeScript a person:SkillProficiency ;
+    person:skillFor skill:TypeScript ;
+    person:proficiencyLevel "Beginner" ;
+    person:yearsExperience 0.5 ;
+    person:lastUsed "2025-08-15"^^xsd:date .
+
+# Mike's Work Experience
+person:MikeJohnson person:hasExperience person:MikeExp1 .
+person:MikeExp1 a person:JobExperience ;
+    person:hasJobTitle "Frontend Developer Intern" ;
+    person:hasCompany company:StartupXYZ ;
+    person:hasStartDate "2024-06-01"^^xsd:date ;
+    person:hasEndDate "2024-08-31"^^xsd:date ;
+    person:hasDescription "Developed user interface components using React and collaborated with design team to implement responsive layouts. Participated in code reviews and agile development process." ;
+    person:hasAchievements "Built 3 key UI components, improved mobile responsiveness, learned React best practices" ;
+    person:usedSkill skill:JavaScript ;
+    person:usedSkill skill:React ;
+    person:usedSkill skill:HTML5 ;
+    person:usedSkill skill:CSS3 ;
+    person:usedSkill skill:Git .
+
+# Mike's Projects
+person:MikeJohnson person:hasProject person:MikeProject1 .
+person:MikeProject1 a person:SoftwareProject ;
+    person:projectName "Personal Portfolio Website" ;
+    person:projectDescription "Responsive portfolio website built with React and CSS Grid. Features smooth animations and mobile-first design." ;
+    person:projectURL <https://mikejohnson.dev> ;
+    person:projectStartDate "2024-09-01"^^xsd:date ;
+    person:projectRole "Developer" ;
+    person:projectTechnologies skill:React ;
+    person:projectTechnologies skill:JavaScript ;
+    person:projectTechnologies skill:CSS3 ;
+    person:projectTechnologies skill:HTML5 .
+
+person:MikeJohnson person:hasProject person:MikeProject2 .
+person:MikeProject2 a person:SoftwareProject ;
+    person:projectName "Weather App" ;
+    person:projectDescription "React application that displays current weather and forecasts using OpenWeatherMap API. Implements geolocation and local storage." ;
+    person:projectURL <https://github.com/mikejohnson/weather-app> ;
+    person:projectStartDate "2024-07-01"^^xsd:date ;
+    person:projectEndDate "2024-07-30"^^xsd:date ;
+    person:projectRole "Developer" ;
+    person:projectTechnologies skill:React ;
+    person:projectTechnologies skill:JavaScript ;
+    person:projectTechnologies skill:CSS3 .
+
+# Mike's Education
+person:MikeJohnson person:hasEducation person:MikeEdu1 .
+person:MikeEdu1 a education:BachelorDegree ;
+    education:hasInstitution education:UCBerkeley ;
+    education:hasDegreeTitle "Bachelor of Science in Computer Science" ;
+    education:hasMajor "Computer Science" ;
+    education:hasGPA 3.5 ;
+    education:hasStartDate "2020-09-01"^^xsd:date ;
+    education:hasGraduationDate "2024-05-15"^^xsd:date ;
+    education:isCompleted true .
+
+person:MikeJohnson person:hasEducation person:MikeCert1 .
+person:MikeCert1 a education:Certification ;
+    education:hasCertificationName "React Developer Certification" ;
+    education:hasIssuingOrganization "Meta" ;
+    education:hasIssueDate "2024-08-01"^^xsd:date ;
+    education:hasCredentialID "META-REACT-789" ;
+    education:hasCredentialURL <https://coursera.org/verify/META-REACT-789> .
+
+# ===========================
+# ADDITIONAL SKILLS FOR EXAMPLES
+# ===========================
+
+skill:D3 a skill:TechnicalSkill ;
+    skill:hasName "D3.js" ;
+    skill:hasCategory "Data Visualization Library" .
+
+skill:Spark a skill:TechnicalSkill ;
+    skill:hasName "Apache Spark" ;
+    skill:hasCategory "Big Data Framework" .

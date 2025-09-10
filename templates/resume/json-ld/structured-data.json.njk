@@ -1,0 +1,299 @@
+---
+to: "{{ candidateName | slug }}-{{ industry }}-structured-data.json"
+inject: false
+skipIf: false
+---
+{
+  "@context": "https://schema.org",
+  "@type": "Person",
+  "@id": "{{ portfolioUrl }}#person",
+  "identifier": {
+    "@type": "PropertyValue",
+    "name": "Resume ID",
+    "value": "{{ candidateName | slug }}-{{ industry }}-{{ new Date().getFullYear() }}"
+  },
+  "name": "{{ candidateName }}",
+  "alternateName": [
+    "{{ candidateName.split(' ')[0] }} {{ candidateName.split(' ').slice(-1)[0] }}",
+    "{{ candidateName.replace(' ', '') }}"
+  ],
+  "description": "{{ jobTitle }} specializing in {{ industry }} with expertise in modern technologies and best practices",
+  "jobTitle": "{{ jobTitle }}",
+  "hasOccupation": {
+    "@type": "Occupation",
+    "name": "{{ jobTitle }}",
+    "occupationLocation": {
+      "@type": "Place",
+      "name": "{{ location }}"
+    },
+    "occupationalCategory": "{{ industry }}",
+    "skills": [
+      {% if industry == 'software' %}
+      "Software Development", "Full Stack Development", "System Architecture", "DevOps", "Agile Methodologies"
+      {% elif industry == 'data-science' %}
+      "Data Science", "Machine Learning", "Statistical Analysis", "Data Visualization", "Big Data Processing"
+      {% elif industry == 'product' %}
+      "Product Management", "Product Strategy", "Roadmap Planning", "User Research", "Stakeholder Management"
+      {% elif industry == 'design' %}
+      "User Experience Design", "Visual Design", "Design Systems", "Prototyping", "User Research"
+      {% else %}
+      "Problem Solving", "Team Leadership", "Project Management", "Strategic Planning", "Communication"
+      {% endif %}
+    ]
+  },
+  "email": "{{ email }}",
+  "telephone": "{{ phone }}",
+  "url": "{{ portfolioUrl }}",
+  "image": "{{ portfolioUrl }}/avatar.jpg",
+  "address": {
+    "@type": "PostalAddress",
+    "addressLocality": "{{ location.split(',')[0].trim() }}",
+    "addressRegion": "{{ location.split(',')[1] ? location.split(',')[1].trim() : '' }}",
+    "addressCountry": "US"
+  },
+  "sameAs": [
+    "{{ linkedinUrl }}",
+    "{{ githubUrl }}",
+    "{{ portfolioUrl }}"
+  ],
+  "alumniOf": {
+    "@type": "EducationalOrganization",
+    "name": "University of Technology",
+    "location": {
+      "@type": "Place",
+      "name": "{{ location }}"
+    }
+  },
+  "hasCredential": [
+    {
+      "@type": "EducationalOccupationalCredential",
+      "name": "Bachelor of Science in Computer Science",
+      "credentialCategory": "degree",
+      "educationalLevel": "bachelor",
+      "dateCreated": "2021",
+      "sourceOrganization": {
+        "@type": "EducationalOrganization",
+        "name": "University of Technology"
+      }
+    },
+    {
+      "@type": "EducationalOccupationalCredential",
+      "name": "AWS Certified Solutions Architect - Associate",
+      "credentialCategory": "certification",
+      "dateCreated": "2023",
+      "sourceOrganization": {
+        "@type": "Organization",
+        "name": "Amazon Web Services"
+      }
+    },
+    {
+      "@type": "EducationalOccupationalCredential",
+      "name": "Google Cloud Professional Cloud Architect",
+      "credentialCategory": "certification",
+      "dateCreated": "2022",
+      "sourceOrganization": {
+        "@type": "Organization",
+        "name": "Google Cloud"
+      }
+    }
+  ],
+  "worksFor": {
+    "@type": "Organization",
+    "name": "TechCorp Inc.",
+    "url": "https://techcorp.com",
+    "location": {
+      "@type": "Place",
+      "name": "{{ location }}"
+    }
+  },
+  "workHistory": [
+    {
+      "@type": "OrganizationRole",
+      "roleName": "Senior {{ jobTitle }}",
+      "startDate": "2023-01",
+      "endDate": "{{ new Date().toISOString().split('T')[0] }}",
+      "worksFor": {
+        "@type": "Organization",
+        "name": "TechCorp Inc.",
+        "location": {
+          "@type": "Place",
+          "name": "{{ location }}"
+        }
+      },
+      "description": "Led development of microservices architecture serving 1M+ users. Implemented CI/CD pipelines reducing deployment time by 60%. Mentored 5 junior engineers and conducted technical interviews."
+    },
+    {
+      "@type": "OrganizationRole",
+      "roleName": "{{ jobTitle }}",
+      "startDate": "2021-03",
+      "endDate": "2023-01",
+      "worksFor": {
+        "@type": "Organization",
+        "name": "InnovateCo",
+        "location": {
+          "@type": "Place",
+          "name": "Remote"
+        }
+      },
+      "description": "Developed full-stack applications using modern frameworks. Optimized database queries improving application performance by 40%. Participated in agile development processes and code reviews."
+    }
+  ],
+  "knowsAbout": [
+    {% if industry == 'software' %}
+    {
+      "@type": "Thing",
+      "name": "JavaScript",
+      "description": "Programming language for web development"
+    },
+    {
+      "@type": "Thing", 
+      "name": "React",
+      "description": "Frontend framework for building user interfaces"
+    },
+    {
+      "@type": "Thing",
+      "name": "Node.js",
+      "description": "JavaScript runtime for server-side development"
+    },
+    {
+      "@type": "Thing",
+      "name": "PostgreSQL",
+      "description": "Relational database management system"
+    },
+    {
+      "@type": "Thing",
+      "name": "AWS",
+      "description": "Cloud computing platform"
+    }
+    {% elif industry == 'data-science' %}
+    {
+      "@type": "Thing",
+      "name": "Python",
+      "description": "Programming language for data science"
+    },
+    {
+      "@type": "Thing",
+      "name": "Machine Learning",
+      "description": "AI technique for pattern recognition"
+    },
+    {
+      "@type": "Thing",
+      "name": "Data Visualization",
+      "description": "Techniques for presenting data insights"
+    },
+    {
+      "@type": "Thing",
+      "name": "Statistical Analysis",
+      "description": "Mathematical methods for data interpretation"
+    }
+    {% else %}
+    {
+      "@type": "Thing",
+      "name": "Project Management",
+      "description": "Planning and executing projects"
+    },
+    {
+      "@type": "Thing",
+      "name": "Team Leadership",
+      "description": "Leading and motivating teams"
+    },
+    {
+      "@type": "Thing",
+      "name": "Strategic Planning",
+      "description": "Long-term planning and goal setting"
+    }
+    {% endif %}
+  ],
+  "hasSkill": [
+    {% if industry == 'software' %}
+    {
+      "@type": "DefinedTerm",
+      "name": "Full Stack Development",
+      "inDefinedTermSet": "Software Engineering Skills"
+    },
+    {
+      "@type": "DefinedTerm",
+      "name": "System Architecture",
+      "inDefinedTermSet": "Software Engineering Skills"
+    },
+    {
+      "@type": "DefinedTerm",
+      "name": "DevOps",
+      "inDefinedTermSet": "Software Engineering Skills"
+    }
+    {% elif industry == 'data-science' %}
+    {
+      "@type": "DefinedTerm",
+      "name": "Machine Learning",
+      "inDefinedTermSet": "Data Science Skills"
+    },
+    {
+      "@type": "DefinedTerm",
+      "name": "Statistical Analysis",
+      "inDefinedTermSet": "Data Science Skills"
+    }
+    {% else %}
+    {
+      "@type": "DefinedTerm",
+      "name": "Problem Solving",
+      "inDefinedTermSet": "Professional Skills"
+    },
+    {
+      "@type": "DefinedTerm",
+      "name": "Communication",
+      "inDefinedTermSet": "Professional Skills"
+    }
+    {% endif %}
+  ],
+  "memberOf": [
+    {
+      "@type": "Organization",
+      "name": "IEEE Computer Society",
+      "url": "https://www.computer.org"
+    },
+    {
+      "@type": "Organization", 
+      "name": "ACM",
+      "url": "https://www.acm.org"
+    }
+  ],
+  "award": [
+    "Employee of the Month - TechCorp Inc. (2023)",
+    "Dean's List - University of Technology (2019-2021)"
+  ],
+  "interestIn": [
+    {% if industry == 'software' %}
+    "Open Source Software", "Cloud Computing", "Artificial Intelligence", "Blockchain Technology"
+    {% elif industry == 'data-science' %}
+    "Deep Learning", "Natural Language Processing", "Computer Vision", "MLOps"
+    {% else %}
+    "Technology Innovation", "Team Building", "Continuous Learning", "Industry Trends"
+    {% endif %}
+  ],
+  "seeks": {
+    "@type": "Demand",
+    "itemOffered": {
+      "@type": "Occupation",
+      "name": "{{ jobTitle }}",
+      "occupationalCategory": "{{ industry }}"
+    }
+  },
+  "mainEntityOfPage": {
+    "@type": "ProfilePage",
+    "url": "{{ portfolioUrl }}/resume"
+  },
+  "potentialAction": {
+    "@type": "ContactAction",
+    "target": {
+      "@type": "EntryPoint",
+      "urlTemplate": "mailto:{{ email }}?subject=Job Opportunity"
+    }
+  },
+  "dateModified": "{{ new Date().toISOString() }}",
+  "dateCreated": "{{ new Date().toISOString() }}",
+  "publisher": {
+    "@type": "Organization",
+    "name": "Unjucks Resume Generator",
+    "url": "https://github.com/your-repo/unjucks"
+  }
+}

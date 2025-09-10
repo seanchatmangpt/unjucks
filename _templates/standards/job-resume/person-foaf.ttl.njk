@@ -1,0 +1,82 @@
+---
+to: src/generated/person-{{ personName | slugify }}-foaf.ttl
+inject: false
+---
+@prefix foaf: <http://xmlns.com/foaf/0.1/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+# Person Profile using FOAF (Friend of a Friend) vocabulary
+# Generated on: {{ new Date().toISOString() }}
+# Standards compliance: FOAF Person with core properties
+
+<#person/{{ personName | slugify }}> a foaf:Person ;
+    foaf:name "{{ personName }}" ;
+    {% if givenName %}foaf:givenName "{{ givenName }}" ;{% endif %}
+    {% if familyName %}foaf:familyName "{{ familyName }}" ;{% endif %}
+    {% if email %}foaf:mbox <mailto:{{ email }}> ;{% endif %}
+    {% if phoneNumber %}foaf:phone <tel:{{ phoneNumber }}> ;{% endif %}
+    {% if jobTitle %}foaf:title "{{ jobTitle }}" ;{% endif %}
+    rdfs:label "{{ personName }}" .
+
+{% if company %}
+# Organization using FOAF Organization
+<#org/{{ company | slugify }}> a foaf:Organization ;
+    foaf:name "{{ company }}" ;
+    foaf:member <#person/{{ personName | slugify }}> .
+
+<#person/{{ personName | slugify }}> foaf:workplaceHomepage <#org/{{ company | slugify }}> .
+{% endif %}
+
+# Professional relationships using FOAF knows property
+# (This would typically include colleagues, connections, etc.)
+{% if experience %}
+{% for exp in experience %}
+# Implied professional relationships from work history
+<#person/{{ personName | slugify }}> foaf:workInfoHomepage <#org/{{ exp.company | slugify }}> .
+{% endfor %}
+{% endif %}
+
+# Personal homepage (if available)
+<#person/{{ personName | slugify }}> foaf:homepage <#person/{{ personName | slugify }}/profile> .
+
+# FOAF Document metadata
+<> a foaf:Document ;
+    foaf:primaryTopic <#person/{{ personName | slugify }}> ;
+    foaf:maker <#person/{{ personName | slugify }}> ;
+    <http://purl.org/dc/terms/created> "{{ new Date().toISOString() }}"^^xsd:dateTime ;
+    rdfs:label "FOAF Profile for {{ personName }}" .
+
+# Additional FOAF properties for professional context
+<#person/{{ personName | slugify }}> 
+    foaf:firstName "{{ givenName || personName.split(' ')[0] }}" ;
+    foaf:lastName "{{ familyName || personName.split(' ').slice(1).join(' ') }}" ;
+    {% if skills %}
+    # Skills as interests (FOAF doesn't have direct skills property)
+    {% for skill in skills %}
+    foaf:topic_interest <#topic/{{ skill | slugify }}> ;{% endfor %}
+    {% endif %}
+    foaf:isPrimaryTopicOf <> .
+
+{% if skills %}
+# Topics of interest (representing skills in FOAF context)
+{% for skill in skills %}
+<#topic/{{ skill | slugify }}> a <http://www.w3.org/2004/02/skos/core#Concept> ;
+    rdfs:label "{{ skill }}" ;
+    <http://www.w3.org/2004/02/skos/core#prefLabel> "{{ skill }}" .
+{% endfor %}
+{% endif %}
+
+# Interoperability: Reference equivalent Schema.org representation
+<#person/{{ personName | slugify }}> 
+    rdfs:seeAlso <#person/{{ personName | slugify }}-schema-org> ;
+    <http://www.w3.org/2002/07/owl#sameAs> <#person/{{ personName | slugify }}-schema-org> .
+
+# FOAF Agent properties
+<#person/{{ personName | slugify }}> 
+    foaf:holdsAccount <#account/{{ personName | slugify }}/professional> .
+
+<#account/{{ personName | slugify }}/professional> a foaf:OnlineAccount ;
+    foaf:accountName "{{ personName | slugify }}" ;
+    rdfs:label "Professional Account for {{ personName }}" .

@@ -1,0 +1,328 @@
+# Sample Person Data for Resume Ontology Validation
+# Real-world example demonstrating resume ontology usage
+
+@prefix : <http://resume.ontology.dev/#> .
+@prefix resume: <http://resume.ontology.dev/#> .
+@prefix job: <http://job.ontology.dev/#> .
+@prefix skill: <http://skill.ontology.dev/#> .
+@prefix person: <http://example.com/person/> .
+@prefix company: <http://example.com/company/> .
+@prefix project: <http://example.com/project/> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix foaf: <http://xmlns.com/foaf/0.1/> .
+
+#################################################################
+#    Sample Person: Alex Johnson - Senior Software Engineer
+#################################################################
+
+person:alex-johnson a resume:Professional, resume:Candidate ;
+    resume:firstName "Alex" ;
+    resume:lastName "Johnson" ;
+    resume:email "alex.johnson@email.com" ;
+    resume:phone "+1-555-0123" ;
+    resume:linkedInUrl "https://linkedin.com/in/alexjohnson"^^xsd:anyURI ;
+    resume:githubUrl "https://github.com/alexjohnson"^^xsd:anyURI ;
+    resume:portfolioUrl "https://alexjohnson.dev"^^xsd:anyURI ;
+    resume:summary "Senior Software Engineer with 8+ years of experience building scalable web applications and leading cross-functional teams. Expertise in full-stack development, cloud architecture, and agile methodologies." ;
+    resume:location "San Francisco, CA" .
+
+#################################################################
+#    Work Experience
+#################################################################
+
+# Current Position: Senior Software Engineer at TechCorp
+person:alex-johnson resume:hasExperience person:alex-techcorp-senior .
+
+person:alex-techcorp-senior a resume:WorkExperience ;
+    resume:jobTitle "Senior Software Engineer" ;
+    resume:workedAt company:techcorp ;
+    resume:startDate "2022-03-01"^^xsd:date ;
+    resume:isCurrent true ;
+    resume:location "San Francisco, CA" ;
+    resume:description "Lead development of microservices architecture serving 1M+ daily active users. Mentor junior developers and drive technical decisions for the platform team." ;
+    resume:responsibility "Lead a team of 5 engineers in developing core platform services" ;
+    resume:responsibility "Designed and implemented microservices architecture reducing system latency by 40%" ;
+    resume:responsibility "Established CI/CD pipelines and automated testing frameworks" ;
+    resume:responsibility "Conducted code reviews and mentored 3 junior developers" ;
+    resume:achievement "Reduced system response time by 40% through architecture optimization" ;
+    resume:achievement "Led migration to Kubernetes, improving deployment efficiency by 60%" ;
+    resume:achievement "Implemented comprehensive monitoring, reducing incident response time by 50%" ;
+    resume:usedSkill skill:TypeScript, skill:NodeJS, skill:React, skill:PostgreSQL, skill:AWS, skill:Docker, skill:Kubernetes, skill:Git .
+
+# Previous Position: Software Engineer at StartupXYZ
+person:alex-johnson resume:hasExperience person:alex-startupxyz .
+
+person:alex-startupxyz a resume:WorkExperience ;
+    resume:jobTitle "Software Engineer" ;
+    resume:workedAt company:startupxyz ;
+    resume:startDate "2020-01-15"^^xsd:date ;
+    resume:endDate "2022-02-28"^^xsd:date ;
+    resume:isCurrent false ;
+    resume:location "Palo Alto, CA" ;
+    resume:description "Full-stack developer responsible for building and maintaining web applications. Collaborated with product team to implement new features and optimize user experience." ;
+    resume:responsibility "Developed responsive web applications using React and Node.js" ;
+    resume:responsibility "Integrated third-party APIs and payment processing systems" ;
+    resume:responsibility "Optimized database queries and implemented caching strategies" ;
+    resume:achievement "Built real-time notification system handling 100K+ daily messages" ;
+    resume:achievement "Improved application performance by 30% through code optimization" ;
+    resume:usedSkill skill:JavaScript, skill:React, skill:NodeJS, skill:Express, skill:MongoDB, skill:Redis, skill:Git .
+
+# Early Career: Junior Developer at DevAgency
+person:alex-johnson resume:hasExperience person:alex-devagency .
+
+person:alex-devagency a resume:WorkExperience ;
+    resume:jobTitle "Junior Software Developer" ;
+    resume:workedAt company:devagency ;
+    resume:startDate "2018-06-01"^^xsd:date ;
+    resume:endDate "2019-12-31"^^xsd:date ;
+    resume:isCurrent false ;
+    resume:location "San Jose, CA" ;
+    resume:description "Entry-level position focused on web development and learning modern technologies. Contributed to client projects and internal tools." ;
+    resume:responsibility "Developed client websites using modern web technologies" ;
+    resume:responsibility "Participated in agile development process and daily standups" ;
+    resume:responsibility "Fixed bugs and implemented minor feature enhancements" ;
+    resume:usedSkill skill:JavaScript, skill:Python, skill:Django, skill:PostgreSQL, skill:Git .
+
+# Internship Experience
+person:alex-johnson resume:hasExperience person:alex-internship .
+
+person:alex-internship a resume:Internship ;
+    resume:jobTitle "Software Engineering Intern" ;
+    resume:workedAt company:bigtechcorp ;
+    resume:startDate "2017-06-01"^^xsd:date ;
+    resume:endDate "2017-08-31"^^xsd:date ;
+    resume:isCurrent false ;
+    resume:location "Mountain View, CA" ;
+    resume:description "Summer internship focused on backend development and data processing systems." ;
+    resume:responsibility "Implemented data processing pipelines using Python and Apache Spark" ;
+    resume:responsibility "Wrote unit tests and documentation for existing codebase" ;
+    resume:achievement "Improved data processing efficiency by 25% through algorithm optimization" ;
+    resume:usedSkill skill:Python, skill:SQL, skill:Git .
+
+#################################################################
+#    Education
+#################################################################
+
+person:alex-johnson resume:hasEducation person:alex-degree .
+
+person:alex-degree a resume:Degree ;
+    resume:degree "Bachelor of Science" ;
+    resume:major "Computer Science" ;
+    resume:minor "Mathematics" ;
+    resume:studiedAt company:stanford-university ;
+    resume:startDate "2014-09-01"^^xsd:date ;
+    resume:endDate "2018-05-31"^^xsd:date ;
+    resume:gpa 3.7 ;
+    resume:location "Stanford, CA" .
+
+# Professional Certifications
+person:alex-johnson resume:hasEducation person:alex-aws-cert .
+
+person:alex-aws-cert a resume:Certification ;
+    rdfs:label "AWS Certified Solutions Architect" ;
+    resume:certificationId "AWS-SA-123456" ;
+    resume:startDate "2021-06-15"^^xsd:date ;
+    resume:expirationDate "2024-06-15"^^xsd:date .
+
+person:alex-johnson resume:hasEducation person:alex-scrum-cert .
+
+person:alex-scrum-cert a resume:Certification ;
+    rdfs:label "Certified Scrum Master" ;
+    resume:certificationId "CSM-789012" ;
+    resume:startDate "2020-03-10"^^xsd:date ;
+    resume:expirationDate "2022-03-10"^^xsd:date .
+
+#################################################################
+#    Skills with Proficiency Levels
+#################################################################
+
+# Programming Languages (with experience context)
+person:alex-johnson resume:hasSkill person:alex-skill-typescript .
+person:alex-skill-typescript a skill:ProgrammingLanguage ;
+    rdfs:label "TypeScript" ;
+    skill:proficiencyLevel "expert" ;
+    skill:yearsOfExperience 4.0 .
+
+person:alex-johnson resume:hasSkill person:alex-skill-javascript .
+person:alex-skill-javascript a skill:ProgrammingLanguage ;
+    rdfs:label "JavaScript" ;
+    skill:proficiencyLevel "expert" ;
+    skill:yearsOfExperience 6.0 .
+
+person:alex-johnson resume:hasSkill person:alex-skill-python .
+person:alex-skill-python a skill:ProgrammingLanguage ;
+    rdfs:label "Python" ;
+    skill:proficiencyLevel "advanced" ;
+    skill:yearsOfExperience 5.0 .
+
+person:alex-johnson resume:hasSkill person:alex-skill-java .
+person:alex-skill-java a skill:ProgrammingLanguage ;
+    rdfs:label "Java" ;
+    skill:proficiencyLevel "intermediate" ;
+    skill:yearsOfExperience 2.0 .
+
+# Frameworks and Technologies
+person:alex-johnson resume:hasSkill person:alex-skill-react .
+person:alex-skill-react a skill:Framework ;
+    rdfs:label "React" ;
+    skill:proficiencyLevel "expert" ;
+    skill:yearsOfExperience 5.0 .
+
+person:alex-johnson resume:hasSkill person:alex-skill-nodejs .
+person:alex-skill-nodejs a skill:Framework ;
+    rdfs:label "Node.js" ;
+    skill:proficiencyLevel "expert" ;
+    skill:yearsOfExperience 6.0 .
+
+person:alex-johnson resume:hasSkill person:alex-skill-aws .
+person:alex-skill-aws a skill:Tool ;
+    rdfs:label "Amazon Web Services" ;
+    skill:proficiencyLevel "advanced" ;
+    skill:yearsOfExperience 3.0 .
+
+person:alex-johnson resume:hasSkill person:alex-skill-docker .
+person:alex-skill-docker a skill:Tool ;
+    rdfs:label "Docker" ;
+    skill:proficiencyLevel "advanced" ;
+    skill:yearsOfExperience 4.0 .
+
+person:alex-johnson resume:hasSkill person:alex-skill-kubernetes .
+person:alex-skill-kubernetes a skill:Tool ;
+    rdfs:label "Kubernetes" ;
+    skill:proficiencyLevel "intermediate" ;
+    skill:yearsOfExperience 2.0 .
+
+# Soft Skills
+person:alex-johnson resume:hasSkill person:alex-skill-leadership .
+person:alex-skill-leadership a skill:SoftSkill ;
+    rdfs:label "Leadership" ;
+    skill:proficiencyLevel "advanced" .
+
+person:alex-johnson resume:hasSkill person:alex-skill-communication .
+person:alex-skill-communication a skill:SoftSkill ;
+    rdfs:label "Communication" ;
+    skill:proficiencyLevel "expert" .
+
+person:alex-johnson resume:hasSkill person:alex-skill-problemsolving .
+person:alex-skill-problemsolving a skill:SoftSkill ;
+    rdfs:label "Problem Solving" ;
+    skill:proficiencyLevel "expert" .
+
+#################################################################
+#    Projects
+#################################################################
+
+person:alex-johnson resume:hasProject project:ecommerce-platform .
+
+project:ecommerce-platform a resume:Project ;
+    resume:projectName "E-commerce Platform" ;
+    resume:description "Full-stack e-commerce platform with real-time inventory management, payment processing, and analytics dashboard. Built using microservices architecture." ;
+    resume:projectUrl "https://demo.alexjohnson.dev/ecommerce"^^xsd:anyURI ;
+    resume:repositoryUrl "https://github.com/alexjohnson/ecommerce-platform"^^xsd:anyURI ;
+    resume:startDate "2021-01-01"^^xsd:date ;
+    resume:endDate "2021-06-30"^^xsd:date ;
+    resume:projectUsedSkill skill:TypeScript, skill:React, skill:NodeJS, skill:PostgreSQL, skill:Docker, skill:AWS .
+
+person:alex-johnson resume:hasProject project:task-manager .
+
+project:task-manager a resume:Project ;
+    resume:projectName "Collaborative Task Manager" ;
+    resume:description "Real-time collaborative task management application with team workspaces, notifications, and reporting features." ;
+    resume:repositoryUrl "https://github.com/alexjohnson/task-manager"^^xsd:anyURI ;
+    resume:startDate "2020-03-01"^^xsd:date ;
+    resume:endDate "2020-05-31"^^xsd:date ;
+    resume:projectUsedSkill skill:React, skill:NodeJS, skill:MongoDB, skill:Redis .
+
+#################################################################
+#    Achievements and Awards
+#################################################################
+
+person:alex-johnson resume:hasAchievement person:alex-employee-award .
+
+person:alex-employee-award a resume:Award ;
+    resume:awardName "Employee of the Quarter" ;
+    resume:awardDate "2022-12-31"^^xsd:date ;
+    resume:description "Recognized for exceptional performance in leading the platform migration project" ;
+    resume:associatedWith company:techcorp .
+
+person:alex-johnson resume:hasAchievement person:alex-hackathon .
+
+person:alex-hackathon a resume:Achievement ;
+    rdfs:label "Hackathon Winner" ;
+    resume:awardName "Best Technical Innovation" ;
+    resume:awardDate "2021-03-15"^^xsd:date ;
+    resume:venue "TechCorp Internal Hackathon" ;
+    resume:description "Won first place for developing an AI-powered code review assistant" .
+
+#################################################################
+#    Companies and Organizations
+#################################################################
+
+company:techcorp a resume:Company ;
+    resume:organizationName "TechCorp Inc." ;
+    resume:industry "Technology" ;
+    resume:organizationSize "large" ;
+    resume:location "San Francisco, CA" .
+
+company:startupxyz a resume:Company ;
+    resume:organizationName "StartupXYZ" ;
+    resume:industry "Technology" ;
+    resume:organizationSize "startup" ;
+    resume:location "Palo Alto, CA" .
+
+company:devagency a resume:Company ;
+    resume:organizationName "Dev Agency Solutions" ;
+    resume:industry "Software Consulting" ;
+    resume:organizationSize "small" ;
+    resume:location "San Jose, CA" .
+
+company:bigtechcorp a resume:Company ;
+    resume:organizationName "BigTech Corp" ;
+    resume:industry "Technology" ;
+    resume:organizationSize "enterprise" ;
+    resume:location "Mountain View, CA" .
+
+company:stanford-university a resume:University ;
+    resume:organizationName "Stanford University" ;
+    resume:industry "Education" ;
+    resume:location "Stanford, CA" .
+
+#################################################################
+#    Sample Job Posting for Matching Validation
+#################################################################
+
+job:senior-fullstack-engineer a job:JobPosting ;
+    job:jobTitle "Senior Full-Stack Engineer" ;
+    job:salaryMin 150000.00 ;
+    job:salaryMax 200000.00 ;
+    job:workType "hybrid" ;
+    job:experienceLevel "senior" ;
+    job:postedDate "2025-09-01"^^xsd:date ;
+    job:applicationDeadline "2025-10-01"^^xsd:date ;
+    resume:location "San Francisco, CA" ;
+    resume:description "We're looking for a Senior Full-Stack Engineer to join our platform team. You'll be responsible for building scalable microservices and leading technical initiatives." .
+
+# Job Requirements
+job:senior-fullstack-engineer job:requiresSkill skill:TypeScript .
+job:senior-fullstack-engineer job:requiresSkill skill:React .
+job:senior-fullstack-engineer job:requiresSkill skill:NodeJS .
+job:senior-fullstack-engineer job:requiresSkill skill:AWS .
+job:senior-fullstack-engineer job:requiresSkill skill:Docker .
+job:senior-fullstack-engineer job:requiresSkill skill:Leadership .
+
+job:senior-fullstack-engineer job:hasRequirement job:req-5years-experience .
+
+job:req-5years-experience a job:ExperienceRequirement ;
+    rdfs:label "5+ years of full-stack development experience" ;
+    resume:description "Minimum 5 years of experience in full-stack web development" .
+
+job:senior-fullstack-engineer job:hasRequirement job:req-bachelors-degree .
+
+job:req-bachelors-degree a job:EducationRequirement ;
+    rdfs:label "Bachelor's degree in Computer Science or related field" ;
+    resume:description "Bachelor's degree in Computer Science, Engineering, or equivalent experience" .
+
+# End of Sample Person Data

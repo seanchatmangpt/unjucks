@@ -1,0 +1,95 @@
+---
+to: src/generated/person-{{ personName | slugify }}-schema-org.ttl
+inject: false
+---
+@prefix schema: <https://schema.org/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+
+# Person Profile using Schema.org vocabulary
+# Generated on: {{ new Date().toISOString() }}
+# Standards compliance: Schema.org Person type with required and recommended properties
+
+<#person/{{ personName | slugify }}> a schema:Person ;
+    schema:name "{{ personName }}" ;
+    {% if givenName %}schema:givenName "{{ givenName }}" ;{% endif %}
+    {% if familyName %}schema:familyName "{{ familyName }}" ;{% endif %}
+    {% if email %}schema:email "{{ email }}" ;{% endif %}
+    {% if phoneNumber %}schema:telephone "{{ phoneNumber }}" ;{% endif %}
+    {% if jobTitle %}schema:jobTitle "{{ jobTitle }}" ;{% endif %}
+    {% if company %}schema:worksFor <#organization/{{ company | slugify }}> ;{% endif %}
+    {% if skills %}{% for skill in skills %}
+    schema:skills "{{ skill }}" ;{% endfor %}{% endif %}
+    schema:identifier "person-{{ personName | slugify }}-{{ new Date().getTime() }}" ;
+    schema:url <#person/{{ personName | slugify }}> .
+
+{% if company %}
+# Organization Information
+<#organization/{{ company | slugify }}> a schema:Organization ;
+    schema:name "{{ company }}" ;
+    schema:employee <#person/{{ personName | slugify }}> .
+{% endif %}
+
+{% if experience %}
+# Work Experience using Schema.org WorkExperience (EmploymentCredential)
+{% for exp in experience %}
+<#experience/{{ loop.index }}> a schema:EmployerReview ;
+    schema:name "{{ exp.position }}" ;
+    {% if exp.description %}schema:description "{{ exp.description }}" ;{% endif %}
+    schema:author <#person/{{ personName | slugify }}> ;
+    schema:employer <#org/{{ exp.company | slugify }}> ;
+    {% if exp.startDate %}schema:startDate "{{ exp.startDate }}"^^xsd:date ;{% endif %}
+    {% if exp.endDate and exp.endDate !== 'present' %}schema:endDate "{{ exp.endDate }}"^^xsd:date ;{% endif %}
+    schema:workPerformed "{{ exp.position }}" .
+
+<#org/{{ exp.company | slugify }}> a schema:Organization ;
+    schema:name "{{ exp.company }}" .
+{% endfor %}
+{% endif %}
+
+{% if education %}
+# Educational Background using Schema.org EducationalOccupationalCredential
+{% for edu in education %}
+<#education/{{ loop.index }}> a schema:EducationalOccupationalCredential ;
+    schema:name "{{ edu.degree }}" ;
+    {% if edu.field %}schema:educationalCredentialAwarded "{{ edu.degree }} in {{ edu.field }}" ;{% endif %}
+    schema:credentialCategory "degree" ;
+    schema:recognizedBy <#institution/{{ edu.institution | slugify }}> ;
+    {% if edu.graduationYear %}schema:validFrom "{{ edu.graduationYear }}-01-01"^^xsd:date ;{% endif %}
+    schema:about <#person/{{ personName | slugify }}> .
+
+<#institution/{{ edu.institution | slugify }}> a schema:EducationalOrganization ;
+    schema:name "{{ edu.institution }}" .
+{% endfor %}
+{% endif %}
+
+# Metadata using Dublin Core terms for interoperability
+<#person/{{ personName | slugify }}> 
+    <http://purl.org/dc/terms/created> "{{ new Date().toISOString() }}"^^xsd:dateTime ;
+    <http://purl.org/dc/terms/modified> "{{ new Date().toISOString() }}"^^xsd:dateTime ;
+    <http://purl.org/dc/terms/creator> "Unjucks Template Generator" ;
+    <http://purl.org/dc/terms/title> "Professional Profile: {{ personName }}" ;
+    <http://purl.org/dc/terms/description> "Professional profile and resume data for {{ personName }}" ;
+    <http://purl.org/dc/terms/format> "application/rdf+xml" ;
+    <http://purl.org/dc/terms/language> "en" .
+
+# Linked Data best practices
+<#person/{{ personName | slugify }}> 
+    rdfs:label "{{ personName }}" ;
+    rdfs:comment "Professional profile for {{ personName }}{% if jobTitle %}, {{ jobTitle }}{% endif %}{% if company %} at {{ company }}{% endif %}" ;
+    schema:sameAs <#person/{{ personName | slugify }}> .
+
+# Skills taxonomy using DefinedTerm for better semantics
+{% if skills %}
+{% for skill in skills %}
+<#skill/{{ skill | slugify }}> a schema:DefinedTerm ;
+    schema:name "{{ skill }}" ;
+    schema:termCode "skill-{{ skill | slugify }}" ;
+    schema:inDefinedTermSet <#skillset/professional> .
+{% endfor %}
+
+<#skillset/professional> a schema:DefinedTermSet ;
+    schema:name "Professional Skills" ;
+    schema:description "Set of professional skills and competencies" .
+{% endif %}

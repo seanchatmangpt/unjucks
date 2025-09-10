@@ -556,14 +556,12 @@ export const listCommand = defineCommand({
         console.log(chalk.blue("  • Run with --verbose for more details"));
       }
 
-      // Use error recovery instead of abrupt exit
-      const { errorRecovery } = await import("../lib/error-recovery.js");
-      errorRecovery.handleError({
-        command: "list",
-        args: Object.keys(args),
-        error: error,
-        context: "list"
-      }, { verbose: args.verbose, showSuggestions: true, showNextSteps: true });
+      // Error handled above, continuing without error recovery for now
+      return {
+        success: false,
+        message: error instanceof Error ? error.message : String(error),
+        files: []
+      };
     }
   },
 });

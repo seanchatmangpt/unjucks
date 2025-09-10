@@ -1,0 +1,53 @@
+{
+  "name": "Software Engineer Resume",
+  "description": "Specialized resume template for software engineering positions",
+  "industry": "software",
+  "semanticKeywords": [
+    "software development",
+    "full-stack development",
+    "system architecture",
+    "microservices",
+    "cloud computing",
+    "DevOps",
+    "agile development",
+    "code review",
+    "technical leadership",
+    "API development"
+  ],
+  "skillCategories": {
+    "Programming Languages": ["JavaScript", "Python", "Java", "TypeScript", "Go", "C++"],
+    "Frontend Frameworks": ["React", "Vue.js", "Angular", "Svelte", "Next.js"],
+    "Backend Technologies": ["Node.js", "Django", "Spring Boot", "Express.js", "FastAPI"],
+    "Databases": ["PostgreSQL", "MongoDB", "Redis", "Elasticsearch", "MySQL"],
+    "Cloud & DevOps": ["AWS", "Docker", "Kubernetes", "Jenkins", "Terraform", "CI/CD"],
+    "Tools & Methodologies": ["Git", "Agile", "Scrum", "Test-Driven Development", "Code Review"]
+  },
+  "commonProjects": [
+    {
+      "type": "Web Application",
+      "description": "Full-stack web application with modern frontend and scalable backend",
+      "technologies": ["React", "Node.js", "PostgreSQL", "Docker"]
+    },
+    {
+      "type": "Microservices Architecture",
+      "description": "Distributed system with multiple microservices and service mesh",
+      "technologies": ["Kubernetes", "Docker", "API Gateway", "Message Queue"]
+    },
+    {
+      "type": "DevOps Pipeline",
+      "description": "Automated CI/CD pipeline with testing and deployment automation",
+      "technologies": ["Jenkins", "Docker", "AWS", "Terraform"]
+    }
+  ],
+  "certifications": [
+    "AWS Certified Solutions Architect",
+    "Google Cloud Professional Cloud Architect",
+    "Certified Kubernetes Administrator (CKA)",
+    "Oracle Certified Professional Java Programmer"
+  ],
+  "schemaOrgExtensions": {
+    "programmingLanguage": ["JavaScript", "Python", "Java"],
+    "operatingSystem": ["Linux", "macOS", "Windows"],
+    "applicationCategory": "WebApplication"
+  }
+}

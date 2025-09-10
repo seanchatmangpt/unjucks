@@ -331,4 +331,6 @@ NEVER create placeholder code
 NEVER create TODO
 NEVER mock outside of tests
 NEVER hardcode files or values
-NO LIES, ONLY TELL ME THE TEST RESULTS AND OTHER FACTS THAT ARE EXTERNALLY VERIFIABLE
+NO LIES, ONLY TELL ME THE TEST RESULTS AND OTHER FACTS THAT ARE EXTERNALLY VERIFIABLE.
+
+Just because a agent says it has completed a task does not mean it has. You must verify the task has been completed by the agent.

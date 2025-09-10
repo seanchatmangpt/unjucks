@@ -1,0 +1,638 @@
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix foaf: <http://xmlns.com/foaf/0.1/> .
+@prefix person: <http://ontology.resume/person#> .
+@prefix skill: <http://ontology.resume/skill#> .
+@prefix job: <http://ontology.resume/job#> .
+@prefix company: <http://ontology.resume/company#> .
+@prefix education: <http://ontology.resume/education#> .
+
+# Person and Resume Ontology for Resume Matching
+# Production-ready schema for personal profiles, experience, and education
+
+# ===========================
+# ONTOLOGY METADATA
+# ===========================
+
+<http://ontology.resume/person> a owl:Ontology ;
+    dcterms:title "Person and Resume Ontology" ;
+    dcterms:description "Comprehensive ontology for personal profiles, work experience, education, and skills" ;
+    dcterms:creator "Resume Matching System" ;
+    dcterms:created "2025-09-10"^^xsd:date ;
+    dcterms:version "1.0" ;
+    owl:versionInfo "Production release for resume matching" ;
+    owl:imports <http://ontology.resume/job> .
+
+# ===========================
+# CORE PERSON CLASSES
+# ===========================
+
+person:Person a owl:Class ;
+    rdfs:label "Person" ;
+    rdfs:comment "An individual person with professional profile" ;
+    rdfs:subClassOf foaf:Person .
+
+person:JobSeeker a owl:Class ;
+    rdfs:label "Job Seeker" ;
+    rdfs:comment "A person actively seeking employment" ;
+    rdfs:subClassOf person:Person .
+
+person:Employee a owl:Class ;
+    rdfs:label "Employee" ;
+    rdfs:comment "A person currently employed" ;
+    rdfs:subClassOf person:Person .
+
+person:Freelancer a owl:Class ;
+    rdfs:label "Freelancer" ;
+    rdfs:comment "A person working as a freelancer" ;
+    rdfs:subClassOf person:Person .
+
+person:Entrepreneur a owl:Class ;
+    rdfs:label "Entrepreneur" ;
+    rdfs:comment "A person who starts and runs businesses" ;
+    rdfs:subClassOf person:Person .
+
+# ===========================
+# EXPERIENCE CLASSES
+# ===========================
+
+person:Experience a owl:Class ;
+    rdfs:label "Work Experience" ;
+    rdfs:comment "Professional work experience" ;
+    rdfs:subClassOf owl:Thing .
+
+person:JobExperience a owl:Class ;
+    rdfs:label "Job Experience" ;
+    rdfs:comment "Experience from employment at a company" ;
+    rdfs:subClassOf person:Experience .
+
+person:ProjectExperience a owl:Class ;
+    rdfs:label "Project Experience" ;
+    rdfs:comment "Experience from working on specific projects" ;
+    rdfs:subClassOf person:Experience .
+
+person:VolunteerExperience a owl:Class ;
+    rdfs:label "Volunteer Experience" ;
+    rdfs:comment "Experience from volunteer work" ;
+    rdfs:subClassOf person:Experience .
+
+person:FreelanceExperience a owl:Class ;
+    rdfs:label "Freelance Experience" ;
+    rdfs:comment "Experience from freelance work" ;
+    rdfs:subClassOf person:Experience .
+
+# ===========================
+# PROJECT CLASSES
+# ===========================
+
+person:Project a owl:Class ;
+    rdfs:label "Project" ;
+    rdfs:comment "A specific project worked on" ;
+    rdfs:subClassOf owl:Thing .
+
+person:SoftwareProject a owl:Class ;
+    rdfs:label "Software Project" ;
+    rdfs:comment "A software development project" ;
+    rdfs:subClassOf person:Project .
+
+person:ResearchProject a owl:Class ;
+    rdfs:label "Research Project" ;
+    rdfs:comment "A research or academic project" ;
+    rdfs:subClassOf person:Project .
+
+person:OpenSourceProject a owl:Class ;
+    rdfs:label "Open Source Project" ;
+    rdfs:comment "An open source software project" ;
+    rdfs:subClassOf person:SoftwareProject .
+
+# ===========================
+# EDUCATION CLASSES
+# ===========================
+
+education:Education a owl:Class ;
+    rdfs:label "Education" ;
+    rdfs:comment "Educational background and qualifications" ;
+    rdfs:subClassOf owl:Thing .
+
+education:Degree a owl:Class ;
+    rdfs:label "Degree" ;
+    rdfs:comment "An academic degree" ;
+    rdfs:subClassOf education:Education .
+
+education:Certification a owl:Class ;
+    rdfs:label "Certification" ;
+    rdfs:comment "A professional certification" ;
+    rdfs:subClassOf education:Education .
+
+education:Course a owl:Class ;
+    rdfs:label "Course" ;
+    rdfs:comment "A completed course or training" ;
+    rdfs:subClassOf education:Education .
+
+education:Bootcamp a owl:Class ;
+    rdfs:label "Bootcamp" ;
+    rdfs:comment "An intensive training program" ;
+    rdfs:subClassOf education:Education .
+
+# ===========================
+# DEGREE LEVEL CLASSES
+# ===========================
+
+education:AssociateDegree a owl:Class ;
+    rdfs:label "Associate Degree" ;
+    rdfs:comment "A two-year undergraduate degree" ;
+    rdfs:subClassOf education:Degree .
+
+education:BachelorDegree a owl:Class ;
+    rdfs:label "Bachelor Degree" ;
+    rdfs:comment "A four-year undergraduate degree" ;
+    rdfs:subClassOf education:Degree .
+
+education:MasterDegree a owl:Class ;
+    rdfs:label "Master Degree" ;
+    rdfs:comment "A graduate degree" ;
+    rdfs:subClassOf education:Degree .
+
+education:DoctorateDegree a owl:Class ;
+    rdfs:label "Doctorate Degree" ;
+    rdfs:comment "A doctoral degree" ;
+    rdfs:subClassOf education:Degree .
+
+# ===========================
+# INSTITUTION CLASSES
+# ===========================
+
+education:Institution a owl:Class ;
+    rdfs:label "Educational Institution" ;
+    rdfs:comment "An educational institution" ;
+    rdfs:subClassOf foaf:Organization .
+
+education:University a owl:Class ;
+    rdfs:label "University" ;
+    rdfs:comment "A university" ;
+    rdfs:subClassOf education:Institution .
+
+education:College a owl:Class ;
+    rdfs:label "College" ;
+    rdfs:comment "A college" ;
+    rdfs:subClassOf education:Institution .
+
+education:TechnicalSchool a owl:Class ;
+    rdfs:label "Technical School" ;
+    rdfs:comment "A technical or vocational school" ;
+    rdfs:subClassOf education:Institution .
+
+education:OnlineProvider a owl:Class ;
+    rdfs:label "Online Education Provider" ;
+    rdfs:comment "An online education platform" ;
+    rdfs:subClassOf education:Institution .
+
+# ===========================
+# SKILL PROFICIENCY CLASSES
+# ===========================
+
+person:SkillProficiency a owl:Class ;
+    rdfs:label "Skill Proficiency" ;
+    rdfs:comment "A person's proficiency in a specific skill" ;
+    rdfs:subClassOf owl:Thing .
+
+person:BeginnerLevel a owl:Class ;
+    rdfs:label "Beginner Level" ;
+    rdfs:comment "Beginner proficiency level" ;
+    rdfs:subClassOf person:SkillProficiency .
+
+person:IntermediateLevel a owl:Class ;
+    rdfs:label "Intermediate Level" ;
+    rdfs:comment "Intermediate proficiency level" ;
+    rdfs:subClassOf person:SkillProficiency .
+
+person:AdvancedLevel a owl:Class ;
+    rdfs:label "Advanced Level" ;
+    rdfs:comment "Advanced proficiency level" ;
+    rdfs:subClassOf person:SkillProficiency .
+
+person:ExpertLevel a owl:Class ;
+    rdfs:label "Expert Level" ;
+    rdfs:comment "Expert proficiency level" ;
+    rdfs:subClassOf person:SkillProficiency .
+
+# ===========================
+# BASIC PERSON PROPERTIES
+# ===========================
+
+person:hasFirstName a owl:DatatypeProperty ;
+    rdfs:label "has first name" ;
+    rdfs:comment "The first name of a person" ;
+    rdfs:domain person:Person ;
+    rdfs:range xsd:string .
+
+person:hasLastName a owl:DatatypeProperty ;
+    rdfs:label "has last name" ;
+    rdfs:comment "The last name of a person" ;
+    rdfs:domain person:Person ;
+    rdfs:range xsd:string .
+
+person:hasFullName a owl:DatatypeProperty ;
+    rdfs:label "has full name" ;
+    rdfs:comment "The full name of a person" ;
+    rdfs:domain person:Person ;
+    rdfs:range xsd:string .
+
+person:hasEmail a owl:DatatypeProperty ;
+    rdfs:label "has email" ;
+    rdfs:comment "The email address of a person" ;
+    rdfs:domain person:Person ;
+    rdfs:range xsd:string .
+
+person:hasPhone a owl:DatatypeProperty ;
+    rdfs:label "has phone" ;
+    rdfs:comment "The phone number of a person" ;
+    rdfs:domain person:Person ;
+    rdfs:range xsd:string .
+
+person:hasAddress a owl:DatatypeProperty ;
+    rdfs:label "has address" ;
+    rdfs:comment "The address of a person" ;
+    rdfs:domain person:Person ;
+    rdfs:range xsd:string .
+
+person:hasLinkedIn a owl:DatatypeProperty ;
+    rdfs:label "has LinkedIn profile" ;
+    rdfs:comment "The LinkedIn profile URL of a person" ;
+    rdfs:domain person:Person ;
+    rdfs:range xsd:anyURI .
+
+person:hasGitHub a owl:DatatypeProperty ;
+    rdfs:label "has GitHub profile" ;
+    rdfs:comment "The GitHub profile URL of a person" ;
+    rdfs:domain person:Person ;
+    rdfs:range xsd:anyURI .
+
+person:hasPortfolio a owl:DatatypeProperty ;
+    rdfs:label "has portfolio" ;
+    rdfs:comment "The portfolio website URL of a person" ;
+    rdfs:domain person:Person ;
+    rdfs:range xsd:anyURI .
+
+person:hasSummary a owl:DatatypeProperty ;
+    rdfs:label "has summary" ;
+    rdfs:comment "A professional summary or objective" ;
+    rdfs:domain person:Person ;
+    rdfs:range xsd:string .
+
+# ===========================
+# SKILL-RELATED PROPERTIES
+# ===========================
+
+person:hasSkill a owl:ObjectProperty ;
+    rdfs:label "has skill" ;
+    rdfs:comment "A skill that a person possesses" ;
+    rdfs:domain person:Person ;
+    rdfs:range skill:Skill .
+
+person:hasSkillProficiency a owl:ObjectProperty ;
+    rdfs:label "has skill proficiency" ;
+    rdfs:comment "A skill proficiency that a person has" ;
+    rdfs:domain person:Person ;
+    rdfs:range person:SkillProficiency .
+
+person:proficiencyLevel a owl:DatatypeProperty ;
+    rdfs:label "proficiency level" ;
+    rdfs:comment "The proficiency level for a skill" ;
+    rdfs:domain person:SkillProficiency ;
+    rdfs:range xsd:string .
+
+person:yearsExperience a owl:DatatypeProperty ;
+    rdfs:label "years experience" ;
+    rdfs:comment "Years of experience with a skill" ;
+    rdfs:domain person:SkillProficiency ;
+    rdfs:range xsd:decimal .
+
+person:skillFor a owl:ObjectProperty ;
+    rdfs:label "skill for" ;
+    rdfs:comment "The skill this proficiency is for" ;
+    rdfs:domain person:SkillProficiency ;
+    rdfs:range skill:Skill .
+
+person:lastUsed a owl:DatatypeProperty ;
+    rdfs:label "last used" ;
+    rdfs:comment "When a skill was last used" ;
+    rdfs:domain person:SkillProficiency ;
+    rdfs:range xsd:date .
+
+# ===========================
+# EXPERIENCE PROPERTIES
+# ===========================
+
+person:hasExperience a owl:ObjectProperty ;
+    rdfs:label "has experience" ;
+    rdfs:comment "Work experience that a person has" ;
+    rdfs:domain person:Person ;
+    rdfs:range person:Experience .
+
+person:workedAt a owl:ObjectProperty ;
+    rdfs:label "worked at" ;
+    rdfs:comment "A company where a person worked" ;
+    rdfs:domain person:Person ;
+    rdfs:range company:Company .
+
+person:hasJobTitle a owl:DatatypeProperty ;
+    rdfs:label "has job title" ;
+    rdfs:comment "The job title for an experience" ;
+    rdfs:domain person:Experience ;
+    rdfs:range xsd:string .
+
+person:hasCompany a owl:ObjectProperty ;
+    rdfs:label "has company" ;
+    rdfs:comment "The company for a work experience" ;
+    rdfs:domain person:JobExperience ;
+    rdfs:range company:Company .
+
+person:hasStartDate a owl:DatatypeProperty ;
+    rdfs:label "has start date" ;
+    rdfs:comment "The start date of an experience" ;
+    rdfs:domain person:Experience ;
+    rdfs:range xsd:date .
+
+person:hasEndDate a owl:DatatypeProperty ;
+    rdfs:label "has end date" ;
+    rdfs:comment "The end date of an experience" ;
+    rdfs:domain person:Experience ;
+    rdfs:range xsd:date .
+
+person:isCurrent a owl:DatatypeProperty ;
+    rdfs:label "is current" ;
+    rdfs:comment "Whether this is current employment" ;
+    rdfs:domain person:Experience ;
+    rdfs:range xsd:boolean .
+
+person:hasDescription a owl:DatatypeProperty ;
+    rdfs:label "has description" ;
+    rdfs:comment "Description of the experience or role" ;
+    rdfs:domain person:Experience ;
+    rdfs:range xsd:string .
+
+person:hasAchievements a owl:DatatypeProperty ;
+    rdfs:label "has achievements" ;
+    rdfs:comment "Achievements or accomplishments in this role" ;
+    rdfs:domain person:Experience ;
+    rdfs:range xsd:string .
+
+person:usedSkill a owl:ObjectProperty ;
+    rdfs:label "used skill" ;
+    rdfs:comment "A skill used in this experience" ;
+    rdfs:domain person:Experience ;
+    rdfs:range skill:Skill .
+
+person:totalYearsExperience a owl:DatatypeProperty ;
+    rdfs:label "total years experience" ;
+    rdfs:comment "Total years of professional experience" ;
+    rdfs:domain person:Person ;
+    rdfs:range xsd:decimal .
+
+# ===========================
+# PROJECT PROPERTIES
+# ===========================
+
+person:hasProject a owl:ObjectProperty ;
+    rdfs:label "has project" ;
+    rdfs:comment "A project that a person worked on" ;
+    rdfs:domain person:Person ;
+    rdfs:range person:Project .
+
+person:projectName a owl:DatatypeProperty ;
+    rdfs:label "project name" ;
+    rdfs:comment "The name of a project" ;
+    rdfs:domain person:Project ;
+    rdfs:range xsd:string .
+
+person:projectDescription a owl:DatatypeProperty ;
+    rdfs:label "project description" ;
+    rdfs:comment "Description of a project" ;
+    rdfs:domain person:Project ;
+    rdfs:range xsd:string .
+
+person:projectURL a owl:DatatypeProperty ;
+    rdfs:label "project URL" ;
+    rdfs:comment "The URL of a project (e.g., GitHub repo, live demo)" ;
+    rdfs:domain person:Project ;
+    rdfs:range xsd:anyURI .
+
+person:projectStartDate a owl:DatatypeProperty ;
+    rdfs:label "project start date" ;
+    rdfs:comment "The start date of a project" ;
+    rdfs:domain person:Project ;
+    rdfs:range xsd:date .
+
+person:projectEndDate a owl:DatatypeProperty ;
+    rdfs:label "project end date" ;
+    rdfs:comment "The end date of a project" ;
+    rdfs:domain person:Project ;
+    rdfs:range xsd:date .
+
+person:projectRole a owl:DatatypeProperty ;
+    rdfs:label "project role" ;
+    rdfs:comment "The role in a project" ;
+    rdfs:domain person:Project ;
+    rdfs:range xsd:string .
+
+person:projectTechnologies a owl:ObjectProperty ;
+    rdfs:label "project technologies" ;
+    rdfs:comment "Technologies used in a project" ;
+    rdfs:domain person:Project ;
+    rdfs:range skill:Skill .
+
+person:partOfExperience a owl:ObjectProperty ;
+    rdfs:label "part of experience" ;
+    rdfs:comment "The work experience this project was part of" ;
+    rdfs:domain person:Project ;
+    rdfs:range person:Experience .
+
+# ===========================
+# EDUCATION PROPERTIES
+# ===========================
+
+person:hasEducation a owl:ObjectProperty ;
+    rdfs:label "has education" ;
+    rdfs:comment "Educational background of a person" ;
+    rdfs:domain person:Person ;
+    rdfs:range education:Education .
+
+person:studiedAt a owl:ObjectProperty ;
+    rdfs:label "studied at" ;
+    rdfs:comment "An institution where a person studied" ;
+    rdfs:domain person:Person ;
+    rdfs:range education:Institution .
+
+education:hasInstitution a owl:ObjectProperty ;
+    rdfs:label "has institution" ;
+    rdfs:comment "The institution for this education" ;
+    rdfs:domain education:Education ;
+    rdfs:range education:Institution .
+
+education:hasInstitutionName a owl:DatatypeProperty ;
+    rdfs:label "has institution name" ;
+    rdfs:comment "The name of an educational institution" ;
+    rdfs:domain education:Institution ;
+    rdfs:range xsd:string .
+
+education:hasDegreeTitle a owl:DatatypeProperty ;
+    rdfs:label "has degree title" ;
+    rdfs:comment "The title of a degree" ;
+    rdfs:domain education:Degree ;
+    rdfs:range xsd:string .
+
+education:hasMajor a owl:DatatypeProperty ;
+    rdfs:label "has major" ;
+    rdfs:comment "The major or field of study" ;
+    rdfs:domain education:Education ;
+    rdfs:range xsd:string .
+
+education:hasMinor a owl:DatatypeProperty ;
+    rdfs:label "has minor" ;
+    rdfs:comment "The minor field of study" ;
+    rdfs:domain education:Education ;
+    rdfs:range xsd:string .
+
+education:hasGPA a owl:DatatypeProperty ;
+    rdfs:label "has GPA" ;
+    rdfs:comment "The GPA achieved" ;
+    rdfs:domain education:Education ;
+    rdfs:range xsd:decimal .
+
+education:hasGraduationDate a owl:DatatypeProperty ;
+    rdfs:label "has graduation date" ;
+    rdfs:comment "The graduation date" ;
+    rdfs:domain education:Education ;
+    rdfs:range xsd:date .
+
+education:hasStartDate a owl:DatatypeProperty ;
+    rdfs:label "has start date" ;
+    rdfs:comment "The start date of education" ;
+    rdfs:domain education:Education ;
+    rdfs:range xsd:date .
+
+education:hasEndDate a owl:DatatypeProperty ;
+    rdfs:label "has end date" ;
+    rdfs:comment "The end date of education" ;
+    rdfs:domain education:Education ;
+    rdfs:range xsd:date .
+
+education:isCompleted a owl:DatatypeProperty ;
+    rdfs:label "is completed" ;
+    rdfs:comment "Whether the education was completed" ;
+    rdfs:domain education:Education ;
+    rdfs:range xsd:boolean .
+
+education:hasHonors a owl:DatatypeProperty ;
+    rdfs:label "has honors" ;
+    rdfs:comment "Academic honors or distinctions" ;
+    rdfs:domain education:Education ;
+    rdfs:range xsd:string .
+
+# ===========================
+# CERTIFICATION PROPERTIES
+# ===========================
+
+education:hasCertificationName a owl:DatatypeProperty ;
+    rdfs:label "has certification name" ;
+    rdfs:comment "The name of a certification" ;
+    rdfs:domain education:Certification ;
+    rdfs:range xsd:string .
+
+education:hasIssuingOrganization a owl:DatatypeProperty ;
+    rdfs:label "has issuing organization" ;
+    rdfs:comment "The organization that issued the certification" ;
+    rdfs:domain education:Certification ;
+    rdfs:range xsd:string .
+
+education:hasIssueDate a owl:DatatypeProperty ;
+    rdfs:label "has issue date" ;
+    rdfs:comment "The date the certification was issued" ;
+    rdfs:domain education:Certification ;
+    rdfs:range xsd:date .
+
+education:hasExpirationDate a owl:DatatypeProperty ;
+    rdfs:label "has expiration date" ;
+    rdfs:comment "The expiration date of the certification" ;
+    rdfs:domain education:Certification ;
+    rdfs:range xsd:date .
+
+education:hasCredentialID a owl:DatatypeProperty ;
+    rdfs:label "has credential ID" ;
+    rdfs:comment "The credential ID for verification" ;
+    rdfs:domain education:Certification ;
+    rdfs:range xsd:string .
+
+education:hasCredentialURL a owl:DatatypeProperty ;
+    rdfs:label "has credential URL" ;
+    rdfs:comment "The URL for credential verification" ;
+    rdfs:domain education:Certification ;
+    rdfs:range xsd:anyURI .
+
+# ===========================
+# PREFERENCE AND CAREER PROPERTIES
+# ===========================
+
+person:hasCareerLevel a owl:ObjectProperty ;
+    rdfs:label "has career level" ;
+    rdfs:comment "The current career level of a person" ;
+    rdfs:domain person:Person ;
+    rdfs:range job:JobLevel .
+
+person:interestedInIndustry a owl:ObjectProperty ;
+    rdfs:label "interested in industry" ;
+    rdfs:comment "Industries the person is interested in" ;
+    rdfs:domain person:Person ;
+    rdfs:range company:Industry .
+
+person:preferredLocation a owl:DatatypeProperty ;
+    rdfs:label "preferred location" ;
+    rdfs:comment "Preferred work location" ;
+    rdfs:domain person:Person ;
+    rdfs:range xsd:string .
+
+person:willingToRelocate a owl:DatatypeProperty ;
+    rdfs:label "willing to relocate" ;
+    rdfs:comment "Whether the person is willing to relocate" ;
+    rdfs:domain person:Person ;
+    rdfs:range xsd:boolean .
+
+person:preferredSalary a owl:DatatypeProperty ;
+    rdfs:label "preferred salary" ;
+    rdfs:comment "Preferred salary range" ;
+    rdfs:domain person:Person ;
+    rdfs:range xsd:string .
+
+person:minSalary a owl:DatatypeProperty ;
+    rdfs:label "minimum salary" ;
+    rdfs:comment "Minimum acceptable salary" ;
+    rdfs:domain person:Person ;
+    rdfs:range xsd:decimal .
+
+person:preferredEmploymentType a owl:ObjectProperty ;
+    rdfs:label "preferred employment type" ;
+    rdfs:comment "Preferred type of employment" ;
+    rdfs:domain person:Person ;
+    rdfs:range job:EmploymentType .
+
+person:availabilityDate a owl:DatatypeProperty ;
+    rdfs:label "availability date" ;
+    rdfs:comment "Date when person is available to start" ;
+    rdfs:domain person:Person ;
+    rdfs:range xsd:date .
+
+person:hasSecurityClearance a owl:DatatypeProperty ;
+    rdfs:label "has security clearance" ;
+    rdfs:comment "Security clearance level" ;
+    rdfs:domain person:Person ;
+    rdfs:range xsd:string .
+
+person:hasWorkAuthorization a owl:DatatypeProperty ;
+    rdfs:label "has work authorization" ;
+    rdfs:comment "Work authorization status" ;
+    rdfs:domain person:Person ;
+    rdfs:range xsd:string .

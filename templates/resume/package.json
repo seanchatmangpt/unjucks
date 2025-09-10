@@ -1,0 +1,51 @@
+{
+  "name": "@unjucks/resume-templates",
+  "version": "1.0.0",
+  "description": "Professional resume templates with semantic data integration",
+  "main": "generator.js",
+  "scripts": {
+    "test": "jest",
+    "validate": "node scripts/validate-templates.js",
+    "build": "node scripts/build-samples.js"
+  },
+  "keywords": [
+    "resume",
+    "cv",
+    "template",
+    "generator",
+    "semantic",
+    "schema.org",
+    "rdf",
+    "latex",
+    "html",
+    "json-ld"
+  ],
+  "author": "Unjucks Resume Generator",
+  "license": "MIT",
+  "dependencies": {
+    "nunjucks": "^3.2.4",
+    "inquirer": "^9.0.0"
+  },
+  "devDependencies": {
+    "jest": "^29.0.0"
+  },
+  "unjucks": {
+    "templateType": "generator",
+    "semanticFeatures": true,
+    "industryVariants": [
+      "software",
+      "data-science", 
+      "product",
+      "design",
+      "marketing",
+      "finance",
+      "healthcare",
+      "education"
+    ],
+    "outputFormats": [
+      "latex",
+      "html",
+      "json-ld"
+    ]
+  }
+}

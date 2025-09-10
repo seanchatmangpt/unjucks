@@ -1,0 +1,96 @@
+---
+to: generated/resumes/<%= person.name | kebabCase %>-<%= job.title | kebabCase %>.tex
+inject: false
+sh: "pdflatex -output-directory=generated/resumes/ generated/resumes/<%= person.name | kebabCase %>-<%= job.title | kebabCase %>.tex"
+---
+\documentclass[11pt,a4paper,sans]{moderncv}
+
+% ModernCV theme and style
+\moderncvstyle{classic}
+\moderncvcolor{blue}
+
+% Character encoding and language
+\usepackage[utf8]{inputenc}
+\usepackage[scale=0.75]{geometry}
+
+% Personal data
+\name{{{ person.firstName }}}{{{ person.lastName }}}
+\title{{{ job.title }}}
+{% if person.address %}
+\address{{{ person.address.street }}}{{{ person.address.city }}, {{ person.address.state }} {{ person.address.zipCode }}}
+{% endif %}
+{% if person.phone %}
+\phone[mobile]{{{ person.phone }}}
+{% endif %}
+{% if person.email %}
+\email{{{ person.email }}}
+{% endif %}
+{% if person.website %}
+\homepage{{{ person.website }}}
+{% endif %}
+{% if person.linkedin %}
+\social[linkedin]{{{ person.linkedin }}}
+{% endif %}
+{% if person.github %}
+\social[github]{{{ person.github }}}
+{% endif %}
+
+\begin{document}
+
+\makecvtitle
+
+{% if person.summary %}
+\section{Professional Summary}
+{{ person.summary }}
+{% endif %}
+
+{% if person.experience and person.experience.length > 0 %}
+\section{Experience}
+{% for exp in person.experience %}
+\cventry{{{ exp.startDate }}--{{ exp.endDate || 'Present' }}}{{{ exp.title }}}{{{ exp.company }}}{{{ exp.location || '' }}}{}{%
+{% if exp.description %}
+{{ exp.description }}%
+{% endif %}
+{% if exp.achievements and exp.achievements.length > 0 %}
+\begin{itemize}%
+{% for achievement in exp.achievements %}
+\item {{ achievement }}%
+{% endfor %}
+\end{itemize}%
+{% endif %}
+}
+{% endfor %}
+{% endif %}
+
+{% if person.education and person.education.length > 0 %}
+\section{Education}
+{% for edu in person.education %}
+\cventry{{{ edu.startDate }}--{{ edu.endDate }}}{{{ edu.degree }}}{{{ edu.institution }}}{{{ edu.location || '' }}}{{{ edu.gpa ? 'GPA: ' + edu.gpa : '' }}}{{{ edu.description || '' }}}
+{% endfor %}
+{% endif %}
+
+{% if person.skills and person.skills.length > 0 %}
+\section{Skills}
+{% set techSkills = person.skills | selectattr('category', 'equalto', 'Technical') | list %}
+{% set softSkills = person.skills | selectattr('category', 'equalto', 'Soft') | list %}
+{% set certSkills = person.skills | selectattr('category', 'equalto', 'Certification') | list %}
+
+{% if techSkills.length > 0 %}
+\cvitem{Technical}{{{ techSkills | map(attribute='name') | join(', ') }}}
+{% endif %}
+{% if softSkills.length > 0 %}
+\cvitem{Soft Skills}{{{ softSkills | map(attribute='name') | join(', ') }}}
+{% endif %}
+{% if certSkills.length > 0 %}
+\cvitem{Certifications}{{{ certSkills | map(attribute='name') | join(', ') }}}
+{% endif %}
+{% endif %}
+
+{% if person.projects and person.projects.length > 0 %}
+\section{Projects}
+{% for project in person.projects %}
+\cvitem{{{ project.name }}}{{{ project.description }}{% if project.technologies %} \textit{Technologies: {{ project.technologies | join(', ') }}}{% endif %}}
+{% endfor %}
+{% endif %}
+
+\end{document}

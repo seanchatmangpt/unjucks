@@ -1,0 +1,60 @@
+{
+  "name": "Data Scientist Resume",
+  "description": "Specialized resume template for data science and machine learning positions",
+  "industry": "data-science",
+  "semanticKeywords": [
+    "machine learning",
+    "data analysis",
+    "statistical modeling",
+    "deep learning",
+    "data visualization",
+    "predictive analytics",
+    "big data",
+    "artificial intelligence",
+    "feature engineering",
+    "model deployment"
+  ],
+  "skillCategories": {
+    "Programming Languages": ["Python", "R", "SQL", "Scala", "Julia"],
+    "ML/AI Frameworks": ["TensorFlow", "PyTorch", "Scikit-learn", "XGBoost", "Keras"],
+    "Data Processing": ["Pandas", "NumPy", "Spark", "Dask", "Apache Airflow"],
+    "Visualization": ["Matplotlib", "Seaborn", "Plotly", "Tableau", "D3.js"],
+    "Databases & Big Data": ["PostgreSQL", "MongoDB", "Hadoop", "Cassandra", "Elasticsearch"],
+    "Cloud & MLOps": ["AWS SageMaker", "Google Cloud ML", "MLflow", "Kubeflow", "Docker"]
+  },
+  "commonProjects": [
+    {
+      "type": "Predictive Model",
+      "description": "Machine learning model for customer churn prediction with 95% accuracy",
+      "technologies": ["Python", "Scikit-learn", "PostgreSQL", "Docker"]
+    },
+    {
+      "type": "Deep Learning System",
+      "description": "Computer vision system for image classification and object detection",
+      "technologies": ["TensorFlow", "OpenCV", "Python", "AWS"]
+    },
+    {
+      "type": "Data Pipeline",
+      "description": "ETL pipeline processing millions of records daily with real-time analytics",
+      "technologies": ["Apache Spark", "Kafka", "Python", "Elasticsearch"]
+    }
+  ],
+  "certifications": [
+    "AWS Certified Machine Learning - Specialty",
+    "Google Cloud Professional Machine Learning Engineer",
+    "Microsoft Azure AI Engineer Associate",
+    "Cloudera Certified Data Scientist"
+  ],
+  "researchAreas": [
+    "Natural Language Processing",
+    "Computer Vision",
+    "Recommender Systems",
+    "Time Series Analysis",
+    "Anomaly Detection"
+  ],
+  "schemaOrgExtensions": {
+    "knowsAbout": ["Machine Learning", "Statistics", "Data Science"],
+    "applicationCategory": "DataProcessing",
+    "additionalType": "DataScientist"
+  }
+}

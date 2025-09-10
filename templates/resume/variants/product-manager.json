@@ -1,0 +1,68 @@
+{
+  "name": "Product Manager Resume",
+  "description": "Specialized resume template for product management positions",
+  "industry": "product",
+  "semanticKeywords": [
+    "product strategy",
+    "roadmap development",
+    "user research",
+    "stakeholder management",
+    "market analysis",
+    "product analytics",
+    "cross-functional leadership",
+    "agile development",
+    "user experience",
+    "go-to-market strategy"
+  ],
+  "skillCategories": {
+    "Product Management": ["Product Strategy", "Roadmap Planning", "Feature Prioritization", "User Story Writing"],
+    "Analytics & Research": ["Google Analytics", "Mixpanel", "Amplitude", "User Research", "A/B Testing"],
+    "Design & UX": ["Figma", "Sketch", "User Journey Mapping", "Wireframing", "Prototyping"],
+    "Technical Skills": ["SQL", "Python", "Jira", "Confluence", "API Understanding"],
+    "Business Skills": ["Market Research", "Competitive Analysis", "Business Case Development", "KPI Definition"],
+    "Leadership": ["Cross-functional Team Leadership", "Stakeholder Management", "Agile/Scrum", "Change Management"]
+  },
+  "commonProjects": [
+    {
+      "type": "Product Launch",
+      "description": "End-to-end product launch increasing user engagement by 40%",
+      "technologies": ["Analytics", "User Research", "Go-to-Market Strategy"]
+    },
+    {
+      "type": "Feature Development",
+      "description": "Led development of core feature serving 1M+ users with 25% conversion rate",
+      "technologies": ["A/B Testing", "User Analytics", "Cross-functional Coordination"]
+    },
+    {
+      "type": "Market Expansion",
+      "description": "Product expansion into new market segment resulting in 60% revenue growth",
+      "technologies": ["Market Research", "Competitive Analysis", "Product Strategy"]
+    }
+  ],
+  "certifications": [
+    "Certified Scrum Product Owner (CSPO)",
+    "Product Management Certificate - Stanford",
+    "Google Analytics Certified",
+    "Pragmatic Marketing Certified"
+  ],
+  "keyMetrics": [
+    "User Acquisition",
+    "Monthly Active Users (MAU)",
+    "Customer Lifetime Value (CLV)",
+    "Product-Market Fit",
+    "Feature Adoption Rate",
+    "Customer Satisfaction Score"
+  ],
+  "methodologies": [
+    "Agile/Scrum",
+    "Design Thinking",
+    "Lean Startup",
+    "Jobs-to-be-Done",
+    "OKRs (Objectives and Key Results)"
+  ],
+  "schemaOrgExtensions": {
+    "knowsAbout": ["Product Management", "User Experience", "Business Strategy"],
+    "applicationCategory": "BusinessApplication",
+    "additionalType": "ProductManager"
+  }
+}

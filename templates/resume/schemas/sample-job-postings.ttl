@@ -1,0 +1,421 @@
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix job: <http://ontology.resume/job#> .
+@prefix skill: <http://ontology.resume/skill#> .
+@prefix company: <http://ontology.resume/company#> .
+
+# Sample Job Postings in Turtle Format
+# Production-ready examples for resume matching system
+
+# ===========================
+# COMPANIES
+# ===========================
+
+company:TechCorp a company:Company ;
+    company:hasName "TechCorp Solutions" ;
+    company:hasDescription "Leading technology consulting company specializing in cloud solutions and digital transformation" ;
+    company:hasSize "501-1000 employees" ;
+    company:hasLocation "San Francisco, CA" ;
+    company:hasWebsite <https://techcorp.com> ;
+    company:inIndustry company:Technology ;
+    company:foundedIn "2010"^^xsd:gYear .
+
+company:StartupAI a company:Startup ;
+    company:hasName "StartupAI" ;
+    company:hasDescription "AI-powered analytics platform for enterprise customers" ;
+    company:hasSize "11-50 employees" ;
+    company:hasLocation "Austin, TX" ;
+    company:hasWebsite <https://startupai.com> ;
+    company:inIndustry company:Technology ;
+    company:foundedIn "2020"^^xsd:gYear .
+
+company:FinanceGlobal a company:Enterprise ;
+    company:hasName "Global Finance Corp" ;
+    company:hasDescription "International financial services and investment banking" ;
+    company:hasSize "10,000+ employees" ;
+    company:hasLocation "New York, NY" ;
+    company:hasWebsite <https://globalfinance.com> ;
+    company:inIndustry company:Finance ;
+    company:foundedIn "1985"^^xsd:gYear .
+
+company:HealthTech a company:Company ;
+    company:hasName "HealthTech Innovations" ;
+    company:hasDescription "Digital health solutions and medical device software" ;
+    company:hasSize "201-500 employees" ;
+    company:hasLocation "Boston, MA" ;
+    company:hasWebsite <https://healthtech.com> ;
+    company:inIndustry company:Healthcare ;
+    company:foundedIn "2015"^^xsd:gYear .
+
+# ===========================
+# JOB POSTINGS
+# ===========================
+
+# Senior Full Stack Developer at TechCorp
+job:Job001 a job:JobPosting ;
+    job:hasTitle "Senior Full Stack Developer" ;
+    job:hasDescription "We are seeking a Senior Full Stack Developer to join our cloud solutions team. You will be responsible for developing scalable web applications using modern JavaScript frameworks and cloud technologies. The ideal candidate has 5+ years of experience and expertise in React, Node.js, and AWS." ;
+    job:hasLocation "San Francisco, CA" ;
+    job:hasSalaryRange "$120,000 - $150,000" ;
+    job:hasMinSalary 120000.00 ;
+    job:hasMaxSalary 150000.00 ;
+    job:hasMinYearsExperience 5 ;
+    job:hasMaxYearsExperience 8 ;
+    job:hasLevel job:SeniorLevel ;
+    job:hasEmploymentType job:FullTime ;
+    job:allowsRemote true ;
+    job:hasFunction "Engineering" ;
+    job:hasDepartment "Cloud Solutions" ;
+    job:hasPostedDate "2025-09-01T09:00:00Z"^^xsd:dateTime ;
+    job:hasApplicationDeadline "2025-10-01T23:59:59Z"^^xsd:dateTime ;
+    job:offeredBy company:TechCorp ;
+    
+    # Required Skills
+    job:requiresSkill skill:JavaScript ;
+    job:requiresSkill skill:React ;
+    job:requiresSkill skill:NodeJS ;
+    job:requiresSkill skill:TypeScript ;
+    job:requiresSkill skill:AWS ;
+    job:requiresSkill skill:PostgreSQL ;
+    job:requiresSkill skill:Git ;
+    
+    # Preferred Skills
+    job:prefersSkill skill:Docker ;
+    job:prefersSkill skill:Kubernetes ;
+    job:prefersSkill skill:MongoDB .
+
+# Machine Learning Engineer at StartupAI
+job:Job002 a job:JobPosting ;
+    job:hasTitle "Machine Learning Engineer" ;
+    job:hasDescription "Join our AI team to build cutting-edge machine learning models and data pipelines. You'll work with large datasets, develop ML algorithms, and deploy models to production. Looking for someone with strong Python skills, experience with ML frameworks, and 3+ years in data science or ML engineering." ;
+    job:hasLocation "Austin, TX" ;
+    job:hasSalaryRange "$100,000 - $130,000" ;
+    job:hasMinSalary 100000.00 ;
+    job:hasMaxSalary 130000.00 ;
+    job:hasMinYearsExperience 3 ;
+    job:hasMaxYearsExperience 6 ;
+    job:hasLevel job:MidLevel ;
+    job:hasEmploymentType job:FullTime ;
+    job:allowsRemote true ;
+    job:hasFunction "Data Science" ;
+    job:hasDepartment "AI Research" ;
+    job:hasPostedDate "2025-09-05T10:30:00Z"^^xsd:dateTime ;
+    job:hasApplicationDeadline "2025-09-30T23:59:59Z"^^xsd:dateTime ;
+    job:offeredBy company:StartupAI ;
+    
+    # Required Skills
+    job:requiresSkill skill:Python ;
+    job:requiresSkill skill:TensorFlow ;
+    job:requiresSkill skill:PyTorch ;
+    job:requiresSkill skill:Pandas ;
+    job:requiresSkill skill:NumPy ;
+    job:requiresSkill skill:SQL ;
+    
+    # Preferred Skills
+    job:prefersSkill skill:AWS ;
+    job:prefersSkill skill:Docker ;
+    job:prefersSkill skill:Kubernetes ;
+    job:prefersSkill skill:Spark .
+
+# Frontend Developer (Entry Level) at TechCorp
+job:Job003 a job:JobPosting ;
+    job:hasTitle "Frontend Developer" ;
+    job:hasDescription "Entry-level position for a Frontend Developer to join our user experience team. You'll work on modern web applications using React and TypeScript. Great opportunity for recent graduates or developers with 1-2 years of experience looking to grow their skills in a supportive environment." ;
+    job:hasLocation "San Francisco, CA" ;
+    job:hasSalaryRange "$75,000 - $95,000" ;
+    job:hasMinSalary 75000.00 ;
+    job:hasMaxSalary 95000.00 ;
+    job:hasMinYearsExperience 1 ;
+    job:hasMaxYearsExperience 3 ;
+    job:hasLevel job:EntryLevel ;
+    job:hasEmploymentType job:FullTime ;
+    job:allowsRemote false ;
+    job:hasFunction "Engineering" ;
+    job:hasDepartment "User Experience" ;
+    job:hasPostedDate "2025-09-08T14:00:00Z"^^xsd:dateTime ;
+    job:hasApplicationDeadline "2025-10-15T23:59:59Z"^^xsd:dateTime ;
+    job:offeredBy company:TechCorp ;
+    
+    # Required Skills
+    job:requiresSkill skill:JavaScript ;
+    job:requiresSkill skill:React ;
+    job:requiresSkill skill:HTML5 ;
+    job:requiresSkill skill:CSS3 ;
+    job:requiresSkill skill:Git ;
+    
+    # Preferred Skills
+    job:prefersSkill skill:TypeScript ;
+    job:prefersSkill skill:SASS ;
+    job:prefersSkill skill:Webpack .
+
+# DevOps Engineer at FinanceGlobal
+job:Job004 a job:JobPosting ;
+    job:hasTitle "DevOps Engineer" ;
+    job:hasDescription "Senior DevOps Engineer position focusing on cloud infrastructure, CI/CD pipelines, and container orchestration. You'll be responsible for maintaining our multi-cloud environment, automating deployments, and ensuring high availability of financial services applications. Requires 4+ years of DevOps experience." ;
+    job:hasLocation "New York, NY" ;
+    job:hasSalaryRange "$110,000 - $140,000" ;
+    job:hasMinSalary 110000.00 ;
+    job:hasMaxSalary 140000.00 ;
+    job:hasMinYearsExperience 4 ;
+    job:hasMaxYearsExperience 7 ;
+    job:hasLevel job:SeniorLevel ;
+    job:hasEmploymentType job:FullTime ;
+    job:allowsRemote true ;
+    job:hasFunction "Infrastructure" ;
+    job:hasDepartment "Platform Engineering" ;
+    job:hasPostedDate "2025-09-03T11:15:00Z"^^xsd:dateTime ;
+    job:hasApplicationDeadline "2025-09-25T23:59:59Z"^^xsd:dateTime ;
+    job:offeredBy company:FinanceGlobal ;
+    
+    # Required Skills
+    job:requiresSkill skill:AWS ;
+    job:requiresSkill skill:Docker ;
+    job:requiresSkill skill:Kubernetes ;
+    job:requiresSkill skill:Terraform ;
+    job:requiresSkill skill:Jenkins ;
+    job:requiresSkill skill:Python ;
+    job:requiresSkill skill:Bash ;
+    
+    # Preferred Skills
+    job:prefersSkill skill:Ansible ;
+    job:prefersSkill skill:Prometheus ;
+    job:prefersSkill skill:Grafana ;
+    job:prefersSkill skill:ElasticSearch .
+
+# Software Architect at HealthTech
+job:Job005 a job:JobPosting ;
+    job:hasTitle "Software Architect" ;
+    job:hasDescription "Lead Software Architect role for designing and implementing scalable healthcare software solutions. You'll define technical architecture, lead development teams, and ensure HIPAA compliance. Looking for 8+ years of experience with distributed systems, microservices, and healthcare domain knowledge." ;
+    job:hasLocation "Boston, MA" ;
+    job:hasSalaryRange "$150,000 - $180,000" ;
+    job:hasMinSalary 150000.00 ;
+    job:hasMaxSalary 180000.00 ;
+    job:hasMinYearsExperience 8 ;
+    job:hasMaxYearsExperience 12 ;
+    job:hasLevel job:LeadLevel ;
+    job:hasEmploymentType job:FullTime ;
+    job:allowsRemote true ;
+    job:hasFunction "Architecture" ;
+    job:hasDepartment "Engineering" ;
+    job:hasPostedDate "2025-09-07T09:45:00Z"^^xsd:dateTime ;
+    job:hasApplicationDeadline "2025-10-07T23:59:59Z"^^xsd:dateTime ;
+    job:offeredBy company:HealthTech ;
+    
+    # Required Skills
+    job:requiresSkill skill:Java ;
+    job:requiresSkill skill:SpringBoot ;
+    job:requiresSkill skill:Microservices ;
+    job:requiresSkill skill:AWS ;
+    job:requiresSkill skill:PostgreSQL ;
+    job:requiresSkill skill:Redis ;
+    job:requiresSkill skill:Leadership ;
+    job:requiresSkill skill:SystemDesign ;
+    
+    # Preferred Skills
+    job:prefersSkill skill:Kubernetes ;
+    job:prefersSkill skill:Kafka ;
+    job:prefersSkill skill:HL7 ;
+    job:prefersSkill skill:FHIR .
+
+# Data Scientist (Remote) at StartupAI
+job:Job006 a job:JobPosting ;
+    job:hasTitle "Data Scientist" ;
+    job:hasDescription "Remote Data Scientist position to analyze complex datasets and build predictive models. You'll work with cross-functional teams to derive insights from data and communicate findings to stakeholders. Ideal for someone with 2-4 years of data science experience and strong statistical background." ;
+    job:hasLocation "Remote" ;
+    job:hasSalaryRange "$85,000 - $110,000" ;
+    job:hasMinSalary 85000.00 ;
+    job:hasMaxSalary 110000.00 ;
+    job:hasMinYearsExperience 2 ;
+    job:hasMaxYearsExperience 5 ;
+    job:hasLevel job:MidLevel ;
+    job:hasEmploymentType job:FullTime ;
+    job:allowsRemote true ;
+    job:hasFunction "Data Science" ;
+    job:hasDepartment "Analytics" ;
+    job:hasPostedDate "2025-09-09T13:20:00Z"^^xsd:dateTime ;
+    job:hasApplicationDeadline "2025-10-09T23:59:59Z"^^xsd:dateTime ;
+    job:offeredBy company:StartupAI ;
+    
+    # Required Skills
+    job:requiresSkill skill:Python ;
+    job:requiresSkill skill:R ;
+    job:requiresSkill skill:SQL ;
+    job:requiresSkill skill:Pandas ;
+    job:requiresSkill skill:NumPy ;
+    job:requiresSkill skill:Matplotlib ;
+    job:requiresSkill skill:Statistics ;
+    
+    # Preferred Skills
+    job:prefersSkill skill:TensorFlow ;
+    job:prefersSkill skill:Tableau ;
+    job:prefersSkill skill:Jupyter ;
+    job:prefersSkill skill:Git .
+
+# Technical Lead at TechCorp
+job:Job007 a job:JobPosting ;
+    job:hasTitle "Technical Lead - Cloud Platform" ;
+    job:hasDescription "Technical Lead position to guide our cloud platform development team. You'll mentor junior developers, make technical decisions, and ensure code quality across multiple projects. Requires 6+ years of software development experience with strong leadership skills and cloud expertise." ;
+    job:hasLocation "San Francisco, CA" ;
+    job:hasSalaryRange "$135,000 - $165,000" ;
+    job:hasMinSalary 135000.00 ;
+    job:hasMaxSalary 165000.00 ;
+    job:hasMinYearsExperience 6 ;
+    job:hasMaxYearsExperience 10 ;
+    job:hasLevel job:LeadLevel ;
+    job:hasEmploymentType job:FullTime ;
+    job:allowsRemote true ;
+    job:hasFunction "Engineering" ;
+    job:hasDepartment "Cloud Platform" ;
+    job:hasPostedDate "2025-09-06T16:00:00Z"^^xsd:dateTime ;
+    job:hasApplicationDeadline "2025-09-28T23:59:59Z"^^xsd:dateTime ;
+    job:offeredBy company:TechCorp ;
+    
+    # Required Skills
+    job:requiresSkill skill:JavaScript ;
+    job:requiresSkill skill:TypeScript ;
+    job:requiresSkill skill:NodeJS ;
+    job:requiresSkill skill:AWS ;
+    job:requiresSkill skill:Docker ;
+    job:requiresSkill skill:Leadership ;
+    job:requiresSkill skill:Mentoring ;
+    job:requiresSkill skill:ProjectManagement ;
+    
+    # Preferred Skills
+    job:prefersSkill skill:Kubernetes ;
+    job:prefersSkill skill:Terraform ;
+    job:prefersSkill skill:GraphQL ;
+    job:prefersSkill skill:Agile .
+
+# ===========================
+# ADDITIONAL SKILLS REFERENCED
+# ===========================
+
+skill:TensorFlow a skill:TechnicalSkill ;
+    skill:hasName "TensorFlow" ;
+    skill:hasCategory "Machine Learning Framework" .
+
+skill:PyTorch a skill:TechnicalSkill ;
+    skill:hasName "PyTorch" ;
+    skill:hasCategory "Machine Learning Framework" .
+
+skill:Pandas a skill:TechnicalSkill ;
+    skill:hasName "Pandas" ;
+    skill:hasCategory "Data Analysis Library" .
+
+skill:NumPy a skill:TechnicalSkill ;
+    skill:hasName "NumPy" ;
+    skill:hasCategory "Scientific Computing Library" .
+
+skill:SQL a skill:TechnicalSkill ;
+    skill:hasName "SQL" ;
+    skill:hasCategory "Query Language" .
+
+skill:R a skill:TechnicalSkill ;
+    skill:hasName "R" ;
+    skill:hasCategory "Statistical Programming Language" .
+
+skill:HTML5 a skill:TechnicalSkill ;
+    skill:hasName "HTML5" ;
+    skill:hasCategory "Markup Language" .
+
+skill:CSS3 a skill:TechnicalSkill ;
+    skill:hasName "CSS3" ;
+    skill:hasCategory "Styling Language" .
+
+skill:SASS a skill:TechnicalSkill ;
+    skill:hasName "SASS" ;
+    skill:hasCategory "CSS Preprocessor" .
+
+skill:Webpack a skill:ToolSkill ;
+    skill:hasName "Webpack" ;
+    skill:hasCategory "Build Tool" .
+
+skill:Terraform a skill:ToolSkill ;
+    skill:hasName "Terraform" ;
+    skill:hasCategory "Infrastructure as Code" .
+
+skill:Jenkins a skill:ToolSkill ;
+    skill:hasName "Jenkins" ;
+    skill:hasCategory "CI/CD Tool" .
+
+skill:Bash a skill:TechnicalSkill ;
+    skill:hasName "Bash" ;
+    skill:hasCategory "Shell Scripting" .
+
+skill:Ansible a skill:ToolSkill ;
+    skill:hasName "Ansible" ;
+    skill:hasCategory "Configuration Management" .
+
+skill:Prometheus a skill:ToolSkill ;
+    skill:hasName "Prometheus" ;
+    skill:hasCategory "Monitoring Tool" .
+
+skill:Grafana a skill:ToolSkill ;
+    skill:hasName "Grafana" ;
+    skill:hasCategory "Visualization Tool" .
+
+skill:ElasticSearch a skill:TechnicalSkill ;
+    skill:hasName "Elasticsearch" ;
+    skill:hasCategory "Search Engine" .
+
+skill:SpringBoot a skill:TechnicalSkill ;
+    skill:hasName "Spring Boot" ;
+    skill:hasCategory "Java Framework" .
+
+skill:Microservices a skill:TechnicalSkill ;
+    skill:hasName "Microservices" ;
+    skill:hasCategory "Architecture Pattern" .
+
+skill:Redis a skill:TechnicalSkill ;
+    skill:hasName "Redis" ;
+    skill:hasCategory "In-Memory Database" .
+
+skill:SystemDesign a skill:SoftSkill ;
+    skill:hasName "System Design" ;
+    skill:hasCategory "Architecture" .
+
+skill:Kafka a skill:TechnicalSkill ;
+    skill:hasName "Apache Kafka" ;
+    skill:hasCategory "Message Broker" .
+
+skill:HL7 a skill:TechnicalSkill ;
+    skill:hasName "HL7" ;
+    skill:hasCategory "Healthcare Standard" .
+
+skill:FHIR a skill:TechnicalSkill ;
+    skill:hasName "FHIR" ;
+    skill:hasCategory "Healthcare Interoperability" .
+
+skill:Statistics a skill:TechnicalSkill ;
+    skill:hasName "Statistics" ;
+    skill:hasCategory "Mathematical" .
+
+skill:Matplotlib a skill:TechnicalSkill ;
+    skill:hasName "Matplotlib" ;
+    skill:hasCategory "Data Visualization Library" .
+
+skill:Tableau a skill:ToolSkill ;
+    skill:hasName "Tableau" ;
+    skill:hasCategory "Business Intelligence Tool" .
+
+skill:Jupyter a skill:ToolSkill ;
+    skill:hasName "Jupyter Notebook" ;
+    skill:hasCategory "Development Environment" .
+
+skill:Mentoring a skill:SoftSkill ;
+    skill:hasName "Mentoring" ;
+    skill:hasCategory "Leadership" .
+
+skill:GraphQL a skill:TechnicalSkill ;
+    skill:hasName "GraphQL" ;
+    skill:hasCategory "Query Language" .
+
+skill:Agile a skill:SoftSkill ;
+    skill:hasName "Agile Methodology" ;
+    skill:hasCategory "Project Management" .
+
+skill:Spark a skill:TechnicalSkill ;
+    skill:hasName "Apache Spark" ;
+    skill:hasCategory "Big Data Framework" .

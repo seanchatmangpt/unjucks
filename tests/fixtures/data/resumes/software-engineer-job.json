@@ -1,0 +1,83 @@
+{
+  "title": "Senior Software Engineer",
+  "company": "InnovateTech Solutions",
+  "location": "San Francisco, CA",
+  "type": "Full-time",
+  "remote": false,
+  "salary": {
+    "min": 140000,
+    "max": 180000,
+    "currency": "USD"
+  },
+  "description": "We are seeking a Senior Software Engineer to join our growing engineering team. You will be responsible for designing, developing, and maintaining scalable web applications that serve millions of users worldwide. The ideal candidate has strong experience with modern JavaScript frameworks, cloud technologies, and distributed systems.",
+  "requirements": [
+    "5+ years of software development experience",
+    "Strong proficiency in JavaScript/TypeScript and React",
+    "Experience with Node.js and API development",
+    "Knowledge of cloud platforms (AWS, GCP, or Azure)",
+    "Experience with containerization (Docker) and orchestration (Kubernetes)",
+    "Familiarity with microservices architecture",
+    "Strong understanding of database design and optimization",
+    "Experience with CI/CD pipelines and DevOps practices",
+    "Excellent problem-solving and communication skills",
+    "Bachelor's degree in Computer Science or related field"
+  ],
+  "preferredSkills": [
+    "Experience with GraphQL",
+    "Knowledge of machine learning concepts",
+    "Previous experience in a fast-paced startup environment",
+    "Open source contributions",
+    "Experience with performance optimization and monitoring",
+    "Knowledge of security best practices"
+  ],
+  "responsibilities": [
+    "Design and develop scalable web applications and APIs",
+    "Collaborate with cross-functional teams to define and implement new features",
+    "Participate in code reviews and maintain high code quality standards",
+    "Optimize application performance and scalability",
+    "Mentor junior developers and contribute to team growth",
+    "Stay updated with emerging technologies and industry best practices",
+    "Participate in on-call rotation for production support"
+  ],
+  "skills": [
+    "JavaScript",
+    "TypeScript",
+    "React",
+    "Node.js",
+    "AWS",
+    "Docker",
+    "Kubernetes",
+    "PostgreSQL",
+    "MongoDB",
+    "GraphQL",
+    "RESTful APIs",
+    "Microservices",
+    "CI/CD",
+    "Git",
+    "Agile",
+    "Problem Solving",
+    "Team Leadership",
+    "Communication"
+  ],
+  "benefits": [
+    "Competitive salary and equity package",
+    "Comprehensive health, dental, and vision insurance",
+    "401(k) with company matching",
+    "Flexible PTO and work-from-home options",
+    "Professional development budget",
+    "State-of-the-art equipment and tools",
+    "Catered lunches and snacks",
+    "Team building events and company retreats"
+  ],
+  "experienceLevel": "Senior",
+  "industry": "Technology",
+  "department": "Engineering",
+  "reportingTo": "Engineering Manager",
+  "teamSize": 8,
+  "techStack": {
+    "frontend": ["React", "TypeScript", "Next.js", "Tailwind CSS"],
+    "backend": ["Node.js", "Express", "GraphQL", "PostgreSQL"],
+    "infrastructure": ["AWS", "Docker", "Kubernetes", "Terraform"],
+    "tools": ["Git", "GitHub", "Jest", "Cypress", "Datadog"]
+  }
+}

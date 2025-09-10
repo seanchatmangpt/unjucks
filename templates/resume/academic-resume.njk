@@ -1,0 +1,245 @@
+---
+to: "{{ name | default('academic-resume') | kebabCase }}.tex"
+inject: false
+skip_if: false
+---
+\documentclass[11pt,a4paper]{article}
+
+% Academic resume packages
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage[margin=1in]{geometry}
+\usepackage{hyperref}
+\usepackage{titlesec}
+\usepackage{enumitem}
+\usepackage{array}
+\usepackage{tabularx}
+
+% Custom formatting
+\titleformat{\section}{\large\bfseries}{\thesection}{1em}{}[\titlerule]
+\titleformat{\subsection}{\normalsize\bfseries}{\thesubsection}{1em}{}
+
+% Remove paragraph indentation
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt}
+
+% Custom commands
+\newcommand{\resumeItem}[1]{\item\small{#1}}
+\newcommand{\resumeSubheading}[4]{
+  \vspace{-1pt}\item
+    \begin{tabular*}{0.97\textwidth}[t]{l@{\extracolsep{\fill}}r}
+      \textbf{#1} & #2 \\
+      \textit{\small#3} & \textit{\small #4} \\
+    \end{tabular*}\vspace{-5pt}
+}
+
+\begin{document}
+
+% Header
+\begin{center}
+  {\LARGE \textbf{{ '{' }}{{ person.firstName | texEscape }} {{ person.lastName | texEscape }}{{ '}' }}} \\
+  \vspace{5pt}
+  {% if person.title -%}
+  {\large {{ person.title | texEscape }}} \\
+  \vspace{3pt}
+  {% endif -%}
+  {% if person.address -%}
+  {{ person.address.street | texEscape }}, {{ person.address.city | texEscape }}, {{ person.address.state | texEscape }} {{ person.address.zip | texEscape }} \\
+  {% endif -%}
+  {% if person.phone -%}
+  Phone: {{ person.phone | texEscape }} \quad
+  {% endif -%}
+  {% if person.email -%}
+  Email: \href{mailto:{{ person.email }}}{{ '{' }}{{ person.email | texEscape }}{{ '}' }} \quad
+  {% endif -%}
+  {% if person.website -%}
+  Web: \href{{ '{' }}{{ person.website }}{{ '}' }}{{ '{' }}{{ person.website | texEscape }}{{ '}' }}
+  {% endif %}
+\end{center}
+
+\vspace{10pt}
+
+{% if summary -%}
+\section{Research Interests}
+{{ summary | texEscape }}
+{% endif %}
+
+{% if education and education.length > 0 -%}
+\section{Education}
+\begin{itemize}[leftmargin=*]
+{% for edu in education -%}
+  \resumeSubheading
+    {{ '{' }}{{ edu.degree | texEscape }}{{ '}' }}{{ '{' }}{{ edu.startDate | dateFormat('YYYY') }}--{{ edu.endDate | dateFormat('YYYY') }}{{ '}' }}
+    {{ '{' }}{{ edu.institution | texEscape }}{{ '}' }}{{ '{' }}{{ edu.location | texEscape }}{{ '}' }}
+  {% if edu.description or edu.gpa or edu.coursework -%}
+  \begin{itemize}
+    {% if edu.gpa -%}
+    \resumeItem{GPA: {{ edu.gpa }}}
+    {% endif -%}
+    {% if edu.description -%}
+    \resumeItem{{ '{' }}{{ edu.description | texEscape }}{{ '}' }}
+    {% endif -%}
+    {% if edu.coursework and edu.coursework.length > 0 -%}
+    \resumeItem{Relevant Coursework: {{ edu.coursework | join(', ') | texEscape }}}
+    {% endif -%}
+  \end{itemize}
+  {% endif -%}
+{% endfor -%}
+\end{itemize}
+{% endif %}
+
+{% if experience and experience.length > 0 -%}
+\section{Academic \& Professional Experience}
+\begin{itemize}[leftmargin=*]
+{% for job in experience -%}
+  \resumeSubheading
+    {{ '{' }}{{ job.position | texEscape }}{{ '}' }}{{ '{' }}{{ job.startDate | dateFormat('MMM YYYY') }}--{{ job.endDate | dateFormat('MMM YYYY') | default('Present') }}{{ '}' }}
+    {{ '{' }}{{ job.company | texEscape }}{{ '}' }}{{ '{' }}{{ job.location | texEscape }}{{ '}' }}
+  {% if job.description or job.achievements -%}
+  \begin{itemize}
+    {% if job.description -%}
+    \resumeItem{{ '{' }}{{ job.description | texEscape }}{{ '}' }}
+    {% endif -%}
+    {% for achievement in job.achievements -%}
+    \resumeItem{{ '{' }}{{ achievement | texEscape }}{{ '}' }}
+    {% endfor -%}
+  \end{itemize}
+  {% endif -%}
+{% endfor -%}
+\end{itemize}
+{% endif %}
+
+{% if publications and publications.length > 0 -%}
+\section{Publications}
+\begin{enumerate}[leftmargin=*]
+{% for pub in publications -%}
+  \item {{ pub.authors | map('texEscape') | join(', ') }}. ({{ pub.date | dateFormat('YYYY') }}). {{ pub.title | texEscape }}. \textit{{ '{' }}{{ pub.journal | texEscape }}{{ '}' }}{% if pub.volume %}, {{ pub.volume }}{% endif %}{% if pub.pages %}, {{ pub.pages }}{% endif %}. {% if pub.doi %}\href{{ '{' }}https://doi.org/{{ pub.doi }}{{ '}' }}{{ '{' }}https://doi.org/{{ pub.doi }}{{ '}' }}{% endif %}
+{% endfor -%}
+\end{enumerate}
+{% endif %}
+
+{% if research and research.length > 0 -%}
+\section{Research Experience}
+\begin{itemize}[leftmargin=*]
+{% for project in research -%}
+  \resumeSubheading
+    {{ '{' }}{{ project.title | texEscape }}{{ '}' }}{{ '{' }}{{ project.startDate | dateFormat('MMM YYYY') }}--{{ project.endDate | dateFormat('MMM YYYY') | default('Present') }}{{ '}' }}
+    {{ '{' }}{{ project.institution | texEscape }}{{ '}' }}{{ '{' }}{{ project.advisor | default('') | texEscape }}{{ '}' }}
+  {% if project.description or project.methods -%}
+  \begin{itemize}
+    {% if project.description -%}
+    \resumeItem{{ '{' }}{{ project.description | texEscape }}{{ '}' }}
+    {% endif -%}
+    {% if project.methods -%}
+    \resumeItem{Methods: {{ project.methods | join(', ') | texEscape }}}
+    {% endif -%}
+  \end{itemize}
+  {% endif -%}
+{% endfor -%}
+\end{itemize}
+{% endif %}
+
+{% if teaching and teaching.length > 0 -%}
+\section{Teaching Experience}
+\begin{itemize}[leftmargin=*]
+{% for course in teaching -%}
+  \resumeSubheading
+    {{ '{' }}{{ course.role | texEscape }}{{ '}' }}{{ '{' }}{{ course.semester }} {{ course.year }}{{ '}' }}
+    {{ '{' }}{{ course.course | texEscape }}{{ '}' }}{{ '{' }}{{ course.institution | texEscape }}{{ '}' }}
+  {% if course.description or course.achievements -%}
+  \begin{itemize}
+    {% if course.description -%}
+    \resumeItem{{ '{' }}{{ course.description | texEscape }}{{ '}' }}
+    {% endif -%}
+    {% for achievement in course.achievements -%}
+    \resumeItem{{ '{' }}{{ achievement | texEscape }}{{ '}' }}
+    {% endfor -%}
+  \end{itemize}
+  {% endif -%}
+{% endfor -%}
+\end{itemize}
+{% endif %}
+
+{% if grants and grants.length > 0 -%}
+\section{Grants \& Funding}
+\begin{itemize}[leftmargin=*]
+{% for grant in grants -%}
+  \item \textbf{{ '{' }}{{ grant.title | texEscape }}{{ '}' }} ({{ grant.amount | default('') }}). {{ grant.agency | texEscape }}, {{ grant.date | dateFormat('YYYY') }}. {% if grant.role %}Role: {{ grant.role | texEscape }}{% endif %}
+{% endfor -%}
+\end{itemize}
+{% endif %}
+
+{% if conferences and conferences.length > 0 -%}
+\section{Conference Presentations}
+\begin{itemize}[leftmargin=*]
+{% for conf in conferences -%}
+  \item {{ conf.authors | map('texEscape') | join(', ') }}. "{{ conf.title | texEscape }}." {{ conf.conference | texEscape }}, {{ conf.location | texEscape }}, {{ conf.date | dateFormat('MMMM YYYY') }}. {% if conf.type %}({{ conf.type | texEscape }}){% endif %}
+{% endfor -%}
+\end{itemize}
+{% endif %}
+
+{% if awards and awards.length > 0 -%}
+\section{Awards \& Honors}
+\begin{itemize}[leftmargin=*]
+{% for award in awards -%}
+  \item \textbf{{ '{' }}{{ award.name | texEscape }}{{ '}' }}, {{ award.issuer | texEscape }}, {{ award.date | dateFormat('YYYY') }}{% if award.description %}. {{ award.description | texEscape }}{% endif %}
+{% endfor -%}
+\end{itemize}
+{% endif %}
+
+{% if skills and skills.length > 0 -%}
+\section{Technical Skills}
+{% for skillGroup in skills -%}
+\textbf{{ '{' }}{{ skillGroup.category | texEscape }}:{{ '}' }} {{ skillGroup.items | join(', ') | texEscape }}
+
+{% endfor -%}
+{% endif %}
+
+{% if languages and languages.length > 0 -%}
+\section{Languages}
+{% for lang in languages -%}
+\textbf{{ '{' }}{{ lang.language | texEscape }}:{{ '}' }} {{ lang.proficiency | texEscape }}{% if not loop.last %}, {% endif %}
+{% endfor %}
+{% endif %}
+
+{% if service and service.length > 0 -%}
+\section{Professional Service}
+\begin{itemize}[leftmargin=*]
+{% for item in service -%}
+  \item \textbf{{ '{' }}{{ item.role | texEscape }}{{ '}' }}, {{ item.organization | texEscape }}, {{ item.date | dateFormat('YYYY') }}{% if item.description %}. {{ item.description | texEscape }}{% endif %}
+{% endfor -%}
+\end{itemize}
+{% endif %}
+
+{% if memberships and memberships.length > 0 -%}
+\section{Professional Memberships}
+\begin{itemize}[leftmargin=*]
+{% for membership in memberships -%}
+  \item {{ membership.organization | texEscape }}{% if membership.role %}, {{ membership.role | texEscape }}{% endif %} ({{ membership.startDate | dateFormat('YYYY') }}--{% if membership.endDate %}{{ membership.endDate | dateFormat('YYYY') }}{% else %}Present{% endif %})
+{% endfor -%}
+\end{itemize}
+{% endif %}
+
+{% if references -%}
+\section{References}
+{% if references == 'available' -%}
+Available upon request.
+{% else -%}
+\begin{itemize}[leftmargin=*]
+{% for ref in references -%}
+  \item \textbf{{ '{' }}{{ ref.name | texEscape }}{{ '}' }} \\
+    {{ ref.position | texEscape }} \\
+    {{ ref.institution | texEscape }} \\
+    {% if ref.email -%}
+    Email: \href{mailto:{{ ref.email }}}{{ '{' }}{{ ref.email | texEscape }}{{ '}' }} \quad
+    {% endif -%}
+    {% if ref.phone -%}
+    Phone: {{ ref.phone | texEscape }}
+    {% endif %}
+{% endfor -%}
+\end{itemize}
+{% endif -%}
+{% endif %}
+
+\end{document}

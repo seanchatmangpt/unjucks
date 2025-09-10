@@ -1,0 +1,221 @@
+---
+to: "{{ name | default('executive-resume') | kebabCase }}.tex"
+inject: false
+skip_if: false
+---
+\documentclass[11pt,letterpaper]{article}
+
+% Executive resume packages
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage[margin=0.75in]{geometry}
+\usepackage{hyperref}
+\usepackage{titlesec}
+\usepackage{enumitem}
+\usepackage{array}
+\usepackage{tabularx}
+\usepackage{xcolor}
+
+% Define colors
+\definecolor{headingcolor}{RGB}{0,51,102}
+\definecolor{rulecolor}{RGB}{128,128,128}
+
+% Custom formatting
+\titleformat{\section}
+  {\color{headingcolor}\Large\bfseries}
+  {\thesection}{0em}
+  {}
+  [\vspace{-10pt}{\color{rulecolor}\titlerule[1pt]}\vspace{5pt}]
+
+% Remove paragraph indentation
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{8pt}
+
+% Custom commands
+\newcommand{\executiveItem}[1]{\item\small{#1}}
+\newcommand{\executivePosition}[4]{
+  \vspace{5pt}
+  \begin{tabular*}{\textwidth}{l@{\extracolsep{\fill}}r}
+    \textbf{\large #1} & \textbf{#2} \\
+    \textit{#3} & \textit{#4} \\
+  \end{tabular*}
+  \vspace{3pt}
+}
+
+\begin{document}
+
+% Executive Header
+\begin{center}
+  {\Huge \textbf{{ '{' }}{{ person.firstName | upper | texEscape }} {{ person.lastName | upper | texEscape }}{{ '}' }}} \\
+  \vspace{8pt}
+  {% if person.title -%}
+  {\LARGE \color{headingcolor}{{ person.title | texEscape }}} \\
+  \vspace{5pt}
+  {% endif -%}
+  
+  % Contact Information
+  \begin{tabular}{c|c|c}
+    {% if person.phone -%}
+    {{ person.phone | texEscape }}
+    {% endif -%}
+    {% if person.email -%}
+    {% if person.phone %} & {% endif %}\href{mailto:{{ person.email }}}{{ '{' }}{{ person.email | texEscape }}{{ '}' }}
+    {% endif -%}
+    {% if person.linkedin -%}
+    {% if person.phone or person.email %} & {% endif %}\href{{ '{' }}{{ person.linkedin }}{{ '}' }}{{ '{' }}LinkedIn{{ '}' }}
+    {% endif -%}
+  \end{tabular}
+  
+  {% if person.address -%}
+  \\
+  \vspace{3pt}
+  {{ person.address.city | texEscape }}, {{ person.address.state | texEscape }} {{ person.address.zip | texEscape }}
+  {% endif -%}
+\end{center}
+
+\vspace{15pt}
+
+{% if summary -%}
+\section{Executive Summary}
+{{ summary | texEscape }}
+{% endif %}
+
+{% if coreCompetencies and coreCompetencies.length > 0 -%}
+\section{Core Competencies}
+\begin{center}
+\begin{tabular}{|c|c|c|}
+\hline
+{% for competency in coreCompetencies -%}
+{{ competency | texEscape }}{% if not loop.last and (loop.index % 3) == 0 %} \\ \hline
+{% elif not loop.last %} & {% endif -%}
+{% endfor -%}
+{% if (coreCompetencies.length % 3) != 0 %} \\ \hline{% endif %}
+\end{tabular}
+\end{center}
+{% endif %}
+
+{% if experience and experience.length > 0 -%}
+\section{Professional Experience}
+{% for job in experience -%}
+\executivePosition
+  {{ '{' }}{{ job.position | texEscape }}{{ '}' }}
+  {{ '{' }}{{ job.startDate | dateFormat('MM/YYYY') }}--{{ job.endDate | dateFormat('MM/YYYY') | default('Present') }}{{ '}' }}
+  {{ '{' }}{{ job.company | texEscape }}{{ '}' }}
+  {{ '{' }}{{ job.location | texEscape }}{{ '}' }}
+
+{% if job.description -%}
+{{ job.description | texEscape }}
+
+{% endif -%}
+{% if job.achievements and job.achievements.length > 0 -%}
+\textbf{Key Achievements:}
+\begin{itemize}[leftmargin=15pt]
+{% for achievement in job.achievements -%}
+  \executiveItem{{ '{' }}{{ achievement | texEscape }}{{ '}' }}
+{% endfor -%}
+\end{itemize}
+{% endif -%}
+
+{% if job.metrics and job.metrics.length > 0 -%}
+\textbf{Quantifiable Results:}
+\begin{itemize}[leftmargin=15pt]
+{% for metric in job.metrics -%}
+  \executiveItem{{ '{' }}{{ metric | texEscape }}{{ '}' }}
+{% endfor -%}
+\end{itemize}
+{% endif -%}
+
+\vspace{10pt}
+{% endfor -%}
+{% endif %}
+
+{% if education and education.length > 0 -%}
+\section{Education \& Professional Development}
+{% for edu in education -%}
+\begin{tabular*}{\textwidth}{l@{\extracolsep{\fill}}r}
+  \textbf{{ '{' }}{{ edu.degree | texEscape }}{{ '}' }} & {{ edu.endDate | dateFormat('YYYY') }} \\
+  {{ edu.institution | texEscape }}, {{ edu.location | texEscape }} & {% if edu.gpa %}GPA: {{ edu.gpa }}{% endif %} \\
+\end{tabular*}
+{% if edu.honors -%}
+\textit{Honors:} {{ edu.honors | join(', ') | texEscape }}
+{% endif -%}
+
+{% endfor -%}
+{% endif %}
+
+{% if certifications and certifications.length > 0 -%}
+\section{Professional Certifications}
+\begin{itemize}[leftmargin=*]
+{% for cert in certifications -%}
+  \item \textbf{{ '{' }}{{ cert.name | texEscape }}{{ '}' }} - {{ cert.issuer | texEscape }} ({{ cert.date | dateFormat('YYYY') }}){% if cert.status %} - {{ cert.status | texEscape }}{% endif %}
+{% endfor -%}
+\end{itemize}
+{% endif %}
+
+{% if boardPositions and boardPositions.length > 0 -%}
+\section{Board Positions \& Advisory Roles}
+{% for board in boardPositions -%}
+\begin{tabular*}{\textwidth}{l@{\extracolsep{\fill}}r}
+  \textbf{{ '{' }}{{ board.position | texEscape }}{{ '}' }} & {{ board.startDate | dateFormat('YYYY') }}--{{ board.endDate | dateFormat('YYYY') | default('Present') }} \\
+  {{ board.organization | texEscape }} & {{ board.type | default('') | texEscape }} \\
+\end{tabular*}
+{% if board.description -%}
+{{ board.description | texEscape }}
+
+{% endif -%}
+{% endfor -%}
+{% endif %}
+
+{% if awards and awards.length > 0 -%}
+\section{Awards \& Recognition}
+\begin{itemize}[leftmargin=*]
+{% for award in awards -%}
+  \item \textbf{{ '{' }}{{ award.name | texEscape }}{{ '}' }} - {{ award.issuer | texEscape }} ({{ award.date | dateFormat('YYYY') }}){% if award.description %}. {{ award.description | texEscape }}{% endif %}
+{% endfor -%}
+\end{itemize}
+{% endif %}
+
+{% if speaking and speaking.length > 0 -%}
+\section{Speaking Engagements}
+\begin{itemize}[leftmargin=*]
+{% for event in speaking -%}
+  \item "{{ event.title | texEscape }}" - {{ event.event | texEscape }}, {{ event.location | texEscape }} ({{ event.date | dateFormat('MMMM YYYY') }})
+{% endfor -%}
+\end{itemize}
+{% endif %}
+
+{% if publications and publications.length > 0 -%}
+\section{Publications \& Media}
+\begin{itemize}[leftmargin=*]
+{% for pub in publications -%}
+  \item "{{ pub.title | texEscape }}" - {{ pub.publication | texEscape }} ({{ pub.date | dateFormat('MMMM YYYY') }}){% if pub.url %}. Available at: \href{{ '{' }}{{ pub.url }}{{ '}' }}{{ '{' }}{{ pub.url | texEscape }}{{ '}' }}{% endif %}
+{% endfor -%}
+\end{itemize}
+{% endif %}
+
+{% if philanthropy and philanthropy.length > 0 -%}
+\section{Philanthropic Activities}
+\begin{itemize}[leftmargin=*]
+{% for activity in philanthropy -%}
+  \item \textbf{{ '{' }}{{ activity.role | texEscape }}{{ '}' }} - {{ activity.organization | texEscape }} ({{ activity.startDate | dateFormat('YYYY') }}--{{ activity.endDate | dateFormat('YYYY') | default('Present') }}){% if activity.description %}. {{ activity.description | texEscape }}{% endif %}
+{% endfor -%}
+\end{itemize}
+{% endif %}
+
+{% if skills and skills.length > 0 -%}
+\section{Technical \& Strategic Competencies}
+{% for skillGroup in skills -%}
+\textbf{{ '{' }}{{ skillGroup.category | texEscape }}:{{ '}' }} {{ skillGroup.items | join(', ') | texEscape }}
+
+{% endfor -%}
+{% endif %}
+
+{% if languages and languages.length > 0 -%}
+\section{Languages}
+{% for lang in languages -%}
+\textbf{{ '{' }}{{ lang.language | texEscape }}:{{ '}' }} {{ lang.proficiency | texEscape }}{% if not loop.last %} \quad {% endif %}
+{% endfor %}
+{% endif %}
+
+\end{document}

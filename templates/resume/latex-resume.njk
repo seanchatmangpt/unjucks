@@ -1,0 +1,156 @@
+---
+to: "{{ name | default('resume') | kebabCase }}.tex"
+inject: false
+skip_if: false
+---
+\documentclass[11pt,a4paper,sans]{moderncv}
+
+% Modern CV style and color scheme
+\moderncvstyle{{{ style | default('classic') }}}
+\moderncvcolor{{{ color | default('blue') }}}
+
+% Character encoding and language
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}
+
+% Page margins
+\usepackage[scale=0.75]{geometry}
+
+% Personal data
+\name{{ '{' }}{{ person.firstName | texEscape }}{{ '}' }}{{ '{' }}{{ person.lastName | texEscape }}{{ '}' }}
+{% if person.title -%}
+\title{{ '{' }}{{ person.title | texEscape }}{{ '}' }}
+{% endif -%}
+{% if person.address -%}
+\address{{ '{' }}{{ person.address.street | texEscape }}{{ '}' }}{{ '{' }}{{ person.address.city | texEscape }}, {{ person.address.state | texEscape }} {{ person.address.zip | texEscape }}{{ '}' }}{{ '{' }}{{ person.address.country | texEscape }}{{ '}' }}
+{% endif -%}
+{% if person.phone -%}
+\phone[mobile]{{ '{' }}{{ person.phone | texEscape }}{{ '}' }}
+{% endif -%}
+{% if person.email -%}
+\email{{ '{' }}{{ person.email | texEscape }}{{ '}' }}
+{% endif -%}
+{% if person.website -%}
+\homepage{{ '{' }}{{ person.website | texEscape }}{{ '}' }}
+{% endif -%}
+{% if person.linkedin -%}
+\social[linkedin]{{ '{' }}{{ person.linkedin | texEscape }}{{ '}' }}
+{% endif -%}
+{% if person.github -%}
+\social[github]{{ '{' }}{{ person.github | texEscape }}{{ '}' }}
+{% endif -%}
+{% if person.photo -%}
+\photo[64pt][0.4pt]{{ '{' }}{{ person.photo | texEscape }}{{ '}' }}
+{% endif -%}
+{% if person.quote -%}
+\quote{{ '{' }}{{ person.quote | texEscape }}{{ '}' }}
+{% endif %}
+
+\begin{document}
+\makecvtitle
+
+{% if summary -%}
+\section{Professional Summary}
+\cvitem{}{{ '{' }}{{ summary | texEscape }}{{ '}' }}
+{% endif %}
+
+{% if experience and experience.length > 0 -%}
+\section{Professional Experience}
+{% for job in experience -%}
+\cventry{{ '{' }}{{ job.startDate | dateFormat('YYYY') }}--{{ job.endDate | dateFormat('YYYY') | default('Present') }}{{ '}' }}{{ '{' }}{{ job.position | texEscape }}{{ '}' }}{{ '{' }}{{ job.company | texEscape }}{{ '}' }}{{ '{' }}{{ job.location | texEscape }}{{ '}' }}{{ '{' }}{{ job.type | default('') | texEscape }}{{ '}' }}{{ '{' }}%
+{% if job.description -%}
+{{ job.description | texEscape }}%
+{% endif -%}
+{% if job.achievements and job.achievements.length > 0 -%}
+\begin{itemize}%
+{% for achievement in job.achievements -%}
+\item {{ achievement | texEscape }}
+{% endfor -%}
+\end{itemize}%
+{% endif -%}
+{{ '}' }}
+{% endfor -%}
+{% endif %}
+
+{% if education and education.length > 0 -%}
+\section{Education}
+{% for edu in education -%}
+\cventry{{ '{' }}{{ edu.startDate | dateFormat('YYYY') }}--{{ edu.endDate | dateFormat('YYYY') }}{{ '}' }}{{ '{' }}{{ edu.degree | texEscape }}{{ '}' }}{{ '{' }}{{ edu.institution | texEscape }}{{ '}' }}{{ '{' }}{{ edu.location | texEscape }}{{ '}' }}{{ '{' }}{{ edu.gpa | default('') }}{{ '}' }}{{ '{' }}%
+{% if edu.description -%}
+{{ edu.description | texEscape }}%
+{% endif -%}
+{% if edu.coursework and edu.coursework.length > 0 -%}
+\textit{Relevant Coursework:} {{ edu.coursework | join(', ') | texEscape }}%
+{% endif -%}
+{{ '}' }}
+{% endfor -%}
+{% endif %}
+
+{% if skills and skills.length > 0 -%}
+\section{Technical Skills}
+{% for skillGroup in skills -%}
+\cvitem{{ '{' }}{{ skillGroup.category | texEscape }}{{ '}' }}{{ '{' }}{{ skillGroup.items | join(', ') | texEscape }}{{ '}' }}
+{% endfor -%}
+{% endif %}
+
+{% if projects and projects.length > 0 -%}
+\section{Key Projects}
+{% for project in projects -%}
+\cventry{{ '{' }}{{ project.date | dateFormat('YYYY') | default('') }}{{ '}' }}{{ '{' }}{{ project.name | texEscape }}{{ '}' }}{{ '{' }}{{ project.technologies | join(', ') | texEscape }}{{ '}' }}{{ '{' }}{{ project.url | default('') | texEscape }}{{ '}' }}{{ '{' }}{{ project.role | default('') | texEscape }}{{ '}' }}{{ '{' }}%
+{{ project.description | texEscape }}%
+{% if project.achievements and project.achievements.length > 0 -%}
+\begin{itemize}%
+{% for achievement in project.achievements -%}
+\item {{ achievement | texEscape }}
+{% endfor -%}
+\end{itemize}%
+{% endif -%}
+{{ '}' }}
+{% endfor -%}
+{% endif %}
+
+{% if certifications and certifications.length > 0 -%}
+\section{Certifications}
+{% for cert in certifications -%}
+\cventry{{ '{' }}{{ cert.date | dateFormat('YYYY') }}{{ '}' }}{{ '{' }}{{ cert.name | texEscape }}{{ '}' }}{{ '{' }}{{ cert.issuer | texEscape }}{{ '}' }}{{ '{' }}{{ cert.id | default('') | texEscape }}{{ '}' }}{{ '{' }}{{ cert.url | default('') | texEscape }}{{ '}' }}{{ '{' }}{{ cert.description | default('') | texEscape }}{{ '}' }}
+{% endfor -%}
+{% endif %}
+
+{% if awards and awards.length > 0 -%}
+\section{Awards \& Recognition}
+{% for award in awards -%}
+\cventry{{ '{' }}{{ award.date | dateFormat('YYYY') }}{{ '}' }}{{ '{' }}{{ award.name | texEscape }}{{ '}' }}{{ '{' }}{{ award.issuer | texEscape }}{{ '}' }}{{ '{' }}{{ award.location | default('') | texEscape }}{{ '}' }}{{ '{' }}{{ '}' }}{{ '{' }}{{ award.description | default('') | texEscape }}{{ '}' }}
+{% endfor -%}
+{% endif %}
+
+{% if publications and publications.length > 0 -%}
+\section{Publications}
+{% for pub in publications -%}
+\cventry{{ '{' }}{{ pub.date | dateFormat('YYYY') }}{{ '}' }}{{ '{' }}{{ pub.title | texEscape }}{{ '}' }}{{ '{' }}{{ pub.journal | texEscape }}{{ '}' }}{{ '{' }}{{ pub.doi | default('') | texEscape }}{{ '}' }}{{ '{' }}{{ '}' }}{{ '{' }}{{ pub.abstract | default('') | texEscape }}{{ '}' }}
+{% endfor -%}
+{% endif %}
+
+{% if languages and languages.length > 0 -%}
+\section{Languages}
+{% for lang in languages -%}
+\cvitem{{ '{' }}{{ lang.language | texEscape }}{{ '}' }}{{ '{' }}{{ lang.proficiency | texEscape }}{{ '}' }}
+{% endfor -%}
+{% endif %}
+
+{% if interests -%}
+\section{Interests}
+\cvitem{}{{ '{' }}{{ interests | texEscape }}{{ '}' }}
+{% endif %}
+
+{% if references -%}
+\section{References}
+{% if references == 'available' -%}
+\cvitem{}{{ '{' }}Available upon request{{ '}' }}
+{% else -%}
+{% for ref in references -%}
+\cventry{{ '{' }}{{ '}' }}{{ '{' }}{{ ref.name | texEscape }}{{ '}' }}{{ '{' }}{{ ref.position | texEscape }}{{ '}' }}{{ '{' }}{{ ref.company | texEscape }}{{ '}' }}{{ '{' }}{{ ref.phone | default('') | texEscape }}{{ '}' }}{{ '{' }}{{ ref.email | default('') | texEscape }}{{ '}' }}
+{% endfor -%}
+{% endif -%}
+{% endif %}
+
+\end{document}

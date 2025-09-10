@@ -1,0 +1,168 @@
+---
+to: generated/resumes/<%= person.name | kebabCase %>-<%= job.title | kebabCase %>.json
+inject: false
+---
+{
+  "@context": {
+    "@version": 1.1,
+    "@base": "{{ person.website || 'https://example.com' }}/",
+    "schema": "https://schema.org/",
+    "foaf": "http://xmlns.com/foaf/0.1/",
+    "cv": "https://cv.schema.org/"
+  },
+  "@type": "schema:Person",
+  "@id": "{{ person.website || 'https://example.com' }}/#person",
+  "schema:name": "{{ person.firstName }} {{ person.lastName }}",
+  "schema:givenName": "{{ person.firstName }}",
+  "schema:familyName": "{{ person.lastName }}",
+  {% if person.email %}
+  "schema:email": "{{ person.email }}",
+  {% endif %}
+  {% if person.phone %}
+  "schema:telephone": "{{ person.phone }}",
+  {% endif %}
+  {% if person.website %}
+  "schema:url": "{{ person.website }}",
+  {% endif %}
+  {% if person.address %}
+  "schema:address": {
+    "@type": "schema:PostalAddress",
+    "schema:streetAddress": "{{ person.address.street }}",
+    "schema:addressLocality": "{{ person.address.city }}",
+    "schema:addressRegion": "{{ person.address.state }}",
+    "schema:postalCode": "{{ person.address.zipCode }}",
+    "schema:addressCountry": "{{ person.address.country || 'US' }}"
+  },
+  {% endif %}
+  {% if person.summary %}
+  "schema:description": "{{ person.summary }}",
+  {% endif %}
+  "schema:jobTitle": "{{ job.title }}",
+  {% if person.linkedin %}
+  "schema:sameAs": [
+    "https://linkedin.com/in/{{ person.linkedin }}"{% if person.github %},
+    "https://github.com/{{ person.github }}"{% endif %}
+  ],
+  {% endif %}
+  {% if person.experience and person.experience.length > 0 %}
+  "schema:worksFor": [
+    {% for exp in person.experience %}
+    {
+      "@type": "schema:Organization",
+      "schema:name": "{{ exp.company }}",
+      {% if exp.location %}
+      "schema:address": "{{ exp.location }}",
+      {% endif %}
+      "cv:role": {
+        "@type": "cv:Role",
+        "schema:name": "{{ exp.title }}",
+        "schema:description": "{{ exp.description || '' }}",
+        "schema:startDate": "{{ exp.startDate }}",
+        {% if exp.endDate %}
+        "schema:endDate": "{{ exp.endDate }}",
+        {% endif %}
+        {% if exp.achievements and exp.achievements.length > 0 %}
+        "cv:achievements": [
+          {% for achievement in exp.achievements %}
+          "{{ achievement }}"{% if not loop.last %},{% endif %}
+          {% endfor %}
+        ]
+        {% endif %}
+      }
+    }{% if not loop.last %},{% endif %}
+    {% endfor %}
+  ],
+  {% endif %}
+  {% if person.education and person.education.length > 0 %}
+  "schema:alumniOf": [
+    {% for edu in person.education %}
+    {
+      "@type": "schema:EducationalOrganization",
+      "schema:name": "{{ edu.institution }}",
+      {% if edu.location %}
+      "schema:address": "{{ edu.location }}",
+      {% endif %}
+      "cv:degree": {
+        "@type": "cv:Degree",
+        "schema:name": "{{ edu.degree }}",
+        "schema:description": "{{ edu.description || '' }}",
+        "schema:startDate": "{{ edu.startDate }}",
+        "schema:endDate": "{{ edu.endDate }}",
+        {% if edu.gpa %}
+        "cv:gpa": "{{ edu.gpa }}"
+        {% endif %}
+      }
+    }{% if not loop.last %},{% endif %}
+    {% endfor %}
+  ],
+  {% endif %}
+  {% if person.skills and person.skills.length > 0 %}
+  "schema:knowsAbout": [
+    {% for skill in person.skills %}
+    {
+      "@type": "schema:Thing",
+      "schema:name": "{{ skill.name }}",
+      "cv:skillCategory": "{{ skill.category }}",
+      {% if skill.level %}
+      "cv:proficiencyLevel": "{{ skill.level }}",
+      {% endif %}
+      {% if skill.yearsOfExperience %}
+      "cv:yearsOfExperience": {{ skill.yearsOfExperience }}
+      {% endif %}
+    }{% if not loop.last %},{% endif %}
+    {% endfor %}
+  ],
+  {% endif %}
+  {% if person.projects and person.projects.length > 0 %}
+  "cv:projects": [
+    {% for project in person.projects %}
+    {
+      "@type": "schema:CreativeWork",
+      "schema:name": "{{ project.name }}",
+      "schema:description": "{{ project.description }}",
+      {% if project.url %}
+      "schema:url": "{{ project.url }}",
+      {% endif %}
+      {% if project.technologies %}
+      "cv:technologies": [
+        {% for tech in project.technologies %}
+        "{{ tech }}"{% if not loop.last %},{% endif %}
+        {% endfor %}
+      ],
+      {% endif %}
+      {% if project.startDate %}
+      "schema:dateCreated": "{{ project.startDate }}"
+      {% endif %}
+    }{% if not loop.last %},{% endif %}
+    {% endfor %}
+  ],
+  {% endif %}
+  "cv:targetJob": {
+    "@type": "schema:JobPosting",
+    "schema:title": "{{ job.title }}",
+    "schema:description": "{{ job.description || '' }}",
+    {% if job.skills %}
+    "schema:skills": [
+      {% for skill in job.skills %}
+      "{{ skill }}"{% if not loop.last %},{% endif %}
+      {% endfor %}
+    ],
+    {% endif %}
+    {% if job.company %}
+    "schema:hiringOrganization": {
+      "@type": "schema:Organization",
+      "schema:name": "{{ job.company }}"
+    },
+    {% endif %}
+    {% if job.location %}
+    "schema:jobLocation": "{{ job.location }}"
+    {% endif %}
+  },
+  "schema:dateModified": "{{ 'now' | date('iso') }}",
+  "cv:generatedBy": {
+    "@type": "schema:SoftwareApplication",
+    "schema:name": "Unjucks Resume Generator",
+    "schema:version": "1.0.0",
+    "schema:url": "https://github.com/seanchatmangpt/unjucks"
+  }
+}

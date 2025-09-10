@@ -1,0 +1,151 @@
+name: Job Resume Standards Templates
+description: Templates demonstrating Schema.org, FOAF, Dublin Core, and HR-XML mappings for job and resume data
+version: 1.0.0
+category: standards-compliance
+
+templates:
+  - name: schema-org-person
+    description: Person profile using Schema.org vocabulary
+    file: person-schema-org.ttl.njk
+    
+  - name: foaf-person
+    description: Person profile using FOAF vocabulary
+    file: person-foaf.ttl.njk
+    
+  - name: hr-xml-person
+    description: Person profile using HR-XML vocabulary
+    file: person-hr-xml.ttl.njk
+    
+  - name: job-posting-schema
+    description: Job posting using Schema.org vocabulary
+    file: job-posting-schema-org.ttl.njk
+    
+  - name: resume-multi-vocab
+    description: Resume using multiple vocabulary mappings
+    file: resume-multi-vocabulary.ttl.njk
+    
+  - name: skills-ontology
+    description: Skills and competencies using SARO ontology
+    file: skills-saro.ttl.njk
+
+variables:
+  - name: personName
+    description: Full name of the person
+    type: string
+    required: true
+    
+  - name: givenName
+    description: First/given name
+    type: string
+    
+  - name: familyName
+    description: Last/family name
+    type: string
+    
+  - name: email
+    description: Email address
+    type: string
+    pattern: "^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$"
+    
+  - name: phoneNumber
+    description: Phone number
+    type: string
+    
+  - name: jobTitle
+    description: Current job title
+    type: string
+    
+  - name: company
+    description: Current company/organization
+    type: string
+    
+  - name: skills
+    description: List of skills/competencies
+    type: array
+    items:
+      type: string
+      
+  - name: experience
+    description: Work experience entries
+    type: array
+    items:
+      type: object
+      properties:
+        position:
+          type: string
+        company:
+          type: string
+        startDate:
+          type: string
+        endDate:
+          type: string
+        description:
+          type: string
+          
+  - name: education
+    description: Educational background
+    type: array
+    items:
+      type: object
+      properties:
+        degree:
+          type: string
+        institution:
+          type: string
+        graduationYear:
+          type: string
+        field:
+          type: string
+
+rdf:
+  type: inline
+  content: |
+    @prefix schema: <https://schema.org/> .
+    @prefix foaf: <http://xmlns.com/foaf/0.1/> .
+    @prefix dcterms: <http://purl.org/dc/terms/> .
+    @prefix hr: <http://ns.hr-xml.org/2007-04-15/> .
+    @prefix saro: <https://elisasibarani.github.io/SARO/> .
+    @prefix cv: <http://rdfs.org/resume-rdf/> .
+
+semantic:
+  vocabularies:
+    - schema.org
+    - foaf
+    - dcterms
+    - hr-xml
+    - saro
+  compliance:
+    validateRequired: true
+    validateRecommended: true
+    checkInteroperability: true
+
+examples:
+  basic_person:
+    personName: "Jane Smith"
+    givenName: "Jane"
+    familyName: "Smith"
+    email: "jane.smith@example.com"
+    phoneNumber: "+1-555-0123"
+    jobTitle: "Software Engineer"
+    company: "Tech Corp"
+    skills:
+      - "JavaScript"
+      - "Python"
+      - "React"
+      - "Machine Learning"
+    experience:
+      - position: "Senior Software Engineer"
+        company: "Tech Corp"
+        startDate: "2022-01"
+        endDate: "present"
+        description: "Lead development of web applications"
+      - position: "Software Developer"
+        company: "StartupXYZ"
+        startDate: "2020-06"
+        endDate: "2021-12"
+        description: "Full-stack development using modern frameworks"
+    education:
+      - degree: "Bachelor of Science"
+        institution: "University of Technology"
+        graduationYear: "2020"
+        field: "Computer Science"

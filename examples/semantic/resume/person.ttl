@@ -1,0 +1,63 @@
+@prefix foaf: <http://xmlns.com/foaf/0.1/> .
+@prefix schema: <https://schema.org/> .
+@prefix ex: <http://example.org/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+
+ex:john_doe a foaf:Person ;
+    foaf:name "Dr. John Doe" ;
+    foaf:email "john.doe@university.edu" ;
+    foaf:phone "+1-555-123-4567" ;
+    schema:address "123 Academic Ave, University City, State 12345" ;
+    ex:hasSkill ex:machine_learning,
+                ex:data_science,
+                ex:python,
+                ex:research_methodology,
+                ex:statistical_analysis,
+                ex:deep_learning,
+                ex:natural_language_processing .
+
+ex:machine_learning a ex:Skill ;
+    rdfs:label "Machine Learning" ;
+    ex:proficiencyLevel "Expert" .
+
+ex:data_science a ex:Skill ;
+    rdfs:label "Data Science" ;
+    ex:proficiencyLevel "Expert" .
+
+ex:python a ex:Skill ;
+    rdfs:label "Python Programming" ;
+    ex:proficiencyLevel "Advanced" .
+
+ex:research_methodology a ex:Skill ;
+    rdfs:label "Research Methodology" ;
+    ex:proficiencyLevel "Expert" .
+
+ex:statistical_analysis a ex:Skill ;
+    rdfs:label "Statistical Analysis" ;
+    ex:proficiencyLevel "Advanced" .
+
+ex:deep_learning a ex:Skill ;
+    rdfs:label "Deep Learning" ;
+    ex:proficiencyLevel "Advanced" .
+
+ex:natural_language_processing a ex:Skill ;
+    rdfs:label "Natural Language Processing" ;
+    ex:proficiencyLevel "Intermediate" .
+
+ex:john_doe ex:hasEducation ex:phd_computer_science .
+
+ex:phd_computer_science a schema:EducationalOccupationalCredential ;
+    schema:name "Ph.D. in Computer Science" ;
+    schema:provider "State University" ;
+    schema:dateCompleted "2020" ;
+    schema:description "Dissertation: Advanced Machine Learning Techniques for Natural Language Processing" .
+
+ex:john_doe ex:hasWorkExperience ex:postdoc_researcher .
+
+ex:postdoc_researcher a schema:WorkExperience ;
+    schema:name "Postdoctoral Researcher" ;
+    schema:provider "Tech Research Institute" ;
+    schema:startDate "2021" ;
+    schema:endDate "Present" ;
+    schema:description "Leading research projects in AI and machine learning applications for healthcare data analysis" .

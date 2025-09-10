@@ -1,0 +1,63 @@
+@prefix schema: <https://schema.org/> .
+@prefix ex: <http://example.org/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+
+ex:senior_ml_researcher a ex:JobPosting ;
+    ex:title "Senior Machine Learning Researcher" ;
+    ex:company "AI Innovation Labs" ;
+    rdfs:comment "Leading machine learning research position developing next-generation AI systems for real-world applications. Focus on deep learning, NLP, and scalable ML infrastructure." ;
+    ex:location "San Francisco, CA" ;
+    ex:salary "$120,000 - $180,000" ;
+    ex:requiresSkill ex:machine_learning_req,
+                     ex:deep_learning_req,
+                     ex:python_req,
+                     ex:research_req,
+                     ex:statistics_req ;
+    ex:preferredSkill ex:nlp_req,
+                      ex:tensorflow_req,
+                      ex:cloud_platforms_req .
+
+ex:machine_learning_req a ex:RequiredSkill ;
+    rdfs:label "Machine Learning" ;
+    ex:importance "Critical" ;
+    ex:yearsRequired "5+" .
+
+ex:deep_learning_req a ex:RequiredSkill ;
+    rdfs:label "Deep Learning" ;
+    ex:importance "Critical" ;
+    ex:yearsRequired "3+" .
+
+ex:python_req a ex:RequiredSkill ;
+    rdfs:label "Python Programming" ;
+    ex:importance "High" ;
+    ex:yearsRequired "5+" .
+
+ex:research_req a ex:RequiredSkill ;
+    rdfs:label "Research Methodology" ;
+    ex:importance "High" ;
+    ex:yearsRequired "3+" .
+
+ex:statistics_req a ex:RequiredSkill ;
+    rdfs:label "Statistical Analysis" ;
+    ex:importance "High" ;
+    ex:yearsRequired "3+" .
+
+ex:nlp_req a ex:PreferredSkill ;
+    rdfs:label "Natural Language Processing" ;
+    ex:importance "Medium" .
+
+ex:tensorflow_req a ex:PreferredSkill ;
+    rdfs:label "TensorFlow" ;
+    ex:importance "Medium" .
+
+ex:cloud_platforms_req a ex:PreferredSkill ;
+    rdfs:label "Cloud Platforms" ;
+    ex:importance "Low" .
+
+ex:senior_ml_researcher ex:requires ex:education_requirement .
+
+ex:education_requirement a ex:EducationRequirement ;
+    rdfs:label "Ph.D. in Computer Science, Machine Learning, or related field" ;
+    ex:minimumDegree "Doctorate" ;
+    ex:preferredFields "Computer Science", "Machine Learning", "Artificial Intelligence", "Statistics" .

@@ -1,0 +1,235 @@
+---
+to: resume-corporate.html
+inject: false
+---
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ person.name or 'Professional Resume' }}</title>
+    <style>
+        body {
+            font-family: 'Arial', 'Helvetica', sans-serif;
+            line-height: 1.5;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #fff;
+            color: #333;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            margin: -20px -20px 30px -20px;
+            border-radius: 0 0 10px 10px;
+        }
+        .name {
+            font-size: 28px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .contact {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        .section {
+            margin-bottom: 25px;
+        }
+        .section-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #667eea;
+            border-left: 4px solid #667eea;
+            padding-left: 15px;
+            margin-bottom: 15px;
+        }
+        .experience-item, .education-item {
+            margin-bottom: 20px;
+            padding-left: 15px;
+            border-left: 2px solid #f0f0f0;
+        }
+        .title {
+            font-weight: bold;
+            font-size: 16px;
+            color: #333;
+        }
+        .organization {
+            color: #667eea;
+            font-weight: 500;
+            margin-bottom: 5px;
+        }
+        .date {
+            float: right;
+            background: #f8f9fa;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            color: #666;
+        }
+        .skills {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .skill {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 500;
+        }
+        .skill-match {
+            background: linear-gradient(135deg, #4caf50 0%, #45a049 100%);
+            box-shadow: 0 2px 4px rgba(76, 175, 80, 0.3);
+        }
+        .summary {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+            font-style: italic;
+            margin-bottom: 25px;
+        }
+        .ontology-info {
+            background: #e3f2fd;
+            border: 1px solid #2196f3;
+            padding: 15px;
+            border-radius: 8px;
+            font-size: 12px;
+            color: #1976d2;
+            margin-top: 30px;
+        }
+        .achievement {
+            background: #fff3e0;
+            border-left: 4px solid #ff9800;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 0 4px 4px 0;
+        }
+        @media print {
+            body { margin: 0; padding: 15px; }
+            .header { background: #667eea !important; }
+            .ontology-info { display: none; }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="name">{{ person.name or 'Professional' }}</div>
+        <div class="contact">
+            {% if person.email %}{{ person.email }}{% endif %}
+            {% if person.phone and person.email %} • {% endif %}
+            {% if person.phone %}{{ person.phone }}{% endif %}
+            {% if person.address and (person.email or person.phone) %} • {% endif %}
+            {% if person.address %}{{ person.address }}{% endif %}
+        </div>
+    </div>
+
+    {% if job.title and tailorToJob %}
+    <div class="summary">
+        <strong>Position Applied For:</strong> {{ job.title }}
+        {% if job.company %} at {{ job.company }}{% endif %}
+        {% if job.description %}
+        <br><br>{{ job.description }}
+        {% endif %}
+    </div>
+    {% endif %}
+
+    {% if person.experience and person.experience.length > 0 %}
+    <div class="section">
+        <div class="section-title">Professional Experience</div>
+        {% for exp in person.experience %}
+        <div class="experience-item">
+            <div class="title">{{ exp.title or 'Position' }}</div>
+            <div class="organization">{{ exp.organization or 'Company' }}</div>
+            {% if exp.date %}<div class="date">{{ exp.date }}</div>{% endif %}
+            <div style="clear: both;"></div>
+            {% if exp.description %}<p>{{ exp.description }}</p>{% endif %}
+            {% if exp.achievements %}
+            <div class="achievement">
+                <strong>Key Achievements:</strong> {{ exp.achievements }}
+            </div>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    {% if person.skills and person.skills.length > 0 %}
+    <div class="section">
+        <div class="section-title">Core Competencies</div>
+        <div class="skills">
+            {% for skill in person.skills %}
+            <span class="skill {% if skillMatching and job.requiredSkills and skill.toLowerCase() in job.requiredSkills.map(s => s.toLowerCase()) %}skill-match{% endif %}">
+                {{ skill }}
+            </span>
+            {% endfor %}
+        </div>
+        {% if skillMatching and job.requiredSkills %}
+        <p style="margin-top: 15px; font-style: italic; color: #667eea;">
+            ✓ Green highlights indicate skills matching job requirements
+        </p>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    {% if person.education and person.education.length > 0 %}
+    <div class="section">
+        <div class="section-title">Education</div>
+        {% for edu in person.education %}
+        <div class="education-item">
+            <div class="title">{{ edu.degree or 'Degree' }}</div>
+            <div class="organization">{{ edu.institution or 'Institution' }}</div>
+            {% if edu.date %}<div class="date">{{ edu.date }}</div>{% endif %}
+            <div style="clear: both;"></div>
+            {% if edu.description %}<p>{{ edu.description }}</p>{% endif %}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    {% if person.projects and person.projects.length > 0 %}
+    <div class="section">
+        <div class="section-title">Key Projects</div>
+        {% for project in person.projects %}
+        <div class="experience-item">
+            <div class="title">{{ project.title or 'Project' }}</div>
+            {% if project.date %}<div class="date">{{ project.date }}</div>{% endif %}
+            <div style="clear: both;"></div>
+            {% if project.description %}<p>{{ project.description }}</p>{% endif %}
+            {% if project.technologies %}
+            <p><strong>Technologies:</strong> {{ project.technologies }}</p>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    {% if person.certifications and person.certifications.length > 0 %}
+    <div class="section">
+        <div class="section-title">Certifications</div>
+        {% for cert in person.certifications %}
+        <div class="experience-item">
+            <div class="title">{{ cert.title or 'Certification' }}</div>
+            {% if cert.issuer %}<div class="organization">{{ cert.issuer }}</div>{% endif %}
+            {% if cert.date %}<div class="date">{{ cert.date }}</div>{% endif %}
+            <div style="clear: both;"></div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    {% if includeOntology %}
+    <div class="ontology-info">
+        <strong>🤖 Smart Resume Generated:</strong> {{ generatedDate }}<br>
+        <strong>Style:</strong> {{ style | title }} Professional<br>
+        {% if tailorToJob %}<strong>Customized for:</strong> {{ job.title or 'Target Position' }}<br>{% endif %}
+        {% if skillMatching %}<strong>AI Skill Matching:</strong> Enabled<br>{% endif %}
+        <em>This resume was intelligently generated using semantic web technologies and AI-powered job matching.</em>
+    </div>
+    {% endif %}
+</body>
+</html>

@@ -1,0 +1,511 @@
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix foaf: <http://xmlns.com/foaf/0.1/> .
+@prefix job: <http://ontology.resume/job#> .
+@prefix skill: <http://ontology.resume/skill#> .
+@prefix company: <http://ontology.resume/company#> .
+
+# Job and Company Ontology for Resume Matching
+# Production-ready schema for job postings and company information
+
+# ===========================
+# ONTOLOGY METADATA
+# ===========================
+
+<http://ontology.resume/job> a owl:Ontology ;
+    dcterms:title "Job and Company Ontology" ;
+    dcterms:description "Comprehensive ontology for job postings, company information, and employment relationships" ;
+    dcterms:creator "Resume Matching System" ;
+    dcterms:created "2025-09-10"^^xsd:date ;
+    dcterms:version "1.0" ;
+    owl:versionInfo "Production release for resume matching" .
+
+# ===========================
+# CORE JOB CLASSES
+# ===========================
+
+job:Job a owl:Class ;
+    rdfs:label "Job Position" ;
+    rdfs:comment "A job posting or employment opportunity" ;
+    rdfs:subClassOf owl:Thing .
+
+job:JobPosting a owl:Class ;
+    rdfs:label "Job Posting" ;
+    rdfs:comment "A published job advertisement" ;
+    rdfs:subClassOf job:Job .
+
+job:Employment a owl:Class ;
+    rdfs:label "Employment" ;
+    rdfs:comment "An active or past employment relationship" ;
+    rdfs:subClassOf job:Job .
+
+# ===========================
+# COMPANY CLASSES
+# ===========================
+
+company:Company a owl:Class ;
+    rdfs:label "Company" ;
+    rdfs:comment "An organization that employs people" ;
+    rdfs:subClassOf foaf:Organization .
+
+company:Startup a owl:Class ;
+    rdfs:label "Startup Company" ;
+    rdfs:comment "A newly established business" ;
+    rdfs:subClassOf company:Company .
+
+company:Enterprise a owl:Class ;
+    rdfs:label "Enterprise Company" ;
+    rdfs:comment "A large-scale business organization" ;
+    rdfs:subClassOf company:Company .
+
+company:NonProfit a owl:Class ;
+    rdfs:label "Non-Profit Organization" ;
+    rdfs:comment "A non-profit organization" ;
+    rdfs:subClassOf company:Company .
+
+# ===========================
+# SKILL AND REQUIREMENT CLASSES
+# ===========================
+
+skill:Skill a owl:Class ;
+    rdfs:label "Skill" ;
+    rdfs:comment "A capability or competency" ;
+    rdfs:subClassOf owl:Thing .
+
+skill:TechnicalSkill a owl:Class ;
+    rdfs:label "Technical Skill" ;
+    rdfs:comment "A technical capability or technology proficiency" ;
+    rdfs:subClassOf skill:Skill .
+
+skill:SoftSkill a owl:Class ;
+    rdfs:label "Soft Skill" ;
+    rdfs:comment "An interpersonal or behavioral skill" ;
+    rdfs:subClassOf skill:Skill .
+
+skill:ToolSkill a owl:Class ;
+    rdfs:label "Tool Skill" ;
+    rdfs:comment "Proficiency with specific tools or software" ;
+    rdfs:subClassOf skill:TechnicalSkill .
+
+skill:LanguageSkill a owl:Class ;
+    rdfs:label "Language Skill" ;
+    rdfs:comment "Proficiency in a programming or spoken language" ;
+    rdfs:subClassOf skill:Skill .
+
+job:Requirement a owl:Class ;
+    rdfs:label "Job Requirement" ;
+    rdfs:comment "A requirement for a job position" ;
+    rdfs:subClassOf owl:Thing .
+
+job:RequiredSkill a owl:Class ;
+    rdfs:label "Required Skill" ;
+    rdfs:comment "A skill required for a job" ;
+    rdfs:subClassOf job:Requirement .
+
+job:PreferredSkill a owl:Class ;
+    rdfs:label "Preferred Skill" ;
+    rdfs:comment "A skill preferred but not required for a job" ;
+    rdfs:subClassOf job:Requirement .
+
+# ===========================
+# JOB LEVEL AND TYPE CLASSES
+# ===========================
+
+job:JobLevel a owl:Class ;
+    rdfs:label "Job Level" ;
+    rdfs:comment "The seniority level of a job position" ;
+    rdfs:subClassOf owl:Thing .
+
+job:EntryLevel a owl:Class ;
+    rdfs:label "Entry Level" ;
+    rdfs:comment "Entry-level position" ;
+    rdfs:subClassOf job:JobLevel .
+
+job:MidLevel a owl:Class ;
+    rdfs:label "Mid Level" ;
+    rdfs:comment "Mid-level position" ;
+    rdfs:subClassOf job:JobLevel .
+
+job:SeniorLevel a owl:Class ;
+    rdfs:label "Senior Level" ;
+    rdfs:comment "Senior-level position" ;
+    rdfs:subClassOf job:JobLevel .
+
+job:LeadLevel a owl:Class ;
+    rdfs:label "Lead Level" ;
+    rdfs:comment "Lead or principal level position" ;
+    rdfs:subClassOf job:JobLevel .
+
+job:ExecutiveLevel a owl:Class ;
+    rdfs:label "Executive Level" ;
+    rdfs:comment "Executive or C-level position" ;
+    rdfs:subClassOf job:JobLevel .
+
+job:EmploymentType a owl:Class ;
+    rdfs:label "Employment Type" ;
+    rdfs:comment "The type of employment arrangement" ;
+    rdfs:subClassOf owl:Thing .
+
+job:FullTime a owl:Class ;
+    rdfs:label "Full Time" ;
+    rdfs:comment "Full-time employment" ;
+    rdfs:subClassOf job:EmploymentType .
+
+job:PartTime a owl:Class ;
+    rdfs:label "Part Time" ;
+    rdfs:comment "Part-time employment" ;
+    rdfs:subClassOf job:EmploymentType .
+
+job:Contract a owl:Class ;
+    rdfs:label "Contract" ;
+    rdfs:comment "Contract-based employment" ;
+    rdfs:subClassOf job:EmploymentType .
+
+job:Freelance a owl:Class ;
+    rdfs:label "Freelance" ;
+    rdfs:comment "Freelance work arrangement" ;
+    rdfs:subClassOf job:EmploymentType .
+
+job:Remote a owl:Class ;
+    rdfs:label "Remote" ;
+    rdfs:comment "Remote work arrangement" ;
+    rdfs:subClassOf job:EmploymentType .
+
+# ===========================
+# INDUSTRY CLASSIFICATIONS
+# ===========================
+
+company:Industry a owl:Class ;
+    rdfs:label "Industry" ;
+    rdfs:comment "An industry sector" ;
+    rdfs:subClassOf owl:Thing .
+
+company:Technology a owl:Class ;
+    rdfs:label "Technology Industry" ;
+    rdfs:comment "Technology and software industry" ;
+    rdfs:subClassOf company:Industry .
+
+company:Finance a owl:Class ;
+    rdfs:label "Finance Industry" ;
+    rdfs:comment "Financial services industry" ;
+    rdfs:subClassOf company:Industry .
+
+company:Healthcare a owl:Class ;
+    rdfs:label "Healthcare Industry" ;
+    rdfs:comment "Healthcare and medical industry" ;
+    rdfs:subClassOf company:Industry .
+
+company:Education a owl:Class ;
+    rdfs:label "Education Industry" ;
+    rdfs:comment "Education and training industry" ;
+    rdfs:subClassOf company:Industry .
+
+company:Retail a owl:Class ;
+    rdfs:label "Retail Industry" ;
+    rdfs:comment "Retail and e-commerce industry" ;
+    rdfs:subClassOf company:Industry .
+
+company:Manufacturing a owl:Class ;
+    rdfs:label "Manufacturing Industry" ;
+    rdfs:comment "Manufacturing and production industry" ;
+    rdfs:subClassOf company:Industry .
+
+# ===========================
+# CORE JOB PROPERTIES
+# ===========================
+
+job:hasTitle a owl:DatatypeProperty ;
+    rdfs:label "has title" ;
+    rdfs:comment "The title of a job position" ;
+    rdfs:domain job:Job ;
+    rdfs:range xsd:string .
+
+job:hasDescription a owl:DatatypeProperty ;
+    rdfs:label "has description" ;
+    rdfs:comment "The description of a job" ;
+    rdfs:domain job:Job ;
+    rdfs:range xsd:string .
+
+job:hasLocation a owl:DatatypeProperty ;
+    rdfs:label "has location" ;
+    rdfs:comment "The location of a job" ;
+    rdfs:domain job:Job ;
+    rdfs:range xsd:string .
+
+job:hasSalaryRange a owl:DatatypeProperty ;
+    rdfs:label "has salary range" ;
+    rdfs:comment "The salary range for a job" ;
+    rdfs:domain job:Job ;
+    rdfs:range xsd:string .
+
+job:hasMinSalary a owl:DatatypeProperty ;
+    rdfs:label "has minimum salary" ;
+    rdfs:comment "The minimum salary for a job" ;
+    rdfs:domain job:Job ;
+    rdfs:range xsd:decimal .
+
+job:hasMaxSalary a owl:DatatypeProperty ;
+    rdfs:label "has maximum salary" ;
+    rdfs:comment "The maximum salary for a job" ;
+    rdfs:domain job:Job ;
+    rdfs:range xsd:decimal .
+
+job:hasYearsExperience a owl:DatatypeProperty ;
+    rdfs:label "has years experience required" ;
+    rdfs:comment "The years of experience required for a job" ;
+    rdfs:domain job:Job ;
+    rdfs:range xsd:int .
+
+job:hasMinYearsExperience a owl:DatatypeProperty ;
+    rdfs:label "has minimum years experience" ;
+    rdfs:comment "The minimum years of experience required" ;
+    rdfs:domain job:Job ;
+    rdfs:range xsd:int .
+
+job:hasMaxYearsExperience a owl:DatatypeProperty ;
+    rdfs:label "has maximum years experience" ;
+    rdfs:comment "The maximum years of experience preferred" ;
+    rdfs:domain job:Job ;
+    rdfs:range xsd:int .
+
+job:hasApplicationDeadline a owl:DatatypeProperty ;
+    rdfs:label "has application deadline" ;
+    rdfs:comment "The deadline for job applications" ;
+    rdfs:domain job:JobPosting ;
+    rdfs:range xsd:dateTime .
+
+job:hasPostedDate a owl:DatatypeProperty ;
+    rdfs:label "has posted date" ;
+    rdfs:comment "The date when job was posted" ;
+    rdfs:domain job:JobPosting ;
+    rdfs:range xsd:dateTime .
+
+# ===========================
+# SKILL-RELATED PROPERTIES
+# ===========================
+
+job:requiresSkill a owl:ObjectProperty ;
+    rdfs:label "requires skill" ;
+    rdfs:comment "A skill required for this job" ;
+    rdfs:domain job:Job ;
+    rdfs:range skill:Skill .
+
+job:prefersSkill a owl:ObjectProperty ;
+    rdfs:label "prefers skill" ;
+    rdfs:comment "A skill preferred for this job" ;
+    rdfs:domain job:Job ;
+    rdfs:range skill:Skill .
+
+job:hasRequirement a owl:ObjectProperty ;
+    rdfs:label "has requirement" ;
+    rdfs:comment "A requirement for this job" ;
+    rdfs:domain job:Job ;
+    rdfs:range job:Requirement .
+
+skill:hasName a owl:DatatypeProperty ;
+    rdfs:label "has name" ;
+    rdfs:comment "The name of a skill" ;
+    rdfs:domain skill:Skill ;
+    rdfs:range xsd:string .
+
+skill:hasCategory a owl:DatatypeProperty ;
+    rdfs:label "has category" ;
+    rdfs:comment "The category of a skill" ;
+    rdfs:domain skill:Skill ;
+    rdfs:range xsd:string .
+
+skill:hasLevel a owl:DatatypeProperty ;
+    rdfs:label "has level" ;
+    rdfs:comment "The proficiency level of a skill" ;
+    rdfs:domain skill:Skill ;
+    rdfs:range xsd:string .
+
+skill:relatedTo a owl:ObjectProperty ;
+    rdfs:label "related to" ;
+    rdfs:comment "A skill related to another skill" ;
+    rdfs:domain skill:Skill ;
+    rdfs:range skill:Skill .
+
+# ===========================
+# COMPANY-RELATED PROPERTIES
+# ===========================
+
+job:offeredBy a owl:ObjectProperty ;
+    rdfs:label "offered by" ;
+    rdfs:comment "The company offering this job" ;
+    rdfs:domain job:Job ;
+    rdfs:range company:Company .
+
+company:hasName a owl:DatatypeProperty ;
+    rdfs:label "has name" ;
+    rdfs:comment "The name of a company" ;
+    rdfs:domain company:Company ;
+    rdfs:range xsd:string .
+
+company:hasDescription a owl:DatatypeProperty ;
+    rdfs:label "has description" ;
+    rdfs:comment "The description of a company" ;
+    rdfs:domain company:Company ;
+    rdfs:range xsd:string .
+
+company:hasSize a owl:DatatypeProperty ;
+    rdfs:label "has size" ;
+    rdfs:comment "The size of a company (number of employees)" ;
+    rdfs:domain company:Company ;
+    rdfs:range xsd:string .
+
+company:hasLocation a owl:DatatypeProperty ;
+    rdfs:label "has location" ;
+    rdfs:comment "The location of a company" ;
+    rdfs:domain company:Company ;
+    rdfs:range xsd:string .
+
+company:hasWebsite a owl:DatatypeProperty ;
+    rdfs:label "has website" ;
+    rdfs:comment "The website of a company" ;
+    rdfs:domain company:Company ;
+    rdfs:range xsd:anyURI .
+
+company:inIndustry a owl:ObjectProperty ;
+    rdfs:label "in industry" ;
+    rdfs:comment "The industry a company operates in" ;
+    rdfs:domain company:Company ;
+    rdfs:range company:Industry .
+
+company:foundedIn a owl:DatatypeProperty ;
+    rdfs:label "founded in" ;
+    rdfs:comment "The year a company was founded" ;
+    rdfs:domain company:Company ;
+    rdfs:range xsd:gYear .
+
+# ===========================
+# JOB CLASSIFICATION PROPERTIES
+# ===========================
+
+job:hasLevel a owl:ObjectProperty ;
+    rdfs:label "has level" ;
+    rdfs:comment "The seniority level of a job" ;
+    rdfs:domain job:Job ;
+    rdfs:range job:JobLevel .
+
+job:hasEmploymentType a owl:ObjectProperty ;
+    rdfs:label "has employment type" ;
+    rdfs:comment "The type of employment" ;
+    rdfs:domain job:Job ;
+    rdfs:range job:EmploymentType .
+
+job:isRemote a owl:DatatypeProperty ;
+    rdfs:label "is remote" ;
+    rdfs:comment "Whether the job allows remote work" ;
+    rdfs:domain job:Job ;
+    rdfs:range xsd:boolean .
+
+job:allowsRemote a owl:DatatypeProperty ;
+    rdfs:label "allows remote" ;
+    rdfs:comment "Whether the job allows remote work" ;
+    rdfs:domain job:Job ;
+    rdfs:range xsd:boolean .
+
+job:hasFunction a owl:DatatypeProperty ;
+    rdfs:label "has function" ;
+    rdfs:comment "The functional area of a job" ;
+    rdfs:domain job:Job ;
+    rdfs:range xsd:string .
+
+job:hasDepartment a owl:DatatypeProperty ;
+    rdfs:label "has department" ;
+    rdfs:comment "The department for a job" ;
+    rdfs:domain job:Job ;
+    rdfs:range xsd:string .
+
+# ===========================
+# SKILL TAXONOMY DEFINITIONS
+# ===========================
+
+# Technical Skills
+skill:JavaScript a skill:TechnicalSkill ;
+    skill:hasName "JavaScript" ;
+    skill:hasCategory "Programming Language" .
+
+skill:Python a skill:TechnicalSkill ;
+    skill:hasName "Python" ;
+    skill:hasCategory "Programming Language" .
+
+skill:Java a skill:TechnicalSkill ;
+    skill:hasName "Java" ;
+    skill:hasCategory "Programming Language" .
+
+skill:TypeScript a skill:TechnicalSkill ;
+    skill:hasName "TypeScript" ;
+    skill:hasCategory "Programming Language" .
+
+skill:React a skill:TechnicalSkill ;
+    skill:hasName "React" ;
+    skill:hasCategory "Frontend Framework" .
+
+skill:Vue a skill:TechnicalSkill ;
+    skill:hasName "Vue.js" ;
+    skill:hasCategory "Frontend Framework" .
+
+skill:NodeJS a skill:TechnicalSkill ;
+    skill:hasName "Node.js" ;
+    skill:hasCategory "Backend Framework" .
+
+skill:Express a skill:TechnicalSkill ;
+    skill:hasName "Express.js" ;
+    skill:hasCategory "Backend Framework" .
+
+skill:PostgreSQL a skill:TechnicalSkill ;
+    skill:hasName "PostgreSQL" ;
+    skill:hasCategory "Database" .
+
+skill:MongoDB a skill:TechnicalSkill ;
+    skill:hasName "MongoDB" ;
+    skill:hasCategory "Database" .
+
+skill:AWS a skill:TechnicalSkill ;
+    skill:hasName "Amazon Web Services" ;
+    skill:hasCategory "Cloud Platform" .
+
+skill:Docker a skill:TechnicalSkill ;
+    skill:hasName "Docker" ;
+    skill:hasCategory "DevOps Tool" .
+
+skill:Kubernetes a skill:TechnicalSkill ;
+    skill:hasName "Kubernetes" ;
+    skill:hasCategory "DevOps Tool" .
+
+skill:Git a skill:ToolSkill ;
+    skill:hasName "Git" ;
+    skill:hasCategory "Version Control" .
+
+# Soft Skills
+skill:Communication a skill:SoftSkill ;
+    skill:hasName "Communication" ;
+    skill:hasCategory "Interpersonal" .
+
+skill:Leadership a skill:SoftSkill ;
+    skill:hasName "Leadership" ;
+    skill:hasCategory "Management" .
+
+skill:TeamWork a skill:SoftSkill ;
+    skill:hasName "Team Work" ;
+    skill:hasCategory "Collaboration" .
+
+skill:ProblemSolving a skill:SoftSkill ;
+    skill:hasName "Problem Solving" ;
+    skill:hasCategory "Analytical" .
+
+skill:ProjectManagement a skill:SoftSkill ;
+    skill:hasName "Project Management" ;
+    skill:hasCategory "Management" .
+
+# Skill Relationships
+skill:React skill:relatedTo skill:JavaScript .
+skill:TypeScript skill:relatedTo skill:JavaScript .
+skill:Express skill:relatedTo skill:NodeJS .
+skill:NodeJS skill:relatedTo skill:JavaScript .
+skill:Vue skill:relatedTo skill:JavaScript .

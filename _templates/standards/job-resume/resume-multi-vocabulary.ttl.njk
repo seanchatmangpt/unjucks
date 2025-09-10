@@ -1,0 +1,267 @@
+---
+to: src/generated/resume-{{ personName | slugify }}-multi-vocab.ttl
+inject: false
+---
+@prefix schema: <https://schema.org/> .
+@prefix foaf: <http://xmlns.com/foaf/0.1/> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix hr: <http://ns.hr-xml.org/2007-04-15/> .
+@prefix saro: <https://elisasibarani.github.io/SARO/> .
+@prefix cv: <http://rdfs.org/resume-rdf/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+# Multi-Vocabulary Resume Demonstrating Interoperability
+# Generated on: {{ new Date().toISOString() }}
+# Standards: Schema.org, FOAF, Dublin Core, HR-XML, SARO mapping
+
+# =============================================================================
+# PERSON ENTITY - Multiple Vocabulary Representations
+# =============================================================================
+
+# Primary Schema.org representation
+<#person/{{ personName | slugify }}> a schema:Person ;
+    schema:name "{{ personName }}" ;
+    {% if givenName %}schema:givenName "{{ givenName }}" ;{% endif %}
+    {% if familyName %}schema:familyName "{{ familyName }}" ;{% endif %}
+    {% if email %}schema:email "{{ email }}" ;{% endif %}
+    {% if phoneNumber %}schema:telephone "{{ phoneNumber }}" ;{% endif %}
+    {% if jobTitle %}schema:jobTitle "{{ jobTitle }}" ;{% endif %}
+    schema:identifier "urn:person:{{ personName | slugify }}" .
+
+# FOAF representation (linked via owl:sameAs)
+<#person/{{ personName | slugify }}> a foaf:Person ;
+    foaf:name "{{ personName }}" ;
+    {% if givenName %}foaf:givenName "{{ givenName }}" ;{% endif %}
+    {% if familyName %}foaf:familyName "{{ familyName }}" ;{% endif %}
+    {% if email %}foaf:mbox <mailto:{{ email }}> ;{% endif %}
+    {% if jobTitle %}foaf:title "{{ jobTitle }}" ;{% endif %}
+    foaf:isPrimaryTopicOf <#resume/{{ personName | slugify }}> .
+
+# HR-XML representation for enterprise compatibility
+<#person/{{ personName | slugify }}> a hr:Person ;
+    hr:personName "{{ personName }}" ;
+    {% if email %}hr:contactMethod [
+        a hr:ContactMethod ;
+        hr:emailAddress "{{ email }}"
+    ] ;{% endif %}
+    {% if phoneNumber %}hr:contactMethod [
+        a hr:ContactMethod ;
+        hr:phoneNumber "{{ phoneNumber }}"
+    ] ;{% endif %} .
+
+# Dublin Core metadata
+<#person/{{ personName | slugify }}> 
+    dcterms:title "Professional Profile: {{ personName }}" ;
+    dcterms:description "Comprehensive professional profile and resume for {{ personName }}" ;
+    dcterms:creator "{{ personName }}" ;
+    dcterms:created "{{ new Date().toISOString() }}"^^xsd:dateTime ;
+    dcterms:modified "{{ new Date().toISOString() }}"^^xsd:dateTime ;
+    dcterms:identifier "urn:person:{{ personName | slugify }}" ;
+    dcterms:format "application/rdf+xml" ;
+    dcterms:language "en" .
+
+# =============================================================================
+# RESUME DOCUMENT ENTITY
+# =============================================================================
+
+<#resume/{{ personName | slugify }}> a schema:DigitalDocument , foaf:Document , dcterms:BibliographicResource ;
+    # Schema.org properties
+    schema:name "Resume - {{ personName }}" ;
+    schema:description "Professional resume for {{ personName }}" ;
+    schema:author <#person/{{ personName | slugify }}> ;
+    schema:about <#person/{{ personName | slugify }}> ;
+    schema:dateCreated "{{ new Date().toISOString() }}"^^xsd:dateTime ;
+    schema:dateModified "{{ new Date().toISOString() }}"^^xsd:dateTime ;
+    
+    # FOAF properties
+    foaf:primaryTopic <#person/{{ personName | slugify }}> ;
+    foaf:maker <#person/{{ personName | slugify }}> ;
+    
+    # Dublin Core properties
+    dcterms:title "Resume - {{ personName }}" ;
+    dcterms:creator <#person/{{ personName | slugify }}> ;
+    dcterms:subject "Professional Resume" ;
+    dcterms:type "Resume" ;
+    dcterms:format "text/turtle" .
+
+# =============================================================================
+# SKILLS AND COMPETENCIES - Multi-Vocabulary Mapping
+# =============================================================================
+
+{% if skills %}
+{% for skill in skills %}
+# Schema.org DefinedTerm
+<#skill/{{ skill | slugify }}> a schema:DefinedTerm ;
+    schema:name "{{ skill }}" ;
+    schema:termCode "skill-{{ skill | slugify }}" ;
+    schema:inDefinedTermSet <#skillset/professional> .
+
+# HR-XML Competency
+<#competency/{{ skill | slugify }}> a hr:Competency ;
+    hr:competencyName "{{ skill }}" ;
+    hr:competencyType "Technical" ;
+    hr:proficiencyLevel "Professional" .
+
+# SARO Skill representation
+<#saro-skill/{{ skill | slugify }}> a saro:Skill ;
+    saro:skillName "{{ skill }}" ;
+    saro:skillType "Technical" .
+
+# Link person to skills across vocabularies
+<#person/{{ personName | slugify }}> 
+    schema:skills <#skill/{{ skill | slugify }}> ;
+    hr:competency <#competency/{{ skill | slugify }}> ;
+    saro:hasSkill <#saro-skill/{{ skill | slugify }}> .
+
+# Interoperability mappings
+<#skill/{{ skill | slugify }}> owl:sameAs <#competency/{{ skill | slugify }}> , <#saro-skill/{{ skill | slugify }}> .
+{% endfor %}
+
+# Skill set definition
+<#skillset/professional> a schema:DefinedTermSet ;
+    schema:name "Professional Skills for {{ personName }}" ;
+    schema:description "Complete set of professional skills and competencies" .
+{% endif %}
+
+# =============================================================================
+# WORK EXPERIENCE - Multi-Vocabulary Representation
+# =============================================================================
+
+{% if experience %}
+{% for exp in experience %}
+# Schema.org WorkExperience
+<#experience/{{ loop.index }}> a schema:EmployerReview ;
+    schema:name "{{ exp.position }}" ;
+    {% if exp.description %}schema:description "{{ exp.description }}" ;{% endif %}
+    schema:author <#person/{{ personName | slugify }}> ;
+    schema:employer <#org/{{ exp.company | slugify }}> ;
+    {% if exp.startDate %}schema:startDate "{{ exp.startDate }}"^^xsd:date ;{% endif %}
+    {% if exp.endDate and exp.endDate !== 'present' %}schema:endDate "{{ exp.endDate }}"^^xsd:date ;{% endif %}
+    schema:workPerformed "{{ exp.position }}" .
+
+# HR-XML Employment representation
+<#hr-employment/{{ loop.index }}> a hr:Employment ;
+    hr:positionTitle "{{ exp.position }}" ;
+    {% if exp.description %}hr:jobDescription "{{ exp.description }}" ;{% endif %}
+    hr:employer <#hr-org/{{ exp.company | slugify }}> ;
+    {% if exp.startDate %}hr:startDate "{{ exp.startDate }}"^^xsd:date ;{% endif %}
+    {% if exp.endDate and exp.endDate !== 'present' %}hr:endDate "{{ exp.endDate }}"^^xsd:date ;{% endif %} .
+
+# FOAF workplace relationship
+<#person/{{ personName | slugify }}> foaf:workplaceHomepage <#org/{{ exp.company | slugify }}> .
+
+# Dublin Core work metadata
+<#experience/{{ loop.index }}> 
+    dcterms:title "{{ exp.position }} at {{ exp.company }}" ;
+    dcterms:description "{% if exp.description %}{{ exp.description }}{% else %}Professional role as {{ exp.position }}{% endif %}" ;
+    dcterms:temporal "{{ exp.startDate }}{% if exp.endDate and exp.endDate !== 'present' %}/{{ exp.endDate }}{% endif %}" .
+
+# Organization representations
+<#org/{{ exp.company | slugify }}> a schema:Organization , foaf:Organization ;
+    schema:name "{{ exp.company }}" ;
+    foaf:name "{{ exp.company }}" ;
+    schema:employee <#person/{{ personName | slugify }}> .
+
+<#hr-org/{{ exp.company | slugify }}> a hr:Organization ;
+    hr:organizationName "{{ exp.company }}" .
+
+# Interoperability links
+<#experience/{{ loop.index }}> owl:sameAs <#hr-employment/{{ loop.index }}> .
+<#org/{{ exp.company | slugify }}> owl:sameAs <#hr-org/{{ exp.company | slugify }}> .
+{% endfor %}
+{% endif %}
+
+# =============================================================================
+# EDUCATION - Multi-Vocabulary Representation
+# =============================================================================
+
+{% if education %}
+{% for edu in education %}
+# Schema.org Educational Credential
+<#education/{{ loop.index }}> a schema:EducationalOccupationalCredential ;
+    schema:name "{{ edu.degree }}" ;
+    {% if edu.field %}schema:educationalCredentialAwarded "{{ edu.degree }} in {{ edu.field }}" ;{% endif %}
+    schema:credentialCategory "degree" ;
+    schema:recognizedBy <#institution/{{ edu.institution | slugify }}> ;
+    {% if edu.graduationYear %}schema:validFrom "{{ edu.graduationYear }}-01-01"^^xsd:date ;{% endif %}
+    schema:about <#person/{{ personName | slugify }}> .
+
+# HR-XML Education representation
+<#hr-education/{{ loop.index }}> a hr:Education ;
+    hr:degree "{{ edu.degree }}" ;
+    {% if edu.field %}hr:fieldOfStudy "{{ edu.field }}" ;{% endif %}
+    hr:institution <#hr-institution/{{ edu.institution | slugify }}> ;
+    {% if edu.graduationYear %}hr:graduationDate "{{ edu.graduationYear }}-01-01"^^xsd:date ;{% endif %} .
+
+# Dublin Core education metadata
+<#education/{{ loop.index }}> 
+    dcterms:title "{{ edu.degree }}{% if edu.field %} in {{ edu.field }}{% endif %}" ;
+    dcterms:publisher <#institution/{{ edu.institution | slugify }}> ;
+    {% if edu.graduationYear %}dcterms:date "{{ edu.graduationYear }}"^^xsd:gYear ;{% endif %}
+    dcterms:type "Educational Credential" .
+
+# Educational institutions
+<#institution/{{ edu.institution | slugify }}> a schema:EducationalOrganization , foaf:Organization ;
+    schema:name "{{ edu.institution }}" ;
+    foaf:name "{{ edu.institution }}" .
+
+<#hr-institution/{{ edu.institution | slugify }}> a hr:Institution ;
+    hr:institutionName "{{ edu.institution }}" .
+
+# Interoperability links
+<#education/{{ loop.index }}> owl:sameAs <#hr-education/{{ loop.index }}> .
+<#institution/{{ edu.institution | slugify }}> owl:sameAs <#hr-institution/{{ edu.institution | slugify }}> .
+{% endfor %}
+{% endif %}
+
+# =============================================================================
+# INTEROPERABILITY AND LINKED DATA BEST PRACTICES
+# =============================================================================
+
+# Core entity equivalences
+<#person/{{ personName | slugify }}> owl:sameAs 
+    <http://schema.org/Person/{{ personName | slugify }}> ,
+    <http://xmlns.com/foaf/0.1/Person/{{ personName | slugify }}> ,
+    <http://ns.hr-xml.org/2007-04-15/Person/{{ personName | slugify }}> .
+
+# RDF Schema annotations for better semantics
+<#person/{{ personName | slugify }}> 
+    rdfs:label "{{ personName }}" ;
+    rdfs:comment "Professional profile for {{ personName }}{% if jobTitle %}, {{ jobTitle }}{% endif %}{% if company %} at {{ company }}{% endif %}" .
+
+# Cross-vocabulary property mappings (explicit)
+<#person/{{ personName | slugify }}> 
+    # Name mappings
+    schema:name "{{ personName }}" ;
+    foaf:name "{{ personName }}" ;
+    dcterms:title "{{ personName }}" ;
+    hr:personName "{{ personName }}" .
+
+{% if email %}
+# Email mappings with transformations
+<#person/{{ personName | slugify }}> 
+    schema:email "{{ email }}" ;
+    foaf:mbox <mailto:{{ email }}> .
+{% endif %}
+
+# Provenance and metadata
+<#resume/{{ personName | slugify }}> 
+    <http://www.w3.org/ns/prov#wasGeneratedBy> <#activity/resume-generation> ;
+    <http://www.w3.org/ns/prov#generatedAtTime> "{{ new Date().toISOString() }}"^^xsd:dateTime .
+
+<#activity/resume-generation> a <http://www.w3.org/ns/prov#Activity> ;
+    rdfs:label "Resume Generation Process" ;
+    <http://www.w3.org/ns/prov#wasAssociatedWith> "Unjucks Template Generator" ;
+    <http://www.w3.org/ns/prov#used> "Multi-Vocabulary Resume Template" .
+
+# Vocabulary documentation references
+<#> 
+    rdfs:seeAlso 
+        <https://schema.org/> ,
+        <http://xmlns.com/foaf/spec/> ,
+        <http://purl.org/dc/terms/> ,
+        <http://ns.hr-xml.org/2007-04-15/> ,
+        <https://elisasibarani.github.io/SARO/> .

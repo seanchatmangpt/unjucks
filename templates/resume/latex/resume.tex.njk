@@ -1,0 +1,131 @@
+---
+to: "{{ candidateName | slug }}-{{ industry }}-resume.tex"
+inject: false
+skipIf: false
+---
+\documentclass[11pt,a4paper,sans]{moderncv}
+
+% ModernCV theme and color
+\moderncvstyle{banking}
+\moderncvcolor{blue}
+
+% Character encoding and language
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}
+
+% Page geometry
+\usepackage[scale=0.85]{geometry}
+\setlength{\hintscolumnwidth}{3cm}
+
+% Personal data with semantic markup
+\name{{{ candidateName.split(' ')[0] }}}{{{ candidateName.split(' ').slice(1).join(' ') }}}
+\title{{{ jobTitle }}}
+\address{{{ location }}}{}{}
+\phone[mobile]{{{ phone }}}
+\email{{{ email }}}
+\homepage{{{ portfolioUrl | replace('https://', '') }}}
+\social[linkedin]{{{ linkedinUrl | replace('https://linkedin.com/in/', '') }}}
+\social[github]{{{ githubUrl | replace('https://github.com/', '') }}}
+
+% Semantic metadata for PDF
+\hypersetup{
+    pdftitle={{{ candidateName }} - {{ jobTitle }} Resume},
+    pdfauthor={{{ candidateName }}},
+    pdfsubject={Resume for {{ jobTitle }} position},
+    pdfkeywords={{{ industry }}, resume, {{ jobTitle }}, {{ candidateName }}},
+    pdfcreator={Unjucks Resume Generator},
+    pdfproducer={LaTeX with semantic data}
+}
+
+\begin{document}
+
+% Title with semantic structure
+\makecvtitle
+
+% Professional Summary
+\section{Professional Summary}
+\cvitem{}{%
+    {% if industry == 'software' %}
+    Experienced software engineer with expertise in full-stack development, system design, and agile methodologies. 
+    Proven track record of delivering scalable solutions and mentoring development teams.
+    {% elif industry == 'data-science' %}
+    Data scientist with strong background in machine learning, statistical analysis, and data visualization. 
+    Experienced in transforming complex datasets into actionable business insights.
+    {% elif industry == 'product' %}
+    Product manager with experience in product strategy, roadmap development, and cross-functional team leadership. 
+    Skilled at bridging technical and business requirements to deliver user-centric solutions.
+    {% elif industry == 'design' %}
+    Creative designer with expertise in user experience, visual design, and design systems. 
+    Passionate about creating intuitive and accessible digital experiences.
+    {% else %}
+    Professional with diverse experience and strong analytical skills. 
+    Dedicated to continuous learning and delivering high-quality results in collaborative environments.
+    {% endif %}
+}
+
+% Experience Section with RDF-style metadata
+\section{Professional Experience}
+\cventry{2023--Present}{Senior {{ jobTitle }}}{TechCorp Inc.}{{{ location }}}{}{%
+    \begin{itemize}
+        \item Led development of microservices architecture serving 1M+ users
+        \item Implemented CI/CD pipelines reducing deployment time by 60\%
+        \item Mentored 5 junior engineers and conducted technical interviews
+        \item Collaborated with product and design teams on feature development
+    \end{itemize}
+}
+
+\cventry{2021--2023}{{{ jobTitle }}}{InnovateCo}{Remote}{}{%
+    \begin{itemize}
+        \item Developed full-stack applications using modern frameworks
+        \item Optimized database queries improving application performance by 40\%
+        \item Participated in agile development processes and code reviews
+        \item Contributed to technical documentation and best practices
+    \end{itemize}
+}
+
+% Education with semantic structure
+\section{Education}
+\cventry{2017--2021}{Bachelor of Science in Computer Science}{University of Technology}{{{ location }}}{GPA: 3.8/4.0}{%
+    Relevant coursework: Data Structures, Algorithms, Software Engineering, Database Systems
+}
+
+% Skills with RDF-compatible categorization
+\section{Technical Skills}
+\cvitem{Programming}{JavaScript, Python, Java, TypeScript, Go}
+\cvitem{Frameworks}{React, Node.js, Django, Spring Boot, Express}
+\cvitem{Databases}{PostgreSQL, MongoDB, Redis, Elasticsearch}
+\cvitem{Cloud/DevOps}{AWS, Docker, Kubernetes, Jenkins, Terraform}
+\cvitem{Tools}{Git, JIRA, Figma, Postman, VS Code}
+
+% Projects with semantic metadata
+\section{Notable Projects}
+\cventry{2023}{E-commerce Platform}{\href{{{ githubUrl }}/ecommerce}{GitHub}}{}{}{%
+    Full-stack e-commerce solution with microservices architecture, payment processing, and real-time inventory management.
+    \textit{Technologies: React, Node.js, PostgreSQL, Docker, AWS}
+}
+
+\cventry{2022}{Data Analytics Dashboard}{\href{{{ portfolioUrl }}/analytics}{Portfolio}}{}{}{%
+    Real-time analytics dashboard processing 100k+ events/hour with interactive visualizations and custom reporting.
+    \textit{Technologies: Python, Django, D3.js, PostgreSQL, Redis}
+}
+
+% Certifications with validation links
+\section{Certifications}
+\cvitem{2023}{AWS Certified Solutions Architect - Associate}
+\cvitem{2022}{Google Cloud Professional Cloud Architect}
+\cvitem{2021}{Certified Kubernetes Administrator (CKA)}
+
+% Publications/Speaking (if applicable)
+{% if industry == 'software' or industry == 'data-science' %}
+\section{Publications \& Speaking}
+\cvitem{2023}{"Scaling Microservices: Lessons Learned" - TechConf 2023}
+\cvitem{2022}{"Modern Frontend Architecture" - Engineering Blog}
+{% endif %}
+
+% Semantic footer with metadata
+\vfill
+\begin{center}
+    \small{Generated: \today \quad | \quad Semantic Resume Format \quad | \quad Industry: {{ industry | title }}}
+</end{center}
+
+\end{document}

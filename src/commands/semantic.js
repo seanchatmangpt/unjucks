@@ -238,6 +238,148 @@ class SemanticEngine {
     
     return results;
   }
+
+  async extractPersonData(ontologyId) {
+    const ontology = this.ontologies.get(ontologyId);
+    if (!ontology) {
+      throw new Error(`Ontology not found: ${ontologyId}`);
+    }
+
+    // Extract person information from ontology
+    const personData = {
+      name: '',
+      email: '',
+      phone: '',
+      address: '',
+      skills: [],
+      experience: [],
+      education: [],
+      certifications: [],
+      projects: []
+    };
+
+    // Use enhanced query engine to extract person data
+    if (this.queryEngine) {
+      try {
+        // Query for person entities
+        const personEntities = await this.queryEngine.executeQuery(`
+          SELECT ?person ?name ?email ?phone WHERE {
+            ?person a <http://xmlns.com/foaf/0.1/Person> .
+            OPTIONAL { ?person <http://xmlns.com/foaf/0.1/name> ?name } .
+            OPTIONAL { ?person <http://xmlns.com/foaf/0.1/email> ?email } .
+            OPTIONAL { ?person <http://xmlns.com/foaf/0.1/phone> ?phone } .
+          }
+        `);
+
+        if (personEntities.length > 0) {
+          const person = personEntities[0];
+          personData.name = person.name?.value || '';
+          personData.email = person.email?.value || '';
+          personData.phone = person.phone?.value || '';
+        }
+
+        // Query for skills
+        const skills = await this.queryEngine.executeQuery(`
+          SELECT ?skill ?skillName WHERE {
+            ?person <http://example.org/hasSkill> ?skill .
+            ?skill <http://www.w3.org/2000/01/rdf-schema#label> ?skillName .
+          }
+        `);
+        personData.skills = skills.map(s => s.skillName?.value).filter(Boolean);
+
+      } catch (error) {
+        console.warn('SPARQL query failed, using basic extraction:', error.message);
+      }
+    }
+
+    // Fallback to basic triple extraction if SPARQL queries fail
+    if (!personData.name && ontology.entities) {
+      const personEntity = ontology.entities.find(e => 
+        e.types?.includes('http://xmlns.com/foaf/0.1/Person') ||
+        e.types?.includes('foaf:Person')
+      );
+      
+      if (personEntity) {
+        personData.name = personEntity.properties?.name?.[0]?.value || 
+                          personEntity.properties?.label?.[0]?.value || '';
+        personData.email = personEntity.properties?.email?.[0]?.value || '';
+      }
+    }
+
+    return personData;
+  }
+
+  async extractJobData(ontologyId) {
+    const ontology = this.ontologies.get(ontologyId);
+    if (!ontology) {
+      throw new Error(`Ontology not found: ${ontologyId}`);
+    }
+
+    // Extract job information from ontology
+    const jobData = {
+      title: '',
+      company: '',
+      description: '',
+      requiredSkills: [],
+      preferredSkills: [],
+      experience: '',
+      education: '',
+      location: '',
+      salary: ''
+    };
+
+    // Use enhanced query engine to extract job data
+    if (this.queryEngine) {
+      try {
+        // Query for job entities
+        const jobEntities = await this.queryEngine.executeQuery(`
+          SELECT ?job ?title ?company ?description WHERE {
+            ?job a <http://example.org/JobPosting> .
+            OPTIONAL { ?job <http://example.org/title> ?title } .
+            OPTIONAL { ?job <http://example.org/company> ?company } .
+            OPTIONAL { ?job <http://www.w3.org/2000/01/rdf-schema#comment> ?description } .
+          }
+        `);
+
+        if (jobEntities.length > 0) {
+          const job = jobEntities[0];
+          jobData.title = job.title?.value || '';
+          jobData.company = job.company?.value || '';
+          jobData.description = job.description?.value || '';
+        }
+
+        // Query for required skills
+        const requiredSkills = await this.queryEngine.executeQuery(`
+          SELECT ?skill ?skillName WHERE {
+            ?job <http://example.org/requiresSkill> ?skill .
+            ?skill <http://www.w3.org/2000/01/rdf-schema#label> ?skillName .
+          }
+        `);
+        jobData.requiredSkills = requiredSkills.map(s => s.skillName?.value).filter(Boolean);
+
+      } catch (error) {
+        console.warn('SPARQL query failed, using basic extraction:', error.message);
+      }
+    }
+
+    // Fallback to basic triple extraction if SPARQL queries fail
+    if (!jobData.title && ontology.entities) {
+      const jobEntity = ontology.entities.find(e => 
+        e.types?.includes('http://example.org/JobPosting') ||
+        e.types?.includes('schema:JobPosting')
+      );
+      
+      if (jobEntity) {
+        jobData.title = jobEntity.properties?.title?.[0]?.value || 
+                       jobEntity.properties?.label?.[0]?.value || '';
+        jobData.company = jobEntity.properties?.company?.[0]?.value || '';
+        jobData.description = jobEntity.properties?.description?.[0]?.value || 
+                             jobEntity.properties?.comment?.[0]?.value || '';
+      }
+    }
+
+    return jobData;
+  }
 }
 
 // Helper functions for semantic command
@@ -253,6 +395,11 @@ async function handleGenerate(args, engine) {
   if (generatorType === 'knowledge-graph' || args.type === 'knowledge-graph') {
     await handleKnowledgeGraphGenerate(args, engine);
     return { success: true, action: 'generate', type: 'knowledge-graph' };
+  }
+  
+  if (generatorType === 'resume' || args.type === 'resume') {
+    await handleResumeGenerate(args, engine);
+    return { success: true, action: 'generate', type: 'resume' };
   }
   
   if (generatorType === 'linked-data-api' || args.type === 'linked-data-api') {
@@ -464,6 +611,171 @@ async function handleKnowledgeGraphGenerate(args, engine) {
     console.log(chalk.red(`❌ Failed to generate knowledge graph: ${error.message}`));
     throw error;
   }
+}
+
+async function handleResumeGenerate(args, engine) {
+  console.log(chalk.cyan("📄 Generating Semantic Resume..."));
+  
+  // Initialize engine with semantic capabilities
+  engine.initialize({
+    enableValidation: true,
+    validationLevel: 'standard',
+    cacheEnabled: true
+  });
+  
+  // Load person data from TTL file if provided
+  let personData = {};
+  if (args.person) {
+    if (!(await fs.pathExists(args.person))) {
+      console.log(chalk.red(`❌ Person file not found: ${args.person}`));
+      throw new Error(`Person file not found: ${args.person}`);
+    }
+    
+    console.log(chalk.yellow(`📂 Loading person data from: ${args.person}`));
+    const ontology = await engine.loadOntology(args.person, 'turtle');
+    personData = await engine.extractPersonData(ontology.id);
+    console.log(chalk.green(`✅ Loaded person data: ${personData.name || 'Unknown'}`));
+  }
+  
+  // Load job requirements from TTL file if provided
+  let jobData = {};
+  if (args.job) {
+    if (!(await fs.pathExists(args.job))) {
+      console.log(chalk.red(`❌ Job file not found: ${args.job}`));
+      throw new Error(`Job file not found: ${args.job}`);
+    }
+    
+    console.log(chalk.yellow(`📂 Loading job requirements from: ${args.job}`));
+    const jobOntology = await engine.loadOntology(args.job, 'turtle');
+    jobData = await engine.extractJobData(jobOntology.id);
+    console.log(chalk.green(`✅ Loaded job data: ${jobData.title || 'Unknown Position'}`));
+  }
+  
+  // Determine template based on style
+  const style = args.style || 'academic';
+  const templatePath = `_templates/semantic/resume/${style}.njk`;
+  
+  console.log(chalk.yellow(`📝 Generating resume with style: ${style}`));
+  
+  const { TemplateEngine } = await import('../lib/template-engine.js');
+  const templateEngine = new TemplateEngine();
+  
+  const templateVars = {
+    person: personData,
+    job: jobData,
+    style,
+    format: args.format || 'html',
+    skillMatching: args.skillMatching || false,
+    includeOntology: args.includeOntology || false,
+    tailorToJob: args.job ? true : false,
+    generatedDate: new Date().toISOString().split('T')[0]
+  };
+  
+  try {
+    const result = await templateEngine.render(templatePath, templateVars);
+    
+    // Generate appropriate file extension
+    const formats = Array.isArray(args.format) ? args.format : [args.format || 'html'];
+    const results = [];
+    
+    for (const format of formats) {
+      const extension = getResumeFileExtension(format);
+      const outputFile = `resume-${style}.${extension}`;
+      const outputPath = args.output ? path.join(args.output, outputFile) : outputFile;
+      
+      let content = result.content;
+      if (format !== 'html') {
+        content = await convertResumeFormat(result.content, format, templateVars);
+      }
+      
+      if (!args.dry) {
+        await fs.ensureDir(path.dirname(outputPath));
+        await fs.writeFile(outputPath, content);
+        console.log(chalk.green(`✅ Generated ${format.toUpperCase()} resume: ${outputPath}`));
+        results.push({ format, path: outputPath, size: content.length });
+      } else {
+        console.log(chalk.blue(`📋 Dry run - would create ${format.toUpperCase()}: ${outputPath}`));
+        results.push({ format, path: outputPath, size: content.length, dryRun: true });
+      }
+    }
+    
+    console.log(chalk.gray(`📊 Person: ${personData.name || 'N/A'}`));
+    console.log(chalk.gray(`📊 Job: ${jobData.title || 'General'}`));
+    console.log(chalk.gray(`📊 Total formats: ${formats.length}`));
+    
+    if (args.skillMatching && jobData.requiredSkills) {
+      const matchingSkills = calculateSkillMatch(personData.skills || [], jobData.requiredSkills || []);
+      console.log(chalk.yellow(`🎯 Skill matching: ${matchingSkills.percentage}% (${matchingSkills.matched}/${matchingSkills.total})`));
+    }
+    
+    return { success: true, results };
+    
+  } catch (error) {
+    console.log(chalk.red(`❌ Failed to generate resume: ${error.message}`));
+    throw error;
+  }
+}
+
+// Helper functions for resume generation
+function getResumeFileExtension(format) {
+  const extensions = {
+    'html': 'html',
+    'pdf': 'pdf',
+    'json': 'json',
+    'txt': 'txt',
+    'md': 'md',
+    'latex': 'tex'
+  };
+  return extensions[format] || 'html';
+}
+
+async function convertResumeFormat(htmlContent, targetFormat, templateVars) {
+  // For now, return basic conversions. This could be enhanced with libraries like puppeteer for PDF
+  switch (targetFormat) {
+    case 'json':
+      return JSON.stringify({
+        person: templateVars.person,
+        job: templateVars.job,
+        generatedDate: templateVars.generatedDate,
+        htmlContent
+      }, null, 2);
+    case 'txt':
+      // Simple HTML to text conversion
+      return htmlContent.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim();
+    case 'md':
+      // Basic HTML to Markdown conversion
+      return htmlContent
+        .replace(/<h1[^>]*>/g, '# ')
+        .replace(/<h2[^>]*>/g, '## ')
+        .replace(/<h3[^>]*>/g, '### ')
+        .replace(/<\/h[123]>/g, '\n\n')
+        .replace(/<p[^>]*>/g, '')
+        .replace(/<\/p>/g, '\n\n')
+        .replace(/<strong[^>]*>/g, '**')
+        .replace(/<\/strong>/g, '**')
+        .replace(/<[^>]*>/g, '');
+    case 'pdf':
+      // Placeholder - would need puppeteer or similar
+      return htmlContent + '\n<!-- PDF conversion requires additional dependencies -->';
+    default:
+      return htmlContent;
+  }
+}
+
+function calculateSkillMatch(personSkills, jobSkills) {
+  const personSkillsLower = personSkills.map(s => s.toLowerCase());
+  const jobSkillsLower = jobSkills.map(s => s.toLowerCase());
+  
+  const matched = jobSkillsLower.filter(skill => 
+    personSkillsLower.some(pSkill => 
+      pSkill.includes(skill) || skill.includes(pSkill)
+    )
+  ).length;
+  
+  const total = jobSkillsLower.length;
+  const percentage = total > 0 ? Math.round((matched / total) * 100) : 0;
+  
+  return { matched, total, percentage };
 }
 
 async function handleLinkedDataAPIGenerate(args, engine) {
@@ -781,6 +1093,30 @@ export const semanticCommand = defineCommand({
       description: "Enable enterprise-grade features",
       default: false,
     },
+    // Resume generation specific args
+    person: {
+      type: "string",
+      description: "Person ontology file (person.ttl)",
+    },
+    job: {
+      type: "string", 
+      description: "Job requirements ontology file (job.ttl)",
+    },
+    style: {
+      type: "string",
+      description: "Resume style (academic, corporate, creative, technical)",
+      default: "academic",
+    },
+    skillMatching: {
+      type: "boolean",
+      description: "Enable semantic skill matching",
+      default: false,
+    },
+    includeOntology: {
+      type: "boolean",
+      description: "Include ontology references in output",
+      default: false,
+    },
     dry: {
       type: "boolean",
       description: "Preview mode - don't write files",
@@ -811,6 +1147,8 @@ export const semanticCommand = defineCommand({
         console.log(chalk.cyan("  export") + chalk.gray("   - Export semantic models"));
         console.log();
         console.log(chalk.yellow("🚀 BDD Test Examples:"));
+        console.log(chalk.gray('  unjucks semantic generate resume --person person.ttl --job job.ttl --style academic --format pdf,html'));
+        console.log(chalk.gray('  unjucks semantic generate resume --person person.ttl --style corporate --skillMatching'));
         console.log(chalk.gray('  unjucks semantic generate ontology library-management --withInferences --withValidation'));
         console.log(chalk.gray('  unjucks semantic generate knowledge-graph scientific-publications --withProvenance --withVersioning'));
         console.log(chalk.gray('  unjucks semantic generate linked-data-api museum-collections --withContentNegotiation --withPagination'));

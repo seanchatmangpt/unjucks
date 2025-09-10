@@ -1,0 +1,198 @@
+---
+to: resume-academic.html
+inject: false
+---
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ person.name or 'Academic Resume' }}</title>
+    <style>
+        body {
+            font-family: 'Times New Roman', serif;
+            line-height: 1.6;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #fff;
+            color: #333;
+        }
+        .header {
+            text-align: center;
+            border-bottom: 2px solid #333;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+        .name {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .contact {
+            font-size: 14px;
+            color: #666;
+        }
+        .section {
+            margin-bottom: 25px;
+        }
+        .section-title {
+            font-size: 18px;
+            font-weight: bold;
+            text-transform: uppercase;
+            border-bottom: 1px solid #333;
+            padding-bottom: 5px;
+            margin-bottom: 15px;
+        }
+        .experience-item, .education-item {
+            margin-bottom: 15px;
+        }
+        .title {
+            font-weight: bold;
+            font-size: 16px;
+        }
+        .organization {
+            font-style: italic;
+            color: #666;
+        }
+        .date {
+            float: right;
+            color: #666;
+            font-size: 14px;
+        }
+        .skills {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .skill {
+            background: #f0f0f0;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        .skill-match {
+            background: #e8f5e8;
+            border: 1px solid #4caf50;
+        }
+        .ontology-info {
+            background: #f9f9f9;
+            border: 1px solid #ddd;
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 12px;
+            color: #666;
+            margin-top: 30px;
+        }
+        @media print {
+            body { margin: 0; padding: 15px; }
+            .ontology-info { display: none; }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="name">{{ person.name or 'Academic Researcher' }}</div>
+        <div class="contact">
+            {% if person.email %}{{ person.email }}{% endif %}
+            {% if person.phone and person.email %} • {% endif %}
+            {% if person.phone %}{{ person.phone }}{% endif %}
+            {% if person.address and (person.email or person.phone) %} • {% endif %}
+            {% if person.address %}{{ person.address }}{% endif %}
+        </div>
+    </div>
+
+    {% if job.title and tailorToJob %}
+    <div class="section">
+        <div class="section-title">Position Applied For</div>
+        <div class="title">{{ job.title }}</div>
+        {% if job.company %}<div class="organization">{{ job.company }}</div>{% endif %}
+        {% if job.description %}
+        <p>{{ job.description }}</p>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    {% if person.education and person.education.length > 0 %}
+    <div class="section">
+        <div class="section-title">Education</div>
+        {% for edu in person.education %}
+        <div class="education-item">
+            <div class="title">{{ edu.degree or 'Degree' }}</div>
+            <div class="organization">{{ edu.institution or 'Institution' }}</div>
+            {% if edu.date %}<div class="date">{{ edu.date }}</div>{% endif %}
+            {% if edu.description %}<p>{{ edu.description }}</p>{% endif %}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    {% if person.experience and person.experience.length > 0 %}
+    <div class="section">
+        <div class="section-title">Research & Academic Experience</div>
+        {% for exp in person.experience %}
+        <div class="experience-item">
+            <div class="title">{{ exp.title or 'Position' }}</div>
+            <div class="organization">{{ exp.organization or 'Organization' }}</div>
+            {% if exp.date %}<div class="date">{{ exp.date }}</div>{% endif %}
+            {% if exp.description %}<p>{{ exp.description }}</p>{% endif %}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    {% if person.skills and person.skills.length > 0 %}
+    <div class="section">
+        <div class="section-title">Skills & Expertise</div>
+        <div class="skills">
+            {% for skill in person.skills %}
+            <span class="skill {% if skillMatching and job.requiredSkills and skill.toLowerCase() in job.requiredSkills.map(s => s.toLowerCase()) %}skill-match{% endif %}">
+                {{ skill }}
+            </span>
+            {% endfor %}
+        </div>
+        {% if skillMatching and job.requiredSkills %}
+        <p style="margin-top: 15px; font-style: italic; color: #666;">
+            Highlighted skills match job requirements
+        </p>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    {% if person.projects and person.projects.length > 0 %}
+    <div class="section">
+        <div class="section-title">Research Projects</div>
+        {% for project in person.projects %}
+        <div class="experience-item">
+            <div class="title">{{ project.title or 'Project' }}</div>
+            {% if project.date %}<div class="date">{{ project.date }}</div>{% endif %}
+            {% if project.description %}<p>{{ project.description }}</p>{% endif %}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    {% if person.certifications and person.certifications.length > 0 %}
+    <div class="section">
+        <div class="section-title">Certifications & Awards</div>
+        {% for cert in person.certifications %}
+        <div class="experience-item">
+            <div class="title">{{ cert.title or 'Certification' }}</div>
+            {% if cert.issuer %}<div class="organization">{{ cert.issuer }}</div>{% endif %}
+            {% if cert.date %}<div class="date">{{ cert.date }}</div>{% endif %}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    {% if includeOntology %}
+    <div class="ontology-info">
+        <strong>Semantic Resume Generated:</strong> {{ generatedDate }}<br>
+        <strong>Style:</strong> {{ style | title }}<br>
+        {% if tailorToJob %}<strong>Tailored for:</strong> {{ job.title or 'Specific Position' }}<br>{% endif %}
+        {% if skillMatching %}<strong>Skill Matching:</strong> Enabled<br>{% endif %}
+        <em>This resume was generated using semantic web technologies and RDF ontologies.</em>
+    </div>
+    {% endif %}
+</body>
+</html>

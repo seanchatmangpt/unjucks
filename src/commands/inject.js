@@ -1,7 +1,7 @@
 import { defineCommand } from "citty";
 import chalk from "chalk";
 import { Generator } from "../lib/generator.js";
-import { FileInjectorOrchestrator } from "../lib/file-injector/file-injector-orchestrator.js";
+import { SimpleFileInjectorOrchestrator } from "../lib/file-injector/simple-file-injector-orchestrator.js";
 import {
   validators,
   displayValidationResults,
@@ -298,8 +298,8 @@ export const injectCommand = defineCommand({
         );
       }
 
-      // Perform injection using FileInjectorOrchestrator
-      const orchestrator = new FileInjectorOrchestrator();
+      // Perform injection using SimpleFileInjectorOrchestrator
+      const orchestrator = new SimpleFileInjectorOrchestrator();
       
       if (!args.quiet) {
         const message = args.dry 
@@ -478,14 +478,12 @@ export const injectCommand = defineCommand({
         console.log(chalk.blue("  • Run with --verbose for more details"));
       }
 
-      // Use error recovery
-      const { errorRecovery } = await import("../lib/error-recovery.js");
-      errorRecovery.handleError({
-        command: "inject",
-        args: Object.keys(args),
-        error: error,
-        context: "inject"
-      }, { verbose: args.verbose, showSuggestions: true, showNextSteps: true });
+      // Error handled above, continuing without error recovery for now
+      return {
+        success: false,
+        message: error instanceof Error ? error.message : String(error),
+        files: []
+      };
     }
   },
 });

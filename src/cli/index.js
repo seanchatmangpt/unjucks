@@ -3,6 +3,12 @@
 import { defineCommand, runMain as cittyRunMain } from "citty";
 import chalk from "chalk";
 
+// Import enhanced CLI framework
+import { argumentParser } from './parser.js';
+import { commandRouter } from './router.js';
+import { helpSystem } from './help-system.js';
+import { interactiveMode } from './interactive.js';
+
 // Import all commands (corrected paths)
 import { generateCommand } from '../commands/generate.js';
 import { listCommand } from '../commands/list.js';
@@ -24,17 +30,80 @@ import { githubCommand } from '../commands/github.js';
 
 // All commands now imported from their respective modules
 
-// Template help command - using simple implementation
+// Enhanced help command using the help system
 const helpCommand = defineCommand({
   meta: {
     name: "help",
-    description: "Show template variable help",
+    description: "Show contextual help for commands and templates",
   },
-  run() {
-    console.log(chalk.blue.bold("🆘 Template Help"));
-    console.log(chalk.gray("Shows available template variables and their usage"));
-    console.log();
-    console.log(chalk.yellow("Use 'unjucks help <generator> <template>' for specific template help"));
+  args: {
+    template: {
+      type: "boolean",
+      description: "Show template-specific help"
+    }
+  },
+  async run({ args }) {
+    const rawArgs = process.argv.slice(2);
+    
+    // Remove 'help' from the beginning
+    const helpArgs = rawArgs.slice(1);
+    
+    if (helpArgs.length === 0) {
+      console.log(helpSystem.showGeneralHelp());
+      return;
+    }
+
+    if (args.template && helpArgs.length >= 2) {
+      // Template help: unjucks help template <generator> <template>
+      const [, generator, template] = helpArgs;
+      console.log(await helpSystem.showTemplateHelp(generator, template));
+    } else if (helpArgs.length === 1) {
+      // Command or generator help
+      const target = helpArgs[0];
+      console.log(await helpSystem.showHelp(target));
+    } else {
+      // Contextual help
+      console.log(await helpSystem.showContextualHelp(helpArgs));
+    }
+  },
+});
+
+// Interactive command
+const interactiveCommand = defineCommand({
+  meta: {
+    name: "interactive",
+    description: "Start interactive template generation mode",
+  },
+  args: {
+    quickStart: {
+      type: "string",
+      description: "Quick start type (component, page, api, test)"
+    }
+  },
+  async run({ args }) {
+    try {
+      let result;
+      
+      if (args.quickStart) {
+        result = await interactiveMode.quickStart(args.quickStart);
+      } else {
+        result = await interactiveMode.start();
+      }
+      
+      if (result.success && !result.cancelled) {
+        console.log(chalk.green('✓ Interactive session completed!'));
+        console.log(chalk.blue('Command to run:'));
+        console.log(chalk.cyan(result.command));
+        console.log(chalk.gray('\nYou can now run this command to generate your files.'));
+      } else if (result.cancelled) {
+        console.log(chalk.yellow('Interactive session cancelled.'));
+      } else {
+        console.error(chalk.red('Interactive session failed:'), result.error);
+      }
+    } catch (error) {
+      console.error('Interactive mode error:', error.message);
+      process.exit(1);
+    }
   },
 });
 
@@ -44,7 +113,7 @@ const helpCommand = defineCommand({
 import { getVersion } from '../lib/version-resolver.js';
 
 /**
- * Enhanced pre-process arguments to handle comprehensive Hygen-style positional syntax
+ * Enhanced pre-process arguments using the new CLI framework
  * @returns {string[]} Processed arguments
  */
 const preprocessArgs = () => {
@@ -61,7 +130,13 @@ const preprocessArgs = () => {
   }
   
   // Don't transform if already using explicit commands
-  if (['generate', 'new', 'preview', 'help', 'list', 'init', 'inject', 'version', 'semantic', 'swarm', 'workflow', 'perf', 'github', 'knowledge', 'neural', 'migrate'].includes(firstArg)) {
+  const knownCommands = [
+    'generate', 'new', 'preview', 'help', 'list', 'init', 'inject', 'version', 
+    'semantic', 'swarm', 'workflow', 'perf', 'github', 'knowledge', 'neural', 
+    'migrate', 'interactive'
+  ];
+  
+  if (knownCommands.includes(firstArg)) {
     return rawArgs;
   }
   
@@ -70,21 +145,25 @@ const preprocessArgs = () => {
     return rawArgs;
   }
   
-  // Handle Hygen-style positional syntax: unjucks <generator> <template> [name] [args...]
-  // Examples:
-  // - unjucks component react MyComponent
-  // - unjucks component new UserProfile 
-  // - unjucks api endpoint users --withAuth
-  if (rawArgs.length >= 2 && rawArgs[1] && !rawArgs[1].startsWith('-')) {
-    // Store original args in environment for ArgumentParser to use
-    process.env.UNJUCKS_POSITIONAL_ARGS = JSON.stringify(rawArgs);
-    // Transform to: unjucks generate <generator> <template> [remaining-args...]
-    return ['generate', ...rawArgs];
+  // Use the argument parser to validate and transform
+  try {
+    const parsed = argumentParser.parse(rawArgs);
+    
+    if (parsed.command === 'generate' && parsed.subcommand === 'hygen-style') {
+      // Store original args for reference
+      process.env.UNJUCKS_POSITIONAL_ARGS = JSON.stringify(rawArgs);
+      // Transform to explicit generate command for Citty
+      return ['generate', ...rawArgs];
+    }
+  } catch (error) {
+    // Use error handling system for parsing errors
+    console.error('Argument parsing error:', error.message);
+    return ['help'];
   }
   
-  // Single argument that's not a command - show help
+  // Single argument that's not a command - show contextual help
   if (rawArgs.length === 1) {
-    return ['--help'];
+    return ['help', firstArg];
   }
   
   return rawArgs;
@@ -117,6 +196,7 @@ const main = defineCommand({
     // new: newCommand,        // Primary command - clear intent
     // preview: previewCommand, // Safe exploration
     help: helpCommand,      // Context-sensitive help
+    interactive: interactiveCommand, // Interactive mode
     
     // SECONDARY COMMANDS
     list: listCommand,
@@ -170,7 +250,8 @@ const main = defineCommand({
       console.log(chalk.yellow("COMMANDS:"));
       console.log(chalk.gray("  new       Create new projects and components (primary)"));
       console.log(chalk.gray("  preview   Preview template output without writing files"));
-      console.log(chalk.gray("  help      Show template variable help"));
+      console.log(chalk.gray("  help      Show contextual help for commands and templates"));
+      console.log(chalk.gray("  interactive  Start interactive template generation mode"));
       console.log(chalk.gray("  generate  Generate files from templates (legacy)"));
       console.log(chalk.gray("  list      List available generators and templates"));
       console.log(chalk.gray("  inject    Inject or modify content in existing files"));
@@ -194,7 +275,10 @@ const main = defineCommand({
       console.log(chalk.gray("  unjucks component new UserProfile     # Hygen-style with 'new'"));
       console.log(chalk.gray("  unjucks api endpoint users --auth     # Mixed positional + flags"));
       console.log(chalk.gray("  unjucks generate component citty      # Explicit syntax"));
+      console.log(chalk.gray("  unjucks interactive                   # Interactive mode"));
+      console.log(chalk.gray("  unjucks interactive --quickStart=component  # Quick start"));
       console.log(chalk.gray("  unjucks list                          # List generators"));
+      console.log(chalk.gray("  unjucks help component react          # Template help"));
       console.log(chalk.gray("  unjucks semantic generate -o schema.ttl --enterprise  # RDF code generation"));
       console.log(chalk.gray("  unjucks swarm init --topology mesh    # Initialize agent swarm"));
       console.log(chalk.gray("  unjucks workflow create --name api-dev # Create development workflow"));

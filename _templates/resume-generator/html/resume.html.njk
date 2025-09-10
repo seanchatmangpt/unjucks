@@ -1,0 +1,235 @@
+---
+to: generated/resumes/<%= person.name | kebabCase %>-<%= job.title | kebabCase %>.html
+inject: false
+---
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ person.firstName }} {{ person.lastName }} - {{ job.title }}</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f9f9f9;
+        }
+        .resume-container {
+            background: white;
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .header {
+            text-align: center;
+            border-bottom: 2px solid #2c3e50;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+        .name {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #2c3e50;
+            margin: 0;
+        }
+        .job-title {
+            font-size: 1.3em;
+            color: #7f8c8d;
+            margin: 5px 0;
+        }
+        .contact-info {
+            margin-top: 15px;
+            font-size: 0.9em;
+        }
+        .contact-info span {
+            margin: 0 10px;
+        }
+        .section {
+            margin-bottom: 25px;
+        }
+        .section-title {
+            font-size: 1.4em;
+            font-weight: bold;
+            color: #2c3e50;
+            border-bottom: 1px solid #bdc3c7;
+            padding-bottom: 5px;
+            margin-bottom: 15px;
+        }
+        .experience-item, .education-item, .project-item {
+            margin-bottom: 20px;
+        }
+        .item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            margin-bottom: 5px;
+        }
+        .item-title {
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        .item-company {
+            font-style: italic;
+            color: #7f8c8d;
+        }
+        .item-date {
+            font-size: 0.9em;
+            color: #95a5a6;
+        }
+        .item-description {
+            margin-top: 8px;
+            text-align: justify;
+        }
+        .achievements {
+            margin-top: 10px;
+        }
+        .achievements ul {
+            margin: 5px 0;
+            padding-left: 20px;
+        }
+        .skills-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        .skill-category {
+            background: #ecf0f1;
+            padding: 15px;
+            border-radius: 5px;
+        }
+        .skill-category h4 {
+            margin: 0 0 10px 0;
+            color: #2c3e50;
+        }
+        .skill-list {
+            margin: 0;
+            padding: 0;
+            list-style: none;
+        }
+        .skill-list li {
+            display: inline-block;
+            background: #3498db;
+            color: white;
+            padding: 3px 8px;
+            margin: 2px;
+            border-radius: 3px;
+            font-size: 0.85em;
+        }
+        @media print {
+            body { background: white; }
+            .resume-container { box-shadow: none; }
+        }
+    </style>
+</head>
+<body>
+    <div class="resume-container">
+        <header class="header">
+            <h1 class="name">{{ person.firstName }} {{ person.lastName }}</h1>
+            <div class="job-title">{{ job.title }}</div>
+            <div class="contact-info">
+                {% if person.email %}<span>📧 {{ person.email }}</span>{% endif %}
+                {% if person.phone %}<span>📞 {{ person.phone }}</span>{% endif %}
+                {% if person.website %}<span>🌐 <a href="{{ person.website }}">{{ person.website }}</a></span>{% endif %}
+                {% if person.linkedin %}<span>💼 <a href="https://linkedin.com/in/{{ person.linkedin }}">LinkedIn</a></span>{% endif %}
+                {% if person.github %}<span>💻 <a href="https://github.com/{{ person.github }}">GitHub</a></span>{% endif %}
+            </div>
+        </header>
+
+        {% if person.summary %}
+        <section class="section">
+            <h2 class="section-title">Professional Summary</h2>
+            <p>{{ person.summary }}</p>
+        </section>
+        {% endif %}
+
+        {% if person.experience and person.experience.length > 0 %}
+        <section class="section">
+            <h2 class="section-title">Experience</h2>
+            {% for exp in person.experience %}
+            <div class="experience-item">
+                <div class="item-header">
+                    <div>
+                        <div class="item-title">{{ exp.title }}</div>
+                        <div class="item-company">{{ exp.company }}{% if exp.location %} • {{ exp.location }}{% endif %}</div>
+                    </div>
+                    <div class="item-date">{{ exp.startDate }} - {{ exp.endDate || 'Present' }}</div>
+                </div>
+                {% if exp.description %}
+                <div class="item-description">{{ exp.description }}</div>
+                {% endif %}
+                {% if exp.achievements and exp.achievements.length > 0 %}
+                <div class="achievements">
+                    <ul>
+                        {% for achievement in exp.achievements %}
+                        <li>{{ achievement }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </section>
+        {% endif %}
+
+        {% if person.education and person.education.length > 0 %}
+        <section class="section">
+            <h2 class="section-title">Education</h2>
+            {% for edu in person.education %}
+            <div class="education-item">
+                <div class="item-header">
+                    <div>
+                        <div class="item-title">{{ edu.degree }}</div>
+                        <div class="item-company">{{ edu.institution }}{% if edu.location %} • {{ edu.location }}{% endif %}</div>
+                    </div>
+                    <div class="item-date">{{ edu.startDate }} - {{ edu.endDate }}</div>
+                </div>
+                {% if edu.gpa %}<div>GPA: {{ edu.gpa }}</div>{% endif %}
+                {% if edu.description %}<div class="item-description">{{ edu.description }}</div>{% endif %}
+            </div>
+            {% endfor %}
+        </section>
+        {% endif %}
+
+        {% if person.skills and person.skills.length > 0 %}
+        <section class="section">
+            <h2 class="section-title">Skills</h2>
+            <div class="skills-grid">
+                {% set skillCategories = person.skills | groupby('category') %}
+                {% for category, skills in skillCategories %}
+                <div class="skill-category">
+                    <h4>{{ category }}</h4>
+                    <ul class="skill-list">
+                        {% for skill in skills %}
+                        <li>{{ skill.name }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endfor %}
+            </div>
+        </section>
+        {% endif %}
+
+        {% if person.projects and person.projects.length > 0 %}
+        <section class="section">
+            <h2 class="section-title">Projects</h2>
+            {% for project in person.projects %}
+            <div class="project-item">
+                <div class="item-title">{{ project.name }}</div>
+                <div class="item-description">{{ project.description }}</div>
+                {% if project.technologies %}
+                <div><strong>Technologies:</strong> {{ project.technologies | join(', ') }}</div>
+                {% endif %}
+                {% if project.url %}
+                <div><strong>URL:</strong> <a href="{{ project.url }}">{{ project.url }}</a></div>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </section>
+        {% endif %}
+    </div>
+</body>
+</html>

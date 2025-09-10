@@ -1,0 +1,359 @@
+---
+to: "{{ outputPath | default('output') }}/{{ personUri | rdfObject('resume:firstName') | first | prop('value') | lower }}-{{ personUri | rdfObject('resume:lastName') | first | prop('value') | lower }}-resume.html"
+inject: false
+skipIf: false
+rdf:
+  - type: file
+    path: templates/resume/ontology.ttl
+  - type: file  
+    path: templates/resume/sample-person.ttl
+---
+{%- set person = personUri | default('person:alex-johnson') -%}
+{%- set firstName = person | rdfObject('resume:firstName') | first | prop('value') -%}
+{%- set lastName = person | rdfObject('resume:lastName') | first | prop('value') -%}
+{%- set fullName = firstName + ' ' + lastName -%}
+{%- set email = person | rdfObject('resume:email') | first | prop('value') -%}
+{%- set phone = person | rdfObject('resume:phone') | first | prop('value') -%}
+{%- set summary = person | rdfObject('resume:summary') | first | prop('value') -%}
+{%- set location = person | rdfObject('resume:location') | first | prop('value') -%}
+{%- set linkedInUrl = person | rdfObject('resume:linkedInUrl') | first | prop('value') -%}
+{%- set githubUrl = person | rdfObject('resume:githubUrl') | first | prop('value') -%}
+{%- set portfolioUrl = person | rdfObject('resume:portfolioUrl') | first | prop('value') -%}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ fullName }} - Resume</title>
+    <style>
+        body { font-family: 'Segoe UI', Arial, sans-serif; line-height: 1.6; color: #333; max-width: 800px; margin: 0 auto; padding: 20px; }
+        .header { text-align: center; border-bottom: 2px solid #2c3e50; padding-bottom: 20px; margin-bottom: 30px; }
+        .name { font-size: 2.5em; font-weight: bold; color: #2c3e50; margin-bottom: 10px; }
+        .contact { display: flex; justify-content: center; gap: 20px; flex-wrap: wrap; margin-top: 15px; }
+        .contact-item { color: #666; text-decoration: none; }
+        .contact-item:hover { color: #2c3e50; }
+        .section { margin-bottom: 30px; }
+        .section-title { font-size: 1.4em; font-weight: bold; color: #2c3e50; border-bottom: 1px solid #bdc3c7; padding-bottom: 5px; margin-bottom: 15px; }
+        .summary { font-style: italic; color: #555; font-size: 1.1em; text-align: center; margin-bottom: 30px; }
+        .experience-item, .education-item, .project-item { margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid #ecf0f1; }
+        .job-title { font-size: 1.2em; font-weight: bold; color: #2c3e50; }
+        .company { font-weight: bold; color: #3498db; }
+        .date-location { color: #666; font-style: italic; margin-bottom: 5px; }
+        .description { margin-top: 8px; }
+        .responsibilities, .achievements { margin-top: 10px; }
+        .responsibilities li, .achievements li { margin-bottom: 3px; }
+        .skills-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; }
+        .skill-category { background: #f8f9fa; padding: 15px; border-radius: 5px; }
+        .skill-category-title { font-weight: bold; color: #2c3e50; margin-bottom: 10px; }
+        .skill-item { display: flex; justify-content: space-between; margin-bottom: 5px; }
+        .skill-name { font-weight: 500; }
+        .skill-level { color: #666; font-size: 0.9em; }
+        .years { color: #888; font-size: 0.8em; }
+        .project-links { margin-top: 8px; }
+        .project-links a { color: #3498db; text-decoration: none; margin-right: 15px; }
+        .project-links a:hover { text-decoration: underline; }
+        .certifications { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; }
+        .cert-item { background: #e8f5e8; padding: 10px; border-radius: 5px; border-left: 4px solid #27ae60; }
+        .no-print { display: block; }
+        @media print { .no-print { display: none; } body { font-size: 12px; } }
+    </style>
+</head>
+<body>
+    <!-- Header with semantic data extraction -->
+    <div class="header">
+        <div class="name">{{ fullName }}</div>
+        <div class="contact">
+            {% if email %}<a href="mailto:{{ email }}" class="contact-item">{{ email }}</a>{% endif %}
+            {% if phone %}<span class="contact-item">{{ phone }}</span>{% endif %}
+            {% if location %}<span class="contact-item">{{ location }}</span>{% endif %}
+        </div>
+        <div class="contact">
+            {% if linkedInUrl %}<a href="{{ linkedInUrl }}" class="contact-item" target="_blank">LinkedIn</a>{% endif %}
+            {% if githubUrl %}<a href="{{ githubUrl }}" class="contact-item" target="_blank">GitHub</a>{% endif %}
+            {% if portfolioUrl %}<a href="{{ portfolioUrl }}" class="contact-item" target="_blank">Portfolio</a>{% endif %}
+        </div>
+    </div>
+
+    <!-- Professional Summary -->
+    {% if summary %}
+    <div class="summary">{{ summary }}</div>
+    {% endif %}
+
+    <!-- Experience Section using RDF Queries -->
+    <div class="section">
+        <div class="section-title">Professional Experience</div>
+        {%- set experiences = person | rdfObject('resume:hasExperience') -%}
+        {% for experience in experiences %}
+            {%- set expUri = experience.value -%}
+            {%- set jobTitle = expUri | rdfObject('resume:jobTitle') | first | prop('value') -%}
+            {%- set workedAt = expUri | rdfObject('resume:workedAt') | first | prop('value') -%}
+            {%- set companyName = workedAt | rdfObject('resume:organizationName') | first | prop('value') -%}
+            {%- set startDate = expUri | rdfObject('resume:startDate') | first | prop('value') -%}
+            {%- set endDate = expUri | rdfObject('resume:endDate') | first | prop('value') -%}
+            {%- set isCurrent = expUri | rdfObject('resume:isCurrent') | first | prop('value') -%}
+            {%- set expLocation = expUri | rdfObject('resume:location') | first | prop('value') -%}
+            {%- set description = expUri | rdfObject('resume:description') | first | prop('value') -%}
+            {%- set responsibilities = expUri | rdfObject('resume:responsibility') -%}
+            {%- set achievements = expUri | rdfObject('resume:achievement') -%}
+            {%- set skillsUsed = expUri | rdfObject('resume:usedSkill') -%}
+            
+            <div class="experience-item">
+                <div class="job-title">{{ jobTitle }}</div>
+                <div class="company">{{ companyName }}</div>
+                <div class="date-location">
+                    {{ startDate | date('MMM YYYY') }} - {% if isCurrent == 'true' %}Present{% else %}{{ endDate | date('MMM YYYY') }}{% endif %}
+                    {% if expLocation %} | {{ expLocation }}{% endif %}
+                </div>
+                
+                {% if description %}
+                <div class="description">{{ description }}</div>
+                {% endif %}
+                
+                {% if responsibilities | length > 0 %}
+                <div class="responsibilities">
+                    <strong>Key Responsibilities:</strong>
+                    <ul>
+                        {% for responsibility in responsibilities %}
+                        <li>{{ responsibility.value }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+                
+                {% if achievements | length > 0 %}
+                <div class="achievements">
+                    <strong>Key Achievements:</strong>
+                    <ul>
+                        {% for achievement in achievements %}
+                        <li>{{ achievement.value }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+                
+                {% if skillsUsed | length > 0 %}
+                <div style="margin-top: 10px;">
+                    <strong>Technologies Used:</strong>
+                    {% for skill in skillsUsed %}
+                        {%- set skillLabel = skill.value | rdfLabel -%}
+                        <span style="background: #ecf0f1; padding: 2px 6px; border-radius: 3px; margin-right: 5px; font-size: 0.9em;">{{ skillLabel }}</span>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+        {% endfor %}
+    </div>
+
+    <!-- Skills Section with RDF-based categorization -->
+    <div class="section">
+        <div class="section-title">Technical Skills</div>
+        <div class="skills-grid">
+            {%- set allSkills = person | rdfObject('resume:hasSkill') -%}
+            {%- set programmingLanguages = [] -%}
+            {%- set frameworks = [] -%}
+            {%- set tools = [] -%}
+            {%- set methodologies = [] -%}
+            {%- set softSkills = [] -%}
+            
+            {% for skill in allSkills %}
+                {%- set skillUri = skill.value -%}
+                {%- set skillTypes = skillUri | rdfType -%}
+                {%- set skillLabel = skillUri | rdfLabel -%}
+                {%- set proficiency = skillUri | rdfObject('skill:proficiencyLevel') | first | prop('value') -%}
+                {%- set yearsExp = skillUri | rdfObject('skill:yearsOfExperience') | first | prop('value') -%}
+                
+                {% if 'skill:ProgrammingLanguage' in skillTypes %}
+                    {%- set _ = programmingLanguages.push({name: skillLabel, level: proficiency, years: yearsExp}) -%}
+                {% elif 'skill:Framework' in skillTypes %}
+                    {%- set _ = frameworks.push({name: skillLabel, level: proficiency, years: yearsExp}) -%}
+                {% elif 'skill:Tool' in skillTypes %}
+                    {%- set _ = tools.push({name: skillLabel, level: proficiency, years: yearsExp}) -%}
+                {% elif 'skill:Methodology' in skillTypes %}
+                    {%- set _ = methodologies.push({name: skillLabel, level: proficiency, years: yearsExp}) -%}
+                {% elif 'skill:SoftSkill' in skillTypes %}
+                    {%- set _ = softSkills.push({name: skillLabel, level: proficiency}) -%}
+                {% endif %}
+            {% endfor %}
+            
+            {% if programmingLanguages | length > 0 %}
+            <div class="skill-category">
+                <div class="skill-category-title">Programming Languages</div>
+                {% for skill in programmingLanguages %}
+                <div class="skill-item">
+                    <span class="skill-name">{{ skill.name }}</span>
+                    <span>
+                        <span class="skill-level">{{ skill.level | capitalize }}</span>
+                        {% if skill.years %}<span class="years">({{ skill.years }}y)</span>{% endif %}
+                    </span>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+            
+            {% if frameworks | length > 0 %}
+            <div class="skill-category">
+                <div class="skill-category-title">Frameworks & Libraries</div>
+                {% for skill in frameworks %}
+                <div class="skill-item">
+                    <span class="skill-name">{{ skill.name }}</span>
+                    <span>
+                        <span class="skill-level">{{ skill.level | capitalize }}</span>
+                        {% if skill.years %}<span class="years">({{ skill.years }}y)</span>{% endif %}
+                    </span>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+            
+            {% if tools | length > 0 %}
+            <div class="skill-category">
+                <div class="skill-category-title">Tools & Technologies</div>
+                {% for skill in tools %}
+                <div class="skill-item">
+                    <span class="skill-name">{{ skill.name }}</span>
+                    <span>
+                        <span class="skill-level">{{ skill.level | capitalize }}</span>
+                        {% if skill.years %}<span class="years">({{ skill.years }}y)</span>{% endif %}
+                    </span>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+            
+            {% if softSkills | length > 0 %}
+            <div class="skill-category">
+                <div class="skill-category-title">Core Competencies</div>
+                {% for skill in softSkills %}
+                <div class="skill-item">
+                    <span class="skill-name">{{ skill.name }}</span>
+                    {% if skill.level %}<span class="skill-level">{{ skill.level | capitalize }}</span>{% endif %}
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Projects Section -->
+    <div class="section">
+        <div class="section-title">Featured Projects</div>
+        {%- set projects = person | rdfObject('resume:hasProject') -%}
+        {% for project in projects %}
+            {%- set projectUri = project.value -%}
+            {%- set projectName = projectUri | rdfObject('resume:projectName') | first | prop('value') -%}
+            {%- set projectDescription = projectUri | rdfObject('resume:description') | first | prop('value') -%}
+            {%- set projectUrl = projectUri | rdfObject('resume:projectUrl') | first | prop('value') -%}
+            {%- set repositoryUrl = projectUri | rdfObject('resume:repositoryUrl') | first | prop('value') -%}
+            {%- set projectSkills = projectUri | rdfObject('resume:projectUsedSkill') -%}
+            
+            <div class="project-item">
+                <div style="font-size: 1.1em; font-weight: bold; color: #2c3e50;">{{ projectName }}</div>
+                {% if projectDescription %}
+                <div class="description">{{ projectDescription }}</div>
+                {% endif %}
+                
+                {% if projectUrl or repositoryUrl %}
+                <div class="project-links">
+                    {% if projectUrl %}<a href="{{ projectUrl }}" target="_blank">🔗 Live Demo</a>{% endif %}
+                    {% if repositoryUrl %}<a href="{{ repositoryUrl }}" target="_blank">📁 Source Code</a>{% endif %}
+                </div>
+                {% endif %}
+                
+                {% if projectSkills | length > 0 %}
+                <div style="margin-top: 8px;">
+                    <strong>Technologies:</strong>
+                    {% for skill in projectSkills %}
+                        {%- set skillLabel = skill.value | rdfLabel -%}
+                        <span style="background: #e8f4f8; padding: 2px 6px; border-radius: 3px; margin-right: 5px; font-size: 0.9em;">{{ skillLabel }}</span>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+        {% endfor %}
+    </div>
+
+    <!-- Education Section -->
+    <div class="section">
+        <div class="section-title">Education & Certifications</div>
+        {%- set educations = person | rdfObject('resume:hasEducation') -%}
+        {% for education in educations %}
+            {%- set eduUri = education.value -%}
+            {%- set eduTypes = eduUri | rdfType -%}
+            
+            {% if 'resume:Degree' in eduTypes %}
+                {%- set degree = eduUri | rdfObject('resume:degree') | first | prop('value') -%}
+                {%- set major = eduUri | rdfObject('resume:major') | first | prop('value') -%}
+                {%- set minor = eduUri | rdfObject('resume:minor') | first | prop('value') -%}
+                {%- set institution = eduUri | rdfObject('resume:studiedAt') | first | prop('value') -%}
+                {%- set institutionName = institution | rdfObject('resume:organizationName') | first | prop('value') -%}
+                {%- set gpa = eduUri | rdfObject('resume:gpa') | first | prop('value') -%}
+                {%- set startDate = eduUri | rdfObject('resume:startDate') | first | prop('value') -%}
+                {%- set endDate = eduUri | rdfObject('resume:endDate') | first | prop('value') -%}
+                
+                <div class="education-item">
+                    <div style="font-size: 1.1em; font-weight: bold;">{{ degree }} in {{ major }}</div>
+                    {% if minor %}<div>Minor in {{ minor }}</div>{% endif %}
+                    <div class="company">{{ institutionName }}</div>
+                    <div class="date-location">{{ startDate | date('YYYY') }} - {{ endDate | date('YYYY') }}{% if gpa %} | GPA: {{ gpa }}{% endif %}</div>
+                </div>
+            {% elif 'resume:Certification' in eduTypes %}
+                {%- set certLabel = eduUri | rdfLabel -%}
+                {%- set certId = eduUri | rdfObject('resume:certificationId') | first | prop('value') -%}
+                {%- set startDate = eduUri | rdfObject('resume:startDate') | first | prop('value') -%}
+                {%- set expirationDate = eduUri | rdfObject('resume:expirationDate') | first | prop('value') -%}
+                
+                <div class="cert-item">
+                    <div style="font-weight: bold;">{{ certLabel }}</div>
+                    {% if certId %}<div style="font-size: 0.9em; color: #666;">ID: {{ certId }}</div>{% endif %}
+                    <div style="font-size: 0.9em; color: #666;">
+                        Earned: {{ startDate | date('MMM YYYY') }}
+                        {% if expirationDate %} | Expires: {{ expirationDate | date('MMM YYYY') }}{% endif %}
+                    </div>
+                </div>
+            {% endif %}
+        {% endfor %}
+    </div>
+
+    <!-- Achievements Section -->
+    {%- set achievements = person | rdfObject('resume:hasAchievement') -%}
+    {% if achievements | length > 0 %}
+    <div class="section">
+        <div class="section-title">Awards & Recognition</div>
+        {% for achievement in achievements %}
+            {%- set achUri = achievement.value -%}
+            {%- set achTypes = achUri | rdfType -%}
+            {%- set achLabel = achUri | rdfLabel -%}
+            {%- set awardName = achUri | rdfObject('resume:awardName') | first | prop('value') -%}
+            {%- set awardDate = achUri | rdfObject('resume:awardDate') | first | prop('value') -%}
+            {%- set venue = achUri | rdfObject('resume:venue') | first | prop('value') -%}
+            {%- set description = achUri | rdfObject('resume:description') | first | prop('value') -%}
+            
+            <div style="margin-bottom: 15px;">
+                <div style="font-weight: bold;">{{ awardName || achLabel }}</div>
+                {% if venue %}<div style="color: #3498db;">{{ venue }}</div>{% endif %}
+                {% if awardDate %}<div style="color: #666; font-size: 0.9em;">{{ awardDate | date('MMMM YYYY') }}</div>{% endif %}
+                {% if description %}<div style="margin-top: 5px;">{{ description }}</div>{% endif %}
+            </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- RDF Data Debug Section (for validation) -->
+    {% if debugMode %}
+    <div class="section no-print" style="border-top: 2px solid #e74c3c; padding-top: 20px; margin-top: 40px;">
+        <div class="section-title" style="color: #e74c3c;">RDF Debug Information</div>
+        <div style="background: #f8f9fa; padding: 15px; border-radius: 5px; font-family: monospace; font-size: 0.9em;">
+            <div><strong>Person URI:</strong> {{ person }}</div>
+            <div><strong>Total Triples:</strong> {{ rdf.stats.tripleCount if rdf.stats else 'N/A' }}</div>
+            <div><strong>Skills Count:</strong> {{ allSkills | length }}</div>
+            <div><strong>Experiences Count:</strong> {{ experiences | length }}</div>
+            <div><strong>RDF Filters Available:</strong> {{ 'Yes' if rdfExists else 'No' }}</div>
+        </div>
+    </div>
+    {% endif %}
+
+    <div style="text-align: center; margin-top: 40px; padding-top: 20px; border-top: 1px solid #bdc3c7; color: #666; font-size: 0.9em;">
+        Generated using semantic RDF data • {{ moment().format('MMMM Do, YYYY') }}
+    </div>
+</body>
+</html>

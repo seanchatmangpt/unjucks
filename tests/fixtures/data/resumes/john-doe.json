@@ -1,0 +1,111 @@
+{
+  "firstName": "John",
+  "lastName": "Doe",
+  "name": "John Doe",
+  "email": "john.doe@example.com",
+  "phone": "+1 (555) 123-4567",
+  "website": "https://johndoe.dev",
+  "linkedin": "johndoe",
+  "github": "johndoe",
+  "address": {
+    "street": "123 Tech Street",
+    "city": "San Francisco",
+    "state": "CA",
+    "zipCode": "94105",
+    "country": "US"
+  },
+  "summary": "Experienced software engineer with 8+ years in full-stack development, specializing in React, Node.js, and cloud architectures. Proven track record of leading teams and delivering scalable solutions for high-traffic applications.",
+  "experience": [
+    {
+      "title": "Senior Software Engineer",
+      "company": "TechCorp Inc.",
+      "location": "San Francisco, CA",
+      "startDate": "2020-01",
+      "endDate": null,
+      "description": "Lead development of microservices architecture serving 10M+ users. Mentor junior developers and drive technical decisions for the platform team.",
+      "achievements": [
+        "Reduced API response time by 40% through optimization and caching strategies",
+        "Led migration from monolithic to microservices architecture",
+        "Mentored 5 junior developers, with 3 receiving promotions",
+        "Designed and implemented CI/CD pipeline reducing deployment time by 60%"
+      ]
+    },
+    {
+      "title": "Full Stack Developer",
+      "company": "StartupXYZ",
+      "location": "San Francisco, CA",
+      "startDate": "2018-06",
+      "endDate": "2019-12",
+      "description": "Built and maintained web applications using React, Node.js, and PostgreSQL. Collaborated with product team to implement new features and improve user experience.",
+      "achievements": [
+        "Developed real-time chat feature used by 50,000+ users",
+        "Implemented automated testing suite increasing code coverage to 85%",
+        "Optimized database queries reducing load times by 35%"
+      ]
+    },
+    {
+      "title": "Software Developer",
+      "company": "DevCompany",
+      "location": "Austin, TX",
+      "startDate": "2016-08",
+      "endDate": "2018-05",
+      "description": "Developed and maintained customer-facing web applications using JavaScript, PHP, and MySQL.",
+      "achievements": [
+        "Built responsive web applications supporting mobile and desktop users",
+        "Collaborated with UX team to improve user satisfaction scores by 25%",
+        "Implemented payment processing system handling $1M+ monthly transactions"
+      ]
+    }
+  ],
+  "education": [
+    {
+      "degree": "Bachelor of Science in Computer Science",
+      "institution": "University of California, Berkeley",
+      "location": "Berkeley, CA",
+      "startDate": "2012-08",
+      "endDate": "2016-05",
+      "gpa": "3.7",
+      "description": "Relevant coursework: Data Structures, Algorithms, Database Systems, Software Engineering"
+    }
+  ],
+  "skills": [
+    { "name": "JavaScript", "category": "Technical", "level": "Expert", "yearsOfExperience": 8 },
+    { "name": "TypeScript", "category": "Technical", "level": "Advanced", "yearsOfExperience": 5 },
+    { "name": "React", "category": "Technical", "level": "Expert", "yearsOfExperience": 6 },
+    { "name": "Node.js", "category": "Technical", "level": "Expert", "yearsOfExperience": 7 },
+    { "name": "Python", "category": "Technical", "level": "Intermediate", "yearsOfExperience": 3 },
+    { "name": "PostgreSQL", "category": "Technical", "level": "Advanced", "yearsOfExperience": 6 },
+    { "name": "MongoDB", "category": "Technical", "level": "Intermediate", "yearsOfExperience": 4 },
+    { "name": "AWS", "category": "Technical", "level": "Advanced", "yearsOfExperience": 5 },
+    { "name": "Docker", "category": "Technical", "level": "Advanced", "yearsOfExperience": 4 },
+    { "name": "Kubernetes", "category": "Technical", "level": "Intermediate", "yearsOfExperience": 2 },
+    { "name": "Team Leadership", "category": "Soft", "level": "Advanced", "yearsOfExperience": 3 },
+    { "name": "Agile Methodologies", "category": "Soft", "level": "Expert", "yearsOfExperience": 8 },
+    { "name": "Problem Solving", "category": "Soft", "level": "Expert", "yearsOfExperience": 8 },
+    { "name": "Communication", "category": "Soft", "level": "Advanced", "yearsOfExperience": 8 },
+    { "name": "AWS Certified Solutions Architect", "category": "Certification", "level": "Expert", "yearsOfExperience": 2 }
+  ],
+  "projects": [
+    {
+      "name": "E-commerce Platform",
+      "description": "Built a scalable e-commerce platform handling 100,000+ daily transactions with real-time inventory management and payment processing.",
+      "technologies": ["React", "Node.js", "PostgreSQL", "Redis", "AWS", "Stripe API"],
+      "url": "https://github.com/johndoe/ecommerce-platform",
+      "startDate": "2021-01"
+    },
+    {
+      "name": "Real-time Analytics Dashboard",
+      "description": "Developed a real-time analytics dashboard for monitoring application performance and user behavior with customizable widgets and alerts.",
+      "technologies": ["React", "D3.js", "WebSocket", "Node.js", "InfluxDB"],
+      "url": "https://github.com/johndoe/analytics-dashboard",
+      "startDate": "2020-06"
+    },
+    {
+      "name": "Microservices API Gateway",
+      "description": "Designed and implemented an API gateway for microservices architecture with rate limiting, authentication, and monitoring capabilities.",
+      "technologies": ["Node.js", "Express", "Redis", "JWT", "Docker", "Kubernetes"],
+      "url": "https://github.com/johndoe/api-gateway",
+      "startDate": "2019-09"
+    }
+  ]
+}
