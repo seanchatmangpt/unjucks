@@ -29,6 +29,8 @@ permissions:
   contents: read
   security-events: write
   actions: read
+  id-token: write  # For OIDC token access
+  pull-requests: write  # For PR comments
 
 jobs:
   # Static Application Security Testing (SAST)

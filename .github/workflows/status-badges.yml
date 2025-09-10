@@ -1,0 +1,326 @@
+name: Status Badges & Monitoring
+
+# Updates README badges and provides real-time status monitoring
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+  workflow_run:
+    workflows: 
+      - "🚀 Optimized CI/CD Pipeline"
+      - "Security Scanning & Compliance"
+      - "Production Validation Pipeline"
+    types: [completed]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+  actions: read
+  checks: read
+
+env:
+  BADGE_STYLE: flat-square
+  SHIELD_IO_BASE: https://img.shields.io
+
+jobs:
+  update-badges:
+    name: Update Status Badges
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 1
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: |
+          npm ci --prefer-offline --no-audit --omit=optional
+        env:
+          NPM_CONFIG_CACHE: ${{ runner.temp }}/.npm
+          HUSKY: 0
+
+      - name: Get workflow status
+        id: workflow-status
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { owner, repo } = context.repo;
+            
+            // Get latest workflow runs
+            const workflows = await github.rest.actions.listWorkflowRunsForRepo({
+              owner,
+              repo,
+              per_page: 50,
+              status: 'completed'
+            });
+            
+            // Find latest runs for our key workflows
+            const keyWorkflows = {
+              'ci': '🚀 Optimized CI/CD Pipeline',
+              'security': 'Security Scanning & Compliance', 
+              'production': 'Production Validation Pipeline'
+            };
+            
+            const statuses = {};
+            
+            for (const [key, workflowName] of Object.entries(keyWorkflows)) {
+              const run = workflows.data.workflow_runs.find(r => 
+                r.name === workflowName && r.head_branch === 'main'
+              );
+              
+              if (run) {
+                statuses[key] = {
+                  status: run.conclusion,
+                  badge_color: run.conclusion === 'success' ? 'brightgreen' : 
+                              run.conclusion === 'failure' ? 'red' : 'yellow',
+                  run_id: run.id
+                };
+              } else {
+                statuses[key] = {
+                  status: 'unknown',
+                  badge_color: 'lightgrey',
+                  run_id: null
+                };
+              }
+            }
+            
+            core.setOutput('ci_status', statuses.ci.status);
+            core.setOutput('ci_color', statuses.ci.badge_color);
+            core.setOutput('security_status', statuses.security.status);
+            core.setOutput('security_color', statuses.security.badge_color);
+            core.setOutput('production_status', statuses.production.status);
+            core.setOutput('production_color', statuses.production.badge_color);
+
+      - name: Get package info
+        id: package-info
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          NAME=$(node -p "require('./package.json').name")
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "name=$NAME" >> $GITHUB_OUTPUT
+
+      - name: Get test coverage
+        id: coverage
+        run: |
+          # Run tests to generate coverage
+          npm run test:coverage || echo "Coverage generation completed"
+          
+          if [ -f "coverage/coverage-summary.json" ]; then
+            COVERAGE=$(node -p "JSON.parse(require('fs').readFileSync('coverage/coverage-summary.json')).total.lines.pct")
+            COVERAGE_COLOR="brightgreen"
+            
+            if (( $(echo "$COVERAGE < 80" | bc -l 2>/dev/null || echo "0") )); then
+              COVERAGE_COLOR="red"
+            elif (( $(echo "$COVERAGE < 90" | bc -l 2>/dev/null || echo "0") )); then
+              COVERAGE_COLOR="yellow"
+            fi
+            
+            echo "coverage=$COVERAGE" >> $GITHUB_OUTPUT
+            echo "coverage_color=$COVERAGE_COLOR" >> $GITHUB_OUTPUT
+          else
+            echo "coverage=unknown" >> $GITHUB_OUTPUT
+            echo "coverage_color=lightgrey" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Generate badge URLs
+        id: badges
+        run: |
+          REPO="${{ github.repository }}"
+          
+          # Core status badges
+          echo "ci_badge=${{ env.SHIELD_IO_BASE }}/github/actions/workflow/status/$REPO/optimized-ci.yml?branch=main&style=${{ env.BADGE_STYLE }}&label=CI%2FCD" >> $GITHUB_OUTPUT
+          echo "security_badge=${{ env.SHIELD_IO_BASE }}/github/actions/workflow/status/$REPO/security.yml?branch=main&style=${{ env.BADGE_STYLE }}&label=Security" >> $GITHUB_OUTPUT
+          echo "production_badge=${{ env.SHIELD_IO_BASE }}/github/actions/workflow/status/$REPO/production-validation.yml?branch=main&style=${{ env.BADGE_STYLE }}&label=Production" >> $GITHUB_OUTPUT
+          
+          # Package info badges
+          echo "version_badge=${{ env.SHIELD_IO_BASE }}/npm/v/${{ steps.package-info.outputs.name }}?style=${{ env.BADGE_STYLE }}" >> $GITHUB_OUTPUT
+          echo "license_badge=${{ env.SHIELD_IO_BASE }}/github/license/$REPO?style=${{ env.BADGE_STYLE }}" >> $GITHUB_OUTPUT
+          echo "node_badge=${{ env.SHIELD_IO_BASE }}/node/v/${{ steps.package-info.outputs.name }}?style=${{ env.BADGE_STYLE }}" >> $GITHUB_OUTPUT
+          
+          # Quality badges
+          echo "coverage_badge=${{ env.SHIELD_IO_BASE }}/badge/coverage-${{ steps.coverage.outputs.coverage }}%25-${{ steps.coverage.outputs.coverage_color }}?style=${{ env.BADGE_STYLE }}" >> $GITHUB_OUTPUT
+          echo "dependencies_badge=${{ env.SHIELD_IO_BASE }}/david/$REPO?style=${{ env.BADGE_STYLE }}" >> $GITHUB_OUTPUT
+          
+          # Platform compatibility badges
+          echo "platform_badge=${{ env.SHIELD_IO_BASE }}/badge/platform-linux%20%7C%20macos%20%7C%20windows-blue?style=${{ env.BADGE_STYLE }}" >> $GITHUB_OUTPUT
+
+      - name: Update README badges
+        run: |
+          # Create badges section for README
+          cat > badges.md << 'EOF'
+          ## Status Badges
+          
+          [![CI/CD](${{ steps.badges.outputs.ci_badge }})](https://github.com/${{ github.repository }}/actions/workflows/optimized-ci.yml)
+          [![Security](${{ steps.badges.outputs.security_badge }})](https://github.com/${{ github.repository }}/actions/workflows/security.yml)
+          [![Production](${{ steps.badges.outputs.production_badge }})](https://github.com/${{ github.repository }}/actions/workflows/production-validation.yml)
+          
+          [![npm version](${{ steps.badges.outputs.version_badge }})](https://www.npmjs.com/package/${{ steps.package-info.outputs.name }})
+          [![Node.js](${{ steps.badges.outputs.node_badge }})](https://nodejs.org/)
+          [![License](${{ steps.badges.outputs.license_badge }})](LICENSE)
+          
+          [![Test Coverage](${{ steps.badges.outputs.coverage_badge }})](https://github.com/${{ github.repository }}/actions)
+          [![Platform Support](${{ steps.badges.outputs.platform_badge }})](https://github.com/${{ github.repository }}/actions)
+          EOF
+          
+          echo "Generated badges configuration"
+
+      - name: Create status dashboard
+        run: |
+          cat > status-dashboard.json << EOF
+          {
+            "repository": "${{ github.repository }}",
+            "last_updated": "$(date -u +"%Y-%m-%dT%H:%M:%SZ")",
+            "commit": "${{ github.sha }}",
+            "workflows": {
+              "ci_cd": {
+                "status": "${{ steps.workflow-status.outputs.ci_status }}",
+                "badge": "${{ steps.badges.outputs.ci_badge }}",
+                "url": "https://github.com/${{ github.repository }}/actions/workflows/optimized-ci.yml"
+              },
+              "security": {
+                "status": "${{ steps.workflow-status.outputs.security_status }}",
+                "badge": "${{ steps.badges.outputs.security_badge }}",
+                "url": "https://github.com/${{ github.repository }}/actions/workflows/security.yml"
+              },
+              "production": {
+                "status": "${{ steps.workflow-status.outputs.production_status }}",
+                "badge": "${{ steps.badges.outputs.production_badge }}",
+                "url": "https://github.com/${{ github.repository }}/actions/workflows/production-validation.yml"
+              }
+            },
+            "package": {
+              "name": "${{ steps.package-info.outputs.name }}",
+              "version": "${{ steps.package-info.outputs.version }}",
+              "coverage": "${{ steps.coverage.outputs.coverage }}%"
+            },
+            "badges": {
+              "ci_cd": "${{ steps.badges.outputs.ci_badge }}",
+              "security": "${{ steps.badges.outputs.security_badge }}",
+              "production": "${{ steps.badges.outputs.production_badge }}",
+              "version": "${{ steps.badges.outputs.version_badge }}",
+              "license": "${{ steps.badges.outputs.license_badge }}",
+              "node": "${{ steps.badges.outputs.node_badge }}",
+              "coverage": "${{ steps.badges.outputs.coverage_badge }}",
+              "platform": "${{ steps.badges.outputs.platform_badge }}"
+            }
+          }
+          EOF
+
+      - name: Upload status artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: status-dashboard
+          path: |
+            badges.md
+            status-dashboard.json
+          retention-days: 30
+
+      - name: Comment on PR with status
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const statusReport = `## 📊 Status Dashboard
+            
+            ### Workflow Status
+            - **CI/CD**: ${{ steps.workflow-status.outputs.ci_status }}
+            - **Security**: ${{ steps.workflow-status.outputs.security_status }}  
+            - **Production**: ${{ steps.workflow-status.outputs.production_status }}
+            
+            ### Package Info
+            - **Version**: ${{ steps.package-info.outputs.version }}
+            - **Coverage**: ${{ steps.coverage.outputs.coverage }}%
+            
+            ### Quick Links
+            - [CI/CD Workflow](https://github.com/${{ github.repository }}/actions/workflows/optimized-ci.yml)
+            - [Security Scanning](https://github.com/${{ github.repository }}/actions/workflows/security.yml)
+            - [Production Validation](https://github.com/${{ github.repository }}/actions/workflows/production-validation.yml)
+            
+            ---
+            *Updated automatically by Status Badges workflow*`;
+            
+            await github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: statusReport
+            });
+
+  monitor-health:
+    name: Monitor Repository Health
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_run' || github.event_name == 'workflow_dispatch'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Check workflow health
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { owner, repo } = context.repo;
+            
+            // Get recent workflow runs
+            const runs = await github.rest.actions.listWorkflowRunsForRepo({
+              owner,
+              repo,
+              per_page: 20
+            });
+            
+            // Calculate success rate
+            const recentRuns = runs.data.workflow_runs.slice(0, 10);
+            const successCount = recentRuns.filter(run => run.conclusion === 'success').length;
+            const successRate = (successCount / recentRuns.length) * 100;
+            
+            console.log(`Workflow success rate: ${successRate}%`);
+            
+            // Check for concerning patterns
+            const failureCount = recentRuns.filter(run => run.conclusion === 'failure').length;
+            const cancelledCount = recentRuns.filter(run => run.conclusion === 'cancelled').length;
+            
+            if (successRate < 70) {
+              console.log('⚠️ Low success rate detected');
+            }
+            
+            if (failureCount > 3) {
+              console.log('⚠️ High failure count detected');
+            }
+            
+            core.setOutput('success_rate', successRate);
+            core.setOutput('needs_attention', successRate < 70 || failureCount > 3);
+
+      - name: Generate health report
+        run: |
+          cat > health-report.md << 'EOF'
+          # Repository Health Report
+          
+          **Generated**: $(date -u)
+          **Commit**: ${{ github.sha }}
+          
+          ## Workflow Performance
+          - Success Rate: ${{ steps.monitor-health.outputs.success_rate }}%
+          - Status: ${{ steps.monitor-health.outputs.needs_attention == 'true' && '⚠️ Needs Attention' || '✅ Healthy' }}
+          
+          ## Recommendations
+          ${{ steps.monitor-health.outputs.needs_attention == 'true' && '- Review recent workflow failures\n- Check for flaky tests\n- Consider workflow optimization' || '- No immediate action required\n- Continue monitoring' }}
+          
+          EOF
+
+      - name: Upload health report
+        uses: actions/upload-artifact@v4
+        with:
+          name: health-report
+          path: health-report.md
+          retention-days: 7

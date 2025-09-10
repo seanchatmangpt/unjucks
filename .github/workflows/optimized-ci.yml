@@ -245,15 +245,14 @@ jobs:
       matrix:
         os: ${{ fromJson(needs.setup.outputs.os-matrix) }}
         node: ${{ fromJson(needs.setup.outputs.node-matrix) }}
-        # Intelligent exclusions for efficiency
+        # Optimize matrix for remote runners (better compatibility)
         exclude:
           - os: windows-latest
             node: 18
           - os: macos-latest
             node: 18
-          # Keep only essential combinations for non-main branches
-          - os: windows-latest
-            node: 22
+          # Keep essential Windows + Node combinations for production readiness
+          # Remove Node 22 exclusion for better Windows compatibility
     steps:
       - name: 📥 Checkout
         uses: actions/checkout@v4
@@ -278,11 +277,19 @@ jobs:
         run: |
           npm run build:validate
           
-          # Make CLI executable on Unix-like systems
-          if [[ "${{ runner.os }}" != "Windows" ]]; then
-            chmod +x bin/unjucks.cjs
-            ./bin/unjucks.cjs --version
+          # Cross-platform CLI validation
+          if [[ "${{ runner.os }}" == "Windows" ]]; then
+            # Windows-specific validation
+            node bin/unjucks.cjs --version
+            echo "Windows build validation completed"
+          else
+            # Unix-like systems (Linux, macOS)
+            chmod +x bin/unjucks.cjs 2>/dev/null || true
+            ./bin/unjucks.cjs --version || node bin/unjucks.cjs --version
+            echo "Unix build validation completed"
           fi
+        env:
+          FORCE_COLOR: 1
 
       - name: 🧪 Comprehensive test execution
         run: |
