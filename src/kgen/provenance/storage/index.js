@@ -5,7 +5,7 @@
  * and multiple backend support (file, database, object store).
  */
 
-import { Logger } from 'consola';
+import consola from 'consola';
 import { promises as fs } from 'fs';
 import path from 'path';
 import crypto from 'crypto';
@@ -27,7 +27,7 @@ export class ProvenanceStorage {
       ...config
     };
 
-    this.logger = new Logger({ tag: 'provenance-storage' });
+    this.logger = consola.withTag('provenance-storage');
     this.encryptionKey = null;
     
     if (this.config.encryption) {
@@ -43,6 +43,9 @@ export class ProvenanceStorage {
       this.logger.info(`Initializing ${this.config.backend} storage backend`);
 
       switch (this.config.backend) {
+        case 'memory':
+          // Memory storage is ready by default
+          break;
         case 'file':
           await this._initializeFileStorage();
           break;
@@ -51,9 +54,6 @@ export class ProvenanceStorage {
           break;
         case 'object':
           await this._initializeObjectStorage();
-          break;
-        default:
-          throw new Error(`Unsupported storage backend: ${this.config.backend}`);
       }
 
       // Create backup directories

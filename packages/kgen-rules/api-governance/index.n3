@@ -1,0 +1,105 @@
+@prefix : <http://kgen.ai/rules/api-governance#> .
+@prefix api: <http://kgen.ai/ontology/api#> .
+@prefix sec: <http://kgen.ai/ontology/security#> .
+@prefix data: <http://kgen.ai/ontology/data#> .
+@prefix log: <http://www.w3.org/2000/10/swap/log#> .
+@prefix math: <http://www.w3.org/2000/10/swap/math#> .
+@prefix list: <http://www.w3.org/2000/10/swap/list#> .
+@prefix string: <http://www.w3.org/2000/10/swap/string#> .
+
+# API Governance Rules
+# Ensures proper API design patterns and security measures
+
+# Rule: All API endpoints must have authentication
+{
+  ?endpoint a api:Endpoint .
+  ?endpoint api:hasPath ?path .
+} => {
+  ?endpoint api:requiresAuthentication true .
+  ?endpoint api:hasSecurityRequirement sec:Authentication .
+} .
+
+# Rule: Sensitive endpoints require additional authorization
+{
+  ?endpoint a api:Endpoint .
+  ?endpoint api:handlesData ?data .
+  ?data a data:SensitiveData .
+} => {
+  ?endpoint api:requiresAuthorization true .
+  ?endpoint api:hasSecurityRequirement sec:Authorization .
+  ?endpoint api:requiresAuditLogging true .
+} .
+
+# Rule: Rate limiting required for public endpoints
+{
+  ?endpoint a api:Endpoint .
+  ?endpoint api:visibility api:Public .
+} => {
+  ?endpoint api:requiresRateLimit true .
+  ?endpoint api:hasPolicy sec:RateLimitPolicy .
+} .
+
+# Rule: Input validation required for all endpoints
+{
+  ?endpoint a api:Endpoint .
+  ?endpoint api:acceptsInput ?input .
+} => {
+  ?endpoint api:requiresInputValidation true .
+  ?input api:hasValidationSchema ?schema .
+} .
+
+# Rule: Error handling must not expose sensitive information
+{
+  ?endpoint a api:Endpoint .
+  ?endpoint api:canProduceError ?error .
+} => {
+  ?error api:sanitized true .
+  ?error api:excludesSensitiveData true .
+} .
+
+# Rule: HTTPS required for all endpoints
+{
+  ?endpoint a api:Endpoint .
+} => {
+  ?endpoint api:requiresHTTPS true .
+  ?endpoint api:hasSecurityRequirement sec:TLSEncryption .
+} .
+
+# Rule: API versioning strategy enforcement
+{
+  ?api a api:API .
+  ?api api:hasEndpoint ?endpoint .
+} => {
+  ?api api:requiresVersioning true .
+  ?endpoint api:hasVersion ?version .
+} .
+
+# Rule: Documentation generation requirements
+{
+  ?endpoint a api:Endpoint .
+  ?endpoint api:hasOperation ?operation .
+} => {
+  ?operation api:requiresDocumentation true .
+  ?operation api:hasDescription ?description .
+  ?operation api:hasParameterDocumentation ?paramDocs .
+} .
+
+# Rule: Monitoring and observability requirements
+{
+  ?endpoint a api:Endpoint .
+} => {
+  ?endpoint api:requiresMetrics true .
+  ?endpoint api:requiresLogging true .
+  ?endpoint api:requiresTracing true .
+} .
+
+# Rule: Data retention policies for API logs
+{
+  ?endpoint a api:Endpoint .
+  ?endpoint api:hasLogging ?logging .
+  ?endpoint api:handlesData ?data .
+  ?data data:hasRetentionPeriod ?period .
+} => {
+  ?logging data:hasRetentionPeriod ?period .
+  ?logging data:requiresPurging true .
+} .

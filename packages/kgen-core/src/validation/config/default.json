@@ -1,0 +1,91 @@
+{
+  "exitCodes": {
+    "success": 0,
+    "warnings": 0,
+    "violations": 3,
+    "errors": 1
+  },
+  "driftDetection": {
+    "enabled": true,
+    "autoFix": false,
+    "backupOriginal": true,
+    "tolerance": 0.95,
+    "toleranceLevels": {
+      "strict": 0.99,
+      "normal": 0.95,
+      "relaxed": 0.90
+    }
+  },
+  "validation": {
+    "strictMode": false,
+    "parallelValidation": true,
+    "maxConcurrency": 4,
+    "maxErrors": 1000,
+    "checkOWLConstraints": true,
+    "customRules": {
+      "enabled": true,
+      "rulesPath": "./validation-rules"
+    }
+  },
+  "reporting": {
+    "format": "json",
+    "outputPath": "./validation-reports",
+    "includeStatistics": true,
+    "timestamped": true,
+    "generateTextSummary": true,
+    "retentionDays": 30
+  },
+  "performance": {
+    "cacheValidators": true,
+    "maxCacheSize": 100,
+    "maxGraphSize": 1000000,
+    "validationTimeoutMs": 30000
+  },
+  "compliance": {
+    "frameworks": {
+      "gdpr": {
+        "enabled": true,
+        "shapesPath": "./schemas/gdpr-shapes.ttl",
+        "strictMode": true
+      },
+      "hipaa": {
+        "enabled": true,
+        "shapesPath": "./schemas/hipaa-shapes.ttl",
+        "strictMode": true
+      },
+      "sox": {
+        "enabled": true,
+        "shapesPath": "./schemas/sox-shapes.ttl",
+        "strictMode": true
+      },
+      "iso27001": {
+        "enabled": false,
+        "shapesPath": "./schemas/iso27001-shapes.ttl",
+        "strictMode": true
+      }
+    }
+  },
+  "cicd": {
+    "failOnViolations": true,
+    "failOnDrift": false,
+    "generateArtifacts": true,
+    "notifyOnFailure": true,
+    "integrations": {
+      "github": {
+        "enabled": false,
+        "commentOnPR": true,
+        "createIssues": false
+      },
+      "slack": {
+        "enabled": false,
+        "webhook": null,
+        "channel": "#validation"
+      },
+      "email": {
+        "enabled": false,
+        "recipients": [],
+        "smtpConfig": {}
+      }
+    }
+  }
+}

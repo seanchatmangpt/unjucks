@@ -1,0 +1,57 @@
+{
+  "name": "@kgen/monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "description": "KGEN - Knowledge Graph to Artifact Compilation Tool for Autonomous Agents",
+  "type": "module",
+  "workspaces": [
+    "packages/kgen-cli",
+    "packages/kgen-core", 
+    "packages/kgen-templates",
+    "packages/kgen-rules"
+  ],
+  "scripts": {
+    "build": "npm run build --workspaces",
+    "test": "npm run test --workspaces",
+    "test:integration": "npm run test:integration --workspace=packages/kgen-cli",
+    "lint": "npm run lint --workspaces",
+    "typecheck": "npm run typecheck --workspaces",
+    "clean": "npm run clean --workspaces",
+    "dev": "npm run dev --workspace=packages/kgen-cli",
+    "prepare": "npm run build",
+    "kgen": "npm run dev --workspace=packages/kgen-cli --",
+    "benchmark": "npm run benchmark --workspaces",
+    "docs": "npm run docs --workspaces"
+  },
+  "keywords": [
+    "knowledge-graph",
+    "rdf",
+    "turtle",
+    "n3",
+    "sparql",
+    "cli",
+    "autonomous-agents", 
+    "deterministic",
+    "compilation",
+    "provenance",
+    "templating",
+    "nunjucks"
+  ],
+  "author": "Cognitive Swarm Unit 734 (CSU-734)",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/seanchatmangpt/unjucks.git",
+    "directory": "packages"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  },
+  "devDependencies": {
+    "eslint": "^9.9.0",
+    "prettier": "^3.3.3",
+    "typescript": "^5.3.0",
+    "vitest": "^1.0.0"
+  }
+}

@@ -1,0 +1,39 @@
+{
+  "artifact": {
+    "path": "/Users/sac/unjucks/packages/kgen-core/demo/generated2/react.21d98642bc97f3de",
+    "contentHash": "21d98642bc97f3de0911728d82a561dfc5a36fd80bc9e9198a12a0000bde1b69",
+    "size": 519
+  },
+  "generation": {
+    "template": "/Users/sac/unjucks/packages/kgen-core/examples/_templates/component/react.njk",
+    "templateHash": "c760fdec0162963543ca9b9438844a8c8f2d2fb078ca37d8d84549325e16d959",
+    "context": {
+      "exports": [
+        "Button"
+      ],
+      "imports": [
+        "React",
+        "ReactNode"
+      ],
+      "name": "Button",
+      "props": {
+        "children": "ReactNode",
+        "disabled": "boolean",
+        "onClick": "() => void"
+      },
+      "type": "React.FC"
+    },
+    "contextHash": "8615b87669ac0a80829f34685f887395445703ae31233bf1308c482dc92aa86e"
+  },
+  "environment": {
+    "nodeVersion": "v22.12.0",
+    "platform": "darwin",
+    "arch": "arm64",
+    "generatedAt": "2025-09-11T19:37:06.450Z"
+  },
+  "verification": {
+    "reproducible": true,
+    "deterministic": true,
+    "method": "content-addressed-generation"
+  }
+}

@@ -1,0 +1,42 @@
+{
+  "name": "@kgen/core-tests",
+  "version": "1.0.0",
+  "description": "Comprehensive test suite for KGEN Core",
+  "type": "module",
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "test:unit": "vitest run unit/",
+    "test:integration": "vitest run integration/",
+    "test:performance": "vitest run performance/",
+    "test:compliance": "vitest run compliance/",
+    "test:determinism": "vitest run integration/determinism.test.js",
+    "test:security": "vitest run compliance/security.test.js",
+    "test:ci": "vitest run --reporter=junit --outputFile=test-results/junit.xml",
+    "test:debug": "vitest run --reporter=verbose",
+    "benchmark": "vitest run performance/ --reporter=json --outputFile=test-results/benchmark.json",
+    "validate": "npm run test:unit && npm run test:integration && npm run test:compliance",
+    "coverage:report": "vitest run --coverage --reporter=html",
+    "clean": "rm -rf test-results coverage",
+    "setup": "mkdir -p test-results coverage"
+  },
+  "devDependencies": {
+    "vitest": "^1.6.0",
+    "@vitest/coverage-v8": "^1.6.0",
+    "better-sqlite3": "^9.6.0",
+    "fs-extra": "^11.2.0",
+    "crypto": "^1.0.1"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "keywords": [
+    "kgen",
+    "knowledge-graph",
+    "testing",
+    "determinism",
+    "compliance",
+    "security"
+  ]
+}

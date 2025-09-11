@@ -1,13 +1,8 @@
 /**
- * Enhanced Provenance Tracker - PROV-O compliant with .attest.json generation
+ * Provenance Tracker - PROV-O compliant provenance tracking for enterprise accountability
  * 
- * Implements comprehensive provenance tracking with:
- * - PROV-O compliance for W3C standards
- * - .attest.json sidecar generation for every artifact
- * - Cryptographic signatures and integrity verification
- * - Template and rule tracking for auditability
- * - Artifact explanation and lineage tracing
- * - Enterprise compliance attestation bundles
+ * Implements comprehensive provenance tracking using W3C PROV-O standard for
+ * data lineage, audit trails, and decision transparency in knowledge generation.
  */
 
 import { EventEmitter } from 'events';
@@ -19,591 +14,691 @@ import { promises as fs } from 'fs';
 import path from 'path';
 
 // Import specialized modules
-import { AttestationGenerator } from './attestation/generator.js';
 import { ProvenanceStorage } from './storage/index.js';
-import { ComplianceAttestor } from './compliance/attestor.js';
-import { CryptoManager } from './crypto/manager.js';
-import { ArtifactExplainer } from './queries/explainer.js';
+import { BlockchainAnchor } from './blockchain/anchor.js';
+import { ComplianceLogger } from './compliance/logger.js';
+import { ProvenanceQueries } from './queries/sparql.js';
 
 export class ProvenanceTracker extends EventEmitter {
   constructor(config = {}) {
     super();
     
     this.config = {
-      // Core provenance configuration
-      enableDetailedTracking: config.enableDetailedTracking !== false,
-      enableAttestationGeneration: config.enableAttestationGeneration !== false,
-      enableCryptographicSigning: config.enableCryptographicSigning !== false,
-      attestationFormat: config.attestationFormat || 'json',
+      // Provenance configuration
+      enableDetailedTracking: true,
+      enableBlockchainIntegrity: process.env.KGEN_BLOCKCHAIN_ENABLED === 'true',
+      blockchainNetwork: process.env.KGEN_BLOCKCHAIN_NETWORK || 'ethereum',
+      blockchainInterval: parseInt(process.env.KGEN_BLOCKCHAIN_INTERVAL || '3600000', 10), // 1 hour
+      retentionPeriod: '7years', // Compliance requirement
       
-      // Artifact tracking
-      trackTemplateIds: config.trackTemplateIds !== false,
-      trackRuleIds: config.trackRuleIds !== false,
-      trackGraphHashes: config.trackGraphHashes !== false,
-      trackEngineVersion: config.trackEngineVersion !== false,
+      // Storage configuration
+      storageBackend: 'memory', // memory, file, database
+      auditLevel: 'FULL', // BASIC, DETAILED, FULL
       
-      // Storage and compliance
-      storageBackend: config.storageBackend || 'file',
-      complianceMode: config.complianceMode || 'enterprise',
-      retentionPeriod: config.retentionPeriod || '7years',
+      // Integrity settings
+      enableCryptographicHashing: true,
+      hashAlgorithm: 'sha256',
+      enableDigitalSignatures: process.env.KGEN_DIGITAL_SIGNATURES === 'true',
+      signatureAlgorithm: 'RSA-SHA256',
+      keyPath: process.env.KGEN_PRIVATE_KEY_PATH || './keys/private.pem',
       
-      // Cryptographic settings
-      hashAlgorithm: config.hashAlgorithm || 'sha256',
-      signatureAlgorithm: config.signatureAlgorithm || 'RSA-SHA256',
-      keyPath: config.keyPath || './keys/provenance.pem',
+      // Compliance settings
+      complianceMode: process.env.KGEN_COMPLIANCE_MODE || 'GDPR', // GDPR, SOX, HIPAA, ALL
+      auditRetention: process.env.KGEN_AUDIT_RETENTION || '7years',
+      encryptionEnabled: process.env.KGEN_ENCRYPTION_ENABLED === 'true',
       
-      // Performance settings
-      batchSize: config.batchSize || 100,
-      enableCaching: config.enableCaching !== false,
-      maxCacheSize: config.maxCacheSize || 10000,
+      // Chain validation
+      enableChainValidation: true,
+      chainValidationInterval: parseInt(process.env.KGEN_CHAIN_VALIDATION_INTERVAL || '86400000', 10), // 24 hours
       
-      // Namespaces for RDF
+      // Bundle configuration
+      enableProvBundles: true,
+      bundleStrategy: 'temporal', // temporal, activity, entity
+      bundleSize: parseInt(process.env.KGEN_BUNDLE_SIZE || '1000', 10),
+      
+      // Namespaces
       namespaces: {
         prov: 'http://www.w3.org/ns/prov#',
         kgen: 'http://kgen.enterprise/provenance/',
-        attest: 'http://kgen.enterprise/attestation/',
         dct: 'http://purl.org/dc/terms/',
         foaf: 'http://xmlns.com/foaf/0.1/',
-        xsd: 'http://www.w3.org/2001/XMLSchema#',
-        ...config.namespaces
+        xsd: 'http://www.w3.org/2001/XMLSchema#'
       },
       
       ...config
     };
     
     this.logger = consola.withTag('provenance-tracker');
-    
-    // RDF store for PROV-O compliance
     this.store = new Store();
     this.writer = new Writer({ prefixes: this.config.namespaces });
     this.parser = new Parser({ factory: this.store.dataFactory });
     
-    // Core components
-    this.attestationGenerator = new AttestationGenerator(this.config);
+    // Initialize specialized components
     this.storage = new ProvenanceStorage(this.config);
-    this.complianceAttestor = new ComplianceAttestor(this.config);
-    this.cryptoManager = new CryptoManager(this.config);
-    this.explainer = new ArtifactExplainer(this.store, this.config);
+    this.blockchain = this.config.enableBlockchainIntegrity ? new BlockchainAnchor(this.config) : null;
+    this.complianceLogger = new ComplianceLogger(this.config);
+    this.queryEngine = new ProvenanceQueries(this.store, this.config);
     
-    // Tracking state
+    // Provenance state
     this.activeOperations = new Map();
-    this.artifactRegistry = new Map();
-    this.templateRegistry = new Map();
-    this.ruleRegistry = new Map();
-    this.attestationCache = new Map();
-    this.integrityChain = [];
+    this.entityLineage = new Map();
+    this.activityHistory = [];
+    this.agentRegistry = new Map();
+    this.provBundles = new Map();
+    this.hashChain = [];
+    this.digitalSignatures = new Map();
+    
+    // Compliance state
+    this.complianceEvents = [];
+    this.auditLog = [];
+    this.encryptionKeys = new Map();
     
     // Performance metrics
     this.metrics = {
       operationsTracked: 0,
-      artifactsGenerated: 0,
-      attestationsCreated: 0,
-      signaturesGenerated: 0,
+      entitiesTracked: 0,
       integrityVerifications: 0,
-      chainValidations: 0
+      blockchainAnchors: 0,
+      queriesExecuted: 0
     };
     
     this.state = 'initialized';
   }
 
   /**
-   * Initialize the enhanced provenance tracker
+   * Initialize the provenance tracker
    */
   async initialize() {
     try {
-      this.logger.info('Initializing enhanced provenance tracker...');
+      this.logger.info('Initializing provenance tracker...');
       
-      // Initialize core components
+      // Initialize specialized components
       await this.storage.initialize();
-      await this.complianceAttestor.initialize();
-      await this.cryptoManager.initialize();
+      await this.complianceLogger.initialize();
       
-      // Register system agents and templates
+      if (this.blockchain) {
+        await this.blockchain.initialize();
+      }
+      
+      // Initialize storage backend
+      await this._initializeStorage();
+      
+      // Register system agents
       await this._registerSystemAgents();
-      await this._loadTemplateRegistry();
-      await this._loadRuleRegistry();
       
-      // Initialize integrity chain
-      await this._initializeIntegrityChain();
-      
-      // Load existing provenance data
+      // Load existing provenance if available
       await this._loadExistingProvenance();
       
-      this.state = 'ready';
-      this.logger.success('Enhanced provenance tracker initialized successfully');
+      // Initialize hash chain
+      await this._initializeHashChain();
       
-      return {
-        status: 'success',
-        features: {
-          attestationGeneration: this.config.enableAttestationGeneration,
-          cryptographicSigning: this.config.enableCryptographicSigning,
-          templateTracking: this.config.trackTemplateIds,
-          ruleTracking: this.config.trackRuleIds,
-          graphHashing: this.config.trackGraphHashes
-        },
+      // Load digital signature keys if enabled
+      if (this.config.enableDigitalSignatures) {
+        await this._loadSignatureKeys();
+      }
+      
+      // Start periodic validation
+      if (this.config.enableChainValidation) {
+        await this._startChainValidation();
+      }
+      
+      this.state = 'ready';
+      this.logger.success('Provenance tracker initialized successfully');
+      
+      return { 
+        status: 'success', 
         records: this.store.size,
-        attestations: this.attestationCache.size
+        blockchain: this.blockchain ? 'enabled' : 'disabled',
+        compliance: this.config.complianceMode
       };
       
     } catch (error) {
-      this.logger.error('Failed to initialize enhanced provenance tracker:', error);
+      this.logger.error('Failed to initialize provenance tracker:', error);
       this.state = 'error';
       throw error;
     }
   }
 
   /**
-   * Start tracking operation with enhanced artifact metadata
-   * @param {Object} operationInfo - Enhanced operation information
-   * @returns {Promise<Object>} Enhanced provenance context
+   * Start tracking a new operation
+   * @param {Object} operationInfo - Operation information
+   * @returns {Promise<Object>} Provenance context
    */
   async startOperation(operationInfo) {
     try {
       const operationId = operationInfo.operationId || uuidv4();
       const timestamp = new Date();
       
-      this.logger.info(`Starting enhanced operation tracking: ${operationId}`);
+      this.logger.info(`Starting provenance tracking for operation: ${operationId}`);
       
-      // Enhanced provenance context with artifact tracking
-      const context = {
+      // Create operation context
+      const provenanceContext = {
         operationId,
         type: operationInfo.type,
         startTime: timestamp,
         user: operationInfo.user,
-        
-        // Enhanced artifact tracking
-        templateId: operationInfo.templateId,
-        templateVersion: operationInfo.templateVersion,
-        ruleIds: operationInfo.ruleIds || [],
-        inputGraphHash: operationInfo.inputGraphHash,
-        engineVersion: operationInfo.engineVersion || this._getEngineVersion(),
-        
-        // Sources and targets
+        inputs: operationInfo.inputs || [],
         sources: operationInfo.sources || [],
-        targets: operationInfo.targets || [],
-        
-        // Agent and plan information
         agent: await this._identifyAgent(operationInfo.user),
         activityUri: `${this.config.namespaces.kgen}activity/${operationId}`,
         planUri: `${this.config.namespaces.kgen}plan/${operationInfo.type}`,
-        
-        // Metadata and configuration
-        metadata: operationInfo.metadata || {},
-        configuration: operationInfo.configuration || {},
-        
-        // Integrity tracking
-        integrityHash: null,
-        signature: null,
-        attestation: null
+        metadata: operationInfo.metadata || {}
       };
       
       // Store active operation
-      this.activeOperations.set(operationId, context);
+      this.activeOperations.set(operationId, provenanceContext);
       
-      // Record operation start in PROV-O format
-      await this._recordEnhancedActivityStart(context);
+      // Record activity start in RDF
+      await this._recordActivityStart(provenanceContext);
       
-      // Record template and rule usage
-      if (context.templateId) {
-        await this._recordTemplateUsage(context);
+      // Record input entities
+      if (operationInfo.sources?.length > 0) {
+        await this._recordInputEntities(provenanceContext, operationInfo.sources);
       }
       
-      if (context.ruleIds.length > 0) {
-        await this._recordRuleUsage(context);
-      }
+      this.emit('operation:started', { operationId, context: provenanceContext });
       
-      // Record input entities and their lineage
-      if (context.sources.length > 0) {
-        await this._recordEnhancedInputEntities(context);
-      }
-      
-      this.emit('operation:started', { operationId, context });
-      
-      return context;
+      return provenanceContext;
       
     } catch (error) {
-      this.logger.error('Failed to start enhanced operation tracking:', error);
+      this.logger.error('Failed to start operation tracking:', error);
       throw error;
     }
   }
 
   /**
-   * Complete operation with artifact attestation generation
+   * Complete operation tracking
    * @param {string} operationId - Operation identifier
-   * @param {Object} completionInfo - Enhanced completion information
-   * @returns {Promise<Object>} Final provenance record with attestations
+   * @param {Object} completionInfo - Operation completion information
+   * @returns {Promise<Object>} Final provenance record
    */
   async completeOperation(operationId, completionInfo) {
     try {
-      this.logger.info(`Completing enhanced operation tracking: ${operationId}`);
+      this.logger.info(`Completing provenance tracking for operation: ${operationId}`);
       
       const context = this.activeOperations.get(operationId);
       if (!context) {
         throw new Error(`No active operation found for ID: ${operationId}`);
       }
       
-      // Update context with completion information
+      // Update context with completion info
       context.endTime = new Date();
       context.status = completionInfo.status;
       context.outputs = completionInfo.outputs || [];
-      context.outputGraphHash = completionInfo.outputGraphHash;
-      context.generatedFiles = completionInfo.generatedFiles || [];
       context.metrics = completionInfo.metrics || {};
-      context.validationResults = completionInfo.validationResults;
+      context.outputGraph = completionInfo.outputGraph;
+      context.validationReport = completionInfo.validationReport;
       context.duration = context.endTime.getTime() - context.startTime.getTime();
       
-      // Generate integrity hash
-      context.integrityHash = await this._generateEnhancedIntegrityHash(context);
+      // Record activity completion in RDF
+      await this._recordActivityCompletion(context);
       
-      // Generate cryptographic signature
-      if (this.config.enableCryptographicSigning) {
-        context.signature = await this.cryptoManager.signData(context);
+      // Record output entities
+      if (completionInfo.outputGraph) {
+        await this._recordOutputEntities(context, completionInfo.outputGraph);
       }
       
-      // Record activity completion in PROV-O
-      await this._recordEnhancedActivityCompletion(context);
+      // Record transformations and derivations
+      await this._recordTransformations(context);
       
-      // Record output entities and artifacts
-      await this._recordEnhancedOutputEntities(context);
-      
-      // Generate attestations for each created artifact
-      const attestations = [];
-      for (const generatedFile of context.generatedFiles) {
-        const attestation = await this._generateArtifactAttestation(context, generatedFile);
-        attestations.push(attestation);
+      // Generate cryptographic hash for integrity
+      if (this.config.enableCryptographicHashing) {
+        context.integrityHash = await this._generateIntegrityHash(context);
+        await this._recordIntegrityHash(context);
         
-        // Write .attest.json sidecar file
-        await this._writeAttestationSidecar(generatedFile, attestation);
-      }
-      context.attestations = attestations;
-      
-      // Add to integrity chain
-      await this._addToIntegrityChain(context);
-      
-      // Store provenance record
-      await this.storage.store(operationId, context, {
-        type: 'enhanced_operation',
-        version: '2.0',
-        includeAttestations: true
-      });
-      
-      // Generate compliance attestation bundle
-      if (this.config.complianceMode !== 'none') {
-        const complianceBundle = await this.complianceAttestor.generateBundle(context);
-        context.complianceBundle = complianceBundle;
+        // Add to hash chain
+        await this._addToHashChain(context);
       }
       
-      // Cache attestations for quick lookup
-      for (const attestation of attestations) {
-        this.attestationCache.set(attestation.artifactPath, attestation);
+      // Generate digital signature if enabled
+      if (this.config.enableDigitalSignatures) {
+        context.digitalSignature = await this._generateDigitalSignature(context);
+        this.digitalSignatures.set(operationId, context.digitalSignature);
       }
+      
+      // Queue for blockchain anchoring if enabled
+      if (this.blockchain && context.integrityHash) {
+        await this.blockchain.queueForAnchoring(operationId, context.integrityHash, {
+          operationType: context.type,
+          timestamp: context.endTime
+        });
+        this.metrics.blockchainAnchors++;
+      }
+      
+      // Log compliance event
+      await this.complianceLogger.logComplianceEvent('operation_completed', {
+        operationId,
+        type: context.type,
+        user: context.user?.id || context.user?.username,
+        duration: context.duration,
+        status: context.status
+      }, context);
       
       // Archive the operation
+      this.activityHistory.push({ ...context });
       this.activeOperations.delete(operationId);
+      
+      // Store in persistent storage
+      await this.storage.store(operationId, context, {
+        type: 'operation',
+        version: '1.0'
+      });
       
       // Update metrics
       this.metrics.operationsTracked++;
-      this.metrics.artifactsGenerated += context.generatedFiles.length;
-      this.metrics.attestationsCreated += attestations.length;
-      if (context.signature) this.metrics.signaturesGenerated++;
       
-      // Generate final provenance record
-      const provenanceRecord = await this._generateEnhancedProvenanceRecord(context);
+      // Create provenance bundle if threshold reached
+      if (this.config.enableProvBundles && this.activityHistory.length % this.config.bundleSize === 0) {
+        await this._createProvenanceBundle();
+      }
+      
+      // Generate provenance summary
+      const provenanceRecord = await this._generateProvenanceRecord(context);
       
       this.emit('operation:completed', { 
         operationId, 
         context, 
-        provenanceRecord,
-        attestations 
+        provenanceRecord 
       });
       
-      this.logger.success(`Enhanced provenance tracking completed: ${operationId}`);
+      this.logger.success(`Provenance tracking completed for operation: ${operationId}`);
       
       return provenanceRecord;
       
     } catch (error) {
-      this.logger.error(`Failed to complete enhanced operation tracking: ${operationId}`, error);
+      this.logger.error(`Failed to complete operation tracking for ${operationId}:`, error);
       throw error;
     }
   }
 
   /**
-   * Explain artifact - trace from file back to complete provenance graph
-   * @param {string} artifactPath - Path to artifact file
-   * @param {Object} options - Explanation options
-   * @returns {Promise<Object>} Complete artifact explanation
+   * Record an error in operation tracking
+   * @param {string} operationId - Operation identifier
+   * @param {Error} error - Error object
+   * @returns {Promise<void>}
    */
-  async explainArtifact(artifactPath, options = {}) {
+  async recordError(operationId, error) {
     try {
-      this.logger.info(`Explaining artifact: ${artifactPath}`);
+      this.logger.info(`Recording error for operation: ${operationId}`);
       
-      // Look for .attest.json sidecar file
-      const attestationPath = `${artifactPath}.attest.json`;
-      let attestation = null;
-      
-      try {
-        const attestationContent = await fs.readFile(attestationPath, 'utf8');
-        attestation = JSON.parse(attestationContent);
-      } catch (error) {
-        // Check cache if sidecar file not found
-        attestation = this.attestationCache.get(artifactPath);
-        if (!attestation) {
-          throw new Error(`No attestation found for artifact: ${artifactPath}`);
-        }
+      const context = this.activeOperations.get(operationId);
+      if (!context) {
+        this.logger.warn(`No active operation found for error recording: ${operationId}`);
+        return;
       }
       
-      // Get complete provenance explanation
-      const explanation = await this.explainer.explainArtifact(attestation, options);
+      // Update context with error info
+      context.endTime = new Date();
+      context.status = 'error';
+      context.error = {
+        message: error.message,
+        stack: error.stack,
+        code: error.code,
+        timestamp: new Date()
+      };
+      context.duration = context.endTime.getTime() - context.startTime.getTime();
       
-      // Verify integrity if requested
-      if (options.verifyIntegrity) {
-        explanation.integrityVerification = await this._verifyArtifactIntegrity(artifactPath, attestation);
-      }
+      // Record error in RDF
+      await this._recordActivityError(context);
       
-      // Include template and rule information
-      if (attestation.templateId) {
-        explanation.templateInfo = this.templateRegistry.get(attestation.templateId);
-      }
+      // Archive the failed operation
+      this.activityHistory.push({ ...context });
+      this.activeOperations.delete(operationId);
       
-      if (attestation.ruleIds && attestation.ruleIds.length > 0) {
-        explanation.ruleInfo = attestation.ruleIds.map(ruleId => this.ruleRegistry.get(ruleId));
-      }
+      this.emit('operation:error', { operationId, context, error });
       
-      return explanation;
-      
-    } catch (error) {
-      this.logger.error(`Failed to explain artifact ${artifactPath}:`, error);
-      throw error;
+    } catch (trackingError) {
+      this.logger.error('Failed to record operation error:', trackingError);
     }
   }
 
   /**
-   * Verify provenance chain integrity
-   * @param {Object} options - Verification options
-   * @returns {Promise<Object>} Chain integrity verification result
+   * Track data lineage for an entity
+   * @param {string} entityId - Entity identifier
+   * @param {Object} lineageInfo - Lineage information
+   * @returns {Promise<Object>} Lineage record
    */
-  async verifyChainIntegrity(options = {}) {
+  async trackEntityLineage(entityId, lineageInfo) {
     try {
-      this.logger.info('Verifying provenance chain integrity');
+      this.logger.info(`Tracking lineage for entity: ${entityId}`);
       
-      const verification = {
-        totalLinks: this.integrityChain.length,
-        validLinks: 0,
-        brokenLinks: [],
-        signatureVerifications: 0,
-        validSignatures: 0,
-        integrityScore: 0,
-        verifiedAt: new Date()
+      const lineageRecord = {
+        entityId,
+        entityUri: `${this.config.namespaces.kgen}entity/${entityId}`,
+        sources: lineageInfo.sources || [],
+        transformations: lineageInfo.transformations || [],
+        derivations: lineageInfo.derivations || [],
+        timestamp: new Date(),
+        operationId: lineageInfo.operationId
       };
       
-      // Verify each link in the chain
-      for (let i = 0; i < this.integrityChain.length; i++) {
-        const link = this.integrityChain[i];
-        
-        // Verify hash chain continuity
-        if (i > 0) {
-          const previousLink = this.integrityChain[i - 1];
-          if (link.previousHash === previousLink.hash) {
-            verification.validLinks++;
+      // Store lineage
+      this.entityLineage.set(entityId, lineageRecord);
+      
+      // Record lineage in RDF
+      await this._recordEntityLineage(lineageRecord);
+      
+      this.emit('lineage:recorded', { entityId, lineageRecord });
+      
+      return lineageRecord;
+      
+    } catch (error) {
+      this.logger.error(`Failed to track entity lineage for ${entityId}:`, error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get comprehensive lineage for an entity
+   * @param {string} entityId - Entity identifier
+   * @param {Object} options - Query options
+   * @returns {Promise<Object>} Complete lineage graph
+   */
+  async getEntityLineage(entityId, options = {}) {
+    try {
+      this.logger.info(`Retrieving lineage for entity: ${entityId}`);
+      
+      const lineageGraph = {
+        entityId,
+        directLineage: this.entityLineage.get(entityId),
+        upstreamLineage: [],
+        downstreamLineage: [],
+        fullGraph: null
+      };
+      
+      // Get upstream lineage (sources)
+      if (options.includeUpstream !== false) {
+        lineageGraph.upstreamLineage = await this._getUpstreamLineage(entityId, options.maxDepth || 10);
+      }
+      
+      // Get downstream lineage (derived entities)
+      if (options.includeDownstream !== false) {
+        lineageGraph.downstreamLineage = await this._getDownstreamLineage(entityId, options.maxDepth || 10);
+      }
+      
+      // Build complete lineage graph
+      if (options.includeFullGraph) {
+        lineageGraph.fullGraph = await this._buildLineageGraph(entityId, options);
+      }
+      
+      return lineageGraph;
+      
+    } catch (error) {
+      this.logger.error(`Failed to get entity lineage for ${entityId}:`, error);
+      throw error;
+    }
+  }
+
+  /**
+   * Generate audit trail for a time period
+   * @param {Date} startDate - Start date
+   * @param {Date} endDate - End date
+   * @param {Object} options - Audit options
+   * @returns {Promise<Object>} Audit trail report
+   */
+  async generateAuditTrail(startDate, endDate, options = {}) {
+    try {
+      this.logger.info(`Generating audit trail from ${startDate.toISOString()} to ${endDate.toISOString()}`);
+      
+      // Filter activities by date range
+      const auditActivities = this.activityHistory.filter(activity => {
+        const activityDate = new Date(activity.startTime);
+        return activityDate >= startDate && activityDate <= endDate;
+      });
+      
+      // Group by user/agent
+      const activitiesByAgent = this._groupActivitiesByAgent(auditActivities);
+      
+      // Generate statistics
+      const statistics = this._generateAuditStatistics(auditActivities);
+      
+      // Identify anomalies if requested
+      const anomalies = options.detectAnomalies ? 
+        await this._detectAuditAnomalies(auditActivities) : [];
+      
+      const auditTrail = {
+        timeframe: { startDate, endDate },
+        totalActivities: auditActivities.length,
+        activitiesByAgent,
+        statistics,
+        anomalies,
+        generatedAt: new Date(),
+        integrityVerified: await this._verifyAuditIntegrity(auditActivities)
+      };
+      
+      this.emit('audit:generated', auditTrail);
+      
+      return auditTrail;
+      
+    } catch (error) {
+      this.logger.error('Failed to generate audit trail:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Verify integrity of provenance records
+   * @param {Array} records - Records to verify
+   * @returns {Promise<Object>} Integrity verification result
+   */
+  async verifyIntegrity(records = null) {
+    try {
+      this.logger.info('Verifying provenance integrity');
+      
+      const recordsToVerify = records || this.activityHistory;
+      const verificationResult = {
+        totalRecords: recordsToVerify.length,
+        verifiedRecords: 0,
+        failedRecords: 0,
+        integrityScore: 0,
+        issues: []
+      };
+      
+      for (const record of recordsToVerify) {
+        if (record.integrityHash) {
+          const computedHash = await this._generateIntegrityHash(record);
+          
+          if (computedHash === record.integrityHash) {
+            verificationResult.verifiedRecords++;
           } else {
-            verification.brokenLinks.push({
-              index: i,
-              operationId: link.operationId,
-              expected: previousLink.hash,
-              actual: link.previousHash
+            verificationResult.failedRecords++;
+            verificationResult.issues.push({
+              operationId: record.operationId,
+              issue: 'Hash mismatch',
+              expected: record.integrityHash,
+              computed: computedHash
             });
           }
         } else {
-          // Genesis link
-          verification.validLinks++;
-        }
-        
-        // Verify cryptographic signature if present
-        if (link.signature) {
-          verification.signatureVerifications++;
-          const signatureValid = await this.cryptoManager.verifySignature(link.data, link.signature);
-          if (signatureValid) {
-            verification.validSignatures++;
-          }
+          verificationResult.issues.push({
+            operationId: record.operationId,
+            issue: 'Missing integrity hash'
+          });
         }
       }
       
-      // Calculate integrity score
-      verification.integrityScore = verification.totalLinks > 0 ? 
-        (verification.validLinks / verification.totalLinks) * 
-        (verification.signatureVerifications > 0 ? verification.validSignatures / verification.signatureVerifications : 1) : 1;
+      verificationResult.integrityScore = verificationResult.totalRecords > 0 ?
+        verificationResult.verifiedRecords / verificationResult.totalRecords : 1;
       
-      this.metrics.chainValidations++;
+      this.emit('integrity:verified', verificationResult);
       
-      return verification;
+      return verificationResult;
       
     } catch (error) {
-      this.logger.error('Failed to verify chain integrity:', error);
+      this.logger.error('Failed to verify integrity:', error);
       throw error;
     }
   }
 
   /**
-   * Generate compliance attestation bundle
-   * @param {Object} criteria - Bundle criteria
-   * @returns {Promise<Object>} Compliance bundle
+   * Export provenance data in various formats
+   * @param {Object} options - Export options
+   * @returns {Promise<string>} Exported data
    */
-  async generateComplianceBundle(criteria = {}) {
+  async exportProvenance(options = {}) {
     try {
-      this.logger.info('Generating compliance attestation bundle');
+      const format = options.format || 'turtle';
       
-      const bundle = await this.complianceAttestor.generateComprehensiveBundle(criteria, {
-        provenance: this.store,
-        attestations: this.attestationCache,
-        integrityChain: this.integrityChain,
-        templateRegistry: this.templateRegistry,
-        ruleRegistry: this.ruleRegistry
-      });
-      
-      // Sign the bundle
-      if (this.config.enableCryptographicSigning) {
-        bundle.signature = await this.cryptoManager.signData(bundle);
+      switch (format) {
+        case 'turtle':
+        case 'ttl':
+          return await this._exportAsTurtle(options);
+        case 'json-ld':
+          return await this._exportAsJsonLD(options);
+        case 'rdf-xml':
+          return await this._exportAsRDFXML(options);
+        case 'json':
+          return await this._exportAsJSON(options);
+        default:
+          throw new Error(`Unsupported export format: ${format}`);
       }
       
-      // Store bundle
-      const bundleId = uuidv4();
-      await this.storage.store(`compliance-bundle-${bundleId}`, bundle, {
-        type: 'compliance_bundle',
-        version: '1.0'
-      });
-      
-      return {
-        bundleId,
-        bundle,
-        generatedAt: new Date()
-      };
-      
     } catch (error) {
-      this.logger.error('Failed to generate compliance bundle:', error);
+      this.logger.error('Failed to export provenance:', error);
       throw error;
     }
   }
 
   /**
-   * Get enhanced tracker status with artifact metrics
+   * Get tracker status and metrics
    */
   getStatus() {
     return {
       state: this.state,
       activeOperations: this.activeOperations.size,
-      artifactRegistry: this.artifactRegistry.size,
-      templateRegistry: this.templateRegistry.size,
-      ruleRegistry: this.ruleRegistry.size,
-      attestationCache: this.attestationCache.size,
-      integrityChainLength: this.integrityChain.length,
+      historicalActivities: this.activityHistory.length,
+      entityLineageRecords: this.entityLineage.size,
+      registeredAgents: this.agentRegistry.size,
       provenanceTriples: this.store.size,
+      provBundles: this.provBundles.size,
+      hashChainLength: this.hashChain.length,
+      digitalSignatures: this.digitalSignatures.size,
       metrics: this.metrics,
+      blockchain: this.blockchain ? this.blockchain.getStatistics() : null,
+      compliance: this.complianceLogger ? this.complianceLogger.getComplianceStatistics() : null,
       configuration: {
-        attestationGeneration: this.config.enableAttestationGeneration,
-        cryptographicSigning: this.config.enableCryptographicSigning,
-        templateTracking: this.config.trackTemplateIds,
-        ruleTracking: this.config.trackRuleIds,
-        graphHashing: this.config.trackGraphHashes,
+        auditLevel: this.config.auditLevel,
+        enableDetailedTracking: this.config.enableDetailedTracking,
+        enableCryptographicHashing: this.config.enableCryptographicHashing,
+        enableBlockchainIntegrity: this.config.enableBlockchainIntegrity,
+        enableDigitalSignatures: this.config.enableDigitalSignatures,
         complianceMode: this.config.complianceMode,
         storageBackend: this.config.storageBackend
       }
     };
   }
 
-  // Private methods for enhanced functionality
-
-  async _generateArtifactAttestation(context, generatedFile) {
-    const attestation = {
-      // Core attestation metadata
-      artifactPath: generatedFile.path,
-      artifactHash: await this._calculateFileHash(generatedFile.path),
-      generatedAt: new Date().toISOString(),
-      
-      // Enhanced tracking fields
-      graphHash: context.outputGraphHash || context.inputGraphHash,
-      templateId: context.templateId,
-      templateVersion: context.templateVersion,
-      ruleIds: context.ruleIds,
-      engineVersion: context.engineVersion,
-      
-      // Operation context
-      operationId: context.operationId,
-      operationType: context.type,
-      integrityHash: context.integrityHash,
-      
-      // Provenance lineage
-      sources: context.sources.map(s => ({
-        id: s.id,
-        path: s.path,
-        hash: s.hash
-      })),
-      
-      // Agent information
-      agent: {
-        id: context.agent.id,
-        type: context.agent.type,
-        name: context.agent.name
-      },
-      
-      // Validation and compliance
-      validationResults: context.validationResults,
-      complianceFramework: this.config.complianceMode,
-      
-      // File-specific metadata
-      fileMetadata: {
-        size: generatedFile.size,
-        mimeType: generatedFile.mimeType,
-        encoding: generatedFile.encoding,
-        permissions: generatedFile.permissions
-      }
-    };
-    
-    // Add cryptographic signature if enabled
-    if (this.config.enableCryptographicSigning) {
-      attestation.signature = await this.cryptoManager.signData(attestation);
-    }
-    
-    return attestation;
-  }
-
-  async _writeAttestationSidecar(generatedFile, attestation) {
+  /**
+   * Shutdown the provenance tracker
+   */
+  async shutdown() {
     try {
-      const sidecarPath = `${generatedFile.path}.attest.json`;
-      const attestationContent = JSON.stringify(attestation, null, 2);
+      this.logger.info('Shutting down provenance tracker...');
       
-      await fs.writeFile(sidecarPath, attestationContent, 'utf8');
+      // Complete any active operations
+      for (const [operationId, context] of this.activeOperations) {
+        await this.recordError(operationId, new Error('System shutdown'));
+      }
       
-      this.logger.debug(`Written attestation sidecar: ${sidecarPath}`);
+      // Save provenance data if using persistent storage
+      await this._saveProvenance();
+      
+      // Clear in-memory state
+      this.activeOperations.clear();
+      this.entityLineage.clear();
+      this.agentRegistry.clear();
+      this.activityHistory = [];
+      this.store.removeQuads(this.store.getQuads());
+      
+      this.state = 'shutdown';
+      this.logger.success('Provenance tracker shutdown completed');
       
     } catch (error) {
-      this.logger.error(`Failed to write attestation sidecar for ${generatedFile.path}:`, error);
+      this.logger.error('Error during provenance tracker shutdown:', error);
       throw error;
     }
   }
 
-  async _generateEnhancedIntegrityHash(context) {
-    const hashData = {
-      operationId: context.operationId,
-      type: context.type,
-      templateId: context.templateId,
-      ruleIds: context.ruleIds,
-      inputGraphHash: context.inputGraphHash,
-      outputGraphHash: context.outputGraphHash,
-      sources: context.sources.map(s => ({ id: s.id, hash: s.hash })),
-      outputs: context.outputs.map(o => ({ id: o.id, hash: o.hash })),
-      agent: context.agent.id,
-      startTime: context.startTime,
-      endTime: context.endTime,
-      engineVersion: context.engineVersion
-    };
-    
-    const hashString = JSON.stringify(hashData, Object.keys(hashData).sort());
-    return crypto.createHash(this.config.hashAlgorithm).update(hashString).digest('hex');
+  // Private methods
+
+  async _initializeStorage() {
+    // Initialize storage backend based on configuration
+    switch (this.config.storageBackend) {
+      case 'memory':
+        // Already using in-memory storage
+        break;
+      case 'file':
+        await this._initializeFileStorage();
+        break;
+      case 'database':
+        await this._initializeDatabaseStorage();
+        break;
+      default:
+        throw new Error(`Unsupported storage backend: ${this.config.storageBackend}`);
+    }
   }
 
-  async _recordEnhancedActivityStart(context) {
+  async _initializeFileStorage() {
+    // Implementation for file-based storage
+    this.logger.info('Initialized file-based provenance storage');
+  }
+
+  async _initializeDatabaseStorage() {
+    // Implementation for database storage
+    this.logger.info('Initialized database provenance storage');
+  }
+
+  async _registerSystemAgents() {
+    // Register system agents
+    const systemAgent = {
+      id: 'kgen-system',
+      uri: `${this.config.namespaces.kgen}agent/system`,
+      type: 'software',
+      name: 'kgen Knowledge Generation System',
+      version: '1.0.0'
+    };
+    
+    this.agentRegistry.set('system', systemAgent);
+    
+    // Record agent in RDF
+    await this._recordAgent(systemAgent);
+  }
+
+  async _loadExistingProvenance() {
+    // Load existing provenance data if available
+    if (this.config.storageBackend !== 'memory') {
+      // Implementation for loading from persistent storage
+    }
+  }
+
+  async _identifyAgent(user) {
+    if (!user) {
+      return this.agentRegistry.get('system');
+    }
+    
+    // Check if agent is already registered
+    let agent = this.agentRegistry.get(user.id || user.username);
+    
+    if (!agent) {
+      // Register new agent
+      agent = {
+        id: user.id || user.username,
+        uri: `${this.config.namespaces.kgen}agent/${user.id || user.username}`,
+        type: 'person',
+        name: user.name || user.username,
+        email: user.email
+      };
+      
+      this.agentRegistry.set(agent.id, agent);
+      await this._recordAgent(agent);
+    }
+    
+    return agent;
+  }
+
+  async _recordActivityStart(context) {
+    // Record activity start in PROV-O format
     const activityTriples = [
-      // Core PROV-O triples
       {
         subject: context.activityUri,
         predicate: 'rdf:type',
@@ -619,48 +714,13 @@ export class ProvenanceTracker extends EventEmitter {
         predicate: 'prov:wasAssociatedWith',
         object: context.agent.uri
       },
-      
-      // Enhanced tracking triples
       {
         subject: context.activityUri,
-        predicate: 'kgen:operationType',
+        predicate: 'dct:type',
         object: `"${context.type}"`
-      },
-      {
-        subject: context.activityUri,
-        predicate: 'kgen:operationId',
-        object: `"${context.operationId}"`
       }
     ];
     
-    // Add template tracking
-    if (context.templateId) {
-      activityTriples.push({
-        subject: context.activityUri,
-        predicate: 'kgen:usedTemplate',
-        object: `${this.config.namespaces.kgen}template/${context.templateId}`
-      });
-    }
-    
-    // Add rule tracking
-    for (const ruleId of context.ruleIds) {
-      activityTriples.push({
-        subject: context.activityUri,
-        predicate: 'kgen:appliedRule',
-        object: `${this.config.namespaces.kgen}rule/${ruleId}`
-      });
-    }
-    
-    // Add engine version
-    if (context.engineVersion) {
-      activityTriples.push({
-        subject: context.activityUri,
-        predicate: 'kgen:engineVersion',
-        object: `"${context.engineVersion}"`
-      });
-    }
-    
-    // Store triples in RDF store
     for (const triple of activityTriples) {
       this.store.addQuad(
         triple.subject,
@@ -670,250 +730,119 @@ export class ProvenanceTracker extends EventEmitter {
     }
   }
 
-  async _recordEnhancedActivityCompletion(context) {
-    const completionTriples = [
-      {
-        subject: context.activityUri,
-        predicate: 'prov:endedAtTime',
-        object: `"${context.endTime.toISOString()}"^^xsd:dateTime`
-      },
-      {
-        subject: context.activityUri,
-        predicate: 'kgen:status',
-        object: `"${context.status}"`
-      },
-      {
-        subject: context.activityUri,
-        predicate: 'kgen:duration',
-        object: `"${context.duration}"^^xsd:integer`
-      },
-      {
-        subject: context.activityUri,
-        predicate: 'kgen:integrityHash',
-        object: `"${context.integrityHash}"`
-      }
-    ];
-    
-    // Add graph hashes
-    if (context.inputGraphHash) {
-      completionTriples.push({
-        subject: context.activityUri,
-        predicate: 'kgen:inputGraphHash',
-        object: `"${context.inputGraphHash}"`
-      });
-    }
-    
-    if (context.outputGraphHash) {
-      completionTriples.push({
-        subject: context.activityUri,
-        predicate: 'kgen:outputGraphHash',
-        object: `"${context.outputGraphHash}"`
-      });
-    }
-    
-    // Store completion triples
-    for (const triple of completionTriples) {
-      this.store.addQuad(
-        triple.subject,
-        triple.predicate,
-        triple.object
-      );
-    }
-  }
-
-  async _recordEnhancedOutputEntities(context) {
-    for (const generatedFile of context.generatedFiles) {
-      const entityUri = `${this.config.namespaces.kgen}entity/${generatedFile.id || generatedFile.name}`;
+  async _recordInputEntities(context, sources) {
+    // Record input entities and their usage
+    for (const source of sources) {
+      const entityUri = `${this.config.namespaces.kgen}entity/${source.id || source.name}`;
       
       // Record entity
-      this.store.addQuad(entityUri, 'rdf:type', 'prov:Entity');
-      
-      // Record generation
-      const generationUri = `${this.config.namespaces.kgen}generation/${context.operationId}_${generatedFile.id}`;
-      this.store.addQuad(generationUri, 'rdf:type', 'prov:Generation');
-      this.store.addQuad(generationUri, 'prov:activity', context.activityUri);
-      this.store.addQuad(generationUri, 'prov:entity', entityUri);
-      
-      // Add file metadata
-      this.store.addQuad(entityUri, 'kgen:filePath', `"${generatedFile.path}"`);
-      this.store.addQuad(entityUri, 'kgen:fileHash', `"${generatedFile.hash}"`);
-      this.store.addQuad(entityUri, 'kgen:fileSize', `"${generatedFile.size}"^^xsd:integer`);
-      
-      // Register in artifact registry
-      this.artifactRegistry.set(generatedFile.path, {
-        entityUri,
-        operationId: context.operationId,
-        templateId: context.templateId,
-        ruleIds: context.ruleIds,
-        generatedAt: context.endTime,
-        hash: generatedFile.hash
-      });
-    }
-  }
-
-  async _recordTemplateUsage(context) {
-    const templateUri = `${this.config.namespaces.kgen}template/${context.templateId}`;
-    
-    // Record template usage
-    this.store.addQuad(
-      context.activityUri,
-      'prov:used',
-      templateUri
-    );
-    
-    // Record template as entity if not already recorded
-    if (!this.templateRegistry.has(context.templateId)) {
-      this.store.addQuad(templateUri, 'rdf:type', 'prov:Entity');
-      this.store.addQuad(templateUri, 'rdf:type', 'kgen:Template');
-      this.store.addQuad(templateUri, 'kgen:templateId', `"${context.templateId}"`);
-      
-      if (context.templateVersion) {
-        this.store.addQuad(templateUri, 'kgen:version', `"${context.templateVersion}"`);
-      }
-    }
-  }
-
-  async _recordRuleUsage(context) {
-    for (const ruleId of context.ruleIds) {
-      const ruleUri = `${this.config.namespaces.kgen}rule/${ruleId}`;
-      
-      // Record rule usage
       this.store.addQuad(
-        context.activityUri,
-        'prov:used',
-        ruleUri
+        entityUri,
+        'rdf:type',
+        'prov:Entity'
       );
       
-      // Record rule as entity if not already recorded
-      if (!this.ruleRegistry.has(ruleId)) {
-        this.store.addQuad(ruleUri, 'rdf:type', 'prov:Entity');
-        this.store.addQuad(ruleUri, 'rdf:type', 'kgen:Rule');
-        this.store.addQuad(ruleUri, 'kgen:ruleId', `"${ruleId}"`);
+      // Record usage
+      const usageUri = `${this.config.namespaces.kgen}usage/${context.operationId}_${source.id}`;
+      this.store.addQuad(usageUri, 'rdf:type', 'prov:Usage');
+      this.store.addQuad(usageUri, 'prov:activity', context.activityUri);
+      this.store.addQuad(usageUri, 'prov:entity', entityUri);
+    }
+  }
+
+  async _recordActivityCompletion(context) {
+    // Record activity completion
+    this.store.addQuad(
+      context.activityUri,
+      'prov:endedAtTime',
+      `"${context.endTime.toISOString()}"^^xsd:dateTime`
+    );
+    
+    this.store.addQuad(
+      context.activityUri,
+      'kgen:status',
+      `"${context.status}"`
+    );
+    
+    if (context.duration) {
+      this.store.addQuad(
+        context.activityUri,
+        'kgen:duration',
+        `"${context.duration}"^^xsd:integer`
+      );
+    }
+  }
+
+  async _recordOutputEntities(context, outputGraph) {
+    // Record output entities and their generation
+    if (outputGraph.entities) {
+      for (const entity of outputGraph.entities) {
+        const entityUri = `${this.config.namespaces.kgen}entity/${entity.id}`;
+        
+        // Record entity
+        this.store.addQuad(entityUri, 'rdf:type', 'prov:Entity');
+        
+        // Record generation
+        const generationUri = `${this.config.namespaces.kgen}generation/${context.operationId}_${entity.id}`;
+        this.store.addQuad(generationUri, 'rdf:type', 'prov:Generation');
+        this.store.addQuad(generationUri, 'prov:activity', context.activityUri);
+        this.store.addQuad(generationUri, 'prov:entity', entityUri);
       }
     }
   }
 
-  async _addToIntegrityChain(context) {
-    const previousHash = this.integrityChain.length > 0 ? 
-      this.integrityChain[this.integrityChain.length - 1].hash : '0';
-    
-    const chainLink = {
-      index: this.integrityChain.length,
-      operationId: context.operationId,
-      timestamp: context.endTime,
-      previousHash,
-      hash: context.integrityHash,
-      signature: context.signature,
-      data: {
-        operationType: context.type,
-        templateId: context.templateId,
-        ruleIds: context.ruleIds,
-        artifactCount: context.generatedFiles.length,
-        agent: context.agent.id
-      }
-    };
-    
-    this.integrityChain.push(chainLink);
-  }
-
-  async _calculateFileHash(filePath) {
-    try {
-      const fileContent = await fs.readFile(filePath);
-      return crypto.createHash(this.config.hashAlgorithm).update(fileContent).digest('hex');
-    } catch (error) {
-      this.logger.warn(`Failed to calculate hash for ${filePath}:`, error);
-      return null;
+  async _recordTransformations(context) {
+    // Record transformations and derivations
+    if (context.inputs && context.outputs) {
+      // Implementation for recording data transformations
     }
   }
 
-  async _verifyArtifactIntegrity(artifactPath, attestation) {
-    try {
-      // Verify file hash
-      const currentHash = await this._calculateFileHash(artifactPath);
-      const hashValid = currentHash === attestation.artifactHash;
-      
-      // Verify signature if present
-      let signatureValid = true;
-      if (attestation.signature && this.config.enableCryptographicSigning) {
-        signatureValid = await this.cryptoManager.verifySignature(attestation, attestation.signature);
-      }
-      
-      return {
-        artifactPath,
-        hashValid,
-        signatureValid,
-        integrityValid: hashValid && signatureValid,
-        verifiedAt: new Date(),
-        expectedHash: attestation.artifactHash,
-        actualHash: currentHash
-      };
-      
-    } catch (error) {
-      return {
-        artifactPath,
-        hashValid: false,
-        signatureValid: false,
-        integrityValid: false,
-        error: error.message,
-        verifiedAt: new Date()
-      };
+  async _recordIntegrityHash(context) {
+    // Record cryptographic hash for integrity
+    if (context.integrityHash) {
+      this.store.addQuad(
+        context.activityUri,
+        'kgen:integrityHash',
+        `"${context.integrityHash}"`
+      );
     }
   }
 
-  async _generateEnhancedProvenanceRecord(context) {
-    return {
-      operationId: context.operationId,
-      type: context.type,
-      templateId: context.templateId,
-      ruleIds: context.ruleIds,
-      agent: context.agent,
-      startTime: context.startTime,
-      endTime: context.endTime,
-      duration: context.duration,
-      status: context.status,
-      integrityHash: context.integrityHash,
-      signature: context.signature,
-      sources: context.sources,
-      outputs: context.outputs,
-      generatedFiles: context.generatedFiles,
-      attestations: context.attestations,
-      complianceBundle: context.complianceBundle,
-      graphHashes: {
-        input: context.inputGraphHash,
-        output: context.outputGraphHash
-      },
-      engineVersion: context.engineVersion,
-      validationResults: context.validationResults,
-      provenanceTriples: this._extractActivityTriples(context.activityUri)
-    };
-  }
-
-  _extractActivityTriples(activityUri) {
-    return this.store.getQuads(activityUri, null, null);
-  }
-
-  _getEngineVersion() {
-    // This would typically be set from package.json or environment
-    return process.env.KGEN_VERSION || '1.0.0';
-  }
-
-  async _registerSystemAgents() {
-    const systemAgent = {
-      id: 'kgen-system',
-      uri: `${this.config.namespaces.kgen}agent/system`,
-      type: 'software',
-      name: 'KGEN Knowledge Generation System',
-      version: this._getEngineVersion()
-    };
+  async _recordActivityError(context) {
+    // Record activity error
+    this.store.addQuad(
+      context.activityUri,
+      'prov:endedAtTime',
+      `"${context.endTime.toISOString()}"^^xsd:dateTime`
+    );
     
-    await this._recordAgent(systemAgent);
+    this.store.addQuad(
+      context.activityUri,
+      'kgen:status',
+      '"error"'
+    );
+    
+    if (context.error) {
+      this.store.addQuad(
+        context.activityUri,
+        'kgen:errorMessage',
+        `"${context.error.message}"`
+      );
+    }
   }
 
   async _recordAgent(agent) {
+    // Record agent in RDF
     this.store.addQuad(agent.uri, 'rdf:type', 'prov:Agent');
     this.store.addQuad(agent.uri, 'foaf:name', `"${agent.name}"`);
     
-    if (agent.type === 'software') {
+    if (agent.type === 'person') {
+      this.store.addQuad(agent.uri, 'rdf:type', 'prov:Person');
+      if (agent.email) {
+        this.store.addQuad(agent.uri, 'foaf:mbox', `mailto:${agent.email}`);
+      }
+    } else if (agent.type === 'software') {
       this.store.addQuad(agent.uri, 'rdf:type', 'prov:SoftwareAgent');
       if (agent.version) {
         this.store.addQuad(agent.uri, 'kgen:version', `"${agent.version}"`);
@@ -921,77 +850,677 @@ export class ProvenanceTracker extends EventEmitter {
     }
   }
 
-  async _loadTemplateRegistry() {
-    // Load template registry from storage or configuration
-    this.templateRegistry = new Map();
-  }
-
-  async _loadRuleRegistry() {
-    // Load rule registry from storage or configuration
-    this.ruleRegistry = new Map();
-  }
-
-  async _initializeIntegrityChain() {
-    // Initialize with genesis block
-    if (this.integrityChain.length === 0) {
-      const genesisLink = {
-        index: 0,
-        operationId: 'genesis',
-        timestamp: new Date(),
-        previousHash: '0',
-        hash: crypto.createHash(this.config.hashAlgorithm).update('genesis').digest('hex'),
-        data: { type: 'genesis' }
-      };
-      
-      this.integrityChain.push(genesisLink);
+  async _recordEntityLineage(lineageRecord) {
+    // Record entity lineage in RDF
+    for (const source of lineageRecord.sources) {
+      this.store.addQuad(
+        lineageRecord.entityUri,
+        'prov:wasDerivedFrom',
+        `${this.config.namespaces.kgen}entity/${source.id}`
+      );
     }
   }
 
-  async _loadExistingProvenance() {
-    // Load existing provenance data from storage
-    // This would be implemented based on the storage backend
-  }
-
-  async _identifyAgent(user) {
-    if (!user) {
-      return {
-        id: 'system',
-        uri: `${this.config.namespaces.kgen}agent/system`,
-        type: 'software',
-        name: 'KGEN System'
-      };
-    }
+  async _generateIntegrityHash(context) {
+    // Generate cryptographic hash for integrity verification
+    const contextData = {
+      operationId: context.operationId,
+      type: context.type,
+      startTime: context.startTime,
+      endTime: context.endTime,
+      inputs: context.inputs,
+      outputs: context.outputs,
+      agent: context.agent?.id
+    };
     
+    const contextString = JSON.stringify(contextData, Object.keys(contextData).sort());
+    return crypto.createHash(this.config.hashAlgorithm).update(contextString).digest('hex');
+  }
+
+  async _generateProvenanceRecord(context) {
+    // Generate comprehensive provenance record
     return {
-      id: user.id || user.username,
-      uri: `${this.config.namespaces.kgen}agent/${user.id || user.username}`,
-      type: 'person',
-      name: user.name || user.username,
-      email: user.email
+      operationId: context.operationId,
+      type: context.type,
+      agent: context.agent,
+      startTime: context.startTime,
+      endTime: context.endTime,
+      duration: context.duration,
+      status: context.status,
+      inputs: context.inputs,
+      outputs: context.outputs,
+      metrics: context.metrics,
+      integrityHash: context.integrityHash,
+      provenanceTriples: this._extractActivityTriples(context.activityUri)
     };
   }
 
-  async _recordEnhancedInputEntities(context) {
-    for (const source of context.sources) {
-      const entityUri = `${this.config.namespaces.kgen}entity/${source.id || source.name}`;
-      
-      // Record entity
-      this.store.addQuad(entityUri, 'rdf:type', 'prov:Entity');
-      
-      // Record usage
-      const usageUri = `${this.config.namespaces.kgen}usage/${context.operationId}_${source.id}`;
-      this.store.addQuad(usageUri, 'rdf:type', 'prov:Usage');
-      this.store.addQuad(usageUri, 'prov:activity', context.activityUri);
-      this.store.addQuad(usageUri, 'prov:entity', entityUri);
-      
-      // Add source metadata
-      if (source.hash) {
-        this.store.addQuad(entityUri, 'kgen:contentHash', `"${source.hash}"`);
+  _extractActivityTriples(activityUri) {
+    // Extract RDF triples related to specific activity
+    return this.store.getQuads(activityUri, null, null);
+  }
+
+  async _getUpstreamLineage(entityId, maxDepth) {
+    // Get upstream lineage (recursive)
+    const upstream = [];
+    // Implementation for upstream lineage traversal
+    return upstream;
+  }
+
+  async _getDownstreamLineage(entityId, maxDepth) {
+    // Get downstream lineage (recursive)
+    const downstream = [];
+    // Implementation for downstream lineage traversal
+    return downstream;
+  }
+
+  async _buildLineageGraph(entityId, options) {
+    // Build complete lineage graph
+    return {
+      nodes: [],
+      edges: [],
+      metadata: {}
+    };
+  }
+
+  _groupActivitiesByAgent(activities) {
+    const grouped = new Map();
+    
+    for (const activity of activities) {
+      const agentId = activity.agent?.id || 'unknown';
+      if (!grouped.has(agentId)) {
+        grouped.set(agentId, []);
       }
-      if (source.path) {
-        this.store.addQuad(entityUri, 'kgen:filePath', `"${source.path}"`);
-      }
+      grouped.get(agentId).push(activity);
     }
+    
+    return Object.fromEntries(grouped);
+  }
+
+  _generateAuditStatistics(activities) {
+    return {
+      totalActivities: activities.length,
+      successfulActivities: activities.filter(a => a.status === 'success').length,
+      failedActivities: activities.filter(a => a.status === 'error').length,
+      averageDuration: activities.reduce((sum, a) => sum + (a.duration || 0), 0) / activities.length,
+      activityTypes: this._countByProperty(activities, 'type'),
+      agentActivity: this._countByProperty(activities, 'agent.id')
+    };
+  }
+
+  _countByProperty(activities, property) {
+    const counts = {};
+    for (const activity of activities) {
+      const value = this._getNestedProperty(activity, property) || 'unknown';
+      counts[value] = (counts[value] || 0) + 1;
+    }
+    return counts;
+  }
+
+  _getNestedProperty(obj, path) {
+    return path.split('.').reduce((current, key) => current?.[key], obj);
+  }
+
+  async _detectAuditAnomalies(activities) {
+    // Detect anomalies in audit trail
+    const anomalies = [];
+    // Implementation for anomaly detection
+    return anomalies;
+  }
+
+  async _verifyAuditIntegrity(activities) {
+    // Verify integrity of audit trail
+    const verificationResult = await this.verifyIntegrity(activities);
+    return verificationResult.integrityScore > 0.95;
+  }
+
+  async _exportAsTurtle(options) {
+    // Export provenance as Turtle format
+    return this.writer.quadsToString(this.store.getQuads());
+  }
+
+  async _exportAsJsonLD(options) {
+    // Export provenance as JSON-LD format
+    return JSON.stringify({ '@context': this.config.namespaces, '@graph': [] }, null, 2);
+  }
+
+  async _exportAsRDFXML(options) {
+    // Export provenance as RDF/XML format
+    return '<rdf:RDF></rdf:RDF>';
+  }
+
+  async _exportAsJSON(options) {
+    // Export provenance as JSON format
+    return JSON.stringify({
+      activities: this.activityHistory,
+      entityLineage: Object.fromEntries(this.entityLineage),
+      agents: Object.fromEntries(this.agentRegistry)
+    }, null, 2);
+  }
+
+  async _saveProvenance() {
+    // Save provenance data based on storage backend
+    if (this.config.storageBackend !== 'memory') {
+      await this.storage.store('provenance-state', {
+        activityHistory: this.activityHistory,
+        entityLineage: Object.fromEntries(this.entityLineage),
+        agentRegistry: Object.fromEntries(this.agentRegistry),
+        hashChain: this.hashChain,
+        digitalSignatures: Object.fromEntries(this.digitalSignatures),
+        metrics: this.metrics
+      });
+    }
+  }
+
+  // Enhanced provenance methods
+
+  /**
+   * Execute SPARQL query on provenance data
+   * @param {string} query - SPARQL query string
+   * @param {Object} options - Query options
+   */
+  async executeQuery(query, options = {}) {
+    try {
+      this.metrics.queriesExecuted++;
+      const results = await this.queryEngine.executeQuery(query, options);
+      
+      await this.complianceLogger.logComplianceEvent('sparql_query', {
+        query: query.length > 500 ? `${query.slice(0, 500)}...` : query,
+        resultCount: results.results?.bindings?.length || 0
+      });
+      
+      return results;
+    } catch (error) {
+      this.logger.error('Failed to execute SPARQL query:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get comprehensive entity lineage using SPARQL
+   * @param {string} entityId - Entity identifier
+   * @param {Object} options - Lineage options
+   */
+  async getAdvancedEntityLineage(entityId, options = {}) {
+    try {
+      const entityUri = `${this.config.namespaces.kgen}entity/${entityId}`;
+      const lineage = await this.queryEngine.getEntityLineage(entityUri, options);
+      
+      // Add impact analysis
+      if (options.includeImpactAnalysis) {
+        lineage.impactAnalysis = await this._analyzeEntityImpact(entityId);
+      }
+      
+      // Add compliance information
+      if (options.includeCompliance) {
+        lineage.compliance = await this._getEntityComplianceInfo(entityId);
+      }
+      
+      return lineage;
+    } catch (error) {
+      this.logger.error(`Failed to get advanced lineage for ${entityId}:`, error);
+      throw error;
+    }
+  }
+
+  /**
+   * Verify hash chain integrity
+   * @returns {Promise<Object>} Chain verification result
+   */
+  async verifyHashChain() {
+    try {
+      this.logger.info('Verifying hash chain integrity');
+      
+      const verificationResult = {
+        totalLinks: this.hashChain.length,
+        validLinks: 0,
+        brokenLinks: [],
+        integrityScore: 0
+      };
+      
+      for (let i = 1; i < this.hashChain.length; i++) {
+        const currentLink = this.hashChain[i];
+        const previousLink = this.hashChain[i - 1];
+        
+        if (currentLink.previousHash === previousLink.hash) {
+          verificationResult.validLinks++;
+        } else {
+          verificationResult.brokenLinks.push({
+            index: i,
+            expected: previousLink.hash,
+            actual: currentLink.previousHash,
+            operationId: currentLink.operationId
+          });
+        }
+      }
+      
+      verificationResult.integrityScore = this.hashChain.length > 0 ?
+        verificationResult.validLinks / Math.max(1, this.hashChain.length - 1) : 1;
+      
+      this.metrics.integrityVerifications++;
+      
+      await this.complianceLogger.logComplianceEvent('chain_verification', {
+        totalLinks: verificationResult.totalLinks,
+        validLinks: verificationResult.validLinks,
+        brokenLinks: verificationResult.brokenLinks.length,
+        integrityScore: verificationResult.integrityScore
+      });
+      
+      return verificationResult;
+      
+    } catch (error) {
+      this.logger.error('Failed to verify hash chain:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Generate compliance report using SPARQL queries
+   * @param {string} regulation - Regulation type (GDPR, SOX, HIPAA)
+   * @param {Date} startDate - Start date
+   * @param {Date} endDate - End date
+   */
+  async generateComplianceReport(regulation, startDate, endDate) {
+    try {
+      this.logger.info(`Generating ${regulation} compliance report`);
+      
+      const report = await this.queryEngine.generateComplianceQuery(regulation, {
+        startDate: startDate.toISOString(),
+        endDate: endDate.toISOString()
+      });
+      
+      // Add additional compliance information
+      const complianceReport = await this.complianceLogger.generateComplianceReport(
+        startDate, 
+        endDate, 
+        { includeRecommendations: true }
+      );
+      
+      const combinedReport = {
+        ...report,
+        complianceAnalysis: complianceReport,
+        blockchainAnchorage: this.blockchain ? await this._getBlockchainAnchorageInfo(startDate, endDate) : null,
+        integrityVerification: await this.verifyIntegrity(),
+        chainIntegrity: await this.verifyHashChain()
+      };
+      
+      // Store report
+      await this.storage.store(`compliance-report-${regulation}-${Date.now()}`, combinedReport);
+      
+      return combinedReport;
+      
+    } catch (error) {
+      this.logger.error(`Failed to generate ${regulation} compliance report:`, error);
+      throw error;
+    }
+  }
+
+  /**
+   * Analyze change impact for entity
+   * @param {string} entityId - Entity identifier
+   * @param {Object} proposedChanges - Proposed changes
+   */
+  async analyzeChangeImpact(entityId, proposedChanges) {
+    try {
+      this.logger.info(`Analyzing change impact for entity: ${entityId}`);
+      
+      // Get entity lineage
+      const lineage = await this.getAdvancedEntityLineage(entityId, {
+        includeDownstream: true,
+        maxDepth: 5
+      });
+      
+      // Analyze affected entities
+      const affectedEntities = new Set();
+      const affectedActivities = new Set();
+      const affectedAgents = new Set();
+      
+      // Process downstream lineage
+      for (const item of lineage.downstreamLineage) {
+        if (item.relatedEntity) affectedEntities.add(item.relatedEntity);
+        if (item.activity) affectedActivities.add(item.activity);
+        if (item.agent) affectedAgents.add(item.agent);
+      }
+      
+      const impact = {
+        targetEntity: entityId,
+        proposedChanges,
+        affectedEntities: Array.from(affectedEntities),
+        affectedActivities: Array.from(affectedActivities),
+        affectedAgents: Array.from(affectedAgents),
+        riskLevel: this._calculateRiskLevel(affectedEntities.size, affectedActivities.size),
+        recommendations: this._generateChangeRecommendations(affectedEntities.size, proposedChanges),
+        analyzedAt: new Date()
+      };
+      
+      // Log compliance event
+      await this.complianceLogger.logComplianceEvent('change_impact_analysis', {
+        entityId,
+        affectedEntities: impact.affectedEntities.length,
+        riskLevel: impact.riskLevel
+      });
+      
+      return impact;
+      
+    } catch (error) {
+      this.logger.error(`Failed to analyze change impact for ${entityId}:`, error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get provenance visualization data
+   * @param {Object} options - Visualization options
+   */
+  async getVisualizationData(options = {}) {
+    try {
+      const format = options.format || 'cytoscape';
+      
+      const nodes = [];
+      const edges = [];
+      
+      // Add entity nodes
+      for (const [entityId, lineage] of this.entityLineage) {
+        nodes.push({
+          data: {
+            id: entityId,
+            label: entityId,
+            type: 'entity',
+            lineage: lineage.sources.length + lineage.derivations.length
+          }
+        });
+      }
+      
+      // Add activity nodes
+      for (const activity of this.activityHistory) {
+        nodes.push({
+          data: {
+            id: activity.operationId,
+            label: activity.type,
+            type: 'activity',
+            status: activity.status,
+            agent: activity.agent?.id
+          }
+        });
+        
+        // Add edges for inputs
+        for (const input of activity.inputs || []) {
+          edges.push({
+            data: {
+              id: `${input.id}-${activity.operationId}`,
+              source: input.id,
+              target: activity.operationId,
+              type: 'used'
+            }
+          });
+        }
+        
+        // Add edges for outputs
+        for (const output of activity.outputs || []) {
+          edges.push({
+            data: {
+              id: `${activity.operationId}-${output.id}`,
+              source: activity.operationId,
+              target: output.id,
+              type: 'generated'
+            }
+          });
+        }
+      }
+      
+      // Add agent nodes
+      for (const [agentId, agent] of this.agentRegistry) {
+        nodes.push({
+          data: {
+            id: agentId,
+            label: agent.name,
+            type: 'agent',
+            agentType: agent.type
+          }
+        });
+      }
+      
+      const visualization = {
+        format,
+        nodes,
+        edges,
+        metadata: {
+          totalEntities: this.entityLineage.size,
+          totalActivities: this.activityHistory.length,
+          totalAgents: this.agentRegistry.size,
+          generatedAt: new Date()
+        }
+      };
+      
+      if (format === 'd3') {
+        return this._convertToD3Format(visualization);
+      } else if (format === 'graphviz') {
+        return this._convertToGraphvizFormat(visualization);
+      }
+      
+      return visualization;
+      
+    } catch (error) {
+      this.logger.error('Failed to generate visualization data:', error);
+      throw error;
+    }
+  }
+
+  // Private methods for enhanced functionality
+
+  async _initializeHashChain() {
+    // Initialize hash chain with genesis block
+    if (this.hashChain.length === 0) {
+      const genesisBlock = {
+        index: 0,
+        timestamp: new Date(),
+        operationId: 'genesis',
+        previousHash: '0',
+        hash: crypto.createHash(this.config.hashAlgorithm)
+          .update('genesis-block')
+          .digest('hex')
+      };
+      
+      this.hashChain.push(genesisBlock);
+    }
+  }
+
+  async _loadSignatureKeys() {
+    try {
+      if (this.config.keyPath && await fs.access(this.config.keyPath).then(() => true).catch(() => false)) {
+        this.privateKey = await fs.readFile(this.config.keyPath, 'utf8');
+        this.logger.info('Digital signature keys loaded');
+      } else {
+        this.logger.warn('Digital signature enabled but no keys found');
+      }
+    } catch (error) {
+      this.logger.error('Failed to load signature keys:', error);
+    }
+  }
+
+  async _startChainValidation() {
+    setInterval(async () => {
+      try {
+        const result = await this.verifyHashChain();
+        if (result.integrityScore < 0.95) {
+          this.logger.warn('Hash chain integrity degraded:', result);
+        }
+      } catch (error) {
+        this.logger.error('Chain validation failed:', error);
+      }
+    }, this.config.chainValidationInterval);
+  }
+
+  async _addToHashChain(context) {
+    const previousBlock = this.hashChain[this.hashChain.length - 1];
+    const newBlock = {
+      index: this.hashChain.length,
+      timestamp: context.endTime,
+      operationId: context.operationId,
+      previousHash: previousBlock.hash,
+      data: {
+        type: context.type,
+        agent: context.agent?.id,
+        integrityHash: context.integrityHash
+      },
+      hash: null
+    };
+    
+    // Calculate block hash
+    const blockString = JSON.stringify({
+      index: newBlock.index,
+      timestamp: newBlock.timestamp,
+      operationId: newBlock.operationId,
+      previousHash: newBlock.previousHash,
+      data: newBlock.data
+    }, Object.keys(newBlock).sort());
+    
+    newBlock.hash = crypto.createHash(this.config.hashAlgorithm)
+      .update(blockString)
+      .digest('hex');
+    
+    this.hashChain.push(newBlock);
+  }
+
+  async _generateDigitalSignature(context) {
+    if (!this.privateKey) {
+      throw new Error('Private key not available for digital signatures');
+    }
+    
+    const dataToSign = JSON.stringify({
+      operationId: context.operationId,
+      integrityHash: context.integrityHash,
+      timestamp: context.endTime
+    });
+    
+    const sign = crypto.createSign(this.config.signatureAlgorithm);
+    sign.update(dataToSign);
+    return sign.sign(this.privateKey, 'hex');
+  }
+
+  async _createProvenanceBundle() {
+    const bundleId = `bundle-${Date.now()}`;
+    const bundleMembers = this.activityHistory.slice(-this.config.bundleSize);
+    
+    const bundle = {
+      id: bundleId,
+      type: 'prov:Bundle',
+      strategy: this.config.bundleStrategy,
+      members: bundleMembers.map(a => a.operationId),
+      createdAt: new Date(),
+      integrityHash: crypto.createHash(this.config.hashAlgorithm)
+        .update(JSON.stringify(bundleMembers.map(a => a.integrityHash)))
+        .digest('hex')
+    };
+    
+    this.provBundles.set(bundleId, bundle);
+    
+    // Store bundle in RDF
+    this.store.addQuad(
+      `${this.config.namespaces.kgen}bundle/${bundleId}`,
+      'rdf:type',
+      'prov:Bundle'
+    );
+    
+    this.logger.debug(`Created provenance bundle: ${bundleId}`);
+  }
+
+  async _analyzeEntityImpact(entityId) {
+    // Analyze entity impact based on lineage
+    const lineage = this.entityLineage.get(entityId);
+    if (!lineage) return null;
+    
+    return {
+      directDependencies: lineage.sources.length,
+      directDependents: lineage.derivations.length,
+      impactScore: (lineage.sources.length + lineage.derivations.length) / 10,
+      criticalityLevel: this._calculateCriticalityLevel(lineage)
+    };
+  }
+
+  async _getEntityComplianceInfo(entityId) {
+    // Get compliance information for entity
+    return {
+      dataTypes: ['personal_data'], // Would be determined from entity analysis
+      retentionPeriod: this.config.auditRetention,
+      legalBases: ['legitimate_interest'],
+      complianceFrameworks: this.config.complianceMode.split(',')
+    };
+  }
+
+  async _getBlockchainAnchorageInfo(startDate, endDate) {
+    if (!this.blockchain) return null;
+    
+    const stats = this.blockchain.getStatistics();
+    return {
+      totalAnchored: stats.totalAnchored,
+      successfulAnchors: stats.successfulAnchors,
+      failedAnchors: stats.failedAnchors,
+      successRate: stats.successRate,
+      network: stats.network
+    };
+  }
+
+  _calculateRiskLevel(affectedEntities, affectedActivities) {
+    const totalAffected = affectedEntities + affectedActivities;
+    if (totalAffected > 50) return 'high';
+    if (totalAffected > 20) return 'medium';
+    return 'low';
+  }
+
+  _generateChangeRecommendations(affectedCount, changes) {
+    const recommendations = [];
+    
+    if (affectedCount > 10) {
+      recommendations.push('Consider phased implementation due to high impact');
+      recommendations.push('Implement comprehensive testing strategy');
+    }
+    
+    if (changes.includes('schema')) {
+      recommendations.push('Validate data migration procedures');
+    }
+    
+    return recommendations;
+  }
+
+  _calculateCriticalityLevel(lineage) {
+    const totalConnections = lineage.sources.length + lineage.derivations.length;
+    if (totalConnections > 20) return 'critical';
+    if (totalConnections > 10) return 'high';
+    if (totalConnections > 5) return 'medium';
+    return 'low';
+  }
+
+  _convertToD3Format(visualization) {
+    return {
+      nodes: visualization.nodes.map(n => n.data),
+      links: visualization.edges.map(e => ({
+        source: e.data.source,
+        target: e.data.target,
+        type: e.data.type
+      })),
+      metadata: visualization.metadata
+    };
+  }
+
+  _convertToGraphvizFormat(visualization) {
+    let dot = 'digraph provenance {\n';
+    dot += '  rankdir=TB;\n';
+    
+    // Add nodes
+    for (const node of visualization.nodes) {
+      const shape = node.data.type === 'entity' ? 'box' : 
+                   node.data.type === 'activity' ? 'ellipse' : 'diamond';
+      dot += `  "${node.data.id}" [label="${node.data.label}", shape=${shape}];\n`;
+    }
+    
+    // Add edges
+    for (const edge of visualization.edges) {
+      dot += `  "${edge.data.source}" -> "${edge.data.target}" [label="${edge.data.type}"];\n`;
+    }
+    
+    dot += '}';
+    return dot;
   }
 }
 

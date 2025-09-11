@@ -241,7 +241,7 @@ export class TaskOrchestrator {
         taskId: task.id,
         success: true,
         duration: endTime.getTime() - startTime.getTime(),
-        artifacts: mockResult.artifacts || {},
+        artifacts: await this.artifactAnalyzer.analyzeTaskArtifacts(task, mockResult) || {},
         filesGenerated: mockResult.filesGenerated || 0,
         output: mockResult.output || ''
       };

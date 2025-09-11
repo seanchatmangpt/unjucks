@@ -1,0 +1,124 @@
+{
+  "version": "1.0.0",
+  "generatedAt": "2025-09-11T19:37:26.828Z",
+  "environment": {
+    "nodeVersion": "v22.12.0",
+    "platform": "darwin",
+    "arch": "arm64"
+  },
+  "templates": {
+    "react-component": {
+      "path": "component/react.njk",
+      "templateHash": null,
+      "context": {
+        "exports": [
+          "Button"
+        ],
+        "imports": [
+          "React",
+          "ReactNode"
+        ],
+        "name": "Button",
+        "props": {
+          "children": "ReactNode",
+          "disabled": "boolean",
+          "onClick": "() => void"
+        },
+        "type": "React.FC"
+      },
+      "contextHash": "8615b87669ac0a80829f34685f887395445703ae31233bf1308c482dc92aa86e",
+      "outputPath": "src/components/Button.tsx",
+      "expectedHash": null
+    },
+    "api-endpoint": {
+      "path": "api/express.njk",
+      "templateHash": null,
+      "context": {
+        "database": "postgresql",
+        "methods": [
+          "GET",
+          "POST",
+          "PUT",
+          "DELETE"
+        ],
+        "middleware": [
+          "authenticate",
+          "validate"
+        ],
+        "model": "User",
+        "name": "users"
+      },
+      "contextHash": "b0e2ef8b81776459834f6879550d4ccf526cfae70120278c3d15f0120a879a2a",
+      "outputPath": "src/api/users.js",
+      "expectedHash": null
+    },
+    "database-model": {
+      "path": "model/sequelize.njk",
+      "templateHash": null,
+      "context": {
+        "associations": [
+          {
+            "foreignKey": "userId",
+            "target": "Post",
+            "type": "hasMany"
+          }
+        ],
+        "fields": {
+          "createdAt": {
+            "allowNull": false,
+            "type": "DATE"
+          },
+          "email": {
+            "allowNull": false,
+            "type": "STRING",
+            "unique": true
+          },
+          "id": {
+            "autoIncrement": true,
+            "primaryKey": true,
+            "type": "INTEGER"
+          },
+          "name": {
+            "allowNull": false,
+            "type": "STRING"
+          },
+          "updatedAt": {
+            "allowNull": false,
+            "type": "DATE"
+          }
+        },
+        "name": "User",
+        "table": "users"
+      },
+      "contextHash": "5f77a23a84e224a819ec1da9f9e2cc270ec29e3ce698c48480a0ae9a7e87260a",
+      "outputPath": "src/models/User.js",
+      "expectedHash": null
+    },
+    "test-suite": {
+      "path": "test/jest.njk",
+      "templateHash": null,
+      "context": {
+        "methods": [
+          "create",
+          "findById",
+          "update",
+          "delete"
+        ],
+        "mocks": [
+          "database",
+          "emailService"
+        ],
+        "name": "UserService",
+        "setup": [
+          "beforeEach",
+          "afterEach"
+        ],
+        "testType": "unit"
+      },
+      "contextHash": "d1ec9831cb8f7fe50108817850860bed1616a2540252a5368707675a9c742467",
+      "outputPath": "tests/UserService.test.js",
+      "expectedHash": null
+    }
+  },
+  "contextHash": "4aedb3701039ff1977d3732e7e9a4af9555967ef6b31a7539eccf5d509867f6f"
+}

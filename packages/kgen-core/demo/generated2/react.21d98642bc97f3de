@@ -1,0 +1,28 @@
+---
+to: "src/components/Button.tsx"
+contentAddressed: true
+attestations: true
+---
+import React, { React, ReactNode } from 'react';
+
+interface ButtonProps {
+children: ReactNode;
+disabled: boolean;
+onClick: () => void;
+}
+
+/**
+ * Button Component
+ * Generated deterministically with content hash: 707eab0c
+ */
+export const Button: React.FC = ({ children, disabled, onClick }) => {
+  return (
+    <div className="button-component">
+      {children}
+    </div>
+  );
+};
+
+Button.displayName = 'Button';
+
+export default Button;

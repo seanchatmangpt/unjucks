@@ -1,0 +1,53 @@
+{
+  "name": "@kgen/rules",
+  "version": "1.0.0", 
+  "description": "KGEN N3.js rule packages for semantic reasoning and compliance",
+  "type": "module",
+  "main": "./index.js",
+  "exports": {
+    ".": "./index.js",
+    "./api-governance": "./api-governance/index.n3",
+    "./hipaa-core": "./hipaa-core/index.n3",
+    "./sox-compliance": "./sox-compliance/index.n3"
+  },
+  "files": [
+    "api-governance/",
+    "hipaa-core/",
+    "sox-compliance/",
+    "index.js",
+    "README.md"
+  ],
+  "scripts": {
+    "test": "node --test test/**/*.test.js",
+    "validate": "node scripts/validate-rules.js",
+    "reasoning": "node scripts/test-reasoning.js"
+  },
+  "keywords": [
+    "kgen",
+    "rules", 
+    "n3",
+    "reasoning",
+    "semantic-web",
+    "compliance",
+    "governance"
+  ],
+  "author": "KGEN Team",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/kgen/kgen.git",
+    "directory": "packages/kgen-rules"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "n3": "^1.21.3"
+  },
+  "devDependencies": {
+    "eslint": "^9.9.0"
+  },
+  "peerDependencies": {
+    "@kgen/core": "^1.0.0"
+  }
+}

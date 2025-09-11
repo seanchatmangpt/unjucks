@@ -1,0 +1,93 @@
+{
+  "templates": [
+    {
+      "name": "react-component",
+      "templatePath": "_templates/component/react.njk",
+      "context": {
+        "name": "Button",
+        "type": "React.FC",
+        "props": {
+          "children": "ReactNode",
+          "onClick": "() => void",
+          "disabled": "boolean"
+        },
+        "imports": [
+          "React",
+          "ReactNode"
+        ],
+        "exports": ["Button"]
+      },
+      "outputPath": "src/components/Button.tsx"
+    },
+    {
+      "name": "api-endpoint",
+      "templatePath": "_templates/api/express.njk",
+      "context": {
+        "name": "users",
+        "methods": ["GET", "POST", "PUT", "DELETE"],
+        "middleware": ["authenticate", "validate"],
+        "model": "User",
+        "database": "postgresql"
+      },
+      "outputPath": "src/api/users.js"
+    },
+    {
+      "name": "database-model",
+      "templatePath": "_templates/model/sequelize.njk",
+      "context": {
+        "name": "User",
+        "table": "users",
+        "fields": {
+          "id": {
+            "type": "INTEGER",
+            "primaryKey": true,
+            "autoIncrement": true
+          },
+          "email": {
+            "type": "STRING",
+            "allowNull": false,
+            "unique": true
+          },
+          "name": {
+            "type": "STRING",
+            "allowNull": false
+          },
+          "createdAt": {
+            "type": "DATE",
+            "allowNull": false
+          },
+          "updatedAt": {
+            "type": "DATE",
+            "allowNull": false
+          }
+        },
+        "associations": [
+          {
+            "type": "hasMany",
+            "target": "Post",
+            "foreignKey": "userId"
+          }
+        ]
+      },
+      "outputPath": "src/models/User.js"
+    },
+    {
+      "name": "test-suite",
+      "templatePath": "_templates/test/jest.njk",
+      "context": {
+        "name": "UserService",
+        "testType": "unit",
+        "methods": ["create", "findById", "update", "delete"],
+        "mocks": ["database", "emailService"],
+        "setup": ["beforeEach", "afterEach"]
+      },
+      "outputPath": "tests/UserService.test.js"
+    }
+  ],
+  "options": {
+    "contentAddressing": true,
+    "attestations": true,
+    "deterministic": true,
+    "cache": true
+  }
+}

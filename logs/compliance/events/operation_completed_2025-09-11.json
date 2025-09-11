@@ -1,0 +1,634 @@
+{
+  "id": "1ffb2655-a850-41e9-86ff-a08fb799c2fd",
+  "type": "operation_completed",
+  "timestamp": "2025-09-11T18:02:31.630Z",
+  "data": {
+    "operationId": "619e5906-6079-4e8c-81e3-c437b969ac0c",
+    "type": "data-extraction",
+    "user": "etl-system",
+    "duration": 102,
+    "status": "success"
+  },
+  "context": {
+    "operationId": "619e5906-6079-4e8c-81e3-c437b969ac0c",
+    "type": "data-extraction",
+    "startTime": "2025-09-11T18:02:31.528Z",
+    "user": {
+      "id": "etl-system",
+      "name": "ETL System",
+      "type": "software"
+    },
+    "inputs": [],
+    "sources": [
+      {
+        "id": "customer-db",
+        "name": "Customer Database"
+      },
+      {
+        "id": "transaction-log",
+        "name": "Transaction Log"
+      }
+    ],
+    "agent": {
+      "id": "etl-system",
+      "uri": "http://kgen.enterprise/provenance/agent/etl-system",
+      "type": "person",
+      "name": "ETL System"
+    },
+    "activityUri": "http://kgen.enterprise/provenance/activity/619e5906-6079-4e8c-81e3-c437b969ac0c",
+    "planUri": "http://kgen.enterprise/provenance/plan/data-extraction",
+    "metadata": {
+      "pipeline": "customer-analytics",
+      "stage": 1,
+      "totalStages": 4
+    },
+    "endTime": "2025-09-11T18:02:31.630Z",
+    "status": "success",
+    "outputs": [
+      {
+        "id": "data-extraction-output",
+        "name": "data-extraction result"
+      }
+    ],
+    "metrics": {
+      "recordsProcessed": 10429,
+      "duration": 4302,
+      "memoryUsed": 140
+    },
+    "outputGraph": {
+      "entities": [
+        {
+          "id": "data-extraction-output",
+          "type": "dataset"
+        }
+      ]
+    },
+    "duration": 102,
+    "integrityHash": "3d5367ac4833efdcf3dd85807e9ef32b476b1341cb5ef95570b4a46aa88b2f37"
+  },
+  "framework": "GDPR,SOX,HIPAA",
+  "severity": "low",
+  "hash": "345f0bd0153cc0639e07a5168be291577c992fb2bd887c43a7732798571eab47"
+}\n{
+  "id": "46a2d1e8-bea4-494c-96d2-e73acfa60f28",
+  "type": "operation_completed",
+  "timestamp": "2025-09-11T18:02:31.737Z",
+  "data": {
+    "operationId": "09092b0c-a0db-494a-bb55-c0168f164a70",
+    "type": "data-transformation",
+    "user": "transform-engine",
+    "duration": 102,
+    "status": "success"
+  },
+  "context": {
+    "operationId": "09092b0c-a0db-494a-bb55-c0168f164a70",
+    "type": "data-transformation",
+    "startTime": "2025-09-11T18:02:31.634Z",
+    "user": {
+      "id": "transform-engine",
+      "name": "Transformation Engine",
+      "type": "software"
+    },
+    "inputs": [
+      {
+        "id": "raw-customer-data"
+      },
+      {
+        "id": "raw-transactions"
+      }
+    ],
+    "sources": [
+      {
+        "id": "transformation-rules"
+      }
+    ],
+    "agent": {
+      "id": "transform-engine",
+      "uri": "http://kgen.enterprise/provenance/agent/transform-engine",
+      "type": "person",
+      "name": "Transformation Engine"
+    },
+    "activityUri": "http://kgen.enterprise/provenance/activity/09092b0c-a0db-494a-bb55-c0168f164a70",
+    "planUri": "http://kgen.enterprise/provenance/plan/data-transformation",
+    "metadata": {
+      "pipeline": "customer-analytics",
+      "stage": 2,
+      "totalStages": 4
+    },
+    "endTime": "2025-09-11T18:02:31.736Z",
+    "status": "success",
+    "outputs": [
+      {
+        "id": "data-transformation-output",
+        "name": "data-transformation result"
+      }
+    ],
+    "metrics": {
+      "recordsProcessed": 7757,
+      "duration": 3233,
+      "memoryUsed": 149
+    },
+    "outputGraph": {
+      "entities": [
+        {
+          "id": "data-transformation-output",
+          "type": "dataset"
+        }
+      ]
+    },
+    "duration": 102,
+    "integrityHash": "4addbc221b3d14b2b58855445afbb55dccbb607bedc38a52486737226b6dbf30"
+  },
+  "framework": "GDPR,SOX,HIPAA",
+  "severity": "low",
+  "hash": "5a19004d871fa241e3fbd36f90cf5a85d21b1a2480166e4e3b49909b8ad5fae8"
+}\n{
+  "id": "d75feab2-9183-4848-b119-0be451428525",
+  "type": "operation_completed",
+  "timestamp": "2025-09-11T18:02:31.844Z",
+  "data": {
+    "operationId": "5e9bd6fa-8744-4057-8a5b-386c3c7cf3d9",
+    "type": "data-validation",
+    "user": "validator",
+    "duration": 103,
+    "status": "success"
+  },
+  "context": {
+    "operationId": "5e9bd6fa-8744-4057-8a5b-386c3c7cf3d9",
+    "type": "data-validation",
+    "startTime": "2025-09-11T18:02:31.740Z",
+    "user": {
+      "id": "validator",
+      "name": "Data Validator",
+      "type": "software"
+    },
+    "inputs": [
+      {
+        "id": "transformed-data"
+      }
+    ],
+    "sources": [
+      {
+        "id": "validation-schema"
+      }
+    ],
+    "agent": {
+      "id": "validator",
+      "uri": "http://kgen.enterprise/provenance/agent/validator",
+      "type": "person",
+      "name": "Data Validator"
+    },
+    "activityUri": "http://kgen.enterprise/provenance/activity/5e9bd6fa-8744-4057-8a5b-386c3c7cf3d9",
+    "planUri": "http://kgen.enterprise/provenance/plan/data-validation",
+    "metadata": {
+      "pipeline": "customer-analytics",
+      "stage": 3,
+      "totalStages": 4
+    },
+    "endTime": "2025-09-11T18:02:31.843Z",
+    "status": "success",
+    "outputs": [
+      {
+        "id": "data-validation-output",
+        "name": "data-validation result"
+      }
+    ],
+    "metrics": {
+      "recordsProcessed": 2575,
+      "duration": 2065,
+      "memoryUsed": 84
+    },
+    "outputGraph": {
+      "entities": [
+        {
+          "id": "data-validation-output",
+          "type": "dataset"
+        }
+      ]
+    },
+    "duration": 103,
+    "integrityHash": "c040a42176dae39dfb00116176572968e6136a482c7f25df20acd25ba9017f20"
+  },
+  "framework": "GDPR,SOX,HIPAA",
+  "severity": "low",
+  "hash": "f17f383779c3c03edf2491e01148396aefebe318b8df7c592d0610ca90eff73b"
+}\n{
+  "id": "08377207-a0bf-4b22-91e9-b24ad50aa3d8",
+  "type": "operation_completed",
+  "timestamp": "2025-09-11T18:02:31.950Z",
+  "data": {
+    "operationId": "c63dfa1d-e6f5-4ff5-abe5-f95eb95d2873",
+    "type": "data-loading",
+    "user": "loader",
+    "duration": 101,
+    "status": "warning"
+  },
+  "context": {
+    "operationId": "c63dfa1d-e6f5-4ff5-abe5-f95eb95d2873",
+    "type": "data-loading",
+    "startTime": "2025-09-11T18:02:31.848Z",
+    "user": {
+      "id": "loader",
+      "name": "Data Loader",
+      "type": "software"
+    },
+    "inputs": [
+      {
+        "id": "validated-data"
+      }
+    ],
+    "sources": [],
+    "agent": {
+      "id": "loader",
+      "uri": "http://kgen.enterprise/provenance/agent/loader",
+      "type": "person",
+      "name": "Data Loader"
+    },
+    "activityUri": "http://kgen.enterprise/provenance/activity/c63dfa1d-e6f5-4ff5-abe5-f95eb95d2873",
+    "planUri": "http://kgen.enterprise/provenance/plan/data-loading",
+    "metadata": {
+      "pipeline": "customer-analytics",
+      "stage": 4,
+      "totalStages": 4
+    },
+    "endTime": "2025-09-11T18:02:31.949Z",
+    "status": "warning",
+    "outputs": [
+      {
+        "id": "data-loading-output",
+        "name": "data-loading result"
+      }
+    ],
+    "metrics": {
+      "recordsProcessed": 10087,
+      "duration": 5352,
+      "memoryUsed": 85
+    },
+    "outputGraph": {
+      "entities": [
+        {
+          "id": "data-loading-output",
+          "type": "dataset"
+        }
+      ]
+    },
+    "duration": 101,
+    "integrityHash": "791947af4f61c0bd1f838ae1cf969ecc171f5c03f7aa29617a695c3cbf74a505"
+  },
+  "framework": "GDPR,SOX,HIPAA",
+  "severity": "low",
+  "hash": "d486994dfca4eee42f51e88cf3792ffc7552ed522cf7b7ae1f062ccddf105884"
+}\n{
+  "id": "163625b4-0f68-4c40-bd5d-0abc20bcd59c",
+  "type": "operation_completed",
+  "timestamp": "2025-09-11T18:04:42.030Z",
+  "data": {
+    "operationId": "96dc87d6-701c-4acc-abc6-269abc087c2c",
+    "type": "data-extraction",
+    "user": "etl-system",
+    "duration": 102,
+    "status": "success"
+  },
+  "context": {
+    "operationId": "96dc87d6-701c-4acc-abc6-269abc087c2c",
+    "type": "data-extraction",
+    "startTime": "2025-09-11T18:04:41.928Z",
+    "user": {
+      "id": "etl-system",
+      "name": "ETL System",
+      "type": "software"
+    },
+    "inputs": [],
+    "sources": [
+      {
+        "id": "customer-db",
+        "name": "Customer Database"
+      },
+      {
+        "id": "transaction-log",
+        "name": "Transaction Log"
+      }
+    ],
+    "agent": {
+      "id": "etl-system",
+      "uri": "http://kgen.enterprise/provenance/agent/etl-system",
+      "type": "person",
+      "name": "ETL System"
+    },
+    "activityUri": "http://kgen.enterprise/provenance/activity/96dc87d6-701c-4acc-abc6-269abc087c2c",
+    "planUri": "http://kgen.enterprise/provenance/plan/data-extraction",
+    "metadata": {
+      "pipeline": "customer-analytics",
+      "stage": 1,
+      "totalStages": 4
+    },
+    "endTime": "2025-09-11T18:04:42.030Z",
+    "status": "success",
+    "outputs": [
+      {
+        "id": "data-extraction-output",
+        "name": "data-extraction result"
+      }
+    ],
+    "metrics": {
+      "recordsProcessed": 3029,
+      "duration": 3367,
+      "memoryUsed": 113
+    },
+    "outputGraph": {
+      "entities": [
+        {
+          "id": "data-extraction-output",
+          "type": "dataset"
+        }
+      ]
+    },
+    "duration": 102,
+    "integrityHash": "54111cf41bc71583e3c268cd622e64ba888c2a67db1fd4004d6a4e37adff61a4"
+  },
+  "framework": "GDPR,SOX,HIPAA",
+  "severity": "low",
+  "hash": "813ad398fa63dbf4a91b0fb35362a067c709dba1bd0d81a46fec7bfbe072f9a5"
+}\n{
+  "id": "0785a0ce-57b8-4b52-900f-6b3b2d59c15f",
+  "type": "operation_completed",
+  "timestamp": "2025-09-11T18:04:42.137Z",
+  "data": {
+    "operationId": "c5cf4920-8d97-4319-8432-380fc05b13b5",
+    "type": "data-transformation",
+    "user": "transform-engine",
+    "duration": 102,
+    "status": "success"
+  },
+  "context": {
+    "operationId": "c5cf4920-8d97-4319-8432-380fc05b13b5",
+    "type": "data-transformation",
+    "startTime": "2025-09-11T18:04:42.035Z",
+    "user": {
+      "id": "transform-engine",
+      "name": "Transformation Engine",
+      "type": "software"
+    },
+    "inputs": [
+      {
+        "id": "raw-customer-data"
+      },
+      {
+        "id": "raw-transactions"
+      }
+    ],
+    "sources": [
+      {
+        "id": "transformation-rules"
+      }
+    ],
+    "agent": {
+      "id": "transform-engine",
+      "uri": "http://kgen.enterprise/provenance/agent/transform-engine",
+      "type": "person",
+      "name": "Transformation Engine"
+    },
+    "activityUri": "http://kgen.enterprise/provenance/activity/c5cf4920-8d97-4319-8432-380fc05b13b5",
+    "planUri": "http://kgen.enterprise/provenance/plan/data-transformation",
+    "metadata": {
+      "pipeline": "customer-analytics",
+      "stage": 2,
+      "totalStages": 4
+    },
+    "endTime": "2025-09-11T18:04:42.137Z",
+    "status": "success",
+    "outputs": [
+      {
+        "id": "data-transformation-output",
+        "name": "data-transformation result"
+      }
+    ],
+    "metrics": {
+      "recordsProcessed": 8141,
+      "duration": 1750,
+      "memoryUsed": 76
+    },
+    "outputGraph": {
+      "entities": [
+        {
+          "id": "data-transformation-output",
+          "type": "dataset"
+        }
+      ]
+    },
+    "duration": 102,
+    "integrityHash": "7d3c5a30817c5f0e70e10a5557f03141b50979e39c6ebe10b2bd1b7c53ee4a2c"
+  },
+  "framework": "GDPR,SOX,HIPAA",
+  "severity": "low",
+  "hash": "005cc7f1736e05f1192e0e485163644396c5595e59a74fe4f46a0c9d7b82ece1"
+}\n{
+  "id": "4f76708e-1788-474f-b823-4507be720cc6",
+  "type": "operation_completed",
+  "timestamp": "2025-09-11T18:04:42.244Z",
+  "data": {
+    "operationId": "2ede7a42-1613-4748-bd93-cc752498b5b8",
+    "type": "data-validation",
+    "user": "validator",
+    "duration": 102,
+    "status": "success"
+  },
+  "context": {
+    "operationId": "2ede7a42-1613-4748-bd93-cc752498b5b8",
+    "type": "data-validation",
+    "startTime": "2025-09-11T18:04:42.142Z",
+    "user": {
+      "id": "validator",
+      "name": "Data Validator",
+      "type": "software"
+    },
+    "inputs": [
+      {
+        "id": "transformed-data"
+      }
+    ],
+    "sources": [
+      {
+        "id": "validation-schema"
+      }
+    ],
+    "agent": {
+      "id": "validator",
+      "uri": "http://kgen.enterprise/provenance/agent/validator",
+      "type": "person",
+      "name": "Data Validator"
+    },
+    "activityUri": "http://kgen.enterprise/provenance/activity/2ede7a42-1613-4748-bd93-cc752498b5b8",
+    "planUri": "http://kgen.enterprise/provenance/plan/data-validation",
+    "metadata": {
+      "pipeline": "customer-analytics",
+      "stage": 3,
+      "totalStages": 4
+    },
+    "endTime": "2025-09-11T18:04:42.244Z",
+    "status": "success",
+    "outputs": [
+      {
+        "id": "data-validation-output",
+        "name": "data-validation result"
+      }
+    ],
+    "metrics": {
+      "recordsProcessed": 2099,
+      "duration": 3594,
+      "memoryUsed": 93
+    },
+    "outputGraph": {
+      "entities": [
+        {
+          "id": "data-validation-output",
+          "type": "dataset"
+        }
+      ]
+    },
+    "duration": 102,
+    "integrityHash": "57ffd96435fa92481ecf08d82b8fbfdfb27c2fe6b58003dca1e321ad15577f09"
+  },
+  "framework": "GDPR,SOX,HIPAA",
+  "severity": "low",
+  "hash": "4f55f845eec697156af49a14942e9e452c363b7f373eed37be98d9895f1c80a7"
+}\n{
+  "id": "b5a3176b-d910-4210-96f0-84a95e2ff1ef",
+  "type": "operation_completed",
+  "timestamp": "2025-09-11T18:04:42.351Z",
+  "data": {
+    "operationId": "4762d38f-e9ff-437f-98ac-945860f940c1",
+    "type": "data-loading",
+    "user": "loader",
+    "duration": 102,
+    "status": "success"
+  },
+  "context": {
+    "operationId": "4762d38f-e9ff-437f-98ac-945860f940c1",
+    "type": "data-loading",
+    "startTime": "2025-09-11T18:04:42.248Z",
+    "user": {
+      "id": "loader",
+      "name": "Data Loader",
+      "type": "software"
+    },
+    "inputs": [
+      {
+        "id": "validated-data"
+      }
+    ],
+    "sources": [],
+    "agent": {
+      "id": "loader",
+      "uri": "http://kgen.enterprise/provenance/agent/loader",
+      "type": "person",
+      "name": "Data Loader"
+    },
+    "activityUri": "http://kgen.enterprise/provenance/activity/4762d38f-e9ff-437f-98ac-945860f940c1",
+    "planUri": "http://kgen.enterprise/provenance/plan/data-loading",
+    "metadata": {
+      "pipeline": "customer-analytics",
+      "stage": 4,
+      "totalStages": 4
+    },
+    "endTime": "2025-09-11T18:04:42.350Z",
+    "status": "success",
+    "outputs": [
+      {
+        "id": "data-loading-output",
+        "name": "data-loading result"
+      }
+    ],
+    "metrics": {
+      "recordsProcessed": 7967,
+      "duration": 4138,
+      "memoryUsed": 72
+    },
+    "outputGraph": {
+      "entities": [
+        {
+          "id": "data-loading-output",
+          "type": "dataset"
+        }
+      ]
+    },
+    "duration": 102,
+    "integrityHash": "6b0d6a3d4db9c3c8665e0c370e94e0b54848254c00c858fa3ff4b31d365fe4d9"
+  },
+  "framework": "GDPR,SOX,HIPAA",
+  "severity": "low",
+  "hash": "70c0fbc3f72e4b09f94d7eb69fedcd4a7ca97d6c8ae5396b006e395a34a620ef"
+}\n{
+  "id": "68a13805-fe08-4ade-bf92-fdcc4f745ac2",
+  "type": "operation_completed",
+  "timestamp": "2025-09-11T18:10:08.803Z",
+  "data": {
+    "operationId": "0a5bb9ef-fae0-4420-92c1-9e6dea0083af",
+    "type": "data-processing",
+    "user": "demo-user",
+    "duration": 102,
+    "status": "success"
+  },
+  "context": {
+    "operationId": "0a5bb9ef-fae0-4420-92c1-9e6dea0083af",
+    "type": "data-processing",
+    "startTime": "2025-09-11T18:10:08.701Z",
+    "user": {
+      "id": "demo-user",
+      "name": "Demo User",
+      "email": "demo@example.com"
+    },
+    "inputs": [
+      {
+        "id": "input1",
+        "name": "source-data.csv"
+      }
+    ],
+    "sources": [
+      {
+        "id": "database1",
+        "name": "Customer Database"
+      }
+    ],
+    "agent": {
+      "id": "demo-user",
+      "uri": "http://kgen.enterprise/provenance/agent/demo-user",
+      "type": "person",
+      "name": "Demo User",
+      "email": "demo@example.com"
+    },
+    "activityUri": "http://kgen.enterprise/provenance/activity/0a5bb9ef-fae0-4420-92c1-9e6dea0083af",
+    "planUri": "http://kgen.enterprise/provenance/plan/data-processing",
+    "metadata": {
+      "version": "1.0",
+      "description": "Process customer data for analytics"
+    },
+    "endTime": "2025-09-11T18:10:08.803Z",
+    "status": "success",
+    "outputs": [
+      {
+        "id": "output1",
+        "name": "processed-data.json"
+      }
+    ],
+    "metrics": {
+      "recordsProcessed": 1500,
+      "duration": 2500,
+      "memoryUsed": 128
+    },
+    "outputGraph": {
+      "entities": [
+        {
+          "id": "output1",
+          "type": "dataset",
+          "format": "json"
+        }
+      ]
+    },
+    "duration": 102,
+    "integrityHash": "80f2b550d6ac316bfe2a09d111a34f482dc2c1366471795510cb65af3b142303"
+  },
+  "framework": "GDPR",
+  "severity": "low",
+  "hash": "2e819ebc0b16507f19b1bb23a83afc9733877c68527d019d47067e9899333210"
+}\n

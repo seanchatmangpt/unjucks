@@ -6,7 +6,7 @@
  */
 
 import { EventEmitter } from 'events';
-import { Logger } from 'consola';
+import consola from 'consola';
 import { Store, Writer, Parser } from 'n3';
 import { v4 as uuidv4 } from 'uuid';
 import crypto from 'crypto';
@@ -68,7 +68,7 @@ export class ProvenanceTracker extends EventEmitter {
       ...config
     };
     
-    this.logger = new Logger({ tag: 'provenance-tracker' });
+    this.logger = consola.withTag('provenance-tracker');
     this.store = new Store();
     this.writer = new Writer({ prefixes: this.config.namespaces });
     this.parser = new Parser({ factory: this.store.dataFactory });

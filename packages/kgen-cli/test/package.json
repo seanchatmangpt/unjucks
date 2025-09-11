@@ -1,0 +1,37 @@
+{
+  "name": "@kgen/cli-tests",
+  "version": "1.0.0",
+  "description": "End-to-end test suite for KGEN CLI",
+  "type": "module",
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "test:unit": "vitest run unit/",
+    "test:integration": "vitest run integration/",
+    "test:e2e": "vitest run e2e/",
+    "test:commands": "vitest run e2e/cli-commands.test.js",
+    "test:ci": "vitest run --reporter=junit --outputFile=test-results/junit.xml",
+    "test:debug": "vitest run --reporter=verbose",
+    "test:smoke": "vitest run e2e/ --testNamePattern='Version and Help'",
+    "validate": "npm run test:unit && npm run test:integration && npm run test:e2e",
+    "coverage:report": "vitest run --coverage --reporter=html",
+    "clean": "rm -rf test-results coverage test-workspace",
+    "setup": "mkdir -p test-results coverage test-workspace"
+  },
+  "devDependencies": {
+    "vitest": "^1.6.0",
+    "@vitest/coverage-v8": "^1.6.0",
+    "fs-extra": "^11.2.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "keywords": [
+    "kgen",
+    "cli",
+    "testing",
+    "e2e",
+    "command-line"
+  ]
+}

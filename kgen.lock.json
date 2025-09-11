@@ -1,0 +1,126 @@
+{
+  "lockfileVersion": "1.0.0",
+  "generatedAt": "2025-09-11T19:42:25.916Z",
+  "generatedBy": {
+    "tool": "kgen",
+    "version": "1.0.0",
+    "user": "system"
+  },
+  "projectId": "9f06e18d-ce6a-4967-b381-c7742b58804c",
+  "projectName": "demo-project",
+  "projectVersion": "1.0.0",
+  "templates": {
+    "demo-template-1": {
+      "id": "demo-template-1",
+      "version": "1.0.0",
+      "source": "local",
+      "hash": "858af3f259855445a175796a2c92e4a94436209fe129737f8aae3d9719937d0c",
+      "dependencies": [],
+      "metadata": {
+        "name": "Demo Template 1",
+        "lastModified": "2025-09-11T19:42:25.916Z"
+      }
+    },
+    "demo-template-2": {
+      "id": "demo-template-2",
+      "version": "2.1.0",
+      "source": "local",
+      "hash": "84e12de57df1aa05c4dfefeb56935bf6a0fda345b208b258ab65df9676b81ea2",
+      "dependencies": [
+        "demo-template-1"
+      ],
+      "metadata": {
+        "name": "Demo Template 2",
+        "lastModified": "2025-09-11T19:42:25.916Z"
+      }
+    }
+  },
+  "rules": {
+    "demo-rule-1": {
+      "id": "demo-rule-1",
+      "version": "1.0.0",
+      "type": "validation",
+      "source": "local",
+      "hash": "a0d2794301fccd87c88bb07d364949b98eaedc54630e1bf6567a089173b93a01",
+      "dependencies": [],
+      "metadata": {
+        "name": "Demo Validation Rule"
+      }
+    }
+  },
+  "schemas": {},
+  "engine": {
+    "name": "kgen",
+    "version": "1.0.0",
+    "features": [],
+    "plugins": {},
+    "configuration": {}
+  },
+  "runtime": {
+    "nodejs": {
+      "version": "v22.12.0",
+      "platform": "darwin",
+      "arch": "arm64"
+    },
+    "os": {
+      "platform": "darwin",
+      "release": "24.5.0",
+      "type": "Darwin"
+    },
+    "environment": {
+      "timezone": "America/Los_Angeles"
+    }
+  },
+  "resources": {},
+  "environment": {
+    "variables": {
+      "PATH": "/Users/sac/.nvm/versions/node/v22.12.0/bin:/Users/sac/.asdf/shims:/Users/sac/.asdf/bin:/Users/sac/claude-desktop-context/commands:/Users/sac/.local/bin:/Users/sac/.local/bin:/Users/sac/.local/bin:/Users/sac/dev/uvmgr/.venv/bin:/Users/sac/.local/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/System/Cryptexes/App/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin:/Library/Apple/usr/bin:/Library/TeX/texbin:/Applications/VMware Fusion.app/Contents/Public:/usr/local/go/bin:/Users/sac/.cargo/bin",
+      "HOME": "/Users/sac",
+      "USER": "sac"
+    },
+    "paths": {},
+    "locale": "en-US",
+    "timezone": "America/Los_Angeles"
+  },
+  "configuration": {
+    "generator": {},
+    "validation": {},
+    "output": {},
+    "processing": {}
+  },
+  "integrityHashes": {
+    "templates": "3f43cce8a67be9c8c948a9f1bf4ffd2f4452aa3c4cd87265ad8bdc2f36c4b7f3",
+    "rules": "c70aca2b6f90df050e4cdff4afe830eb0ab092006044a3370ddf4a7ff3ca93d6",
+    "schemas": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+    "engine": "2357dab67fa8ff59844d46dc4e556bf692a60f1a80db9894b0c2b7d5f396cc86"
+  },
+  "dependencyTree": {
+    "templates": {
+      "demo-template-1": {
+        "dependencies": [],
+        "dependents": [
+          "demo-template-2"
+        ]
+      },
+      "demo-template-2": {
+        "dependencies": [
+          "demo-template-1"
+        ],
+        "dependents": []
+      }
+    },
+    "rules": {},
+    "schemas": {}
+  },
+  "resolution": {
+    "demo-template-1": {
+      "resolved": "1.0.0",
+      "source": "local"
+    },
+    "demo-template-2": {
+      "resolved": "2.1.0",
+      "source": "local"
+    }
+  },
+  "lockfileHash": "17413e955b123e5acc05ee4fb0fce9f719f25c8b35072c72a6d1ec2f50f8f011"
+}

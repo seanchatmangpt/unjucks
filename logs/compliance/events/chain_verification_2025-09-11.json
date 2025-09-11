@@ -1,0 +1,57 @@
+{
+  "id": "9d198166-2ee1-439e-8477-5d97249b604f",
+  "type": "chain_verification",
+  "timestamp": "2025-09-11T18:03:01.530Z",
+  "data": {
+    "totalLinks": 5,
+    "validLinks": 4,
+    "brokenLinks": 0,
+    "integrityScore": 1
+  },
+  "context": {},
+  "framework": "GDPR,SOX,HIPAA",
+  "severity": "low",
+  "hash": "ba6580e21b03539bab17a03e2af50e28fd618acc75fdabcdd69ec34879267989"
+}\n{
+  "id": "9c17cc62-03a1-4bc9-8529-3d423eff76de",
+  "type": "chain_verification",
+  "timestamp": "2025-09-11T18:03:31.531Z",
+  "data": {
+    "totalLinks": 5,
+    "validLinks": 4,
+    "brokenLinks": 0,
+    "integrityScore": 1
+  },
+  "context": {},
+  "framework": "GDPR,SOX,HIPAA",
+  "severity": "low",
+  "hash": "75d25fb065e7a11d6dd3f12a33687496d984c61c8296c5ad20369cef5ea2e53d"
+}\n{
+  "id": "5e3153f9-507f-429a-9fec-fb5e8b3d556b",
+  "type": "chain_verification",
+  "timestamp": "2025-09-11T18:04:01.531Z",
+  "data": {
+    "totalLinks": 5,
+    "validLinks": 4,
+    "brokenLinks": 0,
+    "integrityScore": 1
+  },
+  "context": {},
+  "framework": "GDPR,SOX,HIPAA",
+  "severity": "low",
+  "hash": "3422501831c581b297dabf3a7d13433caaa8de92e2c7a18fb20aa373ccaf0d98"
+}\n{
+  "id": "a993c4ea-fc8b-448d-a2d0-19fc39503a9e",
+  "type": "chain_verification",
+  "timestamp": "2025-09-11T18:04:31.532Z",
+  "data": {
+    "totalLinks": 5,
+    "validLinks": 4,
+    "brokenLinks": 0,
+    "integrityScore": 1
+  },
+  "context": {},
+  "framework": "GDPR,SOX,HIPAA",
+  "severity": "low",
+  "hash": "d7de5a96f39f2f49bcf9cded3d9234d38866c925fdb0557c8f503309d2f95008"
+}\n

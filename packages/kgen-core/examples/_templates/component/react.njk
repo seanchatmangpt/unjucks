@@ -1,0 +1,28 @@
+---
+to: "src/components/{{ name }}.tsx"
+contentAddressed: true
+attestations: true
+---
+import React, { {{ imports | join(', ') }} } from 'react';
+
+interface {{ name }}Props {
+{% for propName, propType in props -%}
+  {{ propName }}: {{ propType }};
+{% endfor %}
+}
+
+/**
+ * {{ name }} Component
+ * Generated deterministically with content hash: {{ name | hash | slice(0, 8) }}
+ */
+export const {{ name }}: {{ type }} = ({ {{ props | sortKeys | keys | join(', ') }} }) => {
+  return (
+    <div className="{{ name | lower }}-component">
+      {children}
+    </div>
+  );
+};
+
+{{ name }}.displayName = '{{ name }}';
+
+export default {{ name }};

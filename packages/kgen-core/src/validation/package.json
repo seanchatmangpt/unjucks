@@ -1,0 +1,47 @@
+{
+  "name": "@kgen/validation",
+  "version": "1.0.0",
+  "description": "KGEN Validation Engine with drift detection and SHACL validation",
+  "type": "module",
+  "main": "./index.js",
+  "bin": {
+    "kgen-validate": "./cli.js"
+  },
+  "exports": {
+    ".": {
+      "import": "./index.js"
+    },
+    "./cli": {
+      "import": "./cli.js"
+    }
+  },
+  "scripts": {
+    "test": "node ../../../tests/kgen/validation/*.test.js",
+    "test:integration": "node ../../../tests/kgen/validation/integration.test.js",
+    "validate": "node cli.js validate",
+    "drift": "node cli.js drift",
+    "baseline": "node cli.js baseline"
+  },
+  "keywords": [
+    "validation",
+    "shacl",
+    "rdf",
+    "semantic-web",
+    "drift-detection",
+    "ci-cd",
+    "data-quality"
+  ],
+  "dependencies": {
+    "rdf-validate-shacl": "^0.4.7",
+    "n3": "^1.26.0",
+    "consola": "^3.4.2",
+    "citty": "^0.1.6",
+    "fs-extra": "^11.3.1"
+  },
+  "peerDependencies": {
+    "crypto": "*",
+    "perf_hooks": "*",
+    "events": "*",
+    "path": "*"
+  }
+}

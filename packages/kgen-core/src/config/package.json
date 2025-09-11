@@ -1,0 +1,85 @@
+{
+  "name": "@kgen/config",
+  "version": "1.0.0",
+  "description": "KGEN Configuration System with c12-based loading and comprehensive validation",
+  "type": "module",
+  "main": "./index.js",
+  "exports": {
+    ".": {
+      "import": "./index.js",
+      "require": "./index.cjs"
+    },
+    "./defaults": {
+      "import": "./defaults.js"
+    },
+    "./schemas": {
+      "import": "./schemas/index.js"
+    },
+    "./validators": {
+      "import": "./validators/index.js"
+    },
+    "./types": {
+      "import": "./types/index.js"
+    },
+    "./examples": {
+      "import": "./examples/index.js"
+    },
+    "./schema.json": {
+      "import": "./schema.json"
+    }
+  },
+  "files": [
+    "index.js",
+    "defaults.js",
+    "schemas/",
+    "validators/",
+    "types/",
+    "examples/",
+    "schema.json",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "node scripts/build.js",
+    "generate-schema": "node scripts/generate-schema.js",
+    "generate-types": "node scripts/generate-types.js",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "lint": "eslint .",
+    "format": "prettier --write ."
+  },
+  "dependencies": {
+    "c12": "^1.11.2",
+    "chokidar": "^3.6.0",
+    "joi": "^17.13.3"
+  },
+  "devDependencies": {
+    "@vitest/coverage-v8": "^0.34.0",
+    "eslint": "^8.47.0",
+    "prettier": "^3.0.0",
+    "vitest": "^0.34.0"
+  },
+  "keywords": [
+    "kgen",
+    "configuration",
+    "c12",
+    "validation",
+    "schema",
+    "knowledge-compilation",
+    "config-management"
+  ],
+  "author": "KGEN Config System Developer",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/seanchatmangpt/kgen.git",
+    "directory": "packages/kgen-core/src/config"
+  },
+  "homepage": "https://github.com/seanchatmangpt/kgen#readme",
+  "bugs": {
+    "url": "https://github.com/seanchatmangpt/kgen/issues"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  }
+}
