@@ -485,15 +485,22 @@ class ComplianceValidator {
         try {
             const sensitiveData = 'Sensitive PCI Data';
             const key = crypto.randomBytes(32);
-            const iv = crypto.randomBytes(16);
             
-            // Encrypt
-            const cipher = crypto.createCipher('aes-256-cbc', key);
+            // Encrypt using secure AES-256-GCM
+            const iv = crypto.randomBytes(16);
+            const cipher = crypto.createCipherGCM('aes-256-gcm', key, iv);
+            cipher.setAAD(Buffer.from('pci-test', 'utf8'));
+            
             let encrypted = cipher.update(sensitiveData, 'utf8', 'hex');
             encrypted += cipher.final('hex');
+            
+            const authTag = cipher.getAuthTag();
 
             // Decrypt
-            const decipher = crypto.createDecipher('aes-256-cbc', key);
+            const decipher = crypto.createDecipherGCM('aes-256-gcm', key, iv);
+            decipher.setAAD(Buffer.from('pci-test', 'utf8'));
+            decipher.setAuthTag(authTag);
+            
             let decrypted = decipher.update(encrypted, 'hex', 'utf8');
             decrypted += decipher.final('utf8');
 

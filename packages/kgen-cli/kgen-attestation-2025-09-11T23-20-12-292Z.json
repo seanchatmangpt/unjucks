@@ -1,0 +1,2678 @@
+{
+  "bundle": {
+    "version": "1.0.0",
+    "type": "kgen-attestation-bundle",
+    "createdAt": "2025-09-11T23:20:12.205Z",
+    "generator": {
+      "name": "kgen-cli",
+      "version": "1.0.0"
+    }
+  },
+  "project": {
+    "name": "unnamed-project",
+    "version": "1.0.0"
+  },
+  "directory": {
+    "path": "/Users/sac/unjucks/src",
+    "scanned": true
+  },
+  "artifacts": {
+    "Test.js": {
+      "path": "Test.js",
+      "hash": "8f5cf02cb1fc885ae1ca4e0ed33193162c9a28ffe218f97441345caf8083c198",
+      "size": 758,
+      "lastModified": "2025-09-10T21:06:42.583Z",
+      "contentType": "application/javascript"
+    },
+    "index.js": {
+      "path": "index.js",
+      "hash": "e9dca7c8bceb31d1a1b99fbaa3935fb351c77fac6121d0e6227757c7f01ee35c",
+      "size": 1061,
+      "lastModified": "2025-09-10T21:06:54.575Z",
+      "contentType": "application/javascript"
+    },
+    "index.ts.bak.1757103516391": {
+      "path": "index.ts.bak.1757103516391",
+      "hash": "3056e0b796ae4946a619a2a93050fc5498be1f08e3174b5534a9c2e9ca35fa16",
+      "size": 74,
+      "lastModified": "2025-09-05T20:18:36.392Z",
+      "contentType": "application/octet-stream"
+    },
+    "mcp-server.js": {
+      "path": "mcp-server.js",
+      "hash": "885ed001f05a6ac113b8991f4ab884b50de55827bee9f47fa41f5ba53bdbbbc8",
+      "size": 636,
+      "lastModified": "2025-09-10T21:06:42.602Z",
+      "contentType": "application/javascript"
+    },
+    "package.json": {
+      "path": "package.json",
+      "hash": "48e847860dd4f0907ce91e346dbb00a4a12213163ad3d80a953c343eb9a11979",
+      "size": 19,
+      "lastModified": "2025-09-10T18:29:09.263Z",
+      "contentType": "application/json"
+    },
+    "server.js": {
+      "path": "server.js",
+      "hash": "9277a35fb359332780bc2a6aec544faae7afb121f51c1587516f82c314352525",
+      "size": 5174,
+      "lastModified": "2025-09-10T21:06:42.612Z",
+      "contentType": "application/javascript"
+    },
+    "api/package.json": {
+      "path": "api/package.json",
+      "hash": "ea5371ebe8189007368dac0d1a9f285a34307ec768301618e9da69e35c2cb50d",
+      "size": 847,
+      "lastModified": "2025-09-10T21:06:42.585Z",
+      "contentType": "application/json"
+    },
+    "api/server.js": {
+      "path": "api/server.js",
+      "hash": "f5fd09eb8dd8892ce4ced5199ad06d1980591321f9a716e5159472355b216507",
+      "size": 3201,
+      "lastModified": "2025-09-10T21:06:42.586Z",
+      "contentType": "application/javascript"
+    },
+    "audit/audit-trail-generator.js": {
+      "path": "audit/audit-trail-generator.js",
+      "hash": "c345e467e50f94cc0c078d9ea3732b32688c3d5c57b2750c35272461217a6402",
+      "size": 21301,
+      "lastModified": "2025-09-10T17:22:44.816Z",
+      "contentType": "application/javascript"
+    },
+    "cli/index-safe.js": {
+      "path": "cli/index-safe.js",
+      "hash": "17c8be59f109c0d454d1c8ce0d48b082578914614a698adae7a13d5965520e23",
+      "size": 6889,
+      "lastModified": "2025-09-10T21:06:42.588Z",
+      "contentType": "application/javascript"
+    },
+    "cli/index-standalone.js": {
+      "path": "cli/index-standalone.js",
+      "hash": "4f10e2a186c33a6952f68011aa0557f4c90ba12fe8aa26f5aa26cef9d5ebadba",
+      "size": 17786,
+      "lastModified": "2025-09-10T21:06:42.588Z",
+      "contentType": "application/javascript"
+    },
+    "cli/index.js": {
+      "path": "cli/index.js",
+      "hash": "adbf05d51f2bbbdef123f5682156545422836e7bf2dd8c72913edd186cb2f46a",
+      "size": 17049,
+      "lastModified": "2025-09-11T05:26:04.503Z",
+      "contentType": "application/javascript"
+    },
+    "cli/package.json": {
+      "path": "cli/package.json",
+      "hash": "e3d5a4a2d8551aa52c5a01d2a0efb2e06a2d9711b4f5c5f1d20de6e21807e2cd",
+      "size": 18,
+      "lastModified": "2025-09-10T21:06:42.589Z",
+      "contentType": "application/json"
+    },
+    "commands/export.js": {
+      "path": "commands/export.js",
+      "hash": "4077383fd48888c09cbffaf2c915dd403d6551285e50c8beafa935c7f4b8f5af",
+      "size": 27264,
+      "lastModified": "2025-09-10T21:06:42.590Z",
+      "contentType": "application/javascript"
+    },
+    "commands/generate-safe.js": {
+      "path": "commands/generate-safe.js",
+      "hash": "08bbb7eca8afcecffda6871658861b57367286e41cafd8c4ed56d04eea2de95f",
+      "size": 15720,
+      "lastModified": "2025-09-10T21:06:42.590Z",
+      "contentType": "application/javascript"
+    },
+    "commands/generate.js": {
+      "path": "commands/generate.js",
+      "hash": "ac60005d053fea2d88310bc424a03b1189672e06e6f4ee9f4ee2b130802c480b",
+      "size": 34615,
+      "lastModified": "2025-09-10T21:06:42.590Z",
+      "contentType": "application/javascript"
+    },
+    "commands/github.js.disabled": {
+      "path": "commands/github.js.disabled",
+      "hash": "75afec1f539a4d0a054cf040b07e1e28642ac9453415e9cd214368cee7799002",
+      "size": 34349,
+      "lastModified": "2025-09-10T21:06:42.590Z",
+      "contentType": "application/octet-stream"
+    },
+    "commands/help.js": {
+      "path": "commands/help.js",
+      "hash": "6019eace9266cd24484b5cbfbbf88e114774673a0fd10964a23495c4143ecd88",
+      "size": 12877,
+      "lastModified": "2025-09-10T21:06:42.591Z",
+      "contentType": "application/javascript"
+    },
+    "commands/init.js": {
+      "path": "commands/init.js",
+      "hash": "57cbe7a5da194c64778d3294de5ef3baacaa6cd0259568e112022eac303a9797",
+      "size": 18632,
+      "lastModified": "2025-09-10T21:06:42.591Z",
+      "contentType": "application/javascript"
+    },
+    "commands/inject.js": {
+      "path": "commands/inject.js",
+      "hash": "8a768edbd0c60727f109e5bdf0c2494f21f4d4d3ef69701bb5296a26afa4700e",
+      "size": 17323,
+      "lastModified": "2025-09-10T21:06:54.575Z",
+      "contentType": "application/javascript"
+    },
+    "commands/knowledge-graph.js": {
+      "path": "commands/knowledge-graph.js",
+      "hash": "63ae00f43a2aef7dc57ee889476a0d19ca632d6fe352a570374e5df330137009",
+      "size": 18864,
+      "lastModified": "2025-09-10T18:29:09.261Z",
+      "contentType": "application/javascript"
+    },
+    "commands/knowledge.js": {
+      "path": "commands/knowledge.js",
+      "hash": "b13c190e8311c40aacf71174a10e6e584bb57147f0bf4cd1a399eada20b1a324",
+      "size": 70329,
+      "lastModified": "2025-09-10T21:06:42.592Z",
+      "contentType": "application/javascript"
+    },
+    "commands/latex.js": {
+      "path": "commands/latex.js",
+      "hash": "9ba589e79a6416a1c8c9a8966816727ffd709bb02123055f78fa80f470db1279",
+      "size": 21059,
+      "lastModified": "2025-09-10T21:06:42.592Z",
+      "contentType": "application/javascript"
+    },
+    "commands/list-safe.js": {
+      "path": "commands/list-safe.js",
+      "hash": "2e13e5f752b24832af4e7bfc589f213db2813885009b23c7259d7c8782b396c4",
+      "size": 9985,
+      "lastModified": "2025-09-10T21:06:42.592Z",
+      "contentType": "application/javascript"
+    },
+    "commands/list.js": {
+      "path": "commands/list.js",
+      "hash": "d705d3a32917be90c7702efe6f058975d1b44898e59e76903a756a4d578c3500",
+      "size": 17019,
+      "lastModified": "2025-09-10T21:06:54.575Z",
+      "contentType": "application/javascript"
+    },
+    "commands/migrate.js": {
+      "path": "commands/migrate.js",
+      "hash": "8fa5b4d1a1300a7bb9c75ad72a47f93bfc4e2e3834cc1c38ec754617ea926dc0",
+      "size": 358,
+      "lastModified": "2025-09-10T17:22:44.825Z",
+      "contentType": "application/javascript"
+    },
+    "commands/neural.js": {
+      "path": "commands/neural.js",
+      "hash": "375aa105b91687ebdced95521084bd1cf7654a1e69631817b2f5bb034d4d76e2",
+      "size": 44918,
+      "lastModified": "2025-09-10T17:22:44.825Z",
+      "contentType": "application/javascript"
+    },
+    "commands/new.js": {
+      "path": "commands/new.js",
+      "hash": "c5c29ec38da07784db7aace73a8cdd5a56a362ef6b9caf9bc91dc0fe7edfafa4",
+      "size": 12513,
+      "lastModified": "2025-09-10T21:06:42.593Z",
+      "contentType": "application/javascript"
+    },
+    "commands/package.json": {
+      "path": "commands/package.json",
+      "hash": "e3d5a4a2d8551aa52c5a01d2a0efb2e06a2d9711b4f5c5f1d20de6e21807e2cd",
+      "size": 18,
+      "lastModified": "2025-09-10T21:06:42.593Z",
+      "contentType": "application/json"
+    },
+    "commands/pdf.js": {
+      "path": "commands/pdf.js",
+      "hash": "e65c91eb7963c1b4a43e8caee0c116924d9142cb75bd24a854d11f3beac0cdc5",
+      "size": 12984,
+      "lastModified": "2025-09-10T21:06:42.593Z",
+      "contentType": "application/javascript"
+    },
+    "commands/perf-test.js": {
+      "path": "commands/perf-test.js",
+      "hash": "68093318ca4de5ac55afd49fa86aafbbfaa642f5a187a5c76ae4ab2aa1095299",
+      "size": 6435,
+      "lastModified": "2025-09-10T21:06:42.593Z",
+      "contentType": "application/javascript"
+    },
+    "commands/perf.js": {
+      "path": "commands/perf.js",
+      "hash": "03cf838a8578c7ece4e00bcc7639df6487921be265b18e5ceb7fc25231e832ac",
+      "size": 50781,
+      "lastModified": "2025-09-10T21:06:42.593Z",
+      "contentType": "application/javascript"
+    },
+    "commands/preview.js": {
+      "path": "commands/preview.js",
+      "hash": "238ef94bac98ee278aca63bd1450199d5847292249d8762a5a08867cd9780130",
+      "size": 13556,
+      "lastModified": "2025-09-10T17:22:44.827Z",
+      "contentType": "application/javascript"
+    },
+    "commands/semantic.js": {
+      "path": "commands/semantic.js",
+      "hash": "ec2c24dcf30a753d8b2841dd38595ff5dcd98dafc3afd9e4d138c52e038b97b1",
+      "size": 29667,
+      "lastModified": "2025-09-10T21:06:54.575Z",
+      "contentType": "application/javascript"
+    },
+    "commands/semantic.js.backup": {
+      "path": "commands/semantic.js.backup",
+      "hash": "337865a4a04cb5a5ab867afca497a6c09e9c871240b5a570a82b665d4399b259",
+      "size": 27658,
+      "lastModified": "2025-09-10T17:22:44.829Z",
+      "contentType": "application/octet-stream"
+    },
+    "commands/specify.js": {
+      "path": "commands/specify.js",
+      "hash": "1b01bd3807c7c6500a097699a97df5d8234ee5e5c67f43f9be7a7ae3a37854cc",
+      "size": 144,
+      "lastModified": "2025-09-10T21:06:42.594Z",
+      "contentType": "application/javascript"
+    },
+    "commands/swarm.js": {
+      "path": "commands/swarm.js",
+      "hash": "f747ce01f821c87b448b4ae474ef8c188325e41511acc173773ce8ed086bb661",
+      "size": 56575,
+      "lastModified": "2025-09-10T17:22:44.829Z",
+      "contentType": "application/javascript"
+    },
+    "commands/swarm.ts.backup": {
+      "path": "commands/swarm.ts.backup",
+      "hash": "05d29a467654c058e13a7b0cc7edf436a5aea6687052e0f4789a625d78110e46",
+      "size": 100507,
+      "lastModified": "2025-09-10T17:22:44.830Z",
+      "contentType": "application/octet-stream"
+    },
+    "commands/validate-templates.js": {
+      "path": "commands/validate-templates.js",
+      "hash": "b8cb308db5e957b1b0cc7d7f7ea649f30bda2b6208973e78770c58620f588712",
+      "size": 8652,
+      "lastModified": "2025-09-10T21:06:42.594Z",
+      "contentType": "application/javascript"
+    },
+    "commands/version.js": {
+      "path": "commands/version.js",
+      "hash": "27a863aaeb9ed9f2a16958513e544e82fb0dec17bffb992d3713b8ccfd636cb6",
+      "size": 1098,
+      "lastModified": "2025-09-10T18:59:08.133Z",
+      "contentType": "application/javascript"
+    },
+    "commands/workflow.js": {
+      "path": "commands/workflow.js",
+      "hash": "d47cc8349a320e6eb7e3ae1a3d5548d11da50b03e010987e7e6342b4eb35fc21",
+      "size": 11877,
+      "lastModified": "2025-09-10T17:22:44.831Z",
+      "contentType": "application/javascript"
+    },
+    "compliance/compliance-marketplace.js": {
+      "path": "compliance/compliance-marketplace.js",
+      "hash": "1598875cd6db622fe3c53317830ca59ee74f392a5cc72f7aec5af7b885044bb4",
+      "size": 21646,
+      "lastModified": "2025-09-10T21:06:42.595Z",
+      "contentType": "application/javascript"
+    },
+    "compliance/gdpr-compliance-checker.ts": {
+      "path": "compliance/gdpr-compliance-checker.ts",
+      "hash": "854c9142c14c6781b18c566367902cfc64cecd564db784159e4573b4440e1f2d",
+      "size": 42558,
+      "lastModified": "2025-09-10T21:06:42.595Z",
+      "contentType": "application/typescript"
+    },
+    "compliance/pci-dss-validator.ts": {
+      "path": "compliance/pci-dss-validator.ts",
+      "hash": "10c422351f3a9fd330358a000b27eaecbe300f5d71250f266917451d51172e7f",
+      "size": 47998,
+      "lastModified": "2025-09-10T21:06:42.595Z",
+      "contentType": "application/typescript"
+    },
+    "compliance/sox-compliance-auditor.ts": {
+      "path": "compliance/sox-compliance-auditor.ts",
+      "hash": "13634e9b84b89a9be75b1373167b4001ec444a137039e7d3d8d7d6c737ca15d8",
+      "size": 35134,
+      "lastModified": "2025-09-10T21:06:42.595Z",
+      "contentType": "application/typescript"
+    },
+    "components/TestFile.js": {
+      "path": "components/TestFile.js",
+      "hash": "e725c23180d4d0ba981921913ca1c8f70bb5292d3fbd563606b861a21a621bce",
+      "size": 230,
+      "lastModified": "2025-09-10T21:06:42.596Z",
+      "contentType": "application/javascript"
+    },
+    "composables/useAuth.js": {
+      "path": "composables/useAuth.js",
+      "hash": "657fb61086bd5f9207a9dceadd32042226b5510f696c79450d58276444ff88b8",
+      "size": 2638,
+      "lastModified": "2025-09-10T17:22:44.833Z",
+      "contentType": "application/javascript"
+    },
+    "composables/useOllamaAPI.js": {
+      "path": "composables/useOllamaAPI.js",
+      "hash": "7f0a808302873486760b6a5429bf364481bc0a99244f898aaf1d9df9ae2fceb6",
+      "size": 9858,
+      "lastModified": "2025-09-10T17:22:44.833Z",
+      "contentType": "application/javascript"
+    },
+    "composables/useRealTime.js": {
+      "path": "composables/useRealTime.js",
+      "hash": "9652f887a3cfdfc2ef5c2896f44ceda7d80ea4fbf41209a1226f5b7a608810e4",
+      "size": 5132,
+      "lastModified": "2025-09-10T17:22:44.833Z",
+      "contentType": "application/javascript"
+    },
+    "composables/useWebSocket.js": {
+      "path": "composables/useWebSocket.js",
+      "hash": "5aedf745e79184d7ce7f0da50b4a5e02032f2c8bf2d4d9298cf8e74760f1b129",
+      "size": 7923,
+      "lastModified": "2025-09-10T17:22:44.834Z",
+      "contentType": "application/javascript"
+    },
+    "config/index.js": {
+      "path": "config/index.js",
+      "hash": "94b79c17da094a35202b3d6bee9153462c8e1188b0dfaaccb557f5e4bf142f9b",
+      "size": 2400,
+      "lastModified": "2025-09-10T21:06:42.596Z",
+      "contentType": "application/javascript"
+    },
+    "controllers/Controller.js": {
+      "path": "controllers/Controller.js",
+      "hash": "32bd4621425fc58c06e657f6f8ff2de5ae5bcca20e19d45e99e5b543381fa3b4",
+      "size": 747,
+      "lastModified": "2025-09-10T17:22:44.835Z",
+      "contentType": "application/javascript"
+    },
+    "core/ontology-template-engine.js": {
+      "path": "core/ontology-template-engine.js",
+      "hash": "b2efb5b23f8cb143a44ffd6d613561ace927afa05cac148723f3d245f114ad8a",
+      "size": 9441,
+      "lastModified": "2025-09-11T00:49:14.364Z",
+      "contentType": "application/javascript"
+    },
+    "dashboard/compliance-dashboard.js": {
+      "path": "dashboard/compliance-dashboard.js",
+      "hash": "931120084c004b1e35a649c082ca0deabe0022174a40c456cee458f927595bdd",
+      "size": 25090,
+      "lastModified": "2025-09-10T21:06:42.597Z",
+      "contentType": "application/javascript"
+    },
+    "docs/audit-logger.ts": {
+      "path": "docs/audit-logger.ts",
+      "hash": "df43f3598f7734252eda55ac37ea412f71f010804f967eaa596d78357bf20cfd",
+      "size": 32292,
+      "lastModified": "2025-09-10T21:06:42.597Z",
+      "contentType": "application/typescript"
+    },
+    "docs/knowledge-base.ts": {
+      "path": "docs/knowledge-base.ts",
+      "hash": "c93addf0837c7ee2978dda32c9f8c7d40d4d38814692e6fbe48384ec9c47d525",
+      "size": 36416,
+      "lastModified": "2025-09-10T21:06:42.597Z",
+      "contentType": "application/typescript"
+    },
+    "docs/openapi-generator.ts": {
+      "path": "docs/openapi-generator.ts",
+      "hash": "57397cba7f63567c293db0d525a29a3029ba585f1497f31b7c9a519461f12c8f",
+      "size": 26746,
+      "lastModified": "2025-09-10T21:06:42.597Z",
+      "contentType": "application/typescript"
+    },
+    "docs/training-materials-generator.ts": {
+      "path": "docs/training-materials-generator.ts",
+      "hash": "18b22140cefaba7351b24f77a7d9ac90b1a5a628ebba46d8cd62d0c25756311a",
+      "size": 54152,
+      "lastModified": "2025-09-10T21:06:42.598Z",
+      "contentType": "application/typescript"
+    },
+    "docs/workflow-documentation-generator.ts": {
+      "path": "docs/workflow-documentation-generator.ts",
+      "hash": "d85514a6977aefed00a6bd41b40580b1a4710b783a2d0122d684eec7b35a8a39",
+      "size": 21551,
+      "lastModified": "2025-09-10T21:06:42.598Z",
+      "contentType": "application/typescript"
+    },
+    "document/document-processor.js": {
+      "path": "document/document-processor.js",
+      "hash": "34318c4f5324b74ea0d12e3c6a680b4fa62195d19aa0d98b5963f08e4301e6d1",
+      "size": 27091,
+      "lastModified": "2025-09-10T21:06:42.598Z",
+      "contentType": "application/javascript"
+    },
+    "formatters/legal-formatter.js": {
+      "path": "formatters/legal-formatter.js",
+      "hash": "6a705b2fd361563b78a66e335d95a5d3aced5ed4903597bd91d635278abbfab5",
+      "size": 18003,
+      "lastModified": "2025-09-10T21:06:42.598Z",
+      "contentType": "application/javascript"
+    },
+    "integrations/index.js": {
+      "path": "integrations/index.js",
+      "hash": "8b05d44d4e81d1e9ac090a2515dc19bc5d8f206e4055af59d05cbbd3496f1f6e",
+      "size": 12923,
+      "lastModified": "2025-09-10T21:06:42.600Z",
+      "contentType": "application/javascript"
+    },
+    "kgen/README.md": {
+      "path": "kgen/README.md",
+      "hash": "de2c0f8a9cf77579c0381f8fc21771bb7a75d7d20bc070c3d3772fd8a481e9f7",
+      "size": 14207,
+      "lastModified": "2025-09-11T16:57:44.619Z",
+      "contentType": "text/markdown"
+    },
+    "kgen/index.js": {
+      "path": "kgen/index.js",
+      "hash": "4c956ea7fade49cbab8e2d88ba0b561b1e7495c265a18185d275a81dbc190a52",
+      "size": 15172,
+      "lastModified": "2025-09-11T23:07:17.911Z",
+      "contentType": "application/javascript"
+    },
+    "large/LargeFile.js": {
+      "path": "large/LargeFile.js",
+      "hash": "75b3ce3391a022717425e80c4cb71871485fc7ee7db50d2eae383ac1b9051746",
+      "size": 63916,
+      "lastModified": "2025-09-10T17:22:44.841Z",
+      "contentType": "application/javascript"
+    },
+    "layouts/default.vue": {
+      "path": "layouts/default.vue",
+      "hash": "a76c226681c004b39478c8e59c95fae1e4bd30f160fc4e67a4c074d78982ad94",
+      "size": 5141,
+      "lastModified": "2025-09-10T17:22:44.841Z",
+      "contentType": "application/octet-stream"
+    },
+    "lib/actionable-error.js": {
+      "path": "lib/actionable-error.js",
+      "hash": "4c5f43904a4564a231231e5ded7bbd7ae3fcb31b337ca7039133b8704ccbb188",
+      "size": 678,
+      "lastModified": "2025-09-10T19:59:17.848Z",
+      "contentType": "application/javascript"
+    },
+    "lib/command-validation.js": {
+      "path": "lib/command-validation.js",
+      "hash": "9674f1b3f8a9d1d01851a5f21e7a9287e9c4236d18dd07ff37ed66637428775d",
+      "size": 13630,
+      "lastModified": "2025-09-10T19:39:25.655Z",
+      "contentType": "application/javascript"
+    },
+    "lib/fast-version-resolver.js": {
+      "path": "lib/fast-version-resolver.js",
+      "hash": "46195b7bb8a348f3edfbaf402b73313a488042ee1f499417610c27aee6dc7dea",
+      "size": 1831,
+      "lastModified": "2025-09-11T05:26:40.574Z",
+      "contentType": "application/javascript"
+    },
+    "lib/file-injector.ts.backup": {
+      "path": "lib/file-injector.ts.backup",
+      "hash": "918b24b5fc4b59b7c70c3a5ce149a79398baa07da9b474ff11ac323474966fdc",
+      "size": 26283,
+      "lastModified": "2025-09-10T17:22:44.841Z",
+      "contentType": "application/octet-stream"
+    },
+    "lib/frontmatter-parser.js": {
+      "path": "lib/frontmatter-parser.js",
+      "hash": "7d5dfaa1abb87bbf6e5487653d07e4b14c3412196e8aee590a17e203328c692e",
+      "size": 14581,
+      "lastModified": "2025-09-10T21:06:42.601Z",
+      "contentType": "application/javascript"
+    },
+    "lib/generator.js": {
+      "path": "lib/generator.js",
+      "hash": "f7a8cc3be6d7ff0576d2a71d989c27a447fbb1c63008283c92e5e444475cfdd8",
+      "size": 15000,
+      "lastModified": "2025-09-10T19:37:32.825Z",
+      "contentType": "application/javascript"
+    },
+    "lib/github-api-client.js": {
+      "path": "lib/github-api-client.js",
+      "hash": "61de39300b351fb5a66bbb291044659a6b26fe3be0c48cfd6e78a5a8a082b06a",
+      "size": 790,
+      "lastModified": "2025-09-10T20:00:41.737Z",
+      "contentType": "application/javascript"
+    },
+    "lib/github-workflow-generator.js": {
+      "path": "lib/github-workflow-generator.js",
+      "hash": "c2e3a02c699929dee6a296e8f0253d94f25587f8b389722a05d7495a7366b3ea",
+      "size": 797,
+      "lastModified": "2025-09-10T20:00:56.264Z",
+      "contentType": "application/javascript"
+    },
+    "lib/mcp-integration.js": {
+      "path": "lib/mcp-integration.js",
+      "hash": "d1c8038616029647ff35a29181ed77461bb590561fa024983a2b3bb2e56d8b31",
+      "size": 39790,
+      "lastModified": "2025-09-10T17:22:44.842Z",
+      "contentType": "application/javascript"
+    },
+    "lib/nunjucks-filters.js": {
+      "path": "lib/nunjucks-filters.js",
+      "hash": "d58f02254b5f9aec8aed75ccb2a9cf6ccd0e6883b891f25f07b3e2c1189e2b61",
+      "size": 8247,
+      "lastModified": "2025-09-10T20:01:53.781Z",
+      "contentType": "application/javascript"
+    },
+    "lib/ontology-standards.js": {
+      "path": "lib/ontology-standards.js",
+      "hash": "64eeb6dc098665157698ab13e9023f68e14d83332def348e04adf0159d233088",
+      "size": 32854,
+      "lastModified": "2025-09-10T20:11:42.282Z",
+      "contentType": "application/javascript"
+    },
+    "lib/prompts.js": {
+      "path": "lib/prompts.js",
+      "hash": "d46f62c912fff4cac2607eb33b095a441596f6b08ffbedaf58b6bfe75bb5aa46",
+      "size": 493,
+      "lastModified": "2025-09-10T19:59:10.352Z",
+      "contentType": "application/javascript"
+    },
+    "lib/rdf-data-loader.js": {
+      "path": "lib/rdf-data-loader.js",
+      "hash": "f759fee59760074e716bef29eb511ccd2c150838a76be448d2f2994763019a2c",
+      "size": 23943,
+      "lastModified": "2025-09-10T21:06:42.601Z",
+      "contentType": "application/javascript"
+    },
+    "lib/rdf-filters.js": {
+      "path": "lib/rdf-filters.js",
+      "hash": "16d598f207050812cc57f8be1ada498a5a111a70809dbd7d7afed9d6f4634fdb",
+      "size": 16291,
+      "lastModified": "2025-09-10T21:06:42.601Z",
+      "contentType": "application/javascript"
+    },
+    "lib/semantic-code-generator.js": {
+      "path": "lib/semantic-code-generator.js",
+      "hash": "a8160717043404709887a15e9c42adc551fe4e4c7af3a310ac3d7f28b7d4a969",
+      "size": 478,
+      "lastModified": "2025-09-10T19:59:31.659Z",
+      "contentType": "application/javascript"
+    },
+    "lib/semantic-query-engine.js": {
+      "path": "lib/semantic-query-engine.js",
+      "hash": "7246e5c2943ad71c47a28fd5dca7266dcdfbeba0c1cadc453ab091a37d76a992",
+      "size": 398,
+      "lastModified": "2025-09-10T19:59:51.984Z",
+      "contentType": "application/javascript"
+    },
+    "lib/semantic-rdf-validator.js": {
+      "path": "lib/semantic-rdf-validator.js",
+      "hash": "e575768a00b5b86ed392b68089d9b3e10c0480b551f4248ac3329c2162ed9214",
+      "size": 399,
+      "lastModified": "2025-09-10T19:59:58.695Z",
+      "contentType": "application/javascript"
+    },
+    "lib/semantic-template-processor.js": {
+      "path": "lib/semantic-template-processor.js",
+      "hash": "28775caaae6cbb9b25d7d51ffbfab988faf12b4d0042d443e13982e45bcf4e3d",
+      "size": 434,
+      "lastModified": "2025-09-10T20:00:05.131Z",
+      "contentType": "application/javascript"
+    },
+    "lib/semantic-validator.js": {
+      "path": "lib/semantic-validator.js",
+      "hash": "e02cc297efc73b2d2705f43196ed478a6948c2e0bd9cfd72f883cc9d5708dec6",
+      "size": 22972,
+      "lastModified": "2025-09-10T20:09:43.226Z",
+      "contentType": "application/javascript"
+    },
+    "lib/template-engine.js": {
+      "path": "lib/template-engine.js",
+      "hash": "18c11c8b8ef4d435f3b3158cac9a304a61dd2150658ebb61415f2e7f52f54528",
+      "size": 13872,
+      "lastModified": "2025-09-10T19:39:48.636Z",
+      "contentType": "application/javascript"
+    },
+    "lib/template-scanner.js": {
+      "path": "lib/template-scanner.js",
+      "hash": "1ec4f2881157847275fb413dd1e5ebf6fbc4fdfef0a7950daead90bf39c873e6",
+      "size": 4232,
+      "lastModified": "2025-09-10T19:16:02.619Z",
+      "contentType": "application/javascript"
+    },
+    "lib/turtle-parser.js": {
+      "path": "lib/turtle-parser.js",
+      "hash": "112e0d362054c9a98b737ac60f59394ae89e3b08cc67ea21793797f1b230b536",
+      "size": 13430,
+      "lastModified": "2025-09-10T21:06:42.601Z",
+      "contentType": "application/javascript"
+    },
+    "lib/version-resolver.js": {
+      "path": "lib/version-resolver.js",
+      "hash": "e4c48398f7c3e975372236f29c55de7829dc646e5e71b5e45336f5ddac72ad4e",
+      "size": 1060,
+      "lastModified": "2025-09-10T19:43:34.435Z",
+      "contentType": "application/javascript"
+    },
+    "math/math-renderer.js": {
+      "path": "math/math-renderer.js",
+      "hash": "71e0f3dc7d94c76344d0af40e13d59acc0e2b6ba13b71db0702eb393156fb825",
+      "size": 20994,
+      "lastModified": "2025-09-11T22:51:57.687Z",
+      "contentType": "application/javascript"
+    },
+    "mcp/connection-health.js": {
+      "path": "mcp/connection-health.js",
+      "hash": "aa6cc2d9cfe1541290800698f791655b28fbc8202903ef62e772357b6496ea7b",
+      "size": 10899,
+      "lastModified": "2025-09-10T21:06:42.602Z",
+      "contentType": "application/javascript"
+    },
+    "mcp/enhanced-server.js": {
+      "path": "mcp/enhanced-server.js",
+      "hash": "6f6c537147808c3fedbce5daa4d5aef12f6b1f3d95189cc281241686e1293613",
+      "size": 15777,
+      "lastModified": "2025-09-10T21:06:42.602Z",
+      "contentType": "application/javascript"
+    },
+    "mcp/index.js": {
+      "path": "mcp/index.js",
+      "hash": "df75f955ab0076a0bcf62e3121b202b7f5bd12dc6ec34dfce9833a8280b8ba6c",
+      "size": 1171,
+      "lastModified": "2025-09-10T17:22:44.846Z",
+      "contentType": "application/javascript"
+    },
+    "mcp/latex-server-integration.js": {
+      "path": "mcp/latex-server-integration.js",
+      "hash": "fbce66f9da6ee6f9ccc1dc61f5c2853efdc4e046333f4f61a1011a03bdf77860",
+      "size": 12839,
+      "lastModified": "2025-09-10T21:06:42.603Z",
+      "contentType": "application/javascript"
+    },
+    "mcp/server.js": {
+      "path": "mcp/server.js",
+      "hash": "9daedd156b4c5110da32c38c2d1e173ae4ae11471de1f8da1a63d3e4181a6959",
+      "size": 8448,
+      "lastModified": "2025-09-10T17:22:44.847Z",
+      "contentType": "application/javascript"
+    },
+    "mcp/types.js": {
+      "path": "mcp/types.js",
+      "hash": "b96f21adc84d483670fc6b38facce9818d341249e624b84f70a0829389d77476",
+      "size": 8130,
+      "lastModified": "2025-09-10T17:22:44.850Z",
+      "contentType": "application/javascript"
+    },
+    "mcp/utils.js": {
+      "path": "mcp/utils.js",
+      "hash": "814a5f2f7ee6fe7cfeacb98fda4c5335818ad32c699a1dd933ca2d6362a525f8",
+      "size": 11541,
+      "lastModified": "2025-09-10T17:22:44.850Z",
+      "contentType": "application/javascript"
+    },
+    "middleware/auth.js": {
+      "path": "middleware/auth.js",
+      "hash": "bae0e7bd7937ade9195c4614d8bc7fc0520defde24b30f5b1cf5f6c4b52e01ec",
+      "size": 1443,
+      "lastModified": "2025-09-10T17:22:44.850Z",
+      "contentType": "application/javascript"
+    },
+    "ml-query/ml-query-engine.js": {
+      "path": "ml-query/ml-query-engine.js",
+      "hash": "05abc99e5d45f31e74422961cde2bd33d262aa628419697722af7db9f35f9211",
+      "size": 21162,
+      "lastModified": "2025-09-11T19:48:44.571Z",
+      "contentType": "application/javascript"
+    },
+    "monitoring/error-tracker.js": {
+      "path": "monitoring/error-tracker.js",
+      "hash": "3434f6a79375a6886ca85be76739ed47ad5fe8c6c2887382ffef86dec8a7e1ec",
+      "size": 22739,
+      "lastModified": "2025-09-10T21:06:42.605Z",
+      "contentType": "application/javascript"
+    },
+    "monitoring/health-checks.js": {
+      "path": "monitoring/health-checks.js",
+      "hash": "458678f16f76f96889b5734214164a2fb6677d13315b98c491f13c272b6d9c9e",
+      "size": 19442,
+      "lastModified": "2025-09-10T21:06:42.605Z",
+      "contentType": "application/javascript"
+    },
+    "monitoring/index.js": {
+      "path": "monitoring/index.js",
+      "hash": "82dc2a2ebcf2da0e3c408b9821b4b9a6f9b16a2af1cb022004d72e7fdcaffa7c",
+      "size": 23136,
+      "lastModified": "2025-09-10T21:06:42.605Z",
+      "contentType": "application/javascript"
+    },
+    "monitoring/metrics-collector.js": {
+      "path": "monitoring/metrics-collector.js",
+      "hash": "000b4ac248cf5f01510c5d76ddc6fcc70324c1dbd97cd09cb71564972cf46899",
+      "size": 24450,
+      "lastModified": "2025-09-10T21:06:42.605Z",
+      "contentType": "application/javascript"
+    },
+    "monitoring/performance-monitor.js": {
+      "path": "monitoring/performance-monitor.js",
+      "hash": "ba6f47d1484a578fc439a30a0d2cf5f6ba1651fd7b2a82c66540d3bd5fca7c67",
+      "size": 21293,
+      "lastModified": "2025-09-10T21:06:42.606Z",
+      "contentType": "application/javascript"
+    },
+    "monitoring/semantic-monitor.js": {
+      "path": "monitoring/semantic-monitor.js",
+      "hash": "633dd3556d13a388f96ae24f434e5228dfc5529770d1ed2b1c47afcd3a44c4b1",
+      "size": 19230,
+      "lastModified": "2025-09-10T17:22:44.852Z",
+      "contentType": "application/javascript"
+    },
+    "monitoring/sli-slo-tracker.js": {
+      "path": "monitoring/sli-slo-tracker.js",
+      "hash": "966e40872cec454258f1c3d9d953308d14cf73dd277ef5242c2fb87f830349f9",
+      "size": 25094,
+      "lastModified": "2025-09-10T21:06:42.606Z",
+      "contentType": "application/javascript"
+    },
+    "office/example.js": {
+      "path": "office/example.js",
+      "hash": "632ee7a74056fb2ee90d7f9fa2756fdf81f21c3daaa6759eb39e8e646131bbd9",
+      "size": 11071,
+      "lastModified": "2025-09-11T05:20:32.469Z",
+      "contentType": "application/javascript"
+    },
+    "office/index.ts": {
+      "path": "office/index.ts",
+      "hash": "cea8da44ed32d369cac8f902d97fe238be2cd04ab9cb5e5f442f679d528c8f02",
+      "size": 1195,
+      "lastModified": "2025-09-11T04:34:13.925Z",
+      "contentType": "application/typescript"
+    },
+    "office/office-template-processor.ts": {
+      "path": "office/office-template-processor.ts",
+      "hash": "bb56745a5500edcd078c64ae3538f45509603f221dda276490c46f539766a620",
+      "size": 16623,
+      "lastModified": "2025-09-11T04:35:11.663Z",
+      "contentType": "application/typescript"
+    },
+    "ontology/README.md": {
+      "path": "ontology/README.md",
+      "hash": "e266eeb482682692a78c4625e1e22220ac5ca0cf8cb4ad37d862a4f438ff943b",
+      "size": 14980,
+      "lastModified": "2025-09-11T20:02:26.544Z",
+      "contentType": "text/markdown"
+    },
+    "ontology/ultimate-ontology-orchestrator.js": {
+      "path": "ontology/ultimate-ontology-orchestrator.js",
+      "hash": "e48d6dd4892d0ca17cba3242465e78804e404cc426548985263a318e45e02df2",
+      "size": 28196,
+      "lastModified": "2025-09-11T20:02:26.495Z",
+      "contentType": "application/javascript"
+    },
+    "output/pdf-generator.js": {
+      "path": "output/pdf-generator.js",
+      "hash": "63941835c7b954031126b29cdd9b23cb1ccfe4c118cf9b9863b75ac75148b03a",
+      "size": 18924,
+      "lastModified": "2025-09-10T21:06:42.606Z",
+      "contentType": "application/javascript"
+    },
+    "pages/index.vue": {
+      "path": "pages/index.vue",
+      "hash": "bc59498855ea165d995f25412e625625dc7d429bcf561ba019277ee845395c6f",
+      "size": 11102,
+      "lastModified": "2025-09-10T17:22:44.854Z",
+      "contentType": "application/octet-stream"
+    },
+    "parser/latex-parser.js": {
+      "path": "parser/latex-parser.js",
+      "hash": "db2fb5e3e90636b6930cdc0c7ecd9bebda711aa9422ab9d5f21a7e46db793ad8",
+      "size": 14751,
+      "lastModified": "2025-09-10T21:06:42.606Z",
+      "contentType": "application/javascript"
+    },
+    "performance/benchmarker.js": {
+      "path": "performance/benchmarker.js",
+      "hash": "6412faa1ec761feee25b36daecb9b13f6fab18d78f48838ac0a88abb2ea12855",
+      "size": 13659,
+      "lastModified": "2025-09-10T21:06:42.606Z",
+      "contentType": "application/javascript"
+    },
+    "performance/cli-optimizer.js": {
+      "path": "performance/cli-optimizer.js",
+      "hash": "4dbaee38be568ff67dd5e788dde3ae8921f3d2fe0b7ea0c8ce90e0976178d608",
+      "size": 8680,
+      "lastModified": "2025-09-10T21:06:42.607Z",
+      "contentType": "application/javascript"
+    },
+    "performance/dependency-optimizer.js": {
+      "path": "performance/dependency-optimizer.js",
+      "hash": "164c2afde2a22befb1e91c6ab47eb15a0709358424c78d4f134b9337f92b46d7",
+      "size": 6799,
+      "lastModified": "2025-09-10T21:06:42.607Z",
+      "contentType": "application/javascript"
+    },
+    "performance/memory-optimizer.js": {
+      "path": "performance/memory-optimizer.js",
+      "hash": "7197e0c158d9a90093f048a458396b6252fc57cdd0924a07dbd86b4fe5f5a46b",
+      "size": 9852,
+      "lastModified": "2025-09-10T21:06:42.607Z",
+      "contentType": "application/javascript"
+    },
+    "performance/spec-benchmarker.js": {
+      "path": "performance/spec-benchmarker.js",
+      "hash": "66f311535b79b82f1ef3db1dd077a6dcb192b2046fd8ecbe17f86038882f1177",
+      "size": 26015,
+      "lastModified": "2025-09-10T21:06:42.607Z",
+      "contentType": "application/javascript"
+    },
+    "performance/spec-performance-optimizer.js": {
+      "path": "performance/spec-performance-optimizer.js",
+      "hash": "45cf441e485d078bdd40f751092bebf4defa4a84717876ebb51c2fa6a8507a3c",
+      "size": 22626,
+      "lastModified": "2025-09-10T21:06:42.607Z",
+      "contentType": "application/javascript"
+    },
+    "performance/template-cache.js": {
+      "path": "performance/template-cache.js",
+      "hash": "60a47e04f33efad731e272a84b5a443068a0d68630406d6db0a15957ebad4142",
+      "size": 5917,
+      "lastModified": "2025-09-11T22:49:23.689Z",
+      "contentType": "application/javascript"
+    },
+    "plugins/ollama.client.js": {
+      "path": "plugins/ollama.client.js",
+      "hash": "b6f2323933188e397e558e07472f8d034c86ae13dc0736714bc946c95b8d298c",
+      "size": 1175,
+      "lastModified": "2025-09-10T17:22:44.858Z",
+      "contentType": "application/javascript"
+    },
+    "security/cryptographic-security.js": {
+      "path": "security/cryptographic-security.js",
+      "hash": "5a9ae22b1711a9e2dd1d0173797450b78b031c6bc0d08248b498f4d8a425e856",
+      "size": 17992,
+      "lastModified": "2025-09-10T21:06:42.609Z",
+      "contentType": "application/javascript"
+    },
+    "security/dependency-security.js": {
+      "path": "security/dependency-security.js",
+      "hash": "559e4e5199d122370c77e98068032b6b37d094577033486fd61235fd3b828e36",
+      "size": 21096,
+      "lastModified": "2025-09-10T21:06:42.609Z",
+      "contentType": "application/javascript"
+    },
+    "security/index.js": {
+      "path": "security/index.js",
+      "hash": "b3db7bfc545611c1a31cc1f930e13e08c1f909a5f0daf2b70d9df81e6f19e5db",
+      "size": 3242,
+      "lastModified": "2025-09-10T17:22:44.860Z",
+      "contentType": "application/javascript"
+    },
+    "security/input-validator.js": {
+      "path": "security/input-validator.js",
+      "hash": "9b2f71e368c5933560a6ca3d33017536b75b5a6330b69df1f3adc423ad05c59d",
+      "size": 12847,
+      "lastModified": "2025-09-10T21:06:42.609Z",
+      "contentType": "application/javascript"
+    },
+    "security/path-security.js": {
+      "path": "security/path-security.js",
+      "hash": "b579ff487474c28028edac913e70e49f200ab7f54b10eafb90dc029455d71ada",
+      "size": 13881,
+      "lastModified": "2025-09-10T21:06:42.609Z",
+      "contentType": "application/javascript"
+    },
+    "security/runtime-security.js": {
+      "path": "security/runtime-security.js",
+      "hash": "93c37bcd1aeb52094f26f54de1e2162eccd3efe61992dd759df59aff793b39e0",
+      "size": 18438,
+      "lastModified": "2025-09-10T21:06:42.609Z",
+      "contentType": "application/javascript"
+    },
+    "security/secret-manager.js": {
+      "path": "security/secret-manager.js",
+      "hash": "9016ffd9eab5ebc45a8748061ee7c435508595456e291754c34b1a49255df374",
+      "size": 6789,
+      "lastModified": "2025-09-10T21:06:42.610Z",
+      "contentType": "application/javascript"
+    },
+    "security/secure-command-executor.js": {
+      "path": "security/secure-command-executor.js",
+      "hash": "838853a558fd4c4314336900cf6a3dc49d5959018240d7a9d4b7f3923f50a1a2",
+      "size": 9416,
+      "lastModified": "2025-09-10T21:06:42.611Z",
+      "contentType": "application/javascript"
+    },
+    "security/security-headers.js": {
+      "path": "security/security-headers.js",
+      "hash": "5af6039cc830f9729f0fddac8ffd0216e020c09f4cc474482bf8d89fc8e43463",
+      "size": 11346,
+      "lastModified": "2025-09-10T21:06:42.611Z",
+      "contentType": "application/javascript"
+    },
+    "security/security-tests.js": {
+      "path": "security/security-tests.js",
+      "hash": "fb676e921621fd36cd6927bb38c12a5bc7e77fc514b6d328303b0c26f541e527",
+      "size": 24770,
+      "lastModified": "2025-09-10T21:06:42.611Z",
+      "contentType": "application/javascript"
+    },
+    "security/types.js": {
+      "path": "security/types.js",
+      "hash": "ef309f071200d281c62d23fe18bebbccfd7adc281ff660ff51a5a9557b63f86e",
+      "size": 6223,
+      "lastModified": "2025-09-10T17:22:44.865Z",
+      "contentType": "application/javascript"
+    },
+    "server/index.js": {
+      "path": "server/index.js",
+      "hash": "e841645ab74bffe49c70ff12382b5a0f85d8e3fabff6457d567f7d9bca19103a",
+      "size": 2766,
+      "lastModified": "2025-09-10T21:06:42.612Z",
+      "contentType": "application/javascript"
+    },
+    "templates/template-engine.js": {
+      "path": "templates/template-engine.js",
+      "hash": "bd2042ccc018ab9380647bdab9405f117306bb4e68f8cfa89365bec144b28a85",
+      "size": 10414,
+      "lastModified": "2025-09-10T21:06:42.615Z",
+      "contentType": "application/javascript"
+    },
+    "tests/debug-export-test.js": {
+      "path": "tests/debug-export-test.js",
+      "hash": "0870c08d7977915b2f560a0100b66d54698d078d5009e8cff574c255e2ecdf53",
+      "size": 2480,
+      "lastModified": "2025-09-10T21:06:42.615Z",
+      "contentType": "application/javascript"
+    },
+    "tests/export-quality-report.js": {
+      "path": "tests/export-quality-report.js",
+      "hash": "e201fbb72f2ee6bef20f562cd68508c76e686157d826917988f48d2ddffe41b3",
+      "size": 7887,
+      "lastModified": "2025-09-10T21:06:42.615Z",
+      "contentType": "application/javascript"
+    },
+    "tests/export-system-test.js": {
+      "path": "tests/export-system-test.js",
+      "hash": "1e79f25a363cda86b731bca8587798ad07e90a1c9f2795d50ed48c54e3e8582d",
+      "size": 12774,
+      "lastModified": "2025-09-10T21:06:42.616Z",
+      "contentType": "application/javascript"
+    },
+    "tests/simple-export-test.js": {
+      "path": "tests/simple-export-test.js",
+      "hash": "18fc8bcf5afbdb5c3a465a8e6ab7eff1acbd88f62dfda658c26f84d93001081b",
+      "size": 3825,
+      "lastModified": "2025-09-10T21:06:42.616Z",
+      "contentType": "application/javascript"
+    },
+    "types/commands.js": {
+      "path": "types/commands.js",
+      "hash": "402f8d5d8f5745fa11e1e2c265a0a047f63252170b9107f2bfcb59d2e5aa644a",
+      "size": 456,
+      "lastModified": "2025-09-10T21:06:54.576Z",
+      "contentType": "application/javascript"
+    },
+    "types/index.js": {
+      "path": "types/index.js",
+      "hash": "f08959d93550045f89c68db9b2b8bd47819d34536684b683dc1862d6e87d5674",
+      "size": 8514,
+      "lastModified": "2025-09-10T17:22:44.874Z",
+      "contentType": "application/javascript"
+    },
+    "types/ollama-openapi.json": {
+      "path": "types/ollama-openapi.json",
+      "hash": "b3b07306a5d55f21463075e71711596ea68149c69fb5b2483bda15bae132e270",
+      "size": 7098,
+      "lastModified": "2025-09-10T17:22:44.874Z",
+      "contentType": "application/json"
+    },
+    "types/ollama.js": {
+      "path": "types/ollama.js",
+      "hash": "38b43289bc4327e582090ec7ed0c12b5b0d136446bd98e5c59ea4a5e74951913",
+      "size": 3732,
+      "lastModified": "2025-09-10T17:22:44.875Z",
+      "contentType": "application/javascript"
+    },
+    "types/package.json": {
+      "path": "types/package.json",
+      "hash": "e3d5a4a2d8551aa52c5a01d2a0efb2e06a2d9711b4f5c5f1d20de6e21807e2cd",
+      "size": 18,
+      "lastModified": "2025-09-10T21:06:42.616Z",
+      "contentType": "application/json"
+    },
+    "types/shims.js": {
+      "path": "types/shims.js",
+      "hash": "5e07ac7cee0ac55fe2cb1f45511341075534443a69c4de8a54751bbe60ccf866",
+      "size": 1982,
+      "lastModified": "2025-09-10T17:22:44.875Z",
+      "contentType": "application/javascript"
+    },
+    "types/unified-types.js": {
+      "path": "types/unified-types.js",
+      "hash": "d49adc726b30cc90b8a79a04c4afcd9783cb140a6e46dd0e8503bd0ce59670d2",
+      "size": 29315,
+      "lastModified": "2025-09-10T17:22:44.875Z",
+      "contentType": "application/javascript"
+    },
+    "utils/deterministic-id-generator.js": {
+      "path": "utils/deterministic-id-generator.js",
+      "hash": "ea2c992448897d151910f25092c9df4441bd666b9e54637368da9076cba7c879",
+      "size": 5653,
+      "lastModified": "2025-09-11T19:04:19.294Z",
+      "contentType": "application/javascript"
+    },
+    "utils/ollama-helpers.js": {
+      "path": "utils/ollama-helpers.js",
+      "hash": "bf7ce0fbc7b50f213c10ccf43094afaecec13edfa4341b29d9cbcbba9f22d5be",
+      "size": 6717,
+      "lastModified": "2025-09-10T17:22:44.875Z",
+      "contentType": "application/javascript"
+    },
+    "utils/secure-logger.js": {
+      "path": "utils/secure-logger.js",
+      "hash": "ca2c01661b764d4b79aedc6c6b218e826f24b8dcb5bcf0bc09d1f15be511dd2e",
+      "size": 2676,
+      "lastModified": "2025-09-10T21:06:42.616Z",
+      "contentType": "application/javascript"
+    },
+    "validation/compliance-rules.js": {
+      "path": "validation/compliance-rules.js",
+      "hash": "cde4ca53cab629e5bc283c56cf3893cc26b89f1bf5879a6a15d6df070e9506eb",
+      "size": 24491,
+      "lastModified": "2025-09-10T17:22:44.876Z",
+      "contentType": "application/javascript"
+    },
+    "validation/consistency-rules.js": {
+      "path": "validation/consistency-rules.js",
+      "hash": "f2d54dde90c2c54e4e251ce819a012825f3eaf87706ef876d2652d72321e0c29",
+      "size": 28016,
+      "lastModified": "2025-09-10T17:22:44.876Z",
+      "contentType": "application/javascript"
+    },
+    "validation/performance-rules.js": {
+      "path": "validation/performance-rules.js",
+      "hash": "2ae1720621cfefbfedfc0f355674b3421f4b129c4b3a500cfdc93c251be8f43b",
+      "size": 21044,
+      "lastModified": "2025-09-10T17:22:44.877Z",
+      "contentType": "application/javascript"
+    },
+    "api/middleware/errorHandler.js": {
+      "path": "api/middleware/errorHandler.js",
+      "hash": "bd85505ef0d015aab8fa6e92ab898befcd1987a108202287af5f480fb4341b17",
+      "size": 2541,
+      "lastModified": "2025-09-10T21:06:42.583Z",
+      "contentType": "application/javascript"
+    },
+    "api/middleware/validation.js": {
+      "path": "api/middleware/validation.js",
+      "hash": "4ee72c270b318b39a419075bcc3122237a482beebbd957a2d5f7693d7c2b659f",
+      "size": 3600,
+      "lastModified": "2025-09-10T21:06:42.585Z",
+      "contentType": "application/javascript"
+    },
+    "api/routes/latex.js": {
+      "path": "api/routes/latex.js",
+      "hash": "b03aec009d1f69baf2a59766f4b999381a16a9e56ec6d4e21a65fa05258e6065",
+      "size": 5557,
+      "lastModified": "2025-09-10T21:06:42.585Z",
+      "contentType": "application/javascript"
+    },
+    "api/routes/templates.js": {
+      "path": "api/routes/templates.js",
+      "hash": "326097f68d7e198e280190adc5e98c6d657baa61e31483d1b39ded4da958f099",
+      "size": 6263,
+      "lastModified": "2025-09-10T21:06:42.586Z",
+      "contentType": "application/javascript"
+    },
+    "api/services/latexService.js": {
+      "path": "api/services/latexService.js",
+      "hash": "9a3724116fe4df7c5f7dcbf30e220c19e193a6a6f2aef70c6d301cdc6f26c6b7",
+      "size": 10469,
+      "lastModified": "2025-09-10T21:06:42.586Z",
+      "contentType": "application/javascript"
+    },
+    "api/services/templateService.js": {
+      "path": "api/services/templateService.js",
+      "hash": "257b7b12332d140f9be1297d42359f5aae7d637cc6583ece7c7515ac64ca9445",
+      "size": 10273,
+      "lastModified": "2025-09-11T22:49:54.963Z",
+      "contentType": "application/javascript"
+    },
+    "api/utils/logger.js": {
+      "path": "api/utils/logger.js",
+      "hash": "9c2ed1aec22971614773fbb4036f14f040313c39837287a17ccd1d86322074e3",
+      "size": 1622,
+      "lastModified": "2025-09-10T21:06:42.586Z",
+      "contentType": "application/javascript"
+    },
+    "assets/css/main.css": {
+      "path": "assets/css/main.css",
+      "hash": "57856e9db22ca6c10246e8880f2d470b335f472d0897037f04513da4dba84215",
+      "size": 2391,
+      "lastModified": "2025-09-10T17:22:44.816Z",
+      "contentType": "text/css"
+    },
+    "cli/commands/export-docx.js": {
+      "path": "cli/commands/export-docx.js",
+      "hash": "c4acd5133527d3fde30a3e484dbe446824ca4261a31785f8b236471e5df1ef2f",
+      "size": 11857,
+      "lastModified": "2025-09-10T21:06:42.586Z",
+      "contentType": "application/javascript"
+    },
+    "cli/commands/help-docx.js": {
+      "path": "cli/commands/help-docx.js",
+      "hash": "d8ff865ee3c790105abecc4996da4452afafe68b1c0ef5e467e7ab2304ffd42d",
+      "size": 5692,
+      "lastModified": "2025-09-10T21:06:42.587Z",
+      "contentType": "application/javascript"
+    },
+    "cli/commands/office.js": {
+      "path": "cli/commands/office.js",
+      "hash": "75172c01658bef072d346c5e1d7d9b4093d66fea0ba002bb2d79017db265e34d",
+      "size": 37071,
+      "lastModified": "2025-09-11T05:24:33.642Z",
+      "contentType": "application/javascript"
+    },
+    "cli/commands/ontology.js": {
+      "path": "cli/commands/ontology.js",
+      "hash": "9c19d079682bb2663d2460bfd57ee1fdc966ad6a9659432d1f6ac796f2215c1d",
+      "size": 10458,
+      "lastModified": "2025-09-11T00:50:57.465Z",
+      "contentType": "application/javascript"
+    },
+    "cli/commands/type-conversion.js": {
+      "path": "cli/commands/type-conversion.js",
+      "hash": "3720f61801b0cc3e41bb63d0e6dcb540300988ebc8ddacfca5c4a8bdf2edfc3f",
+      "size": 9653,
+      "lastModified": "2025-09-10T17:22:44.819Z",
+      "contentType": "application/javascript"
+    },
+    "components/MyComponent/index.ts": {
+      "path": "components/MyComponent/index.ts",
+      "hash": "a92d0f92a64acd679ff9115f5e6a6ae070c42d6f211c78e9db87755da5798ad3",
+      "size": 157,
+      "lastModified": "2025-09-10T21:06:42.596Z",
+      "contentType": "application/typescript"
+    },
+    "components/TestButton/index.ts": {
+      "path": "components/TestButton/index.ts",
+      "hash": "dc2457bd65a56f3c73810210f4a95190d86bff98400cfbc2f451760bf51ed922",
+      "size": 152,
+      "lastModified": "2025-09-10T21:06:42.596Z",
+      "contentType": "application/typescript"
+    },
+    "components/UserProfile/index.ts": {
+      "path": "components/UserProfile/index.ts",
+      "hash": "9eb9b6c7a3dd760e46eafa15be38e451f0166de52bce7b2866e7e82defea186d",
+      "size": 157,
+      "lastModified": "2025-09-10T21:06:42.596Z",
+      "contentType": "application/typescript"
+    },
+    "config/monitoring/grafana-dashboards.js": {
+      "path": "config/monitoring/grafana-dashboards.js",
+      "hash": "80c47cc622e114a25162946d2439fdc7b51bdd9cf25583a2376b47399293634e",
+      "size": 22536,
+      "lastModified": "2025-09-10T21:06:42.597Z",
+      "contentType": "application/javascript"
+    },
+    "core/latex/template-selector.js": {
+      "path": "core/latex/template-selector.js",
+      "hash": "d3b9efaff007f553d023aea65619ddf792c7b8f8642b3f5663fc6b5cac87f3d7",
+      "size": 7120,
+      "lastModified": "2025-09-10T22:07:25.124Z",
+      "contentType": "application/javascript"
+    },
+    "integrations/api/graphql-federation.js": {
+      "path": "integrations/api/graphql-federation.js",
+      "hash": "d910c6fdef6834b02933c84f5b83ae5dca386b07a6717ee0bc6d4ecbada68b20",
+      "size": 16234,
+      "lastModified": "2025-09-10T21:06:42.599Z",
+      "contentType": "application/javascript"
+    },
+    "integrations/api/rest-api-versioning.js": {
+      "path": "integrations/api/rest-api-versioning.js",
+      "hash": "6f7015bb0d5a81f997b5759a7ee47dd58754784cb696e470065a92e9f9647dfd",
+      "size": 9981,
+      "lastModified": "2025-09-10T21:06:42.599Z",
+      "contentType": "application/javascript"
+    },
+    "integrations/auth/sso-provider.js": {
+      "path": "integrations/auth/sso-provider.js",
+      "hash": "e0c5eeba99f76c07125de595e00bb122a7503812410d9f30b2b978e2fe64c002",
+      "size": 10324,
+      "lastModified": "2025-09-10T21:06:42.599Z",
+      "contentType": "application/javascript"
+    },
+    "integrations/docs/openapi-generator.js": {
+      "path": "integrations/docs/openapi-generator.js",
+      "hash": "da74f9e19df248af4e8511cabd8799cb17f280901c516cee3bc4caa40207144b",
+      "size": 23240,
+      "lastModified": "2025-09-10T21:06:42.600Z",
+      "contentType": "application/javascript"
+    },
+    "integrations/events/webhook-streaming.js": {
+      "path": "integrations/events/webhook-streaming.js",
+      "hash": "5fa6633187a140a80f493a036a3e9f7eb6f4b602eac27b7f3f11c784c01085b8",
+      "size": 15294,
+      "lastModified": "2025-09-10T21:06:42.600Z",
+      "contentType": "application/javascript"
+    },
+    "integrations/messaging/message-queue.js": {
+      "path": "integrations/messaging/message-queue.js",
+      "hash": "78ccfd202db3b685281201909fa34b22d26ce5896f3d45fc8779289ff12cac4e",
+      "size": 22307,
+      "lastModified": "2025-09-11T22:41:03.955Z",
+      "contentType": "application/javascript"
+    },
+    "kgen/api/semantic-orchestrator.js": {
+      "path": "kgen/api/semantic-orchestrator.js",
+      "hash": "e21d256991b8e522c8b0deffb1b9fe49a91dbc5db3763d7ad66ca3c8f80cf340",
+      "size": 17974,
+      "lastModified": "2025-09-11T19:50:56.534Z",
+      "contentType": "application/javascript"
+    },
+    "kgen/api/server.js": {
+      "path": "kgen/api/server.js",
+      "hash": "dcc3791fb1c45685544b28ee8dec04365451d6d4cdbc96d806460b01858bab17",
+      "size": 16465,
+      "lastModified": "2025-09-11T17:33:02.825Z",
+      "contentType": "application/javascript"
+    },
+    "kgen/cache/index.js": {
+      "path": "kgen/cache/index.js",
+      "hash": "f1a50b5893bb52f9498eccfb6583a615aa5cd7eef2d449de5df5c3b286dcb3f3",
+      "size": 17604,
+      "lastModified": "2025-09-11T17:37:52.766Z",
+      "contentType": "application/javascript"
+    },
+    "kgen/cache/lru-cache.js": {
+      "path": "kgen/cache/lru-cache.js",
+      "hash": "3a7e26addb947a4e619373c2d0fa495397e5a16b2b3c24b06bcc06492c6c9241",
+      "size": 10669,
+      "lastModified": "2025-09-11T22:47:02.660Z",
+      "contentType": "application/javascript"
+    },
+    "kgen/ci/semantic-pipeline.js": {
+      "path": "kgen/ci/semantic-pipeline.js",
+      "hash": "c1ea0f2880675a5fab68656a5e98e4bc4013dd5a24f8f3ca8c00f1ef7420e7b5",
+      "size": 23027,
+      "lastModified": "2025-09-11T19:56:41.026Z",
+      "contentType": "application/javascript"
+    },
+    "kgen/cli/kgen-cli-bridge.js": {
+      "path": "kgen/cli/kgen-cli-bridge.js",
+      "hash": "d1f653d5f9a6024f1038f96b250c130e518ebd2b4129186f3c4a7b4294ff044a",
+      "size": 23743,
+      "lastModified": "2025-09-11T19:52:19.726Z",
+      "contentType": "application/javascript"
+    },
+    "kgen/cli/query-templates.js": {
+      "path": "kgen/cli/query-templates.js",
+      "hash": "f55edcbfa33844373d9797d4640a962af0635456dde1d84e6499d0ac79980f01",
+      "size": 16384,
+      "lastModified": "2025-09-11T19:33:35.314Z",
+      "contentType": "application/javascript"
+    },
+    "kgen/cli/simple-sparql-adapter.js": {
+      "path": "kgen/cli/simple-sparql-adapter.js",
+      "hash": "369f77df7db398b71c443f35a8042aebf256aa1afadc49791110574bdba1cb5f",
+      "size": 7135,
+      "lastModified": "2025-09-11T19:38:39.942Z",
+      "contentType": "application/javascript"
+    },
+    "kgen/cli/sparql-adapter.js": {
+      "path": "kgen/cli/sparql-adapter.js",
+      "hash": "56ceff30a090d3c2d0cd0b05a6f2bdae8225f8af5a845fed54078566207abf68",
+      "size": 26369,
+      "lastModified": "2025-09-11T19:29:46.088Z",
+      "contentType": "application/javascript"
+    },
+    "kgen/cli/working-sparql-adapter.js": {
+      "path": "kgen/cli/working-sparql-adapter.js",
+      "hash": "367dd79be4aa6aae083c77abe187977387a3f6d6c83c6c319d1de12e3c11d895",
+      "size": 9562,
+      "lastModified": "2025-09-11T19:41:19.927Z",
+      "contentType": "application/javascript"
+    },
+    "kgen/config/default.js": {
+      "path": "kgen/config/default.js",
+      "hash": "8f6581f01db9360d6e05df659233f3f1cae9a46af832d80973c07df9a24dedc5",
+      "size": 12545,
+      "lastModified": "2025-09-11T17:30:59.705Z",
+      "contentType": "application/javascript"
+    },
+    "kgen/core/engine.js": {
+      "path": "kgen/core/engine.js",
+      "hash": "1a0484b3fbc5b264412ee96b0cb65850e62ca930c44807b14df7125c5fb85815",
+      "size": 25183,
+      "lastModified": "2025-09-11T23:05:09.279Z",
+      "contentType": "application/javascript"
+    },
+    "kgen/db/index.js": {
+      "path": "kgen/db/index.js",
+      "hash": "093fe4fb970e038269a005c08b2743820cb8c5ad63ffb22562f0196fff7b44fd",
+      "size": 17393,
+      "lastModified": "2025-09-11T17:34:07.785Z",
+      "contentType": "application/javascript"
+    },
+    "kgen/deployment/docker-compose.yml": {
+      "path": "kgen/deployment/docker-compose.yml",
+      "hash": "f8e178a5e8d0dcdd07db67e29da5464932b450092cadbeadad6ab8445b073747",
+      "size": 13206,
+      "lastModified": "2025-09-11T16:56:38.293Z",
+      "contentType": "application/yaml"
+    },
+    "kgen/deployment/production-deployer.js": {
+      "path": "kgen/deployment/production-deployer.js",
+      "hash": "be995985e6f30b0d8b70783dc0acf6806d0e9570f32bf035453d308cea6845f7",
+      "size": 23356,
+      "lastModified": "2025-09-11T20:00:53.551Z",
+      "contentType": "application/javascript"
+    },
+    "kgen/ingestion/pipeline.js": {
+      "path": "kgen/ingestion/pipeline.js",
+      "hash": "941ab860892ab5e2ad083e8f289c12bced547fd866e55daf1e3965283da5a25b",
+      "size": 22270,
+      "lastModified": "2025-09-11T16:49:06.504Z",
+      "contentType": "application/javascript"
+    },
+    "kgen/integration/template-semantic-bridge.js": {
+      "path": "kgen/integration/template-semantic-bridge.js",
+      "hash": "5f600f3b795b344295df2fed68789a3d75d4921540ff9feecd04676f7cef2658",
+      "size": 25937,
+      "lastModified": "2025-09-11T19:55:21.509Z",
+      "contentType": "application/javascript"
+    },
+    "kgen/monitoring/index.js": {
+      "path": "kgen/monitoring/index.js",
+      "hash": "01ab62fe814fec58ef552a5261697412fe08eca3d61fbe9e72b27288983d4dde",
+      "size": 16614,
+      "lastModified": "2025-09-11T17:36:45.351Z",
+      "contentType": "application/javascript"
+    },
+    "kgen/monitoring/semantic-analytics-dashboard.js": {
+      "path": "kgen/monitoring/semantic-analytics-dashboard.js",
+      "hash": "2b9434b4d733c47cc5c70067a4b2104f26ff5769d789f58f664ac5d4d7c3e075",
+      "size": 23356,
+      "lastModified": "2025-09-11T19:58:18.133Z",
+      "contentType": "application/javascript"
+    },
+    "kgen/provenance/tracker.js": {
+      "path": "kgen/provenance/tracker.js",
+      "hash": "27a04d6b202085a5ec9cfb4bd79dab95f20be2e57cfdd84469538027d5e3909b",
+      "size": 47687,
+      "lastModified": "2025-09-11T18:02:25.189Z",
+      "contentType": "application/javascript"
+    },
+    "kgen/query/approximate-query.js": {
+      "path": "kgen/query/approximate-query.js",
+      "hash": "2f3fa77e03bc32a700926d5f64d670de7258281433d8d55f9dbc39725664f978",
+      "size": 22536,
+      "lastModified": "2025-09-11T19:55:34.907Z",
+      "contentType": "application/javascript"
+    },
+    "kgen/query/engine.js": {
+      "path": "kgen/query/engine.js",
+      "hash": "3ff8190433b651127b90f8bf392849df99f3db611891394dc11b09fc7f73de0b",
+      "size": 38530,
+      "lastModified": "2025-09-11T21:48:08.940Z",
+      "contentType": "application/javascript"
+    },
+    "kgen/query/enhanced-engine.js": {
+      "path": "kgen/query/enhanced-engine.js",
+      "hash": "1e748c41990d7a0ba5f4381ba5692d747d9351c1be5543d3f2281f9a1ceef7d8",
+      "size": 35853,
+      "lastModified": "2025-09-11T21:48:32.011Z",
+      "contentType": "application/javascript"
+    },
+    "kgen/query/federated-optimizer.js": {
+      "path": "kgen/query/federated-optimizer.js",
+      "hash": "9063b4b55c8fce099bc76d0ee430b7eb8990bb943fbdefe7e4eb2e22ec96bd76",
+      "size": 28491,
+      "lastModified": "2025-09-11T19:55:34.953Z",
+      "contentType": "application/javascript"
+    },
+    "kgen/query/neural-cache.js": {
+      "path": "kgen/query/neural-cache.js",
+      "hash": "412786360beb9e5724be0e18e5fc4803f9094be5dbcf86d6cdf3e3ebcecc6282",
+      "size": 18711,
+      "lastModified": "2025-09-11T22:52:07.340Z",
+      "contentType": "application/javascript"
+    },
+    "kgen/query/nl-to-sparql.js": {
+      "path": "kgen/query/nl-to-sparql.js",
+      "hash": "601c91412129011170da0d02a1055f976cc85f5848ee51eabac88338d9b5dd46",
+      "size": 24728,
+      "lastModified": "2025-09-11T19:55:34.992Z",
+      "contentType": "application/javascript"
+    },
+    "kgen/query/quantum-optimizer.js": {
+      "path": "kgen/query/quantum-optimizer.js",
+      "hash": "bdc9d2ca7231ca17e4ed2065668c4bee52e3be9b89fb72069afab6adce53de96",
+      "size": 17954,
+      "lastModified": "2025-09-11T19:51:08.106Z",
+      "contentType": "application/javascript"
+    },
+    "kgen/query/streaming-sparql.js": {
+      "path": "kgen/query/streaming-sparql.js",
+      "hash": "68d53d7bf9258e54e85c90da178dd0862edf37970edb307a8caa975796ddc169",
+      "size": 19353,
+      "lastModified": "2025-09-11T19:51:08.187Z",
+      "contentType": "application/javascript"
+    },
+    "kgen/rdf/index.js": {
+      "path": "kgen/rdf/index.js",
+      "hash": "16a73afc6e21fa857c8b1a0c47b5db50a526a55292e1d764cba72d52f828cbc8",
+      "size": 14002,
+      "lastModified": "2025-09-11T21:54:14.605Z",
+      "contentType": "application/javascript"
+    },
+    "kgen/reasoning/audit-provenance.js": {
+      "path": "kgen/reasoning/audit-provenance.js",
+      "hash": "fd96b3feff02ba61150b63e078ed453ddefa434f0007855c06a010ff05057453",
+      "size": 19831,
+      "lastModified": "2025-09-11T20:00:31.161Z",
+      "contentType": "application/javascript"
+    },
+    "kgen/reasoning/cache-synchronizer.js": {
+      "path": "kgen/reasoning/cache-synchronizer.js",
+      "hash": "115373ceb7b2e7865b33c1ee17fb48999602a589d488da4879c312d8aca3205a",
+      "size": 20955,
+      "lastModified": "2025-09-11T19:56:15.005Z",
+      "contentType": "application/javascript"
+    },
+    "kgen/reasoning/collaborative-engine.js": {
+      "path": "kgen/reasoning/collaborative-engine.js",
+      "hash": "e7aaf90bf06b395cdf12bf8deb05e60926274b1d86f442a25688735de29efd8a",
+      "size": 22740,
+      "lastModified": "2025-09-11T19:56:14.956Z",
+      "contentType": "application/javascript"
+    },
+    "kgen/reasoning/consensus-engine.js": {
+      "path": "kgen/reasoning/consensus-engine.js",
+      "hash": "737842292373708aa1fb18a396d28aa3307441efa51c6e47085fb00ff8ad23b3",
+      "size": 21428,
+      "lastModified": "2025-09-11T19:52:27.610Z",
+      "contentType": "application/javascript"
+    },
+    "kgen/reasoning/distributed-engine.js": {
+      "path": "kgen/reasoning/distributed-engine.js",
+      "hash": "71de5a75253b68fc7e939a7559d8633b65e3faea725b33c38d39964ea12c96ef",
+      "size": 21617,
+      "lastModified": "2025-09-11T19:52:27.573Z",
+      "contentType": "application/javascript"
+    },
+    "kgen/reasoning/federated-coordinator.js": {
+      "path": "kgen/reasoning/federated-coordinator.js",
+      "hash": "dcd3952fd4262c00738b2a06223891ddba86ea0be5cd2fb5633e51939ebc454a",
+      "size": 25813,
+      "lastModified": "2025-09-11T19:52:27.533Z",
+      "contentType": "application/javascript"
+    },
+    "kgen/reasoning/governance-controller.js": {
+      "path": "kgen/reasoning/governance-controller.js",
+      "hash": "3db7754d893676eff5b9fed0ad040d2a14cf1aa2f94f0b7ca6b7064534b4a779",
+      "size": 27294,
+      "lastModified": "2025-09-11T20:00:31.122Z",
+      "contentType": "application/javascript"
+    },
+    "kgen/reasoning/index.js": {
+      "path": "kgen/reasoning/index.js",
+      "hash": "7471a8e03e0d348fa65e9c627e42a24adbd47e5406714bcd85ce4aba4c039879",
+      "size": 8078,
+      "lastModified": "2025-09-11T20:00:31.239Z",
+      "contentType": "application/javascript"
+    },
+    "kgen/reasoning/topology-optimizer.js": {
+      "path": "kgen/reasoning/topology-optimizer.js",
+      "hash": "8d008d05f560b4c48a52f8e544822d20eabc4ce87703d5d13538a8bc19862228",
+      "size": 25288,
+      "lastModified": "2025-09-11T19:56:15.047Z",
+      "contentType": "application/javascript"
+    },
+    "kgen/reasoning/validation-suite.js": {
+      "path": "kgen/reasoning/validation-suite.js",
+      "hash": "5b0cc1e7aaa030377ff6fbd0b740fca3f3db90870fe3cb8cd898fdc80b77d07f",
+      "size": 24744,
+      "lastModified": "2025-09-11T20:00:31.201Z",
+      "contentType": "application/javascript"
+    },
+    "kgen/reasoning/workflow-orchestrator.js": {
+      "path": "kgen/reasoning/workflow-orchestrator.js",
+      "hash": "2d463160fdc8dc286ac7f3f4969e749bf8bbebc77f805c3b60047119c69bae74",
+      "size": 22139,
+      "lastModified": "2025-09-11T19:52:27.649Z",
+      "contentType": "application/javascript"
+    },
+    "kgen/security/index.js": {
+      "path": "kgen/security/index.js",
+      "hash": "2e1b77ae52e4d9e42b4ebc9e99a309dc25843139fb2451b203fb1a313c20056b",
+      "size": 17832,
+      "lastModified": "2025-09-11T17:35:33.132Z",
+      "contentType": "application/javascript"
+    },
+    "kgen/security/manager.js": {
+      "path": "kgen/security/manager.js",
+      "hash": "925fb239845b2f8888778eeaafd2c05478dca4f425ac5abf90c6d6adf1e7ef61",
+      "size": 32692,
+      "lastModified": "2025-09-11T22:42:43.594Z",
+      "contentType": "application/javascript"
+    },
+    "kgen/semantic/enhanced-processor.js": {
+      "path": "kgen/semantic/enhanced-processor.js",
+      "hash": "d2731da26ccde79e9954ef695343f354475d7c318b6595b3596389ab32749043",
+      "size": 21204,
+      "lastModified": "2025-09-11T19:52:26.413Z",
+      "contentType": "application/javascript"
+    },
+    "kgen/semantic/processor.js": {
+      "path": "kgen/semantic/processor.js",
+      "hash": "65f2e8f58140236482114498495b7a79680109f64425f4cf204fc1b7e834cc03",
+      "size": 63669,
+      "lastModified": "2025-09-11T19:07:29.495Z",
+      "contentType": "application/javascript"
+    },
+    "kgen/semantic/processor.js.bak": {
+      "path": "kgen/semantic/processor.js.bak",
+      "hash": "65f2e8f58140236482114498495b7a79680109f64425f4cf204fc1b7e834cc03",
+      "size": 63669,
+      "lastModified": "2025-09-11T19:06:48.432Z",
+      "contentType": "application/octet-stream"
+    },
+    "kgen/semantic/processor.js.new": {
+      "path": "kgen/semantic/processor.js.new",
+      "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "lastModified": "2025-09-11T19:06:34.289Z",
+      "contentType": "application/octet-stream"
+    },
+    "kgen/semantic/processor.js.tmp": {
+      "path": "kgen/semantic/processor.js.tmp",
+      "hash": "112264e2c42fc9b925d17290217134429e5c748e5dd7c5d3faf0e5b988a8a121",
+      "size": 2507,
+      "lastModified": "2025-09-11T19:06:17.994Z",
+      "contentType": "application/octet-stream"
+    },
+    "kgen/serialization/README.md": {
+      "path": "kgen/serialization/README.md",
+      "hash": "437d19e94086e542399278a690fb1e0fd92b419f4f6c07d5d6f5cb8d73f5c3a2",
+      "size": 10452,
+      "lastModified": "2025-09-11T19:58:10.040Z",
+      "contentType": "text/markdown"
+    },
+    "kgen/serialization/canonical-turtle-serializer.js": {
+      "path": "kgen/serialization/canonical-turtle-serializer.js",
+      "hash": "312aadedfd1ae22a2351c001aa17c0fab567ede7e2eba44ef72824d58725b2a7",
+      "size": 24825,
+      "lastModified": "2025-09-11T19:52:45.582Z",
+      "contentType": "application/javascript"
+    },
+    "kgen/serialization/compression-optimizer.js": {
+      "path": "kgen/serialization/compression-optimizer.js",
+      "hash": "1b419618195e4a457d46fce221ca466369f09d351222c25f145adbe760a45b65",
+      "size": 21911,
+      "lastModified": "2025-09-11T19:57:01.136Z",
+      "contentType": "application/javascript"
+    },
+    "kgen/serialization/index.js": {
+      "path": "kgen/serialization/index.js",
+      "hash": "8cda95cd4dc87f7efd4326784dad5121c32a544f7735b46c29a3f95780547c65",
+      "size": 17432,
+      "lastModified": "2025-09-11T21:49:24.394Z",
+      "contentType": "application/javascript"
+    },
+    "kgen/serialization/integration.js": {
+      "path": "kgen/serialization/integration.js",
+      "hash": "e4d370d44909716c177c4587e39eb197bb2faf428c4b90c68b5123725debc545",
+      "size": 18013,
+      "lastModified": "2025-09-11T19:57:01.251Z",
+      "contentType": "application/javascript"
+    },
+    "kgen/serialization/self-documenting-serializer.js": {
+      "path": "kgen/serialization/self-documenting-serializer.js",
+      "hash": "cfcb6c48b177807e277a5966acb259f52b03c5cfa28cb2c2eed2cf6ac630c6aa",
+      "size": 21936,
+      "lastModified": "2025-09-11T19:52:45.663Z",
+      "contentType": "application/javascript"
+    },
+    "kgen/serialization/streaming-serializer.js": {
+      "path": "kgen/serialization/streaming-serializer.js",
+      "hash": "c9768635d48190ee8d31991a86819973fcb1df27a7938a44ae7caac5112ecb51",
+      "size": 6551,
+      "lastModified": "2025-09-11T19:52:45.624Z",
+      "contentType": "application/javascript"
+    },
+    "kgen/testing/semantic-test-framework.js": {
+      "path": "kgen/testing/semantic-test-framework.js",
+      "hash": "2f100906adf066cad11501fe60d7e2fe6000d970afa04749c29d5f9a506c1efa",
+      "size": 22668,
+      "lastModified": "2025-09-11T19:59:35.708Z",
+      "contentType": "application/javascript"
+    },
+    "kgen/utils/error-handler.js": {
+      "path": "kgen/utils/error-handler.js",
+      "hash": "8da400819cc340d04a27f904d94bedcdd05f425f03daabb923344d9635e60adf",
+      "size": 12476,
+      "lastModified": "2025-09-11T23:04:10.469Z",
+      "contentType": "application/javascript"
+    },
+    "kgen/validation/index.js": {
+      "path": "kgen/validation/index.js",
+      "hash": "05ba89b060fa78ee44f50aa04bc6f33816a209f6a372add04e7ea0bc75421a25",
+      "size": 23472,
+      "lastModified": "2025-09-11T22:06:33.406Z",
+      "contentType": "application/javascript"
+    },
+    "lib/file-injector/simple-file-injector-orchestrator.js": {
+      "path": "lib/file-injector/simple-file-injector-orchestrator.js",
+      "hash": "cb8336587bbd1354eb314917f0f27eeffd159d9c71f48e103e6e6719687587a0",
+      "size": 8491,
+      "lastModified": "2025-09-10T19:38:37.894Z",
+      "contentType": "application/javascript"
+    },
+    "lib/types/turtle-types.js": {
+      "path": "lib/types/turtle-types.js",
+      "hash": "950f6454cf5852bb093660b618a4684cd18e2a6426b11e9388a6f26bd4279fce",
+      "size": 4926,
+      "lastModified": "2025-09-10T17:22:44.843Z",
+      "contentType": "application/javascript"
+    },
+    "math/cache/equation-cache.js": {
+      "path": "math/cache/equation-cache.js",
+      "hash": "ddbff5b527ced660a5bc2ab55bf5e615faee143541b386bd39b39179300e333a",
+      "size": 8358,
+      "lastModified": "2025-09-11T22:51:10.172Z",
+      "contentType": "application/javascript"
+    },
+    "mcp/handlers/enhanced-request-handler.js": {
+      "path": "mcp/handlers/enhanced-request-handler.js",
+      "hash": "544e2db9520b241ab1fcbe0eb61626d7dda26a621b48ed6c93286299d238cebe",
+      "size": 21816,
+      "lastModified": "2025-09-10T21:06:42.602Z",
+      "contentType": "application/javascript"
+    },
+    "mcp/handlers/index.js": {
+      "path": "mcp/handlers/index.js",
+      "hash": "42fc4afd83eb527cd7f274337890d40b4b2ce8405647cfd171ef5ef9932bdd60",
+      "size": 101,
+      "lastModified": "2025-09-10T17:22:44.846Z",
+      "contentType": "application/javascript"
+    },
+    "mcp/handlers/request-handler.js": {
+      "path": "mcp/handlers/request-handler.js",
+      "hash": "1ca04ec0890eb3899ee38a1d756ed9d0d0c8ab591b3edee6c6436fd3b73907af",
+      "size": 8130,
+      "lastModified": "2025-09-10T17:22:44.846Z",
+      "contentType": "application/javascript"
+    },
+    "mcp/tools/index.js": {
+      "path": "mcp/tools/index.js",
+      "hash": "c36ac6b65d5e3ca1ed60aa9352d8eb4876fc1efcfcdca9c3ab1d2adb20589430",
+      "size": 1807,
+      "lastModified": "2025-09-10T21:06:42.603Z",
+      "contentType": "application/javascript"
+    },
+    "mcp/tools/latex-coordination.js": {
+      "path": "mcp/tools/latex-coordination.js",
+      "hash": "2310ead863d8a3c4c505a0b9ded261fc64653c1e5ad544e47beb692778dea2c3",
+      "size": 16658,
+      "lastModified": "2025-09-10T21:06:42.603Z",
+      "contentType": "application/javascript"
+    },
+    "mcp/tools/latex-tools.js": {
+      "path": "mcp/tools/latex-tools.js",
+      "hash": "53af01088518cd5b7bb68be45de5de26f13379acf6262bbb2e3654894112c274",
+      "size": 25192,
+      "lastModified": "2025-09-10T21:06:42.603Z",
+      "contentType": "application/javascript"
+    },
+    "mcp/tools/safe-unjucks-list.js": {
+      "path": "mcp/tools/safe-unjucks-list.js",
+      "hash": "40d3a58f4e6a730e81a63ecda288278112ad7f981829a46da41745770df63f1e",
+      "size": 10333,
+      "lastModified": "2025-09-10T21:06:42.604Z",
+      "contentType": "application/javascript"
+    },
+    "mcp/tools/simplified-unjucks-help.js": {
+      "path": "mcp/tools/simplified-unjucks-help.js",
+      "hash": "743fb24f8ee6a0375ff44d62bc39342c5802891ded740ff4b81a3a16061e5b07",
+      "size": 10797,
+      "lastModified": "2025-09-10T21:06:42.604Z",
+      "contentType": "application/javascript"
+    },
+    "mcp/tools/simplified-unjucks-list.js": {
+      "path": "mcp/tools/simplified-unjucks-list.js",
+      "hash": "a7879bf2ae6ba332ebc2b6cba3d8032ca3e6c8d38e12becf1159b5d98050db8c",
+      "size": 8039,
+      "lastModified": "2025-09-10T21:06:42.604Z",
+      "contentType": "application/javascript"
+    },
+    "mcp/tools/unjucks-dry-run.js": {
+      "path": "mcp/tools/unjucks-dry-run.js",
+      "hash": "020aa94f25f5476368ecb024b0a63fdbbe6da7d76c84968cc6c9449058947a4d",
+      "size": 12127,
+      "lastModified": "2025-09-10T17:22:44.849Z",
+      "contentType": "application/javascript"
+    },
+    "mcp/tools/unjucks-generate.js": {
+      "path": "mcp/tools/unjucks-generate.js",
+      "hash": "de996dd9641bc816859bb2b8934a1ae588e2596b64a5cce985447f65cf7583c5",
+      "size": 7147,
+      "lastModified": "2025-09-10T17:22:44.849Z",
+      "contentType": "application/javascript"
+    },
+    "mcp/tools/unjucks-help.js": {
+      "path": "mcp/tools/unjucks-help.js",
+      "hash": "83b21d18c57bf68500418cbdf69e7ccf9e05a58be4fdb2a0c2596d341f36450c",
+      "size": 15134,
+      "lastModified": "2025-09-10T17:22:44.849Z",
+      "contentType": "application/javascript"
+    },
+    "mcp/tools/unjucks-inject.js": {
+      "path": "mcp/tools/unjucks-inject.js",
+      "hash": "239f9963f22c2ff80cec2931caee5cb675fd7bdf71d116ecc255050a6d1dcf49",
+      "size": 10797,
+      "lastModified": "2025-09-10T17:22:44.850Z",
+      "contentType": "application/javascript"
+    },
+    "mcp/tools/unjucks-list.js": {
+      "path": "mcp/tools/unjucks-list.js",
+      "hash": "fb56ab012e9c769f0d5e3112f36f7322d6ce6dbdfa9a88827fc748a38a68ff14",
+      "size": 6945,
+      "lastModified": "2025-09-10T21:06:42.604Z",
+      "contentType": "application/javascript"
+    },
+    "ml-query/caching/predictive-cache.js": {
+      "path": "ml-query/caching/predictive-cache.js",
+      "hash": "b707e4fae7da6febcfd7989f056a27f5aece3607a3cbd7fbf792cae8d81f8f49",
+      "size": 25220,
+      "lastModified": "2025-09-11T19:53:44.819Z",
+      "contentType": "application/javascript"
+    },
+    "ml-query/intent/intent-analyzer.js": {
+      "path": "ml-query/intent/intent-analyzer.js",
+      "hash": "686d9c86260f95b9781a01c1d03fb73bda7b7543cba372b45ad4f223da267143",
+      "size": 40109,
+      "lastModified": "2025-09-11T20:00:35.708Z",
+      "contentType": "application/javascript"
+    },
+    "ml-query/neural/query-optimizer.js": {
+      "path": "ml-query/neural/query-optimizer.js",
+      "hash": "f5d404ff0242ea0d97306c96db169f190d151f8bf3caab34d8051d70eb00beab",
+      "size": 19871,
+      "lastModified": "2025-09-11T19:50:04.508Z",
+      "contentType": "application/javascript"
+    },
+    "ml-query/nlp/nl-to-sparql.js": {
+      "path": "ml-query/nlp/nl-to-sparql.js",
+      "hash": "b9667b4549d976bd44afc02baefdf09efc5db7e350df18f7b4494013100f5b7c",
+      "size": 32168,
+      "lastModified": "2025-09-11T19:57:51.283Z",
+      "contentType": "application/javascript"
+    },
+    "ml-query/similarity/query-similarity.js": {
+      "path": "ml-query/similarity/query-similarity.js",
+      "hash": "68bb11238a3abc2c6ce1642ff5612f61d35f04de5095615035ecc685869de91d",
+      "size": 32196,
+      "lastModified": "2025-09-11T19:55:43.993Z",
+      "contentType": "application/javascript"
+    },
+    "ml-query/transformers/query-rewriter.js": {
+      "path": "ml-query/transformers/query-rewriter.js",
+      "hash": "7f0c1f80051f821edda803b3eb4ccc537c73884b06f495fb2439bd83d1092b53",
+      "size": 29977,
+      "lastModified": "2025-09-11T19:52:06.749Z",
+      "contentType": "application/javascript"
+    },
+    "office/core/base-processor.ts": {
+      "path": "office/core/base-processor.ts",
+      "hash": "e9eed4a4c0bf72cb546f6c9005af45b6d49992f91efc089421cabb623a14343a",
+      "size": 14412,
+      "lastModified": "2025-09-11T04:20:26.139Z",
+      "contentType": "application/typescript"
+    },
+    "office/core/types.ts": {
+      "path": "office/core/types.ts",
+      "hash": "3fe96a84454290dfab416749496c39f0eab756202d2fd9e41263ee23999da0f8",
+      "size": 11846,
+      "lastModified": "2025-09-11T04:19:21.990Z",
+      "contentType": "application/typescript"
+    },
+    "office/injectors/excel-injector.js": {
+      "path": "office/injectors/excel-injector.js",
+      "hash": "69655201ab1b7c8de49e3a3d8079ab9441d3358a0f16861d86335245d9d6acd5",
+      "size": 23637,
+      "lastModified": "2025-09-11T05:18:40.361Z",
+      "contentType": "application/javascript"
+    },
+    "office/injectors/office-injector.js": {
+      "path": "office/injectors/office-injector.js",
+      "hash": "6ff030e1e2bc7791f69220ae30a40d4389d6872ab0f33571e7cfcc5a98cac2ee",
+      "size": 10837,
+      "lastModified": "2025-09-11T05:18:16.551Z",
+      "contentType": "application/javascript"
+    },
+    "office/injectors/powerpoint-injector.js": {
+      "path": "office/injectors/powerpoint-injector.js",
+      "hash": "45bb0c1350fd5ef06be27f82b4d8242c8b77d960f440663af571b5cba058a22b",
+      "size": 22453,
+      "lastModified": "2025-09-11T05:18:52.485Z",
+      "contentType": "application/javascript"
+    },
+    "office/injectors/word-injector.js": {
+      "path": "office/injectors/word-injector.js",
+      "hash": "d55452fbb7c2af04a32308bb7b3d27a3b35a24cff3fab540a2b8e9e0164ce102",
+      "size": 15070,
+      "lastModified": "2025-09-11T05:18:29.527Z",
+      "contentType": "application/javascript"
+    },
+    "office/io/batch-processor.ts": {
+      "path": "office/io/batch-processor.ts",
+      "hash": "2dd359795a496d94263989e4c90bb5e440888d9767b028f65889d4898e1f437c",
+      "size": 27906,
+      "lastModified": "2025-09-11T04:34:03.688Z",
+      "contentType": "application/typescript"
+    },
+    "office/parsers/office-parser.js": {
+      "path": "office/parsers/office-parser.js",
+      "hash": "a63e7ffc682be7f539278f38ad292051e6edd028e42dda6e14aae7763c501220",
+      "size": 25877,
+      "lastModified": "2025-09-11T05:00:04.162Z",
+      "contentType": "application/javascript"
+    },
+    "office/processors/excel-processor.js": {
+      "path": "office/processors/excel-processor.js",
+      "hash": "b61f76ff5c7c4c10b7c5a04e7478be1ed5cc41511bbe20e2109d45dd32ff021b",
+      "size": 39099,
+      "lastModified": "2025-09-11T04:48:52.144Z",
+      "contentType": "application/javascript"
+    },
+    "office/processors/excel-processor.ts": {
+      "path": "office/processors/excel-processor.ts",
+      "hash": "0767a4e9e6dc7cd2a1be15cad9abfff32acfb3bbf436e7c9e9712067e5de4f21",
+      "size": 28180,
+      "lastModified": "2025-09-11T04:27:09.141Z",
+      "contentType": "application/typescript"
+    },
+    "office/processors/powerpoint-processor.js": {
+      "path": "office/processors/powerpoint-processor.js",
+      "hash": "0642a8d58627310d6a4d2e3562849a98f2cc135254f8fa0fc1e9bdae3ba1d2ad",
+      "size": 43645,
+      "lastModified": "2025-09-11T04:52:43.260Z",
+      "contentType": "application/javascript"
+    },
+    "office/processors/powerpoint-processor.ts": {
+      "path": "office/processors/powerpoint-processor.ts",
+      "hash": "5064e2270adb81fe485dc2b7ae488bd3fc1dc5860c5286ed73482c97cb9a085e",
+      "size": 35750,
+      "lastModified": "2025-09-11T04:29:25.678Z",
+      "contentType": "application/typescript"
+    },
+    "office/processors/word-processor.js": {
+      "path": "office/processors/word-processor.js",
+      "hash": "1944caac2266cdca21df3970096d17a5a8df00aba2fdb05a3c64f157ea08c817",
+      "size": 27354,
+      "lastModified": "2025-09-11T04:43:06.656Z",
+      "contentType": "application/javascript"
+    },
+    "office/processors/word-processor.ts": {
+      "path": "office/processors/word-processor.ts",
+      "hash": "37dea94e82a831b221376d130f47421a88176fc3f74fb3c678adc0fe2f01f358",
+      "size": 21521,
+      "lastModified": "2025-09-11T04:25:28.053Z",
+      "contentType": "application/typescript"
+    },
+    "office/templates/frontmatter-parser.ts": {
+      "path": "office/templates/frontmatter-parser.ts",
+      "hash": "fa6170f80570a82d540bdadb072fc847c198bca1673cae97995f18a34bc22cd4",
+      "size": 25884,
+      "lastModified": "2025-09-11T04:31:02.232Z",
+      "contentType": "application/typescript"
+    },
+    "office/templates/syntax-converter.ts": {
+      "path": "office/templates/syntax-converter.ts",
+      "hash": "51c8b7d391d121c0b0035032b2500d65466c1f096ffa05df73098be1851dd6f8",
+      "size": 18984,
+      "lastModified": "2025-09-11T04:32:16.606Z",
+      "contentType": "application/typescript"
+    },
+    "office/utils/example-usage.js": {
+      "path": "office/utils/example-usage.js",
+      "hash": "47198f2783cb9413535b9ab1b16c84e9b3868b848a3b09e6b6369d22ae73240c",
+      "size": 8036,
+      "lastModified": "2025-09-11T05:04:36.315Z",
+      "contentType": "application/javascript"
+    },
+    "office/utils/file-format-detector.js": {
+      "path": "office/utils/file-format-detector.js",
+      "hash": "5ee85e37ddbaaf04347e08d17c83cfac822f31847b4f573c5d17fc7b0b7cf4d1",
+      "size": 13465,
+      "lastModified": "2025-09-11T05:12:55.112Z",
+      "contentType": "application/javascript"
+    },
+    "office/utils/injection-validator.js": {
+      "path": "office/utils/injection-validator.js",
+      "hash": "62345eb11b957dfc232bbab4d5fa3bebe8962ee1fdf13109b1113941fc34876f",
+      "size": 15638,
+      "lastModified": "2025-09-11T05:11:59.003Z",
+      "contentType": "application/javascript"
+    },
+    "office/utils/logger.ts": {
+      "path": "office/utils/logger.ts",
+      "hash": "f15ffab08410811dc15ff8c62b389031cd3053757c8719fcd941742d6044ec6e",
+      "size": 14364,
+      "lastModified": "2025-09-11T04:24:04.467Z",
+      "contentType": "application/typescript"
+    },
+    "office/utils/validation-engine.ts": {
+      "path": "office/utils/validation-engine.ts",
+      "hash": "c0c824f4d6c7525cd93da0ef2b52d1341e6447e18bc642ba89f372f7003bc65e",
+      "size": 25034,
+      "lastModified": "2025-09-11T04:23:09.767Z",
+      "contentType": "application/typescript"
+    },
+    "office/utils/validation-test.js": {
+      "path": "office/utils/validation-test.js",
+      "hash": "27adca5cfba8ce625c7565ebc0c5915fbf8a3138791523a4a3db3f4bd76b77aa",
+      "size": 1069,
+      "lastModified": "2025-09-11T05:04:54.149Z",
+      "contentType": "application/javascript"
+    },
+    "office/utils/variable-extractor.js": {
+      "path": "office/utils/variable-extractor.js",
+      "hash": "0b9b34be3be632e24c7cfa95c695a25e7d0bf4e236df28de765da683fc5ede49",
+      "size": 32763,
+      "lastModified": "2025-09-11T05:04:36.289Z",
+      "contentType": "application/javascript"
+    },
+    "office/utils/variable-extractor.ts": {
+      "path": "office/utils/variable-extractor.ts",
+      "hash": "1c3da69a113b32fb01878cb63621a72f96150e90582f0f4fc359f463da9e9572",
+      "size": 20407,
+      "lastModified": "2025-09-11T04:21:48.036Z",
+      "contentType": "application/typescript"
+    },
+    "ontology/alignment/multi-modal-alignment.js": {
+      "path": "ontology/alignment/multi-modal-alignment.js",
+      "hash": "3608f980e8bf5146b83f3e82ed2d951543730fbcc2b692403b2d3a872f78ac5d",
+      "size": 32414,
+      "lastModified": "2025-09-11T19:53:16.937Z",
+      "contentType": "application/javascript"
+    },
+    "ontology/discovery/concept-discovery-engine.js": {
+      "path": "ontology/discovery/concept-discovery-engine.js",
+      "hash": "0fae6015f0a2cf2bc20ab0de7fc4a5eb900023ba2eda2ac4d0db772c8eb0a073",
+      "size": 27716,
+      "lastModified": "2025-09-11T19:58:46.796Z",
+      "contentType": "application/javascript"
+    },
+    "ontology/evolution/autonomous-evolution-engine.js": {
+      "path": "ontology/evolution/autonomous-evolution-engine.js",
+      "hash": "e68ffe8ec029dffc5171506da1a5aaec1c959d5b45e09b8367f9aaffc12db0d3",
+      "size": 14530,
+      "lastModified": "2025-09-11T19:53:16.890Z",
+      "contentType": "application/javascript"
+    },
+    "ontology/reasoning/owl2-reasoning-engine.js": {
+      "path": "ontology/reasoning/owl2-reasoning-engine.js",
+      "hash": "abe59ffc40c134e2c7c2af1b01c982850f2a5ca2a4463292d33c8ad7f3da51a6",
+      "size": 32661,
+      "lastModified": "2025-09-11T19:53:16.988Z",
+      "contentType": "application/javascript"
+    },
+    "ontology/repair/ontology-repair-engine.js": {
+      "path": "ontology/repair/ontology-repair-engine.js",
+      "hash": "1fee187454d49b1f69d11108d5a3f5adc1de3f371e93700cbde5bc4ed561564c",
+      "size": 29738,
+      "lastModified": "2025-09-11T19:58:46.736Z",
+      "contentType": "application/javascript"
+    },
+    "ontology/views/multi-perspective-views.js": {
+      "path": "ontology/views/multi-perspective-views.js",
+      "hash": "40b0716648d5cdc81dad2ff4628524bbb50ed9074c50dec4e8a90f2d6388fe58",
+      "size": 23452,
+      "lastModified": "2025-09-11T19:58:46.836Z",
+      "contentType": "application/javascript"
+    },
+    "pages/admin/analytics.vue": {
+      "path": "pages/admin/analytics.vue",
+      "hash": "4a92f3099698773e8fd48b86f798b9c5ceef8bf01cfef16328230881eb58875a",
+      "size": 13433,
+      "lastModified": "2025-09-10T17:22:44.853Z",
+      "contentType": "application/octet-stream"
+    },
+    "pages/admin/audit.vue": {
+      "path": "pages/admin/audit.vue",
+      "hash": "ac5ad5eeb6afc3871a0e15acd2151f2984ae70810c21a6ecb0bac37449bf7a23",
+      "size": 353,
+      "lastModified": "2025-09-10T17:22:44.853Z",
+      "contentType": "application/octet-stream"
+    },
+    "pages/admin/billing.vue": {
+      "path": "pages/admin/billing.vue",
+      "hash": "5630e777b2ad5a3d098e958ba9c652b0fb7c644fd399bb787b7abd3ce60a6492",
+      "size": 16888,
+      "lastModified": "2025-09-10T17:22:44.853Z",
+      "contentType": "application/octet-stream"
+    },
+    "pages/admin/index.vue": {
+      "path": "pages/admin/index.vue",
+      "hash": "3783097eab17ecc94d132e0f51effc23e5baea90f00158bf7110d7beb2dfe660",
+      "size": 12394,
+      "lastModified": "2025-09-10T17:22:44.853Z",
+      "contentType": "application/octet-stream"
+    },
+    "pages/admin/organization.vue": {
+      "path": "pages/admin/organization.vue",
+      "hash": "5cec906aec4700b2e15d50a427ce0c6698f712b87aba6af820a3e6f917b66858",
+      "size": 665,
+      "lastModified": "2025-09-10T17:22:44.854Z",
+      "contentType": "application/octet-stream"
+    },
+    "pages/admin/users.vue": {
+      "path": "pages/admin/users.vue",
+      "hash": "73594108d0a51515dc6982f10a9859acafadc5e7fa7748ca7f4f9d724dcba4f9",
+      "size": 353,
+      "lastModified": "2025-09-10T17:22:44.854Z",
+      "contentType": "application/octet-stream"
+    },
+    "pages/dashboard/index.vue": {
+      "path": "pages/dashboard/index.vue",
+      "hash": "74834c25825517d916a6b6df0df19eb6af143626e8113be44f7eee70964c3268",
+      "size": 13031,
+      "lastModified": "2025-09-10T17:22:44.854Z",
+      "contentType": "application/octet-stream"
+    },
+    "pages/docs/index.vue": {
+      "path": "pages/docs/index.vue",
+      "hash": "01a3e4f6d2e209cf3df011da9fe0931fabd49dd31df33b60cabc601729d05259",
+      "size": 330,
+      "lastModified": "2025-09-10T17:22:44.854Z",
+      "contentType": "application/octet-stream"
+    },
+    "pages/swarm/index.vue": {
+      "path": "pages/swarm/index.vue",
+      "hash": "3828b868cf3e6e697b544cbc0c8261ed03e13af3fcc9677c99949512ab08351b",
+      "size": 21602,
+      "lastModified": "2025-09-10T17:22:44.854Z",
+      "contentType": "application/octet-stream"
+    },
+    "pages/templates/generate.vue": {
+      "path": "pages/templates/generate.vue",
+      "hash": "43e16b0239967f77ea41a62820b7d4fbc2a93caff46005df367dee066cfbe882",
+      "size": 331,
+      "lastModified": "2025-09-10T17:22:44.855Z",
+      "contentType": "application/octet-stream"
+    },
+    "pages/templates/index.vue": {
+      "path": "pages/templates/index.vue",
+      "hash": "028412ada44681de9d103517d956361591767d86ba772c81622681cdf60d5bdd",
+      "size": 349,
+      "lastModified": "2025-09-10T17:22:44.855Z",
+      "contentType": "application/octet-stream"
+    },
+    "pages/test/chat.vue": {
+      "path": "pages/test/chat.vue",
+      "hash": "0e5bb53cea658e2209d3366acda6c2889820e312878bab7eb44211cb90c29fe5",
+      "size": 8199,
+      "lastModified": "2025-09-10T17:22:44.855Z",
+      "contentType": "application/octet-stream"
+    },
+    "pages/test/generate.vue": {
+      "path": "pages/test/generate.vue",
+      "hash": "291b3ff473ab69563e2cce54542b3f90d80fd630e150d2b0a41cb0d5dd248488",
+      "size": 8099,
+      "lastModified": "2025-09-10T17:22:44.855Z",
+      "contentType": "application/octet-stream"
+    },
+    "pages/test/index.vue": {
+      "path": "pages/test/index.vue",
+      "hash": "58a7c658a538331edbeedda54335ebc411e18fea9e4211040cd52326692d19d2",
+      "size": 6929,
+      "lastModified": "2025-09-10T17:22:44.855Z",
+      "contentType": "application/octet-stream"
+    },
+    "pages/test/models.vue": {
+      "path": "pages/test/models.vue",
+      "hash": "558f5815e413c6c308bcf7ad09ee54bbf4df3e9716c110c7f019c52cc742f998",
+      "size": 11128,
+      "lastModified": "2025-09-10T17:22:44.855Z",
+      "contentType": "application/octet-stream"
+    },
+    "security/auth/mtls.js": {
+      "path": "security/auth/mtls.js",
+      "hash": "26a64665f4a480f6b159499e88b0b7f925c6ba8f59629639d16cadb6738651f1",
+      "size": 11697,
+      "lastModified": "2025-09-10T17:22:44.859Z",
+      "contentType": "application/javascript"
+    },
+    "security/auth/session-manager.js": {
+      "path": "security/auth/session-manager.js",
+      "hash": "228d7db100120ae8faa2402de1d924db7c45e160c0ef5640b53444a7bdd418d5",
+      "size": 15976,
+      "lastModified": "2025-09-10T21:06:42.608Z",
+      "contentType": "application/javascript"
+    },
+    "security/auth/zero-trust.js": {
+      "path": "security/auth/zero-trust.js",
+      "hash": "5fe2166b300f0d9fdbf1482204efe14204f2f88475b554410e94b7103e859ea4",
+      "size": 11911,
+      "lastModified": "2025-09-11T22:07:50.883Z",
+      "contentType": "application/javascript"
+    },
+    "security/crypto/encryption.js": {
+      "path": "security/crypto/encryption.js",
+      "hash": "82c0ee3371a4b4de07b8a0b67a9367c24d79e359e2a5b2d30c2e7310439c055a",
+      "size": 10334,
+      "lastModified": "2025-09-10T21:06:42.608Z",
+      "contentType": "application/javascript"
+    },
+    "security/crypto/fips-compliant.js": {
+      "path": "security/crypto/fips-compliant.js",
+      "hash": "ccde0d8f0f88ef49c177f735a63942397235640752cb405632bd7e3a6fe0dfcd",
+      "size": 16411,
+      "lastModified": "2025-09-10T21:06:42.608Z",
+      "contentType": "application/javascript"
+    },
+    "security/protection/ddos-protection.js": {
+      "path": "security/protection/ddos-protection.js",
+      "hash": "e73cdf61799a9f531c4546f6f12e578d07b6350c2de626771cf3d2b5cbb6d780",
+      "size": 18035,
+      "lastModified": "2025-09-10T17:22:44.861Z",
+      "contentType": "application/javascript"
+    },
+    "security/protection/injection-prevention.js": {
+      "path": "security/protection/injection-prevention.js",
+      "hash": "c329b792a3ee351dc8b6279c85ab7bf912846042daed92d3616da2b8563c1d71",
+      "size": 20648,
+      "lastModified": "2025-09-10T17:22:44.862Z",
+      "contentType": "application/javascript"
+    },
+    "security/secrets/compliance-auditor.js": {
+      "path": "security/secrets/compliance-auditor.js",
+      "hash": "6e2aa95afe84fc4dea325c98692df5aa25ba686eb196e7caf09a5d68f6321229",
+      "size": 24639,
+      "lastModified": "2025-09-10T21:06:42.610Z",
+      "contentType": "application/javascript"
+    },
+    "security/secrets/config-manager.js": {
+      "path": "security/secrets/config-manager.js",
+      "hash": "e78a3bad553fb4dfaacf5b5c95ee704f25f06cd03878954ddb2e22a6729abd10",
+      "size": 16987,
+      "lastModified": "2025-09-10T21:06:42.610Z",
+      "contentType": "application/javascript"
+    },
+    "security/secrets/environment-validator.js": {
+      "path": "security/secrets/environment-validator.js",
+      "hash": "2eecb19140e78cef8f57b987c315654cb05748eb167bbb769773d47a7e925b76",
+      "size": 14536,
+      "lastModified": "2025-09-10T21:06:42.610Z",
+      "contentType": "application/javascript"
+    },
+    "security/secrets/index.js": {
+      "path": "security/secrets/index.js",
+      "hash": "30c7d990ff0e18ef216725f0dbfeece8fe5ea0d14ac07e748c2a91cbff216dce",
+      "size": 13047,
+      "lastModified": "2025-09-10T21:06:42.610Z",
+      "contentType": "application/javascript"
+    },
+    "security/secrets/secret-manager.js": {
+      "path": "security/secrets/secret-manager.js",
+      "hash": "3ce88f62f2164c162272c904e979bc12bebb9fe7f97ce0f8be1b7f5ab0bdade3",
+      "size": 10778,
+      "lastModified": "2025-09-11T22:40:05.546Z",
+      "contentType": "application/javascript"
+    },
+    "security/secrets/secret-rotation.js": {
+      "path": "security/secrets/secret-rotation.js",
+      "hash": "4d29050f56663aa92a686840dbedbac3cb85cfaba483236175874816274c7e37",
+      "size": 14850,
+      "lastModified": "2025-09-10T21:06:42.611Z",
+      "contentType": "application/javascript"
+    },
+    "semantic/demo/semantic-demo.js": {
+      "path": "semantic/demo/semantic-demo.js",
+      "hash": "defb4fe2916eeb725afd64b1736be5f9d733b3e7ee75c9957d9ad40c69d8538a",
+      "size": 8962,
+      "lastModified": "2025-09-10T17:22:44.866Z",
+      "contentType": "application/javascript"
+    },
+    "semantic/ontologies/enterprise-template-ontology.ttl": {
+      "path": "semantic/ontologies/enterprise-template-ontology.ttl",
+      "hash": "f1a4fca6d5bac0afbf2bfc3f8b472398be54eb4d3b4fab00ba32132c03a48322",
+      "size": 16043,
+      "lastModified": "2025-09-10T17:22:44.866Z",
+      "contentType": "application/octet-stream"
+    },
+    "semantic/rules/enterprise-governance.n3": {
+      "path": "semantic/rules/enterprise-governance.n3",
+      "hash": "3f2c0d5b49320943cbc8e0ffe4ae4387525bd2f40d52bbdca46f6f46df436155",
+      "size": 10253,
+      "lastModified": "2025-09-10T17:22:44.866Z",
+      "contentType": "application/octet-stream"
+    },
+    "semantic/schemas/api-governance.ttl": {
+      "path": "semantic/schemas/api-governance.ttl",
+      "hash": "187beef1182034692043f3a2380f1ba1544ded6252abad16e2f9f765b19db198",
+      "size": 10092,
+      "lastModified": "2025-09-10T17:22:44.867Z",
+      "contentType": "application/octet-stream"
+    },
+    "semantic/schemas/gdpr-compliance.ttl": {
+      "path": "semantic/schemas/gdpr-compliance.ttl",
+      "hash": "911bea61de9303897b23d666400edeebf15685c78ec36e6b91aa6d629c146b4d",
+      "size": 7648,
+      "lastModified": "2025-09-10T17:22:44.867Z",
+      "contentType": "application/octet-stream"
+    },
+    "semantic/schemas/sox-compliance.ttl": {
+      "path": "semantic/schemas/sox-compliance.ttl",
+      "hash": "47e1e48831abf94f929c142e20857f81a077e3e645e2b468d0c14f366efd459d",
+      "size": 4471,
+      "lastModified": "2025-09-10T17:22:44.867Z",
+      "contentType": "application/octet-stream"
+    },
+    "server/config/database.js": {
+      "path": "server/config/database.js",
+      "hash": "65a77be8de2f5f42d82a27b0fa7e004a80d25ef64172d9d8901535378a2c570a",
+      "size": 4018,
+      "lastModified": "2025-09-10T17:22:44.868Z",
+      "contentType": "application/javascript"
+    },
+    "server/config/environment.js": {
+      "path": "server/config/environment.js",
+      "hash": "3f82a81b6f3bcb73a8ac4b375a71cb5990ae4a710136425df7deb6e8e8111600",
+      "size": 5880,
+      "lastModified": "2025-09-10T17:22:44.868Z",
+      "contentType": "application/javascript"
+    },
+    "server/middleware/rate-limiter.js": {
+      "path": "server/middleware/rate-limiter.js",
+      "hash": "36ae9913dbefc5c513dcff838588136d8b13bfcf32cbc014aedac21f6bb3a524",
+      "size": 16006,
+      "lastModified": "2025-09-10T21:06:42.612Z",
+      "contentType": "application/javascript"
+    },
+    "server/middleware/rbac.js": {
+      "path": "server/middleware/rbac.js",
+      "hash": "de383711165761c0bdbbd68ba470ae8300e2b2ca80b5ff9b068a897e1e57a4b3",
+      "size": 12488,
+      "lastModified": "2025-09-10T17:22:44.869Z",
+      "contentType": "application/javascript"
+    },
+    "server/middleware/tenant-isolation.js": {
+      "path": "server/middleware/tenant-isolation.js",
+      "hash": "593c8971f6ee967a7e976cdf2d69b554b81c06bb0b151e528f2f270d232674ae",
+      "size": 8796,
+      "lastModified": "2025-09-10T17:22:44.870Z",
+      "contentType": "application/javascript"
+    },
+    "server/services/audit-logger.js": {
+      "path": "server/services/audit-logger.js",
+      "hash": "d28a9012847046b2ebddfa00e642ab676269f34f012cd31a51bdd1f5a91d3557",
+      "size": 14205,
+      "lastModified": "2025-09-10T21:06:42.613Z",
+      "contentType": "application/javascript"
+    },
+    "spec-driven/core/ArtifactAnalyzer.js": {
+      "path": "spec-driven/core/ArtifactAnalyzer.js",
+      "hash": "08a1a7ea97c68f5d430936cd3e0e7b5341f4f539f16d990084a965bc42839013",
+      "size": 12254,
+      "lastModified": "2025-09-11T19:05:10.676Z",
+      "contentType": "application/javascript"
+    },
+    "spec-driven/core/PlanGenerator.js": {
+      "path": "spec-driven/core/PlanGenerator.js",
+      "hash": "b12757613ebce820f025c669d25d1369050fcba358df9e209c85c506c2a2df88",
+      "size": 5064,
+      "lastModified": "2025-09-10T21:06:42.613Z",
+      "contentType": "application/javascript"
+    },
+    "spec-driven/core/SpecificationEngine.js": {
+      "path": "spec-driven/core/SpecificationEngine.js",
+      "hash": "800d173d3fb9ebc249597ad39dcb7c10189b87a93f450073cf593fe7e255b208",
+      "size": 13786,
+      "lastModified": "2025-09-10T21:06:42.613Z",
+      "contentType": "application/javascript"
+    },
+    "spec-driven/core/TaskOrchestrator.js": {
+      "path": "spec-driven/core/TaskOrchestrator.js",
+      "hash": "31230dd9ee94a56e27493afbbeb349ceafa04e2cd46d1a8470e745b210eb3dd4",
+      "size": 8637,
+      "lastModified": "2025-09-11T19:05:27.045Z",
+      "contentType": "application/javascript"
+    },
+    "spec-driven/core/ValidationEngine.js": {
+      "path": "spec-driven/core/ValidationEngine.js",
+      "hash": "dcfdaced0b7fb1af3cf1b9a34d7278f574f6f311257ed88e84b723db09aacf68",
+      "size": 4001,
+      "lastModified": "2025-09-10T21:06:42.614Z",
+      "contentType": "application/javascript"
+    },
+    "spec-driven/core/types.js": {
+      "path": "spec-driven/core/types.js",
+      "hash": "c12d3fb7279cd028dda145de9bbbb6b891595fe758f8d096ad6eaccb40c7f879",
+      "size": 15396,
+      "lastModified": "2025-09-10T21:06:42.614Z",
+      "contentType": "application/javascript"
+    },
+    "templates/academic/arxiv-paper.njk": {
+      "path": "templates/academic/arxiv-paper.njk",
+      "hash": "2260567526586cc875199f067df3a35cda6b95c03d79dfe6974b33955cf68cce",
+      "size": 4786,
+      "lastModified": "2025-09-10T21:06:42.614Z",
+      "contentType": "application/octet-stream"
+    },
+    "templates/academic/thesis.njk": {
+      "path": "templates/academic/thesis.njk",
+      "hash": "cd8f41cca8829198c6676a755fd409f29e13ef8173d381aba638ede9bdb876d9",
+      "size": 7508,
+      "lastModified": "2025-09-10T21:06:42.614Z",
+      "contentType": "application/octet-stream"
+    },
+    "templates/base/document.njk": {
+      "path": "templates/base/document.njk",
+      "hash": "2a42ef459e17c110da2a229772bdb35ec964d6f45e682174d50ce82033beb7a3",
+      "size": 1344,
+      "lastModified": "2025-09-10T21:06:42.614Z",
+      "contentType": "application/octet-stream"
+    },
+    "templates/legal/contract.njk": {
+      "path": "templates/legal/contract.njk",
+      "hash": "449b9d2f588363de0fb13e005885ecca4b11774ad913bded29a527b6feff4ba1",
+      "size": 5678,
+      "lastModified": "2025-09-10T21:06:42.615Z",
+      "contentType": "application/octet-stream"
+    },
+    "cli/commands/specify/index.js": {
+      "path": "cli/commands/specify/index.js",
+      "hash": "9c31d36af67ade0df8c773fb0982bb429aa322bfe4c3a2f6fc53ecb9c050c106",
+      "size": 5856,
+      "lastModified": "2025-09-10T21:06:42.587Z",
+      "contentType": "application/javascript"
+    },
+    "cli/commands/specify/init.js": {
+      "path": "cli/commands/specify/init.js",
+      "hash": "257e60f851fd486f3f604c99bb7de0b33f6727382bd440d57cf0fdf1b4744b6f",
+      "size": 13548,
+      "lastModified": "2025-09-10T21:06:42.587Z",
+      "contentType": "application/javascript"
+    },
+    "cli/commands/specify/plan.js": {
+      "path": "cli/commands/specify/plan.js",
+      "hash": "8b63a87bfe8fa984a290d8bff3bf57ac8c54cc906ba982fe4f20648f9a989c5c",
+      "size": 21929,
+      "lastModified": "2025-09-10T21:06:42.587Z",
+      "contentType": "application/javascript"
+    },
+    "cli/commands/specify/tasks.js": {
+      "path": "cli/commands/specify/tasks.js",
+      "hash": "c0088d11e9349406eb8c534b534e6885e1531ffeb0936b9a560e382c77f3180a",
+      "size": 29961,
+      "lastModified": "2025-09-10T21:06:42.588Z",
+      "contentType": "application/javascript"
+    },
+    "cli/commands/specify/validate.js": {
+      "path": "cli/commands/specify/validate.js",
+      "hash": "808e750e97a9eab02459a94792450702a8897c4370a39abc3fec92be920a8fde",
+      "size": 34821,
+      "lastModified": "2025-09-10T21:06:42.588Z",
+      "contentType": "application/javascript"
+    },
+    "core/latex/templates/academic-cv.tex": {
+      "path": "core/latex/templates/academic-cv.tex",
+      "hash": "6a638e7ee2a068ab7d7a1e0809f87e6dda93f1869729054a8f405a4b9d504a0c",
+      "size": 6216,
+      "lastModified": "2025-09-10T22:08:34.375Z",
+      "contentType": "application/octet-stream"
+    },
+    "core/latex/templates/creative-designer.tex": {
+      "path": "core/latex/templates/creative-designer.tex",
+      "hash": "aa22093efc3591af22a51168636bd412ca0c4bbf2f0fe61ad90a611dccb38b1d",
+      "size": 5760,
+      "lastModified": "2025-09-10T22:08:34.471Z",
+      "contentType": "application/octet-stream"
+    },
+    "core/latex/templates/executive-premium.tex": {
+      "path": "core/latex/templates/executive-premium.tex",
+      "hash": "d0d42878694acdb87821a275ccbd3605f491dbe67b6308cc082bfa98217e033f",
+      "size": 5432,
+      "lastModified": "2025-09-10T22:06:26.903Z",
+      "contentType": "application/octet-stream"
+    },
+    "core/latex/templates/modern-clean.tex": {
+      "path": "core/latex/templates/modern-clean.tex",
+      "hash": "72b97fe212cd664501ff44afc2ae5cfc71d98865b89fb5ce2835730cfc2b6835",
+      "size": 3715,
+      "lastModified": "2025-09-10T22:06:26.747Z",
+      "contentType": "application/octet-stream"
+    },
+    "core/latex/templates/moderncv-fixed.tex": {
+      "path": "core/latex/templates/moderncv-fixed.tex",
+      "hash": "a2c975738a22b0aa405a59d82aa3f67ef3a98fd614323a22bd03809c7e637c09",
+      "size": 4564,
+      "lastModified": "2025-09-10T22:07:25.046Z",
+      "contentType": "application/octet-stream"
+    },
+    "core/latex/templates/professional-classic.tex": {
+      "path": "core/latex/templates/professional-classic.tex",
+      "hash": "bac285a7a2f3a4a86b33234f9ad55a77f54f3861dfad422c428393211aa3fb55",
+      "size": 4405,
+      "lastModified": "2025-09-10T22:06:26.826Z",
+      "contentType": "application/octet-stream"
+    },
+    "kgen/api/rest/graphs.js": {
+      "path": "kgen/api/rest/graphs.js",
+      "hash": "172ed83b7402fd3b80fb9a174abaa2639ca3e131dd556fb573e393eb8eccaf5f",
+      "size": 24591,
+      "lastModified": "2025-09-11T16:55:34.018Z",
+      "contentType": "application/javascript"
+    },
+    "kgen/api/rest/semantic-api.js": {
+      "path": "kgen/api/rest/semantic-api.js",
+      "hash": "d7bcf7828392c9a60ed002864110c8a32ae18b5ef945e840d71bad1d79709878",
+      "size": 25242,
+      "lastModified": "2025-09-11T19:53:48.952Z",
+      "contentType": "application/javascript"
+    },
+    "kgen/cli/commands/artifact-dependencies.js": {
+      "path": "kgen/cli/commands/artifact-dependencies.js",
+      "hash": "aa2466a29dd9aefd7c7080a87683302139df839643b78099033d7b5321179098",
+      "size": 15778,
+      "lastModified": "2025-09-11T19:32:04.446Z",
+      "contentType": "application/javascript"
+    },
+    "kgen/cli/commands/graph-diff.js": {
+      "path": "kgen/cli/commands/graph-diff.js",
+      "hash": "2a51e0c0422e2cdc04649146bafe267c01ccc7f6a86943f8037055dd5fb585d4",
+      "size": 9126,
+      "lastModified": "2025-09-11T19:30:57.459Z",
+      "contentType": "application/javascript"
+    },
+    "kgen/cli/commands/graph-index.js": {
+      "path": "kgen/cli/commands/graph-index.js",
+      "hash": "9f17f23bd6c44460a99fa68820135c8a3863bb39811f36ab8eaadb4e8646bd67",
+      "size": 5111,
+      "lastModified": "2025-09-11T19:30:20.254Z",
+      "contentType": "application/javascript"
+    },
+    "kgen/provenance/autonomous-repair/self-healing-engine.js": {
+      "path": "kgen/provenance/autonomous-repair/self-healing-engine.js",
+      "hash": "bb6d696858d1c0fd3932500a8fadae3b26edc2e7ffa3feffaa5ac5196ab820b4",
+      "size": 29059,
+      "lastModified": "2025-09-11T20:01:48.677Z",
+      "contentType": "application/javascript"
+    },
+    "kgen/provenance/blockchain/anchor.js": {
+      "path": "kgen/provenance/blockchain/anchor.js",
+      "hash": "c7ccc78d9b6c8ca508e7137bd5e17e01ccb4fe7f46fb025e674f40b9b3790e1f",
+      "size": 24910,
+      "lastModified": "2025-09-11T23:08:02.536Z",
+      "contentType": "application/javascript"
+    },
+    "kgen/provenance/compliance/logger.js": {
+      "path": "kgen/provenance/compliance/logger.js",
+      "hash": "63258e52fb0e2fab4f4668074bdf5d44a61e4191fc6046e88ca6b6c0eba7526c",
+      "size": 33343,
+      "lastModified": "2025-09-11T23:12:20.370Z",
+      "contentType": "application/javascript"
+    },
+    "kgen/provenance/compression/adaptive-compressor.js": {
+      "path": "kgen/provenance/compression/adaptive-compressor.js",
+      "hash": "8f6116fd4d7cbda9b2a058b14a52ae0963ab0f26de5a8d9da00715ca121a1d6c",
+      "size": 29745,
+      "lastModified": "2025-09-11T19:58:03.771Z",
+      "contentType": "application/javascript"
+    },
+    "kgen/provenance/consensus/distributed-consensus.js": {
+      "path": "kgen/provenance/consensus/distributed-consensus.js",
+      "hash": "f3fd0db28820ac01d7b987a7ed9c72285c5a663253fc9c8fd4d1d4b6f6d6a889",
+      "size": 23655,
+      "lastModified": "2025-09-11T19:53:21.062Z",
+      "contentType": "application/javascript"
+    },
+    "kgen/provenance/examples/basic-demo.js": {
+      "path": "kgen/provenance/examples/basic-demo.js",
+      "hash": "9e3bc967604f43eeba7322a764552bdef584efe44008628c7b3767d369cad469",
+      "size": 5533,
+      "lastModified": "2025-09-11T18:05:58.760Z",
+      "contentType": "application/javascript"
+    },
+    "kgen/provenance/examples/comprehensive-demo.js": {
+      "path": "kgen/provenance/examples/comprehensive-demo.js",
+      "hash": "86f18cd0f13b4ce246c8e3eb1edd191cc4ad7f6c8963c373b5bf57d25981a69c",
+      "size": 14443,
+      "lastModified": "2025-09-11T18:02:08.825Z",
+      "contentType": "application/javascript"
+    },
+    "kgen/provenance/integration/enhanced-tracker.js": {
+      "path": "kgen/provenance/integration/enhanced-tracker.js",
+      "hash": "2fe0272dc5edb19e0ec61bc79cb161d4c4ebfa43d5aa299dada6fc6115ef1ed8",
+      "size": 31136,
+      "lastModified": "2025-09-11T20:01:48.724Z",
+      "contentType": "application/javascript"
+    },
+    "kgen/provenance/multi-chain/cross-chain-verifier.js": {
+      "path": "kgen/provenance/multi-chain/cross-chain-verifier.js",
+      "hash": "28ce93ba4b785c1119bd411a3cc62e81e301948b1afb695bc0ee9154e26823e1",
+      "size": 23658,
+      "lastModified": "2025-09-11T19:53:21.101Z",
+      "contentType": "application/javascript"
+    },
+    "kgen/provenance/predictive/impact-analyzer.js": {
+      "path": "kgen/provenance/predictive/impact-analyzer.js",
+      "hash": "1bfdf07c0b6b17bd918cea28ed3e14091ae975b9cfbb4c225c6d20e4a86891c3",
+      "size": 23815,
+      "lastModified": "2025-09-11T19:58:03.731Z",
+      "contentType": "application/javascript"
+    },
+    "kgen/provenance/quantum-security/post-quantum-crypto.js": {
+      "path": "kgen/provenance/quantum-security/post-quantum-crypto.js",
+      "hash": "c9335c5ab9a664833cb6f7006e16fa506ff5aff5966553226041dc5fcf61dfaa",
+      "size": 21610,
+      "lastModified": "2025-09-11T19:53:21.025Z",
+      "contentType": "application/javascript"
+    },
+    "kgen/provenance/queries/sparql.js": {
+      "path": "kgen/provenance/queries/sparql.js",
+      "hash": "519c507f222de050d1f0751ca4a759b36e3e644090780669dacb3c813f14a65d",
+      "size": 29503,
+      "lastModified": "2025-09-11T23:11:14.295Z",
+      "contentType": "application/javascript"
+    },
+    "kgen/provenance/real-time-network/instant-verifier.js": {
+      "path": "kgen/provenance/real-time-network/instant-verifier.js",
+      "hash": "f0e6032d7dd4697ebfd5e72e1f949ec6de83cc5581274355d8ac2bc32c99678b",
+      "size": 25765,
+      "lastModified": "2025-09-11T19:58:03.810Z",
+      "contentType": "application/javascript"
+    },
+    "kgen/provenance/storage/index.js": {
+      "path": "kgen/provenance/storage/index.js",
+      "hash": "b7fa875734bc04e6d34e4b5787c224d91a24b97b7e3d353488025ad3b2472994",
+      "size": 15111,
+      "lastModified": "2025-09-11T23:09:17.460Z",
+      "contentType": "application/javascript"
+    },
+    "kgen/provenance/zk-proofs/zero-knowledge-engine.js": {
+      "path": "kgen/provenance/zk-proofs/zero-knowledge-engine.js",
+      "hash": "9a3fb8f150081b63fe93fbee70eee15533ec39fecc6e77f600eb9e99f715654d",
+      "size": 23603,
+      "lastModified": "2025-09-11T19:53:20.984Z",
+      "contentType": "application/javascript"
+    },
+    "kgen/semantic/explanation/explanation-tracer.js": {
+      "path": "kgen/semantic/explanation/explanation-tracer.js",
+      "hash": "695f81fd35ac1d4cca86cad9ee1811877b94a4c53784a161e825dec6328ca662",
+      "size": 33902,
+      "lastModified": "2025-09-11T20:02:02.341Z",
+      "contentType": "application/javascript"
+    },
+    "kgen/semantic/learning/rule-learning-system.js": {
+      "path": "kgen/semantic/learning/rule-learning-system.js",
+      "hash": "e3570548b79408d6eb7eacb19a38c9f56b79ee78dd7d9838882f872cd8a97f69",
+      "size": 34835,
+      "lastModified": "2025-09-11T19:59:32.840Z",
+      "contentType": "application/javascript"
+    },
+    "kgen/semantic/probabilistic/probabilistic-inference-engine.js": {
+      "path": "kgen/semantic/probabilistic/probabilistic-inference-engine.js",
+      "hash": "2e102b6d16ffc0c98f8f3494ff7571d51d2b2078d49d210a6be461a843b0b1a9",
+      "size": 28578,
+      "lastModified": "2025-09-11T19:56:35.455Z",
+      "contentType": "application/javascript"
+    },
+    "kgen/semantic/quantum/quantum-reasoning-engine.js": {
+      "path": "kgen/semantic/quantum/quantum-reasoning-engine.js",
+      "hash": "55d8c7e9c5ee1deac84825a36ebbc8a79faf2360fd77328ff8aecab457f5ce49",
+      "size": 27480,
+      "lastModified": "2025-09-11T19:54:27.062Z",
+      "contentType": "application/javascript"
+    },
+    "pages/templates/designer/[id].vue": {
+      "path": "pages/templates/designer/[id].vue",
+      "hash": "30ee76ed39bdc1efe7916c3657761d12cad650cf1453e3d787662cd9ede14a39",
+      "size": 340,
+      "lastModified": "2025-09-10T17:22:44.855Z",
+      "contentType": "application/octet-stream"
+    },
+    "pages/templates/designer/index.vue": {
+      "path": "pages/templates/designer/index.vue",
+      "hash": "30ee76ed39bdc1efe7916c3657761d12cad650cf1453e3d787662cd9ede14a39",
+      "size": 340,
+      "lastModified": "2025-09-10T17:22:44.855Z",
+      "contentType": "application/octet-stream"
+    },
+    "server/api/ollama/chat.post.js": {
+      "path": "server/api/ollama/chat.post.js",
+      "hash": "e239b7325e680c5c1866026aa8e3f298c5d91c56dbc0a7cfe7a7fc29d61513d3",
+      "size": 2155,
+      "lastModified": "2025-09-10T17:22:44.867Z",
+      "contentType": "application/javascript"
+    },
+    "server/api/ollama/generate.post.js": {
+      "path": "server/api/ollama/generate.post.js",
+      "hash": "a77846cfc3d415b1bb4a8304e8d087b9dc6af02da54dc8c57f772db4cb93ddf8",
+      "size": 1468,
+      "lastModified": "2025-09-10T17:22:44.867Z",
+      "contentType": "application/javascript"
+    },
+    "server/api/ollama/models.get.js": {
+      "path": "server/api/ollama/models.get.js",
+      "hash": "5ab291b671476d451a378153fa340ba574dde608f44eef0f42e8510595ebefd9",
+      "size": 945,
+      "lastModified": "2025-09-10T17:22:44.868Z",
+      "contentType": "application/javascript"
+    },
+    "server/api/ollama/pull.post.js": {
+      "path": "server/api/ollama/pull.post.js",
+      "hash": "bd092b75d94487f6a8d23a00c23ca587c5c763343d5c072501a4aa0e0cccebe6",
+      "size": 1407,
+      "lastModified": "2025-09-10T17:22:44.868Z",
+      "contentType": "application/javascript"
+    }
+  },
+  "attestations": {},
+  "provenance": {
+    "chain": [],
+    "integrity": {
+      "bundleHash": "af36b573661aa33263f76c479a07607bd62d7be44417c02c82d0261204a1a5d5",
+      "artifacts": 377,
+      "attestations": 0,
+      "verified": false
+    }
+  },
+  "compliance": {
+    "standards": [
+      "SLSA",
+      "PROV-O"
+    ],
+    "level": "L2",
+    "verifiable": true
+  }
+}

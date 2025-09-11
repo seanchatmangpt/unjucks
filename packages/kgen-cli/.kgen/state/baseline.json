@@ -1,0 +1,120 @@
+{
+  "metadata": {
+    "created": "2025-09-11T23:20:01.891Z",
+    "operation": "all",
+    "samples": 2,
+    "warmup": 0,
+    "environment": {
+      "nodeVersion": "v22.12.0",
+      "platform": "darwin",
+      "arch": "arm64",
+      "memory": {
+        "rss": 114016256,
+        "heapTotal": 38240256,
+        "heapUsed": 26620984,
+        "external": 2320512,
+        "arrayBuffers": 16795
+      }
+    },
+    "testData": {
+      "graphSize": 333,
+      "temporary": true,
+      "graphHash": "a3720d2ed6bbf64e5a00d5a78b1d3faa39dd5b92451f2bc21bb988d3dbca4f15"
+    }
+  },
+  "baselines": {
+    "generate": {
+      "operation": "generate",
+      "samples": [
+        {
+          "iteration": 1,
+          "duration": 246,
+          "success": false,
+          "error": "Command failed: node \"/Users/sac/unjucks/packages/kgen-cli/bin/kgen.js\" artifact generate --graph \"/Users/sac/.cache/tmp/kgen-baseline-test.ttl\" --template simple-test --output \"/Users/sac/.cache/tmp/kgen-baseline-output\" --dry --format json"
+        },
+        {
+          "iteration": 2,
+          "duration": 250,
+          "success": false,
+          "error": "Command failed: node \"/Users/sac/unjucks/packages/kgen-cli/bin/kgen.js\" artifact generate --graph \"/Users/sac/.cache/tmp/kgen-baseline-test.ttl\" --template simple-test --output \"/Users/sac/.cache/tmp/kgen-baseline-output\" --dry --format json"
+        }
+      ],
+      "statistics": {}
+    },
+    "graph": {
+      "operation": "graph",
+      "samples": [
+        {
+          "operation": "hash",
+          "iteration": 1,
+          "duration": 188,
+          "success": false,
+          "error": "Command failed: node \"/Users/sac/unjucks/packages/kgen-cli/bin/kgen.js\" graph hash --input \"/Users/sac/.cache/tmp/kgen-baseline-test.ttl\" --format json\n\n ERROR  Missing required positional argument: FILE\n\n"
+        },
+        {
+          "operation": "hash",
+          "iteration": 2,
+          "duration": 202,
+          "success": false,
+          "error": "Command failed: node \"/Users/sac/unjucks/packages/kgen-cli/bin/kgen.js\" graph hash --input \"/Users/sac/.cache/tmp/kgen-baseline-test.ttl\" --format json\n\n ERROR  Missing required positional argument: FILE\n\n"
+        },
+        {
+          "operation": "index",
+          "iteration": 1,
+          "duration": 200,
+          "success": true,
+          "output": null
+        },
+        {
+          "operation": "index",
+          "iteration": 2,
+          "duration": 188,
+          "success": true,
+          "output": null
+        }
+      ],
+      "statistics": {
+        "index": {
+          "successRate": 100,
+          "mean": 194,
+          "median": 200,
+          "min": 188,
+          "max": 200
+        }
+      }
+    }
+  },
+  "system": {
+    "cpu": {
+      "iterations": 1000000,
+      "durationNs": 3083459,
+      "durationMs": 3.083459,
+      "operationsPerSecond": 324311106
+    },
+    "memory": {
+      "before": {
+        "rss": 116162560,
+        "heapTotal": 38502400,
+        "heapUsed": 23181384,
+        "external": 2221290,
+        "arrayBuffers": 16795
+      },
+      "after": {
+        "rss": 125796352,
+        "heapTotal": 58753024,
+        "heapUsed": 28772968,
+        "external": 2212524,
+        "arrayBuffers": 16795
+      },
+      "allocated": 5591584,
+      "objectCount": 100000
+    },
+    "io": {
+      "dataSize": 10000,
+      "duration": 2,
+      "verified": true,
+      "throughputMBps": 10
+    },
+    "timestamp": "2025-09-11T23:20:03.167Z"
+  }
+}

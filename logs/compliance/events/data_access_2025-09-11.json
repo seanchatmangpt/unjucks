@@ -1,0 +1,19 @@
+{
+  "id": "d3288050-ac54-41d1-9625-ca7aa02289f2",
+  "type": "data_access",
+  "timestamp": "2025-09-11T23:28:17.409Z",
+  "data": {
+    "subject": "user-123",
+    "dataTypes": [
+      "personal_data"
+    ],
+    "purpose": "service_provision",
+    "legalBasis": "consent",
+    "accessor": "system-admin"
+  },
+  "context": {},
+  "framework": "GDPR",
+  "severity": "low",
+  "hash": "a6a839801791854790590c01773f54d8c60437a9850a208437e0f6688e6dfe4b",
+  "processed": true
+}\n

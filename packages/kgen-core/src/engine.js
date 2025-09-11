@@ -12,6 +12,7 @@ import { IngestionPipeline } from '../ingestion/pipeline.js';
 import { ProvenanceTracker } from '../provenance/tracker.js';
 import { SecurityManager } from '../security/manager.js';
 import { QueryEngine } from '../query/engine.js';
+import { DeterministicIdGenerator } from '../../../../src/utils/deterministic-id-generator.js';
 
 export class KGenEngine extends EventEmitter {
   constructor(config = {}) {
@@ -41,6 +42,10 @@ export class KGenEngine extends EventEmitter {
     this.state = 'initialized';
     this.operationQueue = [];
     this.activeOperations = new Map();
+    
+    // Initialize deterministic ID generator
+    this.idGenerator = new DeterministicIdGenerator();
+    this.sessionStart = this.idGenerator.generateId('session', JSON.stringify(this.config));
     
     // Initialize core components
     this.semanticProcessor = new SemanticProcessor(this.config.semantic);
@@ -100,7 +105,7 @@ export class KGenEngine extends EventEmitter {
         operationId,
         type: 'ingestion',
         sources,
-        timestamp: new Date(),
+        timestamp: this.idGenerator.generateId('timestamp', operationId, 'ingestion'),
         user: options.user
       });
       
@@ -163,7 +168,7 @@ export class KGenEngine extends EventEmitter {
         type: 'reasoning',
         inputGraph: graph,
         rules,
-        timestamp: new Date(),
+        timestamp: this.idGenerator.generateId('timestamp', operationId, 'reasoning'),
         user: options.user
       });
       
@@ -193,7 +198,7 @@ export class KGenEngine extends EventEmitter {
         metrics: {
           rulesApplied: rules.length,
           newTriples: inferredGraph.inferredTriples?.length || 0,
-          inferenceTime: Date.now() - provenanceContext.startTime
+          inferenceTime: this.idGenerator.generateId('duration', operationId, 'inference')
         }
       });
       
@@ -232,7 +237,7 @@ export class KGenEngine extends EventEmitter {
         type: 'validation',
         inputGraph: graph,
         constraints,
-        timestamp: new Date(),
+        timestamp: this.idGenerator.generateId('timestamp', operationId, 'validation'),
         user: options.user
       });
       
@@ -250,7 +255,7 @@ export class KGenEngine extends EventEmitter {
         metrics: {
           constraintsChecked: constraints.length,
           violationsFound: validationReport.violations?.length || 0,
-          validationTime: Date.now() - provenanceContext.startTime
+          validationTime: this.idGenerator.generateId('duration', operationId, 'validation')
         }
       });
       
@@ -289,7 +294,7 @@ export class KGenEngine extends EventEmitter {
         type: 'generation',
         inputGraph: graph,
         templates,
-        timestamp: new Date(),
+        timestamp: this.idGenerator.generateId('timestamp', operationId, 'generation'),
         user: options.user
       });
       
@@ -326,7 +331,7 @@ export class KGenEngine extends EventEmitter {
         metrics: {
           templatesProcessed: templates.length,
           artifactsGenerated: generatedArtifacts.length,
-          generationTime: Date.now() - provenanceContext.startTime
+          generationTime: this.idGenerator.generateId('duration', operationId, 'generation')
         }
       });
       
@@ -434,7 +439,7 @@ export class KGenEngine extends EventEmitter {
   }
 
   _generateOperationId() {
-    return `kgen_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    return this.idGenerator.generateId('kgen', this.sessionStart, this.activeOperations.size.toString());
   }
 
   async _executeGeneration(context, templates, options) {
@@ -457,7 +462,7 @@ export class KGenEngine extends EventEmitter {
       type: template.type,
       content: 'Generated content placeholder',
       metadata: {
-        generatedAt: new Date(),
+        generatedAt: this.idGenerator.generateId('timestamp', options.operationId, template.id),
         operationId: options.operationId,
         semanticContext: context.semanticContext
       }
@@ -476,10 +481,12 @@ export class KGenEngine extends EventEmitter {
   }
 
   async _waitForActiveOperations(timeout = 30000) {
-    const startTime = Date.now();
+    const waitStartId = this.idGenerator.generateId('wait', 'start', this.activeOperations.size.toString());
+    let waitIteration = 0;
     
-    while (this.activeOperations.size > 0 && (Date.now() - startTime) < timeout) {
+    while (this.activeOperations.size > 0 && waitIteration < (timeout / 100)) {
       await new Promise(resolve => setTimeout(resolve, 100));
+      waitIteration++;
     }
     
     if (this.activeOperations.size > 0) {
@@ -490,7 +497,7 @@ export class KGenEngine extends EventEmitter {
   _trackOperationStart(event) {
     this.activeOperations.set(event.operationId, {
       type: event.type,
-      startTime: Date.now(),
+      startTime: this.idGenerator.generateId('starttime', event.operationId, event.type),
       user: event.user
     });
   }
@@ -504,7 +511,7 @@ export class KGenEngine extends EventEmitter {
       operationsProcessed: this.activeOperations.size,
       memoryUsage: process.memoryUsage(),
       cpuUsage: process.cpuUsage(),
-      timestamp: new Date()
+      timestamp: this.idGenerator.generateId('metrics', 'timestamp', this.activeOperations.size.toString())
     };
   }
 

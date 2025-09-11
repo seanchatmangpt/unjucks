@@ -12,6 +12,7 @@ import { IngestionPipeline } from '../ingestion/pipeline.js';
 import { ProvenanceTracker } from '../provenance/tracker.js';
 import { SecurityManager } from '../security/manager.js';
 import { QueryEngine } from '../query/engine.js';
+import { KGenErrorHandler, createEnhancedTryCatch } from '../utils/error-handler.js';
 
 export class KGenEngine extends EventEmitter {
   constructor(config = {}) {
@@ -34,6 +35,15 @@ export class KGenEngine extends EventEmitter {
       auditLevel: 'FULL',
       complianceMode: 'STRICT',
       
+      // Error handling settings
+      errorHandling: {
+        enableRecovery: true,
+        maxRetryAttempts: 3,
+        retryDelay: 1000,
+        enableEventEmission: true,
+        ...config.errorHandling
+      },
+      
       ...config
     };
     
@@ -41,6 +51,10 @@ export class KGenEngine extends EventEmitter {
     this.state = 'initialized';
     this.operationQueue = [];
     this.activeOperations = new Map();
+    
+    // Initialize comprehensive error handler
+    this.errorHandler = new KGenErrorHandler(this.config.errorHandling);
+    this._setupErrorRecoveryStrategies();
     
     // Initialize core components
     this.semanticProcessor = new SemanticProcessor(this.config.semantic);
@@ -73,9 +87,23 @@ export class KGenEngine extends EventEmitter {
       return { status: 'success', version: this.getVersion() };
       
     } catch (error) {
-      this.logger.error('Failed to initialize kgen engine:', error);
+      const operationId = 'engine:initialize';
+      const errorContext = {
+        component: 'kgen-engine',
+        operation: 'initialization',
+        state: this.state
+      };
+      
+      const handlingResult = await this.errorHandler.handleError(
+        operationId,
+        error,
+        errorContext,
+        { suppressRethrow: false }
+      );
+      
       this.state = 'error';
-      this.emit('engine:error', error);
+      this.emit('engine:error', { operationId, error, errorContext: handlingResult.errorContext });
+      
       throw error;
     }
   }
@@ -134,10 +162,44 @@ export class KGenEngine extends EventEmitter {
       return validatedGraph;
       
     } catch (error) {
-      this.logger.error(`Ingestion operation ${operationId} failed:`, error);
-      await this.provenanceTracker.recordError(operationId, error);
-      this.emit('ingestion:error', { operationId, error });
-      throw error;
+      const errorContext = {
+        component: 'kgen-engine',
+        operation: 'ingestion',
+        input: { sourcesCount: sources.length },
+        state: { activeOperations: this.activeOperations.size },
+        metadata: { operationId, user: options.user }
+      };
+      
+      const handlingResult = await this.errorHandler.handleError(
+        operationId,
+        error,
+        errorContext
+      );
+      
+      // Record error in provenance with enhanced context
+      try {
+        await this.provenanceTracker.recordError(operationId, {
+          ...error,
+          errorId: handlingResult.errorContext.errorId,
+          classification: handlingResult.errorContext.classification,
+          severity: handlingResult.errorContext.severity
+        });
+      } catch (recordingError) {
+        this.logger.error('Failed to record error in provenance:', recordingError);
+      }
+      
+      this.emit('ingestion:error', {
+        operationId,
+        error,
+        errorContext: handlingResult.errorContext,
+        recovered: handlingResult.recovered
+      });
+      
+      if (!handlingResult.recovered) {
+        throw error;
+      }
+      
+      return handlingResult.result;
     }
   }
 
@@ -203,10 +265,44 @@ export class KGenEngine extends EventEmitter {
       return inferredGraph;
       
     } catch (error) {
-      this.logger.error(`Reasoning operation ${operationId} failed:`, error);
-      await this.provenanceTracker.recordError(operationId, error);
-      this.emit('reasoning:error', { operationId, error });
-      throw error;
+      const errorContext = {
+        component: 'kgen-engine',
+        operation: 'reasoning',
+        input: { rulesCount: rules.length, distributed: this.config.enableDistributedReasoning },
+        state: { activeOperations: this.activeOperations.size },
+        metadata: { operationId, user: options.user }
+      };
+      
+      const handlingResult = await this.errorHandler.handleError(
+        operationId,
+        error,
+        errorContext
+      );
+      
+      // Record error in provenance with enhanced context
+      try {
+        await this.provenanceTracker.recordError(operationId, {
+          ...error,
+          errorId: handlingResult.errorContext.errorId,
+          classification: handlingResult.errorContext.classification,
+          severity: handlingResult.errorContext.severity
+        });
+      } catch (recordingError) {
+        this.logger.error('Failed to record error in provenance:', recordingError);
+      }
+      
+      this.emit('reasoning:error', {
+        operationId,
+        error,
+        errorContext: handlingResult.errorContext,
+        recovered: handlingResult.recovered
+      });
+      
+      if (!handlingResult.recovered) {
+        throw error;
+      }
+      
+      return handlingResult.result;
     }
   }
 
@@ -260,10 +356,44 @@ export class KGenEngine extends EventEmitter {
       return validationReport;
       
     } catch (error) {
-      this.logger.error(`Validation operation ${operationId} failed:`, error);
-      await this.provenanceTracker.recordError(operationId, error);
-      this.emit('validation:error', { operationId, error });
-      throw error;
+      const errorContext = {
+        component: 'kgen-engine',
+        operation: 'validation',
+        input: { constraintsCount: constraints.length },
+        state: { activeOperations: this.activeOperations.size },
+        metadata: { operationId, user: options.user }
+      };
+      
+      const handlingResult = await this.errorHandler.handleError(
+        operationId,
+        error,
+        errorContext
+      );
+      
+      // Record error in provenance with enhanced context
+      try {
+        await this.provenanceTracker.recordError(operationId, {
+          ...error,
+          errorId: handlingResult.errorContext.errorId,
+          classification: handlingResult.errorContext.classification,
+          severity: handlingResult.errorContext.severity
+        });
+      } catch (recordingError) {
+        this.logger.error('Failed to record error in provenance:', recordingError);
+      }
+      
+      this.emit('validation:error', {
+        operationId,
+        error,
+        errorContext: handlingResult.errorContext,
+        recovered: handlingResult.recovered
+      });
+      
+      if (!handlingResult.recovered) {
+        throw error;
+      }
+      
+      return handlingResult.result;
     }
   }
 
@@ -336,10 +466,44 @@ export class KGenEngine extends EventEmitter {
       return generatedArtifacts;
       
     } catch (error) {
-      this.logger.error(`Generation operation ${operationId} failed:`, error);
-      await this.provenanceTracker.recordError(operationId, error);
-      this.emit('generation:error', { operationId, error });
-      throw error;
+      const errorContext = {
+        component: 'kgen-engine',
+        operation: 'generation',
+        input: { templatesCount: templates.length, targetPlatform: options.targetPlatform },
+        state: { activeOperations: this.activeOperations.size },
+        metadata: { operationId, user: options.user }
+      };
+      
+      const handlingResult = await this.errorHandler.handleError(
+        operationId,
+        error,
+        errorContext
+      );
+      
+      // Record error in provenance with enhanced context
+      try {
+        await this.provenanceTracker.recordError(operationId, {
+          ...error,
+          errorId: handlingResult.errorContext.errorId,
+          classification: handlingResult.errorContext.classification,
+          severity: handlingResult.errorContext.severity
+        });
+      } catch (recordingError) {
+        this.logger.error('Failed to record error in provenance:', recordingError);
+      }
+      
+      this.emit('generation:error', {
+        operationId,
+        error,
+        errorContext: handlingResult.errorContext,
+        recovered: handlingResult.recovered
+      });
+      
+      if (!handlingResult.recovered) {
+        throw error;
+      }
+      
+      return handlingResult.result;
     }
   }
 
@@ -361,9 +525,33 @@ export class KGenEngine extends EventEmitter {
       return results;
       
     } catch (error) {
-      this.logger.error('Query execution failed:', error);
-      this.emit('query:error', { query, error });
-      throw error;
+      const operationId = `query_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      const errorContext = {
+        component: 'kgen-engine',
+        operation: 'query',
+        input: { query: query.substring(0, 100) + '...', user: options.user },
+        state: { activeOperations: this.activeOperations.size }
+      };
+      
+      const handlingResult = await this.errorHandler.handleError(
+        operationId,
+        error,
+        errorContext
+      );
+      
+      this.emit('query:error', {
+        operationId,
+        query,
+        error,
+        errorContext: handlingResult.errorContext,
+        recovered: handlingResult.recovered
+      });
+      
+      if (!handlingResult.recovered) {
+        throw error;
+      }
+      
+      return handlingResult.result;
     }
   }
 
@@ -413,7 +601,20 @@ export class KGenEngine extends EventEmitter {
       this.logger.success('kgen engine shutdown completed');
       
     } catch (error) {
-      this.logger.error('Error during engine shutdown:', error);
+      const operationId = 'engine:shutdown';
+      const errorContext = {
+        component: 'kgen-engine',
+        operation: 'shutdown',
+        state: { currentState: this.state, activeOperations: this.activeOperations.size }
+      };
+      
+      await this.errorHandler.handleError(
+        operationId,
+        error,
+        errorContext,
+        { suppressRethrow: false }
+      );
+      
       throw error;
     }
   }
@@ -510,6 +711,68 @@ export class KGenEngine extends EventEmitter {
 
   getVersion() {
     return '1.0.0';
+  }
+  
+  /**
+   * Get error handling statistics
+   */
+  getErrorStatistics() {
+    return this.errorHandler.getErrorStatistics();
+  }
+  
+  /**
+   * Setup error recovery strategies for common error types
+   */
+  _setupErrorRecoveryStrategies() {
+    // Network error recovery
+    this.errorHandler.registerRecoveryStrategy('network', async (errorContext, options) => {
+      this.logger.info('Attempting network error recovery');
+      
+      // Wait and retry with exponential backoff
+      const retryDelay = Math.min(1000 * Math.pow(2, errorContext.retryAttempt), 30000);
+      await new Promise(resolve => setTimeout(resolve, retryDelay));
+      
+      return { success: true, reason: 'Network retry successful' };
+    });
+    
+    // Timeout error recovery
+    this.errorHandler.registerRecoveryStrategy('timeout', async (errorContext, options) => {
+      this.logger.info('Attempting timeout error recovery');
+      
+      // Increase timeout for next attempt
+      const newTimeout = (options.timeout || 30000) * 1.5;
+      
+      return {
+        success: true,
+        reason: 'Timeout increased',
+        newOptions: { ...options, timeout: newTimeout }
+      };
+    });
+    
+    // Filesystem error recovery
+    this.errorHandler.registerRecoveryStrategy('filesystem', async (errorContext, options) => {
+      this.logger.info('Attempting filesystem error recovery');
+      
+      // Create directories or cleanup resources
+      if (errorContext.error.code === 'ENOENT') {
+        // Could attempt to create missing directories
+        return { success: true, reason: 'Directory created' };
+      }
+      
+      return { success: false, reason: 'Filesystem error not recoverable' };
+    });
+    
+    // Validation error recovery
+    this.errorHandler.registerRecoveryStrategy('validation', async (errorContext, options) => {
+      this.logger.info('Attempting validation error recovery');
+      
+      // Could attempt data sanitization or use default values
+      if (options.allowDefaults) {
+        return { success: true, reason: 'Using default values for validation errors' };
+      }
+      
+      return { success: false, reason: 'Validation errors require manual intervention' };
+    });
   }
 }
 

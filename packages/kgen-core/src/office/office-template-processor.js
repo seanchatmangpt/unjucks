@@ -11,15 +11,17 @@
  */
 
 import { EventEmitter } from 'events';
+import { promises as fs } from 'fs';
+import path from 'path';
 import {
   DocumentType,
   VariableSyntax,
   ProcessingMode,
   ErrorSeverity
 } from './core/types.js';
-import { WordProcessor } from './processors/word-processor.js';
-import { ExcelProcessor } from './processors/excel-processor.js';
-import { PowerPointProcessor } from './processors/powerpoint-processor.js';
+import { LaTeXWordProcessor as WordProcessor } from './processors/word-processor.js';
+import { LaTeXTableProcessor as ExcelProcessor } from './processors/latex-table-processor.js';
+import { LaTeXBeamerProcessor as PowerPointProcessor } from './processors/latex-beamer-processor.js';
 import { FileFormatDetector } from './utils/file-format-detector.js';
 import { Logger } from './utils/logger.js';
 

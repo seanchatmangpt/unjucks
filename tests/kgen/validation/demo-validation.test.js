@@ -14,7 +14,8 @@ import { Parser, Store, Writer } from 'n3';
 const TEST_DIR = '/tmp/kgen-demo-validation';
 const REPORTS_DIR = path.join(TEST_DIR, 'reports');
 
-// Mock validation engine for demonstration
+// Comprehensive Mock Validation Engine for Testing
+// Implements the same interface as the real ValidationEngine with detailed validation logic
 class MockKGenValidationEngine {
   constructor(config = {}) {
     this.config = {
@@ -63,29 +64,123 @@ class MockKGenValidationEngine {
       // Parse the data to ensure it's valid RDF
       const store = await this.parseRDF(dataGraph);
       
-      // Mock validation logic - check for basic patterns
+      // Comprehensive RDF validation with detailed syntax and semantic checks
       const quads = Array.from(store);
-      const hasPersons = quads.some(q => q.object.value?.includes('Person'));
-      const hasNames = quads.some(q => q.predicate.value?.includes('name'));
+      const violations = [];
+      const warnings = [];
       
-      const conforms = hasPersons && hasNames;
-      const violations = conforms ? [] : [
-        {
-          focusNode: 'ex:person1',
-          message: ['Missing required name property'],
-          severity: 'Violation'
+      // Detailed semantic validation
+      const subjects = new Set();
+      const predicates = new Set();
+      const objects = new Set();
+      const datatypes = new Set();
+      
+      // Collect all terms for analysis
+      quads.forEach(quad => {
+        subjects.add(quad.subject.value);
+        predicates.add(quad.predicate.value);
+        
+        if (quad.object.termType === 'NamedNode') {
+          objects.add(quad.object.value);
+        } else if (quad.object.termType === 'Literal') {
+          if (quad.object.datatype) {
+            datatypes.add(quad.object.datatype.value);
+          }
         }
-      ];
+      });
+      
+      // Validate essential RDF patterns
+      const hasTypeDeclarations = quads.some(q => 
+        q.predicate.value === 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type'
+      );
+      
+      if (!hasTypeDeclarations) {
+        violations.push({
+          focusNode: 'dataset',
+          message: ['No rdf:type declarations found'],
+          severity: 'Violation',
+          type: 'missing-type-declarations'
+        });
+      }
+      
+      // Validate specific domain requirements
+      const hasPersons = quads.some(q => 
+        q.object.value?.includes('Person') || 
+        q.object.value?.includes('person')
+      );
+      const hasNames = quads.some(q => 
+        q.predicate.value?.includes('name') ||
+        q.predicate.value?.includes('label')
+      );
+      
+      if (hasPersons && !hasNames) {
+        violations.push({
+          focusNode: 'persons',
+          message: ['Person entities must have name or label properties'],
+          severity: 'Violation',
+          type: 'missing-required-property'
+        });
+      }
+      
+      // Check for orphaned subjects (subjects that appear only as subjects, never as objects)
+      const subjectSet = new Set(quads.map(q => q.subject.value));
+      const objectSet = new Set(quads.filter(q => q.object.termType === 'NamedNode').map(q => q.object.value));
+      const orphanedSubjects = Array.from(subjectSet).filter(s => !objectSet.has(s));
+      
+      if (orphanedSubjects.length > 5) { // Allow some orphaned subjects (e.g., top-level entities)
+        warnings.push({
+          focusNode: 'dataset',
+          message: [`${orphanedSubjects.length} potentially orphaned subjects found`],
+          severity: 'Warning',
+          type: 'orphaned-subjects',
+          details: orphanedSubjects.slice(0, 5)
+        });
+      }
+      
+      // Validate datatype consistency
+      const literalsByPredicate = new Map();
+      quads.forEach(quad => {
+        if (quad.object.termType === 'Literal') {
+          const pred = quad.predicate.value;
+          if (!literalsByPredicate.has(pred)) {
+            literalsByPredicate.set(pred, new Set());
+          }
+          literalsByPredicate.get(pred).add(quad.object.datatype?.value || 'string');
+        }
+      });
+      
+      for (const [predicate, datatypeSet] of literalsByPredicate) {
+        if (datatypeSet.size > 1) {
+          warnings.push({
+            focusNode: predicate,
+            message: [`Inconsistent datatypes for predicate: ${Array.from(datatypeSet).join(', ')}`],
+            severity: 'Warning',
+            type: 'datatype-inconsistency'
+          });
+        }
+      }
+      
+      const conforms = violations.length === 0;
 
       const result = {
         conforms,
         results: violations,
+        warnings: warnings,
         totalViolations: violations.length,
-        totalWarnings: 0,
+        totalWarnings: warnings.length,
         validationTime: Date.now() - startTime,
         statistics: {
           triplesValidated: quads.length,
-          shapesChecked: 1
+          shapesChecked: 1,
+          uniqueSubjects: subjects.size,
+          uniquePredicates: predicates.size,
+          uniqueObjects: objects.size,
+          datatypesFound: datatypes.size
+        },
+        qualityMetrics: {
+          subjectConnectivity: (subjects.size - orphanedSubjects.length) / subjects.size,
+          datatypeConsistency: Array.from(literalsByPredicate.values()).filter(s => s.size === 1).length / literalsByPredicate.size,
+          completenessScore: hasTypeDeclarations ? 0.8 : 0.4
         }
       };
 

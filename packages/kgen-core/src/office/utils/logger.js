@@ -35,7 +35,7 @@ export class Logger {
    */
   constructor(name = 'Office', debug = false, options = {}) {
     this.name = name;
-    this.debug = debug;
+    this.debugEnabled = debug;
     this.options = {
       timestamp: true,
       colors: true,
@@ -96,7 +96,7 @@ export class Logger {
    * @param {Object} [context] - Additional context
    */
   debug(message, context) {
-    if (this.debug) {
+    if (this.debugEnabled !== false) {
       this.log(LogLevel.DEBUG, message, context);
     }
   }
@@ -223,7 +223,7 @@ export class Logger {
     // Output error details if present
     if (error) {
       console.log('  Error:', error.message);
-      if (this.debug && error.stack) {
+      if (this.debugEnabled && error.stack) {
         console.log('  Stack:', error.stack);
       }
     }
@@ -288,7 +288,7 @@ export class Logger {
    * @returns {Logger} Child logger instance
    */
   child(childName, context = {}) {
-    const child = new Logger(`${this.name}:${childName}`, this.debug, this.options);
+    const child = new Logger(`${this.name}:${childName}`, this.debugEnabled, this.options);
     child.defaultContext = context;
     return child;
   }
@@ -310,7 +310,7 @@ export class Logger {
    * @param {boolean} enabled - Whether to enable debug mode
    */
   setDebug(enabled) {
-    this.debug = enabled;
+    this.debugEnabled = enabled;
     this.logLevel = enabled ? LogLevel.DEBUG : LogLevel.INFO;
   }
 
@@ -322,7 +322,7 @@ export class Logger {
   getConfig() {
     return {
       name: this.name,
-      debug: this.debug,
+      debug: this.debugEnabled,
       logLevel: this.logLevel,
       options: { ...this.options }
     };

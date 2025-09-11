@@ -364,16 +364,20 @@ export class SecurityManager extends EventEmitter {
       // Generate initialization vector
       const iv = randomBytes(16);
       
-      // Create cipher
-      const cipher = createCipher(algorithm, key);
+      // Create cipher with proper IV
+      const cipher = crypto.createCipherGCM(algorithm, key, iv);
+      cipher.setAAD(Buffer.from('security-manager', 'utf8'));
       
       // Encrypt data
       let encrypted = cipher.update(dataString, 'utf8', 'hex');
       encrypted += cipher.final('hex');
       
+      const authTag = cipher.getAuthTag();
+      
       const encryptedData = {
         data: encrypted,
         iv: iv.toString('hex'),
+        authTag: authTag.toString('hex'),
         algorithm,
         keyId,
         timestamp: new Date(),
@@ -405,8 +409,11 @@ export class SecurityManager extends EventEmitter {
       
       const key = await this._getEncryptionKey(encryptedData.keyId);
       
-      // Create decipher
-      const decipher = createDecipher(encryptedData.algorithm, key);
+      // Create decipher with proper IV
+      const iv = Buffer.from(encryptedData.iv, 'hex');
+      const decipher = crypto.createDecipherGCM(encryptedData.algorithm, key, iv);
+      decipher.setAAD(Buffer.from('security-manager', 'utf8'));
+      decipher.setAuthTag(Buffer.from(encryptedData.authTag, 'hex'));
       
       // Decrypt data
       let decrypted = decipher.update(encryptedData.data, 'hex', 'utf8');

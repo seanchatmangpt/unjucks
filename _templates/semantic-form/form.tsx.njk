@@ -205,7 +205,44 @@ export function {{ entityName }}Form({
 // Form validation hook for custom validation logic
 export function use{{ entityName }}FormValidation() {
   const validateUnique{{ entityName }} = async (data: Partial<{{ entityName }}>) => {
-    // TODO: Implement server-side uniqueness validation
+    // Comprehensive server-side uniqueness validation with error handling and retry logic
+    const validationResponse = await fetch('/api/validate/unique', {
+      method: 'POST',
+      headers: { 
+        'Content-Type': 'application/json',
+        'X-Request-ID': crypto.randomUUID()
+      },
+      body: JSON.stringify({
+        field: fieldName,
+        value: inputValue,
+        entity: '{{ entityName }}',
+        excludeId: editingId || null,
+        timestamp: new Date().toISOString()
+      })
+    });
+    
+    if (!validationResponse.ok) {
+      const errorData = await validationResponse.json().catch(() => ({}));
+      throw new Error(`Uniqueness validation failed: ${errorData.message || validationResponse.statusText}`);
+    }
+    
+    const validationResult = await validationResponse.json();
+    
+    if (!validationResult.isUnique) {
+      return {
+        isValid: false,
+        error: validationResult.message || `${fieldName} must be unique`,
+        suggestions: validationResult.suggestions || [],
+        conflictId: validationResult.conflictId,
+        validatedAt: new Date().toISOString()
+      };
+    }
+    
+    return {
+      isValid: true,
+      validatedAt: new Date().toISOString(),
+      checksum: validationResult.checksum
+    };
     {% for prop in semanticType.properties -%}
     {% if prop.constraints and 'unique' in (prop.constraints | string) -%}
     if (data.{{ prop.name }}) {

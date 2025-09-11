@@ -36,6 +36,7 @@ export class TemplateRenderer {
   addCustomFilters() {
     if (!this.env) throw new Error('Environment not initialized');
 
+    // Core utility filters
     this.env.addFilter('hash', (str, algorithm = 'sha256') => {
       const crypto = require('crypto');
       return crypto.createHash(algorithm).update(str).digest('hex');
@@ -46,6 +47,77 @@ export class TemplateRenderer {
       const lastHash = uri.lastIndexOf('#');
       const separator = Math.max(lastSlash, lastHash);
       return separator > 0 ? uri.substring(0, separator + 1) : uri;
+    });
+
+    // Critical missing filters identified in audit
+    this.env.addFilter('kgenId', (str) => {
+      // Generate deterministic KGEN ID from string
+      const crypto = require('crypto');
+      const hash = crypto.createHash('sha256').update(str).digest('hex');
+      return `kgen_${hash.substring(0, 12)}`;
+    });
+
+    this.env.addFilter('prefixedName', (uri, prefixes = {}) => {
+      // Convert URI to prefixed name using provided prefixes
+      for (const [prefix, namespace] of Object.entries(prefixes)) {
+        if (uri.startsWith(namespace)) {
+          return `${prefix}:${uri.substring(namespace.length)}`;
+        }
+      }
+      return uri; // Return full URI if no prefix matches
+    });
+
+    this.env.addFilter('semanticValue', (value, datatype) => {
+      // Format value for semantic web usage
+      if (datatype === 'xsd:string') {
+        return `"${value}"`;
+      } else if (datatype === 'xsd:integer' || datatype === 'xsd:decimal') {
+        return value.toString();
+      } else if (datatype === 'xsd:boolean') {
+        return value ? 'true' : 'false';
+      } else if (datatype === 'xsd:dateTime') {
+        return `"${new Date(value).toISOString()}"^^xsd:dateTime`;
+      }
+      return `"${value}"^^${datatype}`;
+    });
+
+    this.env.addFilter('slug', (str) => {
+      // Convert string to URL-safe slug
+      return str
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '');
+    });
+
+    this.env.addFilter('formatAuditDate', (date) => {
+      // Format date for audit trails
+      const d = new Date(date);
+      return d.toISOString().replace('T', ' ').substring(0, 19) + ' UTC';
+    });
+
+    // Case transformation filters
+    this.env.addFilter('camelCase', (str) => {
+      return str.replace(/[-_\s](.)/g, (_, char) => char.toUpperCase())
+                .replace(/^(.)/, (_, char) => char.toLowerCase());
+    });
+
+    this.env.addFilter('pascalCase', (str) => {
+      return str.replace(/[-_\s](.)/g, (_, char) => char.toUpperCase())
+                .replace(/^(.)/, (_, char) => char.toUpperCase());
+    });
+
+    this.env.addFilter('kebabCase', (str) => {
+      return str.replace(/([A-Z])/g, '-$1')
+                .toLowerCase()
+                .replace(/^-/, '')
+                .replace(/\s+/g, '-');
+    });
+
+    this.env.addFilter('snakeCase', (str) => {
+      return str.replace(/([A-Z])/g, '_$1')
+                .toLowerCase()
+                .replace(/^_/, '')
+                .replace(/\s+/g, '_');
     });
 
     this.env.addFilter('localname', (uri) => {
@@ -126,4 +198,15 @@ export class TemplateRenderer {
       this.env.cache = {};
     }
   }
+}
+
+/**
+ * Factory function to create a new TemplateRenderer instance
+ * @param {Object} options - Configuration options
+ * @returns {TemplateRenderer} Initialized renderer instance
+ */
+export function createRenderer(options = {}) {
+  const renderer = new TemplateRenderer(options);
+  const templatesPath = options.templatesPath || './templates';
+  return renderer.initialize(templatesPath);
 }

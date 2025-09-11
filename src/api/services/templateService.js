@@ -2,12 +2,17 @@ const { promises: fs } = require('fs');
 const path = require('path');
 const { AppError } = require('../middleware/errorHandler');
 const logger = require('../utils/logger');
+const { LRUCache } = require('../../kgen/cache/lru-cache.js');
 
 class TemplateService {
   constructor() {
     this.templatesDir = path.join(process.cwd(), 'templates');
-    this.templateCache = new Map();
-    this.cacheTimeout = 5 * 60 * 1000; // 5 minutes
+    this.templateCache = new LRUCache({
+      maxSize: 50,
+      ttl: 5 * 60 * 1000, // 5 minutes
+      enableStats: true,
+      namespace: 'template-service'
+    });
   }
 
   /**
@@ -75,14 +80,14 @@ class TemplateService {
   }
 
   /**
-   * Load templates from directory with caching
+   * Load templates from directory with LRU caching
    */
   async loadTemplatesFromDirectory() {
     const cacheKey = 'all_templates';
     const cached = this.templateCache.get(cacheKey);
     
-    if (cached && Date.now() - cached.timestamp < this.cacheTimeout) {
-      return cached.data;
+    if (cached) {
+      return cached;
     }
 
     try {
@@ -96,11 +101,8 @@ class TemplateService {
       const builtInTemplates = this.getBuiltInTemplates();
       const allTemplates = [...templates, ...builtInTemplates];
 
-      // Cache the result
-      this.templateCache.set(cacheKey, {
-        data: allTemplates,
-        timestamp: Date.now()
-      });
+      // Cache the result using LRU cache
+      this.templateCache.set(cacheKey, allTemplates);
 
       return allTemplates;
     } catch (error) {
@@ -360,7 +362,7 @@ class TemplateService {
    */
   clearCache() {
     this.templateCache.clear();
-    logger.info('Template cache cleared');
+    logger.info('Template cache cleared', this.templateCache.getStats());
   }
 
   /**
@@ -386,7 +388,7 @@ class TemplateService {
       };
 
       await fs.writeFile(filePath, JSON.stringify(template, null, 2));
-      this.clearCache(); // Clear cache to reload templates
+      this.templateCache.delete('all_templates'); // Invalidate templates list cache
 
       logger.info('Template added successfully', { name: templateData.name });
       return template;

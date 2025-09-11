@@ -92,7 +92,11 @@ class MockAuditLogger {
       details: logEntry.details
     };
     
-    const cipher = crypto.createCipher('aes-256-gcm', this.encryptionKey);
+    // Generate random IV for each encryption
+    const iv = crypto.randomBytes(16);
+    const cipher = crypto.createCipherGCM('aes-256-gcm', this.encryptionKey, iv);
+    cipher.setAAD(Buffer.from('test-audit-trail', 'utf8'));
+    
     let encrypted = cipher.update(JSON.stringify(sensitiveData), 'utf8', 'hex');
     encrypted += cipher.final('hex');
     

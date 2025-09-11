@@ -4,7 +4,7 @@
  */
 
 import { Parser, Writer, Store, DataFactory, Util } from 'n3';
-import { SparqlParser, SparqlGenerator } from 'sparqljs';
+import sparqljs from 'sparqljs';
 import consola from 'consola';
 import { EventEmitter } from 'events';
 
@@ -17,8 +17,9 @@ export class RDFProcessor extends EventEmitter {
     this.store = new Store();
     this.parser = new Parser(config.parser);
     this.writer = new Writer(config.writer);
-    this.sparqlParser = new SparqlParser();
-    this.sparqlGenerator = new SparqlGenerator();
+    // Initialize SPARQL components lazily
+    this.sparqlParser = null;
+    this.sparqlGenerator = null;
     this.namespaces = new Map();
     this.metrics = {
       triplesProcessed: 0,
@@ -39,6 +40,9 @@ export class RDFProcessor extends EventEmitter {
     try {
       this.status = 'initializing';
       
+      // Initialize SPARQL components
+      this.setupSparqlComponents();
+      
       // Setup error handling
       this.setupErrorHandling();
       
@@ -53,6 +57,18 @@ export class RDFProcessor extends EventEmitter {
       this.status = 'error';
       consola.error('❌ RDF Processor initialization failed:', error);
       throw error;
+    }
+  }
+
+  /**
+   * Setup SPARQL components lazily
+   */
+  setupSparqlComponents() {
+    if (!this.sparqlParser) {
+      this.sparqlParser = new sparqljs.Parser();
+    }
+    if (!this.sparqlGenerator) {
+      this.sparqlGenerator = new sparqljs.Generator();
     }
   }
 
@@ -80,10 +96,10 @@ export class RDFProcessor extends EventEmitter {
    * Setup error handling
    */
   setupErrorHandling() {
-    this.parser.on('error', (error) => {
-      this.metrics.parseErrors++;
-      this.emit('parse-error', error);
-      consola.error('RDF Parse Error:', error);
+    // Error handling will be done in individual parse operations
+    // since N3 Parser instances are created per parse operation
+    this.on('error', (error) => {
+      consola.error('RDF Processor Error:', error);
     });
   }
 
@@ -189,6 +205,9 @@ export class RDFProcessor extends EventEmitter {
   async query(sparql, options = {}) {
     try {
       this.metrics.queriesExecuted++;
+      
+      // Ensure SPARQL components are initialized
+      this.setupSparqlComponents();
       
       // Parse SPARQL query
       const parsedQuery = this.sparqlParser.parse(sparql);

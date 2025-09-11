@@ -1,7 +1,10 @@
 /**
  * Application Configuration
- * Generated from RDF configuration data
+ * Generated from RDF configuration data with environment variable support
  */
+
+// Environment variables will be loaded from process.env
+// dotenv can be loaded separately if needed
 
 /**
  * @typedef {Object} AppConfig
@@ -34,11 +37,22 @@
  */
 
 /**
+ * @typedef {Object} KgenConfig
+ * @property {string} env
+ * @property {string} encryptionKey
+ * @property {string} hashAlgorithm
+ * @property {number} cacheTtl
+ * @property {number} maxCacheSize
+ * @property {string} logLevel
+ */
+
+/**
  * @typedef {Object} Config
  * @property {AppConfig} app
  * @property {ServerConfig} server
  * @property {DatabaseConfig} database
  * @property {RedisConfig} redis
+ * @property {KgenConfig} kgen
  * @property {string} [cdn]
  * @property {boolean} [monitoring]
  */
@@ -124,7 +138,138 @@ function validateConfig(config) {
     throw new Error('monitoring must be a boolean or undefined');
   }
   
+  // Validate kgen config
+  if (!config.kgen || typeof config.kgen !== 'object') {
+    throw new Error('kgen configuration is required');
+  }
+  if (!config.kgen.env || typeof config.kgen.env !== 'string') {
+    throw new Error('kgen.env must be a string');
+  }
+  if (!['development', 'production', 'test'].includes(config.kgen.env)) {
+    throw new Error('kgen.env must be one of: development, production, test');
+  }
+  if (!config.kgen.encryptionKey || typeof config.kgen.encryptionKey !== 'string') {
+    throw new Error('kgen.encryptionKey must be a string');
+  }
+  if (config.kgen.encryptionKey.length < 32) {
+    throw new Error('kgen.encryptionKey must be at least 32 characters long');
+  }
+  if (!config.kgen.hashAlgorithm || typeof config.kgen.hashAlgorithm !== 'string') {
+    throw new Error('kgen.hashAlgorithm must be a string');
+  }
+  if (!['sha256', 'sha512'].includes(config.kgen.hashAlgorithm)) {
+    throw new Error('kgen.hashAlgorithm must be one of: sha256, sha512');
+  }
+  if (typeof config.kgen.cacheTtl !== 'number' || config.kgen.cacheTtl <= 0) {
+    throw new Error('kgen.cacheTtl must be a positive number');
+  }
+  if (typeof config.kgen.maxCacheSize !== 'number' || config.kgen.maxCacheSize <= 0) {
+    throw new Error('kgen.maxCacheSize must be a positive number');
+  }
+  if (!config.kgen.logLevel || typeof config.kgen.logLevel !== 'string') {
+    throw new Error('kgen.logLevel must be a string');
+  }
+  if (!['debug', 'info', 'warn', 'error'].includes(config.kgen.logLevel)) {
+    throw new Error('kgen.logLevel must be one of: debug, info, warn, error');
+  }
+  
   return config;
+}
+
+/**
+ * Parse database connection string
+ * @param {string} url - Database connection URL
+ * @returns {Object} Parsed database configuration
+ */
+function parseDatabaseUrl(url) {
+  if (!url) return null;
+  
+  try {
+    const parsed = new URL(url);
+    return {
+      host: parsed.hostname,
+      port: parseInt(parsed.port) || 5432,
+      name: parsed.pathname.slice(1), // remove leading slash
+      user: parsed.username,
+      password: parsed.password,
+      ssl: parsed.searchParams.get('sslmode') === 'require'
+    };
+  } catch (error) {
+    throw new Error(`Invalid database URL: ${error.message}`);
+  }
+}
+
+/**
+ * Parse Redis connection string
+ * @param {string} url - Redis connection URL
+ * @returns {Object} Parsed Redis configuration
+ */
+function parseRedisUrl(url) {
+  if (!url) return null;
+  
+  try {
+    const parsed = new URL(url);
+    return {
+      host: parsed.hostname,
+      port: parseInt(parsed.port) || 6379,
+      password: parsed.password || undefined
+    };
+  } catch (error) {
+    throw new Error(`Invalid Redis URL: ${error.message}`);
+  }
+}
+
+/**
+ * Load configuration from environment variables
+ * @returns {Partial<Config>} Configuration loaded from environment
+ */
+function loadFromEnvironment() {
+  const env = process.env;
+  
+  // Parse database configuration
+  const databaseFromUrl = parseDatabaseUrl(env.DATABASE_URL);
+  const database = databaseFromUrl || {
+    host: env.DB_HOST || 'localhost',
+    port: parseInt(env.DB_PORT) || 5432,
+    name: env.DB_NAME || 'dev_db',
+    user: env.DB_USER,
+    password: env.DB_PASSWORD,
+    ssl: env.DB_SSL === 'true',
+    poolSize: parseInt(env.DB_POOL_SIZE) || undefined
+  };
+  
+  // Parse Redis configuration
+  const redisFromUrl = parseRedisUrl(env.REDIS_URL);
+  const redis = redisFromUrl || {
+    host: env.REDIS_HOST || 'localhost',
+    port: parseInt(env.REDIS_PORT) || 6379,
+    password: env.REDIS_PASSWORD || undefined
+  };
+  
+  return {
+    app: {
+      name: env.APP_NAME || 'unjucks-app',
+      version: env.APP_VERSION || '1.0.0',
+      description: env.APP_DESCRIPTION || 'Semantic template generator'
+    },
+    server: {
+      port: parseInt(env.PORT) || 3000,
+      debug: env.DEBUG === 'true',
+      logLevel: env.LOG_LEVEL || env.KGEN_LOG_LEVEL || 'debug'
+    },
+    database,
+    redis,
+    kgen: {
+      env: env.KGEN_ENV || env.NODE_ENV || 'development',
+      encryptionKey: env.KGEN_ENCRYPTION_KEY || 'development-key-32-characters-long!!!',
+      hashAlgorithm: env.KGEN_HASH_ALGORITHM || 'sha256',
+      cacheTtl: parseInt(env.KGEN_CACHE_TTL) || 3600,
+      maxCacheSize: parseInt(env.KGEN_MAX_CACHE_SIZE) || 1000,
+      logLevel: env.KGEN_LOG_LEVEL || 'debug'
+    },
+    cdn: env.CDN_URL || undefined,
+    monitoring: env.MONITORING_ENABLED === 'true' || false
+  };
 }
 
 /** @type {Record<string, Config>} */
@@ -149,6 +294,14 @@ const configs = {
     redis: {
       host: 'localhost',
       port: 6379
+    },
+    kgen: {
+      env: 'development',
+      encryptionKey: 'development-key-32-characters-long!!!',
+      hashAlgorithm: 'sha256',
+      cacheTtl: 3600,
+      maxCacheSize: 1000,
+      logLevel: 'debug'
     }
   },
 
@@ -175,8 +328,48 @@ const configs = {
       port: 6379,
       password: process.env.REDIS_PASSWORD || '@{REDIS_PASSWORD}'
     },
+    kgen: {
+      env: 'production',
+      encryptionKey: process.env.KGEN_ENCRYPTION_KEY || 'production-placeholder-32-characters!!',
+      hashAlgorithm: 'sha512',
+      cacheTtl: 7200,
+      maxCacheSize: 5000,
+      logLevel: 'error'
+    },
     cdn: 'https://cdn.example.com',
     monitoring: true
+  },
+
+  test: {
+    app: {
+      name: 'unjucks-app-test',
+      version: '1.0.0',
+      description: 'Semantic template generator - test environment'
+    },
+    server: {
+      port: 3001,
+      debug: false,
+      logLevel: 'warn'
+    },
+    database: {
+      host: 'localhost',
+      port: 5433,
+      name: 'test_db',
+      ssl: false
+    },
+    redis: {
+      host: 'localhost',
+      port: 6380
+    },
+    kgen: {
+      env: 'test',
+      encryptionKey: 'test-key-32-characters-long-test!!!',
+      hashAlgorithm: 'sha256',
+      cacheTtl: 300,
+      maxCacheSize: 100,
+      logLevel: 'warn'
+    },
+    monitoring: false
   }
 };
 
@@ -208,25 +401,61 @@ function getConfigForEnvironment(environment) {
  */
 function mergeConfig(customConfig, environment) {
   const baseConfig = getConfigForEnvironment(environment || process.env.NODE_ENV || 'development');
+  const envConfig = loadFromEnvironment();
+  
   const merged = {
     ...baseConfig,
+    ...envConfig,
     ...customConfig,
-    app: { ...baseConfig.app, ...(customConfig.app || {}) },
-    server: { ...baseConfig.server, ...(customConfig.server || {}) },
-    database: { ...baseConfig.database, ...(customConfig.database || {}) },
-    redis: { ...baseConfig.redis, ...(customConfig.redis || {}) }
+    app: { 
+      ...baseConfig.app, 
+      ...(envConfig.app || {}),
+      ...(customConfig.app || {}) 
+    },
+    server: { 
+      ...baseConfig.server, 
+      ...(envConfig.server || {}),
+      ...(customConfig.server || {}) 
+    },
+    database: { 
+      ...baseConfig.database, 
+      ...(envConfig.database || {}),
+      ...(customConfig.database || {}) 
+    },
+    redis: { 
+      ...baseConfig.redis, 
+      ...(envConfig.redis || {}),
+      ...(customConfig.redis || {}) 
+    },
+    kgen: { 
+      ...baseConfig.kgen, 
+      ...(envConfig.kgen || {}),
+      ...(customConfig.kgen || {}) 
+    }
   };
   return validateConfig(merged);
 }
 
-module.exports = {
+/**
+ * Get configuration with environment variables loaded
+ * @param {string} [environment] - Target environment
+ * @returns {Config} Configuration object with environment variables
+ */
+function getConfigWithEnv(environment) {
+  return mergeConfig({}, environment);
+}
+
+export {
   getConfig,
   getConfigForEnvironment,
+  getConfigWithEnv,
   mergeConfig,
   validateConfig,
+  loadFromEnvironment,
+  parseDatabaseUrl,
+  parseRedisUrl,
   configs
 };
 
-// Export default configuration for CommonJS compatibility
-const defaultConfig = getConfig();
-module.exports.default = defaultConfig;
+// Export default configuration
+export default getConfig();

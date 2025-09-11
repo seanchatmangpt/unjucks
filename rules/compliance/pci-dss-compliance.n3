@@ -1,0 +1,44 @@
+# PCI-DSS Compliance Rules for Payment Data Processing
+@prefix pci: <http://ontology.example.com/pci#> .
+@prefix log: <http://www.w3.org/2000/10/swap/log#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+
+# PCI Requirement 1 - Network Security Controls
+{
+    ?network rdf:type pci:NetworkSegment .
+    ?network pci:hasFirewall false .
+    ?network pci:containsCardData true .
+} => {
+    ?network pci:complianceViolation "MISSING_FIREWALL" .
+    ?network pci:severity "CRITICAL" .
+} .
+
+# PCI Requirement 3 - Protect Stored Cardholder Data
+{
+    ?data rdf:type pci:CardholderData .
+    ?data pci:isEncrypted false .
+    ?data pci:isStored true .
+} => {
+    ?data pci:complianceViolation "UNENCRYPTED_CARD_DATA" .
+    ?data pci:severity "CRITICAL" .
+} .
+
+# PCI Requirement 8 - Strong Authentication
+{
+    ?user rdf:type pci:SystemUser .
+    ?user pci:accessesCardData true .
+    ?user pci:hasTwoFactorAuth false .
+} => {
+    ?user pci:complianceViolation "MISSING_TWO_FACTOR_AUTH" .
+    ?user pci:severity "HIGH" .
+} .
+
+# PCI Requirement 11 - Regular Security Testing
+{
+    ?system rdf:type pci:PaymentSystem .
+    ?system pci:lastVulnerabilityScan ?lastScan .
+    ?lastScan log:olderThan "90 days" .
+} => {
+    ?system pci:complianceViolation "OVERDUE_VULNERABILITY_SCAN" .
+    ?system pci:severity "HIGH" .
+} .

@@ -6,8 +6,8 @@
  */
 
 import { defineCommand } from 'citty';
-import { readFileSync, writeFileSync, existsSync, createWriteStream } from 'fs';
-import { resolve, basename, join } from 'path';
+import { readFileSync, writeFileSync, existsSync, createWriteStream, statSync } from 'fs';
+import { resolve, basename, join, extname } from 'path';
 import { createHash } from 'crypto';
 
 import { success, error, output } from '../../lib/output.js';
@@ -108,7 +108,7 @@ export default defineCommand({
       // Process artifact files
       for (const artifactPath of artifactFiles) {
         const relativePath = artifactPath.replace(attestDir + '/', '');
-        const stats = require('fs').statSync(artifactPath);
+        const stats = statSync(artifactPath);
         
         bundleData.artifacts[relativePath] = {
           path: relativePath,
@@ -236,7 +236,7 @@ export default defineCommand({
  * @returns {string} MIME type
  */
 function getContentType(filepath) {
-  const ext = require('path').extname(filepath).toLowerCase();
+  const ext = extname(filepath).toLowerCase();
   const types = {
     '.js': 'application/javascript',
     '.ts': 'application/typescript',

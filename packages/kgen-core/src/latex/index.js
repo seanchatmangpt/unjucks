@@ -51,15 +51,18 @@ export class KGENLaTeXIntegration {
     if (this.initialized) return;
     
     // Initialize core components
+    const { LaTeXTemplateSelector } = await import('./selector.js');
     this.components.selector = new LaTeXTemplateSelector({
       templatesDir: this.options.templatesDir
     });
     
+    const { LaTeXTemplateRenderer } = await import('./renderers/nunjucks.js');
     this.components.renderer = new LaTeXTemplateRenderer({
       templatesDir: this.options.templatesDir,
       validateOutput: this.options.validateOutput
     });
     
+    const { LaTeXCompiler } = await import('./compiler.js');
     this.components.compiler = new LaTeXCompiler({
       outputDir: this.options.outputDir,
       security: {
@@ -68,10 +71,12 @@ export class KGENLaTeXIntegration {
       }
     });
     
+    const { LaTeXSyntaxValidator } = await import('./validators/syntax.js');
     this.components.validator = new LaTeXSyntaxValidator({
       strictMode: this.options.securityMode === 'strict'
     });
     
+    const { AcademicPaperWorkflow } = await import('./workflows/academic.js');
     this.components.workflow = new AcademicPaperWorkflow({
       outputDir: this.options.outputDir,
       templatesDir: this.options.templatesDir,
@@ -299,7 +304,7 @@ export const FEATURES = {
 /**
  * Supported LaTeX engines
  */
-export const SUPPORTED_ENGINES = Object.keys(LATEX_ENGINES);
+export const SUPPORTED_ENGINES = ['pdflatex', 'xelatex', 'lualatex', 'latex'];
 
 /**
  * Supported template categories

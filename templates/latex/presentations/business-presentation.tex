@@ -1,0 +1,106 @@
+% LaTeX Beamer Presentation Template with Nunjucks Variables
+% PRESENTATION-CONFIG: {
+%   "type": "latex-presentation",
+%   "theme": "Madrid",
+%   "colortheme": "default",
+%   "aspectRatio": "16:9"
+% }
+
+\documentclass[aspectratio=169]{beamer}
+
+\usetheme{{ '{' }}{{ presentation.theme or 'Madrid' }}{{ '}' }}
+{% if presentation.colortheme and presentation.colortheme != 'default' %}
+\usecolortheme{{ '{' }}{{ presentation.colortheme }}{{ '}' }}
+{% endif %}
+
+\usepackage[utf8]{inputenc}
+\usepackage{graphicx}
+\usepackage{booktabs}
+
+\title{{ '{' }}{{ presentation.title or 'Business Presentation' }}{{ '}' }}
+{% if presentation.subtitle %}
+\subtitle{{ '{' }}{{ presentation.subtitle }}{{ '}' }}
+{% endif %}
+\author{{ '{' }}{{ presentation.author or 'Presenter' }}{{ '}' }}
+{% if presentation.institute %}
+\institute{{ '{' }}{{ presentation.institute }}{{ '}' }}
+{% endif %}
+\date{{ '{' }}{{ presentation.date or '\\today' }}{{ '}' }}
+
+\begin{document}
+
+\frame{\titlepage}
+
+{% if sections %}
+\begin{frame}
+\frametitle{Agenda}
+\tableofcontents
+\end{frame}
+{% endif %}
+
+{% if slides %}
+{% set currentSection = '' %}
+{% for slide in slides %}
+
+{% if slide.section and slide.section != currentSection %}
+{% set currentSection = slide.section %}
+\section{{ '{' }}{{ beamerHelpers.escapeLatex(slide.section) }}{{ '}' }}
+{% endif %}
+
+\begin{frame}
+\frametitle{{ '{' }}{{ beamerHelpers.escapeLatex(slide.title or 'Slide ' + loop.index) }}{{ '}' }}
+{% if slide.subtitle %}
+\framesubtitle{{ '{' }}{{ beamerHelpers.escapeLatex(slide.subtitle) }}{{ '}' }}
+{% endif %}
+
+{% if slide.content %}
+{{ slide.content }}
+
+{% endif %}
+{% if slide.items %}
+\begin{itemize}
+{% for item in slide.items %}
+\item {{ beamerHelpers.escapeLatex(item) }}
+{% endfor %}
+\end{itemize}
+
+{% endif %}
+{% if slide.columns %}
+\begin{columns}
+{% for column in slide.columns %}
+\begin{column}{{ '{' }}{{ column.width or '0.5\\textwidth' }}{{ '}' }}
+{{ column.content }}
+\end{column}
+{% endfor %}
+\end{columns}
+
+{% endif %}
+\end{frame}
+
+{% endfor %}
+{% endif %}
+
+{% if conclusion %}
+\begin{frame}
+\frametitle{Conclusion}
+{{ conclusion }}
+\end{frame}
+{% endif %}
+
+{% if questions %}
+\begin{frame}
+\frametitle{{ '{' }}{{ questions.title or 'Questions?' }}{{ '}' }}
+\centering
+{% if questions.content %}
+{{ questions.content }}
+{% else %}
+\Large Thank you for your attention!
+
+\vspace{1em}
+
+Questions and Discussion
+{% endif %}
+\end{frame}
+{% endif %}
+
+\end{document}

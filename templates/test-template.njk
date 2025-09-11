@@ -1,0 +1,16 @@
+---
+to: generated/{{ name | lower }}.js
+---
+// Generated from graph: {{ graph }}
+// Classes found:
+{% for subject in subjects %}
+  {% if subject.type == 'Class' %}
+// - {{ subject.label }}
+  {% endif %}
+{% endfor %}
+
+export class {{ name }} {
+  constructor() {
+    console.log('Generated from KGEN');
+  }
+}

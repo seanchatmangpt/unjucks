@@ -140,9 +140,8 @@ class LaTeXExtensions {
    * {% latexif condition %}...{% endlatexif %}
    */
   static createLatexIfExtension() {
-    return new (class extends nunjucks.Extension {
+    return new (class {
       constructor() {
-        super();
         this.tags = ['latexif'];
       }
       
@@ -171,9 +170,8 @@ class LaTeXExtensions {
    * {% usepackage 'package' with options %}
    */
   static createUsePackageExtension() {
-    return new (class extends nunjucks.Extension {
+    return new (class {
       constructor() {
-        super();
         this.tags = ['usepackage'];
       }
       
@@ -208,9 +206,8 @@ class LaTeXExtensions {
    * {% latexenv 'itemize' %}...{% endlatexenv %}
    */
   static createLatexEnvExtension() {
-    return new (class extends nunjucks.Extension {
+    return new (class {
       constructor() {
-        super();
         this.tags = ['latexenv'];
       }
       

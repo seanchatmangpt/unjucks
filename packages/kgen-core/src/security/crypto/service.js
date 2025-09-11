@@ -146,9 +146,9 @@ export class CryptoService extends EventEmitter {
         // Generate unique IV
         const iv = crypto.randomBytes(this.config.ivLength);
         
-        // Create cipher
+        // Create cipher with proper IV
         const algorithm = options.algorithm || this.config.defaultAlgorithm;
-        const cipher = crypto.createCipher(algorithm, encryptionKey);
+        const cipher = crypto.createCipherGCM(algorithm, encryptionKey, iv);
         cipher.setAAD(Buffer.from(JSON.stringify({
           keyId,
           classification,
@@ -240,8 +240,9 @@ export class CryptoService extends EventEmitter {
         // Get decryption key
         const decryptionKey = await this._getDataKey(encryptedData.keyId);
         
-        // Create decipher
-        const decipher = crypto.createDecipher(encryptedData.algorithm, decryptionKey);
+        // Create decipher with proper IV
+        const iv = Buffer.from(encryptedData.iv, 'base64');
+        const decipher = crypto.createDecipherGCM(encryptedData.algorithm, decryptionKey, iv);
         decipher.setAAD(Buffer.from(JSON.stringify({
           keyId: encryptedData.keyId,
           classification: encryptedData.classification,

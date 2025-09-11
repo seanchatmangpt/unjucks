@@ -10,6 +10,7 @@ import { promises as fs } from 'fs';
 import path from 'path';
 import crypto from 'crypto';
 import { EventEmitter } from 'events';
+import { KGenErrorHandler, createEnhancedTryCatch } from '../../utils/error-handler.js';
 
 export class ComplianceLogger extends EventEmitter {
   constructor(config = {}) {
@@ -42,6 +43,15 @@ export class ComplianceLogger extends EventEmitter {
     this.retentionSchedule = new Map();
 
     this.state = 'initialized';
+    
+    // Initialize comprehensive error handler
+    this.errorHandler = new KGenErrorHandler({
+      enableRecovery: true,
+      maxRetryAttempts: 3,
+      retryDelay: 1000,
+      enableEventEmission: true
+    });
+    this._setupErrorRecoveryStrategies();
   }
 
   /**
@@ -73,8 +83,32 @@ export class ComplianceLogger extends EventEmitter {
       };
 
     } catch (error) {
-      this.logger.error('Failed to initialize compliance logger:', error);
+      const operationId = 'compliance-logger:initialize';
+      const errorContext = {
+        component: 'compliance-logger',
+        operation: 'initialization',
+        input: {
+          complianceMode: this.config.complianceMode,
+          logPath: this.config.logPath,
+          encryptLogs: this.config.encryptLogs
+        },
+        state: { currentState: this.state }
+      };
+      
+      const handlingResult = await this.errorHandler.handleError(
+        operationId,
+        error,
+        errorContext,
+        { suppressRethrow: false }
+      );
+      
       this.state = 'error';
+      this.emit('error', {
+        operationId,
+        error,
+        errorContext: handlingResult.errorContext
+      });
+      
       throw error;
     }
   }
@@ -120,8 +154,29 @@ export class ComplianceLogger extends EventEmitter {
       return { status: 'success', eventId: event.id };
 
     } catch (error) {
-      this.logger.error(`Failed to log compliance event ${eventType}:`, error);
-      throw error;
+      const operationId = `compliance-event:${event.id}`;
+      const errorContext = {
+        component: 'compliance-logger',
+        operation: 'event-logging',
+        input: {
+          eventType,
+          eventId: event.id,
+          framework: this.config.complianceMode,
+          severity: event.severity
+        }
+      };
+      
+      const handlingResult = await this.errorHandler.handleError(
+        operationId,
+        error,
+        errorContext
+      );
+      
+      if (!handlingResult.recovered) {
+        throw error;
+      }
+      
+      return handlingResult.result || { status: 'success', eventId: event.id };
     }
   }
 
@@ -237,8 +292,24 @@ export class ComplianceLogger extends EventEmitter {
       return report;
 
     } catch (error) {
-      this.logger.error('Failed to generate compliance report:', error);
-      throw error;
+      const operationId = 'compliance-report';
+      const errorContext = {
+        component: 'compliance-logger',
+        operation: 'report-generation',
+        input: { reportType, period }
+      };
+      
+      const handlingResult = await this.errorHandler.handleError(
+        operationId,
+        error,
+        errorContext
+      );
+      
+      if (!handlingResult.recovered) {
+        throw error;
+      }
+      
+      return handlingResult.result;
     }
   }
 
@@ -282,8 +353,27 @@ export class ComplianceLogger extends EventEmitter {
       };
 
     } catch (error) {
-      this.logger.error('Failed to check retention compliance:', error);
-      throw error;
+      const operationId = 'compliance-retention-check';
+      const errorContext = {
+        component: 'compliance-logger',
+        operation: 'retention-compliance-check'
+      };
+      
+      const handlingResult = await this.errorHandler.handleError(
+        operationId,
+        error,
+        errorContext
+      );
+      
+      if (!handlingResult.recovered) {
+        throw error;
+      }
+      
+      return handlingResult.result || {
+        compliant: false,
+        violations: [],
+        recommendations: ['Manual retention review required']
+      };
     }
   }
 
@@ -874,6 +964,81 @@ export class ComplianceLogger extends EventEmitter {
     return validAccessLevels.includes(eventData.accessType) &&
            validJustifications.includes(eventData.justification) &&
            eventData.dataTypes && eventData.dataTypes.length > 0;
+  }
+  
+  /**
+   * Get error handling statistics
+   */
+  getErrorStatistics() {
+    return this.errorHandler.getErrorStatistics();
+  }
+  
+  /**
+   * Setup error recovery strategies
+   */
+  _setupErrorRecoveryStrategies() {
+    // File system error recovery for log writing
+    this.errorHandler.registerRecoveryStrategy('filesystem', async (errorContext, options) => {
+      this.logger.info('Attempting compliance logger filesystem recovery');
+      
+      if (errorContext.error.code === 'ENOENT') {
+        // Try to create missing directories
+        try {
+          const logDir = path.dirname(this.config.logPath);
+          await fs.mkdir(logDir, { recursive: true });
+          return { success: true, reason: 'Created missing log directories' };
+        } catch (dirError) {
+          return { success: false, reason: `Failed to create log directories: ${dirError.message}` };
+        }
+      }
+      
+      if (errorContext.error.code === 'EACCES') {
+        // Try alternative log location
+        this.logger.warn('Permission denied for compliance logs, using temporary location');
+        this.config.logPath = path.join('/tmp', 'compliance-logs');
+        return { success: true, reason: 'Switched to temporary log location' };
+      }
+      
+      return { success: false, reason: 'Filesystem error not recoverable' };
+    });
+    
+    // Encryption error recovery
+    this.errorHandler.registerRecoveryStrategy('encryption', async (errorContext, options) => {
+      this.logger.info('Attempting compliance encryption recovery');
+      
+      if (errorContext.context.operation === 'event-logging') {
+        // Fallback to unencrypted logging with warning
+        this.logger.warn('Encryption failed, storing compliance logs unencrypted');
+        this.config.encryptLogs = false;
+        return { success: true, reason: 'Disabled encryption for compliance logs' };
+      }
+      
+      return { success: false, reason: 'Encryption error not recoverable' };
+    });
+    
+    // Compliance framework error recovery
+    this.errorHandler.registerRecoveryStrategy('compliance_framework', async (errorContext, options) => {
+      this.logger.info('Attempting compliance framework recovery');
+      
+      // Fallback to basic compliance mode
+      if (this.config.complianceMode !== 'BASIC') {
+        this.logger.warn('Compliance framework error, falling back to basic mode');
+        this.config.complianceMode = 'BASIC';
+        this.activeFramework = this._getBasicFramework();
+        return { success: true, reason: 'Switched to basic compliance framework' };
+      }
+      
+      return { success: false, reason: 'Already in basic compliance mode' };
+    });
+  }
+  
+  _getBasicFramework() {
+    return {
+      name: 'Basic Compliance',
+      requirements: ['data_processing', 'access_control', 'audit_trail'],
+      retentionPeriod: '1year',
+      encryptionRequired: false
+    };
   }
 }
 

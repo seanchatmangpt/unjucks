@@ -675,7 +675,8 @@ export class AuditLogger extends EventEmitter {
     try {
       const eventJson = JSON.stringify(event);
       const iv = crypto.randomBytes(16);
-      const cipher = crypto.createCipher('aes-256-gcm', this.encryptionKey);
+      const cipher = crypto.createCipherGCM('aes-256-gcm', this.encryptionKey, iv);
+      cipher.setAAD(Buffer.from('security-audit', 'utf8'));
       
       let encrypted = cipher.update(eventJson, 'utf8', 'hex');
       encrypted += cipher.final('hex');

@@ -205,13 +205,49 @@ class ZeroTrustManager {
    * @returns {boolean}
    */
   isIPInNetwork(ip, network) {
-    // Simplified CIDR check - in production, use proper IP range validation
-    if (network.includes('/')) {
-      const [networkIP, prefixLength] = network.split('/')
-      // Implementation would check if IP is in CIDR range
-      return ip.startsWith(networkIP.split('.').slice(0, 2).join('.'))
+    // Comprehensive CIDR range validation with IPv4/IPv6 support and proper subnet calculations
+    try {
+      if (!network || typeof network !== 'string') {
+        throw new Error('Network must be a valid string');
+      }
+      
+      if (!network.includes('/')) {
+        // Direct IP comparison for single host
+        return this.normalizeIP(ip) === this.normalizeIP(network);
+      }
+      
+      const [networkIP, prefixLength] = network.split('/');
+      const prefix = parseInt(prefixLength, 10);
+      
+      // Validate prefix length
+      if (isNaN(prefix) || prefix < 0) {
+        throw new Error(`Invalid prefix length: ${prefixLength}`);
+      }
+      
+      // Detect IP version and validate accordingly
+      if (this.isIPv4(ip) && this.isIPv4(networkIP)) {
+        if (prefix > 32) {
+          throw new Error(`Invalid IPv4 prefix length: ${prefix} (max 32)`);
+        }
+        return this.isIPv4InCIDR(ip, networkIP, prefix);
+      } else if (this.isIPv6(ip) && this.isIPv6(networkIP)) {
+        if (prefix > 128) {
+          throw new Error(`Invalid IPv6 prefix length: ${prefix} (max 128)`);
+        }
+        return this.isIPv6InCIDR(ip, networkIP, prefix);
+      } else {
+        throw new Error('IP version mismatch between client IP and network range');
+      }
+      
+    } catch (error) {
+      consola.error('CIDR validation error:', {
+        clientIP: ip,
+        network,
+        error: error.message,
+        timestamp: new Date().toISOString()
+      });
+      return false; // Fail secure
     }
-    return ip === network
   }
 
   /**

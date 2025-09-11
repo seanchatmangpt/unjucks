@@ -1,0 +1,13 @@
+---
+to: "test-output.js"
+---
+// Generated from {{ graph.path }}
+// Graph hash: {{ graph.hash }}
+// Triples: {{ graph.triples }}
+
+export const testData = {
+  graphPath: "{{ graph.path }}",
+  hash: "{{ graph.hash }}",
+  entities: {{ entities | length }},
+  generatedAt: "{{ generatedAt }}"
+};

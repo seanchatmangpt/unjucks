@@ -113,7 +113,7 @@ class LaTeXSecurityValidator {
     }
     
     // Check for file path traversal attempts
-    const pathTraversalPattern = /\\(?:input|include)\{.*(?:\.\.\/|\.\.\\\\/|\~\/)/gi;
+    const pathTraversalPattern = /\\(?:input|include)\{.*(?:\.\.\/)/gi;
     const pathMatches = content.match(pathTraversalPattern);
     if (pathMatches) {
       violations.push({

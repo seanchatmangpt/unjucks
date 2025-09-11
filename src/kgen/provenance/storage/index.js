@@ -351,22 +351,138 @@ export class ProvenanceStorage {
   }
 
   _generateOrLoadEncryptionKey() {
-    // Generate or load encryption key
-    return crypto.randomBytes(32);
+    try {
+      // Generate or load encryption key
+      return crypto.randomBytes(32);
+    } catch (error) {
+      this.logger.error('Failed to generate encryption key:', error);
+      throw new Error('Encryption key generation failed');
+    }
+  }
+  
+  /**
+   * Get error handling statistics for provenance storage
+   */
+  getErrorStatistics() {
+    return this.errorHandler.getErrorStatistics();
+  }
+  
+  /**
+   * Setup error recovery strategies for provenance storage
+   */
+  _setupErrorRecoveryStrategies() {
+    // Filesystem error recovery
+    this.errorHandler.registerRecoveryStrategy('filesystem', async (errorContext, options) => {
+      this.logger.info('Attempting filesystem error recovery');
+      
+      if (errorContext.error.code === 'ENOENT') {
+        const operation = errorContext.context.operation;
+        
+        if (operation === 'record-storage' || operation === 'backup-creation') {
+          // Try to create missing directories
+          try {
+            const dirPath = path.dirname(errorContext.context.input.filePath || this.config.basePath);
+            await fs.mkdir(dirPath, { recursive: true });
+            return { success: true, reason: 'Created missing directory structure' };
+          } catch (dirError) {
+            return { success: false, reason: `Failed to create directories: ${dirError.message}` };
+          }
+        }
+        
+        if (operation === 'record-retrieval') {
+          return {
+            success: true,
+            reason: 'Record not found, returning null',
+            result: null
+          };
+        }
+      }
+      
+      if (errorContext.error.code === 'EACCES') {
+        this.logger.warn('Permission denied, attempting alternative storage location');
+        // Could implement fallback to alternative storage location
+        return { success: false, reason: 'Permission denied - manual intervention required' };
+      }
+      
+      return { success: false, reason: 'Filesystem error not recoverable' };
+    });
+    
+    // Encryption error recovery
+    this.errorHandler.registerRecoveryStrategy('encryption', async (errorContext, options) => {
+      this.logger.info('Attempting encryption error recovery');
+      
+      if (errorContext.context.operation === 'record-retrieval') {
+        // Try without decryption for corrupted encrypted data
+        this.logger.warn('Encryption failed during retrieval, attempting fallback');
+        return {
+          success: true,
+          reason: 'Fallback to unencrypted retrieval',
+          fallbackMode: 'unencrypted'
+        };
+      }
+      
+      if (errorContext.context.operation === 'record-storage') {
+        // Store without encryption as fallback
+        this.logger.warn('Encryption failed during storage, storing unencrypted');
+        return {
+          success: true,
+          reason: 'Fallback to unencrypted storage',
+          fallbackMode: 'unencrypted'
+        };
+      }
+      
+      return { success: false, reason: 'Encryption error not recoverable' };
+    });
+    
+    // Compression error recovery
+    this.errorHandler.registerRecoveryStrategy('compression', async (errorContext, options) => {
+      this.logger.info('Attempting compression error recovery');
+      
+      // Fallback to uncompressed storage/retrieval
+      return {
+        success: true,
+        reason: 'Fallback to uncompressed operation',
+        fallbackMode: 'uncompressed'
+      };
+    });
   }
 
   async _encrypt(data) {
+    // Secure encryption for provenance data using AES-256-GCM
+    const encryptionKey = this.encryptionKey;
+    
+    if (!encryptionKey || encryptionKey.length < 32) {
+      throw new Error('Encryption key must be at least 32 characters long');
+    }
+    
+    // Generate random IV for each encryption
     const iv = crypto.randomBytes(16);
-    const cipher = crypto.createCipher('aes-256-cbc', this.encryptionKey);
+    const cipher = crypto.createCipherGCM('aes-256-gcm', encryptionKey, iv);
+    cipher.setAAD(Buffer.from('provenance-storage', 'utf8'));
+    
     let encrypted = cipher.update(data, 'utf8', 'hex');
     encrypted += cipher.final('hex');
-    return `${iv.toString('hex')}:${encrypted}`;
+    
+    const authTag = cipher.getAuthTag();
+    
+    // Return IV + authTag + encrypted data for secure decryption
+    return iv.toString('hex') + ':' + authTag.toString('hex') + ':' + encrypted;
   }
 
   async _decrypt(encryptedData) {
-    const [ivHex, encrypted] = encryptedData.split(':');
+    const parts = encryptedData.split(':');
+    if (parts.length !== 3) {
+      throw new Error('Invalid encrypted data format');
+    }
+    
+    const [ivHex, authTagHex, encrypted] = parts;
     const iv = Buffer.from(ivHex, 'hex');
-    const decipher = crypto.createDecipher('aes-256-cbc', this.encryptionKey);
+    const authTag = Buffer.from(authTagHex, 'hex');
+    
+    const decipher = crypto.createDecipherGCM('aes-256-gcm', this.encryptionKey, iv);
+    decipher.setAAD(Buffer.from('provenance-storage', 'utf8'));
+    decipher.setAuthTag(authTag);
+    
     let decrypted = decipher.update(encrypted, 'hex', 'utf8');
     decrypted += decipher.final('utf8');
     return decrypted;

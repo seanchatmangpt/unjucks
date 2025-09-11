@@ -6,15 +6,30 @@
  */
 
 import consola from 'consola';
-import { Parser as SparqlParser, Generator as SparqlGenerator } from 'sparqljs';
+import sparqljs from 'sparqljs';
 import { Store, DataFactory } from 'n3';
+import { RDFProcessor } from '../../rdf/index.js';
 import crypto from 'crypto';
+import { SPARQLQueryCache } from '../../cache/lru-cache.js';
+import { KGenErrorHandler, createEnhancedTryCatch } from '../../utils/error-handler.js';
 
 const { namedNode, literal, quad } = DataFactory;
 
 export class ProvenanceQueries {
   constructor(store, config = {}) {
-    this.store = store;
+    // Initialize RDFProcessor with the provided store or create new one
+    if (store instanceof RDFProcessor) {
+      this.rdfProcessor = store;
+      this.store = store.store;
+    } else {
+      this.store = store || new Store();
+      this.rdfProcessor = new RDFProcessor({
+        ...config
+      });
+      // Set the store after creation
+      this.rdfProcessor.store = this.store;
+    }
+    
     this.config = {
       maxResults: config.maxResults || 10000,
       queryTimeout: config.queryTimeout || 30000,
@@ -23,16 +38,57 @@ export class ProvenanceQueries {
     };
 
     this.logger = consola.withTag('provenance-queries');
-    this.sparqlParser = new SparqlParser();
-    this.sparqlGenerator = new SparqlGenerator();
+    this.sparqlParser = new sparqljs.Parser();
+    this.sparqlGenerator = new sparqljs.Generator();
     
     // Query templates
     this.queryTemplates = this._initializeQueryTemplates();
     
-    // Query cache
-    this.queryCache = new Map();
-    this.cacheSize = 0;
-    this.maxCacheSize = config.maxCacheSize || 1000;
+    // Query cache with LRU eviction and statistics
+    this.queryCache = new SPARQLQueryCache({
+      maxCacheSize: config.maxCacheSize || 1000,
+      cacheTTL: config.cacheTTL || 60000, // 1 minute
+      enableStats: true
+    });
+    
+    // Initialize comprehensive error handler
+    this.errorHandler = new KGenErrorHandler({
+      enableRecovery: true,
+      maxRetryAttempts: 3,
+      retryDelay: 1000,
+      enableEventEmission: true
+    });
+    this._setupErrorRecoveryStrategies();
+    
+    // Initialize RDFProcessor if needed
+    this._initializeRDFProcessor();
+  }
+
+  /**
+   * Initialize RDFProcessor
+   */
+  async _initializeRDFProcessor() {
+    if (this.rdfProcessor.status === 'uninitialized') {
+      try {
+        await this.rdfProcessor.initialize();
+      } catch (error) {
+        const operationId = 'provenance-queries:rdf-init';
+        const errorContext = {
+          component: 'provenance-queries',
+          operation: 'rdf-processor-initialization',
+          state: { rdfStatus: this.rdfProcessor.status }
+        };
+        
+        await this.errorHandler.handleError(
+          operationId,
+          error,
+          errorContext,
+          { suppressRethrow: true }
+        );
+        
+        this.logger.warn('RDFProcessor initialization failed, continuing with basic functionality:', error);
+      }
+    }
   }
 
   /**
@@ -45,13 +101,15 @@ export class ProvenanceQueries {
       this.logger.debug('Executing SPARQL query');
 
       // Check cache first
-      const cacheKey = this._generateCacheKey(query, options);
-      if (this.queryCache.has(cacheKey) && !options.skipCache) {
-        this.logger.debug('Returning cached query result');
-        return this.queryCache.get(cacheKey);
+      if (!options.skipCache) {
+        const cachedResult = this.queryCache.getCachedResults(query, options);
+        if (cachedResult) {
+          this.logger.debug('Returning cached query result');
+          return cachedResult;
+        }
       }
 
-      // Parse query
+          // Parse query using the real SparqlParser
       const parsedQuery = this.sparqlParser.parse(query);
       
       // Validate query
@@ -62,34 +120,59 @@ export class ProvenanceQueries {
         this._optimizeQuery(parsedQuery);
       }
 
-      // Execute query based on type
+      // Execute query using RDFProcessor's unified query method
       let results;
-      switch (parsedQuery.queryType) {
-        case 'SELECT':
-          results = await this._executeSelectQuery(parsedQuery, options);
-          break;
-        case 'CONSTRUCT':
-          results = await this._executeConstructQuery(parsedQuery, options);
-          break;
-        case 'ASK':
-          results = await this._executeAskQuery(parsedQuery, options);
-          break;
-        case 'DESCRIBE':
-          results = await this._executeDescribeQuery(parsedQuery, options);
-          break;
-        default:
-          throw new Error(`Unsupported query type: ${parsedQuery.queryType}`);
+      try {
+        // First try using RDFProcessor's unified query method
+        results = await this.rdfProcessor.query(query, options);
+      } catch (error) {
+        // Fallback to individual query type execution for backward compatibility
+        switch (parsedQuery.queryType) {
+          case 'SELECT':
+            results = await this._executeSelectQuery(parsedQuery, options);
+            break;
+          case 'CONSTRUCT':
+            results = await this._executeConstructQuery(parsedQuery, options);
+            break;
+          case 'ASK':
+            results = await this._executeAskQuery(parsedQuery, options);
+            break;
+          case 'DESCRIBE':
+            results = await this._executeDescribeQuery(parsedQuery, options);
+            break;
+          default:
+            throw new Error(`Unsupported query type: ${parsedQuery.queryType}`);
+        }
       }
 
       // Cache results
-      this._cacheResults(cacheKey, results);
+      this.queryCache.cacheResults(query, results, options);
 
       this.logger.debug(`Query executed successfully, ${results.results?.bindings?.length || 0} results`);
       return results;
 
     } catch (error) {
-      this.logger.error('Failed to execute SPARQL query:', error);
-      throw error;
+      const operationId = `sparql-query:${crypto.randomBytes(4).toString('hex')}`;
+      const errorContext = {
+        component: 'provenance-queries',
+        operation: 'sparql-execution',
+        input: { 
+          queryLength: query.length,
+          skipCache: options.skipCache
+        }
+      };
+      
+      const handlingResult = await this.errorHandler.handleError(
+        operationId,
+        error,
+        errorContext
+      );
+      
+      if (!handlingResult.recovered) {
+        throw error;
+      }
+      
+      return handlingResult.result;
     }
   }
 
@@ -288,12 +371,15 @@ export class ProvenanceQueries {
    * Get query execution statistics
    */
   getQueryStatistics() {
+    const cacheStats = this.queryCache.getStats();
     return {
-      cacheSize: this.queryCache.size,
-      maxCacheSize: this.maxCacheSize,
-      hitRate: this.cacheHits / (this.cacheHits + this.cacheMisses) || 0,
-      totalQueries: this.cacheHits + this.cacheMisses,
-      averageExecutionTime: this.totalExecutionTime / this.totalQueries || 0
+      cache: cacheStats,
+      queries: {
+        total: cacheStats.totalRequests,
+        hitRate: cacheStats.hitRate,
+        hits: cacheStats.hits,
+        misses: cacheStats.misses
+      }
     };
   }
 
@@ -302,9 +388,68 @@ export class ProvenanceQueries {
    */
   clearCache() {
     this.queryCache.clear();
-    this.cacheSize = 0;
-    this.cacheHits = 0;
-    this.cacheMisses = 0;
+  }
+
+  /**
+   * Execute raw SPARQL query using RDFProcessor
+   * @param {string} query - SPARQL query string
+   * @param {Object} options - Query options
+   */
+  async executeSparql(query, options = {}) {
+    try {
+      // Ensure RDFProcessor is initialized
+      await this._initializeRDFProcessor();
+      
+      // Use RDFProcessor's query method directly
+      return await this.rdfProcessor.query(query, options);
+    } catch (error) {
+      this.logger.error('Raw SPARQL execution failed:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Add RDF data to the store
+   * @param {string} rdfData - RDF data in various formats
+   * @param {string} format - RDF format (turtle, n3, rdfxml, etc.)
+   * @param {Object} options - Parse options
+   */
+  async addRDFData(rdfData, format = 'turtle', options = {}) {
+    try {
+      await this._initializeRDFProcessor();
+      
+      const parsed = await this.rdfProcessor.parseRDF(rdfData, format, options);
+      this.rdfProcessor.addQuads(parsed.quads, options.graph);
+      
+      this.logger.debug(`Added ${parsed.count} triples to provenance store`);
+      return parsed;
+    } catch (error) {
+      this.logger.error('Failed to add RDF data:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get RDFProcessor instance for direct access
+   */
+  getRDFProcessor() {
+    return this.rdfProcessor;
+  }
+
+  /**
+   * Get store statistics including RDF processor stats
+   */
+  getStoreStatistics() {
+    const rdfStats = this.rdfProcessor.getStats();
+    const queryStats = this.getQueryStatistics();
+    
+    return {
+      ...rdfStats,
+      queryCache: queryStats,
+      provenanceQueries: {
+        templateCount: Object.keys(this.queryTemplates).length
+      }
+    };
   }
 
   // Private methods
@@ -316,7 +461,7 @@ export class ProvenanceQueries {
         PREFIX kgen: <http://kgen.enterprise/provenance/>
         
         SELECT ?entity ?derivedEntity ?activity ?agent ?timestamp WHERE {
-          <{{entityUri}}> (prov:wasDerivedFrom|^prov:wasDerivedFrom)* ?entity .
+          <{{entityUri}}> prov:wasDerivedFrom* ?entity .
           ?derivedEntity prov:wasDerivedFrom ?entity .
           ?derivedEntity prov:wasGeneratedBy ?activity .
           ?activity prov:wasAssociatedWith ?agent .
@@ -343,13 +488,13 @@ export class ProvenanceQueries {
         
         SELECT ?entity ?relatedEntity ?activity ?agent ?timestamp ?direction WHERE {
           {
-            <{{entityUri}}> (prov:wasDerivedFrom)* ?entity .
+            <{{entityUri}}> prov:wasDerivedFrom* ?entity .
             ?entity prov:wasDerivedFrom ?relatedEntity .
-            BIND("backward" AS ?direction)
+            BIND("backward" as ?direction)
           } UNION {
-            <{{entityUri}}> (^prov:wasDerivedFrom)* ?entity .
+            ?entity prov:wasDerivedFrom* <{{entityUri}}> .
             ?relatedEntity prov:wasDerivedFrom ?entity .
-            BIND("forward" AS ?direction)
+            BIND("forward" as ?direction)
           }
           ?entity prov:wasGeneratedBy ?activity .
           ?activity prov:wasAssociatedWith ?agent .
@@ -380,14 +525,22 @@ export class ProvenanceQueries {
         PREFIX foaf: <http://xmlns.com/foaf/0.1/>
         
         SELECT ?agent ?name ?type ?activities WHERE {
-          <{{entityUri}}> (prov:wasDerivedFrom|^prov:wasDerivedFrom)* ?entity .
+          {
+            <{{entityUri}}> prov:wasDerivedFrom* ?entity .
+          } UNION {
+            ?entity prov:wasDerivedFrom* <{{entityUri}}> .
+          }
           ?entity prov:wasGeneratedBy ?activity .
           ?activity prov:wasAssociatedWith ?agent .
           OPTIONAL { ?agent foaf:name ?name }
           OPTIONAL { ?agent a ?type }
           {
             SELECT ?agent (COUNT(?activity) AS ?activities) WHERE {
-              <{{entityUri}}> (prov:wasDerivedFrom|^prov:wasDerivedFrom)* ?entity .
+              {
+                <{{entityUri}}> prov:wasDerivedFrom* ?entity .
+              } UNION {
+                ?entity prov:wasDerivedFrom* <{{entityUri}}> .
+              }
               ?entity prov:wasGeneratedBy ?activity .
               ?activity prov:wasAssociatedWith ?agent .
             } GROUP BY ?agent
@@ -563,71 +716,89 @@ export class ProvenanceQueries {
   }
 
   async _executeSelectQuery(parsedQuery, options) {
-    const bindings = [];
-    
-    // Mock SPARQL execution - in real implementation, this would use a SPARQL engine
-    const quads = this.store.getQuads();
-    
-    // Basic pattern matching simulation
-    for (const quad of quads) {
-      // Simple pattern matching logic would go here
-      // This is a simplified implementation
-      const binding = this._createBinding(quad, parsedQuery);
-      if (binding) {
-        bindings.push(binding);
-      }
+    try {
+      // Use RDFProcessor's real SPARQL execution
+      const results = await this.rdfProcessor.executeSelect(parsedQuery, {
+        maxResults: parsedQuery.limit || this.config.maxResults,
+        ...options
+      });
+      
+      return results;
+    } catch (error) {
+      this.logger.error('SELECT query execution failed:', error);
+      throw error;
     }
-
-    return {
-      head: { vars: this._extractVariables(parsedQuery) },
-      results: { bindings: bindings.slice(0, parsedQuery.limit || this.config.maxResults) }
-    };
   }
 
   async _executeConstructQuery(parsedQuery, options) {
-    // CONSTRUCT query implementation
-    const constructedQuads = [];
-    
-    // This would construct new triples based on the query
-    return {
-      type: 'construct',
-      triples: constructedQuads
-    };
+    try {
+      // Use RDFProcessor's real CONSTRUCT execution
+      const constructedQuads = await this.rdfProcessor.executeConstruct(parsedQuery, options);
+      
+      return {
+        type: 'construct',
+        triples: constructedQuads
+      };
+    } catch (error) {
+      this.logger.error('CONSTRUCT query execution failed:', error);
+      throw error;
+    }
   }
 
   async _executeAskQuery(parsedQuery, options) {
-    // ASK query implementation
-    const quads = this.store.getQuads();
-    
-    // Simple existence check
-    const exists = quads.length > 0;
-    
-    return {
-      type: 'boolean',
-      boolean: exists
-    };
+    try {
+      // Use RDFProcessor's real ASK execution
+      const result = await this.rdfProcessor.executeAsk(parsedQuery, options);
+      
+      return {
+        type: 'boolean',
+        ...result
+      };
+    } catch (error) {
+      this.logger.error('ASK query execution failed:', error);
+      throw error;
+    }
   }
 
   async _executeDescribeQuery(parsedQuery, options) {
-    // DESCRIBE query implementation
-    const describedTriples = [];
-    
-    return {
-      type: 'describe',
-      triples: describedTriples
-    };
+    try {
+      // Use RDFProcessor's real DESCRIBE execution
+      const describedTriples = await this.rdfProcessor.executeDescribe(parsedQuery, options);
+      
+      return {
+        type: 'describe',
+        triples: describedTriples
+      };
+    } catch (error) {
+      this.logger.error('DESCRIBE query execution failed:', error);
+      throw error;
+    }
   }
 
-  _createBinding(quad, parsedQuery) {
-    // Create variable bindings from quad
-    // This is a simplified implementation
-    return {
-      subject: { type: 'uri', value: quad.subject.value },
-      predicate: { type: 'uri', value: quad.predicate.value },
-      object: quad.object.termType === 'Literal' 
-        ? { type: 'literal', value: quad.object.value }
-        : { type: 'uri', value: quad.object.value }
-    };
+  _createBinding(term, variable) {
+    // Create SPARQL binding using real RDF DataFactory methods
+    const binding = {};
+    
+    if (term.termType === 'NamedNode') {
+      binding[variable] = {
+        type: 'uri',
+        value: term.value
+      };
+    } else if (term.termType === 'Literal') {
+      binding[variable] = {
+        type: 'literal',
+        value: term.value,
+        datatype: term.datatype?.value,
+        'xml:lang': term.language
+      };
+    } else if (term.termType === 'BlankNode') {
+      binding[variable] = {
+        type: 'bnode',
+        value: term.value
+      };
+    }
+    
+    return binding;
   }
 
   _extractVariables(parsedQuery) {
@@ -638,23 +809,7 @@ export class ProvenanceQueries {
     return [];
   }
 
-  _generateCacheKey(query, options) {
-    const optionsString = JSON.stringify(options, null, 0);
-    return crypto.createHash('sha256').update(query + optionsString).digest('hex');
-  }
-
-  _cacheResults(key, results) {
-    if (this.queryCache.size >= this.maxCacheSize) {
-      // Simple LRU eviction
-      const firstKey = this.queryCache.keys().next().value;
-      this.queryCache.delete(firstKey);
-    }
-
-    this.queryCache.set(key, {
-      ...results,
-      cachedAt: new Date()
-    });
-  }
+  // Cache methods now handled by SPARQLQueryCache
 
   _processLineageResults(results) {
     // Process lineage query results into structured format
@@ -747,6 +902,57 @@ export class ProvenanceQueries {
       }
     }
     return true;
+  }
+  
+  /**
+   * Get error handling statistics
+   */
+  getErrorStatistics() {
+    return this.errorHandler.getErrorStatistics();
+  }
+  
+  /**
+   * Setup error recovery strategies
+   */
+  _setupErrorRecoveryStrategies() {
+    // SPARQL parsing error recovery
+    this.errorHandler.registerRecoveryStrategy('syntax', async (errorContext, options) => {
+      this.logger.info('Attempting SPARQL syntax error recovery');
+      
+      if (errorContext.context.operation === 'sparql-execution') {
+        // Could attempt query simplification or syntax correction
+        return { success: false, reason: 'SPARQL syntax errors require manual correction' };
+      }
+      
+      return { success: false, reason: 'Syntax error not recoverable' };
+    });
+    
+    // Timeout error recovery
+    this.errorHandler.registerRecoveryStrategy('timeout', async (errorContext, options) => {
+      this.logger.info('Attempting query timeout recovery');
+      
+      // Could implement query simplification or result limiting
+      const newTimeout = (options.timeout || this.config.queryTimeout) * 1.5;
+      
+      return {
+        success: true,
+        reason: 'Query timeout increased',
+        newOptions: { ...options, timeout: newTimeout }
+      };
+    });
+    
+    // Store unavailable recovery
+    this.errorHandler.registerRecoveryStrategy('store_unavailable', async (errorContext, options) => {
+      this.logger.info('Attempting store availability recovery');
+      
+      // Try to reinitialize RDF processor
+      try {
+        await this._initializeRDFProcessor();
+        return { success: true, reason: 'RDF processor reinitialized' };
+      } catch (reinitError) {
+        return { success: false, reason: `Store reinitialization failed: ${reinitError.message}` };
+      }
+    });
   }
 }
 

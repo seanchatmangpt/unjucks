@@ -11,6 +11,7 @@ import { promises as fs } from 'fs';
 import nunjucks from 'nunjucks';
 import matter from 'gray-matter';
 import { Logger } from '../utils/logger.js';
+import { DeterministicIdGenerator } from '../../../../src/utils/deterministic-id-generator.js';
 
 /**
  * Deterministic Template Environment
@@ -30,6 +31,9 @@ export class DeterministicTemplateEnvironment {
       component: 'DeterministicGenerator',
       level: options.debug ? 'debug' : 'info'
     });
+
+    // Initialize deterministic ID generator
+    this.idGenerator = new DeterministicIdGenerator();
 
     // Create deterministic Nunjucks environment
     this.env = this.createDeterministicEnvironment();
@@ -289,7 +293,7 @@ export class ContentAddressedGenerator {
         shortHash,
         context: this.templateEngine.sortObjectKeys(context),
         frontmatter,
-        generatedAt: new Date().toISOString(),
+        generatedAt: this.idGenerator.generateId('timestamp', content, lockHash, templatePath),
         nodeVersion: process.version,
         templateSize: template.length,
         renderedSize: rendered.length

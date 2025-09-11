@@ -88,7 +88,7 @@ class SecretManager {
     const iv = crypto.randomBytes(this.ivLength);
     const key = this.deriveKey(salt);
     
-    const cipher = crypto.createCipher(this.algorithm, key);
+    const cipher = crypto.createCipherGCM(this.algorithm, key, iv);
     cipher.setAAD(Buffer.from(this.environment));
     
     let encrypted = cipher.update(value, 'utf8', 'hex');
@@ -116,7 +116,8 @@ class SecretManager {
     }
     
     const key = this.deriveKey(Buffer.from(salt, 'hex'));
-    const decipher = crypto.createDecipher(algorithm, key);
+    const ivBuffer = Buffer.from(iv, 'hex');
+    const decipher = crypto.createDecipherGCM(algorithm, key, ivBuffer);
     
     decipher.setAuthTag(Buffer.from(tag, 'hex'));
     decipher.setAAD(Buffer.from(this.environment));

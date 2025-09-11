@@ -6,9 +6,9 @@
  */
 
 import { defineCommand } from 'citty';
-import { readFileSync, writeFileSync, existsSync } from 'fs';
+import { readFileSync, writeFileSync, existsSync, statSync, mkdirSync } from 'fs';
 import { resolve, dirname } from 'path';
-import { mkdirSync } from 'fs';
+import { createHash } from 'crypto';
 
 import { success, error, output } from '../../lib/output.js';
 import { loadKgenConfig, validateTurtleFile, findFiles, hashFile } from '../../lib/utils.js';
@@ -100,7 +100,7 @@ export default defineCommand({
             lockData.templates[relativePath] = {
               path: templatePath,
               hash: hashFile(templatePath),
-              size: require('fs').statSync(templatePath).size
+              size: statSync(templatePath).size
             };
           }
         }
@@ -120,7 +120,7 @@ export default defineCommand({
             lockData.rules[relativePath] = {
               path: rulePath,
               hash: hashFile(rulePath),
-              size: require('fs').statSync(rulePath).size
+              size: statSync(rulePath).size
             };
           }
         }
@@ -140,8 +140,8 @@ export default defineCommand({
             lockData.artifacts[relativePath] = {
               path: artifactPath,
               hash: hashFile(artifactPath),
-              size: require('fs').statSync(artifactPath).size,
-              lastModified: require('fs').statSync(artifactPath).mtime.toISOString()
+              size: statSync(artifactPath).size,
+              lastModified: statSync(artifactPath).mtime.toISOString()
             };
           }
         }
@@ -155,7 +155,7 @@ export default defineCommand({
       ].join('');
       
       lockData.integrity = {
-        combined: require('crypto').createHash('sha256').update(combinedHashes).digest('hex'),
+        combined: createHash('sha256').update(combinedHashes).digest('hex'),
         components: {
           graph: graphInfo.hash,
           templates: Object.keys(lockData.templates).length,
@@ -176,7 +176,7 @@ export default defineCommand({
       const result = success({
         lockfile: {
           path: outputPath,
-          hash: require('crypto').createHash('sha256').update(lockContent).digest('hex'),
+          hash: createHash('sha256').update(lockContent).digest('hex'),
           size: lockContent.length
         },
         components: {

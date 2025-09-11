@@ -1,0 +1,43 @@
+# GDPR Compliance Rules for Knowledge Graph Processing
+@prefix gdpr: <http://ontology.example.com/gdpr#> .
+@prefix log: <http://www.w3.org/2000/10/swap/log#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+
+# GDPR Article 6 - Lawful basis for processing
+{
+    ?data gdpr:hasPersonalData true .
+    ?data gdpr:hasLawfulBasis ?basis .
+    ?basis rdf:type gdpr:LawfulBasis .
+} => {
+    ?data gdpr:complianceStatus "GDPR_LAWFUL" .
+} .
+
+# GDPR Article 17 - Right to erasure
+{
+    ?request rdf:type gdpr:ErasureRequest .
+    ?request gdpr:concernsData ?data .
+    ?data gdpr:hasPersonalData true .
+} => {
+    ?data gdpr:mustErase true .
+    ?data gdpr:complianceAction "DELETE_PERSONAL_DATA" .
+} .
+
+# GDPR Article 32 - Data minimization
+{
+    ?data gdpr:hasPersonalData true .
+    ?data gdpr:processingPurpose ?purpose .
+    ?data gdpr:dataFields ?fields .
+    ?fields log:notEqualTo ?purpose .
+} => {
+    ?data gdpr:complianceViolation "DATA_MINIMIZATION_FAILED" .
+    ?data gdpr:severity "HIGH" .
+} .
+
+# GDPR Article 25 - Data protection by design
+{
+    ?system rdf:type gdpr:DataProcessingSystem .
+    ?system gdpr:hasEncryption false .
+} => {
+    ?system gdpr:complianceViolation "MISSING_ENCRYPTION" .
+    ?system gdpr:severity "CRITICAL" .
+} .

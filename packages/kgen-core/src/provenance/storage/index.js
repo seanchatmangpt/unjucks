@@ -356,17 +356,41 @@ export class ProvenanceStorage {
   }
 
   async _encrypt(data) {
+    // Secure encryption for provenance data using AES-256-GCM
+    const encryptionKey = this.encryptionKey;
+    
+    if (!encryptionKey || encryptionKey.length < 32) {
+      throw new Error('Encryption key must be at least 32 characters long');
+    }
+    
+    // Generate random IV for each encryption
     const iv = crypto.randomBytes(16);
-    const cipher = crypto.createCipher('aes-256-cbc', this.encryptionKey);
+    const cipher = crypto.createCipherGCM('aes-256-gcm', encryptionKey, iv);
+    cipher.setAAD(Buffer.from('provenance-storage', 'utf8'));
+    
     let encrypted = cipher.update(data, 'utf8', 'hex');
     encrypted += cipher.final('hex');
-    return `${iv.toString('hex')}:${encrypted}`;
+    
+    const authTag = cipher.getAuthTag();
+    
+    // Return IV + authTag + encrypted data for secure decryption
+    return iv.toString('hex') + ':' + authTag.toString('hex') + ':' + encrypted;
   }
 
   async _decrypt(encryptedData) {
-    const [ivHex, encrypted] = encryptedData.split(':');
+    const parts = encryptedData.split(':');
+    if (parts.length !== 3) {
+      throw new Error('Invalid encrypted data format');
+    }
+    
+    const [ivHex, authTagHex, encrypted] = parts;
     const iv = Buffer.from(ivHex, 'hex');
-    const decipher = crypto.createDecipher('aes-256-cbc', this.encryptionKey);
+    const authTag = Buffer.from(authTagHex, 'hex');
+    
+    const decipher = crypto.createDecipherGCM('aes-256-gcm', this.encryptionKey, iv);
+    decipher.setAAD(Buffer.from('provenance-storage', 'utf8'));
+    decipher.setAuthTag(authTag);
+    
     let decrypted = decipher.update(encrypted, 'hex', 'utf8');
     decrypted += decipher.final('utf8');
     return decrypted;

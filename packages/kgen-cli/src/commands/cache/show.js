@@ -1,41 +1,57 @@
 /**
  * Cache Show Command
  * 
- * Show detailed information about specific cache entry.
- * Essential for debugging cache behavior in autonomous systems.
+ * Show detailed information about cache entries and statistics
+ * using the unified content-addressed cache system.
  */
 
 import { defineCommand } from 'citty';
-import { existsSync, statSync, readFileSync } from 'fs';
-import { resolve, join } from 'path';
-import { createHash } from 'crypto';
+import { resolve } from 'path';
 
 import { success, error, output } from '../../lib/output.js';
 import { loadKgenConfig } from '../../lib/utils.js';
+import { ContentAddressedCache } from '../../../../kgen-core/src/cache/content-addressable-cache.js';
 
 export default defineCommand({
   meta: {
     name: 'show',
-    description: 'Show detailed information about cache entry'
+    description: 'Show cache statistics and optionally specific entries'
   },
   args: {
-    hash: {
+    key: {
       type: 'string',
-      description: 'Hash of cache entry to show (full or partial)',
-      required: true,
-      alias: 'h'
+      description: 'Specific cache key to show (optional)',
+      alias: 'k'
+    },
+    layer: {
+      type: 'string',
+      description: 'Show entries from specific layer: memory|disk|template|all',
+      default: 'all',
+      alias: 'l'
+    },
+    stats: {
+      type: 'boolean',
+      description: 'Show detailed cache statistics',
+      default: true,
+      alias: 's'
+    },
+    entries: {
+      type: 'boolean',
+      description: 'List cache entries',
+      default: false,
+      alias: 'e'
+    },
+    limit: {
+      type: 'number',
+      description: 'Limit number of entries to show',
+      default: 20,
+      alias: 'n'
     },
     content: {
       type: 'boolean',
-      description: 'Include content preview',
+      description: 'Include content preview for specific entries',
       default: false,
       alias: 'c'
-    },
-    verify: {
-      type: 'boolean',
-      description: 'Verify content integrity',
-      default: true,
-      alias: 'v'
     },
     format: {
       type: 'string',
@@ -51,153 +67,90 @@ export default defineCommand({
       // Load configuration
       const config = await loadKgenConfig(args.config);
       
-      // Get cache directory
-      const cacheDir = resolve(config.directories.cache);
+      // Initialize cache system
+      const cacheConfig = {
+        cacheDir: resolve(config.directories?.cache || './cache'),
+        ...config.cache
+      };
       
-      if (!existsSync(cacheDir)) {
-        throw new Error(`Cache directory not found: ${cacheDir}`);
+      const cache = new ContentAddressedCache(cacheConfig);
+      await cache.initialize();
+      
+      let result = {
+        operation: 'show',
+        status: 'success',
+        cache: {
+          directory: cacheConfig.cacheDir
+        },
+        metrics: {
+          durationMs: 0
+        }
+      };
+      
+      // Show statistics if requested
+      if (args.stats) {
+        const statistics = cache.getStatistics();
+        result.statistics = statistics;
       }
       
-      // Find matching cache entry
-      const entries = require('fs').readdirSync(cacheDir);
-      const matchingEntries = entries.filter(entry => 
-        entry.startsWith(args.hash) && !entry.startsWith('.')
-      );
-      
-      if (matchingEntries.length === 0) {
-        throw new Error(`No cache entry found matching hash: ${args.hash}`);
-      }
-      
-      if (matchingEntries.length > 1) {
-        throw new Error(`Hash prefix ${args.hash} matches multiple entries: ${matchingEntries.slice(0, 5).join(', ')}${matchingEntries.length > 5 ? '...' : ''}`);
-      }
-      
-      const entryFile = matchingEntries[0];
-      const entryPath = join(cacheDir, entryFile);
-      const stats = statSync(entryPath);
-      
-      // Read and analyze content
-      const content = readFileSync(entryPath, 'utf8');
-      let contentPreview = null;
-      let contentSample = null;
-      
-      if (args.content) {
-        const lines = content.split('\n');
-        contentPreview = {
-          totalLines: lines.length,
-          firstLines: lines.slice(0, 10),
-          lastLines: lines.length > 20 ? lines.slice(-10) : [],
-          truncated: lines.length > 20
-        };
-        
-        // Safe content sample (first 500 chars)
-        contentSample = content.length > 500 
-          ? content.substring(0, 500) + '...'
-          : content;
-      }
-      
-      // Verify integrity if requested
-      let integrity = null;
-      if (args.verify) {
-        const computedHash = createHash('sha256').update(content).digest('hex');
-        const expectedHash = entryFile;
-        
-        integrity = {
-          valid: computedHash === expectedHash,
-          computedHash,
-          expectedHash,
-          algorithm: 'sha256'
-        };
-      }
-      
-      // Detect content type
-      const contentType = detectContentType(content, entryFile);
-      
-      // Try to parse structured content
-      let parsed = null;
-      if (contentType.structured) {
+      // Show specific key if provided
+      if (args.key) {
         try {
-          switch (contentType.format) {
-            case 'json':
-              parsed = JSON.parse(content);
-              break;
-            case 'yaml':
-              parsed = require('yaml').parse(content);
-              break;
+          const content = await cache.retrieve(args.key);
+          const hasEntry = await cache.has(args.key);
+          
+          result.entry = {
+            key: args.key,
+            found: hasEntry,
+            content: args.content ? content : null,
+            content_preview: args.content && content ? 
+              (typeof content === 'string' ? content.substring(0, 500) : JSON.stringify(content).substring(0, 500)) : null
+          };
+          
+          if (!hasEntry) {
+            result.status = 'not_found';
+            result.message = `Cache entry not found for key: ${args.key}`;
           }
-        } catch (e) {
-          // Not valid structured content
-          contentType.parseError = e.message;
+        } catch (error) {
+          result.entry = {
+            key: args.key,
+            found: false,
+            error: error.message
+          };
         }
       }
       
-      // Check for related files
-      const relatedFiles = [];
-      const accessLogPath = join(cacheDir, '.access.log');
-      
-      if (existsSync(accessLogPath)) {
-        try {
-          const accessLog = readFileSync(accessLogPath, 'utf8');
-          const logEntries = accessLog
-            .split('\n')
-            .filter(line => line.trim())
-            .map(line => JSON.parse(line))
-            .filter(entry => entry.hash === entryFile)
-            .slice(-10); // Last 10 access records
-            
-          if (logEntries.length > 0) {
-            relatedFiles.push({
-              type: 'access_log',
-              path: accessLogPath,
-              entries: logEntries
-            });
-          }
-        } catch (e) {
-          // Access log parsing error is non-critical
-        }
+      // List entries if requested
+      if (args.entries) {
+        const listOptions = {
+          layer: args.layer === 'all' ? null : args.layer,
+          limit: args.limit,
+          sortBy: 'accessed_at',
+          order: 'desc'
+        };
+        
+        const entries = await cache.listEntries(listOptions);
+        result.entries = {
+          total: entries.length,
+          limit: args.limit,
+          layer: args.layer,
+          items: entries
+        };
       }
       
       const duration = Date.now() - startTime;
+      result.metrics.durationMs = duration;
       
-      const result = success({
-        entry: {
-          hash: entryFile,
-          shortHash: entryFile.substring(0, 12),
-          path: entryPath,
-          found: true
-        },
-        file: {
-          size: stats.size,
-          sizeHuman: formatBytes(stats.size),
-          created: stats.birthtime.toISOString(),
-          modified: stats.mtime.toISOString(),
-          accessed: stats.atime.toISOString(),
-          age: Date.now() - stats.birthtime.getTime(),
-          ageHuman: formatAge(Date.now() - stats.birthtime.getTime())
-        },
-        content: {
-          type: contentType,
-          length: content.length,
-          preview: contentPreview,
-          sample: args.content ? contentSample : null,
-          parsed: parsed
-        },
-        integrity,
-        related: relatedFiles,
-        cache: {
-          directory: cacheDir
-        },
-        metrics: {
-          durationMs: duration
-        }
-      });
+      const successResult = success(result);
+      output(successResult, args.format);
       
-      output(result, args.format);
+      // Cleanup
+      await cache.shutdown();
       
     } catch (err) {
       const result = error(err.message, 'CACHE_SHOW_FAILED', {
-        hash: args.hash,
-        cacheDir: config?.directories?.cache,
+        key: args.key,
+        layer: args.layer,
         stack: process.env.KGEN_DEBUG ? err.stack : undefined
       });
       
@@ -206,88 +159,3 @@ export default defineCommand({
     }
   }
 });
-
-/**
- * Detect content type and format
- * @param {string} content - File content
- * @param {string} filename - Filename
- * @returns {object} Content type information
- */
-function detectContentType(content) {
-  const trimmed = content.trim();
-  
-  // JSON detection
-  if ((trimmed.startsWith('{') && trimmed.endsWith('}')) ||
-      (trimmed.startsWith('[') && trimmed.endsWith(']'))) {
-    return {
-      format: 'json',
-      structured: true,
-      binary: false,
-      encoding: 'utf8'
-    };
-  }
-  
-  // YAML detection
-  if (trimmed.includes('---') || /^\w+:\s*/.test(trimmed)) {
-    return {
-      format: 'yaml',
-      structured: true,
-      binary: false,
-      encoding: 'utf8'
-    };
-  }
-  
-  // TTL/RDF detection
-  if (trimmed.includes('@prefix') || trimmed.includes('@base') || 
-      trimmed.includes('PREFIX') || trimmed.includes('BASE')) {
-    return {
-      format: 'turtle',
-      structured: true,
-      binary: false,
-      encoding: 'utf8'
-    };
-  }
-  
-  // Binary detection
-  const isBinary = content.includes('\0') || 
-    Buffer.from(content, 'utf8').toString('utf8') !== content;
-  
-  return {
-    format: isBinary ? 'binary' : 'text',
-    structured: false,
-    binary: isBinary,
-    encoding: isBinary ? 'binary' : 'utf8'
-  };
-}
-
-/**
- * Format bytes into human-readable string
- * @param {number} bytes - Bytes to format
- * @returns {string} Formatted string
- */
-function formatBytes(bytes) {
-  if (bytes === 0) return '0 B';
-  
-  const k = 1024;
-  const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
-  const i = Math.floor(Math.log(bytes) / Math.log(k));
-  
-  return `${parseFloat((bytes / Math.pow(k, i)).toFixed(1))} ${sizes[i]}`;
-}
-
-/**
- * Format age duration into human-readable string
- * @param {number} ms - Milliseconds to format
- * @returns {string} Formatted string
- */
-function formatAge(ms) {
-  const seconds = Math.floor(ms / 1000);
-  const minutes = Math.floor(seconds / 60);
-  const hours = Math.floor(minutes / 60);
-  const days = Math.floor(hours / 24);
-  
-  if (days > 0) return `${days}d ${hours % 24}h`;
-  if (hours > 0) return `${hours}h ${minutes % 60}m`;
-  if (minutes > 0) return `${minutes}m ${seconds % 60}s`;
-  return `${seconds}s`;
-}

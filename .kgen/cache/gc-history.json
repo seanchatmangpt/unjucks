@@ -1,0 +1,63 @@
+[
+  {
+    "timestamp": 1757632383109,
+    "strategy": "expired",
+    "duration": 0,
+    "result": {
+      "strategy": "expired",
+      "collection_breakdown": {
+        "memory": 0,
+        "disk": 0,
+        "templates": 0
+      },
+      "candidates_identified": 0,
+      "collection_efficiency": 0
+    },
+    "cache_state_before": {
+      "timestamp": 1757632383109,
+      "memory": {
+        "entries": 0,
+        "bytes": 0,
+        "usage_ratio": 0
+      },
+      "disk": {
+        "entries": 0,
+        "bytes": 0,
+        "usage_ratio": 0
+      },
+      "templates": {
+        "count": 0,
+        "usage_ratio": 0
+      },
+      "total": {
+        "entries": 0,
+        "bytes": 0,
+        "hit_rate": 0,
+        "template_hit_rate": 0
+      }
+    },
+    "cache_state_after": {
+      "timestamp": 1757632383109,
+      "memory": {
+        "entries": 0,
+        "bytes": 0,
+        "usage_ratio": 0
+      },
+      "disk": {
+        "entries": 0,
+        "bytes": 0,
+        "usage_ratio": 0
+      },
+      "templates": {
+        "count": 0,
+        "usage_ratio": 0
+      },
+      "total": {
+        "entries": 0,
+        "bytes": 0,
+        "hit_rate": 0,
+        "template_hit_rate": 0
+      }
+    }
+  }
+]

@@ -621,17 +621,42 @@ export class MessageQueueIntegration extends EventEmitter {
   }
 
   async encryptData(data) {
-    // Mock encryption - implement with actual encryption
-    const cipher = crypto.createCipher('aes-256-cbc', this.config.encryptionKey);
+    // Secure encryption for message queue using AES-256-GCM
+    const encryptionKey = this.config.encryptionKey;
+    
+    if (!encryptionKey || encryptionKey.length < 32) {
+      throw new Error('Encryption key must be at least 32 characters long');
+    }
+    
+    // Generate random IV for each encryption
+    const iv = crypto.randomBytes(16);
+    const cipher = crypto.createCipherGCM('aes-256-gcm', encryptionKey, iv);
+    cipher.setAAD(Buffer.from('message-queue', 'utf8'));
+    
     let encrypted = cipher.update(JSON.stringify(data), 'utf8', 'hex');
     encrypted += cipher.final('hex');
-    return encrypted;
+    
+    const authTag = cipher.getAuthTag();
+    
+    // Return IV + authTag + encrypted data for secure decryption
+    return iv.toString('hex') + ':' + authTag.toString('hex') + ':' + encrypted;
   }
 
-  async decryptData(data) {
-    // Mock decryption
-    const decipher = crypto.createDecipher('aes-256-cbc', this.config.encryptionKey);
-    let decrypted = decipher.update(data, 'hex', 'utf8');
+  async decryptData(encryptedData) {
+    const parts = encryptedData.split(':');
+    if (parts.length !== 3) {
+      throw new Error('Invalid encrypted data format');
+    }
+    
+    const [ivHex, authTagHex, encrypted] = parts;
+    const iv = Buffer.from(ivHex, 'hex');
+    const authTag = Buffer.from(authTagHex, 'hex');
+    
+    const decipher = crypto.createDecipherGCM('aes-256-gcm', this.config.encryptionKey, iv);
+    decipher.setAAD(Buffer.from('message-queue', 'utf8'));
+    decipher.setAuthTag(authTag);
+    
+    let decrypted = decipher.update(encrypted, 'hex', 'utf8');
     decrypted += decipher.final('utf8');
     return JSON.parse(decrypted);
   }

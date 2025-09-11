@@ -7,7 +7,7 @@
 
 import { defineCommand } from 'citty';
 import { existsSync, statSync, readFileSync } from 'fs';
-import { resolve, extname } from 'path';
+import { resolve, extname, basename, relative } from 'path';
 
 import { success, error, output } from '../../lib/output.js';
 import { loadKgenConfig, findFiles } from '../../lib/utils.js';
@@ -50,11 +50,12 @@ export default defineCommand({
     }
   },
   async run({ args }) {
+    let config;
     try {
       const startTime = Date.now();
       
       // Load configuration
-      const config = await loadKgenConfig(args.config);
+      config = await loadKgenConfig(args.config);
       
       // Get rules directory
       const rulesDir = resolve(config.directories.rules);
@@ -72,7 +73,7 @@ export default defineCommand({
       
       // Find rule pack by name
       const matchingFiles = ruleFiles.filter(file => {
-        const name = require('path').basename(file, extname(file));
+        const name = basename(file, extname(file));
         return name === args.name || file.includes(args.name);
       });
       
@@ -81,7 +82,7 @@ export default defineCommand({
       }
       
       if (matchingFiles.length > 1) {
-        throw new Error(`Multiple rule packs match '${args.name}': ${matchingFiles.map(f => require('path').basename(f)).join(', ')}`);
+        throw new Error(`Multiple rule packs match '${args.name}': ${matchingFiles.map(f => basename(f)).join(', ')}`);
       }
       
       const rulePackPath = matchingFiles[0];
@@ -89,7 +90,7 @@ export default defineCommand({
       const content = readFileSync(rulePackPath, 'utf8');
       
       // Basic rule pack information
-      const relativePath = require('path').relative(rulesDir, rulePackPath);
+      const relativePath = relative(rulesDir, rulePackPath);
       const extension = extname(rulePackPath);
       
       // Detailed analysis

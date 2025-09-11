@@ -1,0 +1,8 @@
+{
+  "id": "feeac9b8-d3a6-4808-aec7-c159b5ce96d7",
+  "type": "unauthorized_access",
+  "severity": "high",
+  "event": "d3288050-ac54-41d1-9625-ca7aa02289f2",
+  "timestamp": "2025-09-11T23:28:17.410Z",
+  "framework": "GDPR"
+}\n

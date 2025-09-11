@@ -8,6 +8,8 @@ import { Parser, Store, DataFactory } from 'n3';
 import consola from 'consola';
 import { EventEmitter } from 'events';
 import crypto from 'crypto';
+import fs from 'fs-extra';
+import path from 'path';
 
 export class ValidationEngine extends EventEmitter {
   constructor(config = {}) {
@@ -62,32 +64,88 @@ export class ValidationEngine extends EventEmitter {
   }
 
   /**
-   * Load custom validation rules
+   * Load custom validation rules with comprehensive error handling
    */
   async loadCustomRules() {
     try {
       const rulesPath = this.config.customRules.rulesPath;
-      if (!rulesPath) return;
+      if (!rulesPath) {
+        consola.info('📋 No custom rules path configured, using built-in rules');
+        return;
+      }
       
-      // In a real implementation, you would load rules from files
-      // This is a placeholder for the structure
       consola.info(`📋 Loading custom validation rules from ${rulesPath}`);
       
-      // Example custom rule structure
+      // Validate rules path exists and is accessible
+      if (!await fs.pathExists(rulesPath)) {
+        throw new Error(`Custom rules path does not exist: ${rulesPath}`);
+      }
+      
+      const rulesFiles = await fs.readdir(rulesPath);
+      const jsFiles = rulesFiles.filter(file => file.endsWith('.js') || file.endsWith('.mjs'));
+      
+      for (const file of jsFiles) {
+        try {
+          const fullPath = path.join(rulesPath, file);
+          const ruleModule = await import(fullPath);
+          
+          if (ruleModule.default && typeof ruleModule.default === 'object') {
+            const rule = ruleModule.default;
+            
+            // Validate rule structure
+            this.validateRuleStructure(rule);
+            
+            this.customRules.set(rule.id, {
+              ...rule,
+              source: file,
+              loadedAt: new Date().toISOString()
+            });
+            
+            consola.success(`✅ Loaded custom rule: ${rule.id} from ${file}`);
+          }
+        } catch (ruleError) {
+          consola.warn(`⚠️ Failed to load rule from ${file}:`, ruleError.message);
+        }
+      }
+      
+      // Load built-in advanced rules
       this.customRules.set('datatype-consistency', {
         name: 'Datatype Consistency Check',
         description: 'Ensures consistent datatype usage across the graph',
-        execute: this.checkDatatypeConsistency.bind(this)
+        execute: this.checkDatatypeConsistency.bind(this),
+        severity: 'MEDIUM',
+        category: 'data-quality'
       });
       
       this.customRules.set('uri-format', {
         name: 'URI Format Validation',
-        description: 'Validates URI format and accessibility',
-        execute: this.checkURIFormat.bind(this)
+        description: 'Validates URI format and accessibility with comprehensive checks',
+        execute: this.checkURIFormat.bind(this),
+        severity: 'HIGH',
+        category: 'format'
       });
       
+      this.customRules.set('ontology-completeness', {
+        name: 'Ontology Completeness Check',
+        description: 'Validates ontology structure and completeness',
+        execute: this.checkOntologyCompleteness.bind(this),
+        severity: 'HIGH',
+        category: 'ontology'
+      });
+      
+      this.customRules.set('semantic-consistency', {
+        name: 'Semantic Consistency Check',
+        description: 'Validates semantic relationships and constraints',
+        execute: this.checkSemanticConsistency.bind(this),
+        severity: 'CRITICAL',
+        category: 'semantics'
+      });
+      
+      consola.success(`✅ Loaded ${this.customRules.size} validation rules`);
+      
     } catch (error) {
-      consola.warn('⚠️ Failed to load custom validation rules:', error);
+      consola.error('❌ Failed to load custom validation rules:', error);
+      throw new Error(`Custom rules loading failed: ${error.message}`);
     }
   }
 
@@ -585,15 +643,55 @@ export class ValidationEngine extends EventEmitter {
   }
 
   /**
-   * Add custom validation rule
+   * Add custom validation rule with comprehensive validation
    */
   addCustomRule(name, rule) {
-    if (typeof rule.execute !== 'function') {
-      throw new Error('Custom rule must have an execute function');
+    try {
+      // Comprehensive rule validation
+      this.validateRuleStructure({ id: name, ...rule });
+      
+      if (typeof rule.execute !== 'function') {
+        throw new Error('Custom rule must have an execute function');
+      }
+      
+      // Test rule execution with sample data
+      const testGraph = new Store();
+      testGraph.addQuad(
+        DataFactory.namedNode('http://test.example/subject'),
+        DataFactory.namedNode('http://test.example/predicate'),
+        DataFactory.literal('test value')
+      );
+      
+      // Validate rule can execute without errors
+      const testResult = rule.execute(testGraph);
+      if (testResult && typeof testResult.then === 'function') {
+        // Async rule - validate structure but don't wait
+        testResult.catch(error => {
+          consola.warn(`⚠️ Custom rule ${name} failed test execution:`, error.message);
+        });
+      }
+      
+      const enrichedRule = {
+        ...rule,
+        id: name,
+        addedAt: new Date().toISOString(),
+        validated: true,
+        category: rule.category || 'custom',
+        severity: rule.severity || 'MEDIUM'
+      };
+      
+      this.customRules.set(name, enrichedRule);
+      this.emit('custom-rule-added', { name, rule: rule.name, category: enrichedRule.category });
+      
+      // Clear validation cache to force re-validation with new rule
+      this.clearValidatorCache();
+      
+      consola.success(`✅ Added custom validation rule: ${name}`);
+      
+    } catch (error) {
+      consola.error(`❌ Failed to add custom rule ${name}:`, error);
+      throw new Error(`Custom rule addition failed: ${error.message}`);
     }
-    
-    this.customRules.set(name, rule);
-    this.emit('custom-rule-added', { name, rule: rule.name });
   }
 
   /**
@@ -631,6 +729,358 @@ export class ValidationEngine extends EventEmitter {
         customRulesEnabled: this.config.customRules?.enabled
       }
     };
+  }
+
+  /**
+   * Advanced validation methods for comprehensive checking
+   */
+  
+  async checkOntologyCompleteness(dataGraph) {
+    const store = new Store(dataGraph);
+    const violations = [];
+    const warnings = [];
+    
+    // Check for essential ontology components
+    const classCount = Array.from(store).filter(quad => 
+      quad.predicate.value === 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type' &&
+      quad.object.value === 'http://www.w3.org/2002/07/owl#Class'
+    ).length;
+    
+    const propertyCount = Array.from(store).filter(quad => 
+      quad.predicate.value === 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type' &&
+      (quad.object.value === 'http://www.w3.org/2002/07/owl#ObjectProperty' ||
+       quad.object.value === 'http://www.w3.org/2002/07/owl#DatatypeProperty')
+    ).length;
+    
+    if (classCount === 0) {
+      violations.push({
+        type: 'no-classes',
+        message: 'Ontology contains no OWL classes',
+        severity: 'HIGH'
+      });
+    }
+    
+    if (propertyCount === 0) {
+      warnings.push({
+        type: 'no-properties',
+        message: 'Ontology contains no OWL properties',
+        severity: 'MEDIUM'
+      });
+    }
+    
+    // Check for ontology metadata
+    const ontologyDeclarations = Array.from(store).filter(quad => 
+      quad.predicate.value === 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type' &&
+      quad.object.value === 'http://www.w3.org/2002/07/owl#Ontology'
+    );
+    
+    if (ontologyDeclarations.length === 0) {
+      warnings.push({
+        type: 'no-ontology-declaration',
+        message: 'No owl:Ontology declaration found',
+        severity: 'MEDIUM'
+      });
+    }
+    
+    return {
+      passed: violations.length === 0,
+      violations,
+      warnings,
+      metadata: { 
+        classCount, 
+        propertyCount,
+        ontologyDeclarations: ontologyDeclarations.length
+      }
+    };
+  }
+  
+  async checkSemanticConsistency(dataGraph) {
+    const store = new Store(dataGraph);
+    const violations = [];
+    const warnings = [];
+    
+    // Check for circular class hierarchies
+    const subClassOfTriples = Array.from(store).filter(quad => 
+      quad.predicate.value === 'http://www.w3.org/2000/01/rdf-schema#subClassOf'
+    );
+    
+    const classHierarchy = new Map();
+    for (const triple of subClassOfTriples) {
+      const subject = triple.subject.value;
+      const object = triple.object.value;
+      
+      if (!classHierarchy.has(subject)) {
+        classHierarchy.set(subject, new Set());
+      }
+      classHierarchy.get(subject).add(object);
+    }
+    
+    // Detect cycles using DFS
+    const visited = new Set();
+    const recursionStack = new Set();
+    
+    const hasCycle = (node) => {
+      visited.add(node);
+      recursionStack.add(node);
+      
+      const neighbors = classHierarchy.get(node) || new Set();
+      for (const neighbor of neighbors) {
+        if (!visited.has(neighbor)) {
+          if (hasCycle(neighbor)) return true;
+        } else if (recursionStack.has(neighbor)) {
+          return true;
+        }
+      }
+      
+      recursionStack.delete(node);
+      return false;
+    };
+    
+    for (const [node] of classHierarchy) {
+      if (!visited.has(node) && hasCycle(node)) {
+        violations.push({
+          type: 'circular-hierarchy',
+          message: `Circular class hierarchy detected involving: ${node}`,
+          class: node,
+          severity: 'HIGH'
+        });
+      }
+    }
+    
+    // Check for domain/range consistency
+    const domainViolations = this.checkDomainRangeConsistency(store);
+    violations.push(...domainViolations.violations);
+    warnings.push(...domainViolations.warnings);
+    
+    return {
+      passed: violations.length === 0,
+      violations,
+      warnings,
+      metadata: { 
+        classHierarchySize: classHierarchy.size,
+        subClassRelations: subClassOfTriples.length
+      }
+    };
+  }
+  
+  checkDomainRangeConsistency(store) {
+    const violations = [];
+    const warnings = [];
+    
+    // Get all domain and range declarations
+    const domains = new Map();
+    const ranges = new Map();
+    
+    for (const quad of store) {
+      if (quad.predicate.value === 'http://www.w3.org/2000/01/rdf-schema#domain') {
+        domains.set(quad.subject.value, quad.object.value);
+      } else if (quad.predicate.value === 'http://www.w3.org/2000/01/rdf-schema#range') {
+        ranges.set(quad.subject.value, quad.object.value);
+      }
+    }
+    
+    // Check property usage against declared domains and ranges
+    for (const quad of store) {
+      const propertyIRI = quad.predicate.value;
+      
+      // Skip RDF/RDFS/OWL built-in properties
+      if (propertyIRI.startsWith('http://www.w3.org/1999/02/22-rdf-syntax-ns#') ||
+          propertyIRI.startsWith('http://www.w3.org/2000/01/rdf-schema#') ||
+          propertyIRI.startsWith('http://www.w3.org/2002/07/owl#')) {
+        continue;
+      }
+      
+      // Check domain consistency
+      if (domains.has(propertyIRI)) {
+        const expectedDomain = domains.get(propertyIRI);
+        // In a full implementation, would check if subject is instance of domain class
+        // This is a simplified check
+        warnings.push({
+          type: 'domain-check-needed',
+          message: `Property ${propertyIRI} usage should be verified against domain ${expectedDomain}`,
+          property: propertyIRI,
+          subject: quad.subject.value,
+          expectedDomain
+        });
+      }
+      
+      // Check range consistency for object properties
+      if (ranges.has(propertyIRI) && quad.object.termType === 'NamedNode') {
+        const expectedRange = ranges.get(propertyIRI);
+        warnings.push({
+          type: 'range-check-needed',
+          message: `Property ${propertyIRI} object should be verified against range ${expectedRange}`,
+          property: propertyIRI,
+          object: quad.object.value,
+          expectedRange
+        });
+      }
+    }
+    
+    return { violations, warnings };
+  }
+  
+  /**
+   * Validate rule structure comprehensively
+   */
+  validateRuleStructure(rule) {
+    if (!rule || typeof rule !== 'object') {
+      throw new Error('Rule must be an object');
+    }
+    
+    if (!rule.id || typeof rule.id !== 'string') {
+      throw new Error('Rule must have a string id');
+    }
+    
+    if (!/^[a-zA-Z0-9_-]+$/.test(rule.id)) {
+      throw new Error('Rule id must contain only alphanumeric characters, underscores, and hyphens');
+    }
+    
+    if (!rule.name || typeof rule.name !== 'string') {
+      throw new Error('Rule must have a string name');
+    }
+    
+    if (!rule.description || typeof rule.description !== 'string') {
+      throw new Error('Rule must have a string description');
+    }
+    
+    const validSeverities = ['LOW', 'MEDIUM', 'HIGH', 'CRITICAL'];
+    if (!rule.severity || !validSeverities.includes(rule.severity)) {
+      throw new Error(`Rule severity must be one of: ${validSeverities.join(', ')}`);
+    }
+    
+    const validCategories = ['data-quality', 'format', 'ontology', 'semantics', 'security', 'performance', 'custom'];
+    if (rule.category && !validCategories.includes(rule.category)) {
+      throw new Error(`Rule category must be one of: ${validCategories.join(', ')}`);
+    }
+    
+    if (rule.enabled !== undefined && typeof rule.enabled !== 'boolean') {
+      throw new Error('Rule enabled flag must be a boolean');
+    }
+    
+    if (rule.timeout && (typeof rule.timeout !== 'number' || rule.timeout <= 0)) {
+      throw new Error('Rule timeout must be a positive number');
+    }
+    
+    return true;
+  }
+  
+  /**
+   * Comprehensive validation with detailed error reporting
+   */
+  async validateWithDetailedErrors(dataGraph, shapesGraph = null, options = {}) {
+    const validationId = crypto.randomUUID();
+    const startTime = Date.now();
+    
+    const result = {
+      validationId,
+      timestamp: new Date().toISOString(),
+      success: false,
+      summary: {
+        totalViolations: 0,
+        totalWarnings: 0,
+        totalRulesExecuted: 0,
+        validationTime: 0
+      },
+      details: {
+        shacl: null,
+        custom: null,
+        errors: []
+      },
+      metadata: {
+        engineStatus: this.status,
+        configUsed: { ...this.config },
+        cacheStats: {
+          hits: this.metrics?.cacheHits || 0,
+          misses: this.metrics?.cacheMisses || 0
+        }
+      }
+    };
+    
+    try {
+      // Run comprehensive validation
+      const validationResults = await this.validate(dataGraph, shapesGraph, options);
+      
+      result.details.shacl = validationResults.shacl;
+      result.details.custom = validationResults.custom;
+      
+      result.summary.totalViolations = validationResults.overall.totalViolations;
+      result.summary.totalWarnings = validationResults.overall.totalWarnings;
+      result.summary.validationTime = validationResults.overall.validationTime;
+      result.summary.totalRulesExecuted = validationResults.custom?.rulesExecuted || 0;
+      
+      result.success = validationResults.overall.passed;
+      
+      // Generate recommendations based on violations
+      result.recommendations = this.generateRecommendations(validationResults);
+      
+    } catch (error) {
+      result.details.errors.push({
+        type: 'validation-error',
+        message: error.message,
+        stack: error.stack,
+        timestamp: new Date().toISOString()
+      });
+      
+      consola.error(`❌ Validation ${validationId} failed:`, error);
+    } finally {
+      result.summary.validationTime = Date.now() - startTime;
+    }
+    
+    // Emit comprehensive validation event
+    this.emit('detailed-validation', result);
+    
+    return result;
+  }
+  
+  generateRecommendations(validationResults) {
+    const recommendations = [];
+    
+    if (validationResults.shacl && !validationResults.shacl.conforms) {
+      recommendations.push({
+        type: 'shacl-violations',
+        priority: 'HIGH',
+        message: 'Fix SHACL constraint violations to ensure data conforms to defined shapes',
+        actions: [
+          'Review SHACL shapes and data structure',
+          'Validate required properties are present',
+          'Check datatype constraints',
+          'Verify cardinality restrictions'
+        ]
+      });
+    }
+    
+    if (validationResults.custom && !validationResults.custom.passed) {
+      const criticalRules = validationResults.custom.results.filter(r => 
+        !r.passed && r.violations?.some(v => v.severity === 'CRITICAL')
+      );
+      
+      if (criticalRules.length > 0) {
+        recommendations.push({
+          type: 'critical-violations',
+          priority: 'CRITICAL',
+          message: 'Address critical validation violations immediately',
+          actions: criticalRules.map(rule => `Fix violations in rule: ${rule.name}`)
+        });
+      }
+    }
+    
+    // Performance recommendations
+    if (validationResults.overall.validationTime > 10000) { // 10 seconds
+      recommendations.push({
+        type: 'performance',
+        priority: 'MEDIUM',
+        message: 'Validation performance is slow, consider optimization',
+        actions: [
+          'Enable validation caching',
+          'Reduce graph size if possible',
+          'Optimize custom validation rules',
+          'Consider parallel validation'
+        ]
+      });
+    }
+    
+    return recommendations;
   }
 
   /**

@@ -1,0 +1,80 @@
+% LaTeX Report Template with Nunjucks Variables
+% ---
+% name: Simple Report Template
+% description: A basic report template for business documents
+% type: latex
+% syntax: nunjucks
+% ---
+
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage[margin=1in]{geometry}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{booktabs}
+
+\title{{ '{{' }} title or 'Business Report' {{ '}}' }}
+\author{{ '{{' }} author or 'Report Author' {{ '}}' }}
+\date{{ '{{' }} date or '\\today' {{ '}}' }}
+
+\begin{document}
+
+\maketitle
+
+{% if abstract %}
+\begin{abstract}
+{{ abstract }}
+\end{abstract}
+{% endif %}
+
+\section{Executive Summary}
+
+{{ executiveSummary or 'This section provides an overview of the key findings and recommendations.' }}
+
+{% if sections %}
+{% for section in sections %}
+\section{{ '{' }}{{ section.title }}{{ '}' }}
+
+{{ section.content }}
+
+{% if section.subsections %}
+{% for subsection in section.subsections %}
+\subsection{{ '{' }}{{ subsection.title }}{{ '}' }}
+{{ subsection.content }}
+{% endfor %}
+{% endif %}
+
+{% endfor %}
+{% endif %}
+
+{% if data %}
+\section{Data Summary}
+
+\begin{table}[ht]
+\centering
+\begin{tabular}{lc}
+\toprule
+Metric & Value \\
+\midrule
+{% for item in data %}
+{{ item.metric }} & {{ item.value }} \\
+{% endfor %}
+\bottomrule
+\end{tabular}
+\caption{{ '{' }}{{ dataCaption or 'Key Metrics' }}{{ '}' }}
+\end{table}
+{% endif %}
+
+\section{Conclusion}
+
+{{ conclusion or 'This report provides valuable insights for decision making.' }}
+
+{% if appendices %}
+{% for appendix in appendices %}
+\appendix
+\section{{ '{' }}{{ appendix.title }}{{ '}' }}
+{{ appendix.content }}
+{% endfor %}
+{% endif %}
+
+\end{document}

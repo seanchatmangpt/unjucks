@@ -1,15 +1,15 @@
 /**
- * Word document processor for Office template processing in KGEN
+ * LaTeX-based document processor replacing Word document processing
  * 
- * This module provides comprehensive Word document processing capabilities including:
- * - DOCX file reading and writing
+ * This module provides comprehensive LaTeX document generation capabilities including:
+ * - LaTeX template processing with Nunjucks
+ * - Semantic document parsing and generation
+ * - PDF compilation via LaTeX engines
  * - Template variable extraction and replacement
- * - Frontmatter parsing from document properties
- * - Content injection at specified markers
- * - Table and header/footer processing
+ * - Content injection and document structure management
  * 
- * @module office/processors/word-processor
- * @version 1.0.0
+ * @module office/processors/latex-word-processor
+ * @version 2.0.0
  */
 
 import { promises as fs } from 'fs';
@@ -19,24 +19,28 @@ import {
   ErrorSeverity
 } from '../core/types.js';
 import { BaseOfficeProcessor } from '../core/base-processor.js';
+import { LaTeXCompiler } from '../../latex/compiler.js';
+import { LaTeXParser } from '../../latex/parser.js';
+import { LaTeXTemplateRenderer } from '../../latex/renderers/nunjucks.js';
+import { LaTeXSyntaxValidator } from '../../latex/validators/syntax.js';
 
 /**
- * Word document processor implementation
+ * LaTeX-based document processor implementation
  * 
- * Extends the base processor to provide Word-specific functionality for
- * reading, processing, and writing DOCX files with template capabilities.
+ * Extends the base processor to provide LaTeX document generation functionality
+ * for creating professional documents, reports, and academic papers via LaTeX.
  */
-export class WordProcessor extends BaseOfficeProcessor {
-  static SUPPORTED_EXTENSIONS = ['.docx', '.doc'];
+export class LaTeXWordProcessor extends BaseOfficeProcessor {
+  static SUPPORTED_EXTENSIONS = ['.tex', '.latex', '.ltx'];
   static FRONTMATTER_PROPERTY = 'unjucks:frontmatter';
   
   /**
    * Gets the document type supported by this processor
    * 
-   * @returns {string} Word document type
+   * @returns {string} LaTeX document type
    */
   getSupportedType() {
-    return DocumentType.WORD;
+    return DocumentType.LATEX;
   }
 
   /**
@@ -45,19 +49,53 @@ export class WordProcessor extends BaseOfficeProcessor {
    * @returns {string[]} Array of supported extensions
    */
   getSupportedExtensions() {
-    return [...WordProcessor.SUPPORTED_EXTENSIONS];
+    return [...LaTeXWordProcessor.SUPPORTED_EXTENSIONS];
   }
 
   /**
-   * Loads a Word template from file path
+   * Initialize LaTeX components
+   */
+  async initialize() {
+    if (this.initialized) return;
+
+    this.compiler = new LaTeXCompiler({
+      outputDir: this.options.outputDir || './dist/latex',
+      tempDir: this.options.tempDir || './temp/latex',
+      enableSyncTeX: true,
+      security: {
+        enabled: true,
+        strictMode: this.options.strictMode || true
+      }
+    });
+
+    this.renderer = new LaTeXTemplateRenderer({
+      templatesDir: this.options.templatesDir || './templates/latex'
+    });
+
+    this.validator = new LaTeXSyntaxValidator({
+      strictMode: this.options.strictMode || true
+    });
+
+    await this.compiler.initialize();
+    await this.renderer.initialize();
+
+    this.initialized = true;
+  }
+
+  /**
+   * Loads a LaTeX template from file path
    * 
-   * @param {string} templatePath - Path to the Word template file
+   * @param {string} templatePath - Path to the LaTeX template file
    * @returns {Promise<TemplateInfo>} Promise resolving to template info
    */
   async loadTemplate(templatePath) {
-    this.logger.debug(`Loading Word template: ${templatePath}`);
+    this.logger.debug(`Loading LaTeX template: ${templatePath}`);
     
     try {
+      if (!this.initialized) {
+        await this.initialize();
+      }
+
       // Check if file exists and is readable
       await fs.access(templatePath, fs.constants.R_OK);
       
@@ -70,94 +108,126 @@ export class WordProcessor extends BaseOfficeProcessor {
         throw new Error(`Unsupported file extension: ${extension}`);
       }
       
+      // Read and parse LaTeX content
+      const content = await fs.readFile(templatePath, 'utf8');
+      const parseResult = this.parseLatexContent(content);
+      
       const templateInfo = {
         path: templatePath,
         name: path.basename(templatePath, extension),
-        type: DocumentType.WORD,
+        type: DocumentType.LATEX,
         size: stats.size,
-        lastModified: stats.mtime
+        lastModified: stats.mtime,
+        content,
+        parseResult
       };
       
       // Calculate file hash for caching
       templateInfo.hash = await this.calculateFileHash(templatePath);
       
-      this.logger.info(`Word template loaded successfully: ${templateInfo.name}`);
+      this.logger.info(`LaTeX template loaded successfully: ${templateInfo.name}`);
       return templateInfo;
       
     } catch (error) {
-      this.logger.error(`Failed to load Word template: ${templatePath}`, error);
-      throw new Error(`Failed to load Word template: ${error.message}`);
+      this.logger.error(`Failed to load LaTeX template: ${templatePath}`, error);
+      throw new Error(`Failed to load LaTeX template: ${error.message}`);
     }
   }
 
   /**
-   * Parses frontmatter from Word document properties
+   * Parses frontmatter from LaTeX template comments
    * 
    * @param {TemplateInfo} template - Template info
    * @returns {Promise<TemplateFrontmatter|null>} Promise resolving to frontmatter or null
    */
   async parseFrontmatter(template) {
-    this.logger.debug(`Parsing frontmatter from Word template: ${template.name}`);
+    this.logger.debug(`Parsing frontmatter from LaTeX template: ${template.name}`);
     
     try {
-      const document = await this.loadWordDocument(template.path);
+      const content = template.content || await fs.readFile(template.path, 'utf8');
       
-      // Check for frontmatter in custom document properties
-      const frontmatterData = document.properties.custom?.[WordProcessor.FRONTMATTER_PROPERTY];
-      
-      if (frontmatterData) {
-        if (typeof frontmatterData === 'string') {
-          return JSON.parse(frontmatterData);
-        } else if (typeof frontmatterData === 'object') {
-          return frontmatterData;
+      // Look for frontmatter in LaTeX comments at the beginning of file
+      const frontmatterMatch = content.match(/^%\s*---\s*([\s\S]*?)%\s*---\s*/m);
+      if (frontmatterMatch) {
+        const frontmatterYaml = frontmatterMatch[1];
+        // Parse YAML frontmatter (simplified - in production use yaml library)
+        try {
+          const frontmatter = this.parseYamlFrontmatter(frontmatterYaml);
+          this.logger.debug(`Found frontmatter in LaTeX template: ${Object.keys(frontmatter).length} keys`);
+          return frontmatter;
+        } catch (yamlError) {
+          this.logger.warn(`Failed to parse YAML frontmatter: ${yamlError.message}`);
         }
       }
       
-      // Try to parse frontmatter from first paragraph if it looks like YAML/JSON
-      if (document.paragraphs.length > 0) {
-        const firstParagraph = document.paragraphs[0].text.trim();
-        if (firstParagraph.startsWith('---') || firstParagraph.startsWith('{')) {
-          const frontmatter = await this.parseFrontmatterFromText(firstParagraph);
-          if (frontmatter) {
-            return frontmatter;
-          }
+      // Look for JSON frontmatter in comments
+      const jsonMatch = content.match(/^%\s*({[\s\S]*?})\s*$/m);
+      if (jsonMatch) {
+        try {
+          const frontmatter = JSON.parse(jsonMatch[1]);
+          this.logger.debug(`Found JSON frontmatter in LaTeX template`);
+          return frontmatter;
+        } catch (jsonError) {
+          this.logger.warn(`Failed to parse JSON frontmatter: ${jsonError.message}`);
         }
       }
       
-      this.logger.debug('No frontmatter found in Word template');
+      this.logger.debug('No frontmatter found in LaTeX template');
       return null;
       
     } catch (error) {
-      this.logger.warn(`Failed to parse frontmatter from Word template: ${error.message}`);
+      this.logger.warn(`Failed to parse frontmatter from LaTeX template: ${error.message}`);
       return null;
     }
   }
 
   /**
-   * Extracts variables from Word document content
+   * Extracts variables from LaTeX template content
    * 
    * @param {TemplateInfo} template - Template info
    * @param {TemplateFrontmatter} [frontmatter] - Template frontmatter
    * @returns {Promise<VariableLocation[]>} Promise resolving to variable locations
    */
   async extractVariables(template, frontmatter) {
-    this.logger.debug(`Extracting variables from Word template: ${template.name}`);
+    this.logger.debug(`Extracting variables from LaTeX template: ${template.name}`);
     
     try {
-      const document = await this.loadWordDocument(template.path);
-      const variables = this.variableExtractor.extractFromDocument(document, 'word');
+      const content = template.content || await fs.readFile(template.path, 'utf8');
+      const variables = this.extractNunjucksVariables(content);
       
-      this.logger.info(`Extracted ${variables.length} variables from Word template`);
+      this.logger.info(`Extracted ${variables.length} variables from LaTeX template`);
       return variables;
       
     } catch (error) {
-      this.logger.error(`Failed to extract variables from Word template: ${error.message}`);
+      this.logger.error(`Failed to extract variables from LaTeX template: ${error.message}`);
       throw error;
     }
   }
 
   /**
-   * Processes the Word template with provided data
+   * Extract Nunjucks variables from LaTeX content
+   */
+  extractNunjucksVariables(content) {
+    const variables = [];
+    const variablePattern = /{{\s*([^}\s]+(?:\.[^}\s]+)*)\s*}}/g;
+    let match;
+    
+    while ((match = variablePattern.exec(content)) !== null) {
+      const variableName = match[1].trim();
+      variables.push({
+        name: variableName,
+        type: 'nunjucks',
+        position: match.index,
+        fullMatch: match[0],
+        location: 'latex-content'
+      });
+    }
+    
+    return variables;
+  }
+
+  /**
+   * Processes the LaTeX template with provided data
    * 
    * @param {TemplateInfo} template - Template info
    * @param {Object} data - Data for variable replacement
@@ -165,39 +235,48 @@ export class WordProcessor extends BaseOfficeProcessor {
    * @returns {Promise<ProcessingResult>} Promise resolving to processing result
    */
   async processTemplate(template, data, frontmatter) {
-    this.logger.debug(`Processing Word template: ${template.name}`);
+    this.logger.debug(`Processing LaTeX template: ${template.name}`);
     
     try {
-      const document = await this.loadWordDocument(template.path);
+      if (!this.initialized) {
+        await this.initialize();
+      }
+
+      // Convert template path to relative path for Nunjucks renderer
+      const templatesDir = this.options.templatesDir || './templates/latex';
+      const relativePath = path.relative(templatesDir, template.path);
       
-      // Process variables in content
-      await this.processVariablesInDocument(document, data, frontmatter);
+      // Render LaTeX template with Nunjucks
+      const renderResult = await this.renderer.render(relativePath, data);
+      
+      // Validate generated LaTeX
+      const validationResult = await this.validator.validate(renderResult.content);
       
       // Process injection points if defined
+      let finalContent = renderResult.content;
       if (frontmatter?.injectionPoints) {
-        await this.processInjectionPoints(document, data, frontmatter.injectionPoints);
+        finalContent = await this.processInjectionPoints(finalContent, data, frontmatter.injectionPoints);
       }
       
-      // Generate processed document content
-      const content = await this.generateDocumentContent(document);
-      
-      // Extract metadata
-      const metadata = this.extractDocumentMetadata(document);
+      // Parse the generated LaTeX for metadata extraction
+      const parseResult = this.parseLatexContent(finalContent);
       
       const result = {
         success: true,
-        content,
-        metadata,
+        content: finalContent,
+        latexContent: finalContent,
+        metadata: this.extractLatexMetadata(parseResult),
         stats: this.getStats(),
-        validation: { valid: true, errors: [], warnings: [] }
+        validation: validationResult,
+        parseResult
       };
       
-      this.logger.info(`Word template processed successfully: ${template.name}`);
+      this.logger.info(`LaTeX template processed successfully: ${template.name}`);
       return result;
       
     } catch (error) {
       this.incrementErrorCount();
-      this.logger.error(`Failed to process Word template: ${error.message}`);
+      this.logger.error(`Failed to process LaTeX template: ${error.message}`);
       
       return {
         success: false,
@@ -216,32 +295,53 @@ export class WordProcessor extends BaseOfficeProcessor {
   }
 
   /**
-   * Saves the processed Word document to file
+   * Saves the processed LaTeX document to file and optionally compiles to PDF
    * 
    * @param {ProcessingResult} result - Processing result
    * @param {string} outputPath - Output file path
+   * @param {Object} options - Save options
    * @returns {Promise<string>} Promise resolving to saved file path
    */
-  async saveDocument(result, outputPath) {
-    this.logger.debug(`Saving Word document to: ${outputPath}`);
+  async saveDocument(result, outputPath, options = {}) {
+    this.logger.debug(`Saving LaTeX document to: ${outputPath}`);
     
     try {
       // Ensure output directory exists
       const outputDir = path.dirname(outputPath);
       await fs.mkdir(outputDir, { recursive: true });
       
-      // Write document content to file
-      if (result.content instanceof Buffer) {
-        await fs.writeFile(outputPath, result.content);
+      // Write LaTeX content to file
+      if (typeof result.content === 'string' || result.latexContent) {
+        const content = result.latexContent || result.content;
+        await fs.writeFile(outputPath, content, 'utf8');
       } else {
-        throw new Error('Invalid document content format for Word document');
+        throw new Error('Invalid document content format for LaTeX document');
       }
       
-      this.logger.info(`Word document saved successfully: ${outputPath}`);
-      return outputPath;
+      let pdfPath = null;
+      
+      // Compile to PDF if requested
+      if (options.compileToPdf !== false && this.compiler) {
+        try {
+          const compilationResult = await this.compiler.compile(outputPath);
+          if (compilationResult.success) {
+            pdfPath = compilationResult.outputPath;
+            this.logger.info(`LaTeX document compiled to PDF: ${pdfPath}`);
+          }
+        } catch (compileError) {
+          this.logger.warn(`PDF compilation failed: ${compileError.message}`);
+        }
+      }
+      
+      this.logger.info(`LaTeX document saved successfully: ${outputPath}`);
+      return {
+        texPath: outputPath,
+        pdfPath,
+        success: true
+      };
       
     } catch (error) {
-      this.logger.error(`Failed to save Word document: ${error.message}`);
+      this.logger.error(`Failed to save LaTeX document: ${error.message}`);
       throw error;
     }
   }
@@ -301,45 +401,29 @@ export class WordProcessor extends BaseOfficeProcessor {
   }
 
   /**
-   * Loads Word document from file path
+   * Parse LaTeX content using LaTeX parser
    * 
-   * @param {string} filePath - Path to Word document
-   * @returns {Promise<Object>} Promise resolving to Word document structure
+   * @param {string} content - LaTeX content to parse
+   * @returns {Object} Parse result with AST and metadata
    */
-  async loadWordDocument(filePath) {
+  parseLatexContent(content) {
     try {
-      // In a real implementation, you would use a library like 'docx' or 'mammoth'
-      // to parse the DOCX file. This is a simplified placeholder implementation.
+      const parser = new LaTeXParser(content, {
+        semanticAnalysis: true,
+        strictMode: false
+      });
       
-      const fileContent = await fs.readFile(filePath);
-      
-      // Placeholder implementation - in reality, you would parse the DOCX ZIP structure
-      // and extract the document.xml, styles.xml, etc.
-      
-      const document = {
-        paragraphs: [
-          {
-            text: 'Sample document content with {{variable}}',
-            runs: [{ text: 'Sample document content with {{variable}}' }]
-          }
-        ],
-        tables: [],
-        headers: [],
-        footers: [],
-        properties: {
-          title: 'Sample Document',
-          author: 'Template System',
-          created: new Date(),
-          modified: new Date()
-        },
-        styles: [],
-        images: []
-      };
-      
-      return document;
+      return parser.parse();
       
     } catch (error) {
-      throw new Error(`Failed to load Word document: ${error.message}`);
+      this.logger.warn(`LaTeX parsing failed: ${error.message}`);
+      return {
+        type: 'document',
+        ast: null,
+        errors: [{ message: error.message, type: 'parse_error' }],
+        warnings: [],
+        metadata: {}
+      };
     }
   }
 
@@ -351,204 +435,132 @@ export class WordProcessor extends BaseOfficeProcessor {
    * @param {TemplateFrontmatter} [frontmatter] - Template frontmatter
    */
   async processVariablesInDocument(document, data, frontmatter) {
-    // Process paragraphs
-    for (const paragraph of document.paragraphs) {
-      paragraph.text = this.variableExtractor.replaceVariables(paragraph.text, data);
-      
-      // Update runs as well
-      for (const run of paragraph.runs) {
-        run.text = this.variableExtractor.replaceVariables(run.text, data);
-      }
-      
-      this.incrementVariableCount();
-    }
-    
-    // Process tables
-    for (const table of document.tables) {
-      for (const row of table.rows) {
-        for (const cell of row.cells) {
-          for (const paragraph of cell.paragraphs) {
-            paragraph.text = this.variableExtractor.replaceVariables(paragraph.text, data);
-            
-            for (const run of paragraph.runs) {
-              run.text = this.variableExtractor.replaceVariables(run.text, data);
-            }
-          }
-        }
-      }
-      this.incrementVariableCount();
-    }
-    
-    // Process headers and footers
-    for (const section of [...document.headers, ...document.footers]) {
-      for (const paragraph of section.paragraphs) {
-        paragraph.text = this.variableExtractor.replaceVariables(paragraph.text, data);
-        
-        for (const run of paragraph.runs) {
-          run.text = this.variableExtractor.replaceVariables(run.text, data);
-        }
-      }
-      this.incrementVariableCount();
-    }
+    // This method is no longer needed as Nunjucks handles variable processing
+    // Keeping for compatibility but implementation moved to processTemplate
+    this.logger.debug('Variable processing delegated to Nunjucks renderer');
   }
 
+  // Injection points processing moved to main processTemplate method
+
+  // Content injection moved to processInjectionPoints method above
+
   /**
-   * Processes injection points in Word document
+   * Extract metadata from parsed LaTeX document
    * 
-   * @param {Object} document - Word document
+   * @param {Object} parseResult - LaTeX parse result
+   * @returns {Object} Document metadata
+   */
+  extractLatexMetadata(parseResult) {
+    return {
+      title: parseResult.metadata?.title || 'Untitled Document',
+      author: parseResult.metadata?.author || 'Unknown Author',
+      date: parseResult.metadata?.date || new Date().toISOString(),
+      documentClass: parseResult.metadata?.documentClass || 'article',
+      packages: parseResult.documentStructure?.preamble?.filter(node => 
+        node.type === 'command' && node.value === 'usepackage'
+      )?.length || 0,
+      sections: parseResult.documentStructure?.metadata?.sectionCount || 0,
+      citations: parseResult.documentStructure?.metadata?.citationCount || 0,
+      mathElements: parseResult.documentStructure?.metadata?.mathElementCount || 0,
+      processingTime: parseResult.statistics?.processingTime || 0,
+      errors: parseResult.errors?.length || 0,
+      warnings: parseResult.warnings?.length || 0
+    };
+  }
+
+  // Metadata extraction moved to extractLatexMetadata method above
+
+  /**
+   * Validates LaTeX document structure
+   * 
+   * @param {Object} parseResult - LaTeX parse result to validate
+   * @returns {boolean} Whether document structure is valid
+   */
+  isValidLatexDocument(parseResult) {
+    return (
+      parseResult &&
+      parseResult.type === 'document' &&
+      parseResult.ast &&
+      Array.isArray(parseResult.errors) &&
+      Array.isArray(parseResult.warnings)
+    );
+  }
+
+  // Frontmatter parsing moved to parseYamlFrontmatter method above
+
+  /**
+   * Process injection points in LaTeX content
+   * 
+   * @param {string} content - LaTeX content
    * @param {Object} data - Injection data
-   * @param {InjectionPoint[]} injectionPoints - Injection point definitions
+   * @param {Array} injectionPoints - Injection point definitions
+   * @returns {string} Processed content
    */
-  async processInjectionPoints(document, data, injectionPoints) {
+  async processInjectionPoints(content, data, injectionPoints) {
+    let processedContent = content;
+    
     for (const injectionPoint of injectionPoints) {
-      const content = data[injectionPoint.id] || injectionPoint.defaultContent || '';
+      const injectionData = data[injectionPoint.id] || injectionPoint.defaultContent || '';
       
-      if (content) {
-        await this.injectContentAtMarker(document, injectionPoint.marker, content, injectionPoint);
-        this.incrementInjectionCount();
-      }
-    }
-  }
-
-  /**
-   * Injects content at specified marker in document
-   * 
-   * @param {Object} document - Word document
-   * @param {string} marker - Marker string to find
-   * @param {string} content - Content to inject
-   * @param {InjectionPoint} injectionPoint - Injection point configuration
-   */
-  async injectContentAtMarker(document, marker, content, injectionPoint) {
-    // Find and replace marker in paragraphs
-    for (const paragraph of document.paragraphs) {
-      if (paragraph.text.includes(marker)) {
+      if (injectionData && injectionPoint.marker) {
         const position = injectionPoint.processing?.position || 'replace';
         
         switch (position) {
           case 'replace':
-            paragraph.text = paragraph.text.replace(marker, content);
+            processedContent = processedContent.replace(injectionPoint.marker, injectionData);
             break;
           case 'before':
-            paragraph.text = paragraph.text.replace(marker, content + marker);
+            processedContent = processedContent.replace(injectionPoint.marker, injectionData + injectionPoint.marker);
             break;
           case 'after':
-            paragraph.text = paragraph.text.replace(marker, marker + content);
+            processedContent = processedContent.replace(injectionPoint.marker, injectionPoint.marker + injectionData);
             break;
         }
         
-        // Update runs to match
-        paragraph.runs = [{ text: paragraph.text }];
+        this.incrementInjectionCount();
       }
     }
     
-    // Also check tables
-    for (const table of document.tables) {
-      for (const row of table.rows) {
-        for (const cell of row.cells) {
-          for (const paragraph of cell.paragraphs) {
-            if (paragraph.text.includes(marker)) {
-              const position = injectionPoint.processing?.position || 'replace';
-              
-              switch (position) {
-                case 'replace':
-                  paragraph.text = paragraph.text.replace(marker, content);
-                  break;
-                case 'before':
-                  paragraph.text = paragraph.text.replace(marker, content + marker);
-                  break;
-                case 'after':
-                  paragraph.text = paragraph.text.replace(marker, marker + content);
-                  break;
-              }
-              
-              paragraph.runs = [{ text: paragraph.text }];
-            }
+    return processedContent;
+  }
+
+  /**
+   * Parse simplified YAML frontmatter
+   * 
+   * @param {string} yamlContent - YAML content
+   * @returns {Object} Parsed YAML object
+   */
+  parseYamlFrontmatter(yamlContent) {
+    // Simplified YAML parser - in production use proper YAML library
+    const result = {};
+    const lines = yamlContent.split('\n');
+    
+    for (const line of lines) {
+      const trimmed = line.trim();
+      if (trimmed && !trimmed.startsWith('%')) {
+        const colonIndex = trimmed.indexOf(':');
+        if (colonIndex > 0) {
+          const key = trimmed.substring(0, colonIndex).trim();
+          let value = trimmed.substring(colonIndex + 1).trim();
+          
+          // Handle quoted strings
+          if ((value.startsWith('"') && value.endsWith('"')) ||
+              (value.startsWith("'") && value.endsWith("'"))) {
+            value = value.slice(1, -1);
           }
+          
+          // Handle boolean and number values
+          if (value === 'true') value = true;
+          else if (value === 'false') value = false;
+          else if (/^\d+$/.test(value)) value = parseInt(value);
+          else if (/^\d+\.\d+$/.test(value)) value = parseFloat(value);
+          
+          result[key] = value;
         }
       }
     }
-  }
-
-  /**
-   * Generates document content from Word document structure
-   * 
-   * @param {Object} document - Word document
-   * @returns {Promise<Buffer>} Promise resolving to document content buffer
-   */
-  async generateDocumentContent(document) {
-    // In a real implementation, you would use a library like 'docx'
-    // to generate the DOCX file from the document structure
     
-    // Placeholder implementation
-    const content = JSON.stringify(document, null, 2);
-    return Buffer.from(content, 'utf-8');
-  }
-
-  /**
-   * Extracts metadata from Word document
-   * 
-   * @param {Object} document - Word document
-   * @returns {DocumentMetadata} Document metadata
-   */
-  extractDocumentMetadata(document) {
-    return {
-      title: document.properties.title,
-      author: document.properties.author,
-      subject: document.properties.subject,
-      keywords: document.properties.keywords ? [document.properties.keywords] : undefined,
-      created: document.properties.created,
-      modified: document.properties.modified,
-      properties: {
-        paragraphCount: document.paragraphs.length,
-        tableCount: document.tables.length,
-        headerCount: document.headers.length,
-        footerCount: document.footers.length,
-        imageCount: document.images.length
-      }
-    };
-  }
-
-  /**
-   * Validates Word document structure
-   * 
-   * @param {Object} document - Word document to validate
-   * @returns {boolean} Whether document structure is valid
-   */
-  isValidWordDocument(document) {
-    return (
-      document &&
-      Array.isArray(document.paragraphs) &&
-      Array.isArray(document.tables) &&
-      Array.isArray(document.headers) &&
-      Array.isArray(document.footers) &&
-      typeof document.properties === 'object'
-    );
-  }
-
-  /**
-   * Parses frontmatter from text content
-   * 
-   * @param {string} text - Text content to parse
-   * @returns {Promise<TemplateFrontmatter|null>} Parsed frontmatter or null
-   */
-  async parseFrontmatterFromText(text) {
-    try {
-      // Try JSON first
-      if (text.trim().startsWith('{')) {
-        return JSON.parse(text);
-      }
-      
-      // Try YAML (simplified parsing)
-      if (text.trim().startsWith('---')) {
-        // In a real implementation, you would use a YAML parser
-        // This is a simplified placeholder
-        return null;
-      }
-      
-      return null;
-    } catch (error) {
-      return null;
-    }
+    return result;
   }
 
   /**
@@ -564,3 +576,6 @@ export class WordProcessor extends BaseOfficeProcessor {
     return `${stats.size}-${stats.mtime.getTime()}`;
   }
 }
+
+// Export both old and new names for compatibility
+export const WordProcessor = LaTeXWordProcessor;

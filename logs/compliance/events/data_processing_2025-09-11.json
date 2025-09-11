@@ -1,0 +1,21 @@
+{
+  "id": "ccec1a0c-23c8-4115-8251-4784a7809a8e",
+  "type": "data_processing",
+  "timestamp": "2025-09-11T23:28:17.411Z",
+  "data": {
+    "dataCategories": [
+      "personal_data",
+      "behavioral_data"
+    ],
+    "processingPurpose": "analytics",
+    "legalBasis": "legitimate_interest",
+    "retentionPeriod": "2years",
+    "processor": "analytics-service",
+    "timestamp": "2025-09-11T23:28:17.411Z"
+  },
+  "context": {},
+  "framework": "GDPR",
+  "severity": "low",
+  "hash": "71ebfdb7795d5d2cd60320c740e1d0d1ab5de9129acbab2edee6fc75a33fec23",
+  "processed": true
+}\n

@@ -197,16 +197,28 @@ class AuditTrail {
   encryptData(data) {
     if (!this.config.encryptionEnabled) return data;
     
+    // Secure encryption for compliance audit trail using AES-256-GCM
+    const encryptionKey = this.config.encryptionKey;
+    
+    if (!encryptionKey || encryptionKey.length < 32) {
+      throw new Error('Compliance encryption key must be at least 32 characters long');
+    }
+    
     const algorithm = 'aes-256-gcm';
+    // Generate random IV for each encryption
     const iv = crypto.randomBytes(16);
-    const cipher = crypto.createCipher(algorithm, this.config.encryptionKey);
+    const cipher = crypto.createCipherGCM(algorithm, encryptionKey, iv);
+    cipher.setAAD(Buffer.from('compliance-audit', 'utf8'));
     
     let encrypted = cipher.update(JSON.stringify(data), 'utf8', 'hex');
     encrypted += cipher.final('hex');
     
+    const authTag = cipher.getAuthTag();
+    
     return {
       algorithm,
       iv: iv.toString('hex'),
+      authTag: authTag.toString('hex'),
       data: encrypted,
       encrypted: true
     };
@@ -218,7 +230,10 @@ class AuditTrail {
   decryptData(encryptedData) {
     if (!encryptedData.encrypted) return encryptedData;
     
-    const decipher = crypto.createDecipher(encryptedData.algorithm, this.config.encryptionKey);
+    const iv = Buffer.from(encryptedData.iv, 'hex');
+    const decipher = crypto.createDecipherGCM(encryptedData.algorithm, this.config.encryptionKey, iv);
+    decipher.setAAD(Buffer.from('compliance-audit', 'utf8'));
+    decipher.setAuthTag(Buffer.from(encryptedData.authTag, 'hex'));
     
     let decrypted = decipher.update(encryptedData.data, 'hex', 'utf8');
     decrypted += decipher.final('utf8');

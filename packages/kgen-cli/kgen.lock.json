@@ -1,0 +1,29 @@
+{
+  "version": "1.0.0",
+  "createdAt": "2025-09-11T23:39:11.182Z",
+  "project": {
+    "name": "unnamed-project",
+    "version": "1.0.0"
+  },
+  "source": {
+    "graph": {
+      "path": "/Users/sac/unjucks/person.ttl",
+      "hash": "37308ef4d1b7a83744920e1e6e0cf9d47064ad46ba9576f481f218309bc00562",
+      "size": 929,
+      "lastModified": "2025-09-10T20:33:19.190Z"
+    }
+  },
+  "dependencies": {},
+  "templates": {},
+  "rules": {},
+  "artifacts": {},
+  "integrity": {
+    "combined": "ec846d060f335d747850769d928ccd4eb61a5d7ea7a51c47d48f21089704cfb5",
+    "components": {
+      "graph": "37308ef4d1b7a83744920e1e6e0cf9d47064ad46ba9576f481f218309bc00562",
+      "templates": 0,
+      "rules": 0,
+      "artifacts": 0
+    }
+  }
+}

@@ -7,6 +7,7 @@
 import { EventEmitter } from 'events';
 import consola from 'consola';
 import { config } from './config/default.js';
+import { KGenErrorHandler, createEnhancedTryCatch } from './utils/error-handler.js';
 import { RDFProcessor } from './rdf/index.js';
 import { APIServer } from './api/server.js';
 import { DatabaseManager } from './db/index.js';
@@ -18,11 +19,25 @@ import { ValidationEngine } from './validation/index.js';
 class KGenEngine extends EventEmitter {
   constructor(options = {}) {
     super();
-    this.config = { ...config, ...options };
+    this.config = {
+      ...config,
+      ...options,
+      errorHandling: {
+        enableRecovery: true,
+        maxRetryAttempts: 3,
+        retryDelay: 1000,
+        enableEventEmission: true,
+        ...options.errorHandling
+      }
+    };
     this.state = 'uninitialized';
     this.subsystems = new Map();
     this.healthChecks = new Map();
     this.shutdownTimeout = 30000; // 30 seconds
+    
+    // Initialize comprehensive error handler
+    this.errorHandler = new KGenErrorHandler(this.config.errorHandling);
+    this._setupErrorRecoveryStrategies();
     
     // Setup error handling
     this.setupErrorHandling();
@@ -57,9 +72,28 @@ class KGenEngine extends EventEmitter {
       
       return this;
     } catch (error) {
+      const operationId = 'kgen-engine:initialize';
+      const errorContext = {
+        component: 'kgen-engine',
+        operation: 'initialization',
+        state: { currentState: this.state, subsystemsCount: this.subsystems.size }
+      };
+      
+      const handlingResult = await this.errorHandler.handleError(
+        operationId,
+        error,
+        errorContext,
+        { suppressRethrow: false }
+      );
+      
       this.state = 'error';
-      this.emit('error', error);
-      consola.error('❌ KGEN initialization failed:', error);
+      this.emit('error', {
+        operationId,
+        error,
+        errorContext: handlingResult.errorContext,
+        initializationStep: 'subsystem-initialization'
+      });
+      
       throw error;
     }
   }
@@ -96,7 +130,21 @@ class KGenEngine extends EventEmitter {
         consola.success(`✅ ${name} initialized`);
         
       } catch (error) {
-        consola.error(`❌ Failed to initialize ${name}:`, error);
+        const operationId = `subsystem-init:${name}`;
+        const errorContext = {
+          component: 'kgen-engine',
+          operation: 'subsystem-initialization',
+          input: { subsystemName: name, dependencies: deps },
+          state: { initializedSubsystems: Array.from(this.subsystems.keys()) }
+        };
+        
+        await this.errorHandler.handleError(
+          operationId,
+          error,
+          errorContext,
+          { suppressRethrow: false }
+        );
+        
         throw new Error(`Subsystem ${name} initialization failed: ${error.message}`);
       }
     }
@@ -132,9 +180,27 @@ class KGenEngine extends EventEmitter {
         
         results[name] = { status: 'healthy', ...result };
       } catch (error) {
-        results[name] = { status: 'unhealthy', error: error.message };
+        const operationId = `health-check:${name}`;
+        const errorContext = {
+          component: 'kgen-engine',
+          operation: 'health-check',
+          input: { subsystemName: name },
+          state: { overallHealthy }
+        };
+        
+        await this.errorHandler.handleError(
+          operationId,
+          error,
+          errorContext,
+          { suppressRethrow: true }
+        );
+        
+        results[name] = {
+          status: 'unhealthy',
+          error: error.message,
+          errorId: operationId
+        };
         overallHealthy = false;
-        consola.warn(`🔴 Health check failed for ${name}:`, error.message);
       }
     }
     
@@ -168,9 +234,28 @@ class KGenEngine extends EventEmitter {
       monitoring.incrementCounter('rdf_processed_total');
       return result;
     } catch (error) {
+      const operationId = `rdf-process-${Date.now()}`;
+      const errorContext = {
+        component: 'kgen-engine',
+        operation: 'rdf-processing',
+        input: { dataType: typeof data, optionsProvided: !!options },
+        state: { engineState: this.state }
+      };
+      
+      const handlingResult = await this.errorHandler.handleError(
+        operationId,
+        error,
+        errorContext
+      );
+      
       timer.end();
       monitoring.incrementCounter('rdf_errors_total');
-      throw error;
+      
+      if (!handlingResult.recovered) {
+        throw error;
+      }
+      
+      return handlingResult.result;
     }
   }
 
@@ -231,8 +316,67 @@ class KGenEngine extends EventEmitter {
           }
         ])
       ),
+      errorHandling: this.errorHandler.getErrorStatistics(),
       version: process.env.npm_package_version || '2.0.8'
     };
+  }
+  
+  /**
+   * Setup error recovery strategies for KGEN engine
+   */
+  _setupErrorRecoveryStrategies() {
+    // Subsystem initialization recovery
+    this.errorHandler.registerRecoveryStrategy('initialization', async (errorContext, options) => {
+      consola.info('Attempting subsystem initialization recovery');
+      
+      const subsystemName = errorContext.context.input?.subsystemName;
+      if (subsystemName && this.subsystems.has(subsystemName)) {
+        // Subsystem already exists, consider it recovered
+        return { success: true, reason: 'Subsystem already initialized' };
+      }
+      
+      // Could implement retry with different configuration
+      return { success: false, reason: 'Manual intervention required for initialization errors' };
+    });
+    
+    // Health check recovery
+    this.errorHandler.registerRecoveryStrategy('health_check', async (errorContext, options) => {
+      consola.info('Attempting health check recovery');
+      
+      const subsystemName = errorContext.context.input?.subsystemName;
+      const subsystem = this.subsystems.get(subsystemName);
+      
+      if (subsystem && typeof subsystem.restart === 'function') {
+        try {
+          await subsystem.restart();
+          return { success: true, reason: 'Subsystem restarted successfully' };
+        } catch (restartError) {
+          return { success: false, reason: `Restart failed: ${restartError.message}` };
+        }
+      }
+      
+      return { success: false, reason: 'No restart capability available' };
+    });
+    
+    // Service unavailable recovery
+    this.errorHandler.registerRecoveryStrategy('service_unavailable', async (errorContext, options) => {
+      consola.info('Attempting service availability recovery');
+      
+      // Wait for services to become available
+      const maxWait = 10000; // 10 seconds
+      const checkInterval = 500;
+      const startTime = Date.now();
+      
+      while (Date.now() - startTime < maxWait) {
+        const healthCheck = await this.performHealthCheck();
+        if (healthCheck.overall === 'healthy') {
+          return { success: true, reason: 'Services are now available' };
+        }
+        await new Promise(resolve => setTimeout(resolve, checkInterval));
+      }
+      
+      return { success: false, reason: 'Service recovery timeout' };
+    });
   }
 
   /**
@@ -304,7 +448,20 @@ class KGenEngine extends EventEmitter {
           await subsystem.shutdown();
           consola.success(`✅ ${name} shutdown complete`);
         } catch (error) {
-          consola.error(`❌ Error shutting down ${name}:`, error);
+          const operationId = `shutdown:${name}`;
+          const errorContext = {
+            component: 'kgen-engine',
+            operation: 'subsystem-shutdown',
+            input: { subsystemName: name },
+            state: { shutdownPhase: 'subsystem-cleanup' }
+          };
+          
+          await this.errorHandler.handleError(
+            operationId,
+            error,
+            errorContext,
+            { suppressRethrow: true }
+          );
         }
       }
     }
@@ -329,7 +486,23 @@ if (import.meta.url === `file://${process.argv[1]}`) {
     consola.success('🌟 KGEN Engine running at http://localhost:3000');
   });
   
-  engine.initialize().catch(error => {
+  engine.initialize().catch(async error => {
+    const operationId = 'kgen-cli:startup';
+    const errorContext = {
+      component: 'kgen-cli',
+      operation: 'startup',
+      input: { args: process.argv }
+    };
+    
+    if (engine.errorHandler) {
+      await engine.errorHandler.handleError(
+        operationId,
+        error,
+        errorContext,
+        { suppressRethrow: true }
+      );
+    }
+    
     consola.fatal('Failed to start KGEN:', error);
     process.exit(1);
   });

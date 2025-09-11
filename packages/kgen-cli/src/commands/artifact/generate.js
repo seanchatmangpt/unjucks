@@ -9,10 +9,88 @@ import { defineCommand } from 'citty';
 import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'fs';
 import { resolve, dirname, join } from 'path';
 import { Parser } from 'n3';
-import nunjucks from 'nunjucks';
+import fs from 'fs-extra';
 
 import { success, error, output } from '../../lib/output.js';
 import { loadKgenConfig, validateTurtleFile, hashContent, createAttestation } from '../../lib/utils.js';
+import { createTemplateEngine } from '../../../../kgen-core/src/templating/template-engine.js';
+
+/**
+ * Get all template files in a directory recursively
+ * @param {string} dirPath - Directory path to scan
+ * @returns {Promise<string[]>} Array of template file paths
+ */
+async function getTemplateFiles(dirPath) {
+  const files = [];
+  
+  try {
+    const items = await fs.readdir(dirPath, { withFileTypes: true });
+    
+    for (const item of items) {
+      const itemPath = join(dirPath, item.name);
+      
+      if (item.isDirectory()) {
+        const subFiles = await getTemplateFiles(itemPath);
+        files.push(...subFiles);
+      } else if (item.isFile() && isTemplateFile(item.name)) {
+        files.push(itemPath);
+      }
+    }
+  } catch (error) {
+    // Directory might not exist, return empty array
+  }
+  
+  return files;
+}
+
+/**
+ * Check if a file is a template file
+ * @param {string} filename - File name to check
+ * @returns {boolean} Whether the file is a template file
+ */
+function isTemplateFile(filename) {
+  return filename.endsWith('.njk') || 
+         filename.endsWith('.hbs') || 
+         filename.endsWith('.j2') ||
+         filename.endsWith('.ejs.t');
+}
+
+/**
+ * Extract entities from RDF graph quads
+ * @param {Array} quads - Array of N3 quads
+ * @returns {Array} Array of unique entities
+ */
+function extractEntitiesFromGraph(quads) {
+  const entities = new Set();
+  
+  for (const quad of quads) {
+    if (quad.subject.termType === 'NamedNode') {
+      entities.add(quad.subject.value);
+    }
+    if (quad.object.termType === 'NamedNode') {
+      entities.add(quad.object.value);
+    }
+  }
+  
+  return Array.from(entities);
+}
+
+/**
+ * Extract prefixes from TTL content
+ * @param {string} content - TTL file content
+ * @returns {Object} Object mapping prefixes to namespaces
+ */
+function extractPrefixesFromGraph(content) {
+  const prefixes = {};
+  const prefixRegex = /@prefix\s+([^:]+):\s*<([^>]+)>/g;
+  
+  let match;
+  while ((match = prefixRegex.exec(content)) !== null) {
+    prefixes[match[1]] = match[2];
+  }
+  
+  return prefixes;
+}
 
 export default defineCommand({
   meta: {
@@ -70,6 +148,9 @@ export default defineCommand({
       const graphInfo = validateTurtleFile(args.graph);
       const outputDir = args.output || config.directories.out;
       
+      // Use templates directory from config or default
+      const templateDir = config.directories?.templates || resolve(process.cwd(), 'templates');
+      
       // Parse knowledge graph
       const graphContent = readFileSync(args.graph, 'utf8');
       const parser = new Parser();
@@ -101,12 +182,12 @@ export default defineCommand({
         generatedAt: new Date().toISOString()
       };
       
-      // Configure Nunjucks environment
-      const templateDir = config.directories.templates;
-      const env = new nunjucks.Environment(
-        new nunjucks.FileSystemLoader(templateDir),
-        config.generate.engineOptions
-      );
+      // Initialize template engine
+      const templateEngine = createTemplateEngine({
+        templatesPaths: [templateDir],
+        throwOnError: false,
+        ...config.generate?.engineOptions
+      });
       
       // Find template files
       const templatePath = resolve(templateDir, args.template);
@@ -114,14 +195,57 @@ export default defineCommand({
         throw new Error(`Template not found: ${templatePath}`);
       }
       
-      // Mock generation for deterministic output
-      // In real implementation, this would iterate through template files
-      const artifacts = [{
-        path: join(outputDir, 'generated-artifact.js'),
-        content: `// Generated from ${args.graph} using ${args.template}\n// Hash: ${graphInfo.hash}\n\nexport default {\n  triples: ${quads.length},\n  hash: "${graphInfo.hash}"\n};\n`,
-        template: args.template,
-        size: 0
-      }];
+      // Get all template files in the specified template directory
+      const templateFiles = await getTemplateFiles(templatePath);
+      
+      if (templateFiles.length === 0) {
+        throw new Error(`No template files found in: ${templatePath}`);
+      }
+      
+      // Create enhanced context for template rendering
+      const enhancedContext = {
+        ...context,
+        graph: {
+          quads,
+          triples: quads.length,
+          ...graphInfo
+        },
+        entities: extractEntitiesFromGraph(quads),
+        prefixes: extractPrefixesFromGraph(graphContent)
+      };
+      
+      // Process each template file
+      const artifacts = [];
+      for (const templateFile of templateFiles) {
+        try {
+          // Read template content
+          const templateContent = readFileSync(templateFile, 'utf8');
+          
+          // Simple Nunjucks rendering (without complex template engine)
+          const nunjucks = await import('nunjucks');
+          const env = new nunjucks.Environment(new nunjucks.FileSystemLoader(templateDir), {
+            autoescape: false,
+            throwOnUndefined: false
+          });
+          
+          // Render the template
+          const rendered = env.renderString(templateContent, enhancedContext);
+          
+          // Generate output filename from template name
+          const basename = templateFile.split('/').pop();
+          const outputName = basename.replace(/\.(njk|hbs|j2|ejs\.t)$/, '');
+          
+          artifacts.push({
+            path: join(outputDir, outputName),
+            content: rendered,
+            template: basename,
+            size: rendered.length,
+            frontmatter: {}
+          });
+        } catch (templateError) {
+          console.warn(`Skipping template ${templateFile}: ${templateError.message}`);
+        }
+      }
       
       // Write artifacts (unless dry run)
       const generatedFiles = [];

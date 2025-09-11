@@ -38,10 +38,28 @@ class MathRenderer extends EventEmitter {
             ...options
         };
         
-        this.cache = new Map();
+        // Import LRU cache for better memory management
+        const { LRUCache } = require('../kgen/cache/lru-cache.js');
+        
+        this.cache = new LRUCache({
+            maxSize: 500,
+            ttl: 30 * 60 * 1000, // 30 minutes
+            enableStats: true,
+            namespace: 'math-renderer'
+        });
         this.equationCounter = 0;
-        this.equations = new Map(); // For numbered equations
-        this.references = new Map(); // For equation references
+        this.equations = new LRUCache({
+            maxSize: 100,
+            ttl: 60 * 60 * 1000, // 1 hour for numbered equations
+            enableStats: true,
+            namespace: 'math-equations'
+        });
+        this.references = new LRUCache({
+            maxSize: 200,
+            ttl: 60 * 60 * 1000, // 1 hour for references
+            enableStats: true,
+            namespace: 'math-references'
+        });
         this.renderQueue = [];
         this.isProcessing = false;
         
@@ -636,6 +654,8 @@ class MathRenderer extends EventEmitter {
      */
     clearCache() {
         this.cache.clear();
+        this.equations.clear();
+        this.references.clear();
         this.emit('cacheCleared');
     }
     
@@ -643,10 +663,17 @@ class MathRenderer extends EventEmitter {
      * Get cache statistics
      */
     getCacheStats() {
+        const mainCacheStats = this.cache.getStats();
+        const equationStats = this.equations.getStats();
+        const referenceStats = this.references.getStats();
+        
         return {
-            size: this.cache.size,
-            maxSize: this.options.cacheMaxSize,
-            hitRate: this._calculateCacheHitRate()
+            mainCache: mainCacheStats,
+            equations: equationStats,
+            references: referenceStats,
+            totalEntries: mainCacheStats.size + equationStats.size + referenceStats.size,
+            totalMemoryUsage: mainCacheStats.memoryUsage + equationStats.memoryUsage + referenceStats.memoryUsage,
+            averageHitRate: (mainCacheStats.hitRate + equationStats.hitRate + referenceStats.hitRate) / 3
         };
     }
     

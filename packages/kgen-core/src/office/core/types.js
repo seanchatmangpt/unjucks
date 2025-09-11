@@ -10,14 +10,26 @@
  */
 
 /**
- * Supported Office document types
+ * Supported document types (LaTeX-based and legacy)
  * @enum {string}
  */
 export const DocumentType = {
+  // Legacy Office types (now LaTeX-based)
   WORD: 'word',
   EXCEL: 'excel',
   POWERPOINT: 'powerpoint',
-  PDF: 'pdf'
+  PDF: 'pdf',
+  
+  // Native LaTeX types
+  LATEX: 'latex',
+  LATEX_TABLE: 'latex-table',
+  LATEX_PRESENTATION: 'latex-presentation',
+  LATEX_ACADEMIC: 'latex-academic',
+  LATEX_REPORT: 'latex-report',
+  LATEX_ARTICLE: 'latex-article',
+  LATEX_BOOK: 'latex-book',
+  LATEX_LETTER: 'latex-letter',
+  LATEX_CV: 'latex-cv'
 };
 
 /**

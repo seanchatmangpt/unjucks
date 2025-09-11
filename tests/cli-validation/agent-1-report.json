@@ -1,0 +1,15 @@
+🔍 Agent 1: Extracting PRD requirements...
+❌ PRD extraction failed: TypeError: Cannot read properties of undefined (reading 'push')
+    at PRDRequirementsExtractor.categorizeRequirements (file:///Users/sac/unjucks/tests/cli-validation/agent-1-prd-requirements.js:167:28)
+    at PRDRequirementsExtractor.execute (file:///Users/sac/unjucks/tests/cli-validation/agent-1-prd-requirements.js:36:12)
+    at file:///Users/sac/unjucks/tests/cli-validation/agent-1-prd-requirements.js:185:13
+    at ModuleJob.run (node:internal/modules/esm/module_job:271:25)
+    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:547:26)
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:116:5)
+TypeError: Cannot read properties of undefined (reading 'push')
+    at PRDRequirementsExtractor.categorizeRequirements (file:///Users/sac/unjucks/tests/cli-validation/agent-1-prd-requirements.js:167:28)
+    at PRDRequirementsExtractor.execute (file:///Users/sac/unjucks/tests/cli-validation/agent-1-prd-requirements.js:36:12)
+    at file:///Users/sac/unjucks/tests/cli-validation/agent-1-prd-requirements.js:185:13
+    at ModuleJob.run (node:internal/modules/esm/module_job:271:25)
+    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:547:26)
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:116:5)

@@ -1,0 +1,45 @@
+# SOX Compliance Rules for Financial Data Processing
+@prefix sox: <http://ontology.example.com/sox#> .
+@prefix log: <http://www.w3.org/2000/10/swap/log#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+
+# SOX Section 302 - CEO/CFO Certification
+{
+    ?report rdf:type sox:FinancialReport .
+    ?report sox:hasCertification ?cert .
+    ?cert sox:signedByCEO false .
+} => {
+    ?report sox:complianceViolation "MISSING_CEO_CERTIFICATION" .
+    ?report sox:severity "CRITICAL" .
+} .
+
+# SOX Section 404 - Internal Control Assessment
+{
+    ?control rdf:type sox:InternalControl .
+    ?control sox:tested false .
+    ?control sox:effectiveness "UNKNOWN" .
+} => {
+    ?control sox:complianceViolation "UNTESTED_CONTROL" .
+    ?control sox:severity "HIGH" .
+} .
+
+# SOX Section 409 - Real-time disclosure
+{
+    ?event rdf:type sox:MaterialEvent .
+    ?event sox:detectionTime ?detected .
+    ?event sox:disclosureTime ?disclosed .
+    (?disclosed ?detected) log:difference ?delay .
+    ?delay log:greaterThan "4 business days" .
+} => {
+    ?event sox:complianceViolation "DELAYED_DISCLOSURE" .
+    ?event sox:severity "HIGH" .
+} .
+
+# Audit trail integrity
+{
+    ?trail rdf:type sox:AuditTrail .
+    ?trail sox:hasIntegrity false .
+} => {
+    ?trail sox:complianceViolation "COMPROMISED_AUDIT_TRAIL" .
+    ?trail sox:severity "CRITICAL" .
+} .

@@ -7,16 +7,20 @@ import { readFileSync, statSync, existsSync } from 'fs';
 import { join, dirname, extname } from 'path';
 import { performance } from 'perf_hooks';
 import { createHash } from 'crypto';
+import { TemplateCache as LRUTemplateCache } from '../src/kgen/cache/lru-cache.js';
 
 class TemplateCache {
   constructor() {
-    this.cache = new Map();
-    this.stats = new Map();
-    this.options = {
+    // Use standardized LRU cache with enhanced statistics
+    this.cache = new LRUTemplateCache({
       maxSize: 100, // Maximum cached templates
       ttl: 300000,  // 5 minutes TTL
-      compressionThreshold: 1024, // Compress templates > 1KB
       enableStats: true
+    });
+    
+    this.options = {
+      compressionThreshold: 1024, // Compress templates > 1KB
+      enableFileValidation: true
     };
   }
 
@@ -36,35 +40,27 @@ class TemplateCache {
    * Get cached template or load and cache it
    */
   async getTemplate(templatePath, context = {}) {
-    const key = this.generateKey(templatePath, context);
     const start = performance.now();
     
     try {
-      // Check cache first
-      const cached = this.cache.get(key);
+      // Check cache first using LRU cache
+      const cached = this.cache.getCachedTemplate(templatePath, context);
+      
       if (cached && this.isValidCache(cached)) {
-        this.recordStats(key, 'hit', performance.now() - start);
         return cached.content;
       }
 
       // Load and cache template
       const content = await this.loadTemplate(templatePath);
-      const cacheEntry = {
-        content,
-        timestamp: Date.now(),
-        path: templatePath,
-        size: Buffer.byteLength(content, 'utf8'),
-        accessed: 1
-      };
-
-      this.cache.set(key, cacheEntry);
-      this.evictIfNecessary();
+      const fileStats = this.options.enableFileValidation ? 
+        await this.getFileStats(templatePath) : null;
       
-      this.recordStats(key, 'miss', performance.now() - start);
+      // Cache using LRU cache with file validation
+      this.cache.cacheTemplate(templatePath, content, context, fileStats);
+      
       return content;
 
     } catch (error) {
-      this.recordStats(key, 'error', performance.now() - start);
       throw new Error(`Template cache error for ${templatePath}: ${error.message}`);
     }
   }
@@ -100,60 +96,42 @@ class TemplateCache {
    * Check if cached entry is still valid
    */
   isValidCache(cached) {
-    const now = Date.now();
-    const expired = (now - cached.timestamp) > this.options.ttl;
-    
-    if (expired) {
-      return false;
+    if (!cached || !this.options.enableFileValidation) {
+      return !!cached;
     }
 
-    // Check file modification time if available
+    // Check file modification time if file stats were cached
+    if (cached.fileStats && cached.path) {
+      try {
+        const currentStats = statSync(cached.path);
+        const fileModified = currentStats.mtime.getTime() > cached.fileStats.mtime.getTime();
+        return !fileModified;
+      } catch (error) {
+        // If we can't stat the file, assume cache is invalid
+        return false;
+      }
+    }
+    
+    return true;
+  }
+
+  /**
+   * Get file statistics for cache validation
+   */
+  async getFileStats(templatePath) {
     try {
-      const stat = statSync(cached.path);
-      const fileModified = stat.mtime.getTime() > cached.timestamp;
-      return !fileModified;
+      const stats = statSync(templatePath);
+      return {
+        mtime: stats.mtime,
+        size: stats.size,
+        ctime: stats.ctime
+      };
     } catch (error) {
-      // If we can't stat the file, assume cache is invalid
-      return false;
+      return null;
     }
   }
 
-  /**
-   * Evict oldest entries if cache is full
-   */
-  evictIfNecessary() {
-    if (this.cache.size <= this.options.maxSize) {
-      return;
-    }
-
-    // Sort by last accessed time and remove oldest
-    const entries = Array.from(this.cache.entries());
-    entries.sort((a, b) => a[1].timestamp - b[1].timestamp);
-    
-    const toRemove = entries.slice(0, entries.length - this.options.maxSize);
-    toRemove.forEach(([key]) => this.cache.delete(key));
-  }
-
-  /**
-   * Record cache statistics
-   */
-  recordStats(key, type, duration) {
-    if (!this.options.enableStats) return;
-
-    const stats = this.stats.get(key) || {
-      hits: 0,
-      misses: 0,
-      errors: 0,
-      totalTime: 0,
-      averageTime: 0
-    };
-
-    stats[type === 'hit' ? 'hits' : type === 'miss' ? 'misses' : 'errors']++;
-    stats.totalTime += duration;
-    stats.averageTime = stats.totalTime / (stats.hits + stats.misses + stats.errors);
-
-    this.stats.set(key, stats);
-  }
+  // Statistics are now handled by LRU cache
 
   /**
    * Preload frequently used templates
@@ -176,36 +154,17 @@ class TemplateCache {
    * Get cache statistics
    */
   getStats() {
-    const totalEntries = this.cache.size;
-    const totalHits = Array.from(this.stats.values()).reduce((sum, stats) => sum + stats.hits, 0);
-    const totalMisses = Array.from(this.stats.values()).reduce((sum, stats) => sum + stats.misses, 0);
-    const totalErrors = Array.from(this.stats.values()).reduce((sum, stats) => sum + stats.errors, 0);
+    const lruStats = this.cache.getStats();
     
-    const hitRate = totalHits / (totalHits + totalMisses) || 0;
-    const averageTime = Array.from(this.stats.values())
-      .reduce((sum, stats) => sum + stats.averageTime, 0) / this.stats.size || 0;
-
     return {
-      totalEntries,
-      totalHits,
-      totalMisses,
-      totalErrors,
-      hitRate: `${(hitRate * 100).toFixed(2)}%`,
-      averageTime: `${averageTime.toFixed(2)}ms`,
-      cacheSize: this.getCacheSize()
+      ...lruStats,
+      hitRate: `${lruStats.hitRate.toFixed(2)}%`,
+      memoryUsage: `${(lruStats.memoryUsage / 1024).toFixed(2)}KB`,
+      options: this.options
     };
   }
 
-  /**
-   * Calculate total cache size in bytes
-   */
-  getCacheSize() {
-    let totalSize = 0;
-    for (const entry of this.cache.values()) {
-      totalSize += entry.size || 0;
-    }
-    return `${(totalSize / 1024).toFixed(2)}KB`;
-  }
+  // Size calculation handled by LRU cache
 
   /**
    * Clear cache entries
@@ -213,34 +172,23 @@ class TemplateCache {
   clear(pattern) {
     if (!pattern) {
       this.cache.clear();
-      this.stats.clear();
       return;
     }
 
-    const regex = new RegExp(pattern);
-    for (const [key, entry] of this.cache.entries()) {
-      if (regex.test(entry.path)) {
-        this.cache.delete(key);
-        this.stats.delete(key);
-      }
-    }
+    // For pattern matching, need to check all cached entries
+    // Since LRU cache doesn't expose internal structure, clear all for now
+    // TODO: Enhance LRU cache to support pattern-based clearing
+    this.cache.clear();
   }
 
   /**
    * Invalidate specific template
    */
   invalidate(templatePath) {
-    const keysToDelete = [];
-    for (const [key, entry] of this.cache.entries()) {
-      if (entry.path === templatePath) {
-        keysToDelete.push(key);
-      }
-    }
-    
-    keysToDelete.forEach(key => {
-      this.cache.delete(key);
-      this.stats.delete(key);
-    });
+    // Since LRU cache doesn't expose internal structure for searching,
+    // clear entire cache for now
+    // TODO: Enhance LRU cache to support path-based invalidation
+    this.cache.clear();
   }
 
   /**
@@ -248,6 +196,9 @@ class TemplateCache {
    */
   setOptions(newOptions) {
     this.options = { ...this.options, ...newOptions };
+    
+    // Note: LRU cache options (maxSize, ttl) cannot be changed after creation
+    // This would require recreating the cache instance
   }
 }
 

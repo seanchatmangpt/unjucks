@@ -631,4 +631,57 @@
   "framework": "GDPR",
   "severity": "low",
   "hash": "2e819ebc0b16507f19b1bb23a83afc9733877c68527d019d47067e9899333210"
+}\n{
+  "id": "7da437bc-1555-4516-b5a2-7abb62b7c2bd",
+  "type": "operation_completed",
+  "timestamp": "2025-09-11T23:27:15.952Z",
+  "data": {
+    "operationId": "test-track-001",
+    "type": "data_generation",
+    "user": "test-user",
+    "duration": 1,
+    "status": "success"
+  },
+  "context": {
+    "operationId": "test-track-001",
+    "type": "data_generation",
+    "startTime": "2025-09-11T23:27:15.950Z",
+    "user": {
+      "id": "test-user",
+      "name": "Test User"
+    },
+    "inputs": [],
+    "sources": [
+      {
+        "id": "input.ttl",
+        "name": "Input RDF"
+      }
+    ],
+    "agent": {
+      "id": "test-user",
+      "uri": "http://kgen.enterprise/provenance/agent/test-user",
+      "type": "person",
+      "name": "Test User"
+    },
+    "activityUri": "http://kgen.enterprise/provenance/activity/test-track-001",
+    "planUri": "http://kgen.enterprise/provenance/plan/data_generation",
+    "metadata": {},
+    "endTime": "2025-09-11T23:27:15.951Z",
+    "status": "success",
+    "outputs": [
+      {
+        "id": "output.ttl",
+        "name": "Generated RDF"
+      }
+    ],
+    "metrics": {
+      "duration": 1500,
+      "records": 100
+    },
+    "duration": 1,
+    "integrityHash": "1248bef29fd358b3383c56f6d6ec726e0b3f0469d349d5be1cc5a5131c0e159b"
+  },
+  "framework": "GDPR",
+  "severity": "low",
+  "hash": "67a0529b56ecc29ea5a444428ff2b8d4c2332c63b03ed5f5208e655ef75f4af7"
 }\n

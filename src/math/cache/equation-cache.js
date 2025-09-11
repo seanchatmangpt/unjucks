@@ -5,6 +5,7 @@
 
 const crypto = require('crypto');
 const { EventEmitter } = require('events');
+const { LRUCache } = require('../../kgen/cache/lru-cache.js');
 
 class EquationCache extends EventEmitter {
     constructor(options = {}) {
@@ -20,24 +21,24 @@ class EquationCache extends EventEmitter {
             ...options
         };
         
-        // Cache storage
-        this.cache = new Map();
-        this.accessTimes = new Map();
-        this.sizes = new Map();
+        // Enhanced LRU cache storage
+        this.cache = new LRUCache({
+            maxSize: this.options.maxSize,
+            ttl: this.options.ttl,
+            enableStats: true,
+            namespace: 'equation-cache'
+        });
         
-        // Metrics
-        this.metrics = {
-            hits: 0,
-            misses: 0,
-            evictions: 0,
-            totalRequests: 0,
-            memoryUsage: 0,
-            averageRenderTime: 0
-        };
-        
-        // Performance tracking
+        // Additional equation-specific tracking
         this.renderTimes = [];
         this.maxRenderTimeHistory = 1000;
+        
+        // Additional metrics beyond LRU cache stats
+        this.renderTimeStats = {
+            averageRenderTime: 0,
+            totalRenderTime: 0,
+            renderCount: 0
+        };
         
         // Start cleanup timer if TTL is enabled
         if (this.options.ttl > 0) {
@@ -51,34 +52,16 @@ class EquationCache extends EventEmitter {
      * Get cached equation or return null
      */
     get(key, latex = null, options = null) {
-        this.metrics.totalRequests++;
-        
         const cacheKey = this._generateKey(key, latex, options);
+        const entry = this.cache.get(cacheKey);
         
-        if (this.cache.has(cacheKey)) {
-            const entry = this.cache.get(cacheKey);
-            
-            // Check if expired
-            if (this._isExpired(entry)) {
-                this.cache.delete(cacheKey);
-                this.accessTimes.delete(cacheKey);
-                this.sizes.delete(cacheKey);
-                this._updateMemoryUsage();
-                this.metrics.misses++;
-                return null;
-            }
-            
-            // Update access time for LRU
-            this.accessTimes.set(cacheKey, Date.now());
-            this.metrics.hits++;
-            
+        if (entry) {
             this.emit('hit', { key: cacheKey, latex });
             return entry.html;
+        } else {
+            this.emit('miss', { key: cacheKey, latex });
+            return null;
         }
-        
-        this.metrics.misses++;
-        this.emit('miss', { key: cacheKey, latex });
-        return null;
     }
     
     /**
@@ -86,32 +69,22 @@ class EquationCache extends EventEmitter {
      */
     set(key, html, latex = null, options = null, renderTime = 0) {
         const cacheKey = this._generateKey(key, latex, options);
-        const size = this._calculateSize(html);
-        const now = Date.now();
         
         const entry = {
             html,
             latex,
             options,
-            timestamp: now,
-            size,
             renderTime,
-            accessCount: 1
+            size: this._calculateSize(html)
         };
         
-        // Check if we need to evict entries
-        this._ensureCapacity(size);
-        
-        // Store entry
+        // Store in LRU cache
         this.cache.set(cacheKey, entry);
-        this.accessTimes.set(cacheKey, now);
-        this.sizes.set(cacheKey, size);
         
-        // Update metrics
-        this._updateMemoryUsage();
+        // Update render time statistics
         this._updateRenderTimeStats(renderTime);
         
-        this.emit('set', { key: cacheKey, latex, size, renderTime });
+        this.emit('set', { key: cacheKey, latex, size: entry.size, renderTime });
     }
     
     /**
@@ -119,7 +92,7 @@ class EquationCache extends EventEmitter {
      */
     has(key, latex = null, options = null) {
         const cacheKey = this._generateKey(key, latex, options);
-        return this.cache.has(cacheKey) && !this._isExpired(this.cache.get(cacheKey));
+        return this.cache.has(cacheKey);
     }
     
     /**
@@ -127,28 +100,27 @@ class EquationCache extends EventEmitter {
      */
     delete(key, latex = null, options = null) {
         const cacheKey = this._generateKey(key, latex, options);
+        const existed = this.cache.delete(cacheKey);
         
-        if (this.cache.has(cacheKey)) {
-            this.cache.delete(cacheKey);
-            this.accessTimes.delete(cacheKey);
-            this.sizes.delete(cacheKey);
-            this._updateMemoryUsage();
+        if (existed) {
             this.emit('delete', { key: cacheKey });
-            return true;
         }
         
-        return false;
+        return existed;
     }
     
     /**
      * Clear all cached entries
      */
     clear() {
-        const size = this.cache.size;
+        const size = this.cache.size();
         this.cache.clear();
-        this.accessTimes.clear();
-        this.sizes.clear();
-        this.metrics.memoryUsage = 0;
+        this.renderTimes = [];
+        this.renderTimeStats = {
+            averageRenderTime: 0,
+            totalRenderTime: 0,
+            renderCount: 0
+        };
         this.emit('clear', { entriesCleared: size });
     }
     
@@ -156,37 +128,28 @@ class EquationCache extends EventEmitter {
      * Get cache statistics
      */
     getStats() {
-        const hitRate = this.metrics.totalRequests > 0 
-            ? (this.metrics.hits / this.metrics.totalRequests * 100).toFixed(2)
-            : 0;
+        const lruStats = this.cache.getStats();
         
         return {
-            ...this.metrics,
-            hitRate: `${hitRate}%`,
-            entryCount: this.cache.size,
-            memoryUsageMB: (this.metrics.memoryUsage / (1024 * 1024)).toFixed(2),
-            averageEntrySize: this.cache.size > 0 
-                ? (this.metrics.memoryUsage / this.cache.size).toFixed(0)
+            ...lruStats,
+            renderStats: this.renderTimeStats,
+            memoryUsageMB: (lruStats.memoryUsage / (1024 * 1024)).toFixed(2),
+            averageEntrySize: lruStats.size > 0 
+                ? Math.round(lruStats.memoryUsage / lruStats.size)
                 : 0
         };
     }
     
     /**
-     * Get top equations by access frequency
+     * Get recent render performance data
      */
-    getTopEquations(limit = 10) {
-        const entries = Array.from(this.cache.entries())
-            .map(([key, entry]) => ({
-                key,
-                latex: entry.latex,
-                accessCount: entry.accessCount,
-                renderTime: entry.renderTime,
-                size: entry.size
-            }))
-            .sort((a, b) => b.accessCount - a.accessCount)
-            .slice(0, limit);
-        
-        return entries;
+    getRenderPerformance() {
+        return {
+            averageRenderTime: this.renderTimeStats.averageRenderTime,
+            totalRenderTime: this.renderTimeStats.totalRenderTime,
+            renderCount: this.renderTimeStats.renderCount,
+            recentRenderTimes: this.renderTimes.slice(-10) // Last 10 renders
+        };
     }
     
     /**
@@ -298,83 +261,6 @@ class EquationCache extends EventEmitter {
     }
     
     /**
-     * Check if entry is expired
-     */
-    _isExpired(entry) {
-        if (this.options.ttl <= 0) return false;
-        return (Date.now() - entry.timestamp) > this.options.ttl;
-    }
-    
-    /**
-     * Ensure cache has capacity for new entry
-     */
-    _ensureCapacity(newEntrySize) {
-        // Check memory limit
-        while (this.metrics.memoryUsage + newEntrySize > this.options.maxMemory && this.cache.size > 0) {
-            this._evictLRU();
-        }
-        
-        // Check size limit
-        while (this.cache.size >= this.options.maxSize) {
-            this._evictLRU();
-        }
-    }
-    
-    /**
-     * Evict least recently used entry
-     */
-    _evictLRU() {
-        let oldestKey = null;
-        let oldestTime = Infinity;
-        
-        for (const [key, time] of this.accessTimes.entries()) {
-            if (time < oldestTime) {
-                oldestTime = time;
-                oldestKey = key;
-            }
-        }
-        
-        if (oldestKey) {
-            const entry = this.cache.get(oldestKey);
-            this.cache.delete(oldestKey);
-            this.accessTimes.delete(oldestKey);
-            this.sizes.delete(oldestKey);
-            this.metrics.evictions++;
-            this.emit('evict', { key: oldestKey, entry });
-        }
-    }
-    
-    /**
-     * Clean up expired entries
-     */
-    _cleanupExpired() {
-        const now = Date.now();
-        let cleaned = 0;
-        
-        for (const [key, entry] of this.cache.entries()) {
-            if (this._isExpired(entry)) {
-                this.cache.delete(key);
-                this.accessTimes.delete(key);
-                this.sizes.delete(key);
-                cleaned++;
-            }
-        }
-        
-        if (cleaned > 0) {
-            this._updateMemoryUsage();
-            this.emit('cleanup', { entriesRemoved: cleaned });
-        }
-    }
-    
-    /**
-     * Update memory usage metrics
-     */
-    _updateMemoryUsage() {
-        this.metrics.memoryUsage = Array.from(this.sizes.values())
-            .reduce((total, size) => total + size, 0);
-    }
-    
-    /**
      * Update render time statistics
      */
     _updateRenderTimeStats(renderTime) {
@@ -385,8 +271,11 @@ class EquationCache extends EventEmitter {
             this.renderTimes = this.renderTimes.slice(-this.maxRenderTimeHistory);
         }
         
-        // Calculate average
-        this.metrics.averageRenderTime = this.renderTimes.reduce((sum, time) => sum + time, 0) / this.renderTimes.length;
+        // Update cumulative stats
+        this.renderTimeStats.renderCount++;
+        this.renderTimeStats.totalRenderTime += renderTime;
+        this.renderTimeStats.averageRenderTime = 
+            this.renderTimeStats.totalRenderTime / this.renderTimeStats.renderCount;
     }
     
     /**
@@ -397,7 +286,8 @@ class EquationCache extends EventEmitter {
             clearInterval(this.cleanupInterval);
         }
         
-        this.clear();
+        this.cache.destroy();
+        this.renderTimes = [];
         this.removeAllListeners();
     }
 }

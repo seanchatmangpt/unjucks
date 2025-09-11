@@ -1,0 +1,185 @@
+{
+  "version": "1.0.0",
+  "createdAt": "2025-09-11T23:28:49.486Z",
+  "project": {
+    "name": "unnamed-project",
+    "version": "1.0.0"
+  },
+  "source": {
+    "graph": {
+      "path": "/Users/sac/unjucks/test.ttl",
+      "hash": "06af33cf8f4155bb2efffb9fa0c3c53d340344790c0de7fccede3ef53690691e",
+      "size": 165,
+      "lastModified": "2025-09-11T22:24:36.333Z"
+    }
+  },
+  "dependencies": {},
+  "templates": {
+    "/Users/sac/unjucks/templates/test-template.njk": {
+      "path": "/Users/sac/unjucks/templates/test-template.njk",
+      "hash": "73a54e5cf9666d52c79ae75fb27d06fbf0900dc3978b8772798375609bc9ce16",
+      "size": 306
+    },
+    "/Users/sac/unjucks/templates/basic/index.njk": {
+      "path": "/Users/sac/unjucks/templates/basic/index.njk",
+      "hash": "42a962ec6058fe6a96434080fd956fe148ef304018b657b9ccfd7e88013d8125",
+      "size": 35
+    },
+    "/Users/sac/unjucks/templates/docx/academic-paper.njk": {
+      "path": "/Users/sac/unjucks/templates/docx/academic-paper.njk",
+      "hash": "b3830a4b01d778d5500b14a8cbe71c76110d1a2be58defbb33fed24971503a60",
+      "size": 8487
+    },
+    "/Users/sac/unjucks/templates/docx/business-report.njk": {
+      "path": "/Users/sac/unjucks/templates/docx/business-report.njk",
+      "hash": "a5573efadcace9514aa3082bf89a150e7c5fc7afc96c8cfa5c9cfb179c54e6e5",
+      "size": 9967
+    },
+    "/Users/sac/unjucks/templates/docx/legal-contract.njk": {
+      "path": "/Users/sac/unjucks/templates/docx/legal-contract.njk",
+      "hash": "a2b27623c5f68e0cf4fc011f57dc19d4ff2d487d8441eeb3f6657dfe75af28cd",
+      "size": 5745
+    },
+    "/Users/sac/unjucks/templates/ontology-driven/person-card.njk": {
+      "path": "/Users/sac/unjucks/templates/ontology-driven/person-card.njk",
+      "hash": "bfd928575bd8da9f31d2ef430ca9ed228b782071dbcd297bd4933cf362e5b490",
+      "size": 3138
+    },
+    "/Users/sac/unjucks/templates/api/endpoint/controller.js.njk": {
+      "path": "/Users/sac/unjucks/templates/api/endpoint/controller.js.njk",
+      "hash": "c829b9ecf5500fd8e62d23b0831a5ab80b1b3b2009e9a6f5d77456f1063130c9",
+      "size": 12164
+    },
+    "/Users/sac/unjucks/templates/api/endpoint/routes.js.njk": {
+      "path": "/Users/sac/unjucks/templates/api/endpoint/routes.js.njk",
+      "hash": "fa15c4c91062cfa0e5030d0a373036e0939d482336cbb23415055ebca6f99ba9",
+      "size": 11649
+    },
+    "/Users/sac/unjucks/templates/database/schema/migration.sql.njk": {
+      "path": "/Users/sac/unjucks/templates/database/schema/migration.sql.njk",
+      "hash": "4cbcae6f9a1b76bfbc4abbd195098b030dec8031259830eaa9f4e5b26b25f857",
+      "size": 14333
+    },
+    "/Users/sac/unjucks/templates/database/schema/model.js.njk": {
+      "path": "/Users/sac/unjucks/templates/database/schema/model.js.njk",
+      "hash": "bf752cd1cc17fa51c9c1ad207ea37e13470af3e52db07771b8e3db8afd4eb6e7",
+      "size": 12554
+    },
+    "/Users/sac/unjucks/templates/enterprise/compliance/ComplianceService.js.njk": {
+      "path": "/Users/sac/unjucks/templates/enterprise/compliance/ComplianceService.js.njk",
+      "hash": "062adccf70de17b32e019d7fe4bec99b1a4d2d1f32d2903516fdd99e95c18077",
+      "size": 22582
+    },
+    "/Users/sac/unjucks/templates/latex/arxiv/paper.tex.njk": {
+      "path": "/Users/sac/unjucks/templates/latex/arxiv/paper.tex.njk",
+      "hash": "0cb6ed510d18f380a06b54966b6b43bf25f32a959ea8c1f155142fe9b5a8e148",
+      "size": 7519
+    },
+    "/Users/sac/unjucks/templates/latex/components/algorithm.tex.njk": {
+      "path": "/Users/sac/unjucks/templates/latex/components/algorithm.tex.njk",
+      "hash": "16acc581925dac9bcc27857d4f9f84b46504cb4bd1bcfecb4c3ed5f1174bcd97",
+      "size": 1688
+    },
+    "/Users/sac/unjucks/templates/latex/components/bibliography.tex.njk": {
+      "path": "/Users/sac/unjucks/templates/latex/components/bibliography.tex.njk",
+      "hash": "265ac85fabd38b600d1872b42ba565d64f2a28be9801b1a7536ad8344c8320fd",
+      "size": 1517
+    },
+    "/Users/sac/unjucks/templates/latex/components/theorem.tex.njk": {
+      "path": "/Users/sac/unjucks/templates/latex/components/theorem.tex.njk",
+      "hash": "35ea3957318c7b18ef63e01b4b96e6ff23668d1d8731ab5404061ef63c5bee27",
+      "size": 2134
+    },
+    "/Users/sac/unjucks/templates/latex/legal/brief.tex.njk": {
+      "path": "/Users/sac/unjucks/templates/latex/legal/brief.tex.njk",
+      "hash": "8d762b0f035aacfc350aeba6c472c8d61ff4641f11f18105dc981c401bd8a68b",
+      "size": 3703
+    },
+    "/Users/sac/unjucks/templates/microservice/node/config.js.njk": {
+      "path": "/Users/sac/unjucks/templates/microservice/node/config.js.njk",
+      "hash": "dc862cc090333565cb1ef1d480dbf9491be677467ff489dc789387cc06754d71",
+      "size": 6443
+    },
+    "/Users/sac/unjucks/templates/microservice/node/package.json.njk": {
+      "path": "/Users/sac/unjucks/templates/microservice/node/package.json.njk",
+      "hash": "09e6a4c474c0bbd6c272aa641926bc737249fe23bade8d0d13336543bb5d1c09",
+      "size": 3710
+    },
+    "/Users/sac/unjucks/templates/microservice/node/server.js.njk": {
+      "path": "/Users/sac/unjucks/templates/microservice/node/server.js.njk",
+      "hash": "cbf5f08fad030025d4cf1d48d0bb36ff339128cf3fb6c4860fca2e593698ced4",
+      "size": 6310
+    },
+    "/Users/sac/unjucks/templates/typescript-interface/new/interface.ts.njk": {
+      "path": "/Users/sac/unjucks/templates/typescript-interface/new/interface.ts.njk",
+      "hash": "405568079e8f892c898ca47b57179f6ab70a614221fba14af326b2d6685ab1b9",
+      "size": 3679
+    },
+    "/Users/sac/unjucks/templates/_templates/semantic/financial-api/fibo-service.ts.njk": {
+      "path": "/Users/sac/unjucks/templates/_templates/semantic/financial-api/fibo-service.ts.njk",
+      "hash": "2190d08f3ec37db5c12e28479825f583735f9e400fba94a5da1d5f2a516a3fed",
+      "size": 11345
+    },
+    "/Users/sac/unjucks/templates/_templates/semantic/healthcare-service/fhir-service.ts.njk": {
+      "path": "/Users/sac/unjucks/templates/_templates/semantic/healthcare-service/fhir-service.ts.njk",
+      "hash": "c5fa4f6ed84c379c28a96746ff564e3c714410807bc166da375951fdbe7b7777",
+      "size": 8743
+    },
+    "/Users/sac/unjucks/templates/_templates/semantic/supply-chain/gs1-service.ts.njk": {
+      "path": "/Users/sac/unjucks/templates/_templates/semantic/supply-chain/gs1-service.ts.njk",
+      "hash": "a147fb93c11b39a63d5cc88c89afd9940f996bb19c2b1b11ad3c0b4f45c0981b",
+      "size": 14522
+    },
+    "/Users/sac/unjucks/templates/latex/arxiv/paper/paper.tex.njk": {
+      "path": "/Users/sac/unjucks/templates/latex/arxiv/paper/paper.tex.njk",
+      "hash": "c016765879a05e6f87793384378e70711f755282ffb1e0baa3addae06f0ac015",
+      "size": 3655
+    },
+    "/Users/sac/unjucks/templates/latex/arxiv/preprint/preprint.tex.njk": {
+      "path": "/Users/sac/unjucks/templates/latex/arxiv/preprint/preprint.tex.njk",
+      "hash": "b718675da1951038c60780ce0447f8ae105cc85cd1b72b564488c2010483f266",
+      "size": 6180
+    },
+    "/Users/sac/unjucks/templates/latex/legal/brief/legal-brief-simple.tex.njk": {
+      "path": "/Users/sac/unjucks/templates/latex/legal/brief/legal-brief-simple.tex.njk",
+      "hash": "1786c19ad3a3afc20ee16f0d4b21f8ec95ce5fe5dcc7fa8c49e9d17b8af56020",
+      "size": 3891
+    },
+    "/Users/sac/unjucks/templates/latex/legal/brief/legal-brief.tex.njk": {
+      "path": "/Users/sac/unjucks/templates/latex/legal/brief/legal-brief.tex.njk",
+      "hash": "1ab0ad88a6805523debdc4fcc6b90446f793ecac4a7ad5406a4269e6fd799030",
+      "size": 8045
+    },
+    "/Users/sac/unjucks/templates/latex/legal/brief/minimal-test.tex.njk": {
+      "path": "/Users/sac/unjucks/templates/latex/legal/brief/minimal-test.tex.njk",
+      "hash": "c8624bf0e864754ebde7f483e1dab35ec6d7aa06340e73309bbe3079ae3a3a6e",
+      "size": 408
+    },
+    "/Users/sac/unjucks/templates/latex/legal/components/certificate-of-service.tex.njk": {
+      "path": "/Users/sac/unjucks/templates/latex/legal/components/certificate-of-service.tex.njk",
+      "hash": "fa383cd692e1cadba1bfe8bc9378ec207624b50e411a57ef9ee326d31b68a91d",
+      "size": 2346
+    },
+    "/Users/sac/unjucks/templates/latex/legal/contract/contract.tex.njk": {
+      "path": "/Users/sac/unjucks/templates/latex/legal/contract/contract.tex.njk",
+      "hash": "96c0bd94051d1e8e3aaf953cad96a50a173292e6d64a9030706071b08b7a313d",
+      "size": 8601
+    },
+    "/Users/sac/unjucks/templates/latex/legal/motion/motion.tex.njk": {
+      "path": "/Users/sac/unjucks/templates/latex/legal/motion/motion.tex.njk",
+      "hash": "63bdf294fc54801ff28a0aa5a4cb4bcffa470a038dd427d841d1190667df661a",
+      "size": 8302
+    }
+  },
+  "rules": {},
+  "artifacts": {},
+  "integrity": {
+    "combined": "aad059c959eb942bbf26e32c83e18f81bb370814208dc8ae718b88133ca6a282",
+    "components": {
+      "graph": "06af33cf8f4155bb2efffb9fa0c3c53d340344790c0de7fccede3ef53690691e",
+      "templates": 31,
+      "rules": 0,
+      "artifacts": 0
+    }
+  }
+}

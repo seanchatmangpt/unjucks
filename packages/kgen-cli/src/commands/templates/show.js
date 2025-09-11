@@ -7,10 +7,11 @@
 
 import { defineCommand } from 'citty';
 import { existsSync, statSync, readFileSync } from 'fs';
-import { resolve, join, extname } from 'path';
+import { resolve, join, extname, basename, relative } from 'path';
 
 import { success, error, output } from '../../lib/output.js';
 import { loadKgenConfig, findFiles } from '../../lib/utils.js';
+import { parse as yamlParse } from 'yaml';
 
 export default defineCommand({
   meta: {
@@ -50,11 +51,12 @@ export default defineCommand({
     }
   },
   async run({ args }) {
+    let config;
     try {
       const startTime = Date.now();
       
       // Load configuration
-      const config = await loadKgenConfig(args.config);
+      config = await loadKgenConfig(args.config);
       
       // Get templates directory
       const templatesDir = resolve(config.directories.templates);
@@ -72,7 +74,7 @@ export default defineCommand({
       
       // Find template by name
       const matchingFiles = templateFiles.filter(file => {
-        const name = require('path').basename(file, extname(file));
+        const name = basename(file, extname(file));
         return name === args.name || file.includes(args.name);
       });
       
@@ -81,7 +83,7 @@ export default defineCommand({
       }
       
       if (matchingFiles.length > 1) {
-        throw new Error(`Multiple templates match '${args.name}': ${matchingFiles.map(f => require('path').basename(f)).join(', ')}`);
+        throw new Error(`Multiple templates match '${args.name}': ${matchingFiles.map(f => basename(f)).join(', ')}`);
       }
       
       const templatePath = matchingFiles[0];
@@ -89,7 +91,7 @@ export default defineCommand({
       const content = readFileSync(templatePath, 'utf8');
       
       // Basic template information
-      const relativePath = require('path').relative(templatesDir, templatePath);
+      const relativePath = relative(templatesDir, templatePath);
       const templateType = extname(templatePath).substring(1);
       
       // Analyze template
@@ -179,7 +181,7 @@ function analyzeTemplateDetailed(content, type) {
   const frontmatterMatch = content.match(/^---\n([\s\S]*?)\n---\n/);
   if (frontmatterMatch) {
     try {
-      analysis.frontmatter = require('yaml').parse(frontmatterMatch[1]);
+      analysis.frontmatter = yamlParse(frontmatterMatch[1]);
     } catch (e) {
       analysis.frontmatter = { error: 'Invalid YAML frontmatter' };
     }

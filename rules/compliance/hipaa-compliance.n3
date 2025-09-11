@@ -1,0 +1,43 @@
+# HIPAA Compliance Rules for Healthcare Data Processing
+@prefix hipaa: <http://ontology.example.com/hipaa#> .
+@prefix log: <http://www.w3.org/2000/10/swap/log#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+
+# HIPAA Privacy Rule - PHI Protection
+{
+    ?data rdf:type hipaa:PHI .
+    ?data hipaa:hasEncryption false .
+} => {
+    ?data hipaa:complianceViolation "UNENCRYPTED_PHI" .
+    ?data hipaa:severity "CRITICAL" .
+} .
+
+# HIPAA Security Rule - Access Controls
+{
+    ?access rdf:type hipaa:DataAccess .
+    ?access hipaa:accessedBy ?user .
+    ?user hipaa:hasMinimumNecessary false .
+} => {
+    ?access hipaa:complianceViolation "EXCESSIVE_ACCESS" .
+    ?access hipaa:severity "HIGH" .
+} .
+
+# HIPAA Breach Notification
+{
+    ?incident rdf:type hipaa:SecurityIncident .
+    ?incident hipaa:affectsMoreThan500 true .
+    ?incident hipaa:notifiedWithin72Hours false .
+} => {
+    ?incident hipaa:complianceViolation "DELAYED_BREACH_NOTIFICATION" .
+    ?incident hipaa:severity "CRITICAL" .
+} .
+
+# Business Associate Agreements
+{
+    ?ba rdf:type hipaa:BusinessAssociate .
+    ?ba hipaa:hasBAA false .
+    ?ba hipaa:accessesPHI true .
+} => {
+    ?ba hipaa:complianceViolation "MISSING_BAA" .
+    ?ba hipaa:severity "HIGH" .
+} .

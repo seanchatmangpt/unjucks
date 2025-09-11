@@ -1,0 +1,63 @@
+% LaTeX Table Template with Nunjucks Variables
+% TABLE-CONFIG: {
+%   "type": "latex-table",
+%   "tableType": "longtable",
+%   "packages": ["longtable", "booktabs", "array"],
+%   "autoColumnSpec": true
+% }
+
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage{geometry}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{array}
+
+\title{{ '{' }}{{ title or 'Data Table' }}{{ '}' }}
+\author{{ '{' }}{{ author or 'Table Generator' }}{{ '}' }}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+{% if description %}
+\section{Description}
+{{ description }}
+{% endif %}
+
+{% if tableData and tableData|length > 0 %}
+{% set headers = tableData[0]|list %}
+\begin{longtable}{{ '{' }}{{ columnSpec or ('l' * headers|length) }}{{ '}' }}
+\toprule
+{% for header in headers %}{{ formatters.escapeLatex(header) }}{% if not loop.last %} & {% endif %}{% endfor %} \\
+\midrule
+\endfirsthead
+
+\toprule
+{% for header in headers %}{{ formatters.escapeLatex(header) }}{% if not loop.last %} & {% endif %}{% endfor %} \\
+\midrule
+\endhead
+
+\midrule
+\multicolumn{{ '{' }}{{ headers|length }}{{ '}' }}{r}{\textit{Continued on next page}} \\
+\endfoot
+
+\bottomrule
+\endlastfoot
+
+{% for row in tableData %}
+{% for header in headers %}{{ formatters.escapeLatex(row[header] or '') }}{% if not loop.last %} & {% endif %}{% endfor %} \\
+{% endfor %}
+
+\end{longtable}
+{% else %}
+No data available for display.
+{% endif %}
+
+{% if notes %}
+\section{Notes}
+{{ notes }}
+{% endif %}
+
+\end{document}

@@ -1,0 +1,347 @@
+{
+  "bundle": {
+    "version": "1.0.0",
+    "type": "kgen-attestation-bundle",
+    "createdAt": "2025-09-11T23:39:16.913Z",
+    "generator": {
+      "name": "kgen-cli",
+      "version": "1.0.0"
+    }
+  },
+  "project": {
+    "name": "unnamed-project",
+    "version": "1.0.0"
+  },
+  "directory": {
+    "path": "/Users/sac/unjucks/packages/kgen-cli",
+    "scanned": true
+  },
+  "artifacts": {
+    "README.md": {
+      "path": "README.md",
+      "hash": "0ae6e59be9dbd64e79a66c554ffdc4851d66cf14a21ba5260d8d77588eaf6568",
+      "size": 5088,
+      "lastModified": "2025-09-11T18:56:59.657Z",
+      "contentType": "text/markdown"
+    },
+    "kgen-attestation-2025-09-11T23-20-12-292Z.json": {
+      "path": "kgen-attestation-2025-09-11T23-20-12-292Z.json",
+      "hash": "11dc7b2717cab4480dc54acdfcc6991345c4303aaf5a173cf5c20a99a41996f1",
+      "size": 110612,
+      "lastModified": "2025-09-11T23:20:12.293Z",
+      "contentType": "application/json"
+    },
+    "kgen.lock.json": {
+      "path": "kgen.lock.json",
+      "hash": "5b22ccbd51fbc2612678f19147dbb3b8adf4af9a79feafd0b73301fbe706005d",
+      "size": 730,
+      "lastModified": "2025-09-11T23:39:11.182Z",
+      "contentType": "application/json"
+    },
+    "package-lock.json": {
+      "path": "package-lock.json",
+      "hash": "4675644a17104a3d5384dcf62ef4add8754a957d59a9ff66d824d8283f859b51",
+      "size": 70036,
+      "lastModified": "2025-09-11T18:54:50.964Z",
+      "contentType": "application/json"
+    },
+    "package.json": {
+      "path": "package.json",
+      "hash": "68cab156bcfc52c8c65907f06ee2c1f1baf686da222137c8ba8f2d683fbb9f9a",
+      "size": 1264,
+      "lastModified": "2025-09-11T18:40:34.053Z",
+      "contentType": "application/json"
+    },
+    "bin/kgen.js": {
+      "path": "bin/kgen.js",
+      "hash": "9e8b2f9408fdb1f92ccdb46a014cb313926a82dcdc22b7e3a88cb18b3494b7cd",
+      "size": 878,
+      "lastModified": "2025-09-11T18:40:34.083Z",
+      "contentType": "application/javascript"
+    },
+    "src/cli.js": {
+      "path": "src/cli.js",
+      "hash": "9c93330d0f78911de3a7a2e196a6cfe2786f14ba131a87b1608f5e7b9a9455fd",
+      "size": 387,
+      "lastModified": "2025-09-11T19:36:54.386Z",
+      "contentType": "application/javascript"
+    },
+    "src/index.js": {
+      "path": "src/index.js",
+      "hash": "53de7fb01769f8c8521955364803a0c5d6c89bd34abe6e32ac061911dde803dd",
+      "size": 3300,
+      "lastModified": "2025-09-11T18:40:34.112Z",
+      "contentType": "application/javascript"
+    },
+    "test/cli-integration.test.js": {
+      "path": "test/cli-integration.test.js",
+      "hash": "49f2f9a9fb3d59ed0d6815829c8c8907987beafb20557d7ad3141388ee194801",
+      "size": 11750,
+      "lastModified": "2025-09-11T19:46:22.477Z",
+      "contentType": "application/javascript"
+    },
+    "test/package.json": {
+      "path": "test/package.json",
+      "hash": "53461f64d97ef805d72d9ae41b2cd3b37b6592a12432fb6cd79920720f2b29f0",
+      "size": 1155,
+      "lastModified": "2025-09-11T19:11:07.290Z",
+      "contentType": "application/json"
+    },
+    "test/sample-graph.ttl": {
+      "path": "test/sample-graph.ttl",
+      "hash": "cf6515d8992b1d35705d7496e83044737442c65313af12d2798855113dc0e42d",
+      "size": 1193,
+      "lastModified": "2025-09-11T18:55:53.526Z",
+      "contentType": "application/octet-stream"
+    },
+    "test/vitest.config.js": {
+      "path": "test/vitest.config.js",
+      "hash": "fa78a2a90cbe29279a39790a190afd940cc597c7679a2b6c63cad9758e8f4e0f",
+      "size": 2123,
+      "lastModified": "2025-09-11T19:06:11.749Z",
+      "contentType": "application/javascript"
+    },
+    "src/lib/output.js": {
+      "path": "src/lib/output.js",
+      "hash": "e43899c701c8edc9cf547984cdb9677f7ba19a0a6eb186f43e711c8ab0d96983",
+      "size": 3160,
+      "lastModified": "2025-09-11T18:41:36.559Z",
+      "contentType": "application/javascript"
+    },
+    "src/lib/utils.js": {
+      "path": "src/lib/utils.js",
+      "hash": "3bfd65de10b55eb0cc14e76228ae3e6965e3a7fdbaeb1a10ce4ffc171db9f954",
+      "size": 6973,
+      "lastModified": "2025-09-11T18:41:36.590Z",
+      "contentType": "application/javascript"
+    },
+    "src/utils/config.js": {
+      "path": "src/utils/config.js",
+      "hash": "827754759d0eabde3330227466a1c858f32bcd949b51efe73a6823b90c2ad129",
+      "size": 5866,
+      "lastModified": "2025-09-11T19:29:56.129Z",
+      "contentType": "application/javascript"
+    },
+    "src/utils/output.js": {
+      "path": "src/utils/output.js",
+      "hash": "4557f41d1e8dcafed1bf05bde1ab161fb5f9fca43d2ad7ea46278666ec939a7b",
+      "size": 5728,
+      "lastModified": "2025-09-11T19:29:56.081Z",
+      "contentType": "application/javascript"
+    },
+    "test/e2e/cli-commands.test.js": {
+      "path": "test/e2e/cli-commands.test.js",
+      "hash": "5dca65d2f7680ae2656678cab7792926f326f4e8ec4f75ac37a1cfacd9a95244",
+      "size": 21412,
+      "lastModified": "2025-09-11T19:08:02.853Z",
+      "contentType": "application/javascript"
+    },
+    "test/setup/cli-setup.js": {
+      "path": "test/setup/cli-setup.js",
+      "hash": "2312a90db81e869cba7083125f988087b920a4088b38e1549940600a637b6d4d",
+      "size": 7940,
+      "lastModified": "2025-09-11T19:06:47.602Z",
+      "contentType": "application/javascript"
+    },
+    "src/commands/artifact/drift.js": {
+      "path": "src/commands/artifact/drift.js",
+      "hash": "dba2191c4b4fd52e6f6a5b211b5e8f0cc498e3e2503b4e27076b276ae624d9d8",
+      "size": 6158,
+      "lastModified": "2025-09-11T18:42:53.497Z",
+      "contentType": "application/javascript"
+    },
+    "src/commands/artifact/explain.js": {
+      "path": "src/commands/artifact/explain.js",
+      "hash": "17e04bd69bc54186195d565a6e2250cdb61c43f944020e70e60fb056629a2933",
+      "size": 5052,
+      "lastModified": "2025-09-11T18:42:53.530Z",
+      "contentType": "application/javascript"
+    },
+    "src/commands/artifact/generate.js": {
+      "path": "src/commands/artifact/generate.js",
+      "hash": "808ec60da0ae146dd29b381e93a56c7f548e9dc564fcdbd20f269ff7ab94094c",
+      "size": 9596,
+      "lastModified": "2025-09-11T22:33:34.901Z",
+      "contentType": "application/javascript"
+    },
+    "src/commands/artifact/index.js": {
+      "path": "src/commands/artifact/index.js",
+      "hash": "b1e7e1151290bf012daa79121c89851528842e6cf5d41e10c8e08f742f0b02ff",
+      "size": 1555,
+      "lastModified": "2025-09-11T18:42:53.436Z",
+      "contentType": "application/javascript"
+    },
+    "src/commands/cache/gc.js": {
+      "path": "src/commands/cache/gc.js",
+      "hash": "b1b51aa209429f605448be0305b5b54abc6b3635cc0233188348bcff71ac3bfe",
+      "size": 4956,
+      "lastModified": "2025-09-11T21:57:01.086Z",
+      "contentType": "application/javascript"
+    },
+    "src/commands/cache/index.js": {
+      "path": "src/commands/cache/index.js",
+      "hash": "228bc52ea0711190f2ec8348e3e4e135147f9108526ac1fef866948a237b9a68",
+      "size": 1455,
+      "lastModified": "2025-09-11T18:47:24.730Z",
+      "contentType": "application/javascript"
+    },
+    "src/commands/cache/ls.js": {
+      "path": "src/commands/cache/ls.js",
+      "hash": "4b04c5ed1451ecd43a46d83276b18f99e4d9b6233ce02ff025c8c71842be5673",
+      "size": 7425,
+      "lastModified": "2025-09-11T18:47:24.790Z",
+      "contentType": "application/javascript"
+    },
+    "src/commands/cache/purge.js": {
+      "path": "src/commands/cache/purge.js",
+      "hash": "f05238757f4582bb7df61873246a7e8e353f442af1fbfd7ff66f9c6ac4e11291",
+      "size": 7991,
+      "lastModified": "2025-09-11T18:47:24.822Z",
+      "contentType": "application/javascript"
+    },
+    "src/commands/cache/show.js": {
+      "path": "src/commands/cache/show.js",
+      "hash": "62510ae3f3a613c2cb1a1ad05a776dcd8548dd657e8a2a32d08f2a725306ad56",
+      "size": 4245,
+      "lastModified": "2025-09-11T21:57:17.115Z",
+      "contentType": "application/javascript"
+    },
+    "src/commands/graph/diff.js": {
+      "path": "src/commands/graph/diff.js",
+      "hash": "9d828d47192a645564f4c4f5381c7e7bbe1e91caada7336bb932305f90a24fce",
+      "size": 7682,
+      "lastModified": "2025-09-11T19:33:25.348Z",
+      "contentType": "application/javascript"
+    },
+    "src/commands/graph/hash.js": {
+      "path": "src/commands/graph/hash.js",
+      "hash": "984c6ae1a8bfcff687b425fcf25ace81423bfd0b65518f9ed8bc50819f0b7b78",
+      "size": 3540,
+      "lastModified": "2025-09-11T19:33:25.300Z",
+      "contentType": "application/javascript"
+    },
+    "src/commands/graph/index-cmd.js": {
+      "path": "src/commands/graph/index-cmd.js",
+      "hash": "4415c2b4d917a38ae6fc5fbf2f16f270467e7b9e5665117d10a9dd4fdfeb828b",
+      "size": 6343,
+      "lastModified": "2025-09-11T18:44:04.485Z",
+      "contentType": "application/javascript"
+    },
+    "src/commands/graph/index.js": {
+      "path": "src/commands/graph/index.js",
+      "hash": "408a1a35a5f0be9304ed2dbe3653e61ec17c4e44b69180bbc7589da2e23346f0",
+      "size": 631,
+      "lastModified": "2025-09-11T19:33:25.256Z",
+      "contentType": "application/javascript"
+    },
+    "src/commands/metrics/baseline.js": {
+      "path": "src/commands/metrics/baseline.js",
+      "hash": "2fa33b74da4badcb714d874ec54fd0275e0fae52dfb6dc9736c4d78f8117d77d",
+      "size": 14841,
+      "lastModified": "2025-09-11T23:18:57.487Z",
+      "contentType": "application/javascript"
+    },
+    "src/commands/metrics/export.js": {
+      "path": "src/commands/metrics/export.js",
+      "hash": "42b2703b130dd5400923f64ee0e33659d2dd6b52132e00ec804ff4537d3abae1",
+      "size": 12990,
+      "lastModified": "2025-09-11T18:54:16.568Z",
+      "contentType": "application/javascript"
+    },
+    "src/commands/metrics/index.js": {
+      "path": "src/commands/metrics/index.js",
+      "hash": "fa15a4cbaf179c5e768b38635fb21f0681857ad878d8c759886f426f1ded0b6d",
+      "size": 1371,
+      "lastModified": "2025-09-11T18:54:16.536Z",
+      "contentType": "application/javascript"
+    },
+    "src/commands/metrics/report.js": {
+      "path": "src/commands/metrics/report.js",
+      "hash": "ae8ed32bdb11922eedf219bee5fedfd75b68a8eccdc6e97d7efc9bc597bb87c4",
+      "size": 7281,
+      "lastModified": "2025-09-11T21:57:12.264Z",
+      "contentType": "application/javascript"
+    },
+    "src/commands/project/attest.js": {
+      "path": "src/commands/project/attest.js",
+      "hash": "e08bdda8846eb5963e30e05bd7f89db5cc37cece8d706898856852cf31bcfd2d",
+      "size": 7805,
+      "lastModified": "2025-09-11T23:18:39.002Z",
+      "contentType": "application/javascript"
+    },
+    "src/commands/project/index.js": {
+      "path": "src/commands/project/index.js",
+      "hash": "a8a83d5b21b3ae5b861c0ca02cfb9b376530bc3da497a95ac241ae12ce108b36",
+      "size": 1169,
+      "lastModified": "2025-09-11T18:45:17.680Z",
+      "contentType": "application/javascript"
+    },
+    "src/commands/project/lock.js": {
+      "path": "src/commands/project/lock.js",
+      "hash": "c9c87803c4870f452e5c8a59d0275f81559e1bee0e11eb7ca69e85f244af0936",
+      "size": 6389,
+      "lastModified": "2025-09-11T22:30:41.457Z",
+      "contentType": "application/javascript"
+    },
+    "src/commands/rules/index.js": {
+      "path": "src/commands/rules/index.js",
+      "hash": "9c59566d46d1a8af4e3efcd03d78758cc9e5b2fe0cc9861d689f0dece2df597c",
+      "size": 1024,
+      "lastModified": "2025-09-11T18:50:25.311Z",
+      "contentType": "application/javascript"
+    },
+    "src/commands/rules/ls.js": {
+      "path": "src/commands/rules/ls.js",
+      "hash": "af963593bfbf21596b810671164d16ef02bcb54081033943edc7e0d5ed1d8122",
+      "size": 9286,
+      "lastModified": "2025-09-11T18:50:25.343Z",
+      "contentType": "application/javascript"
+    },
+    "src/commands/rules/show.js": {
+      "path": "src/commands/rules/show.js",
+      "hash": "07d76fc61dbc2d78cd0f2f063df5879682e2231b00164471236d9c281bf7bc3b",
+      "size": 11371,
+      "lastModified": "2025-09-11T23:18:17.208Z",
+      "contentType": "application/javascript"
+    },
+    "src/commands/templates/index.js": {
+      "path": "src/commands/templates/index.js",
+      "hash": "ffec639ba75bea5125b7394c40ce3ab0ff99fae6affcbcd20754bd31ce54bc9f",
+      "size": 1029,
+      "lastModified": "2025-09-11T18:50:25.213Z",
+      "contentType": "application/javascript"
+    },
+    "src/commands/templates/ls.js": {
+      "path": "src/commands/templates/ls.js",
+      "hash": "e7fadbac49c08b90fcbfcbadf2a40ed8984017b8ee1fad641ef6e81d4bfb39e3",
+      "size": 8338,
+      "lastModified": "2025-09-11T18:50:25.246Z",
+      "contentType": "application/javascript"
+    },
+    "src/commands/templates/show.js": {
+      "path": "src/commands/templates/show.js",
+      "hash": "70a25b8703b5f8f2ea53744dd2ba9301e323f80bd2d0b914a60b9683a6c03d88",
+      "size": 11249,
+      "lastModified": "2025-09-11T23:19:53.382Z",
+      "contentType": "application/javascript"
+    }
+  },
+  "attestations": {},
+  "provenance": {
+    "chain": [],
+    "integrity": {
+      "bundleHash": "47601d987a197137d543e06c475fd2e412f8ce3f7b63f61bed24df9ca01555dc",
+      "artifacts": 44,
+      "attestations": 0,
+      "verified": false
+    }
+  },
+  "compliance": {
+    "standards": [
+      "SLSA",
+      "PROV-O"
+    ],
+    "level": "L2",
+    "verifiable": true
+  }
+}
