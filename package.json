@@ -129,7 +129,7 @@
     "exceljs": "^4.4.0",
     "express": "^5.1.0",
     "fs-extra": "^11.3.1",
-    "glob": "^10.4.5",
+    "glob": "^11.0.3",
     "gray-matter": "^4.0.3",
     "helmet": "^8.1.0",
     "inquirer": "^12.9.4",
