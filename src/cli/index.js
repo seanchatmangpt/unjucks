@@ -21,7 +21,8 @@ const lazyCommands = {
   specify: () => import('../commands/specify.js').then(m => m.specifyCommand),
   export: () => import('../commands/export.js').then(m => m.exportCommand),
   pdf: () => import('../commands/pdf.js').then(m => m.default),
-  'export-docx': () => import('./commands/export-docx.js').then(m => m.default)
+  'export-docx': () => import('./commands/export-docx.js').then(m => m.default),
+  ontology: () => import('./commands/ontology.js').then(m => m.ontologyCommand)
 };
 
 // Cache for loaded commands

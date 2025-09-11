@@ -1,0 +1,99 @@
+---
+to: generated/{{ firstName | lower }}-{{ lastName | lower }}.html
+---
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ name }} - Profile</title>
+    <style>
+        .profile-card {
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        h1 { color: #2c3e50; }
+        .job-title { color: #3498db; font-size: 1.2em; }
+        .section { margin: 20px 0; }
+        .skills { display: flex; flex-wrap: wrap; gap: 10px; }
+        .skill-badge {
+            background: #3498db;
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.9em;
+        }
+        .experience { background: #f8f9fa; padding: 15px; border-radius: 5px; }
+        .ontology-meta {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #ddd;
+            font-size: 0.85em;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="profile-card">
+        <h1>{{ name }}</h1>
+        <div class="job-title">{{ jobTitle }}</div>
+        
+        <div class="section">
+            <strong>Email:</strong> <a href="mailto:{{ email }}">{{ email }}</a>
+        </div>
+
+        {% if skills and skills.length > 0 %}
+        <div class="section">
+            <h3>Skills</h3>
+            <div class="skills">
+                {% for skill in skills %}
+                <span class="skill-badge">{{ skill }}</span>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        {% if experience %}
+        <div class="section">
+            <h3>Experience</h3>
+            <div class="experience">
+                <strong>{{ experience.title }}</strong><br>
+                {{ experience.description }}<br>
+                <em>{{ experience.years }} years of experience</em>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if education %}
+        <div class="section">
+            <h3>Education</h3>
+            <div class="experience">
+                <strong>{{ education.degree }}</strong><br>
+                {{ education.institution }}
+                {% if education.gpa %}<br>GPA: {{ education.gpa }}{% endif %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Ontology metadata -->
+        <div class="ontology-meta">
+            <h4>Ontology Metadata</h4>
+            <p><strong>Subject URI:</strong> {{ ontology.subject }}</p>
+            <p><strong>Triples Count:</strong> {{ ontology.relationships.length }}</p>
+            {% if ontology.relationships.length > 0 %}
+            <details>
+                <summary>View RDF Relationships</summary>
+                <ul>
+                {% for rel in ontology.relationships %}
+                    <li>{{ rel.predicate }}: {{ rel.object | formatUri }}</li>
+                {% endfor %}
+                </ul>
+            </details>
+            {% endif %}
+        </div>
+    </div>
+</body>
+</html>
