@@ -1,0 +1,120 @@
+% ModernCV Fixed Alignment Template
+\documentclass[11pt,a4paper,sans]{moderncv}
+
+% ModernCV theme and color
+\moderncvstyle{casual} % casual, classic, banking, oldstyle, fancy
+\moderncvcolor{blue}
+
+% Character encoding and language
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}
+
+% Adjust page margins
+\usepackage[scale=0.75,top=2cm,bottom=2cm]{geometry}
+\recomputelengths
+
+% Adjust the column width for labels
+\setlength{\hintscolumnwidth}{3.5cm}
+
+% Personal data with proper formatting
+\firstname{{{person.firstName}}}
+\familyname{{{person.lastName}}}
+\title{{{person.jobTitle}}}
+\mobile{{{person.phone || '+1~555~0123'}}}
+\email{{{person.email}}}
+\homepage{portfolio.example.com}
+\social[linkedin]{{{person.linkedin || 'alexmartinez'}}}
+\social[github]{{{person.github || 'alexmartinez'}}}
+
+% Semantic metadata for PDF
+\usepackage{hyperref}
+\hypersetup{
+    pdftitle={{{person.firstName}} {{person.lastName}} - {{person.jobTitle}}},
+    pdfauthor={{{person.firstName}} {{person.lastName}}},
+    pdfsubject={Resume with {{matchData.overallScore}}% job compatibility},
+    pdfkeywords={{{person.skills.join(', ')}}},
+    pdfcreator={Unjucks Semantic Resume Generator}
+}
+
+\begin{document}
+\makecvtitle
+
+% Job Compatibility Section with proper alignment
+\section{Job Match Analysis}
+\cvitem{Target Position}{{{job.title}} at {{job.company}}}
+\cvitem{Compatibility}{\textbf{\color{color1}{{matchData.overallScore}}\%} Match}
+\cvitem{Skill Match}{{{matchData.matchedSkills.length}}/{{matchData.totalRequired}} required skills ({{matchData.skillScore}}\%)}
+\cvitem{Experience}{{{person.experience.years}} years ({{matchData.experienceScore}}\% match)}
+\cvitem{Key Skills}{{{matchData.matchedSkills.map(s => s.charAt(0).toUpperCase() + s.slice(1)).join(', ')}}}
+
+% Professional Summary
+\section{Professional Summary}
+\cvitem{}{{{person.summary || `Experienced ${person.jobTitle.toLowerCase()} with ${person.experience.years} years of expertise in full-stack development. Proven track record in ${matchData.matchedSkills.slice(0, 3).join(', ')} with strong focus on scalable solutions.`}}}
+
+% Experience with proper formatting
+\section{Professional Experience}
+\cventry{2021--Present}
+    {{{person.experience.title}}}
+    {{{person.experience.company || 'InnovateCorp'}}}
+    {{{person.experience.location || 'Remote'}}}
+    {}
+    {{{person.experience.description}}
+    \begin{itemize}
+        \item Led development of microservices architecture serving 1M+ users
+        \item Implemented CI/CD pipelines reducing deployment time by 60\%
+        \item Mentored 5 junior engineers and conducted technical interviews
+        \item Collaborated with product and design teams on feature development
+    \end{itemize}}
+
+\cventry{2019--2021}
+    {Software Engineer}
+    {TechStart Inc.}
+    {San Francisco, CA}
+    {}
+    {\begin{itemize}
+        \item Developed full-stack applications using modern frameworks
+        \item Optimized database queries improving performance by 40\%
+        \item Participated in agile development processes
+        \item Contributed to technical documentation
+    \end{itemize}}
+
+% Education
+\section{Education}
+\cventry{2015--2019}
+    {{{person.education.degree}}}
+    {{{person.education.institution}}}
+    {}
+    {GPA: {{person.education.gpa || '3.8/4.0'}}}
+    {Relevant coursework: Data Structures, Algorithms, Software Engineering}
+
+% Technical Skills with categories
+\section{Technical Skills}
+\cvitem{Languages}{{{person.skills.filter(s => ['JavaScript', 'TypeScript', 'Python', 'Java'].includes(s)).join(', ')}}}
+\cvitem{Frameworks}{{{person.skills.filter(s => ['React', 'NodeJS', 'Express', 'Django'].includes(s)).join(', ')}}}
+\cvitem{Cloud/DevOps}{{{person.skills.filter(s => ['AWS', 'Docker', 'Kubernetes'].includes(s)).join(', ')}}}
+\cvitem{Databases}{PostgreSQL, MongoDB, Redis, Elasticsearch}
+\cvitem{\textbf{Matched}}{{\color{color1}\textbf{{{matchData.matchedSkills.join(', ')}}}}}
+
+% Projects
+\section{Notable Projects}
+\cventry{2023}
+    {E-commerce Platform}
+    {Full-Stack Application}
+    {}
+    {}
+    {Microservices architecture with React, Node.js, PostgreSQL, Docker, AWS. Handles 100k+ daily transactions.}
+
+\cventry{2022}
+    {Analytics Dashboard}
+    {Data Visualization}
+    {}
+    {}
+    {Real-time dashboard processing 100k+ events/hour with D3.js visualizations.}
+
+% Certifications
+\section{Certifications}
+\cvitem{2023}{AWS Certified Solutions Architect - Associate}
+\cvitem{2022}{Google Cloud Professional Cloud Architect}
+\cvitem{2021}{Certified Kubernetes Administrator (CKA)}
+
+\end{document}

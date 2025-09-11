@@ -1,0 +1,89 @@
+% Modern Clean Resume Template - ATS Friendly
+\documentclass[11pt,letterpaper]{article}
+\usepackage[margin=0.75in]{geometry}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{enumitem}
+\usepackage{hyperref}
+\usepackage{xcolor}
+\usepackage{titlesec}
+\usepackage{fontawesome5}
+
+% Define colors
+\definecolor{headercolor}{RGB}{35, 55, 100}
+\definecolor{accentcolor}{RGB}{0, 120, 180}
+\definecolor{textcolor}{RGB}{50, 50, 50}
+
+% Section formatting
+\titleformat{\section}{\Large\bfseries\color{headercolor}}{}{0em}{}[\titlerule]
+\titleformat{\subsection}{\large\bfseries\color{textcolor}}{}{0em}{}
+
+% No page numbers
+\pagestyle{empty}
+
+% Hyperlink setup
+\hypersetup{
+    colorlinks=true,
+    linkcolor=accentcolor,
+    urlcolor=accentcolor,
+    pdftitle={{{person.firstName}} {{person.lastName}} - {{person.jobTitle}}},
+    pdfauthor={{{person.firstName}} {{person.lastName}}},
+    pdfsubject={Resume for {{job.title}} position},
+    pdfkeywords={{{matchData.matchedSkills.join(', ')}}},
+    pdfcreator={Unjucks Semantic Resume Generator}
+}
+
+\begin{document}
+
+% Header
+\begin{center}
+    {\Huge\bfseries\color{headercolor} {{person.firstName}} {{person.lastName}}} \\[0.3em]
+    {\Large {{person.jobTitle}}} \\[0.5em]
+    \faIcon{envelope} \href{mailto:{{person.email}}}{{{person.email}}} \quad
+    \faIcon{phone} {{person.phone || '+1-555-0123'}} \quad
+    \faIcon{linkedin} \href{https://linkedin.com/in/{{person.linkedin || 'alexmartinez'}}}{LinkedIn} \quad
+    \faIcon{github} \href{https://github.com/{{person.github || 'alexmartinez'}}}{GitHub}
+\end{center}
+
+\vspace{0.5em}
+
+% Job Match Score (if showing)
+\section{Job Match Analysis}
+\begin{itemize}[leftmargin=*,labelsep=0.5em]
+    \item \textbf{Target Position:} {{job.title}} at {{job.company}}
+    \item \textbf{Compatibility Score:} \textcolor{accentcolor}{\textbf{{{matchData.overallScore}}\%}} - Excellent Match
+    \item \textbf{Matched Skills:} {{matchData.matchedSkills.map(s => s.charAt(0).toUpperCase() + s.slice(1)).join(', ')}}
+\end{itemize}
+
+% Professional Summary
+\section{Professional Summary}
+{{person.summary || `Experienced ${person.jobTitle.toLowerCase()} with ${person.experience.years} years of expertise in full-stack development, system design, and agile methodologies. Proven track record of delivering scalable solutions and mentoring development teams.`}}
+
+% Experience
+\section{Professional Experience}
+
+\subsection{{{person.experience.title}} \hfill {{person.experience.dates || '2021--Present'}}
+\textit{{{person.experience.company || 'InnovateCorp'}} | {{person.experience.location || 'Remote'}}}
+\begin{itemize}[leftmargin=*,topsep=0.25em]
+    \item {{person.experience.description}}
+    \item Led development of microservices architecture serving 1M+ users
+    \item Implemented CI/CD pipelines reducing deployment time by 60\%
+    \item Mentored junior engineers and conducted technical interviews
+\end{itemize}
+
+% Education
+\section{Education}
+\textbf{{{person.education.degree}}} \hfill {{person.education.dates || '2015--2019'}}\\
+{{person.education.institution}} | GPA: {{person.education.gpa || '3.8/4.0'}}
+
+% Skills
+\section{Technical Skills}
+\begin{itemize}[leftmargin=*,labelsep=0.5em]
+    \item \textbf{Languages:} {{person.skills.filter(s => ['JavaScript', 'TypeScript', 'Python'].includes(s)).join(', ')}}
+    \item \textbf{Frameworks:} {{person.skills.filter(s => ['React', 'NodeJS', 'Express'].includes(s)).join(', ')}}
+    \item \textbf{Cloud \& Tools:} {{person.skills.filter(s => ['AWS', 'Docker', 'Kubernetes'].includes(s)).join(', ')}}
+    \item \textbf{Matched for Role:} \textcolor{accentcolor}{\textbf{{{matchData.matchedSkills.join(', ')}}}}
+\end{itemize}
+
+\end{document}

@@ -1,0 +1,107 @@
+% Professional Classic Resume Template
+\documentclass[10pt,a4paper]{article}
+\usepackage[top=0.75in,bottom=0.75in,left=0.75in,right=0.75in]{geometry}
+\usepackage[utf8]{inputenc}
+\usepackage{helvet}
+\renewcommand{\familydefault}{\sfdefault}
+\usepackage{enumitem}
+\usepackage{hyperref}
+\usepackage{xcolor}
+\usepackage{titlesec}
+\usepackage{tabularx}
+\usepackage{array}
+
+% Colors
+\definecolor{darkblue}{RGB}{26,13,171}
+\definecolor{gray}{RGB}{128,128,128}
+
+% Section formatting
+\titleformat{\section}
+  {\normalfont\Large\bfseries\color{darkblue}}
+  {}
+  {0em}
+  {}
+  [\vspace{-0.5em}\hrulefill]
+
+\titleformat{\subsection}
+  {\normalfont\large\bfseries}
+  {}
+  {0em}
+  {}
+
+% Metadata
+\hypersetup{
+    colorlinks=false,
+    pdftitle={{{person.firstName}} {{person.lastName}} Resume},
+    pdfauthor={{{person.firstName}} {{person.lastName}}},
+    pdfsubject={Professional Resume - {{matchData.overallScore}}% Match},
+    pdfkeywords={{{person.skills.join(', ')}}}
+}
+
+\pagestyle{empty}
+
+\begin{document}
+
+% Header with proper alignment
+\begin{tabularx}{\textwidth}{@{}X r@{}}
+    {\huge\bfseries {{person.firstName}} {{person.lastName}}} & \href{mailto:{{person.email}}}{{{person.email}}} \\
+    {\Large\color{gray} {{person.jobTitle}}} & {{person.phone || '+1-555-0123'}} \\
+    & \href{https://linkedin.com/in/{{person.linkedin || 'profile'}}}{linkedin.com/in/{{person.linkedin || 'profile'}}} \\
+    & \href{https://github.com/{{person.github || 'username'}}}{github.com/{{person.github || 'username'}}}
+\end{tabularx}
+
+\vspace{1em}
+
+% Compatibility Score Bar
+\section{Job Compatibility}
+\begin{tabularx}{\textwidth}{@{}l X r@{}}
+    \textbf{Target Role:} & {{job.title}} at {{job.company}} & \textbf{Match: {{matchData.overallScore}}\%} \\
+    \textbf{Skill Match:} & {{matchData.matchedSkills.length}}/{{matchData.totalRequired}} required skills & \textbf{{{matchData.skillScore}}\%} \\
+    \textbf{Experience:} & {{person.experience.years}} years (Required: 5+) & \textbf{{{matchData.experienceScore}}\%}
+\end{tabularx}
+
+% Summary
+\section{Professional Summary}
+{{person.summary || `Results-driven ${person.jobTitle.toLowerCase()} with ${person.experience.years}+ years of experience in designing and implementing scalable solutions. Expertise in ${matchData.matchedSkills.slice(0, 3).join(', ')} with a proven track record of delivering high-quality software products.`}}
+
+% Experience with better alignment
+\section{Professional Experience}
+
+\noindent
+\textbf{{{person.experience.title}}} \hfill {{person.experience.dates || 'Jan 2021 -- Present'}}\\
+\textit{{{person.experience.company || 'InnovateCorp'}}, {{person.experience.location || 'Remote'}}}
+\begin{itemize}[leftmargin=*, topsep=0pt, itemsep=2pt]
+    \item {{person.experience.description}}
+    \item Architected and implemented microservices handling 1M+ daily transactions
+    \item Reduced deployment time by 60\% through CI/CD pipeline optimization
+    \item Led team of 5 engineers, conducting code reviews and mentoring
+\end{itemize}
+
+\vspace{0.5em}
+\noindent
+\textbf{Software Engineer} \hfill Jan 2019 -- Dec 2020\\
+\textit{TechStart Inc., San Francisco, CA}
+\begin{itemize}[leftmargin=*, topsep=0pt, itemsep=2pt]
+    \item Developed full-stack web applications using React and Node.js
+    \item Improved application performance by 40\% through database optimization
+    \item Collaborated in agile environment with cross-functional teams
+\end{itemize}
+
+% Education
+\section{Education}
+\noindent
+\textbf{{{person.education.degree}}} \hfill {{person.education.dates || '2015 -- 2019'}}\\
+{{person.education.institution}}\\
+GPA: {{person.education.gpa || '3.8/4.0'}} | Relevant Coursework: Data Structures, Algorithms, Software Engineering
+
+% Skills in columns for better space usage
+\section{Technical Skills}
+\begin{tabularx}{\textwidth}{@{}l X@{}}
+    \textbf{Languages:} & {{person.skills.filter(s => ['JavaScript', 'TypeScript', 'Python', 'Java'].includes(s)).join(', ')}} \\
+    \textbf{Frameworks:} & {{person.skills.filter(s => ['React', 'NodeJS', 'Express', 'Django'].includes(s)).join(', ')}} \\
+    \textbf{Databases:} & PostgreSQL, MongoDB, Redis \\
+    \textbf{Cloud/DevOps:} & {{person.skills.filter(s => ['AWS', 'Docker', 'Kubernetes'].includes(s)).join(', ')}} \\
+    \textbf{Matched Skills:} & \textbf{{{matchData.matchedSkills.map(s => s.charAt(0).toUpperCase() + s.slice(1)).join(', ')}}}
+\end{tabularx}
+
+\end{document}

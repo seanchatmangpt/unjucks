@@ -1,0 +1,172 @@
+% Academic CV Template
+\documentclass[11pt,a4paper]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage[utf8]{inputenc}
+\usepackage{times}
+\usepackage{enumitem}
+\usepackage{hyperref}
+\usepackage{xcolor}
+\usepackage{titlesec}
+\usepackage{bibentry}
+
+% Academic colors
+\definecolor{academic}{RGB}{0,0,139}
+\definecolor{section}{RGB}{70,70,70}
+
+% Section formatting
+\titleformat{\section}
+  {\normalfont\Large\bfseries\color{academic}}
+  {}
+  {0em}
+  {\MakeUppercase}
+  [\vspace{-0.5em}\hrule\vspace{0.5em}]
+
+\titleformat{\subsection}
+  {\normalfont\large\bfseries\color{section}}
+  {}
+  {0em}
+  {}
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=academic,
+    urlcolor=academic,
+    citecolor=academic,
+    pdftitle={{{person.firstName}} {{person.lastName}} - Curriculum Vitae},
+    pdfauthor={{{person.firstName}} {{person.lastName}}},
+    pdfsubject={Academic CV}
+}
+
+\pagestyle{plain}
+
+\begin{document}
+
+% Header
+\begin{center}
+    {\LARGE\bfseries {{person.firstName}} {{person.lastName}}, {{person.degree || 'Ph.D.'}}}\\[0.5em]
+    {\large Curriculum Vitae}\\[0.5em]
+    {{person.department || 'Department of Computer Science'}}\\
+    {{person.university || 'University Name'}}\\[0.3em]
+    \href{mailto:{{person.email}}}{{{person.email}}} $\cdot$ 
+    {{person.phone || '(555) 012-3456'}} $\cdot$
+    \href{{{person.website || 'https://academic.edu/profile'}}}{Personal Website}\\
+    ORCID: {{person.orcid || '0000-0000-0000-0000'}}
+\end{center}
+
+\section{Research Interests}
+{{person.researchInterests || `Machine Learning, Artificial Intelligence, ${matchData.matchedSkills.slice(0, 3).join(', ')}, Distributed Systems, and Computer Vision.`}}
+
+\section{Education}
+\begin{itemize}[leftmargin=*, topsep=0pt]
+    \item \textbf{Ph.D. in Computer Science}, {{person.education.institution}}\\
+    {{person.education.dates || '2015 -- 2019'}} | Advisor: Prof. Jane Smith\\
+    Dissertation: \textit{Advanced Techniques in Machine Learning for Large-Scale Systems}
+    
+    \item \textbf{M.S. in Computer Science}, University Name\\
+    2013 -- 2015 | GPA: 3.9/4.0
+    
+    \item \textbf{B.S. in Computer Science}, University Name\\
+    2009 -- 2013 | \textit{Summa Cum Laude}, GPA: 3.95/4.0
+\end{itemize}
+
+\section{Academic Appointments}
+\begin{itemize}[leftmargin=*, topsep=0pt]
+    \item \textbf{{{person.experience.title || 'Assistant Professor'}}}, {{person.experience.institution || 'Current University'}}\\
+    {{person.experience.dates || '2021 -- Present'}}
+    
+    \item \textbf{Postdoctoral Research Fellow}, Research Institute\\
+    2019 -- 2021 | Mentor: Prof. John Doe
+\end{itemize}
+
+\section{Publications}
+\subsection{Peer-Reviewed Journal Articles}
+\begin{enumerate}[leftmargin=*, topsep=0pt]
+    \item {{person.lastName}}, {{person.firstName}}., Smith, J., \& Doe, J. (2023). 
+    ``Machine Learning Approaches for Semantic Resume Matching.'' 
+    \textit{Journal of Artificial Intelligence Research}, 75, 123-145.
+    Impact Factor: 4.5
+    
+    \item Doe, J., {{person.lastName}}, {{person.firstName}}., \& Smith, J. (2022). 
+    ``Distributed Systems for Large-Scale Data Processing.'' 
+    \textit{IEEE Transactions on Parallel and Distributed Systems}, 33(8), 1890-1905.
+    
+    \item {{person.lastName}}, {{person.firstName}}. (2021). 
+    ``Novel Algorithms for Real-Time Analytics.'' 
+    \textit{ACM Computing Surveys}, 54(3), Article 45.
+\end{enumerate}
+
+\subsection{Conference Proceedings}
+\begin{enumerate}[leftmargin=*, topsep=0pt]
+    \item {{person.lastName}}, {{person.firstName}}., et al. (2023). 
+    ``Semantic Web Technologies for Job Matching.'' 
+    In \textit{Proceedings of AAAI Conference on Artificial Intelligence}, pp. 234-241.
+    
+    \item Smith, J., {{person.lastName}}, {{person.firstName}}. (2022). 
+    ``Efficient Algorithms for Graph Processing.'' 
+    In \textit{Proceedings of SIGMOD}, pp. 567-578.
+\end{enumerate}
+
+\section{Grants and Funding}
+\begin{itemize}[leftmargin=*, topsep=0pt]
+    \item \textbf{NSF CAREER Award}, \$500,000, 2023-2028\\
+    ``Advancing Machine Learning for Semantic Data Processing''\\
+    Role: Principal Investigator
+    
+    \item \textbf{Google Research Award}, \$75,000, 2022-2023\\
+    ``Cloud Computing for Academic Research''\\
+    Role: Co-PI
+\end{itemize}
+
+\section{Teaching Experience}
+\subsection{Courses Taught}
+\begin{itemize}[leftmargin=*, topsep=0pt]
+    \item CS 5500: Machine Learning (Graduate), Fall 2023, Spring 2024
+    \item CS 3300: Data Structures and Algorithms, Fall 2022, Fall 2023
+    \item CS 4400: Database Systems, Spring 2022, Spring 2023
+    \item CS 6600: Advanced Topics in AI (Graduate Seminar), Fall 2021
+\end{itemize}
+
+\subsection{Student Mentoring}
+\begin{itemize}[leftmargin=*, topsep=0pt]
+    \item Ph.D. Students: 3 current, 2 graduated
+    \item Master's Students: 8 current, 12 graduated
+    \item Undergraduate Research: 15 students
+\end{itemize}
+
+\section{Service}
+\subsection{Editorial Boards}
+\begin{itemize}[leftmargin=*, topsep=0pt]
+    \item Associate Editor, \textit{Journal of Machine Learning Research}, 2022-Present
+    \item Guest Editor, \textit{IEEE Transactions on AI}, Special Issue on Semantic Web, 2023
+\end{itemize}
+
+\subsection{Conference Organization}
+\begin{itemize}[leftmargin=*, topsep=0pt]
+    \item Program Chair, International Conference on Machine Learning (ICML), 2024
+    \item Area Chair, Neural Information Processing Systems (NeurIPS), 2023
+    \item Program Committee Member: AAAI, IJCAI, ICLR, CVPR (2021-2024)
+\end{itemize}
+
+\section{Technical Skills}
+\textbf{Programming:} {{person.skills.join(', ')}}\\
+\textbf{Machine Learning:} TensorFlow, PyTorch, Scikit-learn, JAX\\
+\textbf{Research Tools:} LaTeX, R, MATLAB, Jupyter\\
+\textbf{Matched Skills for Position:} \textbf{{{matchData.matchedSkills.join(', ')}}}
+
+\section{Selected Honors and Awards}
+\begin{itemize}[leftmargin=*, topsep=0pt]
+    \item Best Paper Award, AAAI Conference, 2023
+    \item Outstanding Teaching Award, University Name, 2022
+    \item Google PhD Fellowship, 2017-2019
+    \item ACM Graduate Student Research Award, 2018
+\end{itemize}
+
+\section{References}
+Available upon request.
+
+\vfill
+\begin{center}
+    \small\textit{Last updated: \today}
+\end{center}
+
+\end{document}

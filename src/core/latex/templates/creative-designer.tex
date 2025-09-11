@@ -1,0 +1,164 @@
+% Creative Designer Resume Template
+\documentclass[10pt,a4paper]{article}
+\usepackage[margin=0.5in,top=0.75in]{geometry}
+\usepackage[utf8]{inputenc}
+\usepackage{avant}
+\renewcommand{\familydefault}{\sfdefault}
+\usepackage{enumitem}
+\usepackage{hyperref}
+\usepackage{xcolor}
+\usepackage{titlesec}
+\usepackage{tikz}
+\usepackage{fontawesome5}
+\usepackage{multicol}
+\usepackage{graphicx}
+
+% Creative colors
+\definecolor{primary}{RGB}{255,87,34}
+\definecolor{secondary}{RGB}{0,188,212}
+\definecolor{accent}{RGB}{255,193,7}
+\definecolor{dark}{RGB}{33,33,33}
+\definecolor{light}{RGB}{245,245,245}
+
+% Custom commands for visual elements
+\newcommand{\skillbar}[2]{
+    \begin{tikzpicture}[scale=0.8]
+        \fill[light] (0,0) rectangle (4,0.2);
+        \fill[primary] (0,0) rectangle (#1*0.04,0.2);
+        \node[anchor=west] at (4.2,0.1) {\small #2\%};
+    \end{tikzpicture}
+}
+
+\newcommand{\coloredicon}[1]{{\color{primary}\faIcon{#1}}}
+
+% Section formatting
+\titleformat{\section}
+  {\normalfont\LARGE\bfseries\color{primary}}
+  {}
+  {0em}
+  {}
+  [\vspace{-0.8em}{\color{secondary}\rule{\linewidth}{2pt}}\vspace{0.3em}]
+
+\titleformat{\subsection}
+  {\normalfont\large\bfseries\color{dark}}
+  {}
+  {0em}
+  {}
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=secondary,
+    urlcolor=secondary,
+    pdftitle={{{person.firstName}} {{person.lastName}} - Creative Resume},
+    pdfauthor={{{person.firstName}} {{person.lastName}}},
+    pdfsubject={Creative Professional Resume}
+}
+
+\pagestyle{empty}
+
+\begin{document}
+
+% Creative Header with visual design
+\begin{tikzpicture}[remember picture,overlay]
+    \fill[primary!10] (current page.north west) rectangle ([yshift=-3cm]current page.north east);
+    \node[anchor=north west,inner sep=2cm] at (current page.north west) {
+        \begin{minipage}{\textwidth}
+            {\Huge\bfseries\color{dark} {{person.firstName}} {{person.lastName}}}\\[0.3em]
+            {\Large\color{primary} {{person.jobTitle || 'Creative Professional'}}}\\[0.5em]
+            \coloredicon{envelope} \href{mailto:{{person.email}}}{{{person.email}}} \quad
+            \coloredicon{phone} {{person.phone || '555.012.3456'}} \quad
+            \coloredicon{globe} \href{{{person.portfolio || 'https://portfolio.com'}}}{Portfolio} \quad
+            \coloredicon{linkedin} \href{https://linkedin.com/in/{{person.linkedin || 'creative'}}}{LinkedIn}
+        \end{minipage}
+    };
+\end{tikzpicture}
+
+\vspace{3.5cm}
+
+% Two column layout
+\begin{multicols}{2}
+
+% Left Column
+\section{About Me}
+{{person.summary || `Creative ${person.jobTitle.toLowerCase()} with ${person.experience.years}+ years crafting compelling digital experiences. Passionate about ${matchData.matchedSkills.slice(0, 3).join(', ')} with a focus on user-centered design and innovative solutions.`}}
+
+\section{Core Skills}
+\begin{itemize}[leftmargin=*, topsep=0pt, itemsep=3pt]
+    \item \textbf{Design:} {{person.skills.filter(s => ['Figma', 'Sketch', 'Adobe XD', 'Photoshop'].includes(s)).join(', ') || 'Figma, Adobe Creative Suite'}}
+    \item \textbf{Development:} {{person.skills.filter(s => ['HTML', 'CSS', 'JavaScript', 'React'].includes(s)).join(', ') || 'HTML5, CSS3, JavaScript'}}
+    \item \textbf{Matched:} \textcolor{primary}{\textbf{{{matchData.matchedSkills.join(', ')}}}}
+\end{itemize}
+
+% Skill bars
+\vspace{0.5em}
+\noindent
+\textbf{Skill Proficiency}\\[0.3em]
+Design Thinking \skillbar{90}{90}\\
+User Research \skillbar{85}{85}\\
+Prototyping \skillbar{95}{95}\\
+Front-end Dev \skillbar{80}{80}\\
+Team Collaboration \skillbar{100}{100}
+
+\columnbreak
+
+% Right Column
+\section{Experience}
+
+\subsection{\coloredicon{briefcase} {{person.experience.title}}}
+\textit{{{person.experience.company || 'Creative Agency'}} | {{person.experience.dates || '2021-Present'}}}
+\begin{itemize}[leftmargin=*, topsep=0pt, itemsep=2pt]
+    \item {{person.experience.description || 'Led creative direction for major brand campaigns'}}
+    \item Increased user engagement by 150\% through innovative design
+    \item Managed team of 5 designers on multiple projects
+    \item Delivered 20+ successful projects on time and budget
+\end{itemize}
+
+\subsection{\coloredicon{briefcase} Senior Designer}
+\textit{Design Studio | 2019-2021}
+\begin{itemize}[leftmargin=*, topsep=0pt, itemsep=2pt]
+    \item Created award-winning designs for Fortune 500 clients
+    \item Improved conversion rates by 40\% through UX optimization
+    \item Mentored junior designers and interns
+\end{itemize}
+
+\section{Notable Projects}
+
+\subsection{\coloredicon{star} E-commerce Redesign}
+Complete visual overhaul resulting in 200\% increase in sales.
+\textit{Skills: UX, UI, React, {{matchData.matchedSkills[0] || 'JavaScript'}}}
+
+\subsection{\coloredicon{star} Mobile App Design}
+Award-winning app with 1M+ downloads and 4.8 star rating.
+\textit{Skills: Figma, Prototyping, {{matchData.matchedSkills[1] || 'User Research'}}}
+
+\end{multicols}
+
+% Bottom section - full width
+\vspace{0.5em}
+\section{Education \& Recognition}
+
+\noindent
+\begin{minipage}[t]{0.48\textwidth}
+    \textbf{{{person.education.degree}}}\\
+    {{person.education.institution}}\\
+    {{person.education.dates || '2015-2019'}} | GPA: {{person.education.gpa || '3.8/4.0'}}
+\end{minipage}
+\hfill
+\begin{minipage}[t]{0.48\textwidth}
+    \textbf{Awards \& Recognition}\\
+    $\bullet$ Best Design Award, Creative Summit 2023\\
+    $\bullet$ Featured in Design Weekly Magazine\\
+    $\bullet$ 10+ Behance Featured Projects
+\end{minipage}
+
+% Visual footer with match score
+\vspace{1em}
+\begin{center}
+    \begin{tikzpicture}
+        \node[draw=primary, fill=primary!10, rounded corners, inner sep=10pt] {
+            \textbf{Job Match Score: \huge\color{primary}{{matchData.overallScore}}\%}
+        };
+    \end{tikzpicture}
+\end{center}
+
+\end{document}

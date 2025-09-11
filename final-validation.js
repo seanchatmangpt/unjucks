@@ -5,7 +5,8 @@
  * Tests core functionality without external dependencies
  */
 
-import { writeFileSync, existsSync, mkdirSync } from 'fs';
+import { writeFileSync, readFileSync, existsSync, mkdirSync } from 'fs';
+import { join } from 'path';
 
 console.log('🎯 FINAL SEMANTIC RESUME VALIDATION');
 console.log('=====================================\n');
@@ -80,133 +81,134 @@ function calculateJobMatch(person, job) {
     };
 }
 
-function generateSemanticResume(person, job, matchData) {
-    console.log('📝 Generating semantic resume...');
+function generateSemanticResume(person, job, matchData, templateName = 'professional-classic') {
+    console.log(`📝 Generating semantic resume with ${templateName} template...`);
     
-    // LaTeX Resume with ModernCV
-    const latexResume = `\\documentclass[11pt,a4paper,sans]{moderncv}
-
-% ModernCV theme and color
-\\moderncvstyle{banking}
-\\moderncvcolor{blue}
-
-% Character encoding and language
+    // Professional template with improved spacing and alignment
+    const latexResume = `\\documentclass[11pt,letterpaper]{article}
+\\usepackage[top=0.6in, bottom=0.6in, left=0.75in, right=0.75in]{geometry}
 \\usepackage[utf8]{inputenc}
-\\usepackage[english]{babel}
-
-% Page geometry
-\\usepackage[scale=0.85]{geometry}
-\\setlength{\\hintscolumnwidth}{3cm}
-
-% Semantic metadata for PDF
+\\usepackage{enumitem}
 \\usepackage{hyperref}
-\\hypersetup{
-    pdftitle={${person.firstName} ${person.lastName} - ${person.jobTitle} Resume},
-    pdfauthor={${person.firstName} ${person.lastName}},
-    pdfsubject={Semantic Resume for ${job.title} position},
-    pdfkeywords={ontology, resume, ${person.jobTitle}, job matching, compatibility: ${matchData.overallScore}\\%},
-    pdfcreator={Unjucks Semantic Resume Generator},
-    pdfproducer={LaTeX with RDF/Turtle ontology data}
-}
+\\usepackage{xcolor}
+\\usepackage{titlesec}
+\\usepackage{tabularx}
 
-% Personal data with semantic markup
-\\name{${person.firstName}}{${person.lastName}}
-\\title{${person.jobTitle}}
-\\phone[mobile]{+1-555-0123}
-\\email{${person.email}}
-\\homepage{portfolio.example.com}
-\\social[linkedin]{alexmartinez}
-\\social[github]{alexmartinez}
+% Colors
+\\definecolor{headercolor}{RGB}{35, 55, 100}
+\\definecolor{accentcolor}{RGB}{0, 120, 180}
+
+% Section formatting with better spacing
+\\titleformat{\\section}{\\Large\\bfseries\\color{headercolor}}{}{0em}{}[\\titlerule]
+\\titlespacing*{\\section}{0pt}{12pt}{8pt}
+
+\\titleformat{\\subsection}[runin]{\\large\\bfseries}{}{0em}{}
+\\titlespacing*{\\subsection}{0pt}{10pt}{6pt}
+
+% Remove paragraph indentation
+\\setlength{\\parindent}{0pt}
+\\setlength{\\parskip}{0pt}
+
+\\pagestyle{empty}
+
+\\hypersetup{
+    colorlinks=true,
+    linkcolor=accentcolor,
+    urlcolor=accentcolor,
+    pdftitle={${person.firstName} ${person.lastName} - ${person.jobTitle}},
+    pdfauthor={${person.firstName} ${person.lastName}},
+    pdfsubject={Resume with ${matchData.overallScore}\\% Match},
+    pdfkeywords={${person.skills.join(', ')}}
+}
 
 \\begin{document}
 
-% Title with semantic structure
-\\makecvtitle
-
-% Job Match Analysis Section
-\\section{Job Compatibility Analysis}
-\\cvitem{Target Position}{\\textbf{${job.title}} at \\textbf{${job.company}}}
-\\cvitem{Compatibility Score}{\\textbf{\\textcolor{blue}{${matchData.overallScore}\\%}} - Excellent Match}
-\\cvitem{Salary Range}{\\$${job.salary.min.toLocaleString()} - \\$${job.salary.max.toLocaleString()}}
-\\cvitem{Skill Match}{\\textbf{${matchData.skillScore}\\%} (${matchData.matchedSkills.length}/${matchData.totalRequired} required skills)}
-\\cvitem{Experience Match}{\\textbf{${matchData.experienceScore}\\%} (${person.experience.years} years experience)}
-\\cvitem{Matched Skills}{${matchData.matchedSkills.map(s => s.charAt(0).toUpperCase() + s.slice(1)).join(', ')}}
-
-% Professional Summary with semantic context
-\\section{Professional Summary}
-\\cvitem{}{%
-    Experienced ${person.jobTitle.toLowerCase()} with ${person.experience.years} years of expertise in full-stack development, 
-    system design, and agile methodologies. Proven track record of delivering scalable solutions 
-    and mentoring development teams. \\textbf{Semantic analysis shows ${matchData.overallScore}\\% compatibility} 
-    with target role requirements.
-}
-
-% Experience Section with RDF-style metadata
-\\section{Professional Experience}
-\\cventry{2021--Present}{${person.experience.title}}{InnovateCorp}{Remote}{}{%
-    ${person.experience.description}
-    \\begin{itemize}
-        \\item Led development of microservices architecture serving 1M+ users
-        \\item Implemented CI/CD pipelines reducing deployment time by 60\\%
-        \\item Mentored 5 junior engineers and conducted technical interviews
-        \\item Collaborated with product and design teams on feature development
-    \\end{itemize}
-}
-
-\\cventry{2019--2021}{Software Engineer}{TechStart Inc.}{San Francisco, CA}{}{%
-    \\begin{itemize}
-        \\item Developed full-stack applications using modern frameworks
-        \\item Optimized database queries improving application performance by 40\\%
-        \\item Participated in agile development processes and code reviews
-        \\item Contributed to technical documentation and best practices
-    \\end{itemize}
-}
-
-% Education with semantic structure
-\\section{Education}
-\\cventry{2015--2019}{${person.education.degree}}{${person.education.institution}}{Location}{GPA: 3.8/4.0}{%
-    Relevant coursework: Data Structures, Algorithms, Software Engineering, Database Systems
-}
-
-% Skills with RDF-compatible categorization and highlighting
-\\section{Technical Skills}
-\\cvitem{Programming Languages}{${person.skills.filter(s => ['JavaScript', 'TypeScript', 'Python'].includes(s)).join(', ')}}
-\\cvitem{Frameworks \\& Libraries}{${person.skills.filter(s => ['React', 'NodeJS', 'Express'].includes(s)).join(', ')}}
-\\cvitem{Cloud \\& DevOps}{${person.skills.filter(s => ['AWS', 'Docker', 'Kubernetes'].includes(s)).join(', ')}}
-\\cvitem{\\textcolor{blue}{Matched Skills}}{\\textbf{${matchData.matchedSkills.map(s => s.charAt(0).toUpperCase() + s.slice(1)).join(', ')}}}
-
-% Projects with semantic metadata
-\\section{Notable Projects}
-\\cventry{2023}{E-commerce Platform}{\\href{https://github.com/alexmartinez/ecommerce}{GitHub}}{}{}{%
-    Full-stack e-commerce solution with microservices architecture, payment processing, 
-    and real-time inventory management. Demonstrates ${matchData.matchedSkills.length} of ${matchData.totalRequired} required skills.
-    \\textit{Technologies: React, Node.js, PostgreSQL, Docker, AWS}
-}
-
-\\cventry{2022}{Data Analytics Dashboard}{\\href{https://portfolio.example.com/analytics}{Portfolio}}{}{}{%
-    Real-time analytics dashboard processing 100k+ events/hour with interactive visualizations 
-    and custom reporting capabilities.
-    \\textit{Technologies: React, Node.js, D3.js, PostgreSQL, Redis}
-}
-
-% Certifications with semantic validation
-\\section{Certifications}
-\\cvitem{2023}{AWS Certified Solutions Architect - Associate}
-\\cvitem{2022}{Google Cloud Professional Cloud Architect}
-\\cvitem{2021}{Certified Kubernetes Administrator (CKA)}
-
-% Semantic Resume Technology Section
-\\section{Semantic Resume Technology}
-\\cvitem{Ontology Processing}{RDF/Turtle data structures for skill and experience modeling}
-\\cvitem{Job Matching Algorithm}{Machine learning-based compatibility scoring: \\textbf{${matchData.overallScore}\\%}}
-\\cvitem{Structured Data}{Schema.org compliant metadata for enhanced discoverability}
-\\cvitem{Multi-format Output}{LaTeX/PDF, JSON-LD, RDF/Turtle, HTML generation}
-
-% Semantic footer with metadata
-\\vfill
+% Header with better spacing
 \\begin{center}
-    \\small{Generated: \\today \\quad | \\quad Semantic Resume Format \\quad | \\quad Compatibility: ${matchData.overallScore}\\%}
+    {\\Huge\\bfseries\\color{headercolor} ${person.firstName} ${person.lastName}}
+    
+    \\vspace{0.2em}
+    {\\Large ${person.jobTitle}}
+    
+    \\vspace{0.3em}
+    \\small ${person.email} $\\bullet$ +1-555-0123 $\\bullet$ LinkedIn: alexmartinez $\\bullet$ GitHub: alexmartinez
 \\end{center}
+
+\\vspace{0.8em}
+
+% Job Match Analysis
+\\section{Job Match Analysis}
+\\vspace{0.2em}
+\\begin{itemize}[leftmargin=*, topsep=4pt, itemsep=3pt, parsep=0pt]
+    \\item \\textbf{Target Position:} ${job.title} at ${job.company}
+    \\item \\textbf{Compatibility Score:} \\textcolor{accentcolor}{\\textbf{${matchData.overallScore}\\%}} - Excellent Match
+    \\item \\textbf{Skill Match:} ${matchData.skillScore}\\% (${matchData.matchedSkills.length}/${matchData.totalRequired} required skills)
+    \\item \\textbf{Matched Skills:} ${matchData.matchedSkills.map(s => s.charAt(0).toUpperCase() + s.slice(1)).join(', ')}
+\\end{itemize}
+
+\\vspace{0.4em}
+
+% Professional Summary
+\\section{Professional Summary}
+\\vspace{0.2em}
+Experienced ${person.jobTitle.toLowerCase()} with ${person.experience.years} years of expertise in full-stack development, system design, and agile methodologies. Proven track record of delivering scalable solutions and mentoring development teams. Strong expertise in ${matchData.matchedSkills.join(', ')}.
+
+\\vspace{0.4em}
+
+% Experience
+\\section{Professional Experience}
+\\vspace{0.3em}
+
+% Use tabularx for better date alignment
+\\noindent
+\\begin{tabularx}{\\textwidth}{@{}X r@{}}
+\\textbf{${person.experience.title}} & \\textbf{2021--Present}
+\\end{tabularx}
+\\\\
+\\textit{InnovateCorp | Remote}
+\\begin{itemize}[leftmargin=*, topsep=4pt, itemsep=3pt, parsep=0pt]
+    \\item ${person.experience.description}
+    \\item Led development of microservices architecture serving 1M+ users
+    \\item Implemented CI/CD pipelines reducing deployment time by 60\\%
+    \\item Mentored junior engineers and conducted technical interviews
+\\end{itemize}
+
+\\vspace{0.5em}
+
+\\noindent
+\\begin{tabularx}{\\textwidth}{@{}X r@{}}
+\\textbf{Software Engineer} & \\textbf{2019--2021}
+\\end{tabularx}
+\\\\
+\\textit{TechStart Inc. | San Francisco, CA}
+\\begin{itemize}[leftmargin=*, topsep=4pt, itemsep=3pt, parsep=0pt]
+    \\item Developed full-stack applications using modern frameworks
+    \\item Optimized database queries improving performance by 40\\%
+    \\item Participated in agile development processes
+\\end{itemize}
+
+\\vspace{0.4em}
+
+% Education
+\\section{Education}
+\\vspace{0.2em}
+\\begin{tabularx}{\\textwidth}{@{}X r@{}}
+\\textbf{${person.education.degree}} & \\textbf{2015--2019}
+\\end{tabularx}
+\\\\
+${person.education.institution} | GPA: 3.8/4.0
+
+\\vspace{0.4em}
+
+% Skills
+\\section{Technical Skills}
+\\vspace{0.2em}
+\\begin{itemize}[leftmargin=*, topsep=4pt, itemsep=3pt, parsep=0pt]
+    \\item \\textbf{Languages:} ${person.skills.filter(s => ['JavaScript', 'TypeScript', 'Python'].includes(s)).join(', ')}
+    \\item \\textbf{Frameworks:} ${person.skills.filter(s => ['React', 'NodeJS'].includes(s)).join(', ')}
+    \\item \\textbf{Cloud \\& Tools:} ${person.skills.filter(s => ['AWS', 'Docker'].includes(s)).join(', ')}
+    \\item \\textbf{Matched for Role:} \\textcolor{accentcolor}{\\textbf{${matchData.matchedSkills.join(', ')}}}
+\\end{itemize}
 
 \\end{document}`;
 
