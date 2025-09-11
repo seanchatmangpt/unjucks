@@ -1,0 +1,327 @@
+---
+to: {{ dest || 'analytics' }}/sales-dashboard-{{ year }}-{{ quarter }}.xlsx
+inject: false
+skipIf: false
+variables:
+  - year: number
+  - quarter: number
+  - companyName: string
+  - salesReps: array
+  - products: array
+  - regions: array
+  - targets: object
+filters:
+  - currency
+  - number
+  - percentage
+  - date
+---
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">
+  
+  <!-- Dashboard Header -->
+  <sheetData>
+    <row r="1">
+      <c r="A1" t="inlineStr" s="1">
+        <is><t>{{ companyName }} Sales Dashboard - Q{{ quarter }} {{ year }}</t></is>
+      </c>
+    </row>
+    
+    <row r="2"/>
+    
+    <!-- Key Metrics Section -->
+    <row r="3">
+      <c r="A3" t="inlineStr" s="2">
+        <is><t>KEY PERFORMANCE INDICATORS</t></is>
+      </c>
+    </row>
+    
+    <row r="4">
+      <c r="A4" t="inlineStr">
+        <is><t>Total Revenue:</t></is>
+      </c>
+      <c r="B4" s="3">
+        <f>SUM(SalesData!C:C)</f>
+      </c>
+      <c r="D4" t="inlineStr">
+        <is><t>Target:</t></is>
+      </c>
+      <c r="E4" s="3">
+        <v>{{ targets.revenue }}</v>
+      </c>
+      <c r="F4" t="inlineStr">
+        <is><t>Achievement:</t></is>
+      </c>
+      <c r="G4" s="4">
+        <f>B4/E4</f>
+      </c>
+    </row>
+    
+    <row r="5">
+      <c r="A5" t="inlineStr">
+        <is><t>Units Sold:</t></is>
+      </c>
+      <c r="B5" s="5">
+        <f>SUM(SalesData!D:D)</f>
+      </c>
+      <c r="D5" t="inlineStr">
+        <is><t>Target:</t></is>
+      </c>
+      <c r="E5" s="5">
+        <v>{{ targets.units }}</v>
+      </c>
+      <c r="F5" t="inlineStr">
+        <is><t>Achievement:</t></is>
+      </c>
+      <c r="G5" s="4">
+        <f>B5/E5</f>
+      </c>
+    </row>
+    
+    <row r="6">
+      <c r="A6" t="inlineStr">
+        <is><t>Avg Deal Size:</t></is>
+      </c>
+      <c r="B6" s="3">
+        <f>B4/B5</f>
+      </c>
+      <c r="D6" t="inlineStr">
+        <is><t>New Customers:</t></is>
+      </c>
+      <c r="E6" s="5">
+        <f>COUNTIF(SalesData!E:E,"New")</f>
+      </c>
+    </row>
+    
+    <row r="7"/>
+    
+    <!-- Sales by Representative -->
+    <row r="8">
+      <c r="A8" t="inlineStr" s="2">
+        <is><t>SALES BY REPRESENTATIVE</t></is>
+      </c>
+    </row>
+    
+    <row r="9">
+      <c r="A9" t="inlineStr" s="6">
+        <is><t>Sales Rep</t></is>
+      </c>
+      <c r="B9" t="inlineStr" s="6">
+        <is><t>Revenue</t></is>
+      </c>
+      <c r="C9" t="inlineStr" s="6">
+        <is><t>Units</t></is>
+      </c>
+      <c r="D9" t="inlineStr" s="6">
+        <is><t>Target</t></is>
+      </c>
+      <c r="E9" t="inlineStr" s="6">
+        <is><t>Achievement %</t></is>
+      </c>
+      <c r="F9" t="inlineStr" s="6">
+        <is><t>Ranking</t></is>
+      </c>
+    </row>
+    
+    {% set repRow = 10 %}
+    {% for rep in salesReps %}
+    <row r="{{ repRow }}">
+      <c r="A{{ repRow }}" t="inlineStr">
+        <is><t>{{ rep.name }}</t></is>
+      </c>
+      <c r="B{{ repRow }}" s="3">
+        <f>SUMIF(SalesData!A:A,"{{ rep.name }}",SalesData!C:C)</f>
+      </c>
+      <c r="C{{ repRow }}" s="5">
+        <f>SUMIF(SalesData!A:A,"{{ rep.name }}",SalesData!D:D)</f>
+      </c>
+      <c r="D{{ repRow }}" s="3">
+        <v>{{ rep.target }}</v>
+      </c>
+      <c r="E{{ repRow }}" s="4">
+        <f>B{{ repRow }}/D{{ repRow }}</f>
+      </c>
+      <c r="F{{ repRow }}" s="5">
+        <f>RANK(B{{ repRow }},B${{ repRow }}:B${{ repRow + salesReps.length - 1 }},0)</f>
+      </c>
+    </row>
+    {% set repRow = repRow + 1 %}
+    {% endfor %}
+    
+    <row r="{{ repRow }}"/>
+    
+    <!-- Sales by Product -->
+    {% set productStartRow = repRow + 2 %}
+    <row r="{{ productStartRow }}">
+      <c r="A{{ productStartRow }}" t="inlineStr" s="2">
+        <is><t>SALES BY PRODUCT</t></is>
+      </c>
+    </row>
+    
+    {% set productHeaderRow = productStartRow + 1 %}
+    <row r="{{ productHeaderRow }}">
+      <c r="A{{ productHeaderRow }}" t="inlineStr" s="6">
+        <is><t>Product</t></is>
+      </c>
+      <c r="B{{ productHeaderRow }}" t="inlineStr" s="6">
+        <is><t>Revenue</t></is>
+      </c>
+      <c r="C{{ productHeaderRow }}" t="inlineStr" s="6">
+        <is><t>Units Sold</t></is>
+      </c>
+      <c r="D{{ productHeaderRow }}" t="inlineStr" s="6">
+        <is><t>Market Share %</t></is>
+      </c>
+      <c r="E{{ productHeaderRow }}" t="inlineStr" s="6">
+        <is><t>Growth Rate %</t></is>
+      </c>
+    </row>
+    
+    {% set prodRow = productHeaderRow + 1 %}
+    {% for product in products %}
+    <row r="{{ prodRow }}">
+      <c r="A{{ prodRow }}" t="inlineStr">
+        <is><t>{{ product.name }}</t></is>
+      </c>
+      <c r="B{{ prodRow }}" s="3">
+        <f>SUMIF(SalesData!B:B,"{{ product.name }}",SalesData!C:C)</f>
+      </c>
+      <c r="C{{ prodRow }}" s="5">
+        <f>SUMIF(SalesData!B:B,"{{ product.name }}",SalesData!D:D)</f>
+      </c>
+      <c r="D{{ prodRow }}" s="4">
+        <f>B{{ prodRow }}/SUM(B${{ prodRow }}:B${{ prodRow + products.length - 1 }})</f>
+      </c>
+      <c r="E{{ prodRow }}" s="4">
+        <v>{{ product.growthRate || 0 }}</v>
+      </c>
+    </row>
+    {% set prodRow = prodRow + 1 %}
+    {% endfor %}
+    
+    <row r="{{ prodRow }}"/>
+    
+    <!-- Regional Performance -->
+    {% set regionStartRow = prodRow + 2 %}
+    <row r="{{ regionStartRow }}">
+      <c r="A{{ regionStartRow }}" t="inlineStr" s="2">
+        <is><t>REGIONAL PERFORMANCE</t></is>
+      </c>
+    </row>
+    
+    {% set regionHeaderRow = regionStartRow + 1 %}
+    <row r="{{ regionHeaderRow }}">
+      <c r="A{{ regionHeaderRow }}" t="inlineStr" s="6">
+        <is><t>Region</t></is>
+      </c>
+      <c r="B{{ regionHeaderRow }}" t="inlineStr" s="6">
+        <is><t>Revenue</t></is>
+      </c>
+      <c r="C{{ regionHeaderRow }}" t="inlineStr" s="6">
+        <is><t>Target</t></is>
+      </c>
+      <c r="D{{ regionHeaderRow }}" t="inlineStr" s="6">
+        <is><t>Achievement %</t></is>
+      </c>
+      <c r="E{{ regionHeaderRow }}" t="inlineStr" s="6">
+        <is><t>YoY Growth %</t></is>
+      </c>
+    </row>
+    
+    {% set regRow = regionHeaderRow + 1 %}
+    {% for region in regions %}
+    <row r="{{ regRow }}">
+      <c r="A{{ regRow }}" t="inlineStr">
+        <is><t>{{ region.name }}</t></is>
+      </c>
+      <c r="B{{ regRow }}" s="3">
+        <f>SUMIF(SalesData!F:F,"{{ region.name }}",SalesData!C:C)</f>
+      </c>
+      <c r="C{{ regRow }}" s="3">
+        <v>{{ region.target }}</v>
+      </c>
+      <c r="D{{ regRow }}" s="4">
+        <f>B{{ regRow }}/C{{ regRow }}</f>
+      </c>
+      <c r="E{{ regRow }}" s="4">
+        <v>{{ region.yoyGrowth || 0 }}</v>
+      </c>
+    </row>
+    {% set regRow = regRow + 1 %}
+    {% endfor %}
+    
+    <!-- Monthly Trend Analysis -->
+    {% set trendStartRow = regRow + 3 %}
+    <row r="{{ trendStartRow }}">
+      <c r="A{{ trendStartRow }}" t="inlineStr" s="2">
+        <is><t>MONTHLY TREND ANALYSIS</t></is>
+      </c>
+    </row>
+    
+    {% set trendHeaderRow = trendStartRow + 1 %}
+    <row r="{{ trendHeaderRow }}">
+      <c r="A{{ trendHeaderRow }}" t="inlineStr" s="6">
+        <is><t>Month</t></is>
+      </c>
+      <c r="B{{ trendHeaderRow }}" t="inlineStr" s="6">
+        <is><t>Revenue</t></is>
+      </c>
+      <c r="C{{ trendHeaderRow }}" t="inlineStr" s="6">
+        <is><t>Units</t></is>
+      </c>
+      <c r="D{{ trendHeaderRow }}" t="inlineStr" s="6">
+        <is><t>New Customers</t></is>
+      </c>
+      <c r="E{{ trendHeaderRow }}" t="inlineStr" s="6">
+        <is><t>Pipeline Value</t></is>
+      </c>
+    </row>
+    
+    <!-- Generate months for the quarter -->
+    {% set monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"] %}
+    {% set startMonth = (quarter - 1) * 3 %}
+    {% set trendRow = trendHeaderRow + 1 %}
+    
+    {% for i in range(3) %}
+      {% set monthIndex = startMonth + i %}
+      {% set monthName = monthNames[monthIndex] %}
+      <row r="{{ trendRow }}">
+        <c r="A{{ trendRow }}" t="inlineStr">
+          <is><t>{{ monthName }} {{ year }}</t></is>
+        </c>
+        <c r="B{{ trendRow }}" s="3">
+          <f>SUMIFS(SalesData!C:C,SalesData!G:G,">=" &amp; DATE({{ year }},{{ monthIndex + 1 }},1),SalesData!G:G,"&lt;" &amp; DATE({{ year }},{{ monthIndex + 2 }},1))</f>
+        </c>
+        <c r="C{{ trendRow }}" s="5">
+          <f>SUMIFS(SalesData!D:D,SalesData!G:G,">=" &amp; DATE({{ year }},{{ monthIndex + 1 }},1),SalesData!G:G,"&lt;" &amp; DATE({{ year }},{{ monthIndex + 2 }},1))</f>
+        </c>
+        <c r="D{{ trendRow }}" s="5">
+          <f>COUNTIFS(SalesData!E:E,"New",SalesData!G:G,">=" &amp; DATE({{ year }},{{ monthIndex + 1 }},1),SalesData!G:G,"&lt;" &amp; DATE({{ year }},{{ monthIndex + 2 }},1))</f>
+        </c>
+        <c r="E{{ trendRow }}" s="3">
+          <f>SUMIFS(Pipeline!C:C,Pipeline!D:D,">=" &amp; DATE({{ year }},{{ monthIndex + 1 }},1),Pipeline!D:D,"&lt;" &amp; DATE({{ year }},{{ monthIndex + 2 }},1))</f>
+        </c>
+      </row>
+      {% set trendRow = trendRow + 1 %}
+    {% endfor %}
+    
+  </sheetData>
+  
+  <!-- Conditional Formatting for Achievement Percentages -->
+  <conditionalFormatting sqref="G4:G6,E10:E{{ repRow - 1 }},D{{ regRow - regions.length }}:D{{ regRow - 1 }}">
+    <cfRule type="cellIs" dxfId="0" priority="1" operator="greaterThanOrEqual">
+      <formula>1</formula>
+    </cfRule>
+    <cfRule type="cellIs" dxfId="1" priority="2" operator="lessThan">
+      <formula>0.8</formula>
+    </cfRule>
+    <cfRule type="cellIs" dxfId="2" priority="3" operator="between">
+      <formula>0.8</formula>
+      <formula>1</formula>
+    </cfRule>
+  </conditionalFormatting>
+  
+  <!-- Charts -->
+  <drawing r:id="rId1"/>
+  
+</worksheet>

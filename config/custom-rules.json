@@ -1,0 +1,32 @@
+[
+  {
+    "id": "enterprise-security-rule",
+    "rule": "{ ?user :hasRole ?role . ?role :requiresSecurityClearance ?level } => { ?user :hasSecurityClearance ?level }",
+    "description": "Infer security clearance from role requirements",
+    "priority": 5
+  },
+  {
+    "id": "organizational-hierarchy",
+    "rule": "{ ?employee :reportsTo ?manager . ?manager :reportsTo ?director } => { ?employee :indirectlyReportsTo ?director }",
+    "description": "Build transitive organizational hierarchy",
+    "priority": 4
+  },
+  {
+    "id": "project-access-control",
+    "rule": "{ ?user :memberOf ?team . ?team :assignedTo ?project } => { ?user :canAccessProject ?project }",
+    "description": "Grant project access based on team membership",
+    "priority": 6
+  },
+  {
+    "id": "skill-inference",
+    "rule": "{ ?person :completedCourse ?course . ?course :teaches ?skill } => { ?person :hasSkill ?skill }",
+    "description": "Infer skills from completed courses",
+    "priority": 7
+  },
+  {
+    "id": "compliance-propagation",
+    "rule": "{ ?system :contains ?component . ?system :mustComplyWith ?regulation } => { ?component :mustComplyWith ?regulation }",
+    "description": "Propagate compliance requirements to system components",
+    "priority": 3
+  }
+]

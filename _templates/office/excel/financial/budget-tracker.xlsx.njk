@@ -1,0 +1,208 @@
+---
+to: {{ dest || 'financials' }}/budget-tracker-{{ year }}.xlsx
+inject: false
+skipIf: false
+variables:
+  - year: number
+  - companyName: string
+  - departments: array
+  - budgetCategories: array
+  - quarters: array
+  - currency: string
+filters:
+  - currency
+  - number
+  - percentage
+---
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"
+           xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">
+  
+  <!-- Worksheet Properties -->
+  <sheetPr>
+    <tabColor rgb="FF4472C4"/>
+  </sheetPr>
+  
+  <!-- Column Definitions -->
+  <cols>
+    <col min="1" max="1" width="20" customWidth="1"/>
+    <col min="2" max="2" width="15" customWidth="1"/>
+    <col min="3" max="6" width="12" customWidth="1"/>
+    <col min="7" max="7" width="15" customWidth="1"/>
+    <col min="8" max="8" width="12" customWidth="1"/>
+  </cols>
+  
+  <sheetData>
+    <!-- Header Row -->
+    <row r="1">
+      <c r="A1" t="inlineStr" s="1">
+        <is><t>{{ companyName }} - Budget Tracker {{ year }}</t></is>
+      </c>
+    </row>
+    
+    <row r="2"/>
+    
+    <!-- Column Headers -->
+    <row r="3">
+      <c r="A3" t="inlineStr" s="2">
+        <is><t>Department</t></is>
+      </c>
+      <c r="B3" t="inlineStr" s="2">
+        <is><t>Category</t></is>
+      </c>
+      <c r="C3" t="inlineStr" s="2">
+        <is><t>Q1 Budget</t></is>
+      </c>
+      <c r="D3" t="inlineStr" s="2">
+        <is><t>Q2 Budget</t></is>
+      </c>
+      <c r="E3" t="inlineStr" s="2">
+        <is><t>Q3 Budget</t></is>
+      </c>
+      <c r="F3" t="inlineStr" s="2">
+        <is><t>Q4 Budget</t></is>
+      </c>
+      <c r="G3" t="inlineStr" s="2">
+        <is><t>Total Budget</t></is>
+      </c>
+      <c r="H3" t="inlineStr" s="2">
+        <is><t>Actual</t></is>
+      </c>
+      <c r="I3" t="inlineStr" s="2">
+        <is><t>Variance %</t></is>
+      </c>
+    </row>
+    
+    {% set currentRow = 4 %}
+    {% for department in departments %}
+      {% for category in department.categories %}
+        <row r="{{ currentRow }}">
+          <c r="A{{ currentRow }}" t="inlineStr">
+            <is><t>{{ department.name }}</t></is>
+          </c>
+          <c r="B{{ currentRow }}" t="inlineStr">
+            <is><t>{{ category.name }}</t></is>
+          </c>
+          <c r="C{{ currentRow }}" s="3">
+            <v>{{ category.q1Budget || 0 }}</v>
+          </c>
+          <c r="D{{ currentRow }}" s="3">
+            <v>{{ category.q2Budget || 0 }}</v>
+          </c>
+          <c r="E{{ currentRow }}" s="3">
+            <v>{{ category.q3Budget || 0 }}</v>
+          </c>
+          <c r="F{{ currentRow }}" s="3">
+            <v>{{ category.q4Budget || 0 }}</v>
+          </c>
+          <!-- Total Budget Formula -->
+          <c r="G{{ currentRow }}" s="3">
+            <f>SUM(C{{ currentRow }}:F{{ currentRow }})</f>
+          </c>
+          <c r="H{{ currentRow }}" s="3">
+            <v>{{ category.actual || 0 }}</v>
+          </c>
+          <!-- Variance % Formula -->
+          <c r="I{{ currentRow }}" s="4">
+            <f>IF(G{{ currentRow }}=0,0,(H{{ currentRow }}-G{{ currentRow }})/G{{ currentRow }})</f>
+          </c>
+        </row>
+        {% set currentRow = currentRow + 1 %}
+      {% endfor %}
+    {% endfor %}
+    
+    <!-- Summary Section -->
+    {% set summaryRow = currentRow + 2 %}
+    <row r="{{ summaryRow }}">
+      <c r="A{{ summaryRow }}" t="inlineStr" s="2">
+        <is><t>SUMMARY</t></is>
+      </c>
+    </row>
+    
+    {% set summaryRow = summaryRow + 1 %}
+    <row r="{{ summaryRow }}">
+      <c r="A{{ summaryRow }}" t="inlineStr">
+        <is><t>Total Budget:</t></is>
+      </c>
+      <c r="B{{ summaryRow }}" s="3">
+        <f>SUM(G4:G{{ currentRow - 1 }})</f>
+      </c>
+    </row>
+    
+    {% set summaryRow = summaryRow + 1 %}
+    <row r="{{ summaryRow }}">
+      <c r="A{{ summaryRow }}" t="inlineStr">
+        <is><t>Total Actual:</t></is>
+      </c>
+      <c r="B{{ summaryRow }}" s="3">
+        <f>SUM(H4:H{{ currentRow - 1 }})</f>
+      </c>
+    </row>
+    
+    {% set summaryRow = summaryRow + 1 %}
+    <row r="{{ summaryRow }}">
+      <c r="A{{ summaryRow }}" t="inlineStr">
+        <is><t>Overall Variance:</t></is>
+      </c>
+      <c r="B{{ summaryRow }}" s="4">
+        <f>(B{{ summaryRow - 1 }}-B{{ summaryRow - 2 }})/B{{ summaryRow - 2 }}</f>
+      </c>
+    </row>
+    
+    <!-- Department Summary -->
+    {% set deptSummaryRow = summaryRow + 3 %}
+    <row r="{{ deptSummaryRow }}">
+      <c r="A{{ deptSummaryRow }}" t="inlineStr" s="2">
+        <is><t>DEPARTMENT SUMMARY</t></is>
+      </c>
+    </row>
+    
+    {% set deptSummaryRow = deptSummaryRow + 1 %}
+    <row r="{{ deptSummaryRow }}">
+      <c r="A{{ deptSummaryRow }}" t="inlineStr" s="2">
+        <is><t>Department</t></is>
+      </c>
+      <c r="B{{ deptSummaryRow }}" t="inlineStr" s="2">
+        <is><t>Budget</t></is>
+      </c>
+      <c r="C{{ deptSummaryRow }}" t="inlineStr" s="2">
+        <is><t>Actual</t></is>
+      </c>
+      <c r="D{{ deptSummaryRow }}" t="inlineStr" s="2">
+        <is><t>Variance</t></is>
+      </c>
+    </row>
+    
+    {% for department in departments %}
+      {% set deptSummaryRow = deptSummaryRow + 1 %}
+      <row r="{{ deptSummaryRow }}">
+        <c r="A{{ deptSummaryRow }}" t="inlineStr">
+          <is><t>{{ department.name }}</t></is>
+        </c>
+        <c r="B{{ deptSummaryRow }}" s="3">
+          <f>SUMIF($A$4:$A${{ currentRow - 1 }},"{{ department.name }}",$G$4:$G${{ currentRow - 1 }})</f>
+        </c>
+        <c r="C{{ deptSummaryRow }}" s="3">
+          <f>SUMIF($A$4:$A${{ currentRow - 1 }},"{{ department.name }}",$H$4:$H${{ currentRow - 1 }})</f>
+        </c>
+        <c r="D{{ deptSummaryRow }}" s="4">
+          <f>IF(B{{ deptSummaryRow }}=0,0,(C{{ deptSummaryRow }}-B{{ deptSummaryRow }})/B{{ deptSummaryRow }})</f>
+        </c>
+      </row>
+    {% endfor %}
+  </sheetData>
+  
+  <!-- Conditional Formatting for Variance -->
+  <conditionalFormatting sqref="I4:I{{ currentRow - 1 }}">
+    <cfRule type="cellIs" dxfId="0" priority="1" operator="greaterThan">
+      <formula>0.1</formula>
+    </cfRule>
+    <cfRule type="cellIs" dxfId="1" priority="2" operator="lessThan">
+      <formula>-0.1</formula>
+    </cfRule>
+  </conditionalFormatting>
+  
+  <!-- Chart for Department Budget Distribution -->
+  <drawing r:id="rId1"/>
+  
+</worksheet>

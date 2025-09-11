@@ -1,0 +1,1118 @@
+---
+to: {{ dest || 'reports' }}/quarterly-review-{{ year }}-Q{{ quarter }}.pptx
+inject: false
+skipIf: false
+variables:
+  - companyName: string
+  - quarter: number
+  - year: number
+  - presenter: string
+  - executiveSummary: string
+  - financialResults: object
+  - keyMetrics: array
+  - achievements: array
+  - challenges: array
+  - marketUpdate: string
+  - competitorAnalysis: array
+  - nextQuarterGoals: array
+  - risks: array
+  - opportunities: array
+filters:
+  - currency
+  - percentage
+  - number
+  - date
+  - upper
+---
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<p:presentation xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main"
+                xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"
+                xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main">
+  
+  <p:sldMasterIdLst>
+    <p:sldMasterId id="2147483648" r:id="rId1"/>
+  </p:sldMasterIdLst>
+  
+  <p:sldIdLst>
+    <!-- Slide 1: Title -->
+    <p:sldId id="256" r:id="rId2"/>
+    <!-- Slide 2: Executive Summary -->
+    <p:sldId id="257" r:id="rId3"/>
+    <!-- Slide 3: Financial Results -->
+    <p:sldId id="258" r:id="rId4"/>
+    <!-- Slide 4: Key Metrics -->
+    <p:sldId id="259" r:id="rId5"/>
+    <!-- Slide 5: Achievements -->
+    <p:sldId id="260" r:id="rId6"/>
+    <!-- Slide 6: Challenges -->
+    <p:sldId id="261" r:id="rId7"/>
+    <!-- Slide 7: Market Update -->
+    <p:sldId id="262" r:id="rId8"/>
+    <!-- Slide 8: Competitor Analysis -->
+    <p:sldId id="263" r:id="rId9"/>
+    <!-- Slide 9: Next Quarter Goals -->
+    <p:sldId id="264" r:id="rId10"/>
+    <!-- Slide 10: Risks & Opportunities -->
+    <p:sldId id="265" r:id="rId11"/>
+    <!-- Slide 11: Conclusion -->
+    <p:sldId id="266" r:id="rId12"/>
+  </p:sldIdLst>
+  
+  <p:sldSz cx="9144000" cy="6858000" type="screen4x3"/>
+  
+  <!-- Title Slide -->
+  <p:slide xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main">
+    <p:cSld>
+      <p:spTree>
+        <p:nvGrpSpPr>
+          <p:cNvPr id="1" name=""/>
+          <p:cNvGrpSpPr/>
+          <p:nvPr/>
+        </p:nvGrpSpPr>
+        <p:grpSpPr>
+          <a:xfrm>
+            <a:off x="0" y="0"/>
+            <a:ext cx="0" cy="0"/>
+          </a:xfrm>
+        </p:grpSpPr>
+        
+        <!-- Main Title -->
+        <p:sp>
+          <p:nvSpPr>
+            <p:cNvPr id="2" name="Title"/>
+            <p:cNvSpPr>
+              <a:spLocks noGrp="1"/>
+            </p:cNvSpPr>
+            <p:nvPr>
+              <p:ph type="ctrTitle"/>
+            </p:nvPr>
+          </p:nvSpPr>
+          <p:spPr/>
+          <p:txBody>
+            <a:bodyPr/>
+            <a:lstStyle/>
+            <a:p>
+              <a:r>
+                <a:rPr lang="en-US" sz="4800" b="1">
+                  <a:solidFill>
+                    <a:schemeClr val="tx1"/>
+                  </a:solidFill>
+                </a:rPr>
+                <a:t>Q{{ quarter }} {{ year }}</a:t>
+              </a:r>
+            </a:p>
+            <a:p>
+              <a:r>
+                <a:rPr lang="en-US" sz="3600" b="1">
+                  <a:solidFill>
+                    <a:schemeClr val="tx1"/>
+                  </a:solidFill>
+                </a:rPr>
+                <a:t>QUARTERLY BUSINESS REVIEW</a:t>
+              </a:r>
+            </a:p>
+          </p:txBody>
+        </p:sp>
+        
+        <!-- Company Info -->
+        <p:sp>
+          <p:nvSpPr>
+            <p:cNvPr id="3" name="Subtitle"/>
+            <p:cNvSpPr>
+              <a:spLocks noGrp="1"/>
+            </p:cNvSpPr>
+            <p:nvPr>
+              <p:ph type="subTitle" idx="1"/>
+            </p:nvPr>
+          </p:nvSpPr>
+          <p:spPr/>
+          <p:txBody>
+            <a:bodyPr/>
+            <a:lstStyle/>
+            <a:p>
+              <a:r>
+                <a:rPr lang="en-US" sz="2400">
+                  <a:solidFill>
+                    <a:schemeClr val="tx1"/>
+                  </a:solidFill>
+                </a:rPr>
+                <a:t>{{ companyName }}</a:t>
+              </a:r>
+            </a:p>
+            <a:p>
+              <a:r>
+                <a:rPr lang="en-US" sz="1800">
+                  <a:solidFill>
+                    <a:schemeClr val="tx1"/>
+                  </a:solidFill>
+                </a:rPr>
+                <a:t>Presented by: {{ presenter }}</a:t>
+              </a:r>
+            </a:p>
+          </p:txBody>
+        </p:sp>
+      </p:spTree>
+    </p:cSld>
+  </p:slide>
+
+  <!-- Executive Summary Slide -->
+  <p:slide xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main">
+    <p:cSld>
+      <p:spTree>
+        <p:nvGrpSpPr>
+          <p:cNvPr id="1" name=""/>
+          <p:cNvGrpSpPr/>
+          <p:nvPr/>
+        </p:nvGrpSpPr>
+        <p:grpSpPr>
+          <a:xfrm>
+            <a:off x="0" y="0"/>
+            <a:ext cx="0" cy="0"/>
+          </a:xfrm>
+        </p:grpSpPr>
+        
+        <!-- Title -->
+        <p:sp>
+          <p:nvSpPr>
+            <p:cNvPr id="2" name="Title"/>
+            <p:cNvSpPr>
+              <a:spLocks noGrp="1"/>
+            </p:cNvSpPr>
+            <p:nvPr>
+              <p:ph type="title"/>
+            </p:nvPr>
+          </p:nvSpPr>
+          <p:spPr/>
+          <p:txBody>
+            <a:bodyPr/>
+            <a:lstStyle/>
+            <a:p>
+              <a:r>
+                <a:rPr lang="en-US" sz="3600" b="1">
+                  <a:solidFill>
+                    <a:schemeClr val="tx1"/>
+                  </a:solidFill>
+                </a:rPr>
+                <a:t>EXECUTIVE SUMMARY</a:t>
+              </a:r>
+            </a:p>
+          </p:txBody>
+        </p:sp>
+        
+        <!-- Summary Content -->
+        <p:sp>
+          <p:nvSpPr>
+            <p:cNvPr id="3" name="Content"/>
+            <p:cNvSpPr>
+              <a:spLocks noGrp="1"/>
+            </p:cNvSpPr>
+            <p:nvPr>
+              <p:ph type="body" idx="1"/>
+            </p:nvPr>
+          </p:nvSpPr>
+          <p:spPr/>
+          <p:txBody>
+            <a:bodyPr/>
+            <a:lstStyle/>
+            <a:p>
+              <a:r>
+                <a:rPr lang="en-US" sz="2200">
+                  <a:solidFill>
+                    <a:schemeClr val="tx1"/>
+                  </a:solidFill>
+                </a:rPr>
+                <a:t>{{ executiveSummary }}</a:t>
+              </a:r>
+            </a:p>
+          </p:txBody>
+        </p:sp>
+      </p:spTree>
+    </p:cSld>
+  </p:slide>
+
+  <!-- Financial Results Slide -->
+  <p:slide xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main">
+    <p:cSld>
+      <p:spTree>
+        <p:nvGrpSpPr>
+          <p:cNvPr id="1" name=""/>
+          <p:cNvGrpSpPr/>
+          <p:nvPr/>
+        </p:nvGrpSpPr>
+        <p:grpSpPr>
+          <a:xfrm>
+            <a:off x="0" y="0"/>
+            <a:ext cx="0" cy="0"/>
+          </a:xfrm>
+        </p:grpSpPr>
+        
+        <!-- Title -->
+        <p:sp>
+          <p:nvSpPr>
+            <p:cNvPr id="2" name="Title"/>
+            <p:cNvSpPr>
+              <a:spLocks noGrp="1"/>
+            </p:cNvSpPr>
+            <p:nvPr>
+              <p:ph type="title"/>
+            </p:nvPr>
+          </p:nvSpPr>
+          <p:spPr/>
+          <p:txBody>
+            <a:bodyPr/>
+            <a:lstStyle/>
+            <a:p>
+              <a:r>
+                <a:rPr lang="en-US" sz="3600" b="1">
+                  <a:solidFill>
+                    <a:schemeClr val="tx1"/>
+                  </a:solidFill>
+                </a:rPr>
+                <a:t>FINANCIAL RESULTS</a:t>
+              </a:r>
+            </a:p>
+          </p:txBody>
+        </p:sp>
+        
+        <!-- Financial Content -->
+        <p:sp>
+          <p:nvSpPr>
+            <p:cNvPr id="3" name="Content"/>
+            <p:cNvSpPr>
+              <a:spLocks noGrp="1"/>
+            </p:cNvSpPr>
+            <p:nvPr>
+              <p:ph type="body" idx="1"/>
+            </p:nvPr>
+          </p:nvSpPr>
+          <p:spPr/>
+          <p:txBody>
+            <a:bodyPr/>
+            <a:lstStyle/>
+            <a:p>
+              <a:r>
+                <a:rPr lang="en-US" sz="2400" b="1">
+                  <a:solidFill>
+                    <a:schemeClr val="tx1"/>
+                  </a:solidFill>
+                </a:rPr>
+                <a:t>Revenue: {{ financialResults.revenue | currency }}</a:t>
+              </a:r>
+              {% if financialResults.revenueGrowth %}
+              <a:r>
+                <a:rPr lang="en-US" sz="2000">
+                  <a:solidFill>
+                    {% if financialResults.revenueGrowth > 0 %}
+                    <a:srgbClr val="00AA00"/>
+                    {% else %}
+                    <a:srgbClr val="CC0000"/>
+                    {% endif %}
+                  </a:solidFill>
+                </a:rPr>
+                <a:t> ({{ financialResults.revenueGrowth | percentage }} YoY)</a:t>
+              </a:r>
+              {% endif %}
+            </a:p>
+            <a:p>
+              <a:r>
+                <a:rPr lang="en-US" sz="2000">
+                  <a:solidFill>
+                    <a:schemeClr val="tx1"/>
+                  </a:solidFill>
+                </a:rPr>
+                <a:t>Gross Margin: {{ financialResults.grossMargin | percentage }}</a:t>
+              </a:r>
+            </a:p>
+            <a:p>
+              <a:r>
+                <a:rPr lang="en-US" sz="2000">
+                  <a:solidFill>
+                    <a:schemeClr val="tx1"/>
+                  </a:solidFill>
+                </a:rPr>
+                <a:t>Operating Income: {{ financialResults.operatingIncome | currency }}</a:t>
+              </a:r>
+            </a:p>
+            <a:p>
+              <a:r>
+                <a:rPr lang="en-US" sz="2000">
+                  <a:solidFill>
+                    <a:schemeClr val="tx1"/>
+                  </a:solidFill>
+                </a:rPr>
+                <a:t>EBITDA: {{ financialResults.ebitda | currency }}</a:t>
+              </a:r>
+            </a:p>
+            {% if financialResults.cashFlow %}
+            <a:p>
+              <a:r>
+                <a:rPr lang="en-US" sz="2000">
+                  <a:solidFill>
+                    <a:schemeClr val="tx1"/>
+                  </a:solidFill>
+                </a:rPr>
+                <a:t>Cash Flow: {{ financialResults.cashFlow | currency }}</a:t>
+              </a:r>
+            </a:p>
+            {% endif %}
+          </p:txBody>
+        </p:sp>
+      </p:spTree>
+    </p:cSld>
+  </p:slide>
+
+  <!-- Key Metrics Slide -->
+  <p:slide xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main">
+    <p:cSld>
+      <p:spTree>
+        <p:nvGrpSpPr>
+          <p:cNvPr id="1" name=""/>
+          <p:cNvGrpSpPr/>
+          <p:nvPr/>
+        </p:nvGrpSpPr>
+        <p:grpSpPr>
+          <a:xfrm>
+            <a:off x="0" y="0"/>
+            <a:ext cx="0" cy="0"/>
+          </a:xfrm>
+        </p:grpSpPr>
+        
+        <!-- Title -->
+        <p:sp>
+          <p:nvSpPr>
+            <p:cNvPr id="2" name="Title"/>
+            <p:cNvSpPr>
+              <a:spLocks noGrp="1"/>
+            </p:cNvSpPr>
+            <p:nvPr>
+              <p:ph type="title"/>
+            </p:nvPr>
+          </p:nvSpPr>
+          <p:spPr/>
+          <p:txBody>
+            <a:bodyPr/>
+            <a:lstStyle/>
+            <a:p>
+              <a:r>
+                <a:rPr lang="en-US" sz="3600" b="1">
+                  <a:solidFill>
+                    <a:schemeClr val="tx1"/>
+                  </a:solidFill>
+                </a:rPr>
+                <a:t>KEY PERFORMANCE METRICS</a:t>
+              </a:r>
+            </a:p>
+          </p:txBody>
+        </p:sp>
+        
+        <!-- Metrics Content -->
+        <p:sp>
+          <p:nvSpPr>
+            <p:cNvPr id="3" name="Content"/>
+            <p:cNvSpPr>
+              <a:spLocks noGrp="1"/>
+            </p:cNvSpPr>
+            <p:nvPr>
+              <p:ph type="body" idx="1"/>
+            </p:nvPr>
+          </p:nvSpPr>
+          <p:spPr/>
+          <p:txBody>
+            <a:bodyPr/>
+            <a:lstStyle/>
+            {% for metric in keyMetrics %}
+            <a:p>
+              <a:pPr>
+                <a:buChar char="•"/>
+              </a:pPr>
+              <a:r>
+                <a:rPr lang="en-US" sz="2000" b="1">
+                  <a:solidFill>
+                    <a:schemeClr val="tx1"/>
+                  </a:solidFill>
+                </a:rPr>
+                <a:t>{{ metric.name }}:</a:t>
+              </a:r>
+              <a:r>
+                <a:rPr lang="en-US" sz="2000">
+                  <a:solidFill>
+                    <a:schemeClr val="tx1"/>
+                  </a:solidFill>
+                </a:rPr>
+                <a:t> {{ metric.current }}</a:t>
+              </a:r>
+              {% if metric.target %}
+              <a:r>
+                <a:rPr lang="en-US" sz="1800">
+                  <a:solidFill>
+                    {% if metric.current >= metric.target %}
+                    <a:srgbClr val="00AA00"/>
+                    {% else %}
+                    <a:srgbClr val="CC0000"/>
+                    {% endif %}
+                  </a:solidFill>
+                </a:rPr>
+                <a:t> (Target: {{ metric.target }})</a:t>
+              </a:r>
+              {% endif %}
+            </a:p>
+            {% endfor %}
+          </p:txBody>
+        </p:sp>
+      </p:spTree>
+    </p:cSld>
+  </p:slide>
+
+  <!-- Achievements Slide -->
+  <p:slide xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main">
+    <p:cSld>
+      <p:spTree>
+        <p:nvGrpSpPr>
+          <p:cNvPr id="1" name=""/>
+          <p:cNvGrpSpPr/>
+          <p:nvPr/>
+        </p:nvGrpSpPr>
+        <p:grpSpPr>
+          <a:xfrm>
+            <a:off x="0" y="0"/>
+            <a:ext cx="0" cy="0"/>
+          </a:xfrm>
+        </p:grpSpPr>
+        
+        <!-- Title -->
+        <p:sp>
+          <p:nvSpPr>
+            <p:cNvPr id="2" name="Title"/>
+            <p:cNvSpPr>
+              <a:spLocks noGrp="1"/>
+            </p:cNvSpPr>
+            <p:nvPr>
+              <p:ph type="title"/>
+            </p:nvPr>
+          </p:nvSpPr>
+          <p:spPr/>
+          <p:txBody>
+            <a:bodyPr/>
+            <a:lstStyle/>
+            <a:p>
+              <a:r>
+                <a:rPr lang="en-US" sz="3600" b="1">
+                  <a:solidFill>
+                    <a:schemeClr val="tx1"/>
+                  </a:solidFill>
+                </a:rPr>
+                <a:t>KEY ACHIEVEMENTS</a:t>
+              </a:r>
+            </a:p>
+          </p:txBody>
+        </p:sp>
+        
+        <!-- Achievements Content -->
+        <p:sp>
+          <p:nvSpPr>
+            <p:cNvPr id="3" name="Content"/>
+            <p:cNvSpPr>
+              <a:spLocks noGrp="1"/>
+            </p:cNvSpPr>
+            <p:nvPr>
+              <p:ph type="body" idx="1"/>
+            </p:nvPr>
+          </p:nvSpPr>
+          <p:spPr/>
+          <p:txBody>
+            <a:bodyPr/>
+            <a:lstStyle/>
+            {% for achievement in achievements %}
+            <a:p>
+              <a:pPr>
+                <a:buChar char="✓"/>
+              </a:pPr>
+              <a:r>
+                <a:rPr lang="en-US" sz="2000">
+                  <a:solidFill>
+                    <a:schemeClr val="tx1"/>
+                  </a:solidFill>
+                </a:rPr>
+                <a:t>{{ achievement.description }}</a:t>
+              </a:r>
+              {% if achievement.impact %}
+              <a:r>
+                <a:rPr lang="en-US" sz="1800" i="1">
+                  <a:solidFill>
+                    <a:schemeClr val="tx1"/>
+                  </a:solidFill>
+                </a:rPr>
+                <a:t> - {{ achievement.impact }}</a:t>
+              </a:r>
+              {% endif %}
+            </a:p>
+            {% endfor %}
+          </p:txBody>
+        </p:sp>
+      </p:spTree>
+    </p:cSld>
+  </p:slide>
+
+  <!-- Challenges Slide -->
+  <p:slide xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main">
+    <p:cSld>
+      <p:spTree>
+        <p:nvGrpSpPr>
+          <p:cNvPr id="1" name=""/>
+          <p:cNvGrpSpPr/>
+          <p:nvPr/>
+        </p:nvGrpSpPr>
+        <p:grpSpPr>
+          <a:xfrm>
+            <a:off x="0" y="0"/>
+            <a:ext cx="0" cy="0"/>
+          </a:xfrm>
+        </p:grpSpPr>
+        
+        <!-- Title -->
+        <p:sp>
+          <p:nvSpPr>
+            <p:cNvPr id="2" name="Title"/>
+            <p:cNvSpPr>
+              <a:spLocks noGrp="1"/>
+            </p:cNvSpPr>
+            <p:nvPr>
+              <p:ph type="title"/>
+            </p:nvPr>
+          </p:nvSpPr>
+          <p:spPr/>
+          <p:txBody>
+            <a:bodyPr/>
+            <a:lstStyle/>
+            <a:p>
+              <a:r>
+                <a:rPr lang="en-US" sz="3600" b="1">
+                  <a:solidFill>
+                    <a:schemeClr val="tx1"/>
+                  </a:solidFill>
+                </a:rPr>
+                <a:t>CHALLENGES & MITIGATION</a:t>
+              </a:r>
+            </a:p>
+          </p:txBody>
+        </p:sp>
+        
+        <!-- Challenges Content -->
+        <p:sp>
+          <p:nvSpPr>
+            <p:cNvPr id="3" name="Content"/>
+            <p:cNvSpPr>
+              <a:spLocks noGrp="1"/>
+            </p:cNvSpPr>
+            <p:nvPr>
+              <p:ph type="body" idx="1"/>
+            </p:nvPr>
+          </p:nvSpPr>
+          <p:spPr/>
+          <p:txBody>
+            <a:bodyPr/>
+            <a:lstStyle/>
+            {% for challenge in challenges %}
+            <a:p>
+              <a:r>
+                <a:rPr lang="en-US" sz="2000" b="1">
+                  <a:solidFill>
+                    <a:srgbClr val="CC0000"/>
+                  </a:solidFill>
+                </a:rPr>
+                <a:t>Challenge:</a:t>
+              </a:r>
+              <a:r>
+                <a:rPr lang="en-US" sz="2000">
+                  <a:solidFill>
+                    <a:schemeClr val="tx1"/>
+                  </a:solidFill>
+                </a:rPr>
+                <a:t> {{ challenge.description }}</a:t>
+              </a:r>
+            </a:p>
+            <a:p>
+              <a:r>
+                <a:rPr lang="en-US" sz="1800" b="1">
+                  <a:solidFill>
+                    <a:srgbClr val="00AA00"/>
+                  </a:solidFill>
+                </a:rPr>
+                <a:t>Mitigation:</a:t>
+              </a:r>
+              <a:r>
+                <a:rPr lang="en-US" sz="1800">
+                  <a:solidFill>
+                    <a:schemeClr val="tx1"/>
+                  </a:solidFill>
+                </a:rPr>
+                <a:t> {{ challenge.mitigation }}</a:t>
+              </a:r>
+            </a:p>
+            <a:p/>
+            {% endfor %}
+          </p:txBody>
+        </p:sp>
+      </p:spTree>
+    </p:cSld>
+  </p:slide>
+
+  <!-- Market Update Slide -->
+  <p:slide xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main">
+    <p:cSld>
+      <p:spTree>
+        <p:nvGrpSpPr>
+          <p:cNvPr id="1" name=""/>
+          <p:cNvGrpSpPr/>
+          <p:nvPr/>
+        </p:nvGrpSpPr>
+        <p:grpSpPr>
+          <a:xfrm>
+            <a:off x="0" y="0"/>
+            <a:ext cx="0" cy="0"/>
+          </a:xfrm>
+        </p:grpSpPr>
+        
+        <!-- Title -->
+        <p:sp>
+          <p:nvSpPr>
+            <p:cNvPr id="2" name="Title"/>
+            <p:cNvSpPr>
+              <a:spLocks noGrp="1"/>
+            </p:cNvSpPr>
+            <p:nvPr>
+              <p:ph type="title"/>
+            </p:nvPr>
+          </p:nvSpPr>
+          <p:spPr/>
+          <p:txBody>
+            <a:bodyPr/>
+            <a:lstStyle/>
+            <a:p>
+              <a:r>
+                <a:rPr lang="en-US" sz="3600" b="1">
+                  <a:solidFill>
+                    <a:schemeClr val="tx1"/>
+                  </a:solidFill>
+                </a:rPr>
+                <a:t>MARKET UPDATE</a:t>
+              </a:r>
+            </a:p>
+          </p:txBody>
+        </p:sp>
+        
+        <!-- Market Content -->
+        <p:sp>
+          <p:nvSpPr>
+            <p:cNvPr id="3" name="Content"/>
+            <p:cNvSpPr>
+              <a:spLocks noGrp="1"/>
+            </p:cNvSpPr>
+            <p:nvPr>
+              <p:ph type="body" idx="1"/>
+            </p:nvPr>
+          </p:nvSpPr>
+          <p:spPr/>
+          <p:txBody>
+            <a:bodyPr/>
+            <a:lstStyle/>
+            <a:p>
+              <a:r>
+                <a:rPr lang="en-US" sz="2200">
+                  <a:solidFill>
+                    <a:schemeClr val="tx1"/>
+                  </a:solidFill>
+                </a:rPr>
+                <a:t>{{ marketUpdate }}</a:t>
+              </a:r>
+            </a:p>
+          </p:txBody>
+        </p:sp>
+      </p:spTree>
+    </p:cSld>
+  </p:slide>
+
+  <!-- Competitor Analysis Slide -->
+  <p:slide xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main">
+    <p:cSld>
+      <p:spTree>
+        <p:nvGrpSpPr>
+          <p:cNvPr id="1" name=""/>
+          <p:cNvGrpSpPr/>
+          <p:nvPr/>
+        </p:nvGrpSpPr>
+        <p:grpSpPr>
+          <a:xfrm>
+            <a:off x="0" y="0"/>
+            <a:ext cx="0" cy="0"/>
+          </a:xfrm>
+        </p:grpSpPr>
+        
+        <!-- Title -->
+        <p:sp>
+          <p:nvSpPr>
+            <p:cNvPr id="2" name="Title"/>
+            <p:cNvSpPr>
+              <a:spLocks noGrp="1"/>
+            </p:cNvSpPr>
+            <p:nvPr>
+              <p:ph type="title"/>
+            </p:nvPr>
+          </p:nvSpPr>
+          <p:spPr/>
+          <p:txBody>
+            <a:bodyPr/>
+            <a:lstStyle/>
+            <a:p>
+              <a:r>
+                <a:rPr lang="en-US" sz="3600" b="1">
+                  <a:solidFill>
+                    <a:schemeClr val="tx1"/>
+                  </a:solidFill>
+                </a:rPr>
+                <a:t>COMPETITIVE LANDSCAPE</a:t>
+              </a:r>
+            </a:p>
+          </p:txBody>
+        </p:sp>
+        
+        <!-- Competitor Content -->
+        <p:sp>
+          <p:nvSpPr>
+            <p:cNvPr id="3" name="Content"/>
+            <p:cNvSpPr>
+              <a:spLocks noGrp="1"/>
+            </p:cNvSpPr>
+            <p:nvPr>
+              <p:ph type="body" idx="1"/>
+            </p:nvPr>
+          </p:nvSpPr>
+          <p:spPr/>
+          <p:txBody>
+            <a:bodyPr/>
+            <a:lstStyle/>
+            {% for competitor in competitorAnalysis %}
+            <a:p>
+              <a:r>
+                <a:rPr lang="en-US" sz="2000" b="1">
+                  <a:solidFill>
+                    <a:schemeClr val="tx1"/>
+                  </a:solidFill>
+                </a:rPr>
+                <a:t>{{ competitor.name }}:</a:t>
+              </a:r>
+              <a:r>
+                <a:rPr lang="en-US" sz="1800">
+                  <a:solidFill>
+                    <a:schemeClr val="tx1"/>
+                  </a:solidFill>
+                </a:rPr>
+                <a:t> {{ competitor.update }}</a:t>
+              </a:r>
+            </a:p>
+            {% if competitor.impact %}
+            <a:p>
+              <a:r>
+                <a:rPr lang="en-US" sz="1600" i="1">
+                  <a:solidFill>
+                    <a:schemeClr val="tx1"/>
+                  </a:solidFill>
+                </a:rPr>
+                <a:t>   Impact: {{ competitor.impact }}</a:t>
+              </a:r>
+            </a:p>
+            {% endif %}
+            {% endfor %}
+          </p:txBody>
+        </p:sp>
+      </p:spTree>
+    </p:cSld>
+  </p:slide>
+
+  <!-- Next Quarter Goals Slide -->
+  <p:slide xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main">
+    <p:cSld>
+      <p:spTree>
+        <p:nvGrpSpPr>
+          <p:cNvPr id="1" name=""/>
+          <p:cNvGrpSpPr/>
+          <p:nvPr/>
+        </p:nvGrpSpPr>
+        <p:grpSpPr>
+          <a:xfrm>
+            <a:off x="0" y="0"/>
+            <a:ext cx="0" cy="0"/>
+          </a:xfrm>
+        </p:grpSpPr>
+        
+        <!-- Title -->
+        <p:sp>
+          <p:nvSpPr>
+            <p:cNvPr id="2" name="Title"/>
+            <p:cNvSpPr>
+              <a:spLocks noGrp="1"/>
+            </p:cNvSpPr>
+            <p:nvPr>
+              <p:ph type="title"/>
+            </p:nvPr>
+          </p:nvSpPr>
+          <p:spPr/>
+          <p:txBody>
+            <a:bodyPr/>
+            <a:lstStyle/>
+            <a:p>
+              <a:r>
+                <a:rPr lang="en-US" sz="3600" b="1">
+                  <a:solidFill>
+                    <a:schemeClr val="tx1"/>
+                  </a:solidFill>
+                </a:rPr>
+                <a:t>Q{{ quarter + 1 if quarter < 4 else 1 }} {{ year if quarter < 4 else year + 1 }} OBJECTIVES</a:t>
+              </a:r>
+            </a:p>
+          </p:txBody>
+        </p:sp>
+        
+        <!-- Goals Content -->
+        <p:sp>
+          <p:nvSpPr>
+            <p:cNvPr id="3" name="Content"/>
+            <p:cNvSpPr>
+              <a:spLocks noGrp="1"/>
+            </p:cNvSpPr>
+            <p:nvPr>
+              <p:ph type="body" idx="1"/>
+            </p:nvPr>
+          </p:nvSpPr>
+          <p:spPr/>
+          <p:txBody>
+            <a:bodyPr/>
+            <a:lstStyle/>
+            {% for goal in nextQuarterGoals %}
+            <a:p>
+              <a:pPr>
+                <a:buChar char="→"/>
+              </a:pPr>
+              <a:r>
+                <a:rPr lang="en-US" sz="2000">
+                  <a:solidFill>
+                    <a:schemeClr val="tx1"/>
+                  </a:solidFill>
+                </a:rPr>
+                <a:t>{{ goal.objective }}</a:t>
+              </a:r>
+              {% if goal.target %}
+              <a:r>
+                <a:rPr lang="en-US" sz="1800" b="1">
+                  <a:solidFill>
+                    <a:srgbClr val="0066CC"/>
+                  </a:solidFill>
+                </a:rPr>
+                <a:t> (Target: {{ goal.target }})</a:t>
+              </a:r>
+              {% endif %}
+            </a:p>
+            {% endfor %}
+          </p:txBody>
+        </p:sp>
+      </p:spTree>
+    </p:cSld>
+  </p:slide>
+
+  <!-- Risks & Opportunities Slide -->
+  <p:slide xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main">
+    <p:cSld>
+      <p:spTree>
+        <p:nvGrpSpPr>
+          <p:cNvPr id="1" name=""/>
+          <p:cNvGrpSpPr/>
+          <p:nvPr/>
+        </p:nvGrpSpPr>
+        <p:grpSpPr>
+          <a:xfrm>
+            <a:off x="0" y="0"/>
+            <a:ext cx="0" cy="0"/>
+          </a:xfrm>
+        </p:grpSpPr>
+        
+        <!-- Title -->
+        <p:sp>
+          <p:nvSpPr>
+            <p:cNvPr id="2" name="Title"/>
+            <p:cNvSpPr>
+              <a:spLocks noGrp="1"/>
+            </p:cNvSpPr>
+            <p:nvPr>
+              <p:ph type="title"/>
+            </p:nvPr>
+          </p:nvSpPr>
+          <p:spPr/>
+          <p:txBody>
+            <a:bodyPr/>
+            <a:lstStyle/>
+            <a:p>
+              <a:r>
+                <a:rPr lang="en-US" sz="3600" b="1">
+                  <a:solidFill>
+                    <a:schemeClr val="tx1"/>
+                  </a:solidFill>
+                </a:rPr>
+                <a:t>RISKS & OPPORTUNITIES</a:t>
+              </a:r>
+            </a:p>
+          </p:txBody>
+        </p:sp>
+        
+        <!-- Risk & Opportunity Content -->
+        <p:sp>
+          <p:nvSpPr>
+            <p:cNvPr id="3" name="Content"/>
+            <p:cNvSpPr>
+              <a:spLocks noGrp="1"/>
+            </p:cNvSpPr>
+            <p:nvPr>
+              <p:ph type="body" idx="1"/>
+            </p:nvPr>
+          </p:nvSpPr>
+          <p:spPr/>
+          <p:txBody>
+            <a:bodyPr/>
+            <a:lstStyle/>
+            {% if risks and risks.length > 0 %}
+            <a:p>
+              <a:r>
+                <a:rPr lang="en-US" sz="2200" b="1">
+                  <a:solidFill>
+                    <a:srgbClr val="CC0000"/>
+                  </a:solidFill>
+                </a:rPr>
+                <a:t>Risks:</a:t>
+              </a:r>
+            </a:p>
+            {% for risk in risks %}
+            <a:p>
+              <a:pPr>
+                <a:buChar char="⚠"/>
+              </a:pPr>
+              <a:r>
+                <a:rPr lang="en-US" sz="1800">
+                  <a:solidFill>
+                    <a:schemeClr val="tx1"/>
+                  </a:solidFill>
+                </a:rPr>
+                <a:t>{{ risk.description }}</a:t>
+              </a:r>
+            </a:p>
+            {% endfor %}
+            <a:p/>
+            {% endif %}
+            
+            {% if opportunities and opportunities.length > 0 %}
+            <a:p>
+              <a:r>
+                <a:rPr lang="en-US" sz="2200" b="1">
+                  <a:solidFill>
+                    <a:srgbClr val="00AA00"/>
+                  </a:solidFill>
+                </a:rPr>
+                <a:t>Opportunities:</a:t>
+              </a:r>
+            </a:p>
+            {% for opportunity in opportunities %}
+            <a:p>
+              <a:pPr>
+                <a:buChar char="💡"/>
+              </a:pPr>
+              <a:r>
+                <a:rPr lang="en-US" sz="1800">
+                  <a:solidFill>
+                    <a:schemeClr val="tx1"/>
+                  </a:solidFill>
+                </a:rPr>
+                <a:t>{{ opportunity.description }}</a:t>
+              </a:r>
+            </a:p>
+            {% endfor %}
+            {% endif %}
+          </p:txBody>
+        </p:sp>
+      </p:spTree>
+    </p:cSld>
+  </p:slide>
+
+  <!-- Conclusion Slide -->
+  <p:slide xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main">
+    <p:cSld>
+      <p:spTree>
+        <p:nvGrpSpPr>
+          <p:cNvPr id="1" name=""/>
+          <p:cNvGrpSpPr/>
+          <p:nvPr/>
+        </p:nvGrpSpPr>
+        <p:grpSpPr>
+          <a:xfrm>
+            <a:off x="0" y="0"/>
+            <a:ext cx="0" cy="0"/>
+          </a:xfrm>
+        </p:grpSpPr>
+        
+        <!-- Title -->
+        <p:sp>
+          <p:nvSpPr>
+            <p:cNvPr id="2" name="Title"/>
+            <p:cNvSpPr>
+              <a:spLocks noGrp="1"/>
+            </p:cNvSpPr>
+            <p:nvPr>
+              <p:ph type="ctrTitle"/>
+            </p:nvPr>
+          </p:nvSpPr>
+          <p:spPr/>
+          <p:txBody>
+            <a:bodyPr/>
+            <a:lstStyle/>
+            <a:p>
+              <a:r>
+                <a:rPr lang="en-US" sz="4000" b="1">
+                  <a:solidFill>
+                    <a:schemeClr val="tx1"/>
+                  </a:solidFill>
+                </a:rPr>
+                <a:t>THANK YOU</a:t>
+              </a:r>
+            </a:p>
+          </p:txBody>
+        </p:sp>
+        
+        <!-- Subtitle -->
+        <p:sp>
+          <p:nvSpPr>
+            <p:cNvPr id="3" name="Subtitle"/>
+            <p:cNvSpPr>
+              <a:spLocks noGrp="1"/>
+            </p:cNvSpPr>
+            <p:nvPr>
+              <p:ph type="subTitle" idx="1"/>
+            </p:nvPr>
+          </p:nvSpPr>
+          <p:spPr/>
+          <p:txBody>
+            <a:bodyPr/>
+            <a:lstStyle/>
+            <a:p>
+              <a:r>
+                <a:rPr lang="en-US" sz="2000">
+                  <a:solidFill>
+                    <a:schemeClr val="tx1"/>
+                  </a:solidFill>
+                </a:rPr>
+                <a:t>Questions & Discussion</a:t>
+              </a:r>
+            </a:p>
+          </p:txBody>
+        </p:sp>
+      </p:spTree>
+    </p:cSld>
+  </p:slide>
+
+</p:presentation>

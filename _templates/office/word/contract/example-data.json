@@ -1,0 +1,38 @@
+{
+  "partyA": {
+    "name": "Digital Solutions LLC",
+    "address": "456 Innovation Drive\nTech City, TX 75001",
+    "email": "contracts@digitalsolutions.com",
+    "phone": "(555) 987-6543"
+  },
+  "partyB": {
+    "name": "Global Manufacturing Corp",
+    "address": "321 Industrial Blvd\nManufacturing City, MI 48001",
+    "email": "procurement@globalmanufacturing.com",
+    "phone": "(555) 246-8135"
+  },
+  "serviceDescription": "Digital Solutions LLC will provide comprehensive IT infrastructure modernization services including cloud migration, security implementation, and staff training for Global Manufacturing Corp's three primary facilities.",
+  "startDate": "2024-02-01",
+  "endDate": "2024-08-31",
+  "paymentTerms": "Total project value: $125,000. Payment schedule: 25% upon contract signing, 50% at project milestone completion, 25% upon final delivery and acceptance. All payments due within 30 days of invoice.",
+  "deliverables": [
+    {
+      "description": "Infrastructure Assessment and Migration Plan",
+      "dueDate": "2024-03-15"
+    },
+    {
+      "description": "Cloud Infrastructure Setup and Configuration",
+      "dueDate": "2024-05-30"
+    },
+    {
+      "description": "Security Implementation and Testing",
+      "dueDate": "2024-07-15"
+    },
+    {
+      "description": "Staff Training and Documentation",
+      "dueDate": "2024-08-30"
+    }
+  ],
+  "terminationClause": "Either party may terminate this agreement with 30 days written notice. In case of termination, payment for completed work will be due within 15 days.",
+  "governingLaw": "the State of Texas"
+}

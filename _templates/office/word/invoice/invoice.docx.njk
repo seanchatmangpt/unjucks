@@ -1,0 +1,274 @@
+---
+to: {{ dest || 'documents' }}/invoice-{{ invoiceNumber }}.docx
+inject: false
+skipIf: false
+variables:
+  - companyName: string
+  - companyAddress: string
+  - clientName: string
+  - clientAddress: string
+  - invoiceNumber: string
+  - invoiceDate: string
+  - dueDate: string
+  - items: array
+  - taxRate: number
+  - notes: string
+filters:
+  - currency
+  - date
+  - upper
+---
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">
+  <w:body>
+    <!-- Header Section -->
+    <w:p>
+      <w:pPr>
+        <w:jc w:val="center"/>
+        <w:rPr>
+          <w:b/>
+          <w:sz w:val="32"/>
+        </w:rPr>
+      </w:pPr>
+      <w:r>
+        <w:t>INVOICE</w:t>
+      </w:r>
+    </w:p>
+    
+    <!-- Company Information -->
+    <w:tbl>
+      <w:tblPr>
+        <w:tblW w:w="5000" w:type="pct"/>
+      </w:tblPr>
+      <w:tr>
+        <w:tc>
+          <w:p>
+            <w:r>
+              <w:rPr><w:b/></w:rPr>
+              <w:t>{{ companyName | upper }}</w:t>
+            </w:r>
+          </w:p>
+          <w:p>
+            <w:r>
+              <w:t>{{ companyAddress }}</w:t>
+            </w:r>
+          </w:p>
+        </w:tc>
+        <w:tc>
+          <w:p>
+            <w:pPr>
+              <w:jc w:val="right"/>
+            </w:pPr>
+            <w:r>
+              <w:rPr><w:b/></w:rPr>
+              <w:t>Invoice #: {{ invoiceNumber }}</w:t>
+            </w:r>
+          </w:p>
+          <w:p>
+            <w:pPr>
+              <w:jc w:val="right"/>
+            </w:pPr>
+            <w:r>
+              <w:t>Date: {{ invoiceDate | date }}</w:t>
+            </w:r>
+          </w:p>
+          <w:p>
+            <w:pPr>
+              <w:jc w:val="right"/>
+            </w:pPr>
+            <w:r>
+              <w:t>Due: {{ dueDate | date }}</w:t>
+            </w:r>
+          </w:p>
+        </w:tc>
+      </w:tr>
+    </w:tbl>
+    
+    <!-- Client Information -->
+    <w:p>
+      <w:pPr>
+        <w:spacing w:before="240"/>
+      </w:pPr>
+      <w:r>
+        <w:rPr><w:b/></w:rPr>
+        <w:t>Bill To:</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:r>
+        <w:t>{{ clientName }}</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:r>
+        <w:t>{{ clientAddress }}</w:t>
+      </w:r>
+    </w:p>
+    
+    <!-- Items Table -->
+    <w:tbl>
+      <w:tblPr>
+        <w:tblW w:w="5000" w:type="pct"/>
+        <w:tblBorders>
+          <w:top w:val="single" w:sz="4"/>
+          <w:left w:val="single" w:sz="4"/>
+          <w:bottom w:val="single" w:sz="4"/>
+          <w:right w:val="single" w:sz="4"/>
+          <w:insideH w:val="single" w:sz="4"/>
+          <w:insideV w:val="single" w:sz="4"/>
+        </w:tblBorders>
+      </w:tblPr>
+      
+      <!-- Header Row -->
+      <w:tr>
+        <w:tc>
+          <w:p>
+            <w:r>
+              <w:rPr><w:b/></w:rPr>
+              <w:t>Description</w:t>
+            </w:r>
+          </w:p>
+        </w:tc>
+        <w:tc>
+          <w:p>
+            <w:r>
+              <w:rPr><w:b/></w:rPr>
+              <w:t>Quantity</w:t>
+            </w:r>
+          </w:p>
+        </w:tc>
+        <w:tc>
+          <w:p>
+            <w:r>
+              <w:rPr><w:b/></w:rPr>
+              <w:t>Rate</w:t>
+            </w:r>
+          </w:p>
+        </w:tc>
+        <w:tc>
+          <w:p>
+            <w:r>
+              <w:rPr><w:b/></w:rPr>
+              <w:t>Amount</w:t>
+            </w:r>
+          </w:p>
+        </w:tc>
+      </w:tr>
+      
+      <!-- Item Rows -->
+      {% for item in items %}
+      <w:tr>
+        <w:tc>
+          <w:p>
+            <w:r>
+              <w:t>{{ item.description }}</w:t>
+            </w:r>
+          </w:p>
+        </w:tc>
+        <w:tc>
+          <w:p>
+            <w:r>
+              <w:t>{{ item.quantity }}</w:t>
+            </w:r>
+          </w:p>
+        </w:tc>
+        <w:tc>
+          <w:p>
+            <w:r>
+              <w:t>{{ item.rate | currency }}</w:t>
+            </w:r>
+          </w:p>
+        </w:tc>
+        <w:tc>
+          <w:p>
+            <w:r>
+              <w:t>{{ (item.quantity * item.rate) | currency }}</w:t>
+            </w:r>
+          </w:p>
+        </w:tc>
+      </w:tr>
+      {% endfor %}
+    </w:tbl>
+    
+    <!-- Totals Section -->
+    {% set subtotal = items | map('quantity') | zip(items | map('rate')) | map('product') | sum %}
+    {% set tax = subtotal * (taxRate / 100) %}
+    {% set total = subtotal + tax %}
+    
+    <w:tbl>
+      <w:tblPr>
+        <w:tblW w:w="3000" w:type="pct"/>
+        <w:jc w:val="right"/>
+      </w:tblPr>
+      <w:tr>
+        <w:tc>
+          <w:p>
+            <w:r>
+              <w:t>Subtotal:</w:t>
+            </w:r>
+          </w:p>
+        </w:tc>
+        <w:tc>
+          <w:p>
+            <w:r>
+              <w:t>{{ subtotal | currency }}</w:t>
+            </w:r>
+          </w:p>
+        </w:tc>
+      </w:tr>
+      <w:tr>
+        <w:tc>
+          <w:p>
+            <w:r>
+              <w:t>Tax ({{ taxRate }}%):</w:t>
+            </w:r>
+          </w:p>
+        </w:tc>
+        <w:tc>
+          <w:p>
+            <w:r>
+              <w:t>{{ tax | currency }}</w:t>
+            </w:r>
+          </w:p>
+        </w:tc>
+      </w:tr>
+      <w:tr>
+        <w:tc>
+          <w:p>
+            <w:r>
+              <w:rPr><w:b/></w:rPr>
+              <w:t>Total:</w:t>
+            </w:r>
+          </w:p>
+        </w:tc>
+        <w:tc>
+          <w:p>
+            <w:r>
+              <w:rPr><w:b/></w:rPr>
+              <w:t>{{ total | currency }}</w:t>
+            </w:r>
+          </w:p>
+        </w:tc>
+      </w:tr>
+    </w:tbl>
+    
+    <!-- Notes Section -->
+    {% if notes %}
+    <w:p>
+      <w:pPr>
+        <w:spacing w:before="240"/>
+      </w:pPr>
+      <w:r>
+        <w:rPr><w:b/></w:rPr>
+        <w:t>Notes:</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:r>
+        <w:t>{{ notes }}</w:t>
+      </w:r>
+    </w:p>
+    {% endif %}
+    
+  </w:body>
+</w:document>

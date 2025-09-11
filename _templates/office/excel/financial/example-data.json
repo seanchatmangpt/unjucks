@@ -1,0 +1,94 @@
+{
+  "year": 2024,
+  "companyName": "TechStart Inc",
+  "currency": "USD",
+  "departments": [
+    {
+      "name": "Engineering",
+      "categories": [
+        {
+          "name": "Salaries",
+          "q1Budget": 450000,
+          "q2Budget": 465000,
+          "q3Budget": 480000,
+          "q4Budget": 495000,
+          "actual": 442000
+        },
+        {
+          "name": "Software Licenses",
+          "q1Budget": 25000,
+          "q2Budget": 25000,
+          "q3Budget": 27000,
+          "q4Budget": 27000,
+          "actual": 24500
+        },
+        {
+          "name": "Equipment",
+          "q1Budget": 35000,
+          "q2Budget": 15000,
+          "q3Budget": 20000,
+          "q4Budget": 30000,
+          "actual": 32000
+        }
+      ]
+    },
+    {
+      "name": "Marketing",
+      "categories": [
+        {
+          "name": "Digital Advertising",
+          "q1Budget": 75000,
+          "q2Budget": 85000,
+          "q3Budget": 90000,
+          "q4Budget": 100000,
+          "actual": 78000
+        },
+        {
+          "name": "Content Creation",
+          "q1Budget": 25000,
+          "q2Budget": 30000,
+          "q3Budget": 35000,
+          "q4Budget": 40000,
+          "actual": 27000
+        },
+        {
+          "name": "Events & Trade Shows",
+          "q1Budget": 15000,
+          "q2Budget": 45000,
+          "q3Budget": 20000,
+          "q4Budget": 55000,
+          "actual": 12000
+        }
+      ]
+    },
+    {
+      "name": "Operations",
+      "categories": [
+        {
+          "name": "Office Rent",
+          "q1Budget": 36000,
+          "q2Budget": 36000,
+          "q3Budget": 38000,
+          "q4Budget": 38000,
+          "actual": 36000
+        },
+        {
+          "name": "Utilities",
+          "q1Budget": 8000,
+          "q2Budget": 9000,
+          "q3Budget": 11000,
+          "q4Budget": 9500,
+          "actual": 8200
+        },
+        {
+          "name": "Insurance",
+          "q1Budget": 12000,
+          "q2Budget": 12000,
+          "q3Budget": 12500,
+          "q4Budget": 12500,
+          "actual": 12000
+        }
+      ]
+    }
+  ]
+}

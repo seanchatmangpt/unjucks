@@ -1,0 +1,90 @@
+{
+  "companyName": "Global Supply Co",
+  "location": "Main Warehouse - Chicago",
+  "warehouseManager": "Mike Rodriguez",
+  "lastUpdated": "2024-01-15",
+  "inventoryItems": [
+    {
+      "sku": "ELE-001",
+      "productName": "Premium Laptop Model X",
+      "currentStock": 45,
+      "reorderLevel": 25,
+      "maxStock": 100,
+      "unitCost": 850.00,
+      "unitPrice": 1299.99,
+      "supplier": "TechCorp Supplies",
+      "category": "Electronics",
+      "lastRestocked": "2024-01-10",
+      "leadTime": "7 days"
+    },
+    {
+      "sku": "OFF-002",
+      "productName": "Ergonomic Office Chair",
+      "currentStock": 12,
+      "reorderLevel": 15,
+      "maxStock": 50,
+      "unitCost": 145.00,
+      "unitPrice": 249.99,
+      "supplier": "Office Furniture Plus",
+      "category": "Furniture",
+      "lastRestocked": "2023-12-28",
+      "leadTime": "10 days"
+    },
+    {
+      "sku": "STA-003",
+      "productName": "Professional Notebook Set",
+      "currentStock": 0,
+      "reorderLevel": 50,
+      "maxStock": 200,
+      "unitCost": 8.50,
+      "unitPrice": 19.99,
+      "supplier": "Paper Products Inc",
+      "category": "Stationery",
+      "lastRestocked": "2023-12-15",
+      "leadTime": "3 days"
+    },
+    {
+      "sku": "ELE-004",
+      "productName": "Wireless Mouse Pro",
+      "currentStock": 75,
+      "reorderLevel": 30,
+      "maxStock": 150,
+      "unitCost": 25.00,
+      "unitPrice": 59.99,
+      "supplier": "TechCorp Supplies",
+      "category": "Electronics",
+      "lastRestocked": "2024-01-08",
+      "leadTime": "5 days"
+    },
+    {
+      "sku": "OFF-005",
+      "productName": "Standing Desk Converter",
+      "currentStock": 8,
+      "reorderLevel": 10,
+      "maxStock": 25,
+      "unitCost": 125.00,
+      "unitPrice": 299.99,
+      "supplier": "Office Furniture Plus",
+      "category": "Furniture",
+      "lastRestocked": "2024-01-05",
+      "leadTime": "14 days"
+    }
+  ],
+  "suppliers": [
+    {
+      "name": "TechCorp Supplies",
+      "avgLeadTime": "6 days",
+      "performanceScore": 0.92
+    },
+    {
+      "name": "Office Furniture Plus",
+      "avgLeadTime": "12 days",
+      "performanceScore": 0.87
+    },
+    {
+      "name": "Paper Products Inc",
+      "avgLeadTime": "4 days",
+      "performanceScore": 0.95
+    }
+  ]
+}

@@ -1,0 +1,234 @@
+version: '3.8'
+
+services:
+  # KGEN Application
+  kgen:
+    build:
+      context: ../../
+      dockerfile: docker/kgen/Dockerfile
+    container_name: kgen-app
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      # Application
+      NODE_ENV: production
+      KGEN_PORT: 3000
+      KGEN_HOST: 0.0.0.0
+      KGEN_LOG_LEVEL: info
+      
+      # Security
+      KGEN_JWT_SECRET: ${KGEN_JWT_SECRET:-your-super-secret-jwt-key-change-in-production-please}
+      KGEN_JWT_EXPIRES_IN: 24h
+      KGEN_BCRYPT_ROUNDS: 12
+      
+      # Database
+      KGEN_PG_HOST: postgres
+      KGEN_PG_PORT: 5432
+      KGEN_PG_DATABASE: kgen
+      KGEN_PG_USERNAME: kgen
+      KGEN_PG_PASSWORD: ${KGEN_PG_PASSWORD:-kgen_password}
+      
+      # Redis
+      KGEN_REDIS_HOST: redis
+      KGEN_REDIS_PORT: 6379
+      KGEN_REDIS_PASSWORD: ${KGEN_REDIS_PASSWORD}
+      KGEN_REDIS_DB: 0
+      
+      # Features
+      KGEN_METRICS_ENABLED: true
+      KGEN_SWAGGER_ENABLED: true
+      KGEN_VALIDATION_ENABLED: true
+      
+      # Performance
+      KGEN_CACHE_DEFAULT_TTL: 3600
+      KGEN_QUERY_CACHE_TTL: 1800
+      KGEN_MAX_GRAPH_SIZE: 1000000
+      
+      # Rate limiting
+      KGEN_RATE_WINDOW: 900000
+      KGEN_RATE_MAX: 100
+    
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    
+    networks:
+      - kgen-network
+    
+    volumes:
+      - kgen-logs:/app/logs
+      - kgen-uploads:/app/uploads
+      - kgen-temp:/app/temp
+    
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.kgen.rule=Host(`kgen.localhost`)"
+      - "traefik.http.services.kgen.loadbalancer.server.port=3000"
+
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: kgen-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: kgen
+      POSTGRES_USER: kgen
+      POSTGRES_PASSWORD: ${KGEN_PG_PASSWORD:-kgen_password}
+      POSTGRES_INITDB_ARGS: "--encoding=UTF-8 --lc-collate=C --lc-ctype=C"
+    
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./postgres/init.sql:/docker-entrypoint-initdb.d/01-init.sql:ro
+    
+    networks:
+      - kgen-network
+    
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U kgen -d kgen"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    
+    command: >
+      postgres 
+      -c log_statement=all
+      -c log_destination=stderr
+      -c log_min_duration_statement=100
+      -c shared_preload_libraries=pg_stat_statements
+      -c max_connections=100
+      -c shared_buffers=256MB
+      -c effective_cache_size=1GB
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: kgen-redis
+    restart: unless-stopped
+    command: >
+      redis-server 
+      --appendonly yes 
+      --appendfsync everysec
+      --maxmemory 512mb
+      --maxmemory-policy allkeys-lru
+      ${KGEN_REDIS_PASSWORD:+--requirepass $KGEN_REDIS_PASSWORD}
+    
+    volumes:
+      - redis-data:/data
+    
+    networks:
+      - kgen-network
+    
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 10s
+
+  # Prometheus Monitoring (optional)
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: kgen-prometheus
+    restart: unless-stopped
+    ports:
+      - "9090:9090"
+    
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=7d'
+      - '--web.enable-lifecycle'
+    
+    networks:
+      - kgen-network
+    
+    profiles:
+      - monitoring
+
+  # Grafana Dashboard (optional)
+  grafana:
+    image: grafana/grafana:latest
+    container_name: kgen-grafana
+    restart: unless-stopped
+    ports:
+      - "3001:3000"
+    
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD:-admin}
+      GF_INSTALL_PLUGINS: grafana-piechart-panel
+    
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./grafana/dashboards:/etc/grafana/provisioning/dashboards:ro
+      - ./grafana/datasources:/etc/grafana/provisioning/datasources:ro
+    
+    networks:
+      - kgen-network
+    
+    profiles:
+      - monitoring
+
+  # Nginx Load Balancer (optional)
+  nginx:
+    image: nginx:alpine
+    container_name: kgen-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+      - nginx-logs:/var/log/nginx
+    
+    depends_on:
+      - kgen
+    
+    networks:
+      - kgen-network
+    
+    profiles:
+      - loadbalancer
+
+networks:
+  kgen-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+
+volumes:
+  postgres-data:
+    driver: local
+  redis-data:
+    driver: local
+  prometheus-data:
+    driver: local
+  grafana-data:
+    driver: local
+  kgen-logs:
+    driver: local
+  kgen-uploads:
+    driver: local
+  kgen-temp:
+    driver: local
+  nginx-logs:
+    driver: local

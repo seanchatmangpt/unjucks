@@ -1,0 +1,98 @@
+{
+  "companyName": "FutureTech AI",
+  "tagline": "Revolutionizing Business with Artificial Intelligence",
+  "founderName": "Dr. Alexandra Chen",
+  "founderTitle": "CEO & Co-Founder",
+  "presentationDate": "2024-03-15",
+  "problemStatement": "75% of small and medium businesses struggle to leverage AI due to complexity, cost, and lack of technical expertise. Current solutions require extensive technical knowledge and significant upfront investment, leaving most businesses behind in the AI revolution.",
+  "solutionDescription": "FutureTech AI provides a no-code AI platform that allows any business to implement powerful AI solutions in minutes, not months. Our drag-and-drop interface, pre-built templates, and affordable pricing make AI accessible to everyone.",
+  "marketSize": "The global AI market is projected to reach $1.8 trillion by 2030, with SMB adoption representing a $450 billion opportunity. Our addressable market includes 31 million small and medium businesses in North America alone.",
+  "businessModel": "SaaS subscription model with three tiers: Starter ($99/month), Professional ($299/month), and Enterprise ($999/month). Additional revenue from custom AI development services and training programs. Average customer lifetime value: $15,000.",
+  "traction": [
+    {
+      "metric": "Monthly Recurring Revenue",
+      "value": "$145,000"
+    },
+    {
+      "metric": "Active Customers",
+      "value": "520"
+    },
+    {
+      "metric": "Monthly Growth Rate",
+      "value": "35%"
+    },
+    {
+      "metric": "Customer Retention",
+      "value": "94%"
+    },
+    {
+      "metric": "Net Promoter Score",
+      "value": "72"
+    }
+  ],
+  "competitors": [
+    {
+      "name": "BuilderBot",
+      "weakness": "Complex interface, requires technical expertise"
+    },
+    {
+      "name": "AI-Simple",
+      "weakness": "Limited functionality, no customization options"
+    },
+    {
+      "name": "SmartFlow",
+      "weakness": "High pricing, enterprise-only focus"
+    }
+  ],
+  "financials": {
+    "year1Revenue": "$2.1M",
+    "year3Revenue": "$15.8M",
+    "year5Revenue": "$68.5M",
+    "grossMargin": "85%"
+  },
+  "team": [
+    {
+      "name": "Dr. Alexandra Chen",
+      "title": "CEO & Co-Founder",
+      "experience": "Former AI Research Director at Google, PhD in Machine Learning from MIT"
+    },
+    {
+      "name": "Marcus Thompson",
+      "title": "CTO & Co-Founder",
+      "experience": "Ex-Tesla Senior Engineer, 15 years in scalable software architecture"
+    },
+    {
+      "name": "Sarah Kim",
+      "title": "VP of Sales",
+      "experience": "Former Salesforce Regional Director, $50M+ in SaaS sales"
+    }
+  ],
+  "fundingAsk": "$5 million Series A",
+  "useOfFunds": [
+    {
+      "category": "Product Development",
+      "percentage": "40%",
+      "amount": "$2.0M"
+    },
+    {
+      "category": "Sales & Marketing",
+      "percentage": "35%",
+      "amount": "$1.75M"
+    },
+    {
+      "category": "Team Expansion",
+      "percentage": "20%",
+      "amount": "$1.0M"
+    },
+    {
+      "category": "Operations",
+      "percentage": "5%",
+      "amount": "$250K"
+    }
+  ],
+  "contactInfo": {
+    "email": "alexandra@futuretech-ai.com",
+    "phone": "+1 (555) 123-4567",
+    "website": "www.futuretech-ai.com"
+  }
+}

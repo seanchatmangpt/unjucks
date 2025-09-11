@@ -1,0 +1,369 @@
+---
+to: {{ dest || 'reports' }}/monthly-report-{{ year }}-{{ month | pad(2) }}.docx
+inject: false
+skipIf: false
+variables:
+  - companyName: string
+  - reportTitle: string
+  - month: number
+  - year: number
+  - author: string
+  - department: string
+  - executiveSummary: string
+  - keyMetrics: array
+  - achievements: array
+  - challenges: array
+  - nextMonthGoals: array
+  - appendices: array
+filters:
+  - date
+  - number
+  - pad
+  - upper
+---
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">
+  <w:body>
+    <!-- Cover Page -->
+    <w:p>
+      <w:pPr>
+        <w:jc w:val="center"/>
+        <w:spacing w:before="1440"/>
+        <w:rPr>
+          <w:b/>
+          <w:sz w:val="36"/>
+        </w:rPr>
+      </w:pPr>
+      <w:r>
+        <w:t>{{ reportTitle | upper }}</w:t>
+      </w:r>
+    </w:p>
+    
+    <w:p>
+      <w:pPr>
+        <w:jc w:val="center"/>
+        <w:spacing w:before="240"/>
+        <w:rPr>
+          <w:sz w:val="24"/>
+        </w:rPr>
+      </w:pPr>
+      <w:r>
+        <w:t>{{ companyName }}</w:t>
+      </w:r>
+    </w:p>
+    
+    <w:p>
+      <w:pPr>
+        <w:jc w:val="center"/>
+        <w:spacing w:before="720"/>
+        <w:rPr>
+          <w:sz w:val="20"/>
+        </w:rPr>
+      </w:pPr>
+      <w:r>
+        <w:t>{{ month }}/{{ year }}</w:t>
+      </w:r>
+    </w:p>
+    
+    <w:p>
+      <w:pPr>
+        <w:jc w:val="center"/>
+        <w:spacing w:before="480"/>
+      </w:pPr>
+      <w:r>
+        <w:t>Prepared by: {{ author }}</w:t>
+      </w:r>
+    </w:p>
+    
+    <w:p>
+      <w:pPr>
+        <w:jc w:val="center"/>
+      </w:pPr>
+      <w:r>
+        <w:t>Department: {{ department }}</w:t>
+      </w:r>
+    </w:p>
+    
+    <!-- Page Break -->
+    <w:p>
+      <w:r>
+        <w:br w:type="page"/>
+      </w:r>
+    </w:p>
+    
+    <!-- Executive Summary -->
+    <w:p>
+      <w:pPr>
+        <w:rPr>
+          <w:b/>
+          <w:sz w:val="24"/>
+        </w:rPr>
+      </w:pPr>
+      <w:r>
+        <w:t>EXECUTIVE SUMMARY</w:t>
+      </w:r>
+    </w:p>
+    
+    <w:p>
+      <w:pPr>
+        <w:spacing w:before="240"/>
+      </w:pPr>
+      <w:r>
+        <w:t>{{ executiveSummary }}</w:t>
+      </w:r>
+    </w:p>
+    
+    <!-- Key Metrics -->
+    <w:p>
+      <w:pPr>
+        <w:spacing w:before="480"/>
+        <w:rPr>
+          <w:b/>
+          <w:sz w:val="24"/>
+        </w:rPr>
+      </w:pPr>
+      <w:r>
+        <w:t>KEY PERFORMANCE METRICS</w:t>
+      </w:r>
+    </w:p>
+    
+    <w:tbl>
+      <w:tblPr>
+        <w:tblW w:w="5000" w:type="pct"/>
+        <w:tblBorders>
+          <w:top w:val="single" w:sz="4"/>
+          <w:left w:val="single" w:sz="4"/>
+          <w:bottom w:val="single" w:sz="4"/>
+          <w:right w:val="single" w:sz="4"/>
+          <w:insideH w:val="single" w:sz="4"/>
+          <w:insideV w:val="single" w:sz="4"/>
+        </w:tblBorders>
+      </w:tblPr>
+      
+      <!-- Header Row -->
+      <w:tr>
+        <w:tc>
+          <w:p>
+            <w:r>
+              <w:rPr><w:b/></w:rPr>
+              <w:t>Metric</w:t>
+            </w:r>
+          </w:p>
+        </w:tc>
+        <w:tc>
+          <w:p>
+            <w:r>
+              <w:rPr><w:b/></w:rPr>
+              <w:t>Current Month</w:t>
+            </w:r>
+          </w:p>
+        </w:tc>
+        <w:tc>
+          <w:p>
+            <w:r>
+              <w:rPr><w:b/></w:rPr>
+              <w:t>Previous Month</w:t>
+            </w:r>
+          </w:p>
+        </w:tc>
+        <w:tc>
+          <w:p>
+            <w:r>
+              <w:rPr><w:b/></w:rPr>
+              <w:t>% Change</w:t>
+            </w:r>
+          </w:p>
+        </w:tc>
+      </w:tr>
+      
+      <!-- Metric Rows -->
+      {% for metric in keyMetrics %}
+      <w:tr>
+        <w:tc>
+          <w:p>
+            <w:r>
+              <w:t>{{ metric.name }}</w:t>
+            </w:r>
+          </w:p>
+        </w:tc>
+        <w:tc>
+          <w:p>
+            <w:r>
+              <w:t>{{ metric.current | number }}</w:t>
+            </w:r>
+          </w:p>
+        </w:tc>
+        <w:tc>
+          <w:p>
+            <w:r>
+              <w:t>{{ metric.previous | number }}</w:t>
+            </w:r>
+          </w:p>
+        </w:tc>
+        <w:tc>
+          <w:p>
+            <w:r>
+              {% set change = ((metric.current - metric.previous) / metric.previous * 100) | round(1) %}
+              {% if change > 0 %}
+              <w:rPr>
+                <w:color w:val="00AA00"/>
+              </w:rPr>
+              <w:t>+{{ change }}%</w:t>
+              {% elif change < 0 %}
+              <w:rPr>
+                <w:color w:val="CC0000"/>
+              </w:rPr>
+              <w:t>{{ change }}%</w:t>
+              {% else %}
+              <w:t>0%</w:t>
+              {% endif %}
+            </w:r>
+          </w:p>
+        </w:tc>
+      </w:tr>
+      {% endfor %}
+    </w:tbl>
+    
+    <!-- Achievements -->
+    <w:p>
+      <w:pPr>
+        <w:spacing w:before="480"/>
+        <w:rPr>
+          <w:b/>
+          <w:sz w:val="24"/>
+        </w:rPr>
+      </w:pPr>
+      <w:r>
+        <w:t>KEY ACHIEVEMENTS</w:t>
+      </w:r>
+    </w:p>
+    
+    {% for achievement in achievements %}
+    <w:p>
+      <w:pPr>
+        <w:numPr>
+          <w:ilvl w:val="0"/>
+          <w:numId w:val="1"/>
+        </w:numPr>
+      </w:pPr>
+      <w:r>
+        <w:t>{{ achievement.title }}: {{ achievement.description }}</w:t>
+      </w:r>
+    </w:p>
+    {% endfor %}
+    
+    <!-- Challenges -->
+    <w:p>
+      <w:pPr>
+        <w:spacing w:before="480"/>
+        <w:rPr>
+          <w:b/>
+          <w:sz w:val="24"/>
+        </w:rPr>
+      </w:pPr>
+      <w:r>
+        <w:t>CHALLENGES AND MITIGATION</w:t>
+      </w:r>
+    </w:p>
+    
+    {% for challenge in challenges %}
+    <w:p>
+      <w:pPr>
+        <w:numPr>
+          <w:ilvl w:val="0"/>
+          <w:numId w:val="2"/>
+        </w:numPr>
+      </w:pPr>
+      <w:r>
+        <w:rPr><w:b/></w:rPr>
+        <w:t>{{ challenge.title }}</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:pPr>
+        <w:ind w:left="720"/>
+      </w:pPr>
+      <w:r>
+        <w:t>Issue: {{ challenge.description }}</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:pPr>
+        <w:ind w:left="720"/>
+      </w:pPr>
+      <w:r>
+        <w:t>Mitigation: {{ challenge.mitigation }}</w:t>
+      </w:r>
+    </w:p>
+    {% endfor %}
+    
+    <!-- Next Month Goals -->
+    <w:p>
+      <w:pPr>
+        <w:spacing w:before="480"/>
+        <w:rPr>
+          <w:b/>
+          <w:sz w:val="24"/>
+        </w:rPr>
+      </w:pPr>
+      <w:r>
+        <w:t>NEXT MONTH OBJECTIVES</w:t>
+      </w:r>
+    </w:p>
+    
+    {% for goal in nextMonthGoals %}
+    <w:p>
+      <w:pPr>
+        <w:numPr>
+          <w:ilvl w:val="0"/>
+          <w:numId w:val="3"/>
+        </w:numPr>
+      </w:pPr>
+      <w:r>
+        <w:t>{{ goal.objective }}</w:t>
+      </w:r>
+      {% if goal.deadline %}
+      <w:r>
+        <w:t> (Target: {{ goal.deadline | date }})</w:t>
+      </w:r>
+      {% endif %}
+    </w:p>
+    {% endfor %}
+    
+    <!-- Appendices -->
+    {% if appendices and appendices.length > 0 %}
+    <w:p>
+      <w:pPr>
+        <w:spacing w:before="480"/>
+        <w:rPr>
+          <w:b/>
+          <w:sz w:val="24"/>
+        </w:rPr>
+      </w:pPr>
+      <w:r>
+        <w:t>APPENDICES</w:t>
+      </w:r>
+    </w:p>
+    
+    {% for appendix in appendices %}
+    <w:p>
+      <w:pPr>
+        <w:spacing w:before="240"/>
+        <w:rPr>
+          <w:b/>
+        </w:rPr>
+      </w:pPr>
+      <w:r>
+        <w:t>Appendix {{ loop.index }}: {{ appendix.title }}</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:r>
+        <w:t>{{ appendix.content }}</w:t>
+      </w:r>
+    </w:p>
+    {% endfor %}
+    {% endif %}
+    
+  </w:body>
+</w:document>

@@ -1,0 +1,933 @@
+---
+to: {{ dest || 'training' }}/onboarding-{{ employeeName | slug }}.pptx
+inject: false
+skipIf: false
+variables:
+  - companyName: string
+  - employeeName: string
+  - employeeTitle: string
+  - startDate: string
+  - manager: string
+  - department: string
+  - companyValues: array
+  - firstWeekSchedule: array
+  - policies: array
+  - benefits: array
+  - contacts: array
+  - tools: array
+filters:
+  - slug
+  - date
+  - upper
+---
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<p:presentation xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main"
+                xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"
+                xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main">
+  
+  <p:sldMasterIdLst>
+    <p:sldMasterId id="2147483648" r:id="rId1"/>
+  </p:sldMasterIdLst>
+  
+  <p:sldIdLst>
+    <!-- Slide 1: Welcome -->
+    <p:sldId id="256" r:id="rId2"/>
+    <!-- Slide 2: Company Overview -->
+    <p:sldId id="257" r:id="rId3"/>
+    <!-- Slide 3: Company Values -->
+    <p:sldId id="258" r:id="rId4"/>
+    <!-- Slide 4: Your Role -->
+    <p:sldId id="259" r:id="rId5"/>
+    <!-- Slide 5: First Week Schedule -->
+    <p:sldId id="260" r:id="rId6"/>
+    <!-- Slide 6: Policies & Procedures -->
+    <p:sldId id="261" r:id="rId7"/>
+    <!-- Slide 7: Benefits -->
+    <p:sldId id="262" r:id="rId8"/>
+    <!-- Slide 8: Tools & Systems -->
+    <p:sldId id="263" r:id="rId9"/>
+    <!-- Slide 9: Key Contacts -->
+    <p:sldId id="264" r:id="rId10"/>
+    <!-- Slide 10: Next Steps -->
+    <p:sldId id="265" r:id="rId11"/>
+  </p:sldIdLst>
+  
+  <p:sldSz cx="9144000" cy="6858000" type="screen4x3"/>
+  
+  <!-- Welcome Slide -->
+  <p:slide xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main">
+    <p:cSld>
+      <p:spTree>
+        <p:nvGrpSpPr>
+          <p:cNvPr id="1" name=""/>
+          <p:cNvGrpSpPr/>
+          <p:nvPr/>
+        </p:nvGrpSpPr>
+        <p:grpSpPr>
+          <a:xfrm>
+            <a:off x="0" y="0"/>
+            <a:ext cx="0" cy="0"/>
+          </a:xfrm>
+        </p:grpSpPr>
+        
+        <!-- Welcome Title -->
+        <p:sp>
+          <p:nvSpPr>
+            <p:cNvPr id="2" name="Title"/>
+            <p:cNvSpPr>
+              <a:spLocks noGrp="1"/>
+            </p:cNvSpPr>
+            <p:nvPr>
+              <p:ph type="ctrTitle"/>
+            </p:nvPr>
+          </p:nvSpPr>
+          <p:spPr/>
+          <p:txBody>
+            <a:bodyPr/>
+            <a:lstStyle/>
+            <a:p>
+              <a:r>
+                <a:rPr lang="en-US" sz="4800" b="1">
+                  <a:solidFill>
+                    <a:schemeClr val="tx1"/>
+                  </a:solidFill>
+                </a:rPr>
+                <a:t>WELCOME TO {{ companyName | upper }}</a:t>
+              </a:r>
+            </a:p>
+          </p:txBody>
+        </p:sp>
+        
+        <!-- Employee Info -->
+        <p:sp>
+          <p:nvSpPr>
+            <p:cNvPr id="3" name="Subtitle"/>
+            <p:cNvSpPr>
+              <a:spLocks noGrp="1"/>
+            </p:cNvSpPr>
+            <p:nvPr>
+              <p:ph type="subTitle" idx="1"/>
+            </p:nvPr>
+          </p:nvSpPr>
+          <p:spPr/>
+          <p:txBody>
+            <a:bodyPr/>
+            <a:lstStyle/>
+            <a:p>
+              <a:r>
+                <a:rPr lang="en-US" sz="2400" b="1">
+                  <a:solidFill>
+                    <a:schemeClr val="tx1"/>
+                  </a:solidFill>
+                </a:rPr>
+                <a:t>{{ employeeName }}</a:t>
+              </a:r>
+            </a:p>
+            <a:p>
+              <a:r>
+                <a:rPr lang="en-US" sz="2000">
+                  <a:solidFill>
+                    <a:schemeClr val="tx1"/>
+                  </a:solidFill>
+                </a:rPr>
+                <a:t>{{ employeeTitle }}</a:t>
+              </a:r>
+            </a:p>
+            <a:p>
+              <a:r>
+                <a:rPr lang="en-US" sz="1800">
+                  <a:solidFill>
+                    <a:schemeClr val="tx1"/>
+                  </a:solidFill>
+                </a:rPr>
+                <a:t>{{ department }} Department</a:t>
+              </a:r>
+            </a:p>
+            <a:p>
+              <a:r>
+                <a:rPr lang="en-US" sz="1600">
+                  <a:solidFill>
+                    <a:schemeClr val="tx1"/>
+                  </a:solidFill>
+                </a:rPr>
+                <a:t>Start Date: {{ startDate | date }}</a:t>
+              </a:r>
+            </a:p>
+          </p:txBody>
+        </p:sp>
+      </p:spTree>
+    </p:cSld>
+  </p:slide>
+
+  <!-- Company Overview Slide -->
+  <p:slide xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main">
+    <p:cSld>
+      <p:spTree>
+        <p:nvGrpSpPr>
+          <p:cNvPr id="1" name=""/>
+          <p:cNvGrpSpPr/>
+          <p:nvPr/>
+        </p:nvGrpSpPr>
+        <p:grpSpPr>
+          <a:xfrm>
+            <a:off x="0" y="0"/>
+            <a:ext cx="0" cy="0"/>
+          </a:xfrm>
+        </p:grpSpPr>
+        
+        <!-- Title -->
+        <p:sp>
+          <p:nvSpPr>
+            <p:cNvPr id="2" name="Title"/>
+            <p:cNvSpPr>
+              <a:spLocks noGrp="1"/>
+            </p:cNvSpPr>
+            <p:nvPr>
+              <p:ph type="title"/>
+            </p:nvPr>
+          </p:nvSpPr>
+          <p:spPr/>
+          <p:txBody>
+            <a:bodyPr/>
+            <a:lstStyle/>
+            <a:p>
+              <a:r>
+                <a:rPr lang="en-US" sz="3600" b="1">
+                  <a:solidFill>
+                    <a:schemeClr val="tx1"/>
+                  </a:solidFill>
+                </a:rPr>
+                <a:t>ABOUT {{ companyName | upper }}</a:t>
+              </a:r>
+            </a:p>
+          </p:txBody>
+        </p:sp>
+        
+        <!-- Company Content -->
+        <p:sp>
+          <p:nvSpPr>
+            <p:cNvPr id="3" name="Content"/>
+            <p:cNvSpPr>
+              <a:spLocks noGrp="1"/>
+            </p:cNvSpPr>
+            <p:nvPr>
+              <p:ph type="body" idx="1"/>
+            </p:nvPr>
+          </p:nvSpPr>
+          <p:spPr/>
+          <p:txBody>
+            <a:bodyPr/>
+            <a:lstStyle/>
+            <a:p>
+              <a:r>
+                <a:rPr lang="en-US" sz="2400">
+                  <a:solidFill>
+                    <a:schemeClr val="tx1"/>
+                  </a:solidFill>
+                </a:rPr>
+                <a:t>Your new home at {{ companyName }}</a:t>
+              </a:r>
+            </a:p>
+          </p:txBody>
+        </p:sp>
+      </p:spTree>
+    </p:cSld>
+  </p:slide>
+
+  <!-- Company Values Slide -->
+  <p:slide xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main">
+    <p:cSld>
+      <p:spTree>
+        <p:nvGrpSpPr>
+          <p:cNvPr id="1" name=""/>
+          <p:cNvGrpSpPr/>
+          <p:nvPr/>
+        </p:nvGrpSpPr>
+        <p:grpSpPr>
+          <a:xfrm>
+            <a:off x="0" y="0"/>
+            <a:ext cx="0" cy="0"/>
+          </a:xfrm>
+        </p:grpSpPr>
+        
+        <!-- Title -->
+        <p:sp>
+          <p:nvSpPr>
+            <p:cNvPr id="2" name="Title"/>
+            <p:cNvSpPr>
+              <a:spLocks noGrp="1"/>
+            </p:cNvSpPr>
+            <p:nvPr>
+              <p:ph type="title"/>
+            </p:nvPr>
+          </p:nvSpPr>
+          <p:spPr/>
+          <p:txBody>
+            <a:bodyPr/>
+            <a:lstStyle/>
+            <a:p>
+              <a:r>
+                <a:rPr lang="en-US" sz="3600" b="1">
+                  <a:solidFill>
+                    <a:schemeClr val="tx1"/>
+                  </a:solidFill>
+                </a:rPr>
+                <a:t>OUR VALUES</a:t>
+              </a:r>
+            </a:p>
+          </p:txBody>
+        </p:sp>
+        
+        <!-- Values Content -->
+        <p:sp>
+          <p:nvSpPr>
+            <p:cNvPr id="3" name="Content"/>
+            <p:cNvSpPr>
+              <a:spLocks noGrp="1"/>
+            </p:cNvSpPr>
+            <p:nvPr>
+              <p:ph type="body" idx="1"/>
+            </p:nvPr>
+          </p:nvSpPr>
+          <p:spPr/>
+          <p:txBody>
+            <a:bodyPr/>
+            <a:lstStyle/>
+            {% for value in companyValues %}
+            <a:p>
+              <a:pPr>
+                <a:buChar char="•"/>
+              </a:pPr>
+              <a:r>
+                <a:rPr lang="en-US" sz="2000" b="1">
+                  <a:solidFill>
+                    <a:schemeClr val="tx1"/>
+                  </a:solidFill>
+                </a:rPr>
+                <a:t>{{ value.title }}</a:t>
+              </a:r>
+              <a:r>
+                <a:rPr lang="en-US" sz="2000">
+                  <a:solidFill>
+                    <a:schemeClr val="tx1"/>
+                  </a:solidFill>
+                </a:rPr>
+                <a:t>: {{ value.description }}</a:t>
+              </a:r>
+            </a:p>
+            {% endfor %}
+          </p:txBody>
+        </p:sp>
+      </p:spTree>
+    </p:cSld>
+  </p:slide>
+
+  <!-- Your Role Slide -->
+  <p:slide xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main">
+    <p:cSld>
+      <p:spTree>
+        <p:nvGrpSpPr>
+          <p:cNvPr id="1" name=""/>
+          <p:cNvGrpSpPr/>
+          <p:nvPr/>
+        </p:nvGrpSpPr>
+        <p:grpSpPr>
+          <a:xfrm>
+            <a:off x="0" y="0"/>
+            <a:ext cx="0" cy="0"/>
+          </a:xfrm>
+        </p:grpSpPr>
+        
+        <!-- Title -->
+        <p:sp>
+          <p:nvSpPr>
+            <p:cNvPr id="2" name="Title"/>
+            <p:cNvSpPr>
+              <a:spLocks noGrp="1"/>
+            </p:cNvSpPr>
+            <p:nvPr>
+              <p:ph type="title"/>
+            </p:nvPr>
+          </p:nvSpPr>
+          <p:spPr/>
+          <p:txBody>
+            <a:bodyPr/>
+            <a:lstStyle/>
+            <a:p>
+              <a:r>
+                <a:rPr lang="en-US" sz="3600" b="1">
+                  <a:solidFill>
+                    <a:schemeClr val="tx1"/>
+                  </a:solidFill>
+                </a:rPr>
+                <a:t>YOUR ROLE</a:t>
+              </a:r>
+            </a:p>
+          </p:txBody>
+        </p:sp>
+        
+        <!-- Role Content -->
+        <p:sp>
+          <p:nvSpPr>
+            <p:cNvPr id="3" name="Content"/>
+            <p:cNvSpPr>
+              <a:spLocks noGrp="1"/>
+            </p:cNvSpPr>
+            <p:nvPr>
+              <p:ph type="body" idx="1"/>
+            </p:nvPr>
+          </p:nvSpPr>
+          <p:spPr/>
+          <p:txBody>
+            <a:bodyPr/>
+            <a:lstStyle/>
+            <a:p>
+              <a:r>
+                <a:rPr lang="en-US" sz="2200" b="1">
+                  <a:solidFill>
+                    <a:schemeClr val="tx1"/>
+                  </a:solidFill>
+                </a:rPr>
+                <a:t>Position: {{ employeeTitle }}</a:t>
+              </a:r>
+            </a:p>
+            <a:p>
+              <a:r>
+                <a:rPr lang="en-US" sz="2000">
+                  <a:solidFill>
+                    <a:schemeClr val="tx1"/>
+                  </a:solidFill>
+                </a:rPr>
+                <a:t>Department: {{ department }}</a:t>
+              </a:r>
+            </a:p>
+            <a:p>
+              <a:r>
+                <a:rPr lang="en-US" sz="2000">
+                  <a:solidFill>
+                    <a:schemeClr val="tx1"/>
+                  </a:solidFill>
+                </a:rPr>
+                <a:t>Reports to: {{ manager }}</a:t>
+              </a:r>
+            </a:p>
+          </p:txBody>
+        </p:sp>
+      </p:spTree>
+    </p:cSld>
+  </p:slide>
+
+  <!-- First Week Schedule Slide -->
+  <p:slide xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main">
+    <p:cSld>
+      <p:spTree>
+        <p:nvGrpSpPr>
+          <p:cNvPr id="1" name=""/>
+          <p:cNvGrpSpPr/>
+          <p:nvPr/>
+        </p:nvGrpSpPr>
+        <p:grpSpPr>
+          <a:xfrm>
+            <a:off x="0" y="0"/>
+            <a:ext cx="0" cy="0"/>
+          </a:xfrm>
+        </p:grpSpPr>
+        
+        <!-- Title -->
+        <p:sp>
+          <p:nvSpPr>
+            <p:cNvPr id="2" name="Title"/>
+            <p:cNvSpPr>
+              <a:spLocks noGrp="1"/>
+            </p:cNvSpPr>
+            <p:nvPr>
+              <p:ph type="title"/>
+            </p:nvPr>
+          </p:nvSpPr>
+          <p:spPr/>
+          <p:txBody>
+            <a:bodyPr/>
+            <a:lstStyle/>
+            <a:p>
+              <a:r>
+                <a:rPr lang="en-US" sz="3600" b="1">
+                  <a:solidFill>
+                    <a:schemeClr val="tx1"/>
+                  </a:solidFill>
+                </a:rPr>
+                <a:t>FIRST WEEK SCHEDULE</a:t>
+              </a:r>
+            </a:p>
+          </p:txBody>
+        </p:sp>
+        
+        <!-- Schedule Content -->
+        <p:sp>
+          <p:nvSpPr>
+            <p:cNvPr id="3" name="Content"/>
+            <p:cNvSpPr>
+              <a:spLocks noGrp="1"/>
+            </p:cNvSpPr>
+            <p:nvPr>
+              <p:ph type="body" idx="1"/>
+            </p:nvPr>
+          </p:nvSpPr>
+          <p:spPr/>
+          <p:txBody>
+            <a:bodyPr/>
+            <a:lstStyle/>
+            {% for day in firstWeekSchedule %}
+            <a:p>
+              <a:r>
+                <a:rPr lang="en-US" sz="2000" b="1">
+                  <a:solidFill>
+                    <a:schemeClr val="tx1"/>
+                  </a:solidFill>
+                </a:rPr>
+                <a:t>{{ day.day }}:</a:t>
+              </a:r>
+              <a:r>
+                <a:rPr lang="en-US" sz="1800">
+                  <a:solidFill>
+                    <a:schemeClr val="tx1"/>
+                  </a:solidFill>
+                </a:rPr>
+                <a:t> {{ day.activities }}</a:t>
+              </a:r>
+            </a:p>
+            {% endfor %}
+          </p:txBody>
+        </p:sp>
+      </p:spTree>
+    </p:cSld>
+  </p:slide>
+
+  <!-- Policies & Procedures Slide -->
+  <p:slide xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main">
+    <p:cSld>
+      <p:spTree>
+        <p:nvGrpSpPr>
+          <p:cNvPr id="1" name=""/>
+          <p:cNvGrpSpPr/>
+          <p:nvPr/>
+        </p:nvGrpSpPr>
+        <p:grpSpPr>
+          <a:xfrm>
+            <a:off x="0" y="0"/>
+            <a:ext cx="0" cy="0"/>
+          </a:xfrm>
+        </p:grpSpPr>
+        
+        <!-- Title -->
+        <p:sp>
+          <p:nvSpPr>
+            <p:cNvPr id="2" name="Title"/>
+            <p:cNvSpPr>
+              <a:spLocks noGrp="1"/>
+            </p:cNvSpPr>
+            <p:nvPr>
+              <p:ph type="title"/>
+            </p:nvPr>
+          </p:nvSpPr>
+          <p:spPr/>
+          <p:txBody>
+            <a:bodyPr/>
+            <a:lstStyle/>
+            <a:p>
+              <a:r>
+                <a:rPr lang="en-US" sz="3600" b="1">
+                  <a:solidFill>
+                    <a:schemeClr val="tx1"/>
+                  </a:solidFill>
+                </a:rPr>
+                <a:t>POLICIES & PROCEDURES</a:t>
+              </a:r>
+            </a:p>
+          </p:txBody>
+        </p:sp>
+        
+        <!-- Policies Content -->
+        <p:sp>
+          <p:nvSpPr>
+            <p:cNvPr id="3" name="Content"/>
+            <p:cNvSpPr>
+              <a:spLocks noGrp="1"/>
+            </p:cNvSpPr>
+            <p:nvPr>
+              <p:ph type="body" idx="1"/>
+            </p:nvPr>
+          </p:nvSpPr>
+          <p:spPr/>
+          <p:txBody>
+            <a:bodyPr/>
+            <a:lstStyle/>
+            {% for policy in policies %}
+            <a:p>
+              <a:pPr>
+                <a:buChar char="•"/>
+              </a:pPr>
+              <a:r>
+                <a:rPr lang="en-US" sz="2000">
+                  <a:solidFill>
+                    <a:schemeClr val="tx1"/>
+                  </a:solidFill>
+                </a:rPr>
+                <a:t>{{ policy.title }}: {{ policy.description }}</a:t>
+              </a:r>
+            </a:p>
+            {% endfor %}
+          </p:txBody>
+        </p:sp>
+      </p:spTree>
+    </p:cSld>
+  </p:slide>
+
+  <!-- Benefits Slide -->
+  <p:slide xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main">
+    <p:cSld>
+      <p:spTree>
+        <p:nvGrpSpPr>
+          <p:cNvPr id="1" name=""/>
+          <p:cNvGrpSpPr/>
+          <p:nvPr/>
+        </p:nvGrpSpPr>
+        <p:grpSpPr>
+          <a:xfrm>
+            <a:off x="0" y="0"/>
+            <a:ext cx="0" cy="0"/>
+          </a:xfrm>
+        </p:grpSpPr>
+        
+        <!-- Title -->
+        <p:sp>
+          <p:nvSpPr>
+            <p:cNvPr id="2" name="Title"/>
+            <p:cNvSpPr>
+              <a:spLocks noGrp="1"/>
+            </p:cNvSpPr>
+            <p:nvPr>
+              <p:ph type="title"/>
+            </p:nvPr>
+          </p:nvSpPr>
+          <p:spPr/>
+          <p:txBody>
+            <a:bodyPr/>
+            <a:lstStyle/>
+            <a:p>
+              <a:r>
+                <a:rPr lang="en-US" sz="3600" b="1">
+                  <a:solidFill>
+                    <a:schemeClr val="tx1"/>
+                  </a:solidFill>
+                </a:rPr>
+                <a:t>EMPLOYEE BENEFITS</a:t>
+              </a:r>
+            </a:p>
+          </p:txBody>
+        </p:sp>
+        
+        <!-- Benefits Content -->
+        <p:sp>
+          <p:nvSpPr>
+            <p:cNvPr id="3" name="Content"/>
+            <p:cNvSpPr>
+              <a:spLocks noGrp="1"/>
+            </p:cNvSpPr>
+            <p:nvPr>
+              <p:ph type="body" idx="1"/>
+            </p:nvPr>
+          </p:nvSpPr>
+          <p:spPr/>
+          <p:txBody>
+            <a:bodyPr/>
+            <a:lstStyle/>
+            {% for benefit in benefits %}
+            <a:p>
+              <a:pPr>
+                <a:buChar char="•"/>
+              </a:pPr>
+              <a:r>
+                <a:rPr lang="en-US" sz="2000">
+                  <a:solidFill>
+                    <a:schemeClr val="tx1"/>
+                  </a:solidFill>
+                </a:rPr>
+                <a:t>{{ benefit.category }}: {{ benefit.description }}</a:t>
+              </a:r>
+            </a:p>
+            {% endfor %}
+          </p:txBody>
+        </p:sp>
+      </p:spTree>
+    </p:cSld>
+  </p:slide>
+
+  <!-- Tools & Systems Slide -->
+  <p:slide xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main">
+    <p:cSld>
+      <p:spTree>
+        <p:nvGrpSpPr>
+          <p:cNvPr id="1" name=""/>
+          <p:cNvGrpSpPr/>
+          <p:nvPr/>
+        </p:nvGrpSpPr>
+        <p:grpSpPr>
+          <a:xfrm>
+            <a:off x="0" y="0"/>
+            <a:ext cx="0" cy="0"/>
+          </a:xfrm>
+        </p:grpSpPr>
+        
+        <!-- Title -->
+        <p:sp>
+          <p:nvSpPr>
+            <p:cNvPr id="2" name="Title"/>
+            <p:cNvSpPr>
+              <a:spLocks noGrp="1"/>
+            </p:cNvSpPr>
+            <p:nvPr>
+              <p:ph type="title"/>
+            </p:nvPr>
+          </p:nvSpPr>
+          <p:spPr/>
+          <p:txBody>
+            <a:bodyPr/>
+            <a:lstStyle/>
+            <a:p>
+              <a:r>
+                <a:rPr lang="en-US" sz="3600" b="1">
+                  <a:solidFill>
+                    <a:schemeClr val="tx1"/>
+                  </a:solidFill>
+                </a:rPr>
+                <a:t>TOOLS & SYSTEMS</a:t>
+              </a:r>
+            </a:p>
+          </p:txBody>
+        </p:sp>
+        
+        <!-- Tools Content -->
+        <p:sp>
+          <p:nvSpPr>
+            <p:cNvPr id="3" name="Content"/>
+            <p:cNvSpPr>
+              <a:spLocks noGrp="1"/>
+            </p:cNvSpPr>
+            <p:nvPr>
+              <p:ph type="body" idx="1"/>
+            </p:nvPr>
+          </p:nvSpPr>
+          <p:spPr/>
+          <p:txBody>
+            <a:bodyPr/>
+            <a:lstStyle/>
+            {% for tool in tools %}
+            <a:p>
+              <a:pPr>
+                <a:buChar char="•"/>
+              </a:pPr>
+              <a:r>
+                <a:rPr lang="en-US" sz="2000" b="1">
+                  <a:solidFill>
+                    <a:schemeClr val="tx1"/>
+                  </a:solidFill>
+                </a:rPr>
+                <a:t>{{ tool.name }}</a:t>
+              </a:r>
+              <a:r>
+                <a:rPr lang="en-US" sz="2000">
+                  <a:solidFill>
+                    <a:schemeClr val="tx1"/>
+                  </a:solidFill>
+                </a:rPr>
+                <a:t>: {{ tool.purpose }}</a:t>
+              </a:r>
+            </a:p>
+            {% endfor %}
+          </p:txBody>
+        </p:sp>
+      </p:spTree>
+    </p:cSld>
+  </p:slide>
+
+  <!-- Key Contacts Slide -->
+  <p:slide xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main">
+    <p:cSld>
+      <p:spTree>
+        <p:nvGrpSpPr>
+          <p:cNvPr id="1" name=""/>
+          <p:cNvGrpSpPr/>
+          <p:nvPr/>
+        </p:nvGrpSpPr>
+        <p:grpSpPr>
+          <a:xfrm>
+            <a:off x="0" y="0"/>
+            <a:ext cx="0" cy="0"/>
+          </a:xfrm>
+        </p:grpSpPr>
+        
+        <!-- Title -->
+        <p:sp>
+          <p:nvSpPr>
+            <p:cNvPr id="2" name="Title"/>
+            <p:cNvSpPr>
+              <a:spLocks noGrp="1"/>
+            </p:cNvSpPr>
+            <p:nvPr>
+              <p:ph type="title"/>
+            </p:nvPr>
+          </p:nvSpPr>
+          <p:spPr/>
+          <p:txBody>
+            <a:bodyPr/>
+            <a:lstStyle/>
+            <a:p>
+              <a:r>
+                <a:rPr lang="en-US" sz="3600" b="1">
+                  <a:solidFill>
+                    <a:schemeClr val="tx1"/>
+                  </a:solidFill>
+                </a:rPr>
+                <a:t>KEY CONTACTS</a:t>
+              </a:r>
+            </a:p>
+          </p:txBody>
+        </p:sp>
+        
+        <!-- Contacts Content -->
+        <p:sp>
+          <p:nvSpPr>
+            <p:cNvPr id="3" name="Content"/>
+            <p:cNvSpPr>
+              <a:spLocks noGrp="1"/>
+            </p:cNvSpPr>
+            <p:nvPr>
+              <p:ph type="body" idx="1"/>
+            </p:nvPr>
+          </p:nvSpPr>
+          <p:spPr/>
+          <p:txBody>
+            <a:bodyPr/>
+            <a:lstStyle/>
+            {% for contact in contacts %}
+            <a:p>
+              <a:r>
+                <a:rPr lang="en-US" sz="2000" b="1">
+                  <a:solidFill>
+                    <a:schemeClr val="tx1"/>
+                  </a:solidFill>
+                </a:rPr>
+                <a:t>{{ contact.name }}</a:t>
+              </a:r>
+              <a:r>
+                <a:rPr lang="en-US" sz="1800">
+                  <a:solidFill>
+                    <a:schemeClr val="tx1"/>
+                  </a:solidFill>
+                </a:rPr>
+                <a:t> - {{ contact.title }}</a:t>
+              </a:r>
+            </a:p>
+            <a:p>
+              <a:r>
+                <a:rPr lang="en-US" sz="1600">
+                  <a:solidFill>
+                    <a:schemeClr val="tx1"/>
+                  </a:solidFill>
+                </a:rPr>
+                <a:t>   {{ contact.email }} | {{ contact.extension }}</a:t>
+              </a:r>
+            </a:p>
+            {% endfor %}
+          </p:txBody>
+        </p:sp>
+      </p:spTree>
+    </p:cSld>
+  </p:slide>
+
+  <!-- Next Steps Slide -->
+  <p:slide xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main">
+    <p:cSld>
+      <p:spTree>
+        <p:nvGrpSpPr>
+          <p:cNvPr id="1" name=""/>
+          <p:cNvGrpSpPr/>
+          <p:nvPr/>
+        </p:nvGrpSpPr>
+        <p:grpSpPr>
+          <a:xfrm>
+            <a:off x="0" y="0"/>
+            <a:ext cx="0" cy="0"/>
+          </a:xfrm>
+        </p:grpSpPr>
+        
+        <!-- Title -->
+        <p:sp>
+          <p:nvSpPr>
+            <p:cNvPr id="2" name="Title"/>
+            <p:cNvSpPr>
+              <a:spLocks noGrp="1"/>
+            </p:cNvSpPr>
+            <p:nvPr>
+              <p:ph type="ctrTitle"/>
+            </p:nvPr>
+          </p:nvSpPr>
+          <p:spPr/>
+          <p:txBody>
+            <a:bodyPr/>
+            <a:lstStyle/>
+            <a:p>
+              <a:r>
+                <a:rPr lang="en-US" sz="4000" b="1">
+                  <a:solidFill>
+                    <a:schemeClr val="tx1"/>
+                  </a:solidFill>
+                </a:rPr>
+                <a:t>WELCOME TO THE TEAM!</a:t>
+              </a:r>
+            </a:p>
+          </p:txBody>
+        </p:sp>
+        
+        <!-- Next Steps Content -->
+        <p:sp>
+          <p:nvSpPr>
+            <p:cNvPr id="3" name="Subtitle"/>
+            <p:cNvSpPr>
+              <a:spLocks noGrp="1"/>
+            </p:cNvSpPr>
+            <p:nvPr>
+              <p:ph type="subTitle" idx="1"/>
+            </p:nvPr>
+          </p:nvSpPr>
+          <p:spPr/>
+          <p:txBody>
+            <a:bodyPr/>
+            <a:lstStyle/>
+            <a:p>
+              <a:r>
+                <a:rPr lang="en-US" sz="2000">
+                  <a:solidFill>
+                    <a:schemeClr val="tx1"/>
+                  </a:solidFill>
+                </a:rPr>
+                <a:t>Questions? Contact {{ manager }} or HR</a:t>
+              </a:r>
+            </a:p>
+            <a:p>
+              <a:r>
+                <a:rPr lang="en-US" sz="1800">
+                  <a:solidFill>
+                    <a:schemeClr val="tx1"/>
+                  </a:solidFill>
+                </a:rPr>
+                <a:t>We're excited to have you aboard!</a:t>
+              </a:r>
+            </a:p>
+          </p:txBody>
+        </p:sp>
+      </p:spTree>
+    </p:cSld>
+  </p:slide>
+
+</p:presentation>

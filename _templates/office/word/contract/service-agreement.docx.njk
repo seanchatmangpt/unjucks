@@ -1,0 +1,301 @@
+---
+to: {{ dest || 'contracts' }}/service-agreement-{{ partyA.name | slug }}-{{ partyB.name | slug }}.docx
+inject: false
+skipIf: false
+variables:
+  - partyA: object
+  - partyB: object
+  - serviceDescription: string
+  - startDate: string
+  - endDate: string
+  - paymentTerms: string
+  - deliverables: array
+  - terminationClause: string
+  - governingLaw: string
+filters:
+  - date
+  - slug
+  - upper
+---
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">
+  <w:body>
+    <!-- Title -->
+    <w:p>
+      <w:pPr>
+        <w:jc w:val="center"/>
+        <w:rPr>
+          <w:b/>
+          <w:sz w:val="28"/>
+        </w:rPr>
+      </w:pPr>
+      <w:r>
+        <w:t>SERVICE AGREEMENT</w:t>
+      </w:r>
+    </w:p>
+    
+    <!-- Introduction -->
+    <w:p>
+      <w:pPr>
+        <w:spacing w:before="240"/>
+      </w:pPr>
+      <w:r>
+        <w:t>This Service Agreement ("Agreement") is entered into on {{ startDate | date }} between:</w:t>
+      </w:r>
+    </w:p>
+    
+    <!-- Party A -->
+    <w:p>
+      <w:pPr>
+        <w:spacing w:before="120"/>
+      </w:pPr>
+      <w:r>
+        <w:rPr><w:b/></w:rPr>
+        <w:t>Party A (Service Provider):</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:r>
+        <w:t>{{ partyA.name }}</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:r>
+        <w:t>{{ partyA.address }}</w:t>
+      </w:r>
+    </w:p>
+    {% if partyA.email %}
+    <w:p>
+      <w:r>
+        <w:t>Email: {{ partyA.email }}</w:t>
+      </w:r>
+    </w:p>
+    {% endif %}
+    {% if partyA.phone %}
+    <w:p>
+      <w:r>
+        <w:t>Phone: {{ partyA.phone }}</w:t>
+      </w:r>
+    </w:p>
+    {% endif %}
+    
+    <!-- Party B -->
+    <w:p>
+      <w:pPr>
+        <w:spacing w:before="120"/>
+      </w:pPr>
+      <w:r>
+        <w:rPr><w:b/></w:rPr>
+        <w:t>Party B (Client):</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:r>
+        <w:t>{{ partyB.name }}</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:r>
+        <w:t>{{ partyB.address }}</w:t>
+      </w:r>
+    </w:p>
+    {% if partyB.email %}
+    <w:p>
+      <w:r>
+        <w:t>Email: {{ partyB.email }}</w:t>
+      </w:r>
+    </w:p>
+    {% endif %}
+    {% if partyB.phone %}
+    <w:p>
+      <w:r>
+        <w:t>Phone: {{ partyB.phone }}</w:t>
+      </w:r>
+    </w:p>
+    {% endif %}
+    
+    <!-- Service Description -->
+    <w:p>
+      <w:pPr>
+        <w:spacing w:before="240"/>
+        <w:rPr><w:b/></w:rPr>
+      </w:pPr>
+      <w:r>
+        <w:t>1. SERVICE DESCRIPTION</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:r>
+        <w:t>{{ serviceDescription }}</w:t>
+      </w:r>
+    </w:p>
+    
+    <!-- Term -->
+    <w:p>
+      <w:pPr>
+        <w:spacing w:before="240"/>
+        <w:rPr><w:b/></w:rPr>
+      </w:pPr>
+      <w:r>
+        <w:t>2. TERM</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:r>
+        <w:t>This Agreement shall commence on {{ startDate | date }} and shall continue until {{ endDate | date }}, unless terminated earlier in accordance with the provisions herein.</w:t>
+      </w:r>
+    </w:p>
+    
+    <!-- Deliverables -->
+    <w:p>
+      <w:pPr>
+        <w:spacing w:before="240"/>
+        <w:rPr><w:b/></w:rPr>
+      </w:pPr>
+      <w:r>
+        <w:t>3. DELIVERABLES</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:r>
+        <w:t>The Service Provider agrees to deliver the following:</w:t>
+      </w:r>
+    </w:p>
+    {% for deliverable in deliverables %}
+    <w:p>
+      <w:pPr>
+        <w:numPr>
+          <w:ilvl w:val="0"/>
+          <w:numId w:val="1"/>
+        </w:numPr>
+      </w:pPr>
+      <w:r>
+        <w:t>{{ deliverable.description }}</w:t>
+      </w:r>
+      {% if deliverable.dueDate %}
+      <w:r>
+        <w:t> (Due: {{ deliverable.dueDate | date }})</w:t>
+      </w:r>
+      {% endif %}
+    </w:p>
+    {% endfor %}
+    
+    <!-- Payment Terms -->
+    <w:p>
+      <w:pPr>
+        <w:spacing w:before="240"/>
+        <w:rPr><w:b/></w:rPr>
+      </w:pPr>
+      <w:r>
+        <w:t>4. PAYMENT TERMS</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:r>
+        <w:t>{{ paymentTerms }}</w:t>
+      </w:r>
+    </w:p>
+    
+    <!-- Termination -->
+    <w:p>
+      <w:pPr>
+        <w:spacing w:before="240"/>
+        <w:rPr><w:b/></w:rPr>
+      </w:pPr>
+      <w:r>
+        <w:t>5. TERMINATION</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:r>
+        <w:t>{{ terminationClause }}</w:t>
+      </w:r>
+    </w:p>
+    
+    <!-- Governing Law -->
+    <w:p>
+      <w:pPr>
+        <w:spacing w:before="240"/>
+        <w:rPr><w:b/></w:rPr>
+      </w:pPr>
+      <w:r>
+        <w:t>6. GOVERNING LAW</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:r>
+        <w:t>This Agreement shall be governed by and construed in accordance with the laws of {{ governingLaw }}.</w:t>
+      </w:r>
+    </w:p>
+    
+    <!-- Signatures -->
+    <w:p>
+      <w:pPr>
+        <w:spacing w:before="480"/>
+      </w:pPr>
+      <w:r>
+        <w:rPr><w:b/></w:rPr>
+        <w:t>SIGNATURES</w:t>
+      </w:r>
+    </w:p>
+    
+    <w:tbl>
+      <w:tblPr>
+        <w:tblW w:w="5000" w:type="pct"/>
+      </w:tblPr>
+      <w:tr>
+        <w:tc>
+          <w:p>
+            <w:r>
+              <w:t>Service Provider:</w:t>
+            </w:r>
+          </w:p>
+          <w:p>
+            <w:pPr>
+              <w:spacing w:before="240"/>
+            </w:pPr>
+            <w:r>
+              <w:t>_________________________</w:t>
+            </w:r>
+          </w:p>
+          <w:p>
+            <w:r>
+              <w:t>{{ partyA.name }}</w:t>
+            </w:r>
+          </w:p>
+          <w:p>
+            <w:r>
+              <w:t>Date: _______________</w:t>
+            </w:r>
+          </w:p>
+        </w:tc>
+        <w:tc>
+          <w:p>
+            <w:r>
+              <w:t>Client:</w:t>
+            </w:r>
+          </w:p>
+          <w:p>
+            <w:pPr>
+              <w:spacing w:before="240"/>
+            </w:pPr>
+            <w:r>
+              <w:t>_________________________</w:t>
+            </w:r>
+          </w:p>
+          <w:p>
+            <w:r>
+              <w:t>{{ partyB.name }}</w:t>
+            </w:r>
+          </w:p>
+          <w:p>
+            <w:r>
+              <w:t>Date: _______________</w:t>
+            </w:r>
+          </w:p>
+        </w:tc>
+      </w:tr>
+    </w:tbl>
+    
+  </w:body>
+</w:document>

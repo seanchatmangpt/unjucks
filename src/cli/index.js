@@ -22,7 +22,8 @@ const lazyCommands = {
   export: () => import('../commands/export.js').then(m => m.exportCommand),
   pdf: () => import('../commands/pdf.js').then(m => m.default),
   'export-docx': () => import('./commands/export-docx.js').then(m => m.default),
-  ontology: () => import('./commands/ontology.js').then(m => m.ontologyCommand)
+  ontology: () => import('./commands/ontology.js').then(m => m.ontologyCommand),
+  office: () => import('./commands/office.js').then(m => m.officeCommand)
 };
 
 // Cache for loaded commands
@@ -100,7 +101,7 @@ const preprocessArgs = () => {
   }
   
   // Don't transform if already using explicit commands (optimized lookup)
-  const explicitCommands = new Set(['generate', 'new', 'preview', 'help', 'list', 'init', 'inject', 'version', 'semantic', 'swarm', 'workflow', 'perf', 'github', 'knowledge', 'neural', 'migrate', 'latex', 'specify', 'export', 'export-docx', 'pdf']);
+  const explicitCommands = new Set(['generate', 'new', 'preview', 'help', 'list', 'init', 'inject', 'version', 'semantic', 'swarm', 'workflow', 'perf', 'github', 'knowledge', 'neural', 'migrate', 'latex', 'specify', 'export', 'export-docx', 'pdf', 'office', 'ontology']);
   if (explicitCommands.has(firstArg)) {
     return rawArgs;
   }
@@ -171,6 +172,8 @@ const main = defineCommand({
     export: createLazyCommand('export'),
     'export-docx': createLazyCommand('export-docx'),
     pdf: createLazyCommand('pdf'),
+    office: createLazyCommand('office'),
+    ontology: createLazyCommand('ontology'),
   },
   /**
    * @param {{ args: any }} params - Command parameters
@@ -180,7 +183,7 @@ const main = defineCommand({
     // don't show the main help to avoid confusion
     const originalArgs = process.argv.slice(2);
     const hasSubcommand = originalArgs.length > 0 && 
-      ['new', 'preview', 'help', 'list', 'init', 'inject', 'version', 'generate', 'semantic', 'github', 'neural', 'workflow', 'perf', 'knowledge', 'migrate', 'swarm', 'specify', 'latex', 'export', 'export-docx', 'pdf'].includes(originalArgs[0]) &&
+      ['new', 'preview', 'help', 'list', 'init', 'inject', 'version', 'generate', 'semantic', 'github', 'neural', 'workflow', 'perf', 'knowledge', 'migrate', 'swarm', 'specify', 'latex', 'export', 'export-docx', 'pdf', 'office', 'ontology'].includes(originalArgs[0]) &&
       !originalArgs.includes('--help') && !originalArgs.includes('-h');
     
     if (hasSubcommand) {
@@ -225,6 +228,8 @@ const main = defineCommand({
       console.log(chalk.gray("  migrate   Database and project migration utilities"));
       console.log(chalk.gray("  latex     LaTeX document generation, compilation, and management"));
       console.log(chalk.gray("  specify   Specification-driven development tools and workflows"));
+      console.log(chalk.gray("  office    Office document processing and template management"));
+      console.log(chalk.gray("  ontology  RDF/OWL ontology and semantic knowledge management"));
       console.log(chalk.gray("  version   Show version information"));
       console.log();
       console.log(chalk.yellow("OPTIONS:"));
@@ -276,6 +281,8 @@ const main = defineCommand({
     console.log(chalk.gray("  migrate   Database and project migration utilities"));
     console.log(chalk.gray("  latex     LaTeX document generation, compilation, and management"));
     console.log(chalk.gray("  specify   Specification-driven development tools and workflows"));
+    console.log(chalk.gray("  office    Office document processing and template management"));
+    console.log(chalk.gray("  ontology  RDF/OWL ontology and semantic knowledge management"));
     console.log(chalk.gray("  version   Show version information"));
     console.log();
     console.log(chalk.yellow("Examples:"));
@@ -306,7 +313,7 @@ export const runMain = () => {
     const originalArgs = process.argv.slice(2);
     if (originalArgs.length > 0) {
       const firstArg = originalArgs[0];
-      const knownCommands = ['new', 'preview', 'help', 'list', 'init', 'inject', 'version', 'generate', 'semantic', 'github', 'migrate', 'latex', 'perf', 'specify', 'export', 'export-docx', 'pdf'];
+      const knownCommands = ['new', 'preview', 'help', 'list', 'init', 'inject', 'version', 'generate', 'semantic', 'github', 'migrate', 'latex', 'perf', 'specify', 'export', 'export-docx', 'pdf', 'office', 'ontology'];
       
       if (!knownCommands.includes(firstArg) && !firstArg.startsWith('-')) {
         console.error(chalk.red(`Unknown command: ${firstArg}`));
@@ -332,7 +339,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
     const originalArgs = process.argv.slice(2);
     if (originalArgs.length > 0) {
       const firstArg = originalArgs[0];
-      const knownCommands = ['new', 'preview', 'help', 'list', 'init', 'inject', 'version', 'generate', 'semantic', 'github', 'migrate', 'latex', 'perf', 'specify', 'export', 'export-docx', 'pdf'];
+      const knownCommands = ['new', 'preview', 'help', 'list', 'init', 'inject', 'version', 'generate', 'semantic', 'github', 'migrate', 'latex', 'perf', 'specify', 'export', 'export-docx', 'pdf', 'office', 'ontology'];
       
       if (!knownCommands.includes(firstArg) && !firstArg.startsWith('-')) {
         console.error(chalk.red(`Unknown command: ${firstArg}`));

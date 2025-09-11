@@ -1,0 +1,66 @@
+{
+  "year": 2024,
+  "quarter": 1,
+  "companyName": "SalesForce Pro",
+  "targets": {
+    "revenue": 2500000,
+    "units": 1250
+  },
+  "salesReps": [
+    {
+      "name": "John Smith",
+      "target": 400000
+    },
+    {
+      "name": "Maria Garcia",
+      "target": 450000
+    },
+    {
+      "name": "David Chen",
+      "target": 380000
+    },
+    {
+      "name": "Emily Johnson",
+      "target": 420000
+    },
+    {
+      "name": "Robert Wilson",
+      "target": 350000
+    }
+  ],
+  "products": [
+    {
+      "name": "Enterprise Suite",
+      "growthRate": 15.2
+    },
+    {
+      "name": "Professional Edition",
+      "growthRate": 8.7
+    },
+    {
+      "name": "Starter Package",
+      "growthRate": 22.1
+    },
+    {
+      "name": "Custom Solutions",
+      "growthRate": 5.3
+    }
+  ],
+  "regions": [
+    {
+      "name": "North America",
+      "target": 1200000,
+      "yoyGrowth": 12.5
+    },
+    {
+      "name": "Europe",
+      "target": 800000,
+      "yoyGrowth": 18.3
+    },
+    {
+      "name": "Asia Pacific",
+      "target": 500000,
+      "yoyGrowth": 25.7
+    }
+  ]
+}

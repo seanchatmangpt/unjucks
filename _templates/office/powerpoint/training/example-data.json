@@ -1,0 +1,144 @@
+{
+  "companyName": "InnovaTech Solutions",
+  "employeeName": "Jessica Martinez",
+  "employeeTitle": "Senior Software Developer",
+  "startDate": "2024-02-01",
+  "manager": "Tom Wilson",
+  "department": "Engineering",
+  "companyValues": [
+    {
+      "title": "Innovation",
+      "description": "We constantly seek new ways to solve problems and improve our solutions"
+    },
+    {
+      "title": "Collaboration",
+      "description": "We work together as one team to achieve extraordinary results"
+    },
+    {
+      "title": "Excellence",
+      "description": "We deliver high-quality work and strive for continuous improvement"
+    },
+    {
+      "title": "Integrity",
+      "description": "We act with honesty and transparency in all our interactions"
+    },
+    {
+      "title": "Customer Focus",
+      "description": "We put our customers at the center of everything we do"
+    }
+  ],
+  "firstWeekSchedule": [
+    {
+      "day": "Monday",
+      "activities": "Welcome meeting with HR, office tour, IT setup, meet your team"
+    },
+    {
+      "day": "Tuesday",
+      "activities": "Department overview, project briefings, development environment setup"
+    },
+    {
+      "day": "Wednesday",
+      "activities": "Code review process training, security protocols, pair programming session"
+    },
+    {
+      "day": "Thursday",
+      "activities": "Customer meeting observation, product demo, stakeholder introductions"
+    },
+    {
+      "day": "Friday",
+      "activities": "First sprint planning, goal setting with manager, team lunch"
+    }
+  ],
+  "policies": [
+    {
+      "title": "Work Hours",
+      "description": "Core hours 10 AM - 3 PM, flexible schedule around core hours"
+    },
+    {
+      "title": "Remote Work",
+      "description": "Hybrid model: 3 days in office, 2 days remote per week"
+    },
+    {
+      "title": "Code Review",
+      "description": "All code must be reviewed by at least one peer before merging"
+    },
+    {
+      "title": "Time Off",
+      "description": "Unlimited PTO policy with manager approval and 2-week advance notice"
+    },
+    {
+      "title": "Professional Development",
+      "description": "$2,000 annual budget for conferences, courses, and certifications"
+    }
+  ],
+  "benefits": [
+    {
+      "category": "Health Insurance",
+      "description": "100% premium coverage for employee, 80% for family"
+    },
+    {
+      "category": "Retirement",
+      "description": "401(k) with 6% company match, immediate vesting"
+    },
+    {
+      "category": "Stock Options",
+      "description": "Equity participation program for all employees"
+    },
+    {
+      "category": "Wellness",
+      "description": "Gym membership reimbursement, mental health support"
+    },
+    {
+      "category": "Flexible Spending",
+      "description": "FSA and HSA options available"
+    }
+  ],
+  "tools": [
+    {
+      "name": "Slack",
+      "purpose": "Team communication and collaboration"
+    },
+    {
+      "name": "Jira",
+      "purpose": "Project management and issue tracking"
+    },
+    {
+      "name": "GitLab",
+      "purpose": "Code repository and CI/CD pipelines"
+    },
+    {
+      "name": "Figma",
+      "purpose": "Design collaboration and prototyping"
+    },
+    {
+      "name": "Notion",
+      "purpose": "Documentation and knowledge management"
+    }
+  ],
+  "contacts": [
+    {
+      "name": "Tom Wilson",
+      "title": "Engineering Manager",
+      "email": "tom.wilson@innovatech.com",
+      "extension": "x2156"
+    },
+    {
+      "name": "Sarah Chen",
+      "title": "HR Business Partner",
+      "email": "sarah.chen@innovatech.com",
+      "extension": "x2201"
+    },
+    {
+      "name": "Mike Rodriguez",
+      "title": "IT Support Lead",
+      "email": "mike.rodriguez@innovatech.com",
+      "extension": "x2301"
+    },
+    {
+      "name": "Lisa Park",
+      "title": "Senior Developer (Buddy)",
+      "email": "lisa.park@innovatech.com",
+      "extension": "x2167"
+    }
+  ]
+}

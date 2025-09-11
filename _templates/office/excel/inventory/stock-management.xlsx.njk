@@ -1,0 +1,383 @@
+---
+to: {{ dest || 'inventory' }}/stock-management-{{ location | slug }}.xlsx
+inject: false
+skipIf: false
+variables:
+  - companyName: string
+  - location: string
+  - warehouseManager: string
+  - inventoryItems: array
+  - suppliers: array
+  - reorderLevels: object
+  - lastUpdated: string
+filters:
+  - currency
+  - number
+  - date
+  - slug
+---
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">
+  
+  <sheetData>
+    <!-- Header Information -->
+    <row r="1">
+      <c r="A1" t="inlineStr" s="1">
+        <is><t>{{ companyName }} - Stock Management System</t></is>
+      </c>
+    </row>
+    
+    <row r="2">
+      <c r="A2" t="inlineStr">
+        <is><t>Location: {{ location }}</t></is>
+      </c>
+      <c r="F2" t="inlineStr">
+        <is><t>Manager: {{ warehouseManager }}</t></is>
+      </c>
+    </row>
+    
+    <row r="3">
+      <c r="A3" t="inlineStr">
+        <is><t>Last Updated: {{ lastUpdated | date }}</t></is>
+      </c>
+    </row>
+    
+    <row r="4"/>
+    
+    <!-- Current Stock Overview -->
+    <row r="5">
+      <c r="A5" t="inlineStr" s="2">
+        <is><t>STOCK OVERVIEW</t></is>
+      </c>
+    </row>
+    
+    <row r="6">
+      <c r="A6" t="inlineStr">
+        <is><t>Total Items:</t></is>
+      </c>
+      <c r="B6" s="5">
+        <f>COUNTA(A10:A1000)-1</f>
+      </c>
+      <c r="D6" t="inlineStr">
+        <is><t>Total Value:</t></is>
+      </c>
+      <c r="E6" s="3">
+        <f>SUM(H10:H1000)</f>
+      </c>
+    </row>
+    
+    <row r="7">
+      <c r="A7" t="inlineStr">
+        <is><t>Low Stock Items:</t></is>
+      </c>
+      <c r="B7" s="5">
+        <f>SUMPRODUCT((C10:C1000&lt;=D10:D1000)*(C10:C1000&gt;0))</f>
+      </c>
+      <c r="D7" t="inlineStr">
+        <is><t>Out of Stock:</t></is>
+      </c>
+      <c r="E7" s="5">
+        <f>COUNTIF(C10:C1000,0)</f>
+      </c>
+    </row>
+    
+    <row r="8"/>
+    
+    <!-- Stock Table Headers -->
+    <row r="9">
+      <c r="A9" t="inlineStr" s="6">
+        <is><t>SKU</t></is>
+      </c>
+      <c r="B9" t="inlineStr" s="6">
+        <is><t>Product Name</t></is>
+      </c>
+      <c r="C9" t="inlineStr" s="6">
+        <is><t>Current Stock</t></is>
+      </c>
+      <c r="D9" t="inlineStr" s="6">
+        <is><t>Reorder Level</t></is>
+      </c>
+      <c r="E9" t="inlineStr" s="6">
+        <is><t>Max Stock</t></is>
+      </c>
+      <c r="F9" t="inlineStr" s="6">
+        <is><t>Unit Cost</t></is>
+      </c>
+      <c r="G9" t="inlineStr" s="6">
+        <is><t>Unit Price</t></is>
+      </c>
+      <c r="H9" t="inlineStr" s="6">
+        <is><t>Total Value</t></is>
+      </c>
+      <c r="I9" t="inlineStr" s="6">
+        <is><t>Supplier</t></is>
+      </c>
+      <c r="J9" t="inlineStr" s="6">
+        <is><t>Category</t></is>
+      </c>
+      <c r="K9" t="inlineStr" s="6">
+        <is><t>Status</t></is>
+      </c>
+      <c r="L9" t="inlineStr" s="6">
+        <is><t>Last Restocked</t></is>
+      </c>
+    </row>
+    
+    <!-- Stock Data Rows -->
+    {% set dataRow = 10 %}
+    {% for item in inventoryItems %}
+    <row r="{{ dataRow }}">
+      <c r="A{{ dataRow }}" t="inlineStr">
+        <is><t>{{ item.sku }}</t></is>
+      </c>
+      <c r="B{{ dataRow }}" t="inlineStr">
+        <is><t>{{ item.productName }}</t></is>
+      </c>
+      <c r="C{{ dataRow }}" s="5">
+        <v>{{ item.currentStock }}</v>
+      </c>
+      <c r="D{{ dataRow }}" s="5">
+        <v>{{ item.reorderLevel }}</v>
+      </c>
+      <c r="E{{ dataRow }}" s="5">
+        <v>{{ item.maxStock }}</v>
+      </c>
+      <c r="F{{ dataRow }}" s="3">
+        <v>{{ item.unitCost }}</v>
+      </c>
+      <c r="G{{ dataRow }}" s="3">
+        <v>{{ item.unitPrice }}</v>
+      </c>
+      <!-- Total Value Formula -->
+      <c r="H{{ dataRow }}" s="3">
+        <f>C{{ dataRow }}*F{{ dataRow }}</f>
+      </c>
+      <c r="I{{ dataRow }}" t="inlineStr">
+        <is><t>{{ item.supplier }}</t></is>
+      </c>
+      <c r="J{{ dataRow }}" t="inlineStr">
+        <is><t>{{ item.category }}</t></is>
+      </c>
+      <!-- Status Formula -->
+      <c r="K{{ dataRow }}" t="inlineStr">
+        <f>IF(C{{ dataRow }}=0,"Out of Stock",IF(C{{ dataRow }}<=D{{ dataRow }},"Low Stock","In Stock"))</f>
+      </c>
+      <c r="L{{ dataRow }}" t="inlineStr">
+        <is><t>{{ item.lastRestocked | date }}</t></is>
+      </c>
+    </row>
+    {% set dataRow = dataRow + 1 %}
+    {% endfor %}
+    
+    <row r="{{ dataRow }}"/>
+    
+    <!-- Reorder Analysis -->
+    {% set reorderStartRow = dataRow + 2 %}
+    <row r="{{ reorderStartRow }}">
+      <c r="A{{ reorderStartRow }}" t="inlineStr" s="2">
+        <is><t>REORDER ANALYSIS</t></is>
+      </c>
+    </row>
+    
+    {% set reorderHeaderRow = reorderStartRow + 1 %}
+    <row r="{{ reorderHeaderRow }}">
+      <c r="A{{ reorderHeaderRow }}" t="inlineStr" s="6">
+        <is><t>Product</t></is>
+      </c>
+      <c r="B{{ reorderHeaderRow }}" t="inlineStr" s="6">
+        <is><t>Current Stock</t></is>
+      </c>
+      <c r="C{{ reorderHeaderRow }}" t="inlineStr" s="6">
+        <is><t>Reorder Level</t></is>
+      </c>
+      <c r="D{{ reorderHeaderRow }}" t="inlineStr" s="6">
+        <is><t>Suggested Order</t></is>
+      </c>
+      <c r="E{{ reorderHeaderRow }}" t="inlineStr" s="6">
+        <is><t>Order Cost</t></is>
+      </c>
+      <c r="F{{ reorderHeaderRow }}" t="inlineStr" s="6">
+        <is><t>Supplier</t></is>
+      </c>
+      <c r="G{{ reorderHeaderRow }}" t="inlineStr" s="6">
+        <is><t>Lead Time</t></is>
+      </c>
+    </row>
+    
+    <!-- Reorder Items (Items below reorder level) -->
+    {% set reorderRow = reorderHeaderRow + 1 %}
+    {% for item in inventoryItems %}
+      {% if item.currentStock <= item.reorderLevel %}
+      <row r="{{ reorderRow }}">
+        <c r="A{{ reorderRow }}" t="inlineStr">
+          <is><t>{{ item.productName }}</t></is>
+        </c>
+        <c r="B{{ reorderRow }}" s="5">
+          <v>{{ item.currentStock }}</v>
+        </c>
+        <c r="C{{ reorderRow }}" s="5">
+          <v>{{ item.reorderLevel }}</v>
+        </c>
+        <!-- Suggested Order = Max Stock - Current Stock -->
+        <c r="D{{ reorderRow }}" s="5">
+          <v>{{ item.maxStock - item.currentStock }}</v>
+        </c>
+        <!-- Order Cost = Suggested Order * Unit Cost -->
+        <c r="E{{ reorderRow }}" s="3">
+          <v>{{ (item.maxStock - item.currentStock) * item.unitCost }}</v>
+        </c>
+        <c r="F{{ reorderRow }}" t="inlineStr">
+          <is><t>{{ item.supplier }}</t></is>
+        </c>
+        <c r="G{{ reorderRow }}" t="inlineStr">
+          <is><t>{{ item.leadTime || "5 days" }}</t></is>
+        </c>
+      </row>
+      {% set reorderRow = reorderRow + 1 %}
+      {% endif %}
+    {% endfor %}
+    
+    <!-- Category Analysis -->
+    {% set categoryStartRow = reorderRow + 3 %}
+    <row r="{{ categoryStartRow }}">
+      <c r="A{{ categoryStartRow }}" t="inlineStr" s="2">
+        <is><t>CATEGORY ANALYSIS</t></is>
+      </c>
+    </row>
+    
+    {% set categoryHeaderRow = categoryStartRow + 1 %}
+    <row r="{{ categoryHeaderRow }}">
+      <c r="A{{ categoryHeaderRow }}" t="inlineStr" s="6">
+        <is><t>Category</t></is>
+      </c>
+      <c r="B{{ categoryHeaderRow }}" t="inlineStr" s="6">
+        <is><t>Total Items</t></is>
+      </c>
+      <c r="C{{ categoryHeaderRow }}" t="inlineStr" s="6">
+        <is><t>Total Value</t></is>
+      </c>
+      <c r="D{{ categoryHeaderRow }}" t="inlineStr" s="6">
+        <is><t>Avg Unit Cost</t></is>
+      </c>
+      <c r="E{{ categoryHeaderRow }}" t="inlineStr" s="6">
+        <is><t>Low Stock Items</t></is>
+      </c>
+      <c r="F{{ categoryHeaderRow }}" t="inlineStr" s="6">
+        <is><t>Out of Stock</t></is>
+      </c>
+    </row>
+    
+    <!-- Get unique categories -->
+    {% set categories = inventoryItems | groupby('category') %}
+    {% set catRow = categoryHeaderRow + 1 %}
+    {% for category, items in categories %}
+    <row r="{{ catRow }}">
+      <c r="A{{ catRow }}" t="inlineStr">
+        <is><t>{{ category }}</t></is>
+      </c>
+      <c r="B{{ catRow }}" s="5">
+        <f>COUNTIF(J10:J{{ dataRow - 1 }},"{{ category }}")</f>
+      </c>
+      <c r="C{{ catRow }}" s="3">
+        <f>SUMIF(J10:J{{ dataRow - 1 }},"{{ category }}",H10:H{{ dataRow - 1 }})</f>
+      </c>
+      <c r="D{{ catRow }}" s="3">
+        <f>AVERAGEIF(J10:J{{ dataRow - 1 }},"{{ category }}",F10:F{{ dataRow - 1 }})</f>
+      </c>
+      <c r="E{{ catRow }}" s="5">
+        <f>SUMPRODUCT((J10:J{{ dataRow - 1 }}="{{ category }}")*(C10:C{{ dataRow - 1 }}<=D10:D{{ dataRow - 1 }})*(C10:C{{ dataRow - 1 }}>0))</f>
+      </c>
+      <c r="F{{ catRow }}" s="5">
+        <f>SUMPRODUCT((J10:J{{ dataRow - 1 }}="{{ category }}")*(C10:C{{ dataRow - 1 }}=0))</f>
+      </c>
+    </row>
+    {% set catRow = catRow + 1 %}
+    {% endfor %}
+    
+    <!-- Supplier Performance -->
+    {% set supplierStartRow = catRow + 3 %}
+    <row r="{{ supplierStartRow }}">
+      <c r="A{{ supplierStartRow }}" t="inlineStr" s="2">
+        <is><t>SUPPLIER PERFORMANCE</t></is>
+      </c>
+    </row>
+    
+    {% set supplierHeaderRow = supplierStartRow + 1 %}
+    <row r="{{ supplierHeaderRow }}">
+      <c r="A{{ supplierHeaderRow }}" t="inlineStr" s="6">
+        <is><t>Supplier</t></is>
+      </c>
+      <c r="B{{ supplierHeaderRow }}" t="inlineStr" s="6">
+        <is><t>Products</t></is>
+      </c>
+      <c r="C{{ supplierHeaderRow }}" t="inlineStr" s="6">
+        <is><t>Total Value</t></is>
+      </c>
+      <c r="D{{ supplierHeaderRow }}" t="inlineStr" s="6">
+        <is><t>Avg Lead Time</t></is>
+      </c>
+      <c r="E{{ supplierHeaderRow }}" t="inlineStr" s="6">
+        <is><t>Performance Score</t></is>
+      </c>
+    </row>
+    
+    {% set suppRow = supplierHeaderRow + 1 %}
+    {% for supplier in suppliers %}
+    <row r="{{ suppRow }}">
+      <c r="A{{ suppRow }}" t="inlineStr">
+        <is><t>{{ supplier.name }}</t></is>
+      </c>
+      <c r="B{{ suppRow }}" s="5">
+        <f>COUNTIF(I10:I{{ dataRow - 1 }},"{{ supplier.name }}")</f>
+      </c>
+      <c r="C{{ suppRow }}" s="3">
+        <f>SUMIF(I10:I{{ dataRow - 1 }},"{{ supplier.name }}",H10:H{{ dataRow - 1 }})</f>
+      </c>
+      <c r="D{{ suppRow }}" t="inlineStr">
+        <is><t>{{ supplier.avgLeadTime || "5 days" }}</t></is>
+      </c>
+      <c r="E{{ suppRow }}" s="4">
+        <v>{{ supplier.performanceScore || 0.85 }}</v>
+      </c>
+    </row>
+    {% set suppRow = suppRow + 1 %}
+    {% endfor %}
+    
+  </sheetData>
+  
+  <!-- Conditional Formatting -->
+  <!-- Red for out of stock -->
+  <conditionalFormatting sqref="C10:C{{ dataRow - 1 }}">
+    <cfRule type="cellIs" dxfId="0" priority="1" operator="equal">
+      <formula>0</formula>
+    </cfRule>
+  </conditionalFormatting>
+  
+  <!-- Orange for low stock -->
+  <conditionalFormatting sqref="C10:C{{ dataRow - 1 }}">
+    <cfRule type="expression" dxfId="1" priority="2">
+      <formula>AND(C10&gt;0,C10&lt;=D10)</formula>
+    </cfRule>
+  </conditionalFormatting>
+  
+  <!-- Green for adequate stock -->
+  <conditionalFormatting sqref="C10:C{{ dataRow - 1 }}">
+    <cfRule type="expression" dxfId="2" priority="3">
+      <formula>C10&gt;D10</formula>
+    </cfRule>
+  </conditionalFormatting>
+  
+  <!-- Status column conditional formatting -->
+  <conditionalFormatting sqref="K10:K{{ dataRow - 1 }}">
+    <cfRule type="containsText" dxfId="0" priority="1" operator="containsText" text="Out of Stock">
+      <formula>NOT(ISERROR(SEARCH("Out of Stock",K10)))</formula>
+    </cfRule>
+    <cfRule type="containsText" dxfId="1" priority="2" operator="containsText" text="Low Stock">
+      <formula>NOT(ISERROR(SEARCH("Low Stock",K10)))</formula>
+    </cfRule>
+    <cfRule type="containsText" dxfId="2" priority="3" operator="containsText" text="In Stock">
+      <formula>NOT(ISERROR(SEARCH("In Stock",K10)))</formula>
+    </cfRule>
+  </conditionalFormatting>
+  
+</worksheet>

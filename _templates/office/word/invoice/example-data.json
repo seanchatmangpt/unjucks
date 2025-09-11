@@ -1,0 +1,28 @@
+{
+  "companyName": "Acme Consulting Services",
+  "companyAddress": "123 Business Ave\nSuite 456\nNew York, NY 10001\nPhone: (555) 123-4567",
+  "clientName": "TechCorp Industries",
+  "clientAddress": "789 Tech Boulevard\nSilicon Valley, CA 94000",
+  "invoiceNumber": "INV-2024-001",
+  "invoiceDate": "2024-01-15",
+  "dueDate": "2024-02-14",
+  "taxRate": 8.5,
+  "notes": "Payment terms: Net 30 days. Late payments subject to 1.5% monthly fee.",
+  "items": [
+    {
+      "description": "Strategic Consulting - Q1 Planning",
+      "quantity": 40,
+      "rate": 150.00
+    },
+    {
+      "description": "Market Research Analysis",
+      "quantity": 20,
+      "rate": 125.00
+    },
+    {
+      "description": "Implementation Support",
+      "quantity": 15,
+      "rate": 175.00
+    }
+  ]
+}
