@@ -1,0 +1,176 @@
+/**
+ * Generated API endpoint for {{entity.type}}
+ * Auto-generated from RDF data on {{timestamp}}
+ */
+
+import express from 'express';
+import { body, param, validationResult } from 'express-validator';
+
+const router = express.Router();
+
+// Validation middleware
+const validate{{entity.type | capitalize}} = [
+  body('name').isString().notEmpty(),
+  {% if entity.type === 'Person' %}
+  body('email').isEmail(),
+  body('age').optional().isInt({ min: 0, max: 150 }),
+  {% endif %}
+  {% if entity.type === 'Project' %}
+  body('budget').optional().isDecimal(),
+  body('deadline').optional().isISO8601(),
+  {% endif %}
+  (req, res, next) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+    next();
+  }
+];
+
+/**
+ * @route GET /{{entity.type | lower}}
+ * @description Get all {{entity.type | lower}} entities
+ */
+router.get('/', async (req, res) => {
+  try {
+    const { page = 1, limit = 10, filter } = req.query;
+    
+    // Mock data retrieval - replace with actual database calls
+    const entities = await {{entity.type}}.find(filter)
+      .skip((page - 1) * limit)
+      .limit(parseInt(limit));
+    
+    const total = await {{entity.type}}.countDocuments(filter || {});
+    
+    res.json({
+      data: entities,
+      pagination: {
+        page: parseInt(page),
+        limit: parseInt(limit),
+        total,
+        pages: Math.ceil(total / limit)
+      }
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+/**
+ * @route GET /{{entity.type | lower}}/:id
+ * @description Get a specific {{entity.type | lower}} by ID
+ */
+router.get('/:id', [param('id').isString()], async (req, res) => {
+  try {
+    const entity = await {{entity.type}}.findById(req.params.id);
+    
+    if (!entity) {
+      return res.status(404).json({ error: '{{entity.type}} not found' });
+    }
+    
+    res.json(entity);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+/**
+ * @route POST /{{entity.type | lower}}
+ * @description Create a new {{entity.type | lower}}
+ */
+router.post('/', validate{{entity.type | capitalize}}, async (req, res) => {
+  try {
+    const entity = new {{entity.type}}(req.body);
+    const savedEntity = await entity.save();
+    
+    res.status(201).json(savedEntity);
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+});
+
+/**
+ * @route PUT /{{entity.type | lower}}/:id
+ * @description Update a {{entity.type | lower}} by ID
+ */
+router.put('/:id', [
+  param('id').isString(),
+  ...validate{{entity.type | capitalize}}
+], async (req, res) => {
+  try {
+    const entity = await {{entity.type}}.findByIdAndUpdate(
+      req.params.id,
+      req.body,
+      { new: true, runValidators: true }
+    );
+    
+    if (!entity) {
+      return res.status(404).json({ error: '{{entity.type}} not found' });
+    }
+    
+    res.json(entity);
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+});
+
+/**
+ * @route DELETE /{{entity.type | lower}}/:id
+ * @description Delete a {{entity.type | lower}} by ID
+ */
+router.delete('/:id', [param('id').isString()], async (req, res) => {
+  try {
+    const entity = await {{entity.type}}.findByIdAndDelete(req.params.id);
+    
+    if (!entity) {
+      return res.status(404).json({ error: '{{entity.type}} not found' });
+    }
+    
+    res.json({ message: '{{entity.type}} deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+{% if entity.type === 'Person' %}
+/**
+ * @route GET /{{entity.type | lower}}/:id/projects
+ * @description Get projects associated with a person
+ */
+router.get('/:id/projects', [param('id').isString()], async (req, res) => {
+  try {
+    const person = await Person.findById(req.params.id).populate('projects');
+    
+    if (!person) {
+      return res.status(404).json({ error: 'Person not found' });
+    }
+    
+    res.json(person.projects);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+{% endif %}
+
+{% if entity.type === 'Project' %}
+/**
+ * @route GET /{{entity.type | lower}}/:id/team
+ * @description Get team members for a project
+ */
+router.get('/:id/team', [param('id').isString()], async (req, res) => {
+  try {
+    const project = await Project.findById(req.params.id).populate('teamMembers');
+    
+    if (!project) {
+      return res.status(404).json({ error: 'Project not found' });
+    }
+    
+    res.json(project.teamMembers);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+{% endif %}
+
+export default router;

@@ -1,0 +1,63 @@
+/**
+ * Generated Employee class for {{person.name}}
+ * Department: {{person.department}}
+ * Role: {{person.role}}
+ */
+
+export class {{person.name | replace(' ', '') | capitalize}} {
+  constructor() {
+    this.id = "{{person.id}}";
+    this.name = "{{person.name}}";
+    this.email = "{{person.email}}";
+    this.department = "{{person.department}}";
+    this.role = "{{person.role}}";
+    {% if person.age %}
+    this.age = {{person.age}};
+    {% endif %}
+    this.createdAt = new Date("{{timestamp}}");
+  }
+
+  getProfile() {
+    return {
+      id: this.id,
+      name: this.name,
+      email: this.email,
+      department: this.department,
+      role: this.role,
+      {% if person.age %}
+      age: this.age,
+      {% endif %}
+      createdAt: this.createdAt
+    };
+  }
+
+  getContactInfo() {
+    return {
+      name: this.name,
+      email: this.email,
+      department: this.department
+    };
+  }
+
+  {% if person.manages %}
+  getProjectsManaged() {
+    return [
+      {% for project in person.manages %}
+      "{{project}}"{% if not loop.last %},{% endif %}
+      {% endfor %}
+    ];
+  }
+  {% endif %}
+
+  {% if person.worksOn %}
+  getProjectsWorkedOn() {
+    return [
+      {% for project in person.worksOn %}
+      "{{project}}"{% if not loop.last %},{% endif %}
+      {% endfor %}
+    ];
+  }
+  {% endif %}
+}
+
+export default {{person.name | replace(' ', '') | capitalize}};

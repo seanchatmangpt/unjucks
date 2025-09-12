@@ -1,15 +1,18 @@
 /**
- * Cryptographic Verification System
+ * Enhanced Cryptographic Verification System
  * 
  * Implements comprehensive cryptographic verification for KGEN artifacts
- * including hash verification, signature validation, and integrity checking.
+ * including JOSE/JWS Ed25519 verification, legacy signature validation,
+ * hash verification, and integrity checking.
  */
 
 import { createHash, createVerify, timingSafeEqual } from 'crypto';
+import { jwtVerify, importSPKI } from 'jose';
 import { promises as fs } from 'fs';
 import path from 'path';
 import consola from 'consola';
 import { v4 as uuidv4 } from 'uuid';
+import JOSESigningManager from './signing.js';
 
 export class CryptographicVerifier {
   constructor(config = {}) {
@@ -18,8 +21,9 @@ export class CryptographicVerifier {
       hashAlgorithms: ['sha256', 'sha512', 'sha3-256'],
       primaryHash: 'sha256',
       
-      // Signature algorithms
-      signatureAlgorithms: ['RSA-SHA256', 'RSA-SHA512', 'ECDSA'],
+      // Signature algorithms (including JOSE)
+      signatureAlgorithms: ['RSA-SHA256', 'RSA-SHA512', 'ECDSA', 'EdDSA'],
+      supportJOSE: true,
       
       // Verification settings
       enableTimingAttackProtection: true,
@@ -28,8 +32,13 @@ export class CryptographicVerifier {
       
       // File paths
       publicKeyPath: process.env.KGEN_PUBLIC_KEY_PATH || './keys/public.pem',
+      ed25519PublicKeyPath: process.env.KGEN_ED25519_PUBLIC_KEY_PATH || './keys/ed25519-public.key',
       trustStorePath: process.env.KGEN_TRUST_STORE || './keys/truststore.json',
       integrityDbPath: process.env.KGEN_INTEGRITY_DB || './verification/integrity.db.json',
+      
+      // JOSE settings
+      joseIssuer: 'kgen-attestation-system',
+      joseAudience: 'kgen-verification',
       
       // Performance
       batchSize: 100,
@@ -43,6 +52,9 @@ export class CryptographicVerifier {
     this.verificationCache = new Map();
     this.integrityDatabase = new Map();
     this.trustStore = new Map();
+    
+    // JOSE manager for Ed25519 verification
+    this.joseManager = null;
     
     this.metrics = {
       verificationsPerformed: 0,
@@ -66,7 +78,22 @@ export class CryptographicVerifier {
       // Load integrity database
       await this.loadIntegrityDatabase();
       
-      this.logger.success('Cryptographic verifier initialized');
+      // Initialize JOSE manager if Ed25519 keys exist
+      if (this.config.supportJOSE) {
+        try {
+          this.joseManager = new JOSESigningManager({
+            publicKeyPath: this.config.ed25519PublicKeyPath,
+            issuer: this.config.joseIssuer,
+            audience: this.config.joseAudience
+          });
+          await this.joseManager.initialize();
+          this.logger.debug('JOSE Ed25519 verification enabled');
+        } catch (error) {
+          this.logger.warn('JOSE Ed25519 verification not available:', error.message);
+        }
+      }
+      
+      this.logger.success('Enhanced cryptographic verifier initialized');
     } catch (error) {
       this.logger.error('Failed to initialize verifier:', error);
       throw error;
@@ -244,7 +271,7 @@ export class CryptographicVerifier {
   }
 
   /**
-   * Verify digital signature
+   * Verify digital signature (supports JOSE and legacy formats)
    * @param {Object} attestation - Attestation with signature
    * @param {Object} result - Result object to update
    * @returns {Promise<void>}
@@ -255,11 +282,97 @@ export class CryptographicVerifier {
     try {
       const signature = attestation.signature;
       
-      if (!signature || !signature.signature) {
+      if (!signature) {
         result.warnings.push('No signature found in attestation');
         return;
       }
       
+      // Check for JOSE/JWT format first
+      if (signature.format === 'JWT' && signature.jwt) {
+        await this._verifyJOSESignature(attestation, signature, result);
+      } else if (signature.signature) {
+        // Legacy signature formats
+        await this._verifyLegacySignature(attestation, signature, result);
+      } else {
+        result.warnings.push('No recognizable signature format found');
+        return;
+      }
+      
+      result.metrics.signatureVerifyTime = this.getDeterministicTimestamp() - signatureStartTime;
+      this.metrics.signaturesVerified++;
+    } catch (error) {
+      result.errors.push(`Signature verification failed: ${error.message}`);
+      result.valid = false;
+    }
+  }
+  
+  /**
+   * Verify JOSE/JWT signature
+   * @param {Object} attestation - Attestation to verify
+   * @param {Object} signature - Signature metadata
+   * @param {Object} result - Result object to update
+   * @returns {Promise<void>}
+   */
+  async _verifyJOSESignature(attestation, signature, result) {
+    try {
+      if (!this.joseManager) {
+        result.errors.push('JOSE verification not available - Ed25519 keys not found');
+        result.valid = false;
+        return;
+      }
+      
+      // Verify the JWT
+      const verificationResult = await this.joseManager.verifyAttestation(signature.jwt);
+      
+      if (!verificationResult.valid) {
+        result.errors.push(`JOSE signature verification failed: ${verificationResult.error}`);
+        result.valid = false;
+        result.checks.signatureVerified = false;
+        return;
+      }
+      
+      // Verify the payload matches the attestation
+      const payload = verificationResult.payload;
+      if (payload.attestation) {
+        // Compare key fields to ensure integrity
+        const keyFields = ['artifact', 'generation', 'provenance'];
+        for (const field of keyFields) {
+          if (JSON.stringify(payload.attestation[field]) !== JSON.stringify(attestation[field])) {
+            result.errors.push(`Attestation ${field} mismatch between JWT payload and document`);
+            result.valid = false;
+            result.checks.signatureVerified = false;
+            return;
+          }
+        }
+      }
+      
+      result.checks.signatureVerified = true;
+      result.checks.signatureType = 'JOSE/EdDSA';
+      result.checks.signatureAlgorithm = signature.algorithm;
+      result.checks.signatureCurve = signature.curve;
+      result.checks.publicKeyHex = signature.publicKeyHex;
+      result.checks.signedAt = signature.signedAt;
+      result.checks.verifiedAt = verificationResult.verifiedAt;
+      result.checks.jwtPayload = payload;
+      
+      this.logger.debug('JOSE/EdDSA signature verified successfully');
+      
+    } catch (error) {
+      result.errors.push(`JOSE verification failed: ${error.message}`);
+      result.valid = false;
+      result.checks.signatureVerified = false;
+    }
+  }
+  
+  /**
+   * Verify legacy signature formats
+   * @param {Object} attestation - Attestation to verify
+   * @param {Object} signature - Signature metadata
+   * @param {Object} result - Result object to update
+   * @returns {Promise<void>}
+   */
+  async _verifyLegacySignature(attestation, signature, result) {
+    try {
       // Check if we have the public key
       const publicKey = await this.getPublicKey(signature.publicKeyFingerprint);
       if (!publicKey) {
@@ -279,9 +392,11 @@ export class CryptographicVerifier {
       result.checks.signatureVerified = verify.verify(publicKey, signature.signature, 'hex');
       
       if (!result.checks.signatureVerified) {
-        result.errors.push('Digital signature verification failed');
+        result.errors.push('Legacy digital signature verification failed');
         result.valid = false;
       } else {
+        result.checks.signatureType = 'Legacy';
+        result.checks.signatureAlgorithm = signature.algorithm;
         result.checks.signedBy = signature.publicKeyFingerprint;
         result.checks.signedAt = signature.signedAt;
       }
@@ -300,10 +415,8 @@ export class CryptographicVerifier {
         }
       }
       
-      result.metrics.signatureVerifyTime = this.getDeterministicTimestamp() - signatureStartTime;
-      this.metrics.signaturesVerified++;
     } catch (error) {
-      result.errors.push(`Signature verification failed: ${error.message}`);
+      result.errors.push(`Legacy signature verification failed: ${error.message}`);
       result.valid = false;
     }
   }
@@ -658,7 +771,11 @@ export class CryptographicVerifier {
       integrityDbSize: this.integrityDatabase.size,
       cacheHitRate: this.metrics.cacheHits / (this.metrics.cacheHits + this.metrics.cacheMisses),
       averageVerificationTime: this.metrics.verificationsPerformed > 0 ? 
-        this.metrics.totalVerificationTime / this.metrics.verificationsPerformed : 0
+        this.metrics.totalVerificationTime / this.metrics.verificationsPerformed : 0,
+      joseEnabled: !!this.joseManager,
+      supportedSignatureTypes: this.config.supportJOSE ? 
+        ['JOSE/EdDSA', 'Legacy/RSA', 'Legacy/ECDSA'] : 
+        ['Legacy/RSA', 'Legacy/ECDSA']
     };
   }
 

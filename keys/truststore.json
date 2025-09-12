@@ -1,0 +1,12 @@
+{
+  "40b1ba0ab9f54dda1eef4f0b8afd04e128d40b3ad192de704e9ba8dd5412d3c5": {
+    "algorithm": "EdDSA",
+    "curve": "Ed25519",
+    "publicKey": "-----BEGIN PUBLIC KEY-----\nMCowBQYDK2VwAyEAQLG6Crn1Tdoe708Liv0E4SjUCzrRkt5wTpuo3VQS08U=\n-----END PUBLIC KEY-----\n",
+    "generated": "2025-09-12T23:00:38.609Z",
+    "source": "generated",
+    "trusted": true,
+    "addedAt": "2025-09-12T23:00:38.611Z",
+    "status": "active"
+  }
+}

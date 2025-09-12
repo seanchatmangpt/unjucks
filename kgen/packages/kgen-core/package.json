@@ -1,0 +1,116 @@
+{
+  "name": "@kgen/core",
+  "version": "2.0.0",
+  "description": "Production-grade JOSE/JWS attestation system for kgen with Ed25519 and RSA support",
+  "type": "module",
+  "main": "./src/provenance/index.js",
+  "exports": {
+    ".": "./src/provenance/index.js",
+    "./provenance": "./src/provenance/index.js",
+    "./attestation": "./src/provenance/attestation.js",
+    "./verifier": "./src/provenance/verifier.js",
+    "./keys": "./src/provenance/keys.js",
+    "./jose": "./src/provenance/jose.js",
+    "./sidecar": "./src/provenance/sidecar.js"
+  },
+  "scripts": {
+    "test": "node --test test/**/*.test.js",
+    "test:coverage": "c8 node --test test/**/*.test.js",
+    "lint": "eslint src/**/*.js",
+    "format": "prettier --write src/**/*.js",
+    "build": "echo 'No build step required for ES modules'",
+    "verify": "node scripts/verify-attestations.js",
+    "benchmark": "node scripts/benchmark.js"
+  },
+  "keywords": [
+    "attestation",
+    "provenance", 
+    "jws",
+    "jose",
+    "ed25519",
+    "rsa",
+    "slsa",
+    "w3c-prov-o",
+    "jwt",
+    "cryptography",
+    "security",
+    "verification",
+    "kgen"
+  ],
+  "author": "kgen Contributors",
+  "license": "MIT",
+  "dependencies": {
+    "jose": "^5.0.0",
+    "uuid": "^9.0.0"
+  },
+  "devDependencies": {
+    "c8": "^8.0.0",
+    "eslint": "^8.0.0",
+    "prettier": "^3.0.0",
+    "jsonwebtoken": "^9.0.0"
+  },
+  "peerDependencies": {
+    "node": ">=18.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "files": [
+    "src/",
+    "README.md",
+    "LICENSE",
+    "SECURITY.md"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kgen/kgen.git",
+    "directory": "packages/kgen-core"
+  },
+  "bugs": {
+    "url": "https://github.com/kgen/kgen/issues"
+  },
+  "homepage": "https://kgen.dev",
+  "funding": {
+    "type": "github",
+    "url": "https://github.com/sponsors/kgen"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "standards": {
+    "rfc": [
+      "RFC 7515 - JSON Web Signature (JWS)",
+      "RFC 7518 - JSON Web Algorithms (JWA)",
+      "RFC 7519 - JSON Web Token (JWT)"
+    ],
+    "compliance": [
+      "SLSA (Supply-chain Levels for Software Artifacts)",
+      "W3C PROV-O (Provenance Ontology)"
+    ]
+  },
+  "security": {
+    "algorithms": {
+      "supported": ["EdDSA", "RS256", "RS512"],
+      "recommended": "EdDSA",
+      "keyRotation": "automatic",
+      "externalVerification": true
+    },
+    "keyManagement": {
+      "storage": "encrypted",
+      "formats": ["JWK", "PEM"],
+      "rotation": "configurable",
+      "backup": "automatic"
+    }
+  },
+  "features": {
+    "cryptographicSecurity": true,
+    "externalVerification": true,
+    "slsaCompliance": true,
+    "w3cProvenance": true,
+    "batchProcessing": true,
+    "keyRotation": true,
+    "caching": true,
+    "crossPlatform": true,
+    "enterpriseReady": true
+  }
+}

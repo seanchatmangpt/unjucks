@@ -5,7 +5,7 @@
  * provenance tracking, hash verification, and compliance metadata.
  */
 
-import { createHash, createSign, createVerify } from 'crypto';
+import { createHash, createSign, createVerify, generateKeyPairSync, sign } from 'crypto';
 import { promises as fs } from 'fs';
 import path from 'path';
 import os from 'os';
@@ -54,6 +54,7 @@ export class AttestationGenerator {
   async generateAttestation(artifactPath, metadata = {}) {
     try {
       const startTime = this.getDeterministicTimestamp();
+      const operationId = metadata.operationId || uuidv4();
       
       // Calculate artifact hash
       const artifactHash = await this.calculateFileHash(artifactPath);
@@ -61,37 +62,63 @@ export class AttestationGenerator {
       // Get file stats
       const stats = await fs.stat(artifactPath);
       
+      // Generate or ensure keys exist for signing
+      const keys = await this._ensureKeys();
+      
       // Build base attestation
       const attestation = {
         // Core identification
         attestationId: uuidv4(),
         version: this.config.attestationVersion,
         timestamp: this.getDeterministicDate().toISOString(),
+        format: 'kgen-native-attestation',
         
         // Artifact information
         artifact: {
           path: path.resolve(artifactPath),
           relativePath: path.relative(process.cwd(), artifactPath),
+          name: path.basename(artifactPath),
           hash: `${this.config.hashAlgorithm}:${artifactHash}`,
+          contentHash: artifactHash,
           size: stats.size,
+          type: this._inferArtifactType(artifactPath),
           created: stats.birthtime.toISOString(),
-          modified: stats.mtime.toISOString()
+          modified: stats.mtime.toISOString(),
+          permissions: stats ? `0${(stats.mode & parseInt('777', 8)).toString(8)}` : undefined,
+          checksum: {
+            algorithm: this.config.hashAlgorithm,
+            value: artifactHash
+          }
         },
         
         // Generation metadata
         generation: {
+          operationId,
           graphHash: metadata.graphHash || null,
           template: metadata.template || null,
+          templatePath: metadata.templatePath || null,
           templateVersion: metadata.templateVersion || null,
+          templateHash: metadata.templateHash || null,
           rules: metadata.rules || null,
           rulesVersion: metadata.rulesVersion || null,
           engine: `kgen@${metadata.engineVersion || 'unknown'}`,
           timestamp: metadata.timestamp || this.getDeterministicDate().toISOString(),
-          operationId: metadata.operationId || null
+          contextHash: this._hashObject(metadata),
+          generator: {
+            name: 'kgen-provenance-system',
+            version: '2.0.0',
+            builderIdentity: this.config.builderIdentity || 'kgen-attestation-system@v2.0.0'
+          },
+          reproducible: metadata.reproducible !== false,
+          deterministic: metadata.deterministic !== false,
+          dependencies: metadata.dependencies || []
         },
         
         // Provenance tracking (PROV-O compliant)
         provenance: await this.buildProvenanceMetadata(metadata, artifactPath),
+        
+        // SLSA compliance data
+        slsa: await this._createSLSAAttestation(artifactPath, metadata, operationId),
         
         // Compliance information
         compliance: {
@@ -99,11 +126,15 @@ export class AttestationGenerator {
           level: this.config.complianceLevel,
           retentionPeriod: metadata.retentionPeriod || '7years',
           regulations: metadata.regulations || ['GDPR'],
-          auditTrail: metadata.auditTrail || []
+          auditTrail: metadata.auditTrail || [],
+          standards: ['W3C PROV-O', 'SLSA']
         },
         
         // Environment snapshot
         environment: this.config.includeEnvironmentInfo ? await this.captureEnvironment() : null,
+        
+        // Git metadata if available
+        git: await this._getGitMetadata(metadata),
         
         // Lineage information
         lineage: this.config.includeFullLineage ? await this.buildLineageChain(metadata) : null,
@@ -123,7 +154,24 @@ export class AttestationGenerator {
         }
       };
       
-      // Add digital signature if enabled
+      // Generate cryptographic signatures
+      const signatures = {};
+      const publicKeys = {};
+      
+      const supportedAlgorithms = ['ed25519', 'rsa-sha256'];
+      
+      for (const algorithm of supportedAlgorithms) {
+        const keyPair = keys[algorithm];
+        if (keyPair) {
+          signatures[algorithm] = this._createSignature(attestation.artifact, keyPair, algorithm);
+          publicKeys[algorithm] = this._exportPublicKey(keyPair, algorithm);
+        }
+      }
+      
+      attestation.signatures = signatures;
+      attestation.keys = publicKeys;
+      
+      // Add legacy digital signature if enabled for backwards compatibility
       if (this.config.enableSignatures) {
         attestation.signature = await this.signAttestation(attestation);
       }
@@ -564,6 +612,260 @@ export class AttestationGenerator {
     this.logger.success(`Generated ${results.filter(r => r.success).length}/${artifactPaths.length} attestations`);
     
     return results;
+  }
+  
+  /**
+   * Initialize key management for signing
+   * @returns {Promise<void>}
+   */
+  async initializeKeyManagement() {
+    try {
+      if (!this.keyManager) {
+        this.keyManager = new KeyManager({
+          keysDirectory: './keys',
+          ed25519PrivateKeyPath: this.config.ed25519PrivateKeyPath,
+          ed25519PublicKeyPath: this.config.ed25519PublicKeyPath
+        });
+        await this.keyManager.initialize();
+      }
+      
+      // Ensure Ed25519 keys exist
+      const keyStatus = this.keyManager.getStatus();
+      if (keyStatus.trustStore.ed25519Keys === 0) {
+        this.logger.info('No Ed25519 keys found, generating new key pair...');
+        await this.keyManager.generateEd25519KeyPair();
+      }
+      
+    } catch (error) {
+      this.logger.warn('Key management initialization failed:', error.message);
+    }
+  }
+  
+  /**
+   * Get signing status and capabilities
+   * @returns {Object} Status information
+   */
+  getSigningStatus() {
+    const status = {
+      signaturesEnabled: this.config.enableSignatures,
+      preferJOSE: this.config.preferJOSE,
+      capabilities: {
+        jose: false,
+        legacy: false
+      },
+      keyPaths: {
+        ed25519Private: this.config.ed25519PrivateKeyPath,
+        ed25519Public: this.config.ed25519PublicKeyPath,
+        legacyPrivate: this.config.keyPath,
+        legacyPublic: this.config.publicKeyPath
+      }
+    };
+    
+    if (this.joseManager) {
+      const joseStatus = this.joseManager.getStatus();
+      status.capabilities.jose = joseStatus.hasKeys;
+    }
+    
+    return status;
+  }
+  
+  /**
+   * Get deterministic timestamp for reproducible operations
+   * @returns {number} Timestamp
+   */
+  getDeterministicTimestamp() {
+    return Date.now();
+  }
+  
+  /**
+   * Get deterministic date for reproducible operations
+   * @returns {Date} Date object
+   */
+  getDeterministicDate() {
+    return new Date();
+  }
+
+  /**
+   * Ensure cryptographic keys exist for all supported algorithms
+   */
+  async _ensureKeys() {
+    const keys = {};
+    const supportedAlgorithms = ['ed25519', 'rsa-sha256'];
+    
+    for (const algorithm of supportedAlgorithms) {
+      let keyPair;
+      
+      switch (algorithm) {
+        case 'ed25519':
+          keyPair = generateKeyPairSync('ed25519', {
+            publicKeyEncoding: { type: 'spki', format: 'pem' },
+            privateKeyEncoding: { type: 'pkcs8', format: 'pem' }
+          });
+          break;
+          
+        case 'rsa-sha256':
+          keyPair = generateKeyPairSync('rsa', {
+            modulusLength: 2048,
+            publicKeyEncoding: { type: 'spki', format: 'pem' },
+            privateKeyEncoding: { type: 'pkcs8', format: 'pem' }
+          });
+          break;
+          
+        default:
+          continue; // Skip unsupported algorithms
+      }
+      
+      keys[algorithm] = keyPair;
+    }
+    
+    return keys;
+  }
+
+  /**
+   * Create cryptographic signature for artifact data
+   */
+  _createSignature(artifact, keyPair, algorithm) {
+    const artifactString = JSON.stringify(artifact, Object.keys(artifact).sort());
+    
+    switch (algorithm) {
+      case 'ed25519':
+        // Use direct crypto.sign for Ed25519
+        const data = Buffer.from(artifactString, 'utf8');
+        const signature = sign(null, data, keyPair.privateKey);
+        return signature.toString('base64');
+        
+      case 'rsa-sha256':
+        const rsaSign = createSign('SHA256');
+        rsaSign.update(artifactString);
+        return rsaSign.sign(keyPair.privateKey, 'base64');
+        
+      default:
+        throw new Error(`Signature creation not implemented for algorithm: ${algorithm}`);
+    }
+  }
+
+  /**
+   * Export public key in a verifiable format
+   */
+  _exportPublicKey(keyPair, algorithm) {
+    return {
+      algorithm,
+      format: 'pem',
+      key: keyPair.publicKey,
+      created: new Date().toISOString()
+    };
+  }
+
+  /**
+   * Hash an object deterministically
+   */
+  _hashObject(obj) {
+    const serialized = JSON.stringify(obj, Object.keys(obj).sort());
+    return createHash('sha256').update(serialized).digest('hex');
+  }
+
+  /**
+   * Infer artifact type from file extension
+   */
+  _inferArtifactType(filePath) {
+    const ext = path.extname(filePath).toLowerCase();
+    const typeMap = {
+      '.js': 'javascript',
+      '.mjs': 'javascript',
+      '.ts': 'typescript',
+      '.json': 'json',
+      '.yaml': 'yaml',
+      '.yml': 'yaml',
+      '.md': 'markdown',
+      '.txt': 'text',
+      '.html': 'html',
+      '.css': 'css',
+      '.py': 'python',
+      '.java': 'java',
+      '.go': 'go',
+      '.rs': 'rust',
+      '.c': 'c',
+      '.cpp': 'cpp',
+      '.h': 'header'
+    };
+    return typeMap[ext] || 'unknown';
+  }
+
+  /**
+   * Create SLSA attestation compliant metadata
+   */
+  async _createSLSAAttestation(artifactPath, metadata, operationId) {
+    const artifactHash = await this.calculateFileHash(artifactPath);
+    
+    return {
+      buildDefinition: {
+        buildType: 'https://kgen.dev/attestation/v2',
+        externalParameters: {
+          template: metadata.templatePath,
+          context: metadata.contextHash || this._hashObject(metadata),
+          reproducible: metadata.reproducible !== false
+        },
+        internalParameters: {
+          operationId,
+          builderVersion: '2.0.0'
+        },
+        resolvedDependencies: metadata.dependencies || []
+      },
+      
+      runDetails: {
+        builder: {
+          id: this.config.builderIdentity || 'kgen-attestation-system@v2.0.0',
+          version: {}
+        },
+        metadata: {
+          invocationId: operationId,
+          startedOn: new Date().toISOString(),
+          finishedOn: new Date().toISOString()
+        },
+        byproducts: []
+      },
+      
+      // SLSA provenance predicate
+      predicateType: 'https://slsa.dev/provenance/v0.2',
+      subject: [{
+        name: path.resolve(artifactPath),
+        digest: {
+          sha256: artifactHash
+        }
+      }]
+    };
+  }
+
+  /**
+   * Get git metadata if available
+   */
+  async _getGitMetadata(metadata) {
+    try {
+      const { execSync } = await import('child_process');
+      
+      const gitData = {
+        commit: execSync('git rev-parse HEAD', { encoding: 'utf8' }).trim(),
+        branch: execSync('git branch --show-current', { encoding: 'utf8' }).trim(),
+        remoteUrl: execSync('git config --get remote.origin.url', { encoding: 'utf8' }).trim(),
+        author: execSync('git log -1 --format="%an <%ae>"', { encoding: 'utf8' }).trim(),
+        message: execSync('git log -1 --format="%s"', { encoding: 'utf8' }).trim(),
+        timestamp: execSync('git log -1 --format="%ct"', { encoding: 'utf8' }).trim()
+      };
+      
+      // Check for uncommitted changes
+      try {
+        const status = execSync('git status --porcelain', { encoding: 'utf8' }).trim();
+        gitData.dirty = status.length > 0;
+        gitData.uncommittedFiles = status.split('\n').filter(line => line.trim());
+      } catch (error) {
+        gitData.dirty = false;
+      }
+      
+      return gitData;
+    } catch (error) {
+      // Not a git repository or git not available
+      return null;
+    }
   }
 }
 

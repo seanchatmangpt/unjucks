@@ -1,0 +1,263 @@
+# KGEN Workshop N3 Validation Rules
+# These rules provide semantic validation for KGEN templates and generation processes
+
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix kgen: <http://kgen.ai/ontology#> .
+@prefix math: <http://www.w3.org/2000/10/swap/math#> .
+@prefix string: <http://www.w3.org/2000/10/swap/string#> .
+@prefix time: <http://www.w3.org/2000/10/swap/time#> .
+@prefix log: <http://www.w3.org/2000/10/swap/log#> .
+
+# Rule 1: Template Path Validation
+# Templates must follow naming conventions and security constraints
+{
+    ?template a kgen:Template .
+    ?template kgen:templatePath ?path .
+    ?path string:contains "../" .
+} => {
+    ?template kgen:hasError "Template path contains directory traversal sequences" .
+} .
+
+{
+    ?template a kgen:Template .
+    ?template kgen:templatePath ?path .
+    ?path string:startsWith "/" .
+} => {
+    ?template kgen:hasError "Template path cannot be absolute" .
+} .
+
+{
+    ?template a kgen:Template .
+    ?template kgen:templatePath ?path .
+    ?path string:endsWith ".njk" .
+    ?path string:startsWith "_templates/" .
+} => {
+    ?template kgen:hasValidPath true .
+} .
+
+# Rule 2: Variable Type Safety
+# Ensure variables have valid types and naming
+{
+    ?variable a kgen:Variable .
+    ?variable kgen:variableName ?name .
+    ?name string:matches "^[a-zA-Z][a-zA-Z0-9_]*$" .
+    ?name string:length ?len .
+    ?len math:greaterThan 1 .
+    ?len math:lessThan 51 .
+} => {
+    ?variable kgen:hasValidName true .
+} .
+
+{
+    ?variable a kgen:Variable .
+    ?variable kgen:variableType ?type .
+    ("string" "number" "boolean" "array" "object" "date") log:includes ?type .
+} => {
+    ?variable kgen:hasValidType true .
+} .
+
+# Rule 3: Required Variable Completeness
+# Templates with required variables must have proper documentation
+{
+    ?template a kgen:Template .
+    ?template kgen:hasVariable ?variable .
+    ?variable kgen:isRequired true .
+    ?variable rdfs:comment ?comment .
+    ?comment string:length ?len .
+    ?len math:greaterThan 9 .
+} => {
+    ?template kgen:hasDocumentedRequiredVariables true .
+} .
+
+# Rule 4: Generation Timestamp Validation
+# Artifacts must have reasonable generation timestamps
+{
+    ?artifact a kgen:Artifact .
+    ?artifact kgen:generatedAt ?timestamp .
+    ?timestamp math:greaterThan "2025-01-01T00:00:00Z"^^xsd:dateTime .
+    ?timestamp math:lessThan "2030-12-31T23:59:59Z"^^xsd:dateTime .
+} => {
+    ?artifact kgen:hasValidTimestamp true .
+} .
+
+# Rule 5: Template-Artifact Consistency
+# Artifacts must reference valid templates
+{
+    ?artifact a kgen:Artifact .
+    ?artifact kgen:hasTemplate ?template .
+    ?template a kgen:Template .
+    ?template kgen:hasValidPath true .
+} => {
+    ?artifact kgen:hasValidTemplate true .
+} .
+
+# Rule 6: Next.js Template Validation
+# Next.js templates must have specific required variables
+{
+    ?template a kgen:Template .
+    ?template kgen:templatePath ?path .
+    ?path string:contains "nextjs-app" .
+    ?template kgen:hasVariable ?pageNameVar .
+    ?pageNameVar kgen:variableName "pageName" .
+    ?template kgen:hasVariable ?titleVar .
+    ?titleVar kgen:variableName "title" .
+} => {
+    ?template kgen:isValidNextjsTemplate true .
+} .
+
+# Rule 7: API Template Validation  
+# API templates must have resource name variable
+{
+    ?template a kgen:Template .
+    ?template kgen:templatePath ?path .
+    ?path string:contains "api-service" .
+    ?template kgen:hasVariable ?resourceVar .
+    ?resourceVar kgen:variableName "resourceName" .
+    ?resourceVar kgen:isRequired true .
+} => {
+    ?template kgen:isValidApiTemplate true .
+} .
+
+# Rule 8: Office Report Template Validation
+# Office templates must have report type and author
+{
+    ?template a kgen:Template .
+    ?template kgen:templatePath ?path .
+    ?path string:contains "office-report" .
+    ?template kgen:hasVariable ?reportTypeVar .
+    ?reportTypeVar kgen:variableName "reportType" .
+    ?template kgen:hasVariable ?authorVar .
+    ?authorVar kgen:variableName "author" .
+} => {
+    ?template kgen:isValidOfficeTemplate true .
+} .
+
+# Rule 9: Variable Naming Convention Enforcement
+# Variables cannot use reserved keywords
+{
+    ?variable a kgen:Variable .
+    ?variable kgen:variableName ?name .
+    ("class" "function" "var" "let" "const" "import" "export" "return" "if" "else" "for" "while" "do" "break" "continue" "switch" "case" "default" "try" "catch" "finally" "throw" "new" "this" "super" "extends" "implements" "interface" "enum" "type" "namespace" "module" "declare" "abstract" "private" "protected" "public" "static" "readonly" "async" "await") log:includes ?name .
+} => {
+    ?variable kgen:hasError "Variable name uses reserved keyword" .
+} .
+
+# Rule 10: Template Complexity Management
+# Limit templates to reasonable variable counts
+{
+    ?template a kgen:Template .
+    ?template kgen:hasVariable ?variable .
+} => {
+    ?template kgen:variableCount ?variable .
+} .
+
+{
+    ?template a kgen:Template .
+    ?template kgen:variableCount ?vars .
+    ?vars log:count ?count .
+    ?count math:greaterThan 20 .
+} => {
+    ?template kgen:hasWarning "Template has more than 20 variables - consider simplification" .
+} .
+
+# Rule 11: Security Validation for Template Paths
+# Prevent malicious template paths
+{
+    ?template a kgen:Template .
+    ?template kgen:templatePath ?path .
+    ?path string:contains "passwd" .
+} => {
+    ?template kgen:hasSecurityError "Template path appears to reference sensitive system files" .
+} .
+
+{
+    ?template a kgen:Template .
+    ?template kgen:templatePath ?path .
+    ?path string:contains ".ssh" .
+} => {
+    ?template kgen:hasSecurityError "Template path appears to reference SSH configuration" .
+} .
+
+# Rule 12: Workshop Template Quality Assurance
+# All workshop templates must meet quality standards
+{
+    ?template a kgen:Template .
+    ?template rdfs:label ?label .
+    ?template kgen:templatePath ?path .
+    ?path string:startsWith "_templates/" .
+    ?label string:length ?labelLen .
+    ?labelLen math:greaterThan 2 .
+} => {
+    ?template kgen:hasQualityCheck true .
+} .
+
+# Rule 13: Artifact Provenance Validation
+# Ensure proper provenance tracking
+{
+    ?artifact a kgen:Artifact .
+    ?artifact kgen:hasTemplate ?template .
+    ?artifact kgen:generatedAt ?timestamp .
+    ?artifact rdfs:label ?label .
+    ?template kgen:hasValidPath true .
+    ?artifact kgen:hasValidTimestamp true .
+} => {
+    ?artifact kgen:hasCompleteProvenance true .
+} .
+
+# Rule 14: Variable Documentation Quality
+# Required variables must have comprehensive documentation
+{
+    ?variable a kgen:Variable .
+    ?variable kgen:isRequired true .
+    ?variable rdfs:comment ?comment .
+    ?variable rdfs:label ?label .
+    ?comment string:length ?commentLen .
+    ?label string:length ?labelLen .
+    ?commentLen math:greaterThan 9 .
+    ?labelLen math:greaterThan 2 .
+} => {
+    ?variable kgen:hasQualityDocumentation true .
+} .
+
+# Rule 15: Generation Context Validation
+# Validate the context in which artifacts are generated
+{
+    ?artifact a kgen:Artifact .
+    ?artifact kgen:generatedAt ?timestamp .
+    time:now ?currentTime .
+    ?timestamp math:lessThan ?currentTime .
+} => {
+    ?artifact kgen:hasValidGenerationContext true .
+} .
+
+# Summary Rules - Overall Validation Status
+{
+    ?template a kgen:Template .
+    ?template kgen:hasValidPath true .
+    ?template kgen:hasDocumentedRequiredVariables true .
+    ?template kgen:hasQualityCheck true .
+    ?template kgen:hasError ?error .
+} => {
+    ?template kgen:hasValidationIssues true .
+} .
+
+{
+    ?template a kgen:Template .
+    ?template kgen:hasValidPath true .
+    ?template kgen:hasDocumentedRequiredVariables true .
+    ?template kgen:hasQualityCheck true .
+} => {
+    ?template kgen:isValidTemplate true .
+} .
+
+{
+    ?artifact a kgen:Artifact .
+    ?artifact kgen:hasValidTemplate true .
+    ?artifact kgen:hasValidTimestamp true .
+    ?artifact kgen:hasCompleteProvenance true .
+} => {
+    ?artifact kgen:isValidArtifact true .
+} .

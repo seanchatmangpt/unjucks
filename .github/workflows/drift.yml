@@ -1,0 +1,345 @@
+name: Drift Detection
+
+on:
+  pull_request:
+    branches: [main, develop]
+    types: [opened, synchronize, reopened]
+  workflow_dispatch:
+    inputs:
+      base_ref:
+        description: 'Base reference to compare against'
+        required: false
+        default: 'main'
+
+env:
+  NODE_OPTIONS: '--max-old-space-size=4096'
+
+jobs:
+  detect-drift:
+    name: Artifact Drift Detection
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    
+    # Only run on PRs or manual dispatch
+    if: github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch'
+    
+    permissions:
+      contents: read
+      pull-requests: write
+      checks: write
+    
+    steps:
+      - name: Checkout PR branch
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Full history for drift comparison
+          
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: '**/package-lock.json'
+          
+      - name: Install dependencies
+        run: npm ci --prefer-offline --no-audit
+        
+      - name: Prepare KGEN binary
+        run: |
+          chmod +x bin/kgen.mjs
+          echo "KGEN Binary prepared for drift detection"
+          
+      - name: Setup drift detection environment
+        run: |
+          # Create directories for drift analysis
+          mkdir -p drift-analysis/{baseline,current,reports}
+          
+          # Determine base reference
+          if [ "${{ github.event_name }}" == "pull_request" ]; then
+            echo "BASE_REF=${{ github.event.pull_request.base.ref }}" >> $GITHUB_ENV
+            echo "HEAD_REF=${{ github.event.pull_request.head.ref }}" >> $GITHUB_ENV
+            echo "PR_NUMBER=${{ github.event.pull_request.number }}" >> $GITHUB_ENV
+          else
+            echo "BASE_REF=${{ github.event.inputs.base_ref || 'main' }}" >> $GITHUB_ENV
+            echo "HEAD_REF=${{ github.ref_name }}" >> $GITHUB_ENV
+            echo "PR_NUMBER=" >> $GITHUB_ENV
+          fi
+          
+      - name: Generate baseline artifacts
+        run: |
+          echo "Generating baseline artifacts from $BASE_REF..."
+          
+          # Checkout baseline branch
+          git checkout origin/$BASE_REF
+          
+          # Generate baseline artifacts if KGEN artifact command exists
+          if node bin/kgen.mjs --help | grep -q "artifact"; then
+            echo "Running KGEN artifact generation for baseline..."
+            node bin/kgen.mjs artifact generate --output drift-analysis/baseline/ --dry-run || {
+              echo "KGEN artifact command not available or failed - using file checksums"
+              find . -type f \( -name "*.js" -o -name "*.ts" -o -name "*.json" -o -name "*.yml" -o -name "*.yaml" \) \
+                -not -path "./node_modules/*" \
+                -not -path "./.git/*" \
+                -not -path "./drift-analysis/*" \
+                -exec sha256sum {} \; > drift-analysis/baseline/checksums.txt
+            }
+          else
+            echo "Using file checksums as baseline..."
+            find . -type f \( -name "*.js" -o -name "*.ts" -o -name "*.json" -o -name "*.yml" -o -name "*.yaml" \) \
+              -not -path "./node_modules/*" \
+              -not -path "./.git/*" \
+              -not -path "./drift-analysis/*" \
+              -exec sha256sum {} \; > drift-analysis/baseline/checksums.txt
+          fi
+          
+      - name: Generate current artifacts
+        run: |
+          echo "Generating current artifacts from $HEAD_REF..."
+          
+          # Checkout current branch
+          git checkout ${{ github.sha }}
+          
+          # Reinstall dependencies for current branch
+          npm ci --prefer-offline --no-audit
+          chmod +x bin/kgen.mjs
+          
+          # Generate current artifacts
+          if node bin/kgen.mjs --help | grep -q "artifact"; then
+            echo "Running KGEN artifact generation for current branch..."
+            node bin/kgen.mjs artifact generate --output drift-analysis/current/ --dry-run || {
+              echo "KGEN artifact command not available or failed - using file checksums"
+              find . -type f \( -name "*.js" -o -name "*.ts" -o -name "*.json" -o -name "*.yml" -o -name "*.yaml" \) \
+                -not -path "./node_modules/*" \
+                -not -path "./.git/*" \
+                -not -path "./drift-analysis/*" \
+                -exec sha256sum {} \; > drift-analysis/current/checksums.txt
+            }
+          else
+            echo "Using file checksums for current state..."
+            find . -type f \( -name "*.js" -o -name "*.ts" -o -name "*.json" -o -name "*.yml" -o -name "*.yaml" \) \
+              -not -path "./node_modules/*" \
+              -not -path "./.git/*" \
+              -not -path "./drift-analysis/*" \
+              -exec sha256sum {} \; > drift-analysis/current/checksums.txt
+          fi
+          
+      - name: Detect drift
+        id: drift-detection
+        run: |
+          echo "Analyzing drift between baseline and current state..."
+          
+          # Initialize drift analysis
+          drift_detected=false
+          semantic_changes=false
+          drift_report="drift-analysis/reports/drift-report.md"
+          
+          # Start drift report
+          cat > "$drift_report" << 'EOF'
+          # 🔍 Drift Detection Report
+          
+          **Branch**: `${{ env.HEAD_REF }}`  
+          **Base**: `${{ env.BASE_REF }}`  
+          **Commit**: `${{ github.sha }}`  
+          **Timestamp**: `$(date -u +"%Y-%m-%d %H:%M:%S UTC")`
+          
+          ## Analysis Results
+          
+          EOF
+          
+          # Compare using KGEN drift command if available
+          if node bin/kgen.mjs --help | grep -q "drift"; then
+            echo "Using KGEN drift command..."
+            
+            drift_exit_code=0
+            node bin/kgen.mjs artifact drift \
+              --baseline drift-analysis/baseline/ \
+              --current drift-analysis/current/ \
+              --output drift-analysis/reports/ \
+              --format markdown || drift_exit_code=$?
+            
+            # Check exit codes according to KGEN spec
+            if [ $drift_exit_code -eq 3 ]; then
+              echo "🔴 Semantic changes detected (exit code 3)"
+              semantic_changes=true
+              drift_detected=true
+              echo "semantic_changes=true" >> $GITHUB_OUTPUT
+              
+              cat >> "$drift_report" << 'EOF'
+          ### ❌ Semantic Changes Detected
+          
+          Semantic changes have been detected that may break existing functionality.
+          This requires careful review before merging.
+          
+          EOF
+              
+            elif [ $drift_exit_code -eq 1 ]; then
+              echo "🟡 Non-semantic drift detected (exit code 1)"
+              drift_detected=true
+              echo "semantic_changes=false" >> $GITHUB_OUTPUT
+              
+              cat >> "$drift_report" << 'EOF'
+          ### ⚠️ Non-Semantic Drift Detected
+          
+          Changes detected but they appear to be non-breaking.
+          
+          EOF
+              
+            elif [ $drift_exit_code -eq 0 ]; then
+              echo "✅ No significant drift detected"
+              echo "semantic_changes=false" >> $GITHUB_OUTPUT
+              
+              cat >> "$drift_report" << 'EOF'
+          ### ✅ No Significant Drift
+          
+          No significant changes detected between baseline and current state.
+          
+          EOF
+              
+            else
+              echo "⚠️ Drift detection command failed with code $drift_exit_code"
+              drift_detected=true
+              
+              cat >> "$drift_report" << 'EOF'
+          ### ⚠️ Drift Detection Failed
+          
+          The drift detection command encountered an error. Manual review recommended.
+          
+          EOF
+            fi
+          else
+            echo "Using file-based drift detection..."
+            
+            # Simple checksum comparison
+            if [ -f drift-analysis/baseline/checksums.txt ] && [ -f drift-analysis/current/checksums.txt ]; then
+              if ! diff -q drift-analysis/baseline/checksums.txt drift-analysis/current/checksums.txt > /dev/null; then
+                echo "📝 File changes detected"
+                drift_detected=true
+                
+                # Generate file diff summary
+                echo "### 📝 File Changes Detected" >> "$drift_report"
+                echo "" >> "$drift_report"
+                echo "File checksums differ between baseline and current state:" >> "$drift_report"
+                echo "" >> "$drift_report"
+                echo '```diff' >> "$drift_report"
+                diff -u drift-analysis/baseline/checksums.txt drift-analysis/current/checksums.txt | head -50 >> "$drift_report" || true
+                echo '```' >> "$drift_report"
+                echo "" >> "$drift_report"
+              else
+                echo "✅ No file changes detected"
+                echo "### ✅ No Changes Detected" >> "$drift_report"
+                echo "" >> "$drift_report"
+                echo "No file changes detected between baseline and current state." >> "$drift_report"
+              fi
+            fi
+            
+            echo "semantic_changes=false" >> $GITHUB_OUTPUT
+          fi
+          
+          # Set outputs
+          echo "drift_detected=$drift_detected" >> $GITHUB_OUTPUT
+          echo "drift_report_path=$drift_report" >> $GITHUB_OUTPUT
+          
+          # Add final summary
+          if [ "$drift_detected" = true ]; then
+            if [ "$semantic_changes" = true ]; then
+              echo "" >> "$drift_report"
+              echo "## 🚨 Action Required" >> "$drift_report"
+              echo "" >> "$drift_report"
+              echo "Semantic changes detected. This PR requires careful review." >> "$drift_report"
+              echo "Consider running additional tests and validation." >> "$drift_report"
+            else
+              echo "" >> "$drift_report"
+              echo "## ℹ️ Review Recommended" >> "$drift_report"
+              echo "" >> "$drift_report"
+              echo "Changes detected but appear to be non-breaking." >> "$drift_report"
+            fi
+          else
+            echo "" >> "$drift_report"
+            echo "## ✅ No Action Required" >> "$drift_report"
+            echo "" >> "$drift_report"
+            echo "No significant drift detected." >> "$drift_report"
+          fi
+          
+      - name: Upload drift analysis artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: drift-analysis-${{ github.sha }}
+          path: |
+            drift-analysis/
+          retention-days: 30
+          
+      - name: Comment on PR
+        if: github.event_name == 'pull_request' && steps.drift-detection.outputs.drift_detected == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const reportPath = '${{ steps.drift-detection.outputs.drift_report_path }}';
+            
+            let reportContent = '# 🔍 Drift Detection Report\n\nDrift analysis could not be completed.';
+            
+            try {
+              reportContent = fs.readFileSync(reportPath, 'utf8');
+            } catch (error) {
+              console.log('Could not read drift report:', error.message);
+            }
+            
+            // Add action buttons
+            reportContent += '\n\n---\n';
+            reportContent += '*This comment was generated automatically by the drift detection workflow.*\n';
+            
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+            
+            // Find existing drift comment
+            const existingComment = comments.find(comment => 
+              comment.user.login === 'github-actions[bot]' && 
+              comment.body.includes('Drift Detection Report')
+            );
+            
+            if (existingComment) {
+              // Update existing comment
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existingComment.id,
+                body: reportContent
+              });
+            } else {
+              // Create new comment
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: reportContent
+              });
+            }
+            
+      - name: Set workflow status
+        if: steps.drift-detection.outputs.semantic_changes == 'true'
+        run: |
+          echo "❌ Semantic changes detected - failing workflow"
+          echo "This PR contains semantic changes that require careful review."
+          echo "Exit code 3 indicates semantic drift detected by KGEN."
+          exit 3
+          
+      - name: Drift summary
+        if: always()
+        run: |
+          echo "## Drift Detection Summary"
+          echo "- Drift detected: ${{ steps.drift-detection.outputs.drift_detected }}"
+          echo "- Semantic changes: ${{ steps.drift-detection.outputs.semantic_changes }}"
+          echo "- Base branch: ${{ env.BASE_REF }}"
+          echo "- Current branch: ${{ env.HEAD_REF }}"
+          
+          if [ "${{ steps.drift-detection.outputs.semantic_changes }}" = "true" ]; then
+            echo "🔴 Workflow will fail due to semantic changes (exit code 3)"
+          elif [ "${{ steps.drift-detection.outputs.drift_detected }}" = "true" ]; then
+            echo "🟡 Non-semantic drift detected - workflow continues"
+          else
+            echo "✅ No significant drift detected"
+          fi

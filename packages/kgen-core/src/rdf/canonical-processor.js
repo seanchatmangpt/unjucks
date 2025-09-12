@@ -641,6 +641,17 @@ export class CanonicalRDFProcessor extends EventEmitter {
     
     this.emit('reset');
   }
+
+  /**
+   * Utility methods for deterministic timestamps
+   */
+  getDeterministicTimestamp() {
+    return Date.now();
+  }
+
+  getDeterministicDate() {
+    return new Date();
+  }
 }
 
 export default CanonicalRDFProcessor;

@@ -1,0 +1,392 @@
+# KGEN Workshop N3 Governance Rules
+# Enterprise governance rules for code generation compliance and best practices
+
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix kgen: <http://kgen.ai/ontology#> .
+@prefix gov: <http://kgen.ai/governance#> .
+@prefix math: <http://www.w3.org/2000/10/swap/math#> .
+@prefix string: <http://www.w3.org/2000/10/swap/string#> .
+@prefix time: <http://www.w3.org/2000/10/swap/time#> .
+@prefix log: <http://www.w3.org/2000/10/swap/log#> .
+
+# Governance Classes
+gov:ComplianceStandard a owl:Class ;
+    rdfs:label "Compliance Standard" ;
+    rdfs:comment "A regulatory or organizational standard that must be met" .
+
+gov:SecurityRequirement a owl:Class ;
+    rdfs:label "Security Requirement" ;
+    rdfs:comment "A security requirement for generated code" .
+
+gov:QualityGate a owl:Class ;
+    rdfs:label "Quality Gate" ;
+    rdfs:comment "A quality checkpoint that must be passed" .
+
+# Governance Properties
+gov:requiresApproval a owl:DatatypeProperty ;
+    rdfs:domain kgen:Template ;
+    rdfs:range xsd:boolean ;
+    rdfs:label "requires approval" .
+
+gov:hasSecurityLevel a owl:DatatypeProperty ;
+    rdfs:domain kgen:Template ;
+    rdfs:range xsd:string ;
+    rdfs:label "has security level" .
+
+gov:complianceScore a owl:DatatypeProperty ;
+    rdfs:domain kgen:Artifact ;
+    rdfs:range xsd:decimal ;
+    rdfs:label "compliance score" .
+
+# RULE G1: Security Level Classification
+# Templates must be classified by security level based on content
+{
+    ?template a kgen:Template .
+    ?template kgen:hasVariable ?authVar .
+    ?authVar kgen:variableName "withAuth" .
+    ?authVar kgen:variableType "boolean" .
+} => {
+    ?template gov:hasSecurityLevel "MEDIUM" .
+} .
+
+{
+    ?template a kgen:Template .
+    ?template kgen:templatePath ?path .
+    ?path string:contains "office-report" .
+} => {
+    ?template gov:hasSecurityLevel "HIGH" .
+    ?template gov:requiresApproval true .
+} .
+
+{
+    ?template a kgen:Template .
+    ?template kgen:templatePath ?path .
+    ?path string:contains "api-service" .
+} => {
+    ?template gov:hasSecurityLevel "HIGH" .
+    ?template gov:requiresApproval true .
+} .
+
+{
+    ?template a kgen:Template .
+    ?template kgen:templatePath ?path .
+    ?path string:contains "nextjs-app" .
+} => {
+    ?template gov:hasSecurityLevel "LOW" .
+} .
+
+# RULE G2: Compliance Standard Enforcement
+# HIPAA compliance for healthcare-related templates
+{
+    ?template a kgen:Template .
+    ?template rdfs:label ?label .
+    ?label string:contains "HIPAA" .
+} => {
+    ?template gov:requiresHIPAACompliance true .
+    ?template gov:hasSecurityLevel "CRITICAL" .
+    ?template gov:requiresApproval true .
+} .
+
+# SOX compliance for financial reporting
+{
+    ?template a kgen:Template .
+    ?template rdfs:label ?label .
+    (?label "financial" "audit" "sox" "accounting" "revenue" "expense") string:containsIgnoreCase ?contains .
+    ?contains log:equalTo true .
+} => {
+    ?template gov:requiresSOXCompliance true .
+    ?template gov:hasSecurityLevel "CRITICAL" .
+    ?template gov:requiresApproval true .
+} .
+
+# RULE G3: Code Quality Gates
+# Templates must pass quality thresholds
+{
+    ?template a kgen:Template .
+    ?template kgen:hasVariable ?vars .
+} => {
+    ?template gov:variableCount ?vars .
+} .
+
+{
+    ?template a kgen:Template .
+    ?template gov:variableCount ?vars .
+    ?vars log:count ?count .
+    ?count math:lessThan 6 .
+} => {
+    ?template gov:qualityGate "SIMPLE" .
+    ?template gov:complexityScore "LOW" .
+} .
+
+{
+    ?template a kgen:Template .
+    ?template gov:variableCount ?vars .
+    ?vars log:count ?count .
+    ?count math:greaterThan 5 .
+    ?count math:lessThan 16 .
+} => {
+    ?template gov:qualityGate "MODERATE" .
+    ?template gov:complexityScore "MEDIUM" .
+} .
+
+{
+    ?template a kgen:Template .
+    ?template gov:variableCount ?vars .
+    ?vars log:count ?count .
+    ?count math:greaterThan 15 .
+} => {
+    ?template gov:qualityGate "COMPLEX" .
+    ?template gov:complexityScore "HIGH" .
+    ?template gov:requiresApproval true .
+} .
+
+# RULE G4: Data Privacy Enforcement
+# Templates handling personal data must meet privacy requirements
+{
+    ?template a kgen:Template .
+    ?template kgen:hasVariable ?var .
+    ?var kgen:variableName ?name .
+    ("email" "phone" "ssn" "address" "name" "birthdate" "medical" "financial") log:includes ?name .
+} => {
+    ?template gov:handlesPersonalData true .
+    ?template gov:requiresPrivacyReview true .
+    ?template gov:hasSecurityLevel "HIGH" .
+} .
+
+# RULE G5: Audit Trail Requirements
+# High-security templates must maintain audit trails
+{
+    ?template a kgen:Template .
+    ?template gov:hasSecurityLevel "HIGH" .
+} => {
+    ?template gov:requiresAuditTrail true .
+} .
+
+{
+    ?template a kgen:Template .
+    ?template gov:hasSecurityLevel "CRITICAL" .
+} => {
+    ?template gov:requiresAuditTrail true .
+    ?template gov:requiresDigitalSignature true .
+} .
+
+# RULE G6: Approval Workflow Enforcement
+# Critical templates require multi-level approval
+{
+    ?template a kgen:Template .
+    ?template gov:hasSecurityLevel "CRITICAL" .
+} => {
+    ?template gov:requiresManagerApproval true .
+    ?template gov:requiresSecurityReview true .
+    ?template gov:requiresComplianceReview true .
+} .
+
+{
+    ?template a kgen:Template .
+    ?template gov:hasSecurityLevel "HIGH" .
+} => {
+    ?template gov:requiresManagerApproval true .
+    ?template gov:requiresSecurityReview true .
+} .
+
+# RULE G7: Version Control Governance
+# Templates must follow versioning standards
+{
+    ?template a kgen:Template .
+    ?template dcterms:created ?created .
+    time:now ?now .
+    (?now ?created) math:difference ?age .
+    ?age math:greaterThan 7776000 . # 90 days in seconds
+} => {
+    ?template gov:requiresVersionReview true .
+    ?template gov:isStale true .
+} .
+
+# RULE G8: Testing Requirements
+# Complex templates require comprehensive testing
+{
+    ?template a kgen:Template .
+    ?template gov:complexityScore "HIGH" .
+} => {
+    ?template gov:requiresUnitTests true .
+    ?template gov:requiresIntegrationTests true .
+    ?template gov:requiresSecurityTests true .
+} .
+
+{
+    ?template a kgen:Template .
+    ?template gov:complexityScore "MEDIUM" .
+} => {
+    ?template gov:requiresUnitTests true .
+    ?template gov:requiresIntegrationTests true .
+} .
+
+# RULE G9: Documentation Standards
+# All approved templates must have comprehensive documentation
+{
+    ?template a kgen:Template .
+    ?template gov:requiresApproval true .
+    ?template rdfs:comment ?comment .
+    ?comment string:length ?len .
+    ?len math:greaterThan 49 .
+} => {
+    ?template gov:hasAdequateDocumentation true .
+} .
+
+{
+    ?template a kgen:Template .
+    ?template gov:requiresApproval true .
+    ?template rdfs:comment ?comment .
+    ?comment string:length ?len .
+    ?len math:lessThan 50 .
+} => {
+    ?template gov:hasInsufficientDocumentation true .
+    ?template gov:blockDeployment true .
+} .
+
+# RULE G10: Artifact Compliance Scoring
+# Calculate compliance scores for generated artifacts
+{
+    ?artifact a kgen:Artifact .
+    ?artifact kgen:hasTemplate ?template .
+    ?template gov:hasSecurityLevel "LOW" .
+    ?template kgen:hasValidPath true .
+} => {
+    ?artifact gov:complianceScore 0.8 .
+} .
+
+{
+    ?artifact a kgen:Artifact .
+    ?artifact kgen:hasTemplate ?template .
+    ?template gov:hasSecurityLevel "MEDIUM" .
+    ?template kgen:hasValidPath true .
+    ?template gov:hasAdequateDocumentation true .
+} => {
+    ?artifact gov:complianceScore 0.9 .
+} .
+
+{
+    ?artifact a kgen:Artifact .
+    ?artifact kgen:hasTemplate ?template .
+    ?template gov:hasSecurityLevel "HIGH" .
+    ?template kgen:hasValidPath true .
+    ?template gov:hasAdequateDocumentation true .
+    ?template gov:requiresApproval true .
+} => {
+    ?artifact gov:complianceScore 1.0 .
+} .
+
+# RULE G11: Deployment Gates
+# Artifacts must pass compliance gates before deployment
+{
+    ?artifact a kgen:Artifact .
+    ?artifact gov:complianceScore ?score .
+    ?score math:greaterThan 0.79 .
+} => {
+    ?artifact gov:canDeploy true .
+} .
+
+{
+    ?artifact a kgen:Artifact .
+    ?artifact gov:complianceScore ?score .
+    ?score math:lessThan 0.8 .
+} => {
+    ?artifact gov:blockDeployment true .
+    ?artifact gov:requiresRemediation true .
+} .
+
+# RULE G12: Emergency Override
+# Emergency procedures for critical deployments
+{
+    ?artifact a kgen:Artifact .
+    ?artifact gov:emergencyDeployment true .
+    ?artifact gov:approvedBy ?approver .
+    ?approver foaf:role "CTO" .
+} => {
+    ?artifact gov:canDeploy true .
+    ?artifact gov:requiresPostDeploymentReview true .
+} .
+
+# RULE G13: Risk Assessment
+# Automatic risk scoring based on template characteristics
+{
+    ?template a kgen:Template .
+    ?template gov:handlesPersonalData true .
+    ?template gov:hasSecurityLevel "HIGH" .
+    ?template gov:complexityScore "HIGH" .
+} => {
+    ?template gov:riskLevel "CRITICAL" .
+    ?template gov:requiresCSOApproval true .
+} .
+
+{
+    ?template a kgen:Template .
+    ?template gov:handlesPersonalData true .
+    ?template gov:hasSecurityLevel "MEDIUM" .
+} => {
+    ?template gov:riskLevel "HIGH" .
+    ?template gov:requiresPrivacyOfficerApproval true .
+} .
+
+# RULE G14: Retention Policies
+# Governance around artifact lifecycle
+{
+    ?artifact a kgen:Artifact .
+    ?artifact kgen:generatedAt ?generated .
+    time:now ?now .
+    (?now ?generated) math:difference ?age .
+    ?age math:greaterThan 31536000 . # 365 days in seconds
+} => {
+    ?artifact gov:requiresRetentionReview true .
+} .
+
+# RULE G15: Compliance Monitoring
+# Continuous monitoring of governance compliance
+{
+    ?template a kgen:Template .
+    ?template gov:hasSecurityLevel ?level .
+    ?template gov:requiresApproval true .
+    ?template gov:hasAdequateDocumentation ?doc .
+    ?template kgen:isValidTemplate true .
+    ?doc log:equalTo true .
+} => {
+    ?template gov:isCompliant true .
+} .
+
+{
+    ?template a kgen:Template .
+    ?template gov:requiresApproval true .
+    ?template gov:hasInsufficientDocumentation true .
+} => {
+    ?template gov:isNonCompliant true .
+    ?template gov:requiresImmediateAttention true .
+} .
+
+# Summary Governance Rules
+{
+    ?template a kgen:Template .
+    ?template gov:isCompliant true .
+    ?template gov:hasSecurityLevel ?level .
+    ?template gov:riskLevel ?risk .
+} => {
+    ?template gov:governanceStatus "APPROVED" .
+} .
+
+{
+    ?template a kgen:Template .
+    ?template gov:isNonCompliant true .
+} => {
+    ?template gov:governanceStatus "REJECTED" .
+} .
+
+{
+    ?artifact a kgen:Artifact .
+    ?artifact gov:canDeploy true .
+    ?artifact gov:complianceScore ?score .
+    ?score math:greaterThan 0.89 .
+} => {
+    ?artifact gov:deploymentStatus "APPROVED" .
+} .

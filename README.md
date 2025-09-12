@@ -4,6 +4,11 @@
 [![Node.js Version](https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen.svg)](https://nodejs.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
+[![CI Pipeline](https://github.com/seanchatmangpt/unjucks/actions/workflows/ci.yml/badge.svg)](https://github.com/seanchatmangpt/unjucks/actions/workflows/ci.yml)
+[![Drift Detection](https://github.com/seanchatmangpt/unjucks/actions/workflows/drift.yml/badge.svg)](https://github.com/seanchatmangpt/unjucks/actions/workflows/drift.yml)
+[![KGEN Release](https://github.com/seanchatmangpt/unjucks/actions/workflows/kgen-release.yml/badge.svg)](https://github.com/seanchatmangpt/unjucks/actions/workflows/kgen-release.yml)
+[![Codecov](https://codecov.io/gh/seanchatmangpt/unjucks/branch/main/graph/badge.svg)](https://codecov.io/gh/seanchatmangpt/unjucks)
+
 Unjucks is an advanced code generation platform that combines **Nunjucks templating**, **semantic web technologies**, and **intelligent scaffolding** to create everything from components to enterprise applications. Now with **ontology-driven generation** and **AI-powered semantic matching**.
 
 ## ✨ What's New in v3.0

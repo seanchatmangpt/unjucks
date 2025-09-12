@@ -1,0 +1,40 @@
+{
+  "keyId": "eddsa-1757717922931-5cddc944",
+  "algorithm": "EdDSA",
+  "keySize": 256,
+  "fingerprint": "1393f3777edada1a",
+  "status": "rotated",
+  "created": "2025-09-12T22:58:42.931Z",
+  "lastUsed": "2025-09-12T22:58:42.931Z",
+  "usageCount": 0,
+  "publicJWK": {
+    "crv": "Ed25519",
+    "x": "fLHBgx3co7X8TmeWvitVPsHzvBhRjmGuIRnK698z_cE",
+    "kty": "OKP",
+    "kid": "eddsa-1757717922931-5cddc944",
+    "use": "sig",
+    "alg": "EdDSA",
+    "key_ops": [
+      "verify"
+    ]
+  },
+  "privateJWK": {
+    "crv": "Ed25519",
+    "d": "g3xGS34JRO6dce3jOkrL669y6JLLH5PdTX4JhymPLqc",
+    "x": "fLHBgx3co7X8TmeWvitVPsHzvBhRjmGuIRnK698z_cE",
+    "kty": "OKP",
+    "kid": "eddsa-1757717922931-5cddc944",
+    "use": "sig",
+    "alg": "EdDSA",
+    "key_ops": [
+      "sign"
+    ]
+  },
+  "keyPair": {
+    "privateKey": {},
+    "publicKey": {}
+  },
+  "encrypted": true,
+  "rotationDue": null,
+  "rotatedAt": "2025-09-12T22:58:43.242Z"
+}

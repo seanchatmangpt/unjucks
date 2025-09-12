@@ -14,10 +14,13 @@ import { Parser, Writer, Store, DataFactory, Util } from 'n3';
 import { CanonicalRDFProcessor } from './canonical-processor.js';
 import { GraphIndexer } from './graph-indexer.js';
 import { EnhancedRDFProcessor } from './enhanced-processor.js';
+// Import enhanced components
+import { SparqlInterface } from './sparql-interface.js';
+import KgenSparqlEngine from './sparql-engine.js';
+import SemanticHasher from './semantic-hasher.js';
 // Legacy components - will import conditionally to avoid missing dependency errors
 // import { GraphProcessor } from './graph-processor.js';
 // import { GraphDiffEngine } from './graph-diff-engine.js';  
-// import { SparqlInterface } from './sparql-interface.js';
 // import { ContentAddressedCache } from './content-addressed-cache.js';
 import { EventEmitter } from 'events';
 import consola from 'consola';
@@ -27,7 +30,10 @@ import crypto from 'crypto';
 export { 
   CanonicalRDFProcessor,
   GraphIndexer, 
-  EnhancedRDFProcessor
+  EnhancedRDFProcessor,
+  SparqlInterface,
+  KgenSparqlEngine,
+  SemanticHasher
 };
 
 // Export N3.js components for direct access
