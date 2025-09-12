@@ -1,0 +1,24 @@
+# Person API Documentation
+
+Generated from RDF Schema: {{ graph.source || 'sample.ttl' }}
+
+## Classes Detected
+
+{% for class in classes %}
+### {{ class.label || class.localName }}
+- Type: {{ class.type }}
+- Comment: {{ class.comment || 'No description' }}
+{% endfor %}
+
+## Properties Detected
+
+{% for property in properties %}
+### {{ property.label || property.localName }}
+- Domain: {{ property.domain || 'Not specified' }}
+- Range: {{ property.range || 'Not specified' }}
+- Comment: {{ property.comment || 'No description' }}
+{% endfor %}
+
+---
+Generated on: {{ timestamp || new Date().toISOString() }}
+Schema Hash: {{ graph.hash || 'Not available' }}

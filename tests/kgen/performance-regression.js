@@ -13,6 +13,7 @@ import path from 'path';
 import crypto from 'crypto';
 import consola from 'consola';
 import { fileURLToPath } from 'url';
+import os from 'os';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -786,9 +787,9 @@ ex:activity${i} a prov:Activity ;
         timestamp: new Date(),
         nodeVersion: process.version,
         platform: process.platform,
-        cpuCount: require('os').cpus().length,
-        totalMemory: require('os').totalmem(),
-        freeMemory: require('os').freemem()
+        cpuCount: os.cpus().length,
+        totalMemory: os.totalmem(),
+        freeMemory: os.freemem()
       },
       summary: {
         totalTests: this.currentResults.size,

@@ -1,0 +1,564 @@
+# KGEN Platform Prometheus Alerting Rules
+# Comprehensive monitoring rules for cloud-native multi-tenant platform
+
+groups:
+  - name: kgen-platform-health
+    interval: 30s
+    rules:
+      # Service availability alerts
+      - alert: ServiceDown
+        expr: up{job=~"kgen-.*"} == 0
+        for: 5m
+        labels:
+          severity: critical
+          component: "{{ $labels.job }}"
+        annotations:
+          summary: "KGEN service {{ $labels.job }} is down"
+          description: "Service {{ $labels.job }} has been down for more than 5 minutes on {{ $labels.instance }}"
+          runbook_url: "https://docs.kgen.io/runbooks/service-down"
+          
+      - alert: HighErrorRate
+        expr: >
+          (
+            rate(http_requests_total{job=~"kgen-.*",status=~"5.."}[5m]) /
+            rate(http_requests_total{job=~"kgen-.*"}[5m])
+          ) > 0.05
+        for: 10m
+        labels:
+          severity: warning
+          component: "{{ $labels.job }}"
+        annotations:
+          summary: "High error rate on {{ $labels.job }}"
+          description: "Error rate is {{ $value | humanizePercentage }} on {{ $labels.job }}"
+          runbook_url: "https://docs.kgen.io/runbooks/high-error-rate"
+
+      - alert: CriticalErrorRate
+        expr: >
+          (
+            rate(http_requests_total{job=~"kgen-.*",status=~"5.."}[5m]) /
+            rate(http_requests_total{job=~"kgen-.*"}[5m])
+          ) > 0.20
+        for: 5m
+        labels:
+          severity: critical
+          component: "{{ $labels.job }}"
+        annotations:
+          summary: "Critical error rate on {{ $labels.job }}"
+          description: "Error rate is {{ $value | humanizePercentage }} on {{ $labels.job }}"
+          runbook_url: "https://docs.kgen.io/runbooks/critical-error-rate"
+
+      - alert: HighLatency
+        expr: >
+          histogram_quantile(0.95, 
+            rate(http_request_duration_seconds_bucket{job=~"kgen-.*"}[5m])
+          ) > 2
+        for: 15m
+        labels:
+          severity: warning
+          component: "{{ $labels.job }}"
+        annotations:
+          summary: "High latency on {{ $labels.job }}"
+          description: "95th percentile latency is {{ $value }}s on {{ $labels.job }}"
+          runbook_url: "https://docs.kgen.io/runbooks/high-latency"
+
+      - alert: VeryHighLatency
+        expr: >
+          histogram_quantile(0.95, 
+            rate(http_request_duration_seconds_bucket{job=~"kgen-.*"}[5m])
+          ) > 10
+        for: 5m
+        labels:
+          severity: critical
+          component: "{{ $labels.job }}"
+        annotations:
+          summary: "Very high latency on {{ $labels.job }}"
+          description: "95th percentile latency is {{ $value }}s on {{ $labels.job }}"
+          runbook_url: "https://docs.kgen.io/runbooks/very-high-latency"
+
+  - name: kgen-resource-usage
+    interval: 60s
+    rules:
+      # Resource usage alerts
+      - alert: HighCPUUsage
+        expr: >
+          (
+            rate(container_cpu_usage_seconds_total{pod=~"kgen-.*"}[5m]) * 100
+          ) > 80
+        for: 15m
+        labels:
+          severity: warning
+          component: "{{ $labels.pod }}"
+        annotations:
+          summary: "High CPU usage on {{ $labels.pod }}"
+          description: "CPU usage is {{ $value }}% on {{ $labels.pod }}"
+          runbook_url: "https://docs.kgen.io/runbooks/high-cpu-usage"
+
+      - alert: CriticalCPUUsage
+        expr: >
+          (
+            rate(container_cpu_usage_seconds_total{pod=~"kgen-.*"}[5m]) * 100
+          ) > 95
+        for: 5m
+        labels:
+          severity: critical
+          component: "{{ $labels.pod }}"
+        annotations:
+          summary: "Critical CPU usage on {{ $labels.pod }}"
+          description: "CPU usage is {{ $value }}% on {{ $labels.pod }}"
+          runbook_url: "https://docs.kgen.io/runbooks/critical-cpu-usage"
+
+      - alert: HighMemoryUsage
+        expr: >
+          (
+            container_memory_working_set_bytes{pod=~"kgen-.*"} /
+            container_spec_memory_limit_bytes{pod=~"kgen-.*"}
+          ) > 0.85
+        for: 10m
+        labels:
+          severity: warning
+          component: "{{ $labels.pod }}"
+        annotations:
+          summary: "High memory usage on {{ $labels.pod }}"
+          description: "Memory usage is {{ $value | humanizePercentage }} on {{ $labels.pod }}"
+          runbook_url: "https://docs.kgen.io/runbooks/high-memory-usage"
+
+      - alert: CriticalMemoryUsage
+        expr: >
+          (
+            container_memory_working_set_bytes{pod=~"kgen-.*"} /
+            container_spec_memory_limit_bytes{pod=~"kgen-.*"}
+          ) > 0.95
+        for: 5m
+        labels:
+          severity: critical
+          component: "{{ $labels.pod }}"
+        annotations:
+          summary: "Critical memory usage on {{ $labels.pod }}"
+          description: "Memory usage is {{ $value | humanizePercentage }} on {{ $labels.pod }}"
+          runbook_url: "https://docs.kgen.io/runbooks/critical-memory-usage"
+
+      - alert: PodRestartingFrequently
+        expr: >
+          rate(kube_pod_container_status_restarts_total{pod=~"kgen-.*"}[1h]) > 0.1
+        for: 15m
+        labels:
+          severity: warning
+          component: "{{ $labels.pod }}"
+        annotations:
+          summary: "Pod {{ $labels.pod }} restarting frequently"
+          description: "Pod {{ $labels.pod }} has restarted {{ $value }} times in the last hour"
+          runbook_url: "https://docs.kgen.io/runbooks/pod-restarting"
+
+  - name: kgen-multi-tenancy
+    interval: 60s
+    rules:
+      # Multi-tenancy specific alerts
+      - alert: TenantQuotaExceeded
+        expr: >
+          kube_resourcequota{resource="requests.cpu", type="hard"} - 
+          kube_resourcequota{resource="requests.cpu", type="used"} < 0.1 * 
+          kube_resourcequota{resource="requests.cpu", type="hard"}
+        for: 10m
+        labels:
+          severity: warning
+          tenant_id: "{{ $labels.namespace | regex_replace 'tenant-(.*)' '$1' }}"
+        annotations:
+          summary: "Tenant {{ $labels.tenant_id }} approaching CPU quota"
+          description: "Tenant {{ $labels.tenant_id }} is using {{ $value | humanize }}% of CPU quota"
+          runbook_url: "https://docs.kgen.io/runbooks/tenant-quota-exceeded"
+
+      - alert: TenantStorageQuotaExceeded
+        expr: >
+          kube_resourcequota{resource="requests.storage", type="hard"} - 
+          kube_resourcequota{resource="requests.storage", type="used"} < 0.05 * 
+          kube_resourcequota{resource="requests.storage", type="hard"}
+        for: 5m
+        labels:
+          severity: critical
+          tenant_id: "{{ $labels.namespace | regex_replace 'tenant-(.*)' '$1' }}"
+        annotations:
+          summary: "Tenant {{ $labels.tenant_id }} storage quota critical"
+          description: "Tenant {{ $labels.tenant_id }} has less than 5% storage quota remaining"
+          runbook_url: "https://docs.kgen.io/runbooks/tenant-storage-quota"
+
+      - alert: TenantRateLimitHigh
+        expr: >
+          rate(rate_limit_hits_total[5m]) > 100
+        for: 10m
+        labels:
+          severity: warning
+          tenant_id: "{{ $labels.tenant_id }}"
+        annotations:
+          summary: "High rate limit hits for tenant {{ $labels.tenant_id }}"
+          description: "Tenant {{ $labels.tenant_id }} is hitting rate limits frequently"
+          runbook_url: "https://docs.kgen.io/runbooks/tenant-rate-limit"
+
+      - alert: TenantIsolationBreach
+        expr: >
+          kube_pod_info{namespace=~"tenant-.*"} and on(node) 
+          kube_pod_info{namespace!~"tenant-.*|kgen-.*|kube-.*"}
+        for: 1m
+        labels:
+          severity: critical
+          tenant_id: "{{ $labels.namespace | regex_replace 'tenant-(.*)' '$1' }}"
+        annotations:
+          summary: "Potential tenant isolation breach"
+          description: "Tenant pod running on node with non-tenant workloads"
+          runbook_url: "https://docs.kgen.io/runbooks/tenant-isolation-breach"
+
+  - name: kgen-data-layer
+    interval: 60s
+    rules:
+      # Database and storage alerts
+      - alert: PostgreSQLDown
+        expr: >
+          up{job="postgresql"} == 0
+        for: 5m
+        labels:
+          severity: critical
+          component: "postgresql"
+        annotations:
+          summary: "PostgreSQL database is down"
+          description: "PostgreSQL database has been down for more than 5 minutes"
+          runbook_url: "https://docs.kgen.io/runbooks/postgresql-down"
+
+      - alert: PostgreSQLHighConnections
+        expr: >
+          pg_stat_database_numbackends / pg_settings_max_connections > 0.8
+        for: 10m
+        labels:
+          severity: warning
+          component: "postgresql"
+        annotations:
+          summary: "PostgreSQL connection usage is high"
+          description: "PostgreSQL is using {{ $value | humanizePercentage }} of max connections"
+          runbook_url: "https://docs.kgen.io/runbooks/postgresql-high-connections"
+
+      - alert: PostgreSQLSlowQueries
+        expr: >
+          rate(pg_stat_database_tup_returned[5m]) / rate(pg_stat_database_tup_fetched[5m]) < 0.1
+        for: 15m
+        labels:
+          severity: warning
+          component: "postgresql"
+        annotations:
+          summary: "PostgreSQL has slow queries"
+          description: "Query efficiency is {{ $value | humanizePercentage }}"
+          runbook_url: "https://docs.kgen.io/runbooks/postgresql-slow-queries"
+
+      - alert: RedisDown
+        expr: >
+          up{job="redis"} == 0
+        for: 5m
+        labels:
+          severity: critical
+          component: "redis"
+        annotations:
+          summary: "Redis cache is down"
+          description: "Redis cache has been down for more than 5 minutes"
+          runbook_url: "https://docs.kgen.io/runbooks/redis-down"
+
+      - alert: RedisHighMemoryUsage
+        expr: >
+          redis_memory_used_bytes / redis_memory_max_bytes > 0.9
+        for: 10m
+        labels:
+          severity: warning
+          component: "redis"
+        annotations:
+          summary: "Redis memory usage is high"
+          description: "Redis is using {{ $value | humanizePercentage }} of available memory"
+          runbook_url: "https://docs.kgen.io/runbooks/redis-high-memory"
+
+      - alert: RedisCacheMissRate
+        expr: >
+          rate(redis_keyspace_misses_total[5m]) / 
+          (rate(redis_keyspace_hits_total[5m]) + rate(redis_keyspace_misses_total[5m])) > 0.3
+        for: 15m
+        labels:
+          severity: warning
+          component: "redis"
+        annotations:
+          summary: "High Redis cache miss rate"
+          description: "Cache miss rate is {{ $value | humanizePercentage }}"
+          runbook_url: "https://docs.kgen.io/runbooks/redis-cache-miss-rate"
+
+  - name: kgen-business-metrics
+    interval: 120s
+    rules:
+      # Business and application-specific alerts
+      - alert: TemplateProcessingQueueBacklog
+        expr: >
+          template_processing_queue_length > 100
+        for: 10m
+        labels:
+          severity: warning
+          component: "template-processor"
+        annotations:
+          summary: "Template processing queue has backlog"
+          description: "{{ $value }} templates waiting in processing queue"
+          runbook_url: "https://docs.kgen.io/runbooks/template-queue-backlog"
+
+      - alert: ArtifactGenerationFailureRate
+        expr: >
+          rate(artifact_generation_failures_total[10m]) / 
+          rate(artifact_generation_total[10m]) > 0.05
+        for: 15m
+        labels:
+          severity: warning
+          component: "artifact-generator"
+        annotations:
+          summary: "High artifact generation failure rate"
+          description: "{{ $value | humanizePercentage }} of artifact generations are failing"
+          runbook_url: "https://docs.kgen.io/runbooks/artifact-generation-failures"
+
+      - alert: KnowledgeGraphQueryTimeout
+        expr: >
+          rate(sparql_query_timeouts_total[5m]) > 5
+        for: 10m
+        labels:
+          severity: warning
+          component: "knowledge-graph"
+        annotations:
+          summary: "SPARQL queries timing out"
+          description: "{{ $value }} SPARQL queries timing out per second"
+          runbook_url: "https://docs.kgen.io/runbooks/sparql-timeouts"
+
+      - alert: DriftDetectionAnomalies
+        expr: >
+          rate(drift_detection_anomalies_total[1h]) > 10
+        for: 30m
+        labels:
+          severity: warning
+          component: "drift-detection"
+        annotations:
+          summary: "High number of drift anomalies detected"
+          description: "{{ $value }} drift anomalies detected in the last hour"
+          runbook_url: "https://docs.kgen.io/runbooks/drift-anomalies"
+
+      - alert: LowCacheHitRate
+        expr: >
+          rate(template_cache_hits_total[5m]) / 
+          (rate(template_cache_hits_total[5m]) + rate(template_cache_misses_total[5m])) < 0.6
+        for: 20m
+        labels:
+          severity: warning
+          component: "template-processor"
+        annotations:
+          summary: "Low cache hit rate for templates"
+          description: "Cache hit rate is {{ $value | humanizePercentage }}"
+          runbook_url: "https://docs.kgen.io/runbooks/low-cache-hit-rate"
+
+  - name: kgen-security
+    interval: 60s
+    rules:
+      # Security-related alerts
+      - alert: AuthenticationFailureSpike
+        expr: >
+          rate(authentication_failures_total[5m]) > 50
+        for: 5m
+        labels:
+          severity: critical
+          component: "api-gateway"
+        annotations:
+          summary: "High authentication failure rate"
+          description: "{{ $value }} authentication failures per second"
+          runbook_url: "https://docs.kgen.io/runbooks/auth-failure-spike"
+
+      - alert: SuspiciousIPActivity
+        expr: >
+          rate(http_requests_total[5m]) by (client_ip) > 1000
+        for: 10m
+        labels:
+          severity: warning
+          component: "api-gateway"
+        annotations:
+          summary: "Suspicious activity from IP {{ $labels.client_ip }}"
+          description: "High request rate {{ $value }}/s from {{ $labels.client_ip }}"
+          runbook_url: "https://docs.kgen.io/runbooks/suspicious-ip-activity"
+
+      - alert: CertificateExpiringSoon
+        expr: >
+          (probe_ssl_earliest_cert_expiry - time()) / 86400 < 30
+        for: 1h
+        labels:
+          severity: warning
+          component: "certificates"
+        annotations:
+          summary: "SSL certificate expiring soon"
+          description: "Certificate for {{ $labels.instance }} expires in {{ $value }} days"
+          runbook_url: "https://docs.kgen.io/runbooks/certificate-expiring"
+
+      - alert: PodSecurityPolicyViolation
+        expr: >
+          increase(pod_security_policy_violations_total[1h]) > 0
+        for: 1m
+        labels:
+          severity: critical
+          component: "security"
+        annotations:
+          summary: "Pod security policy violation detected"
+          description: "{{ $value }} security policy violations in the last hour"
+          runbook_url: "https://docs.kgen.io/runbooks/pod-security-violation"
+
+  - name: kgen-infrastructure
+    interval: 120s
+    rules:
+      # Infrastructure and Kubernetes alerts
+      - alert: KubernetesNodeNotReady
+        expr: >
+          kube_node_status_condition{condition="Ready",status="true"} == 0
+        for: 5m
+        labels:
+          severity: critical
+          component: "kubernetes"
+        annotations:
+          summary: "Kubernetes node {{ $labels.node }} not ready"
+          description: "Node {{ $labels.node }} has been not ready for more than 5 minutes"
+          runbook_url: "https://docs.kgen.io/runbooks/node-not-ready"
+
+      - alert: KubernetesPodCrashLooping
+        expr: >
+          rate(kube_pod_container_status_restarts_total[15m]) > 0
+        for: 15m
+        labels:
+          severity: warning
+          component: "kubernetes"
+        annotations:
+          summary: "Pod {{ $labels.pod }} crash looping"
+          description: "Pod {{ $labels.pod }} has restarted {{ $value }} times"
+          runbook_url: "https://docs.kgen.io/runbooks/pod-crash-looping"
+
+      - alert: KubernetesDeploymentReplicasMismatch
+        expr: >
+          kube_deployment_status_replicas != kube_deployment_status_replicas_available
+        for: 15m
+        labels:
+          severity: warning
+          component: "kubernetes"
+        annotations:
+          summary: "Deployment {{ $labels.deployment }} has mismatched replicas"
+          description: "{{ $labels.deployment }} has {{ $value }} replicas mismatch"
+          runbook_url: "https://docs.kgen.io/runbooks/deployment-replicas-mismatch"
+
+      - alert: PersistentVolumeUsageHigh
+        expr: >
+          (kubelet_volume_stats_used_bytes / kubelet_volume_stats_capacity_bytes) > 0.9
+        for: 10m
+        labels:
+          severity: warning
+          component: "storage"
+        annotations:
+          summary: "High persistent volume usage"
+          description: "PV {{ $labels.persistentvolumeclaim }} is {{ $value | humanizePercentage }} full"
+          runbook_url: "https://docs.kgen.io/runbooks/pv-usage-high"
+
+      - alert: NetworkPolicyDenials
+        expr: >
+          rate(network_policy_denials_total[5m]) > 10
+        for: 10m
+        labels:
+          severity: warning
+          component: "networking"
+        annotations:
+          summary: "High network policy denials"
+          description: "{{ $value }} network policy denials per second"
+          runbook_url: "https://docs.kgen.io/runbooks/network-policy-denials"
+
+  - name: kgen-istio-service-mesh
+    interval: 60s
+    rules:
+      # Istio service mesh alerts
+      - alert: IstioHighRequestLatency
+        expr: >
+          histogram_quantile(0.99, 
+            sum(rate(istio_request_duration_milliseconds_bucket{
+              destination_service_name=~"kgen-.*"
+            }[5m])) by (destination_service_name, le)
+          ) > 5000
+        for: 10m
+        labels:
+          severity: warning
+          component: "istio"
+        annotations:
+          summary: "High request latency in service mesh"
+          description: "99th percentile latency is {{ $value }}ms for {{ $labels.destination_service_name }}"
+          runbook_url: "https://docs.kgen.io/runbooks/istio-high-latency"
+
+      - alert: IstioCircuitBreakerOpen
+        expr: >
+          increase(istio_request_total{
+            response_flags=~".*UO.*"
+          }[5m]) > 0
+        for: 5m
+        labels:
+          severity: critical
+          component: "istio"
+        annotations:
+          summary: "Circuit breaker open for {{ $labels.destination_service_name }}"
+          description: "Circuit breaker has opened due to upstream overflow"
+          runbook_url: "https://docs.kgen.io/runbooks/istio-circuit-breaker"
+
+      - alert: IstioTLSConfigurationError
+        expr: >
+          increase(istio_request_total{
+            response_flags=~".*UAEX.*"
+          }[5m]) > 0
+        for: 1m
+        labels:
+          severity: critical
+          component: "istio"
+        annotations:
+          summary: "TLS configuration error in service mesh"
+          description: "TLS configuration errors detected for {{ $labels.destination_service_name }}"
+          runbook_url: "https://docs.kgen.io/runbooks/istio-tls-error"
+
+  - name: kgen-capacity-planning
+    interval: 300s
+    rules:
+      # Capacity planning and scaling alerts
+      - alert: HPAMaxReplicasReached
+        expr: >
+          kube_horizontalpodautoscaler_status_current_replicas >= 
+          kube_horizontalpodautoscaler_spec_max_replicas
+        for: 30m
+        labels:
+          severity: warning
+          component: "autoscaling"
+        annotations:
+          summary: "HPA {{ $labels.horizontalpodautoscaler }} at maximum replicas"
+          description: "HPA has reached maximum replicas of {{ $value }}"
+          runbook_url: "https://docs.kgen.io/runbooks/hpa-max-replicas"
+
+      - alert: NodeResourcePressure
+        expr: >
+          (
+            kube_node_status_allocatable{resource="cpu"} - 
+            kube_node_status_allocatable{resource="cpu"} * 
+            on(node) group_left() (
+              1 - rate(node_cpu_seconds_total{mode="idle"}[5m])
+            )
+          ) / kube_node_status_allocatable{resource="cpu"} < 0.1
+        for: 20m
+        labels:
+          severity: warning
+          component: "capacity"
+        annotations:
+          summary: "Node {{ $labels.node }} under resource pressure"
+          description: "Less than 10% CPU capacity remaining on node {{ $labels.node }}"
+          runbook_url: "https://docs.kgen.io/runbooks/node-resource-pressure"
+
+      - alert: ClusterResourceUtilizationHigh
+        expr: >
+          (
+            sum(kube_pod_container_resource_requests{resource="cpu"}) /
+            sum(kube_node_status_allocatable{resource="cpu"})
+          ) > 0.8
+        for: 30m
+        labels:
+          severity: warning
+          component: "capacity"
+        annotations:
+          summary: "High cluster CPU utilization"
+          description: "Cluster CPU utilization is {{ $value | humanizePercentage }}"
+          runbook_url: "https://docs.kgen.io/runbooks/cluster-utilization-high"

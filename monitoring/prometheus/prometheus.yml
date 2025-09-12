@@ -1,0 +1,140 @@
+# Prometheus Configuration for KGEN Monitoring
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    environment: 'production'
+    service: 'kgen'
+
+# Alertmanager configuration
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+          - alertmanager:9093
+
+# Load rules once and periodically evaluate them
+rule_files:
+  - "alert_rules.yml"
+  - "recording_rules.yml"
+
+# Scrape configuration
+scrape_configs:
+  # KGEN Application Metrics
+  - job_name: 'kgen-app'
+    scrape_interval: 10s
+    metrics_path: /metrics
+    static_configs:
+      - targets: ['kgen-app:3000']
+    scrape_timeout: 5s
+    honor_labels: true
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: kgen-app:3000
+
+  # Node Exporter for System Metrics
+  - job_name: 'node-exporter'
+    scrape_interval: 15s
+    static_configs:
+      - targets: ['node-exporter:9100']
+    relabel_configs:
+      - source_labels: [__address__]
+        regex: '(.*):(.*)'
+        target_label: 'instance'
+        replacement: '${1}'
+
+  # Docker Container Metrics
+  - job_name: 'cadvisor'
+    scrape_interval: 15s
+    static_configs:
+      - targets: ['cadvisor:8080']
+    metric_relabel_configs:
+      - source_labels: [container_label_com_docker_compose_service]
+        target_label: service_name
+      - source_labels: [container_label_com_docker_compose_project]
+        target_label: project_name
+
+  # Blackbox Exporter for Synthetic Monitoring
+  - job_name: 'blackbox-http'
+    metrics_path: /probe
+    params:
+      module: [http_2xx]
+    static_configs:
+      - targets:
+        - http://kgen-app:3000/health
+        - http://kgen-app:3000/metrics
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: blackbox-exporter:9115
+
+  # Jaeger Tracing Metrics
+  - job_name: 'jaeger'
+    scrape_interval: 30s
+    static_configs:
+      - targets: ['jaeger:14269']
+    metrics_path: /metrics
+
+  # Redis Metrics (for caching)
+  - job_name: 'redis'
+    scrape_interval: 30s
+    static_configs:
+      - targets: ['redis-exporter:9121']
+
+  # Elasticsearch Metrics (for ELK stack)
+  - job_name: 'elasticsearch'
+    scrape_interval: 30s
+    static_configs:
+      - targets: ['elasticsearch-exporter:9114']
+
+  # Grafana Metrics
+  - job_name: 'grafana'
+    scrape_interval: 30s
+    static_configs:
+      - targets: ['grafana:3000']
+    metrics_path: /metrics
+
+  # Custom Business Logic Metrics
+  - job_name: 'kgen-business'
+    scrape_interval: 30s
+    metrics_path: /business-metrics
+    static_configs:
+      - targets: ['kgen-app:3000']
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: component
+        replacement: 'business-logic'
+
+# Storage configuration
+storage:
+  tsdb:
+    path: /prometheus/data
+    retention.time: 30d
+    retention.size: 10GB
+    wal-compression: true
+
+# Recording rules for complex queries
+recording_rules:
+  - record: kgen:generation_rate_5m
+    expr: rate(kgen_generations_total[5m])
+  
+  - record: kgen:error_rate_5m
+    expr: rate(kgen_errors_total[5m])
+  
+  - record: kgen:cache_efficiency
+    expr: kgen_cache_hit_rate / 100
+
+# Remote write (for long-term storage)
+remote_write:
+  - url: "http://thanos-receiver:19291/api/v1/receive"
+    queue_config:
+      max_samples_per_send: 10000
+      max_shards: 200
+      capacity: 20000

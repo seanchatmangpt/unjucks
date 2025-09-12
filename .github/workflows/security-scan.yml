@@ -1,0 +1,650 @@
+name: 'Security Scanning & Vulnerability Assessment'
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+  schedule:
+    # Run security scans daily at 2 AM UTC
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+    inputs:
+      scan_type:
+        description: 'Type of security scan'
+        required: true
+        default: 'comprehensive'
+        type: choice
+        options:
+          - comprehensive
+          - dependencies
+          - container
+          - infrastructure
+          - secrets
+
+env:
+  NODE_VERSION: '20'
+  REGISTRY: ghcr.io
+  IMAGE_NAME: kgen
+
+jobs:
+  # ================================
+  # DEPENDENCY VULNERABILITY SCAN
+  # ================================
+  
+  dependency-scan:
+    name: 'Dependency Vulnerability Scan'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    if: |
+      github.event_name == 'schedule' ||
+      github.event_name == 'workflow_dispatch' ||
+      contains(github.event.inputs.scan_type, 'dependencies') ||
+      contains(github.event.inputs.scan_type, 'comprehensive')
+    
+    steps:
+      - name: 'Checkout Repository'
+        uses: actions/checkout@v4
+      
+      - name: 'Setup Node.js'
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+      
+      - name: 'Install Dependencies'
+        run: npm ci --prefer-offline --no-audit
+      
+      - name: 'NPM Security Audit'
+        run: |
+          npm audit --audit-level=moderate --json > npm-audit.json || true
+          npx audit-ci --config .audit-ci.json --report-type=json --output-file=audit-ci-report.json || true
+        continue-on-error: true
+      
+      - name: 'Snyk Dependency Scan'
+        uses: snyk/actions/node@master
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          args: --severity-threshold=medium --json-file-output=snyk-dependencies.json
+        continue-on-error: true
+      
+      - name: 'OSV Scanner'
+        uses: google/osv-scanner-action@v1
+        with:
+          scan-args: |-
+            --format=json
+            --output=osv-scan-results.json
+            ./
+        continue-on-error: true
+      
+      - name: 'FOSSA License & Vulnerability Scan'
+        if: secrets.FOSSA_API_KEY
+        uses: fossas/fossa-action@main
+        with:
+          api-key: ${{ secrets.FOSSA_API_KEY }}
+          run-tests: true
+        continue-on-error: true
+      
+      - name: 'Generate Dependency Report'
+        run: |
+          cat > dependency-security-report.md << 'EOF'
+          # Dependency Security Report
+          
+          Generated: $(date -u +"%Y-%m-%d %H:%M:%S UTC")
+          Repository: ${{ github.repository }}
+          Commit: ${{ github.sha }}
+          
+          ## Summary
+          
+          ### NPM Audit Results
+          \`\`\`json
+          $(cat npm-audit.json 2>/dev/null || echo "No NPM audit results")
+          \`\`\`
+          
+          ### Snyk Scan Results
+          \`\`\`json
+          $(cat snyk-dependencies.json 2>/dev/null || echo "No Snyk results")
+          \`\`\`
+          
+          ### OSV Scanner Results
+          \`\`\`json
+          $(cat osv-scan-results.json 2>/dev/null || echo "No OSV scanner results")
+          \`\`\`
+          EOF
+      
+      - name: 'Upload Dependency Scan Results'
+        uses: actions/upload-artifact@v4
+        with:
+          name: dependency-scan-results
+          path: |
+            npm-audit.json
+            audit-ci-report.json
+            snyk-dependencies.json
+            osv-scan-results.json
+            dependency-security-report.md
+          retention-days: 30
+
+  # ================================
+  # CONTAINER SECURITY SCAN
+  # ================================
+  
+  container-security-scan:
+    name: 'Container Security Scan'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    if: |
+      github.event_name == 'schedule' ||
+      github.event_name == 'workflow_dispatch' ||
+      contains(github.event.inputs.scan_type, 'container') ||
+      contains(github.event.inputs.scan_type, 'comprehensive')
+    
+    steps:
+      - name: 'Checkout Repository'
+        uses: actions/checkout@v4
+      
+      - name: 'Set up Docker Buildx'
+        uses: docker/setup-buildx-action@v3
+      
+      - name: 'Build Test Container'
+        id: build
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./infrastructure/docker/Dockerfile
+          load: true
+          tags: kgen-security-test:latest
+          cache-from: type=gha
+          build-args: |
+            NODE_VERSION=${{ env.NODE_VERSION }}
+      
+      - name: 'Trivy Container Scan'
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: 'kgen-security-test:latest'
+          format: 'sarif'
+          output: 'trivy-container-scan.sarif'
+          severity: 'CRITICAL,HIGH,MEDIUM'
+          exit-code: '0'
+      
+      - name: 'Snyk Container Scan'
+        uses: snyk/actions/docker@master
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          image: kgen-security-test:latest
+          args: --severity-threshold=medium --json-file-output=snyk-container.json
+        continue-on-error: true
+      
+      - name: 'Anchore Grype Scan'
+        uses: anchore/scan-action@v3
+        with:
+          image: kgen-security-test:latest
+          format: sarif
+          output-file: grype-scan-results.sarif
+          fail-build: false
+      
+      - name: 'Docker Scout Scan'
+        if: secrets.DOCKER_SCOUT_TOKEN
+        uses: docker/scout-action@v1
+        with:
+          command: cves
+          image: kgen-security-test:latest
+          format: sarif
+          output: docker-scout-results.sarif
+          token: ${{ secrets.DOCKER_SCOUT_TOKEN }}
+        continue-on-error: true
+      
+      - name: 'Container Hardening Check'
+        run: |
+          # Check for security best practices
+          docker run --rm -v /var/run/docker.sock:/var/run/docker.sock \
+            aquasec/docker-bench-security:latest \
+            --json > docker-bench-security.json || true
+          
+          # Check container configuration
+          docker inspect kgen-security-test:latest > container-config.json
+          
+          # Analyze container layers
+          docker history --format "table {{.CreatedBy}}\t{{.Size}}" kgen-security-test:latest > container-layers.txt
+      
+      - name: 'Upload Container Security Results'
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: |
+            trivy-container-scan.sarif
+            grype-scan-results.sarif
+            docker-scout-results.sarif
+          wait-for-processing: true
+      
+      - name: 'Upload Container Scan Artifacts'
+        uses: actions/upload-artifact@v4
+        with:
+          name: container-security-results
+          path: |
+            trivy-container-scan.sarif
+            snyk-container.json
+            grype-scan-results.sarif
+            docker-scout-results.sarif
+            docker-bench-security.json
+            container-config.json
+            container-layers.txt
+          retention-days: 30
+
+  # ================================
+  # INFRASTRUCTURE SECURITY SCAN
+  # ================================
+  
+  infrastructure-security-scan:
+    name: 'Infrastructure Security Scan'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    if: |
+      github.event_name == 'schedule' ||
+      github.event_name == 'workflow_dispatch' ||
+      contains(github.event.inputs.scan_type, 'infrastructure') ||
+      contains(github.event.inputs.scan_type, 'comprehensive')
+    
+    steps:
+      - name: 'Checkout Repository'
+        uses: actions/checkout@v4
+      
+      - name: 'Setup Terraform'
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: '1.6.0'
+      
+      - name: 'TFSec Security Scan'
+        uses: aquasecurity/tfsec-action@v1.0.3
+        with:
+          working_directory: infrastructure/terraform
+          format: sarif
+          sarif_file: tfsec-results.sarif
+          additional_args: --minimum-severity MEDIUM
+      
+      - name: 'Checkov Infrastructure Scan'
+        uses: bridgecrewio/checkov-action@v12
+        with:
+          directory: infrastructure/
+          format: sarif
+          output_file_path: checkov-results.sarif
+          output_format: cli,sarif
+          skip_check: CKV_DOCKER_2,CKV_DOCKER_3
+        continue-on-error: true
+      
+      - name: 'Terrascan Infrastructure Scan'
+        uses: tenable/terrascan-action@main
+        with:
+          iac_type: 'terraform'
+          iac_dir: 'infrastructure/terraform'
+          policy_type: 'aws,azure,gcp,kubernetes'
+          only_warn: true
+          sarif_upload: true
+      
+      - name: 'Kubernetes Security Scan'
+        run: |
+          # Install kube-score
+          wget -O kube-score https://github.com/zegl/kube-score/releases/latest/download/kube-score_linux_amd64
+          chmod +x kube-score
+          
+          # Scan Kubernetes manifests
+          ./kube-score score infrastructure/k8s/*.yml --output-format json > kube-score-results.json || true
+          
+          # Scan Helm charts
+          helm template kgen infrastructure/helm/kgen | ./kube-score score - --output-format json > helm-security-scan.json || true
+      
+      - name: 'Polaris Configuration Validation'
+        run: |
+          # Install Polaris
+          wget -O polaris https://github.com/FairwindsOps/polaris/releases/latest/download/polaris_linux_amd64
+          chmod +x polaris
+          
+          # Scan Kubernetes configurations
+          ./polaris audit --audit-path infrastructure/k8s/ --format json > polaris-audit.json || true
+      
+      - name: 'Upload Infrastructure Security Results'
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: |
+            tfsec-results.sarif
+            checkov-results.sarif
+          wait-for-processing: true
+      
+      - name: 'Upload Infrastructure Scan Artifacts'
+        uses: actions/upload-artifact@v4
+        with:
+          name: infrastructure-security-results
+          path: |
+            tfsec-results.sarif
+            checkov-results.sarif
+            kube-score-results.json
+            helm-security-scan.json
+            polaris-audit.json
+          retention-days: 30
+
+  # ================================
+  # SECRET DETECTION SCAN
+  # ================================
+  
+  secret-detection-scan:
+    name: 'Secret Detection Scan'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    if: |
+      github.event_name == 'schedule' ||
+      github.event_name == 'workflow_dispatch' ||
+      contains(github.event.inputs.scan_type, 'secrets') ||
+      contains(github.event.inputs.scan_type, 'comprehensive')
+    
+    steps:
+      - name: 'Checkout Repository'
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: 'TruffleHog Secret Scan'
+        uses: trufflesecurity/trufflehog@main
+        with:
+          path: ./
+          base: main
+          head: HEAD
+          extra_args: --debug --only-verified --json --output trufflehog-results.json
+        continue-on-error: true
+      
+      - name: 'GitLeaks Secret Detection'
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE }}
+        with:
+          config-path: .gitleaks.toml
+          report_format: sarif
+          output_path: gitleaks-report.sarif
+          fail: false
+      
+      - name: 'Detect Secrets Scan'
+        run: |
+          pip install detect-secrets
+          detect-secrets scan --all-files --baseline .secrets.baseline > detect-secrets-results.json || true
+          detect-secrets audit .secrets.baseline || true
+      
+      - name: 'Upload Secret Detection Results'
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: gitleaks-report.sarif
+          wait-for-processing: true
+      
+      - name: 'Upload Secret Scan Artifacts'
+        uses: actions/upload-artifact@v4
+        with:
+          name: secret-detection-results
+          path: |
+            trufflehog-results.json
+            gitleaks-report.sarif
+            detect-secrets-results.json
+          retention-days: 30
+
+  # ================================
+  # CODE QUALITY SECURITY ANALYSIS
+  # ================================
+  
+  code-security-analysis:
+    name: 'Code Security Analysis'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    if: |
+      github.event_name == 'schedule' ||
+      github.event_name == 'workflow_dispatch' ||
+      contains(github.event.inputs.scan_type, 'comprehensive')
+    
+    steps:
+      - name: 'Checkout Repository'
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: 'Setup Node.js'
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+      
+      - name: 'Install Dependencies'
+        run: npm ci --prefer-offline --no-audit
+      
+      - name: 'ESLint Security Analysis'
+        run: |
+          npm run lint -- --format=@microsoft/eslint-formatter-sarif --output-file=eslint-security.sarif
+          npx eslint . --ext .js,.ts,.jsx,.tsx --config .eslintrc.security.js --format json --output-file eslint-security.json || true
+        continue-on-error: true
+      
+      - name: 'Semgrep Security Scan'
+        uses: returntocorp/semgrep-action@v1
+        with:
+          config: >-
+            p/security-audit
+            p/secrets
+            p/owasp-top-ten
+            p/javascript
+            p/typescript
+          generateSarif: "1"
+          publishToken: ${{ secrets.SEMGREP_APP_TOKEN }}
+        continue-on-error: true
+      
+      - name: 'CodeQL Security Analysis'
+        uses: github/codeql-action/analyze@v3
+        with:
+          languages: javascript
+          queries: security-extended,security-and-quality
+          category: "/language:javascript"
+      
+      - name: 'SonarCloud Security Scan'
+        if: secrets.SONAR_TOKEN
+        uses: SonarSource/sonarcloud-github-action@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        with:
+          args: >
+            -Dsonar.qualitygate.wait=true
+            -Dsonar.security.hotspots.onlyReport=false
+      
+      - name: 'Upload Code Security Results'
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: |
+            eslint-security.sarif
+            semgrep.sarif
+          wait-for-processing: true
+      
+      - name: 'Upload Code Security Artifacts'
+        uses: actions/upload-artifact@v4
+        with:
+          name: code-security-results
+          path: |
+            eslint-security.sarif
+            eslint-security.json
+            semgrep.sarif
+          retention-days: 30
+
+  # ================================
+  # SECURITY REPORT GENERATION
+  # ================================
+  
+  security-report:
+    name: 'Generate Security Report'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    needs: 
+      - dependency-scan
+      - container-security-scan
+      - infrastructure-security-scan
+      - secret-detection-scan
+      - code-security-analysis
+    if: always()
+    
+    steps:
+      - name: 'Checkout Repository'
+        uses: actions/checkout@v4
+      
+      - name: 'Download All Security Artifacts'
+        uses: actions/download-artifact@v4
+        with:
+          path: security-artifacts/
+      
+      - name: 'Generate Comprehensive Security Report'
+        run: |
+          cat > SECURITY_REPORT.md << 'EOF'
+          # 🛡️ KGEN Security Assessment Report
+          
+          **Generated:** $(date -u +"%Y-%m-%d %H:%M:%S UTC")  
+          **Repository:** ${{ github.repository }}  
+          **Commit:** ${{ github.sha }}  
+          **Branch:** ${{ github.ref_name }}  
+          **Workflow:** ${{ github.workflow }} #${{ github.run_number }}  
+          
+          ## 📊 Security Scan Summary
+          
+          | Scan Type | Status | Critical | High | Medium | Low |
+          |-----------|--------|----------|------|--------|-----|
+          | Dependencies | ${{ needs.dependency-scan.result }} | - | - | - | - |
+          | Container | ${{ needs.container-security-scan.result }} | - | - | - | - |
+          | Infrastructure | ${{ needs.infrastructure-security-scan.result }} | - | - | - | - |
+          | Secrets | ${{ needs.secret-detection-scan.result }} | - | - | - | - |
+          | Code Analysis | ${{ needs.code-security-analysis.result }} | - | - | - | - |
+          
+          ## 🔍 Detailed Findings
+          
+          ### Dependency Vulnerabilities
+          
+          EOF
+          
+          # Add dependency scan results if available
+          if [ -f "security-artifacts/dependency-scan-results/npm-audit.json" ]; then
+            echo "#### NPM Audit Results" >> SECURITY_REPORT.md
+            echo '```json' >> SECURITY_REPORT.md
+            cat security-artifacts/dependency-scan-results/npm-audit.json >> SECURITY_REPORT.md
+            echo '```' >> SECURITY_REPORT.md
+          fi
+          
+          # Add container scan summary
+          cat >> SECURITY_REPORT.md << 'EOF'
+          
+          ### Container Security
+          
+          EOF
+          
+          if [ -f "security-artifacts/container-security-results/trivy-container-scan.sarif" ]; then
+            echo "- Trivy scan completed" >> SECURITY_REPORT.md
+          fi
+          
+          if [ -f "security-artifacts/container-security-results/snyk-container.json" ]; then
+            echo "- Snyk container scan completed" >> SECURITY_REPORT.md
+          fi
+          
+          # Add infrastructure scan summary
+          cat >> SECURITY_REPORT.md << 'EOF'
+          
+          ### Infrastructure Security
+          
+          EOF
+          
+          if [ -f "security-artifacts/infrastructure-security-results/tfsec-results.sarif" ]; then
+            echo "- Terraform security scan (TFSec) completed" >> SECURITY_REPORT.md
+          fi
+          
+          if [ -f "security-artifacts/infrastructure-security-results/checkov-results.sarif" ]; then
+            echo "- Infrastructure scan (Checkov) completed" >> SECURITY_REPORT.md
+          fi
+          
+          # Add recommendations
+          cat >> SECURITY_REPORT.md << 'EOF'
+          
+          ## 📋 Security Recommendations
+          
+          1. **Dependency Management**
+             - Regularly update dependencies to latest secure versions
+             - Enable automated dependency scanning and updates
+             - Monitor for new vulnerabilities in third-party packages
+          
+          2. **Container Security**
+             - Use minimal base images (distroless when possible)
+             - Implement multi-stage builds to reduce attack surface
+             - Scan containers before deployment to production
+             - Use non-root users in containers
+          
+          3. **Infrastructure Security**
+             - Enable encryption at rest and in transit
+             - Implement least privilege access controls
+             - Use infrastructure as code for consistent security
+             - Enable comprehensive logging and monitoring
+          
+          4. **Secret Management**
+             - Never commit secrets to version control
+             - Use dedicated secret management solutions
+             - Rotate secrets regularly
+             - Implement secret scanning in CI/CD pipelines
+          
+          5. **Code Security**
+             - Follow secure coding practices
+             - Implement static analysis security testing (SAST)
+             - Use dependency scanning (SCA)
+             - Conduct regular security code reviews
+          
+          ## 🚨 Action Items
+          
+          Based on this security assessment, the following actions are recommended:
+          
+          - [ ] Review and remediate high/critical vulnerabilities
+          - [ ] Update security policies and procedures
+          - [ ] Implement additional security controls as needed
+          - [ ] Schedule follow-up security assessment
+          
+          ---
+          *This report was automatically generated by the KGEN security scanning pipeline.*
+          EOF
+      
+      - name: 'Upload Security Report'
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-assessment-report
+          path: |
+            SECURITY_REPORT.md
+            security-artifacts/
+          retention-days: 90
+      
+      - name: 'Create Security Issue'
+        if: |
+          (needs.dependency-scan.result == 'failure') ||
+          (needs.container-security-scan.result == 'failure') ||
+          (needs.infrastructure-security-scan.result == 'failure') ||
+          (needs.secret-detection-scan.result == 'failure')
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const reportContent = fs.readFileSync('SECURITY_REPORT.md', 'utf8');
+            
+            github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `🚨 Security Vulnerabilities Detected - ${new Date().toISOString().split('T')[0]}`,
+              body: `${reportContent}\n\n**Workflow:** ${context.workflow} #${context.runNumber}\n**Commit:** ${context.sha}`,
+              labels: ['security', 'vulnerability', 'high-priority']
+            });
+      
+      - name: 'Notify Security Team'
+        if: |
+          (needs.dependency-scan.result == 'failure') ||
+          (needs.container-security-scan.result == 'failure') ||
+          (needs.infrastructure-security-scan.result == 'failure') ||
+          (needs.secret-detection-scan.result == 'failure')
+        uses: ./.github/actions/notify-security-team
+        with:
+          severity: high
+          report-path: SECURITY_REPORT.md
+          webhook-url: ${{ secrets.SECURITY_WEBHOOK_URL }}

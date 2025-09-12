@@ -1,0 +1,85 @@
+apiVersion: autoscaling.k8s.io/v1
+kind: VerticalPodAutoscaler
+metadata:
+  name: kgen-vpa
+  namespace: kgen
+  labels:
+    app.kubernetes.io/name: kgen
+    app.kubernetes.io/component: autoscaler
+spec:
+  targetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: kgen
+  updatePolicy:
+    updateMode: "Auto"
+    minReplicas: 3
+  resourcePolicy:
+    containerPolicies:
+    - containerName: kgen
+      minAllowed:
+        cpu: 50m
+        memory: 128Mi
+      maxAllowed:
+        cpu: 2000m
+        memory: 4Gi
+      controlledResources: ["cpu", "memory"]
+      controlledValues: RequestsAndLimits
+
+---
+apiVersion: autoscaling.k8s.io/v1
+kind: VerticalPodAutoscaler
+metadata:
+  name: kgen-blue-vpa
+  namespace: kgen
+  labels:
+    app.kubernetes.io/name: kgen
+    app.kubernetes.io/component: autoscaler
+    kgen.slot: blue
+spec:
+  targetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: kgen-blue
+  updatePolicy:
+    updateMode: "Off"  # Recommendation only during blue-green deployments
+  resourcePolicy:
+    containerPolicies:
+    - containerName: kgen
+      minAllowed:
+        cpu: 50m
+        memory: 128Mi
+      maxAllowed:
+        cpu: 2000m
+        memory: 4Gi
+      controlledResources: ["cpu", "memory"]
+      controlledValues: RequestsAndLimits
+
+---
+apiVersion: autoscaling.k8s.io/v1
+kind: VerticalPodAutoscaler
+metadata:
+  name: kgen-green-vpa
+  namespace: kgen
+  labels:
+    app.kubernetes.io/name: kgen
+    app.kubernetes.io/component: autoscaler
+    kgen.slot: green
+spec:
+  targetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: kgen-green
+  updatePolicy:
+    updateMode: "Off"  # Recommendation only during blue-green deployments
+  resourcePolicy:
+    containerPolicies:
+    - containerName: kgen
+      minAllowed:
+        cpu: 50m
+        memory: 128Mi
+      maxAllowed:
+        cpu: 2000m
+        memory: 4Gi
+      controlledResources: ["cpu", "memory"]
+      controlledValues: RequestsAndLimits

@@ -1,0 +1,147 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: kgen-ingress
+  namespace: kgen
+  labels:
+    app.kubernetes.io/name: kgen
+    app.kubernetes.io/component: ingress
+  annotations:
+    # Nginx Ingress Controller
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/backend-protocol: "HTTP"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "60"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "60"
+    nginx.ingress.kubernetes.io/proxy-connect-timeout: "5"
+    nginx.ingress.kubernetes.io/proxy-body-size: "16m"
+    
+    # Rate limiting
+    nginx.ingress.kubernetes.io/rate-limit-rpm: "600"
+    nginx.ingress.kubernetes.io/rate-limit-connections: "10"
+    
+    # Security headers
+    nginx.ingress.kubernetes.io/server-snippet: |
+      add_header X-Frame-Options SAMEORIGIN always;
+      add_header X-Content-Type-Options nosniff always;
+      add_header X-XSS-Protection "1; mode=block" always;
+      add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+      add_header Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self'; font-src 'self'; object-src 'none'; media-src 'self'; form-action 'self'; frame-ancestors 'none';" always;
+    
+    # SSL/TLS configuration
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    nginx.ingress.kubernetes.io/ssl-protocols: "TLSv1.2 TLSv1.3"
+    nginx.ingress.kubernetes.io/ssl-ciphers: "ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384"
+    
+    # Load balancing and sticky sessions
+    nginx.ingress.kubernetes.io/affinity: "cookie"
+    nginx.ingress.kubernetes.io/affinity-mode: "persistent"
+    nginx.ingress.kubernetes.io/session-cookie-name: "kgen-session"
+    nginx.ingress.kubernetes.io/session-cookie-max-age: "3600"
+    
+    # Health checks and upstreams
+    nginx.ingress.kubernetes.io/upstream-hash-by: "$remote_addr"
+    nginx.ingress.kubernetes.io/load-balance: "least_conn"
+spec:
+  ingressClassName: nginx
+  tls:
+  - hosts:
+    - kgen.yourdomain.com
+    - api.kgen.yourdomain.com
+    secretName: kgen-tls
+  rules:
+  - host: kgen.yourdomain.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: kgen
+            port:
+              number: 3000
+      # Health check endpoint
+      - path: /health
+        pathType: Exact
+        backend:
+          service:
+            name: kgen
+            port:
+              number: 3000
+      # Metrics endpoint (restricted)
+      - path: /metrics
+        pathType: Exact
+        backend:
+          service:
+            name: kgen
+            port:
+              number: 9090
+  - host: api.kgen.yourdomain.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: kgen
+            port:
+              number: 3000
+
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: kgen-monitoring-ingress
+  namespace: kgen
+  labels:
+    app.kubernetes.io/name: kgen
+    app.kubernetes.io/component: monitoring-ingress
+  annotations:
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/auth-type: basic
+    nginx.ingress.kubernetes.io/auth-secret: monitoring-auth
+    nginx.ingress.kubernetes.io/auth-realm: 'Authentication Required - KGEN Monitoring'
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    
+    # IP allowlist for monitoring endpoints
+    nginx.ingress.kubernetes.io/whitelist-source-range: "10.0.0.0/8,172.16.0.0/12,192.168.0.0/16"
+spec:
+  ingressClassName: nginx
+  tls:
+  - hosts:
+    - prometheus.kgen.yourdomain.com
+    - grafana.kgen.yourdomain.com
+    secretName: kgen-monitoring-tls
+  rules:
+  - host: prometheus.kgen.yourdomain.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: prometheus
+            port:
+              number: 9090
+  - host: grafana.kgen.yourdomain.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: grafana
+            port:
+              number: 3000
+
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: monitoring-auth
+  namespace: kgen
+type: Opaque
+data:
+  # admin:$2y$10$... (bcrypt hash of "admin123!")
+  auth: YWRtaW46JDJ5JDEwJEZRZ1pIM0VQMkNGbnZleFNMTjUyQXVmSG9Ca0RGMEJkQTJnZmVJLkNlVEk4dDVkY09yT1E2Cg==

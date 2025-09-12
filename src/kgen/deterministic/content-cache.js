@@ -51,6 +51,17 @@ export class ContentAddressedCache extends EventEmitter {
       enabled: this.config.enablePersistence
     };
   }
+
+  getStatistics() {
+    return {
+      cacheSize: this.cache.size,
+      enabled: this.config.enablePersistence,
+      cacheDir: this.config.cacheDir,
+      hits: 0, // Stub - would track actual hits in full implementation
+      misses: 0, // Stub - would track actual misses in full implementation
+      hitRate: 0
+    };
+  }
 }
 
 export default ContentAddressedCache;

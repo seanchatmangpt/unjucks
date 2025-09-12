@@ -1,0 +1,278 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "kgen.fullname" . }}
+  labels:
+    {{- include "kgen.labels" . | nindent 4 }}
+spec:
+  {{- if not .Values.autoscaling.enabled }}
+  replicas: {{ .Values.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "kgen.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+        {{- with .Values.podAnnotations }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      labels:
+        {{- include "kgen.selectorLabels" . | nindent 8 }}
+        {{- with .Values.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+    spec:
+      {{- with .Values.image.pullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "kgen.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      {{- if .Values.priorityClassName }}
+      priorityClassName: {{ .Values.priorityClassName }}
+      {{- end }}
+      {{- if .Values.runtimeClassName }}
+      runtimeClassName: {{ .Values.runtimeClassName }}
+      {{- end }}
+      {{- if .Values.dnsPolicy }}
+      dnsPolicy: {{ .Values.dnsPolicy }}
+      {{- end }}
+      {{- with .Values.dnsConfig }}
+      dnsConfig:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- if .Values.initContainers.dbMigrate.enabled }}
+      initContainers:
+        - name: db-migrate
+          image: "{{ .Values.initContainers.dbMigrate.image.registry }}/{{ .Values.initContainers.dbMigrate.image.repository }}:{{ .Values.initContainers.dbMigrate.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          env:
+            - name: NODE_ENV
+              value: {{ .Values.kgen.config.env.NODE_ENV | quote }}
+            {{- if .Values.database.external.enabled }}
+            - name: DATABASE_HOST
+              value: {{ .Values.database.external.host | quote }}
+            - name: DATABASE_PORT
+              value: {{ .Values.database.external.port | quote }}
+            - name: DATABASE_NAME
+              value: {{ .Values.database.external.database | quote }}
+            - name: DATABASE_USERNAME
+              value: {{ .Values.database.external.username | quote }}
+            - name: DATABASE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.database.external.existingSecret }}
+                  key: {{ .Values.database.external.existingSecretPasswordKey }}
+            {{- end }}
+          resources:
+            {{- toYaml .Values.initContainers.dbMigrate.resources | nindent 12 }}
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+            - name: config
+              mountPath: /app/kgen.config.ts
+              subPath: kgen.config.ts
+              readOnly: true
+      {{- end }}
+      containers:
+        - name: {{ .Chart.Name }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: "{{ .Values.global.imageRegistry | default .Values.image.registry }}/{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.kgen.config.env.PORT | default 3000 }}
+              protocol: TCP
+            {{- if .Values.monitoring.prometheus.enabled }}
+            - name: metrics
+              containerPort: {{ .Values.monitoring.prometheus.port }}
+              protocol: TCP
+            {{- end }}
+          env:
+            # Application environment variables
+            {{- range $key, $value := .Values.kgen.config.env }}
+            - name: {{ $key }}
+              value: {{ $value | quote }}
+            {{- end }}
+            
+            # Database configuration
+            {{- if .Values.database.external.enabled }}
+            - name: DATABASE_HOST
+              value: {{ .Values.database.external.host | quote }}
+            - name: DATABASE_PORT
+              value: {{ .Values.database.external.port | quote }}
+            - name: DATABASE_NAME
+              value: {{ .Values.database.external.database | quote }}
+            - name: DATABASE_USERNAME
+              value: {{ .Values.database.external.username | quote }}
+            - name: DATABASE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.database.external.existingSecret }}
+                  key: {{ .Values.database.external.existingSecretPasswordKey }}
+            - name: DATABASE_URL
+              value: "postgresql://$(DATABASE_USERNAME):$(DATABASE_PASSWORD)@$(DATABASE_HOST):$(DATABASE_PORT)/$(DATABASE_NAME)"
+            {{- end }}
+            
+            # Redis configuration
+            {{- if .Values.redis.enabled }}
+            - name: REDIS_HOST
+              value: {{ include "kgen.redis.host" . }}
+            - name: REDIS_PORT
+              value: "6379"
+            {{- if .Values.redis.auth.enabled }}
+            - name: REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "kgen.redis.secretName" . }}
+                  key: {{ include "kgen.redis.secretPasswordKey" . }}
+            {{- end }}
+            {{- end }}
+            
+            # Additional environment variables
+            {{- range .Values.extraEnvVars }}
+            - name: {{ .name }}
+              {{- if .value }}
+              value: {{ .value | quote }}
+              {{- else if .valueFrom }}
+              valueFrom:
+                {{- toYaml .valueFrom | nindent 16 }}
+              {{- end }}
+            {{- end }}
+          
+          # Environment from secrets and configmaps
+          {{- if or .Values.envFromSecrets .Values.envFromConfigMaps }}
+          envFrom:
+            {{- range .Values.envFromSecrets }}
+            - secretRef:
+                name: {{ . }}
+            {{- end }}
+            {{- range .Values.envFromConfigMaps }}
+            - configMapRef:
+                name: {{ . }}
+            {{- end }}
+          {{- end }}
+          
+          {{- if .Values.healthCheck.enabled }}
+          livenessProbe:
+            {{- toYaml .Values.healthCheck.livenessProbe | nindent 12 }}
+          readinessProbe:
+            {{- toYaml .Values.healthCheck.readinessProbe | nindent 12 }}
+          {{- end }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          volumeMounts:
+            # Temporary directory for non-root filesystem
+            - name: tmp
+              mountPath: /tmp
+            # Configuration files
+            - name: config
+              mountPath: /app/kgen.config.ts
+              subPath: kgen.config.ts
+              readOnly: true
+            {{- if .Values.persistence.enabled }}
+            # Persistent storage for generated artifacts and cache
+            - name: kgen-storage
+              mountPath: /app/.kgen
+            - name: kgen-storage
+              mountPath: /app/generated
+              subPath: generated
+            {{- else }}
+            # Temporary storage when persistence is disabled
+            - name: kgen-cache
+              mountPath: /app/.kgen
+            - name: kgen-generated
+              mountPath: /app/generated
+            {{- end }}
+            {{- range .Values.extraVolumeMounts }}
+            - name: {{ .name }}
+              mountPath: {{ .mountPath }}
+              {{- if .subPath }}
+              subPath: {{ .subPath }}
+              {{- end }}
+              {{- if .readOnly }}
+              readOnly: {{ .readOnly }}
+              {{- end }}
+            {{- end }}
+        {{- range .Values.extraContainers }}
+        - {{- toYaml . | nindent 10 }}
+        {{- end }}
+      volumes:
+        # Temporary directory for writable filesystem
+        - name: tmp
+          emptyDir: {}
+        # Configuration files
+        - name: config
+          configMap:
+            name: {{ include "kgen.fullname" . }}-config
+            defaultMode: 0444
+        {{- if .Values.persistence.enabled }}
+        # Persistent storage
+        - name: kgen-storage
+          persistentVolumeClaim:
+            claimName: {{ include "kgen.fullname" . }}-storage
+        {{- else }}
+        # Temporary storage when persistence is disabled
+        - name: kgen-cache
+          emptyDir: {}
+        - name: kgen-generated
+          emptyDir: {}
+        {{- end }}
+        {{- range .Values.extraVolumes }}
+        - name: {{ .name }}
+          {{- if .configMap }}
+          configMap:
+            name: {{ .configMap.name }}
+            {{- with .configMap.defaultMode }}
+            defaultMode: {{ . }}
+            {{- end }}
+            {{- with .configMap.items }}
+            items:
+              {{- toYaml . | nindent 14 }}
+            {{- end }}
+          {{- else if .secret }}
+          secret:
+            secretName: {{ .secret.secretName }}
+            {{- with .secret.defaultMode }}
+            defaultMode: {{ . }}
+            {{- end }}
+            {{- with .secret.items }}
+            items:
+              {{- toYaml . | nindent 14 }}
+            {{- end }}
+          {{- else if .emptyDir }}
+          emptyDir:
+            {{- with .emptyDir.sizeLimit }}
+            sizeLimit: {{ . }}
+            {{- end }}
+            {{- with .emptyDir.medium }}
+            medium: {{ . }}
+            {{- end }}
+          {{- else if .hostPath }}
+          hostPath:
+            path: {{ .hostPath.path }}
+            {{- with .hostPath.type }}
+            type: {{ . }}
+            {{- end }}
+          {{- end }}
+        {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.topologySpreadConstraints }}
+      topologySpreadConstraints:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

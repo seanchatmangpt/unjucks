@@ -386,8 +386,8 @@ export const {{entityName}} = {};
     const startTime = performance.now();
     
     try {
-      // Prepare command and arguments
-      const [command, ...baseArgs] = testDef.command.split(' ');
+      // Prepare command and arguments  
+      const [, ...baseArgs] = testDef.command.split(' '); // Skip 'kgen' since we'll use node + script path
       const args = [...baseArgs, ...testDef.args];
       
       // Replace relative paths with absolute paths in temp dir
@@ -398,8 +398,8 @@ export const {{entityName}} = {};
         return arg;
       });
 
-      // Execute CLI command
-      const result = await this.executeCLICommand(command, processedArgs);
+      // Execute CLI command using node + CLI script path
+      const result = await this.executeCLICommand('node', [this.options.cliPath, ...processedArgs]);
       
       // Validate result
       const validation = this.validateCLIResult(testDef, result);

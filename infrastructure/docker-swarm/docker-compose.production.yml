@@ -1,0 +1,607 @@
+# KGEN Enterprise Docker Swarm Production Configuration
+# Zero-downtime deployments, auto-scaling, load balancing, and high availability
+
+version: '3.8'
+
+x-default-logging: &default-logging
+  driver: "json-file"
+  options:
+    max-size: "100m"
+    max-file: "5"
+
+x-resource-defaults: &resource-defaults
+  limits:
+    memory: 1G
+  reservations:
+    memory: 512M
+    cpus: '0.25'
+
+x-deploy-defaults: &deploy-defaults
+  restart_policy:
+    condition: on-failure
+    delay: 5s
+    max_attempts: 3
+    window: 120s
+  update_config:
+    parallelism: 2
+    delay: 10s
+    failure_action: rollback
+    monitor: 60s
+    max_failure_ratio: 0.3
+    order: start-first
+  rollback_config:
+    parallelism: 2
+    delay: 10s
+    failure_action: pause
+    monitor: 60s
+    max_failure_ratio: 0.3
+    order: stop-first
+
+networks:
+  kgen-frontend:
+    driver: overlay
+    attachable: true
+  kgen-backend:
+    driver: overlay
+    internal: true
+  kgen-database:
+    driver: overlay
+    internal: true
+  monitoring:
+    driver: overlay
+    attachable: true
+
+volumes:
+  kgen-data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /opt/kgen/data
+  postgres-data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /opt/kgen/postgres
+  redis-data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /opt/kgen/redis
+  prometheus-data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /opt/kgen/prometheus
+  grafana-data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /opt/kgen/grafana
+
+secrets:
+  database_password:
+    external: true
+  redis_password:
+    external: true
+  grafana_admin_password:
+    external: true
+  ssl_cert:
+    external: true
+  ssl_key:
+    external: true
+
+configs:
+  kgen_config:
+    external: true
+  nginx_config:
+    external: true
+  prometheus_config:
+    external: true
+
+services:
+  # ================================================
+  # LOAD BALANCER (HAProxy/Nginx)
+  # ================================================
+  load-balancer:
+    image: nginx:1.24-alpine
+    configs:
+      - source: nginx_config
+        target: /etc/nginx/nginx.conf
+        mode: 0444
+    secrets:
+      - source: ssl_cert
+        target: /etc/ssl/certs/kgen.crt
+        mode: 0444
+      - source: ssl_key
+        target: /etc/ssl/private/kgen.key
+        mode: 0400
+    ports:
+      - target: 80
+        published: 80
+        protocol: tcp
+        mode: ingress
+      - target: 443
+        published: 443
+        protocol: tcp
+        mode: ingress
+    networks:
+      - kgen-frontend
+    deploy:
+      <<: *deploy-defaults
+      replicas: 2
+      placement:
+        constraints:
+          - node.role == manager
+        preferences:
+          - spread: node.labels.zone
+      resources:
+        limits:
+          memory: 256M
+          cpus: '0.5'
+        reservations:
+          memory: 128M
+          cpus: '0.25'
+      labels:
+        - "traefik.enable=true"
+        - "traefik.http.routers.kgen.rule=Host(`kgen.yourdomain.com`)"
+        - "traefik.http.routers.kgen.tls=true"
+        - "traefik.http.routers.kgen.tls.certresolver=letsencrypt"
+    logging: *default-logging
+    healthcheck:
+      test: ["CMD", "nginx", "-t"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+  # ================================================
+  # KGEN APPLICATION (BLUE-GREEN DEPLOYMENT)
+  # ================================================
+  kgen-blue:
+    image: ${KGEN_IMAGE}:${KGEN_TAG:-latest}
+    configs:
+      - source: kgen_config
+        target: /app/kgen.config.ts
+        mode: 0444
+    secrets:
+      - source: database_password
+        target: /run/secrets/db_password
+        mode: 0400
+      - source: redis_password
+        target: /run/secrets/redis_password
+        mode: 0400
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - LOG_LEVEL=info
+      - SLOT=blue
+      - DATABASE_HOST=postgres
+      - DATABASE_PORT=5432
+      - DATABASE_NAME=kgen
+      - DATABASE_USERNAME=kgen_user
+      - DATABASE_PASSWORD_FILE=/run/secrets/db_password
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD_FILE=/run/secrets/redis_password
+      - METRICS_PORT=9090
+    networks:
+      - kgen-frontend
+      - kgen-backend
+      - kgen-database
+    volumes:
+      - kgen-data:/app/.kgen
+      - type: tmpfs
+        target: /tmp
+        tmpfs:
+          size: 100M
+    deploy:
+      <<: *deploy-defaults
+      replicas: 3
+      placement:
+        constraints:
+          - node.role == worker
+        preferences:
+          - spread: node.labels.zone
+      resources: *resource-defaults
+      labels:
+        - "kgen.slot=blue"
+        - "prometheus.scrape=true"
+        - "prometheus.port=9090"
+        - "prometheus.path=/metrics"
+    logging: *default-logging
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  kgen-green:
+    image: ${KGEN_IMAGE}:${KGEN_TAG:-latest}
+    configs:
+      - source: kgen_config
+        target: /app/kgen.config.ts
+        mode: 0444
+    secrets:
+      - source: database_password
+        target: /run/secrets/db_password
+        mode: 0400
+      - source: redis_password
+        target: /run/secrets/redis_password
+        mode: 0400
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - LOG_LEVEL=info
+      - SLOT=green
+      - DATABASE_HOST=postgres
+      - DATABASE_PORT=5432
+      - DATABASE_NAME=kgen
+      - DATABASE_USERNAME=kgen_user
+      - DATABASE_PASSWORD_FILE=/run/secrets/db_password
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD_FILE=/run/secrets/redis_password
+      - METRICS_PORT=9090
+    networks:
+      - kgen-frontend
+      - kgen-backend
+      - kgen-database
+    volumes:
+      - kgen-data:/app/.kgen
+      - type: tmpfs
+        target: /tmp
+        tmpfs:
+          size: 100M
+    deploy:
+      <<: *deploy-defaults
+      replicas: 0  # Initially scaled to 0 for blue-green deployment
+      placement:
+        constraints:
+          - node.role == worker
+        preferences:
+          - spread: node.labels.zone
+      resources: *resource-defaults
+      labels:
+        - "kgen.slot=green"
+        - "prometheus.scrape=true"
+        - "prometheus.port=9090"
+        - "prometheus.path=/metrics"
+    logging: *default-logging
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  # ================================================
+  # DATABASE (PostgreSQL with High Availability)
+  # ================================================
+  postgres:
+    image: postgres:15-alpine
+    secrets:
+      - source: database_password
+        target: /run/secrets/postgres_password
+        mode: 0400
+    environment:
+      - POSTGRES_DB=kgen
+      - POSTGRES_USER=kgen_user
+      - POSTGRES_PASSWORD_FILE=/run/secrets/postgres_password
+      - POSTGRES_INITDB_ARGS=--auth-host=scram-sha-256
+      - PGDATA=/var/lib/postgresql/data/pgdata
+    networks:
+      - kgen-database
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - type: tmpfs
+        target: /tmp
+        tmpfs:
+          size: 100M
+      - type: tmpfs
+        target: /var/run/postgresql
+        tmpfs:
+          size: 100M
+    deploy:
+      <<: *deploy-defaults
+      replicas: 1  # Single instance for simplicity, use Patroni for HA
+      placement:
+        constraints:
+          - node.labels.postgres == true
+      resources:
+        limits:
+          memory: 2G
+          cpus: '1.0'
+        reservations:
+          memory: 1G
+          cpus: '0.5'
+      labels:
+        - "prometheus.scrape=true"
+        - "prometheus.port=9187"
+    logging: *default-logging
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U kgen_user -d kgen"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  # PostgreSQL Exporter for Prometheus monitoring
+  postgres-exporter:
+    image: quay.io/prometheuscommunity/postgres-exporter:v0.12.0
+    environment:
+      - DATA_SOURCE_URI=postgres:5432/kgen?sslmode=disable
+      - DATA_SOURCE_USER=kgen_user
+      - DATA_SOURCE_PASS_FILE=/run/secrets/postgres_password
+    secrets:
+      - source: database_password
+        target: /run/secrets/postgres_password
+        mode: 0400
+    networks:
+      - kgen-database
+      - monitoring
+    deploy:
+      <<: *deploy-defaults
+      replicas: 1
+      placement:
+        constraints:
+          - node.labels.postgres == true
+      resources:
+        limits:
+          memory: 256M
+          cpus: '0.2'
+        reservations:
+          memory: 128M
+          cpus: '0.1'
+    logging: *default-logging
+
+  # ================================================
+  # REDIS CACHE
+  # ================================================
+  redis:
+    image: redis:7-alpine
+    command: >
+      --requirepass-file /run/secrets/redis_password
+      --appendonly yes
+      --appendfsync everysec
+      --auto-aof-rewrite-percentage 100
+      --auto-aof-rewrite-min-size 64mb
+      --maxmemory 512mb
+      --maxmemory-policy allkeys-lru
+    secrets:
+      - source: redis_password
+        target: /run/secrets/redis_password
+        mode: 0400
+    networks:
+      - kgen-backend
+    volumes:
+      - redis-data:/data
+    deploy:
+      <<: *deploy-defaults
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == worker
+      resources:
+        limits:
+          memory: 768M
+          cpus: '0.5'
+        reservations:
+          memory: 512M
+          cpus: '0.25'
+    logging: *default-logging
+    healthcheck:
+      test: ["CMD", "redis-cli", "--no-auth-warning", "-a", "$$(cat /run/secrets/redis_password)", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+  # ================================================
+  # MONITORING STACK
+  # ================================================
+  prometheus:
+    image: prom/prometheus:v2.45.0
+    configs:
+      - source: prometheus_config
+        target: /etc/prometheus/prometheus.yml
+        mode: 0444
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=30d'
+      - '--web.enable-lifecycle'
+      - '--web.enable-admin-api'
+    networks:
+      - monitoring
+      - kgen-frontend
+      - kgen-backend
+    volumes:
+      - prometheus-data:/prometheus
+    ports:
+      - target: 9090
+        published: 9090
+        protocol: tcp
+        mode: ingress
+    deploy:
+      <<: *deploy-defaults
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == manager
+      resources:
+        limits:
+          memory: 2G
+          cpus: '1.0'
+        reservations:
+          memory: 1G
+          cpus: '0.5'
+    logging: *default-logging
+    healthcheck:
+      test: ["CMD", "promtool", "query", "instant", "localhost:9090", "up"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  grafana:
+    image: grafana/grafana:10.0.3
+    secrets:
+      - source: grafana_admin_password
+        target: /run/secrets/admin_password
+        mode: 0400
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD__FILE=/run/secrets/admin_password
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_INSTALL_PLUGINS=grafana-piechart-panel
+      - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_SECURITY_DISABLE_GRAVATAR=true
+      - GF_SECURITY_COOKIE_SECURE=true
+      - GF_SERVER_ROOT_URL=https://grafana.yourdomain.com
+    networks:
+      - monitoring
+      - kgen-frontend
+    volumes:
+      - grafana-data:/var/lib/grafana
+    ports:
+      - target: 3000
+        published: 3001
+        protocol: tcp
+        mode: ingress
+    deploy:
+      <<: *deploy-defaults
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == manager
+      resources:
+        limits:
+          memory: 512M
+          cpus: '0.5'
+        reservations:
+          memory: 256M
+          cpus: '0.25'
+    logging: *default-logging
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:3000/api/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  # Node Exporter for system metrics
+  node-exporter:
+    image: prom/node-exporter:v1.6.0
+    command:
+      - '--path.rootfs=/host'
+      - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)'
+    networks:
+      - monitoring
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    ports:
+      - target: 9100
+        published: 9100
+        protocol: tcp
+        mode: host
+    deploy:
+      mode: global
+      placement:
+        constraints:
+          - node.platform.os == linux
+      resources:
+        limits:
+          memory: 128M
+          cpus: '0.2'
+        reservations:
+          memory: 64M
+          cpus: '0.1'
+    logging: *default-logging
+
+  # cAdvisor for container metrics
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:v0.47.0
+    command:
+      - '--housekeeping_interval=30s'
+      - '--docker_only=true'
+      - '--disable_metrics=accelerator,cpu_topology,disk,memory_numa,tcp,udp,percpu,sched,process,hugetlb,referenced_memory,resctrl,cpuset,advtcp,memory_numa'
+    networks:
+      - monitoring
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:rw
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+      - /dev/disk/:/dev/disk:ro
+    ports:
+      - target: 8080
+        published: 8080
+        protocol: tcp
+        mode: ingress
+    deploy:
+      mode: global
+      placement:
+        constraints:
+          - node.platform.os == linux
+      resources:
+        limits:
+          memory: 256M
+          cpus: '0.3'
+        reservations:
+          memory: 128M
+          cpus: '0.15'
+    logging: *default-logging
+    
+  # ================================================
+  # BACKUP SERVICE
+  # ================================================
+  backup:
+    image: alpine:3.18
+    command: >
+      sh -c "
+        apk add --no-cache postgresql-client aws-cli &&
+        echo '0 2 * * * /backup.sh' | crontab - &&
+        crond -f
+      "
+    secrets:
+      - source: database_password
+        target: /run/secrets/postgres_password
+        mode: 0400
+    environment:
+      - PGHOST=postgres
+      - PGPORT=5432
+      - PGDATABASE=kgen
+      - PGUSER=kgen_user
+      - PGPASSFILE=/run/secrets/postgres_password
+      - AWS_DEFAULT_REGION=${AWS_REGION:-us-west-2}
+      - BACKUP_BUCKET=${BACKUP_BUCKET:-kgen-backups}
+    networks:
+      - kgen-database
+    volumes:
+      - type: bind
+        source: ./scripts/backup.sh
+        target: /backup.sh
+        read_only: true
+    deploy:
+      <<: *deploy-defaults
+      replicas: 1
+      placement:
+        constraints:
+          - node.labels.backup == true
+      resources:
+        limits:
+          memory: 256M
+          cpus: '0.2'
+        reservations:
+          memory: 128M
+          cpus: '0.1'
+    logging: *default-logging

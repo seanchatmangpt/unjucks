@@ -1,0 +1,324 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: kgen-application
+  namespace: kgen
+  labels:
+    app.kubernetes.io/name: kgen
+    app.kubernetes.io/component: monitoring
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: kgen
+  endpoints:
+  - port: metrics
+    path: /metrics
+    interval: 30s
+    scrapeTimeout: 10s
+    honorLabels: true
+    relabelings:
+    - sourceLabels: [__meta_kubernetes_service_name]
+      targetLabel: service
+    - sourceLabels: [__meta_kubernetes_pod_name]
+      targetLabel: pod
+    - sourceLabels: [__meta_kubernetes_namespace]
+      targetLabel: namespace
+    metricRelabelings:
+    - sourceLabels: [__name__]
+      regex: 'go_.*'
+      action: drop
+    - sourceLabels: [__name__]
+      regex: 'process_.*'
+      action: drop
+
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: prometheus
+  namespace: kgen
+  labels:
+    app.kubernetes.io/name: prometheus
+    app.kubernetes.io/component: monitoring
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: prometheus
+  endpoints:
+  - port: web
+    path: /metrics
+    interval: 30s
+    scrapeTimeout: 10s
+
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: grafana
+  namespace: kgen
+  labels:
+    app.kubernetes.io/name: grafana
+    app.kubernetes.io/component: monitoring
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: grafana
+  endpoints:
+  - port: grafana
+    path: /metrics
+    interval: 30s
+    scrapeTimeout: 10s
+
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: node-exporter
+  namespace: kgen
+  labels:
+    app.kubernetes.io/name: node-exporter
+    app.kubernetes.io/component: monitoring
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: node-exporter
+  endpoints:
+  - port: metrics
+    path: /metrics
+    interval: 30s
+    scrapeTimeout: 10s
+    relabelings:
+    - sourceLabels: [__meta_kubernetes_pod_node_name]
+      targetLabel: node
+
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: kube-state-metrics
+  namespace: kgen
+  labels:
+    app.kubernetes.io/name: kube-state-metrics
+    app.kubernetes.io/component: monitoring
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: kube-state-metrics
+  endpoints:
+  - port: http-metrics
+    path: /metrics
+    interval: 30s
+    scrapeTimeout: 10s
+  - port: telemetry
+    path: /metrics
+    interval: 30s
+    scrapeTimeout: 10s
+
+---
+# PrometheusRule for alerting
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: kgen-application-rules
+  namespace: kgen
+  labels:
+    app.kubernetes.io/name: kgen
+    app.kubernetes.io/component: alerting-rules
+    prometheus: kube-prometheus
+    role: alert-rules
+spec:
+  groups:
+  - name: kgen.application
+    interval: 30s
+    rules:
+    # High error rate alert
+    - alert: KGENHighErrorRate
+      expr: |
+        (
+          rate(http_requests_total{job="kgen-application", code=~"5.."}[5m]) /
+          rate(http_requests_total{job="kgen-application"}[5m])
+        ) * 100 > 5
+      for: 5m
+      labels:
+        severity: critical
+        service: kgen
+        type: application
+      annotations:
+        summary: "KGEN application has high error rate"
+        description: "KGEN application error rate is {{ $value | humanizePercentage }} over the last 5 minutes."
+        runbook_url: "https://docs.kgen.yourdomain.com/runbooks/high-error-rate"
+
+    # High latency alert
+    - alert: KGENHighLatency
+      expr: |
+        histogram_quantile(0.95, 
+          rate(http_request_duration_seconds_bucket{job="kgen-application"}[5m])
+        ) > 2
+      for: 5m
+      labels:
+        severity: warning
+        service: kgen
+        type: performance
+      annotations:
+        summary: "KGEN application has high latency"
+        description: "KGEN application 95th percentile latency is {{ $value }}s over the last 5 minutes."
+        runbook_url: "https://docs.kgen.yourdomain.com/runbooks/high-latency"
+
+    # Pod crash looping
+    - alert: KGENPodCrashLooping
+      expr: |
+        rate(kube_pod_container_status_restarts_total{namespace="kgen", container="kgen"}[15m]) > 0
+      for: 5m
+      labels:
+        severity: critical
+        service: kgen
+        type: infrastructure
+      annotations:
+        summary: "KGEN pod is crash looping"
+        description: "Pod {{ $labels.pod }} in namespace {{ $labels.namespace }} is crash looping."
+        runbook_url: "https://docs.kgen.yourdomain.com/runbooks/pod-crash-loop"
+
+    # Pod not ready
+    - alert: KGENPodNotReady
+      expr: |
+        kube_pod_status_ready{condition="false", namespace="kgen", pod=~"kgen-.*"} == 1
+      for: 10m
+      labels:
+        severity: warning
+        service: kgen
+        type: infrastructure
+      annotations:
+        summary: "KGEN pod not ready"
+        description: "Pod {{ $labels.pod }} in namespace {{ $labels.namespace }} has been not ready for more than 10 minutes."
+        runbook_url: "https://docs.kgen.yourdomain.com/runbooks/pod-not-ready"
+
+    # High CPU usage
+    - alert: KGENHighCPUUsage
+      expr: |
+        (
+          rate(container_cpu_usage_seconds_total{namespace="kgen", container="kgen"}[5m]) * 100
+        ) > 80
+      for: 10m
+      labels:
+        severity: warning
+        service: kgen
+        type: resource
+      annotations:
+        summary: "KGEN pod has high CPU usage"
+        description: "Pod {{ $labels.pod }} in namespace {{ $labels.namespace }} CPU usage is {{ $value }}%."
+        runbook_url: "https://docs.kgen.yourdomain.com/runbooks/high-cpu-usage"
+
+    # High memory usage
+    - alert: KGENHighMemoryUsage
+      expr: |
+        (
+          container_memory_usage_bytes{namespace="kgen", container="kgen"} /
+          container_spec_memory_limit_bytes{namespace="kgen", container="kgen"}
+        ) * 100 > 90
+      for: 5m
+      labels:
+        severity: critical
+        service: kgen
+        type: resource
+      annotations:
+        summary: "KGEN pod has high memory usage"
+        description: "Pod {{ $labels.pod }} in namespace {{ $labels.namespace }} memory usage is {{ $value }}%."
+        runbook_url: "https://docs.kgen.yourdomain.com/runbooks/high-memory-usage"
+
+    # Database connection issues
+    - alert: KGENDatabaseConnectionFailure
+      expr: |
+        kgen_database_connections_active == 0
+      for: 2m
+      labels:
+        severity: critical
+        service: kgen
+        type: database
+      annotations:
+        summary: "KGEN cannot connect to database"
+        description: "KGEN has no active database connections."
+        runbook_url: "https://docs.kgen.yourdomain.com/runbooks/database-connection-failure"
+
+    # Redis connection issues
+    - alert: KGENRedisConnectionFailure
+      expr: |
+        kgen_redis_connections_active == 0
+      for: 2m
+      labels:
+        severity: warning
+        service: kgen
+        type: cache
+      annotations:
+        summary: "KGEN cannot connect to Redis"
+        description: "KGEN has no active Redis connections."
+        runbook_url: "https://docs.kgen.yourdomain.com/runbooks/redis-connection-failure"
+
+    # HPA scaling issues
+    - alert: KGENHPAScalingIssue
+      expr: |
+        kube_horizontalpodautoscaler_status_current_replicas{namespace="kgen"} !=
+        kube_horizontalpodautoscaler_status_desired_replicas{namespace="kgen"}
+      for: 15m
+      labels:
+        severity: warning
+        service: kgen
+        type: autoscaling
+      annotations:
+        summary: "KGEN HPA scaling issue"
+        description: "HPA {{ $labels.horizontalpodautoscaler }} current replicas ({{ $value }}) doesn't match desired replicas for more than 15 minutes."
+        runbook_url: "https://docs.kgen.yourdomain.com/runbooks/hpa-scaling-issue"
+
+    # Deployment rollout stuck
+    - alert: KGENDeploymentRolloutStuck
+      expr: |
+        kube_deployment_status_replicas{namespace="kgen"} !=
+        kube_deployment_status_replicas_available{namespace="kgen"}
+      for: 15m
+      labels:
+        severity: critical
+        service: kgen
+        type: deployment
+      annotations:
+        summary: "KGEN deployment rollout stuck"
+        description: "Deployment {{ $labels.deployment }} rollout is stuck for more than 15 minutes."
+        runbook_url: "https://docs.kgen.yourdomain.com/runbooks/deployment-rollout-stuck"
+
+  - name: kgen.sla
+    interval: 30s
+    rules:
+    # Availability SLA (99.9% uptime)
+    - alert: KGENAvailabilitySLABreach
+      expr: |
+        (
+          1 - (
+            rate(http_requests_total{job="kgen-application", code=~"5.."}[1h]) /
+            rate(http_requests_total{job="kgen-application"}[1h])
+          )
+        ) < 0.999
+      for: 5m
+      labels:
+        severity: critical
+        service: kgen
+        type: sla
+        sla: availability
+      annotations:
+        summary: "KGEN availability SLA breach"
+        description: "KGEN availability is {{ $value | humanizePercentage }}, below 99.9% SLA."
+        runbook_url: "https://docs.kgen.yourdomain.com/runbooks/availability-sla-breach"
+
+    # Latency SLA (95th percentile < 1s)
+    - alert: KGENLatencySLABreach
+      expr: |
+        histogram_quantile(0.95,
+          rate(http_request_duration_seconds_bucket{job="kgen-application"}[1h])
+        ) > 1
+      for: 10m
+      labels:
+        severity: warning
+        service: kgen
+        type: sla
+        sla: latency
+      annotations:
+        summary: "KGEN latency SLA breach"
+        description: "KGEN 95th percentile latency is {{ $value }}s, above 1s SLA."
+        runbook_url: "https://docs.kgen.yourdomain.com/runbooks/latency-sla-breach"

@@ -1,0 +1,811 @@
+# KGEN Platform Helm Chart Values
+# Multi-tenant cloud-native deployment configuration
+
+global:
+  registry: ghcr.io/kgen-platform
+  imageTag: "latest"
+  imagePullPolicy: Always
+  
+  # Environment configuration
+  environment: production
+  region: us-central1
+  cloudProvider: gcp  # aws, azure, gcp
+  
+  # Multi-tenancy settings
+  multiTenancy:
+    enabled: true
+    isolation: namespace  # namespace, cluster, hybrid
+    defaultResourceQuotas:
+      cpu: "2"
+      memory: "4Gi"
+      storage: "20Gi"
+      pods: "50"
+    billingEnabled: true
+
+# Service configurations
+services:
+  # API Gateway Service
+  apiGateway:
+    enabled: true
+    image:
+      repository: kgen-api-gateway
+      tag: ""  # Uses global.imageTag if empty
+    
+    replicas: 5
+    resources:
+      requests:
+        cpu: 500m
+        memory: 1Gi
+      limits:
+        cpu: 1000m
+        memory: 2Gi
+    
+    service:
+      type: LoadBalancer
+      port: 80
+      targetPort: 8080
+      annotations:
+        service.beta.kubernetes.io/aws-load-balancer-type: "nlb"
+        service.beta.kubernetes.io/azure-load-balancer-type: "internal"
+        cloud.google.com/load-balancer-type: "External"
+    
+    ingress:
+      enabled: true
+      className: nginx
+      annotations:
+        cert-manager.io/cluster-issuer: letsencrypt-prod
+        nginx.ingress.kubernetes.io/ssl-redirect: "true"
+        nginx.ingress.kubernetes.io/rate-limit: "1000"
+      hosts:
+        - host: api.kgen.io
+          paths:
+            - path: /
+              pathType: Prefix
+      tls:
+        - secretName: kgen-api-tls
+          hosts:
+            - api.kgen.io
+    
+    autoscaling:
+      enabled: true
+      minReplicas: 3
+      maxReplicas: 50
+      targetCPUUtilizationPercentage: 70
+      targetMemoryUtilizationPercentage: 80
+      customMetrics:
+        - name: requests_per_second
+          targetAverageValue: "1000"
+        - name: response_time_p95
+          targetAverageValue: "500m"
+    
+    config:
+      rateLimiting:
+        enabled: true
+        requestsPerMinute: 1000
+        burstSize: 200
+      cors:
+        enabled: true
+        allowedOrigins: ["https://app.kgen.io", "https://*.kgen.io"]
+        allowedMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
+        allowedHeaders: ["Content-Type", "Authorization", "X-Tenant-ID"]
+      
+      security:
+        jwtSecret: "${JWT_SECRET}"
+        encryptionKey: "${ENCRYPTION_KEY}"
+        mtlsEnabled: true
+        rbacEnabled: true
+
+  # Template Processing Service
+  templateProcessor:
+    enabled: true
+    image:
+      repository: kgen-template-processor
+      tag: ""
+    
+    replicas: 10
+    resources:
+      requests:
+        cpu: 1000m
+        memory: 2Gi
+      limits:
+        cpu: 2000m
+        memory: 4Gi
+    
+    autoscaling:
+      enabled: true
+      minReplicas: 5
+      maxReplicas: 100
+      targetCPUUtilizationPercentage: 75
+      customMetrics:
+        - name: template_processing_queue_length
+          targetAverageValue: "10"
+        - name: template_cache_hit_rate
+          targetAverageValue: "0.8"
+    
+    config:
+      nunjucks:
+        autoescape: true
+        throwOnUndefined: true
+        trimBlocks: true
+        lstripBlocks: true
+      caching:
+        enabled: true
+        ttl: 3600
+        maxSize: 1000
+      processing:
+        maxConcurrency: 50
+        timeout: 30000
+        retryAttempts: 3
+
+  # Knowledge Graph Service
+  knowledgeGraph:
+    enabled: true
+    image:
+      repository: kgen-knowledge-graph
+      tag: ""
+    
+    replicas: 6
+    resources:
+      requests:
+        cpu: 2000m
+        memory: 4Gi
+      limits:
+        cpu: 4000m
+        memory: 8Gi
+    
+    autoscaling:
+      enabled: true
+      minReplicas: 3
+      maxReplicas: 20
+      targetCPUUtilizationPercentage: 80
+      customMetrics:
+        - name: sparql_query_queue_length
+          targetAverageValue: "5"
+        - name: graph_processing_time_p95
+          targetAverageValue: "5000m"
+    
+    config:
+      sparql:
+        endpoint: "http://fuseki:3030"
+        timeout: 30000
+        maxConcurrentQueries: 20
+      rdf:
+        maxGraphSize: 100000000  # 100MB
+        supportedFormats: ["turtle", "rdf/xml", "n-triples", "json-ld"]
+      reasoning:
+        enabled: true
+        engine: "jena"
+        rules: ["rdfs", "owl-horst"]
+    
+    persistence:
+      enabled: true
+      size: 100Gi
+      storageClass: fast-ssd
+      accessMode: ReadWriteOnce
+
+  # Artifact Generation Service
+  artifactGenerator:
+    enabled: true
+    image:
+      repository: kgen-artifact-generator
+      tag: ""
+    
+    replicas: 8
+    resources:
+      requests:
+        cpu: 1500m
+        memory: 3Gi
+      limits:
+        cpu: 3000m
+        memory: 6Gi
+    
+    autoscaling:
+      enabled: true
+      minReplicas: 4
+      maxReplicas: 50
+      targetCPUUtilizationPercentage: 75
+      customMetrics:
+        - name: artifact_generation_queue_depth
+          targetAverageValue: "15"
+    
+    config:
+      generation:
+        maxArtifactSize: 50000000  # 50MB
+        attestationEnabled: true
+        provenanceTracking: true
+        deterministic: true
+      storage:
+        backend: s3  # s3, gcs, azure-blob, minio
+        encryption: true
+        versioning: true
+        lifecycle:
+          deleteAfterDays: 365
+
+  # Drift Detection Service
+  driftDetection:
+    enabled: true
+    image:
+      repository: kgen-drift-detection
+      tag: ""
+    
+    replicas: 4
+    resources:
+      requests:
+        cpu: 1000m
+        memory: 2Gi
+      limits:
+        cpu: 2000m
+        memory: 4Gi
+    
+    config:
+      monitoring:
+        intervalMinutes: 60
+        toleranceThreshold: 0.95
+        alertOnDrift: true
+      analysis:
+        includeDependencies: true
+        maxBlastRadius: 10
+        riskCalculation: true
+    
+    cronjob:
+      enabled: true
+      schedule: "0 */4 * * *"  # Every 4 hours
+      successfulJobsHistoryLimit: 5
+      failedJobsHistoryLimit: 10
+
+  # File Management Service
+  fileManager:
+    enabled: true
+    image:
+      repository: kgen-file-manager
+      tag: ""
+    
+    replicas: 6
+    resources:
+      requests:
+        cpu: 500m
+        memory: 1Gi
+      limits:
+        cpu: 1000m
+        memory: 2Gi
+    
+    autoscaling:
+      enabled: true
+      minReplicas: 3
+      maxReplicas: 20
+      targetCPUUtilizationPercentage: 70
+    
+    config:
+      upload:
+        maxFileSize: 100000000  # 100MB
+        allowedMimeTypes: ["text/turtle", "application/rdf+xml", "application/ld+json"]
+        virusScanningEnabled: true
+      cdn:
+        enabled: true
+        provider: cloudflare  # cloudflare, aws-cloudfront, gcp-cdn
+        cachePolicy: "max-age=3600"
+
+  # Tenant Management Service
+  tenantManager:
+    enabled: true
+    image:
+      repository: kgen-tenant-manager
+      tag: ""
+    
+    replicas: 4
+    resources:
+      requests:
+        cpu: 500m
+        memory: 1Gi
+      limits:
+        cpu: 1000m
+        memory: 2Gi
+    
+    config:
+      billing:
+        enabled: true
+        provider: stripe  # stripe, paddle, chargebee
+        currency: USD
+        freeTierLimits:
+          templates: 100
+          artifacts: 1000
+          storage: 1000000000  # 1GB
+      notifications:
+        email:
+          enabled: true
+          provider: sendgrid  # sendgrid, ses, postmark
+        webhook:
+          enabled: true
+          retryAttempts: 3
+
+  # Orchestration Service
+  orchestration:
+    enabled: true
+    image:
+      repository: kgen-orchestration
+      tag: ""
+    
+    replicas: 3
+    resources:
+      requests:
+        cpu: 1000m
+        memory: 2Gi
+      limits:
+        cpu: 2000m
+        memory: 4Gi
+    
+    config:
+      workflow:
+        engine: temporal  # temporal, conductor, cadence
+        maxConcurrentWorkflows: 1000
+        workflowTimeout: 3600
+      scheduling:
+        enabled: true
+        timezone: UTC
+        maxScheduledTasks: 10000
+
+# External Dependencies
+dependencies:
+  # PostgreSQL Configuration
+  postgresql:
+    enabled: true
+    external: false  # Set to true for managed cloud databases
+    
+    # Cloud-managed database settings (when external: true)
+    externalConfig:
+      aws:
+        rdsClusterIdentifier: kgen-postgres-cluster
+        region: us-east-1
+        vpcId: vpc-123456789
+      azure:
+        serverName: kgen-postgres.postgres.database.azure.com
+        resourceGroup: rg-kgen-production
+      gcp:
+        instance: kgen-postgres-ha
+        project: kgen-platform-prod
+        region: us-central1
+    
+    # Self-hosted settings (when external: false)
+    auth:
+      database: kgen_platform
+      username: kgen_user
+      existingSecret: postgresql-secret
+    
+    primary:
+      resources:
+        requests:
+          memory: 4Gi
+          cpu: 2000m
+        limits:
+          memory: 8Gi
+          cpu: 4000m
+      
+      persistence:
+        enabled: true
+        size: 500Gi
+        storageClass: fast-ssd
+    
+    readReplicas:
+      replicaCount: 2
+      resources:
+        requests:
+          memory: 2Gi
+          cpu: 1000m
+        limits:
+          memory: 4Gi
+          cpu: 2000m
+    
+    metrics:
+      enabled: true
+      serviceMonitor:
+        enabled: true
+
+  # Redis Configuration
+  redis:
+    enabled: true
+    external: false
+    
+    externalConfig:
+      aws:
+        replicationGroupId: kgen-redis-cluster
+        nodeType: cache.r6g.xlarge
+      azure:
+        name: kgen-redis
+        sku: Premium
+        size: P1
+      gcp:
+        instance: kgen-redis-ha
+        tier: STANDARD_HA
+        memorySizeGb: 8
+    
+    architecture: replication
+    auth:
+      enabled: true
+      existingSecret: redis-secret
+    
+    master:
+      resources:
+        requests:
+          memory: 4Gi
+          cpu: 1000m
+        limits:
+          memory: 8Gi
+          cpu: 2000m
+      
+      persistence:
+        enabled: true
+        size: 100Gi
+        storageClass: fast-ssd
+    
+    replica:
+      replicaCount: 2
+      resources:
+        requests:
+          memory: 2Gi
+          cpu: 500m
+        limits:
+          memory: 4Gi
+          cpu: 1000m
+    
+    metrics:
+      enabled: true
+      serviceMonitor:
+        enabled: true
+
+  # Apache Kafka Configuration
+  kafka:
+    enabled: true
+    external: false
+    
+    externalConfig:
+      aws:
+        clusterArn: arn:aws:kafka:us-east-1:123456789012:cluster/kgen-kafka
+        version: 2.8.1
+      azure:
+        namespaceName: kgen-eventhubs
+        eventHubName: kgen-events
+      gcp:
+        clusterName: kgen-kafka-cluster
+        region: us-central1
+    
+    replicaCount: 3
+    resources:
+      requests:
+        memory: 2Gi
+        cpu: 1000m
+      limits:
+        memory: 4Gi
+        cpu: 2000m
+    
+    persistence:
+      enabled: true
+      size: 200Gi
+      storageClass: fast-ssd
+    
+    zookeeper:
+      enabled: true
+      replicaCount: 3
+      resources:
+        requests:
+          memory: 1Gi
+          cpu: 500m
+        limits:
+          memory: 2Gi
+          cpu: 1000m
+
+  # MinIO Object Storage (S3-compatible)
+  minio:
+    enabled: false  # Enable for on-premises deployments
+    
+    mode: distributed
+    replicas: 4
+    
+    resources:
+      requests:
+        memory: 2Gi
+        cpu: 1000m
+      limits:
+        memory: 4Gi
+        cpu: 2000m
+    
+    persistence:
+      enabled: true
+      size: 1Ti
+      storageClass: standard-ssd
+    
+    buckets:
+      - name: kgen-templates
+        policy: private
+        versioning: true
+      - name: kgen-artifacts
+        policy: private
+        versioning: true
+        lifecycle:
+          - id: delete-old-versions
+            status: Enabled
+            expiration:
+              days: 90
+
+# Service Mesh Configuration (Istio)
+serviceMesh:
+  enabled: true
+  istio:
+    enabled: true
+    
+    gateway:
+      enabled: true
+      hosts:
+        - api.kgen.io
+        - "*.kgen.io"
+      tls:
+        mode: SIMPLE
+        credentialName: kgen-tls-cert
+    
+    virtualService:
+      enabled: true
+      retries:
+        attempts: 3
+        perTryTimeout: 30s
+      timeout: 60s
+      
+      # Traffic routing rules
+      routing:
+        - match:
+            headers:
+              x-tenant-tier:
+                exact: premium
+          route:
+            - destination:
+                host: kgen-api-premium
+              weight: 100
+        - route:
+            - destination:
+                host: kgen-api-standard
+              weight: 100
+    
+    destinationRule:
+      enabled: true
+      trafficPolicy:
+        tls:
+          mode: ISTIO_MUTUAL
+        circuitBreaker:
+          consecutiveGatewayErrors: 5
+          interval: 30s
+          baseEjectionTime: 30s
+          maxEjectionPercent: 50
+        loadBalancer:
+          simple: LEAST_CONN
+
+# Monitoring and Observability
+monitoring:
+  # Prometheus Configuration
+  prometheus:
+    enabled: true
+    retention: 30d
+    resources:
+      requests:
+        memory: 8Gi
+        cpu: 2000m
+      limits:
+        memory: 16Gi
+        cpu: 4000m
+    
+    storage:
+      size: 200Gi
+      storageClass: fast-ssd
+    
+    rules:
+      - name: kgen-platform
+        interval: 30s
+        rules:
+          - alert: HighErrorRate
+            expr: rate(http_requests_total{status=~"5.."}[5m]) > 0.1
+            for: 5m
+            labels:
+              severity: warning
+            annotations:
+              summary: "High error rate detected"
+          
+          - alert: HighLatency
+            expr: histogram_quantile(0.95, http_request_duration_seconds_bucket) > 1
+            for: 10m
+            labels:
+              severity: warning
+            annotations:
+              summary: "High latency detected"
+          
+          - alert: ServiceDown
+            expr: up{job="kgen-api-gateway"} == 0
+            for: 5m
+            labels:
+              severity: critical
+            annotations:
+              summary: "Service is down"
+
+  # Grafana Configuration
+  grafana:
+    enabled: true
+    adminPassword: "${GRAFANA_ADMIN_PASSWORD}"
+    
+    persistence:
+      enabled: true
+      size: 10Gi
+      storageClass: standard-ssd
+    
+    dashboards:
+      default:
+        kgen-overview:
+          gnetId: 12345
+          datasource: Prometheus
+        kgen-api-performance:
+          gnetId: 12346
+          datasource: Prometheus
+        kgen-tenant-metrics:
+          gnetId: 12347
+          datasource: Prometheus
+    
+    datasources:
+      prometheus:
+        url: http://prometheus:9090
+      jaeger:
+        url: http://jaeger-query:16686
+
+  # Jaeger Tracing
+  jaeger:
+    enabled: true
+    strategy: production  # all-in-one, production
+    
+    collector:
+      resources:
+        requests:
+          memory: 1Gi
+          cpu: 500m
+        limits:
+          memory: 2Gi
+          cpu: 1000m
+    
+    query:
+      resources:
+        requests:
+          memory: 1Gi
+          cpu: 500m
+        limits:
+          memory: 2Gi
+          cpu: 1000m
+    
+    storage:
+      type: elasticsearch
+      elasticsearch:
+        host: elasticsearch
+        port: 9200
+        indexPrefix: jaeger
+
+# Security Configuration
+security:
+  # Pod Security Standards
+  podSecurityStandards:
+    enforce: restricted
+    audit: restricted
+    warn: restricted
+  
+  # Network Policies
+  networkPolicies:
+    enabled: true
+    
+    # Default deny all ingress
+    defaultDenyAll: true
+    
+    # Allow specific service-to-service communication
+    allowList:
+      - from: api-gateway
+        to: [template-processor, knowledge-graph, artifact-generator]
+      - from: template-processor
+        to: [redis, postgresql]
+      - from: knowledge-graph
+        to: [postgresql, fuseki]
+      - from: artifact-generator
+        to: [minio, s3]
+  
+  # Service Accounts with RBAC
+  serviceAccounts:
+    apiGateway:
+      create: true
+      annotations:
+        iam.gke.io/gcp-service-account: kgen-api-gateway@PROJECT_ID.iam.gserviceaccount.com
+      automountServiceAccountToken: true
+    
+    templateProcessor:
+      create: true
+      annotations:
+        iam.gke.io/gcp-service-account: kgen-template-processor@PROJECT_ID.iam.gserviceaccount.com
+    
+    knowledgeGraph:
+      create: true
+      annotations:
+        iam.gke.io/gcp-service-account: kgen-knowledge-graph@PROJECT_ID.iam.gserviceaccount.com
+
+# Resource Quotas for Multi-tenancy
+resourceQuotas:
+  enabled: true
+  
+  # Default quotas for new tenants
+  default:
+    hard:
+      requests.cpu: "4"
+      requests.memory: 8Gi
+      limits.cpu: "8"
+      limits.memory: 16Gi
+      persistentvolumeclaims: "10"
+      requests.storage: 50Gi
+      services: "20"
+      secrets: "50"
+      configmaps: "50"
+  
+  # Premium tier quotas
+  premium:
+    hard:
+      requests.cpu: "20"
+      requests.memory: 40Gi
+      limits.cpu: "40"
+      limits.memory: 80Gi
+      persistentvolumeclaims: "50"
+      requests.storage: 500Gi
+      services: "100"
+      secrets: "200"
+      configmaps: "200"
+  
+  # Enterprise tier quotas
+  enterprise:
+    hard:
+      requests.cpu: "100"
+      requests.memory: 200Gi
+      limits.cpu: "200"
+      limits.memory: 400Gi
+      persistentvolumeclaims: "200"
+      requests.storage: 2Ti
+      services: "500"
+      secrets: "1000"
+      configmaps: "1000"
+
+# Backup and Disaster Recovery
+backup:
+  enabled: true
+  
+  # Velero backup configuration
+  velero:
+    enabled: true
+    schedule: "0 2 * * *"  # Daily at 2 AM
+    ttl: "720h"  # 30 days
+    
+    # Backup locations per cloud provider
+    storageLocation:
+      aws:
+        bucket: kgen-backups-us-east-1
+        region: us-east-1
+      azure:
+        storageAccount: kgenbackups
+        resourceGroup: rg-kgen-backups
+      gcp:
+        bucket: kgen-backups-us-central1
+        project: kgen-platform-prod
+  
+  # Database backup
+  database:
+    enabled: true
+    schedule: "0 1 * * *"  # Daily at 1 AM
+    retention: "30d"
+    compression: true
+    encryption: true
+
+# Chaos Engineering
+chaosEngineering:
+  enabled: false  # Enable for production resilience testing
+  
+  litmus:
+    enabled: false
+    experiments:
+      - pod-delete
+      - cpu-hog
+      - memory-hog
+      - network-latency
+    schedule: "0 3 * * 0"  # Weekly on Sunday at 3 AM

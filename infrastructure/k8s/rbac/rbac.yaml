@@ -1,0 +1,288 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: kgen-service-account
+  namespace: kgen
+  labels:
+    app.kubernetes.io/name: kgen
+    app.kubernetes.io/component: service-account
+  annotations:
+    # AWS IAM role for service account (IRSA)
+    eks.amazonaws.com/role-arn: arn:aws:iam::ACCOUNT-ID:role/KgenServiceAccountRole
+    # Azure AD Workload Identity
+    azure.workload.identity/client-id: "CLIENT-ID"
+    # GCP Workload Identity
+    iam.gke.io/gcp-service-account: kgen-sa@PROJECT-ID.iam.gserviceaccount.com
+automountServiceAccountToken: true
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  namespace: kgen
+  name: kgen-role
+  labels:
+    app.kubernetes.io/name: kgen
+    app.kubernetes.io/component: rbac
+rules:
+# Allow reading ConfigMaps for configuration
+- apiGroups: [""]
+  resources: ["configmaps"]
+  verbs: ["get", "list", "watch"]
+  resourceNames: ["kgen-config", "kgen-monitoring-config"]
+
+# Allow reading Secrets for credentials
+- apiGroups: [""]
+  resources: ["secrets"]
+  verbs: ["get", "list"]
+  resourceNames: ["kgen-database-secret", "kgen-redis-secret", "kgen-app-secrets"]
+
+# Allow reading own pod information for health checks
+- apiGroups: [""]
+  resources: ["pods"]
+  verbs: ["get", "list"]
+  resourceNames: []
+
+# Allow creating and updating events for logging
+- apiGroups: [""]
+  resources: ["events"]
+  verbs: ["create", "patch"]
+
+# Allow reading services for service discovery
+- apiGroups: [""]
+  resources: ["services"]
+  verbs: ["get", "list", "watch"]
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: kgen-role-binding
+  namespace: kgen
+  labels:
+    app.kubernetes.io/name: kgen
+    app.kubernetes.io/component: rbac
+subjects:
+- kind: ServiceAccount
+  name: kgen-service-account
+  namespace: kgen
+roleRef:
+  kind: Role
+  name: kgen-role
+  apiGroup: rbac.authorization.k8s.io
+
+---
+# Service account for monitoring components
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: kgen-monitoring-sa
+  namespace: kgen
+  labels:
+    app.kubernetes.io/name: kgen
+    app.kubernetes.io/component: monitoring-service-account
+automountServiceAccountToken: true
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: kgen-monitoring-role
+  labels:
+    app.kubernetes.io/name: kgen
+    app.kubernetes.io/component: monitoring-rbac
+rules:
+# Allow reading pods, services, endpoints for service discovery
+- apiGroups: [""]
+  resources: ["pods", "services", "endpoints", "nodes", "nodes/proxy", "nodes/metrics"]
+  verbs: ["get", "list", "watch"]
+
+# Allow reading ingresses
+- apiGroups: ["networking.k8s.io"]
+  resources: ["ingresses"]
+  verbs: ["get", "list", "watch"]
+
+# Allow reading namespaces
+- apiGroups: [""]
+  resources: ["namespaces"]
+  verbs: ["get", "list", "watch"]
+
+# Allow reading deployments, replicasets, daemonsets, statefulsets
+- apiGroups: ["apps"]
+  resources: ["deployments", "replicasets", "daemonsets", "statefulsets"]
+  verbs: ["get", "list", "watch"]
+
+# Allow reading horizontalpodautoscalers
+- apiGroups: ["autoscaling"]
+  resources: ["horizontalpodautoscalers"]
+  verbs: ["get", "list", "watch"]
+
+# Allow reading custom resource definitions if using custom metrics
+- apiGroups: ["apiextensions.k8s.io"]
+  resources: ["customresourcedefinitions"]
+  verbs: ["get", "list", "watch"]
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: kgen-monitoring-binding
+  labels:
+    app.kubernetes.io/name: kgen
+    app.kubernetes.io/component: monitoring-rbac
+subjects:
+- kind: ServiceAccount
+  name: kgen-monitoring-sa
+  namespace: kgen
+roleRef:
+  kind: ClusterRole
+  name: kgen-monitoring-role
+  apiGroup: rbac.authorization.k8s.io
+
+---
+# Service account for blue-green deployment automation
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: kgen-deployment-sa
+  namespace: kgen
+  labels:
+    app.kubernetes.io/name: kgen
+    app.kubernetes.io/component: deployment-service-account
+automountServiceAccountToken: true
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  namespace: kgen
+  name: kgen-deployment-role
+  labels:
+    app.kubernetes.io/name: kgen
+    app.kubernetes.io/component: deployment-rbac
+rules:
+# Allow managing deployments for blue-green deployments
+- apiGroups: ["apps"]
+  resources: ["deployments", "replicasets"]
+  verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+
+# Allow managing services for traffic switching
+- apiGroups: [""]
+  resources: ["services"]
+  verbs: ["get", "list", "watch", "update", "patch"]
+
+# Allow managing ingresses for traffic switching
+- apiGroups: ["networking.k8s.io"]
+  resources: ["ingresses"]
+  verbs: ["get", "list", "watch", "update", "patch"]
+
+# Allow reading and updating configmaps
+- apiGroups: [""]
+  resources: ["configmaps"]
+  verbs: ["get", "list", "watch", "update", "patch"]
+
+# Allow reading pods for health checks
+- apiGroups: [""]
+  resources: ["pods"]
+  verbs: ["get", "list", "watch"]
+
+# Allow creating temporary pods for testing
+- apiGroups: [""]
+  resources: ["pods"]
+  verbs: ["create", "delete"]
+
+# Allow reading and updating HPAs
+- apiGroups: ["autoscaling"]
+  resources: ["horizontalpodautoscalers"]
+  verbs: ["get", "list", "watch", "update", "patch"]
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: kgen-deployment-binding
+  namespace: kgen
+  labels:
+    app.kubernetes.io/name: kgen
+    app.kubernetes.io/component: deployment-rbac
+subjects:
+- kind: ServiceAccount
+  name: kgen-deployment-sa
+  namespace: kgen
+roleRef:
+  kind: Role
+  name: kgen-deployment-role
+  apiGroup: rbac.authorization.k8s.io
+
+---
+# Pod Security Policy (if PSPs are enabled)
+apiVersion: policy/v1beta1
+kind: PodSecurityPolicy
+metadata:
+  name: kgen-psp
+  labels:
+    app.kubernetes.io/name: kgen
+    app.kubernetes.io/component: security-policy
+spec:
+  privileged: false
+  allowPrivilegeEscalation: false
+  requiredDropCapabilities:
+    - ALL
+  volumes:
+    - 'configMap'
+    - 'emptyDir'
+    - 'projected'
+    - 'secret'
+    - 'downwardAPI'
+    - 'persistentVolumeClaim'
+  hostNetwork: false
+  hostIPC: false
+  hostPID: false
+  runAsUser:
+    rule: 'MustRunAsNonRoot'
+  supplementalGroups:
+    rule: 'MustRunAs'
+    ranges:
+      - min: 1
+        max: 65535
+  fsGroup:
+    rule: 'MustRunAs'
+    ranges:
+      - min: 1
+        max: 65535
+  readOnlyRootFilesystem: true
+  seLinux:
+    rule: 'RunAsAny'
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: kgen-psp-role
+  namespace: kgen
+rules:
+- apiGroups: ['policy']
+  resources: ['podsecuritypolicies']
+  verbs: ['use']
+  resourceNames: ['kgen-psp']
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: kgen-psp-binding
+  namespace: kgen
+roleRef:
+  kind: Role
+  name: kgen-psp-role
+  apiGroup: rbac.authorization.k8s.io
+subjects:
+- kind: ServiceAccount
+  name: kgen-service-account
+  namespace: kgen
+- kind: ServiceAccount
+  name: kgen-monitoring-sa
+  namespace: kgen
+- kind: ServiceAccount
+  name: kgen-deployment-sa
+  namespace: kgen

@@ -242,5 +242,66 @@
         "template_hit_rate": 0
       }
     }
+  },
+  {
+    "timestamp": 1757651126700,
+    "strategy": "expired",
+    "duration": 1,
+    "result": {
+      "strategy": "expired",
+      "collection_breakdown": {
+        "memory": 0,
+        "disk": 0,
+        "templates": 0
+      },
+      "candidates_identified": 0,
+      "collection_efficiency": 0
+    },
+    "cache_state_before": {
+      "timestamp": 1757651126701,
+      "memory": {
+        "entries": 0,
+        "bytes": 0,
+        "usage_ratio": 0
+      },
+      "disk": {
+        "entries": 1,
+        "bytes": 365,
+        "usage_ratio": 0.0001
+      },
+      "templates": {
+        "count": 0,
+        "usage_ratio": 0
+      },
+      "total": {
+        "entries": 1,
+        "bytes": 365,
+        "hit_rate": 0,
+        "template_hit_rate": 0
+      }
+    },
+    "cache_state_after": {
+      "timestamp": 1757651126701,
+      "memory": {
+        "entries": 0,
+        "bytes": 0,
+        "usage_ratio": 0
+      },
+      "disk": {
+        "entries": 1,
+        "bytes": 365,
+        "usage_ratio": 0.0001
+      },
+      "templates": {
+        "count": 0,
+        "usage_ratio": 0
+      },
+      "total": {
+        "entries": 1,
+        "bytes": 365,
+        "hit_rate": 0,
+        "template_hit_rate": 0
+      }
+    }
   }
 ]

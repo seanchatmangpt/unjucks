@@ -1,0 +1,183 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: kgen
+  namespace: kgen
+  labels:
+    app.kubernetes.io/name: kgen
+    app.kubernetes.io/component: service
+  annotations:
+    # Load balancing configuration
+    service.beta.kubernetes.io/aws-load-balancer-type: "nlb"
+    service.beta.kubernetes.io/aws-load-balancer-backend-protocol: "tcp"
+    service.beta.kubernetes.io/aws-load-balancer-connection-idle-timeout: "60"
+    service.beta.kubernetes.io/aws-load-balancer-cross-zone-load-balancing-enabled: "true"
+    service.beta.kubernetes.io/aws-load-balancer-healthcheck-grace-period-seconds: "30"
+    service.beta.kubernetes.io/aws-load-balancer-healthcheck-interval-seconds: "10"
+    service.beta.kubernetes.io/aws-load-balancer-healthcheck-timeout-seconds: "5"
+    service.beta.kubernetes.io/aws-load-balancer-healthy-threshold-count: "2"
+    service.beta.kubernetes.io/aws-load-balancer-unhealthy-threshold-count: "3"
+    
+    # Prometheus monitoring
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "9090"
+    prometheus.io/path: "/metrics"
+spec:
+  type: ClusterIP
+  sessionAffinity: None
+  ports:
+  - name: http
+    port: 3000
+    targetPort: http
+    protocol: TCP
+  - name: metrics
+    port: 9090
+    targetPort: metrics
+    protocol: TCP
+  selector:
+    app.kubernetes.io/name: kgen
+    # Active slot will be determined by blue-green deployment
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: kgen-blue
+  namespace: kgen
+  labels:
+    app.kubernetes.io/name: kgen
+    app.kubernetes.io/component: service
+    kgen.slot: blue
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "9090"
+    prometheus.io/path: "/metrics"
+spec:
+  type: ClusterIP
+  sessionAffinity: ClientIP
+  sessionAffinityConfig:
+    clientIP:
+      timeoutSeconds: 3600
+  ports:
+  - name: http
+    port: 3000
+    targetPort: http
+    protocol: TCP
+  - name: metrics
+    port: 9090
+    targetPort: metrics
+    protocol: TCP
+  selector:
+    app.kubernetes.io/name: kgen
+    app.kubernetes.io/instance: kgen-blue
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: kgen-green
+  namespace: kgen
+  labels:
+    app.kubernetes.io/name: kgen
+    app.kubernetes.io/component: service
+    kgen.slot: green
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "9090"
+    prometheus.io/path: "/metrics"
+spec:
+  type: ClusterIP
+  sessionAffinity: ClientIP
+  sessionAffinityConfig:
+    clientIP:
+      timeoutSeconds: 3600
+  ports:
+  - name: http
+    port: 3000
+    targetPort: http
+    protocol: TCP
+  - name: metrics
+    port: 9090
+    targetPort: metrics
+    protocol: TCP
+  selector:
+    app.kubernetes.io/name: kgen
+    app.kubernetes.io/instance: kgen-green
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: kgen-headless
+  namespace: kgen
+  labels:
+    app.kubernetes.io/name: kgen
+    app.kubernetes.io/component: headless-service
+spec:
+  type: ClusterIP
+  clusterIP: None
+  publishNotReadyAddresses: true
+  ports:
+  - name: http
+    port: 3000
+    targetPort: http
+    protocol: TCP
+  - name: metrics
+    port: 9090
+    targetPort: metrics
+    protocol: TCP
+  selector:
+    app.kubernetes.io/name: kgen
+
+---
+# External load balancer service (if needed)
+apiVersion: v1
+kind: Service
+metadata:
+  name: kgen-lb
+  namespace: kgen
+  labels:
+    app.kubernetes.io/name: kgen
+    app.kubernetes.io/component: load-balancer
+  annotations:
+    # AWS Load Balancer Controller annotations
+    service.beta.kubernetes.io/aws-load-balancer-type: "external"
+    service.beta.kubernetes.io/aws-load-balancer-nlb-target-type: "ip"
+    service.beta.kubernetes.io/aws-load-balancer-scheme: "internet-facing"
+    service.beta.kubernetes.io/aws-load-balancer-attributes: |
+      load_balancing.cross_zone.enabled=true,
+      access_logs.s3.enabled=true,
+      access_logs.s3.bucket=kgen-access-logs,
+      deletion_protection.enabled=false
+    service.beta.kubernetes.io/aws-load-balancer-ssl-cert: "arn:aws:acm:region:account:certificate/certificate-id"
+    service.beta.kubernetes.io/aws-load-balancer-ssl-ports: "443"
+    service.beta.kubernetes.io/aws-load-balancer-backend-protocol: "http"
+    
+    # Health check configuration
+    service.beta.kubernetes.io/aws-load-balancer-healthcheck-protocol: "http"
+    service.beta.kubernetes.io/aws-load-balancer-healthcheck-path: "/health"
+    service.beta.kubernetes.io/aws-load-balancer-healthcheck-port: "3000"
+    service.beta.kubernetes.io/aws-load-balancer-healthcheck-interval-seconds: "15"
+    service.beta.kubernetes.io/aws-load-balancer-healthcheck-timeout-seconds: "5"
+    service.beta.kubernetes.io/aws-load-balancer-healthy-threshold-count: "2"
+    service.beta.kubernetes.io/aws-load-balancer-unhealthy-threshold-count: "3"
+    
+    # Target group attributes
+    service.beta.kubernetes.io/aws-load-balancer-target-group-attributes: |
+      deregistration_delay.timeout_seconds=30,
+      stickiness.enabled=false,
+      load_balancing.algorithm.type=least_outstanding_requests
+spec:
+  type: LoadBalancer
+  loadBalancerClass: service.k8s.aws/nlb
+  ports:
+  - name: https
+    port: 443
+    targetPort: http
+    protocol: TCP
+  - name: http
+    port: 80
+    targetPort: http
+    protocol: TCP
+  selector:
+    app.kubernetes.io/name: kgen

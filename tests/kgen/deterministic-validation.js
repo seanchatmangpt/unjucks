@@ -347,9 +347,9 @@ export class {{entityName}} {
 
     // Check byte-level consistency for serializable outputs
     if (this.options.enableByteComparison) {
-      const firstSerialized = JSON.stringify(outputs[0], this.deterministicStringify);
+      const firstSerialized = JSON.stringify(outputs[0], this.deterministicStringify.bind(this));
       for (let i = 1; i < outputs.length; i++) {
-        const currentSerialized = JSON.stringify(outputs[i], this.deterministicStringify);
+        const currentSerialized = JSON.stringify(outputs[i], this.deterministicStringify.bind(this));
         if (currentSerialized !== firstSerialized) {
           result.success = false;
           result.byteConsistency = false;
@@ -420,8 +420,24 @@ export class {{entityName}} {
    * Generate hash for output
    */
   generateOutputHash(output) {
-    const serialized = JSON.stringify(output, this.deterministicStringify);
+    const serialized = JSON.stringify(output, this.deterministicStringify.bind(this));
     return crypto.createHash('sha256').update(serialized).digest('hex');
+  }
+
+  /**
+   * Deterministic JSON stringify replacer function
+   */
+  deterministicStringify(key, value) {
+    if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
+      // Sort object keys for deterministic serialization
+      const sortedKeys = Object.keys(value).sort();
+      const sortedObj = {};
+      for (const sortedKey of sortedKeys) {
+        sortedObj[sortedKey] = value[sortedKey];
+      }
+      return sortedObj;
+    }
+    return value;
   }
 
   // Scenario validators
@@ -442,7 +458,6 @@ export class {{entityName}} {
       input: { template, context },
       output: result,
       metadata: {
-        iteration,
         timestamp: '2025-01-01T12:00:00Z', // Fixed timestamp for determinism
         templateLength: template.length,
         resultLength: result.length
@@ -488,7 +503,6 @@ export class {{entityName}} {
       input: { template, context },
       output: result,
       metadata: {
-        iteration,
         timestamp: '2025-01-01T12:00:00Z',
         conditionals: (template.match(/\{\{#if/g) || []).length,
         loops: (template.match(/\{\{#each/g) || []).length,
@@ -547,7 +561,6 @@ export class {{entityName}} {
         format: 'json-ld'
       },
       metadata: {
-        iteration,
         timestamp: '2025-01-01T12:00:00Z',
         tripleCount: triples.length,
         entityCount: entities.length,
@@ -599,7 +612,6 @@ export class {{entityName}} {
       input: { operation },
       output: provenanceRecord,
       metadata: {
-        iteration,
         timestamp: '2025-01-01T12:00:00Z',
         inputCount: operation.inputs.length,
         outputCount: operation.outputs.length
@@ -643,7 +655,6 @@ export class {{entityName}} {
         encoding: 'utf8'
       },
       metadata: {
-        iteration,
         timestamp: '2025-01-01T12:00:00Z',
         contentLength: content.length,
         path: frontmatterData.to
@@ -691,7 +702,6 @@ export class {{entityName}} {
         algorithm
       },
       metadata: {
-        iteration,
         timestamp: '2025-01-01T12:00:00Z',
         chainLength: chain.length,
         algorithm

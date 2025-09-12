@@ -1,0 +1,448 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: kgen-health-checks
+  namespace: kgen
+  labels:
+    app.kubernetes.io/name: kgen
+    app.kubernetes.io/component: health-checks
+data:
+  health-check.sh: |
+    #!/bin/bash
+    # KGEN Health Check Script
+    # Comprehensive health validation for enterprise deployments
+    
+    set -euo pipefail
+    
+    # Configuration
+    KGEN_HOST="${KGEN_HOST:-localhost}"
+    KGEN_PORT="${KGEN_PORT:-3000}"
+    TIMEOUT="${HEALTH_CHECK_TIMEOUT:-10}"
+    MAX_RETRIES="${MAX_RETRIES:-3}"
+    
+    # Colors for output
+    RED='\033[0;31m'
+    GREEN='\033[0;32m'
+    YELLOW='\033[1;33m'
+    NC='\033[0m'
+    
+    # Logging functions
+    log_info() {
+        echo -e "${GREEN}[INFO]${NC} $1" >&2
+    }
+    
+    log_warn() {
+        echo -e "${YELLOW}[WARN]${NC} $1" >&2
+    }
+    
+    log_error() {
+        echo -e "${RED}[ERROR]${NC} $1" >&2
+    }
+    
+    # Health check functions
+    check_basic_health() {
+        log_info "Checking basic health endpoint..."
+        
+        local url="http://${KGEN_HOST}:${KGEN_PORT}/health"
+        local response
+        
+        for ((i=1; i<=MAX_RETRIES; i++)); do
+            if response=$(curl -sf -m "$TIMEOUT" "$url" 2>/dev/null); then
+                local status
+                status=$(echo "$response" | jq -r '.status // "unknown"' 2>/dev/null || echo "unknown")
+                
+                if [[ "$status" == "healthy" ]]; then
+                    log_info "Basic health check passed"
+                    return 0
+                else
+                    log_warn "Health check returned status: $status"
+                fi
+            else
+                log_warn "Health check attempt $i/$MAX_RETRIES failed"
+            fi
+            
+            if [[ $i -lt $MAX_RETRIES ]]; then
+                sleep 2
+            fi
+        done
+        
+        log_error "Basic health check failed after $MAX_RETRIES attempts"
+        return 1
+    }
+    
+    check_readiness() {
+        log_info "Checking readiness endpoint..."
+        
+        local url="http://${KGEN_HOST}:${KGEN_PORT}/ready"
+        local response
+        
+        if response=$(curl -sf -m "$TIMEOUT" "$url" 2>/dev/null); then
+            local ready
+            ready=$(echo "$response" | jq -r '.ready // false' 2>/dev/null || echo "false")
+            
+            if [[ "$ready" == "true" ]]; then
+                log_info "Readiness check passed"
+                return 0
+            else
+                log_warn "Service not ready"
+            fi
+        else
+            log_warn "Readiness endpoint not accessible"
+        fi
+        
+        log_error "Readiness check failed"
+        return 1
+    }
+    
+    check_liveness() {
+        log_info "Checking liveness endpoint..."
+        
+        local url="http://${KGEN_HOST}:${KGEN_PORT}/live"
+        local response
+        
+        if response=$(curl -sf -m "$TIMEOUT" "$url" 2>/dev/null); then
+            local alive
+            alive=$(echo "$response" | jq -r '.alive // false' 2>/dev/null || echo "false")
+            
+            if [[ "$alive" == "true" ]]; then
+                log_info "Liveness check passed"
+                return 0
+            else
+                log_warn "Service not alive"
+            fi
+        else
+            log_warn "Liveness endpoint not accessible"
+        fi
+        
+        log_error "Liveness check failed"
+        return 1
+    }
+    
+    check_database_connectivity() {
+        log_info "Checking database connectivity..."
+        
+        local url="http://${KGEN_HOST}:${KGEN_PORT}/health/database"
+        local response
+        
+        if response=$(curl -sf -m "$TIMEOUT" "$url" 2>/dev/null); then
+            local db_status
+            db_status=$(echo "$response" | jq -r '.database.status // "unknown"' 2>/dev/null || echo "unknown")
+            
+            if [[ "$db_status" == "connected" ]]; then
+                log_info "Database connectivity check passed"
+                return 0
+            else
+                log_warn "Database status: $db_status"
+            fi
+        else
+            log_warn "Database health endpoint not accessible"
+        fi
+        
+        log_error "Database connectivity check failed"
+        return 1
+    }
+    
+    check_redis_connectivity() {
+        log_info "Checking Redis connectivity..."
+        
+        local url="http://${KGEN_HOST}:${KGEN_PORT}/health/redis"
+        local response
+        
+        if response=$(curl -sf -m "$TIMEOUT" "$url" 2>/dev/null); then
+            local redis_status
+            redis_status=$(echo "$response" | jq -r '.redis.status // "unknown"' 2>/dev/null || echo "unknown")
+            
+            if [[ "$redis_status" == "connected" ]]; then
+                log_info "Redis connectivity check passed"
+                return 0
+            else
+                log_warn "Redis status: $redis_status"
+            fi
+        else
+            log_warn "Redis health endpoint not accessible"
+        fi
+        
+        log_error "Redis connectivity check failed"
+        return 1
+    }
+    
+    check_metrics_endpoint() {
+        log_info "Checking metrics endpoint..."
+        
+        local url="http://${KGEN_HOST}:9090/metrics"
+        
+        if curl -sf -m "$TIMEOUT" "$url" >/dev/null 2>&1; then
+            log_info "Metrics endpoint check passed"
+            return 0
+        else
+            log_error "Metrics endpoint check failed"
+            return 1
+        fi
+    }
+    
+    check_performance() {
+        log_info "Running basic performance test..."
+        
+        local url="http://${KGEN_HOST}:${KGEN_PORT}/health"
+        local start_time end_time duration
+        
+        start_time=$(date +%s%N)
+        
+        if curl -sf -m "$TIMEOUT" "$url" >/dev/null 2>&1; then
+            end_time=$(date +%s%N)
+            duration=$(( (end_time - start_time) / 1000000 )) # Convert to milliseconds
+            
+            if [[ $duration -lt 1000 ]]; then # Less than 1 second
+                log_info "Performance check passed (${duration}ms)"
+                return 0
+            else
+                log_warn "Performance check slow (${duration}ms)"
+            fi
+        else
+            log_error "Performance check request failed"
+            return 1
+        fi
+        
+        log_error "Performance check failed"
+        return 1
+    }
+    
+    # Main health check function
+    main() {
+        local check_type="${1:-all}"
+        local exit_code=0
+        
+        log_info "Starting KGEN health checks (type: $check_type)..."
+        
+        case "$check_type" in
+            basic|all)
+                check_basic_health || exit_code=1
+                ;&
+            readiness|all)
+                if [[ "$check_type" == "readiness" || "$check_type" == "all" ]]; then
+                    check_readiness || exit_code=1
+                fi
+                ;&
+            liveness|all)
+                if [[ "$check_type" == "liveness" || "$check_type" == "all" ]]; then
+                    check_liveness || exit_code=1
+                fi
+                ;&
+            database|all)
+                if [[ "$check_type" == "database" || "$check_type" == "all" ]]; then
+                    check_database_connectivity || exit_code=1
+                fi
+                ;&
+            redis|all)
+                if [[ "$check_type" == "redis" || "$check_type" == "all" ]]; then
+                    check_redis_connectivity || exit_code=1
+                fi
+                ;&
+            metrics|all)
+                if [[ "$check_type" == "metrics" || "$check_type" == "all" ]]; then
+                    check_metrics_endpoint || exit_code=1
+                fi
+                ;&
+            performance|all)
+                if [[ "$check_type" == "performance" || "$check_type" == "all" ]]; then
+                    check_performance || exit_code=1
+                fi
+                ;;
+            *)
+                log_error "Unknown check type: $check_type"
+                exit_code=1
+                ;;
+        esac
+        
+        if [[ $exit_code -eq 0 ]]; then
+            log_info "All health checks passed"
+        else
+            log_error "Some health checks failed"
+        fi
+        
+        exit $exit_code
+    }
+    
+    # Run main function with arguments
+    main "$@"
+
+  startup-probe.sh: |
+    #!/bin/bash
+    # KGEN Startup Probe Script
+    # Validates that the application is ready to receive traffic
+    
+    set -euo pipefail
+    
+    KGEN_HOST="${KGEN_HOST:-localhost}"
+    KGEN_PORT="${KGEN_PORT:-3000}"
+    TIMEOUT="${STARTUP_TIMEOUT:-5}"
+    
+    # Check if the application is fully started
+    url="http://${KGEN_HOST}:${KGEN_PORT}/health"
+    
+    if response=$(curl -sf -m "$TIMEOUT" "$url" 2>/dev/null); then
+        status=$(echo "$response" | jq -r '.status // "unknown"' 2>/dev/null || echo "unknown")
+        startup_complete=$(echo "$response" | jq -r '.startup_complete // false' 2>/dev/null || echo "false")
+        
+        if [[ "$status" == "healthy" && "$startup_complete" == "true" ]]; then
+            echo "Startup probe passed"
+            exit 0
+        fi
+    fi
+    
+    echo "Startup probe failed"
+    exit 1
+
+  deep-health-check.sh: |
+    #!/bin/bash
+    # KGEN Deep Health Check Script
+    # Comprehensive validation for blue-green deployments
+    
+    set -euo pipefail
+    
+    KGEN_HOST="${KGEN_HOST:-localhost}"
+    KGEN_PORT="${KGEN_PORT:-3000}"
+    TIMEOUT="${DEEP_HEALTH_TIMEOUT:-30}"
+    
+    echo "Running deep health check for KGEN..."
+    
+    # Check all critical endpoints
+    endpoints=(
+        "/health"
+        "/ready" 
+        "/live"
+        "/health/database"
+        "/health/redis"
+        "/metrics"
+    )
+    
+    failed=0
+    
+    for endpoint in "${endpoints[@]}"; do
+        url="http://${KGEN_HOST}:${KGEN_PORT}${endpoint}"
+        
+        echo "Checking $endpoint..."
+        
+        if curl -sf -m "$TIMEOUT" "$url" >/dev/null 2>&1; then
+            echo "✅ $endpoint - OK"
+        else
+            echo "❌ $endpoint - FAILED"
+            ((failed++))
+        fi
+    done
+    
+    # Test actual functionality
+    echo "Testing core functionality..."
+    
+    # Test knowledge graph generation (if endpoint exists)
+    if curl -sf -m "$TIMEOUT" "http://${KGEN_HOST}:${KGEN_PORT}/api/v1/generate" \
+        -H "Content-Type: application/json" \
+        -d '{"template": "test", "variables": {}}' >/dev/null 2>&1; then
+        echo "✅ Core functionality - OK"
+    else
+        echo "❌ Core functionality - FAILED"
+        ((failed++))
+    fi
+    
+    # Performance test
+    echo "Running performance test..."
+    start_time=$(date +%s%N)
+    
+    if curl -sf -m "$TIMEOUT" "http://${KGEN_HOST}:${KGEN_PORT}/health" >/dev/null 2>&1; then
+        end_time=$(date +%s%N)
+        duration=$(( (end_time - start_time) / 1000000 ))
+        
+        if [[ $duration -lt 2000 ]]; then  # Less than 2 seconds
+            echo "✅ Performance test - OK (${duration}ms)"
+        else
+            echo "⚠️ Performance test - SLOW (${duration}ms)"
+        fi
+    else
+        echo "❌ Performance test - FAILED"
+        ((failed++))
+    fi
+    
+    echo "Deep health check completed"
+    echo "Failed checks: $failed"
+    
+    if [[ $failed -eq 0 ]]; then
+        echo "🎉 All deep health checks passed"
+        exit 0
+    else
+        echo "💥 $failed deep health checks failed"
+        exit 1
+    fi
+
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: kgen-health-monitor
+  namespace: kgen
+  labels:
+    app.kubernetes.io/name: kgen
+    app.kubernetes.io/component: health-monitoring
+spec:
+  schedule: "*/5 * * * *"  # Every 5 minutes
+  concurrencyPolicy: Forbid
+  failedJobsHistoryLimit: 3
+  successfulJobsHistoryLimit: 1
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          labels:
+            app.kubernetes.io/name: kgen-health-monitor
+            app.kubernetes.io/component: health-monitoring
+        spec:
+          restartPolicy: Never
+          containers:
+          - name: health-monitor
+            image: curlimages/curl:latest
+            command: ["/bin/sh"]
+            args:
+            - -c
+            - |
+              set -e
+              apk add --no-cache jq
+              
+              # Get pod IPs for all KGEN instances
+              KGEN_IPS=$(nslookup kgen-headless.kgen.svc.cluster.local | grep 'Address:' | awk '{print $2}' | tail -n +2)
+              
+              echo "Found KGEN instances:"
+              echo "$KGEN_IPS"
+              
+              failed_instances=0
+              total_instances=0
+              
+              for ip in $KGEN_IPS; do
+                total_instances=$((total_instances + 1))
+                echo "Checking health for instance at $ip..."
+                
+                if ! /scripts/health-check.sh basic; then
+                  echo "Health check failed for $ip"
+                  failed_instances=$((failed_instances + 1))
+                fi
+              done
+              
+              echo "Health check summary: $failed_instances/$total_instances instances failed"
+              
+              if [ $failed_instances -gt 0 ]; then
+                echo "Some instances are unhealthy"
+                exit 1
+              fi
+              
+              echo "All instances are healthy"
+            env:
+            - name: KGEN_HOST
+              value: "$(POD_IP)"
+            - name: KGEN_PORT
+              value: "3000"
+            volumeMounts:
+            - name: health-scripts
+              mountPath: /scripts
+          volumes:
+          - name: health-scripts
+            configMap:
+              name: kgen-health-checks
+              defaultMode: 0755

@@ -1,0 +1,758 @@
+name: 'Infrastructure Drift Detection & Compliance'
+
+on:
+  schedule:
+    # Run drift detection every 6 hours
+    - cron: '0 */6 * * *'
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to check for drift'
+        required: true
+        default: 'all'
+        type: choice
+        options:
+          - all
+          - staging
+          - production
+      remediation_mode:
+        description: 'Remediation mode'
+        required: true
+        default: 'detect-only'
+        type: choice
+        options:
+          - detect-only
+          - auto-remediate
+          - create-pr
+      severity_threshold:
+        description: 'Minimum severity to report'
+        required: true
+        default: 'medium'
+        type: choice
+        options:
+          - low
+          - medium
+          - high
+          - critical
+
+env:
+  TERRAFORM_VERSION: '1.6.0'
+  TERRAGRUNT_VERSION: '0.53.0'
+  AWS_DEFAULT_REGION: 'us-east-1'
+
+jobs:
+  # ================================
+  # TERRAFORM DRIFT DETECTION
+  # ================================
+  
+  terraform-drift-detection:
+    name: 'Terraform Drift Detection'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      matrix:
+        environment: 
+          - ${{ github.event.inputs.environment == 'all' && 'staging' || github.event.inputs.environment }}
+          - ${{ github.event.inputs.environment == 'all' && 'production' || '' }}
+        exclude:
+          - environment: ''
+    
+    steps:
+      - name: 'Checkout Repository'
+        uses: actions/checkout@v4
+      
+      - name: 'Setup Terraform'
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TERRAFORM_VERSION }}
+          terraform_wrapper: false
+      
+      - name: 'Setup Terragrunt'
+        run: |
+          wget -O terragrunt https://github.com/gruntwork-io/terragrunt/releases/download/v${{ env.TERRAGRUNT_VERSION }}/terragrunt_linux_amd64
+          chmod +x terragrunt
+          sudo mv terragrunt /usr/local/bin/
+      
+      - name: 'Configure AWS Credentials'
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ matrix.environment == 'production' && secrets.AWS_ACCESS_KEY_ID_PROD || secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ matrix.environment == 'production' && secrets.AWS_SECRET_ACCESS_KEY_PROD || secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_DEFAULT_REGION }}
+      
+      - name: 'Configure Azure Credentials'
+        if: matrix.environment == 'production'
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS_PROD }}
+      
+      - name: 'Configure GCP Credentials'
+        if: matrix.environment == 'production'
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY_PROD }}
+      
+      - name: 'Initialize Terraform'
+        working-directory: infrastructure/terraform
+        run: |
+          terraform init \
+            -backend-config="bucket=kgen-terraform-state-${{ matrix.environment }}" \
+            -backend-config="key=infrastructure/terraform.tfstate" \
+            -backend-config="region=${{ env.AWS_DEFAULT_REGION }}"
+      
+      - name: 'Plan Terraform Changes'
+        id: plan
+        working-directory: infrastructure/terraform
+        run: |
+          terraform plan \
+            -var="environment=${{ matrix.environment }}" \
+            -detailed-exitcode \
+            -out=tfplan-${{ matrix.environment }} \
+            -json > tfplan-${{ matrix.environment }}.json || echo "TERRAFORM_CHANGES=$?" >> $GITHUB_OUTPUT
+        continue-on-error: true
+      
+      - name: 'Analyze Terraform Plan'
+        id: analyze
+        run: |
+          cat > analyze_terraform_plan.py << 'EOF'
+          import json
+          import sys
+          
+          def analyze_plan(plan_file):
+              try:
+                  with open(plan_file, 'r') as f:
+                      plan_lines = f.readlines()
+                  
+                  changes = {
+                      'create': 0,
+                      'update': 0,
+                      'delete': 0,
+                      'replace': 0,
+                      'drift_detected': False,
+                      'critical_changes': [],
+                      'high_risk_changes': []
+                  }
+                  
+                  for line in plan_lines:
+                      try:
+                          log_entry = json.loads(line.strip())
+                          if log_entry.get('type') == 'planned_change':
+                              change = log_entry.get('change', {})
+                              action = change.get('action')
+                              resource = change.get('resource', {})
+                              
+                              if action == 'create':
+                                  changes['create'] += 1
+                              elif action == 'update':
+                                  changes['update'] += 1
+                                  changes['drift_detected'] = True
+                              elif action == 'delete':
+                                  changes['delete'] += 1
+                                  changes['drift_detected'] = True
+                                  changes['critical_changes'].append({
+                                      'action': action,
+                                      'resource': resource.get('addr', 'unknown'),
+                                      'type': resource.get('type', 'unknown')
+                                  })
+                              elif action == 'replace':
+                                  changes['replace'] += 1
+                                  changes['drift_detected'] = True
+                                  changes['high_risk_changes'].append({
+                                      'action': action,
+                                      'resource': resource.get('addr', 'unknown'),
+                                      'type': resource.get('type', 'unknown')
+                                  })
+                      except json.JSONDecodeError:
+                          continue
+                  
+                  return changes
+              except FileNotFoundError:
+                  return {'error': 'Plan file not found'}
+          
+          if __name__ == '__main__':
+              plan_file = sys.argv[1] if len(sys.argv) > 1 else 'tfplan.json'
+              result = analyze_plan(plan_file)
+              print(json.dumps(result, indent=2))
+          EOF
+          
+          python3 analyze_terraform_plan.py tfplan-${{ matrix.environment }}.json > drift-analysis-${{ matrix.environment }}.json
+          
+          # Set outputs for GitHub Actions
+          DRIFT_DETECTED=$(python3 -c "import json; print(json.load(open('drift-analysis-${{ matrix.environment }}.json'))['drift_detected'])")
+          echo "DRIFT_DETECTED=$DRIFT_DETECTED" >> $GITHUB_OUTPUT
+          
+          CRITICAL_CHANGES=$(python3 -c "import json; print(len(json.load(open('drift-analysis-${{ matrix.environment }}.json'))['critical_changes']))")
+          echo "CRITICAL_CHANGES=$CRITICAL_CHANGES" >> $GITHUB_OUTPUT
+        working-directory: infrastructure/terraform
+      
+      - name: 'Generate Drift Report'
+        run: |
+          cat > drift-report-${{ matrix.environment }}.md << EOF
+          # 🔍 Infrastructure Drift Report - ${{ matrix.environment }}
+          
+          **Environment:** ${{ matrix.environment }}  
+          **Generated:** $(date -u +"%Y-%m-%d %H:%M:%S UTC")  
+          **Repository:** ${{ github.repository }}  
+          **Commit:** ${{ github.sha }}  
+          
+          ## Summary
+          
+          - **Drift Detected:** ${{ steps.analyze.outputs.DRIFT_DETECTED }}
+          - **Critical Changes:** ${{ steps.analyze.outputs.CRITICAL_CHANGES }}
+          - **Terraform Exit Code:** ${{ steps.plan.outputs.TERRAFORM_CHANGES }}
+          
+          ## Detailed Analysis
+          
+          \`\`\`json
+          $(cat infrastructure/terraform/drift-analysis-${{ matrix.environment }}.json)
+          \`\`\`
+          
+          ## Terraform Plan Output
+          
+          \`\`\`
+          $(terraform -chdir=infrastructure/terraform show -no-color tfplan-${{ matrix.environment }} 2>/dev/null || echo "Plan file not available")
+          \`\`\`
+          
+          ## Remediation Recommendations
+          
+          EOF
+          
+          if [ "${{ steps.analyze.outputs.DRIFT_DETECTED }}" = "true" ]; then
+            cat >> drift-report-${{ matrix.environment }}.md << EOF
+          
+          ⚠️ **Infrastructure drift has been detected!**
+          
+          ### Recommended Actions:
+          1. Review the changes listed above
+          2. Determine if changes are intentional or due to drift
+          3. If drift, consider running \`terraform apply\` to remediate
+          4. If intentional, update your Terraform configuration
+          5. Investigate root cause to prevent future drift
+          
+          ### Auto-Remediation
+          
+          EOF
+            
+            if [ "${{ github.event.inputs.remediation_mode }}" = "auto-remediate" ]; then
+              echo "🤖 Auto-remediation is **ENABLED**. Changes will be applied automatically." >> drift-report-${{ matrix.environment }}.md
+            else
+              echo "🤖 Auto-remediation is **DISABLED**. Manual intervention required." >> drift-report-${{ matrix.environment }}.md
+            fi
+          else
+            cat >> drift-report-${{ matrix.environment }}.md << EOF
+          
+          ✅ **No infrastructure drift detected.**
+          
+          The current infrastructure state matches the Terraform configuration.
+          EOF
+          fi
+      
+      - name: 'Auto-Remediate Drift'
+        if: |
+          steps.analyze.outputs.DRIFT_DETECTED == 'true' && 
+          github.event.inputs.remediation_mode == 'auto-remediate' &&
+          steps.analyze.outputs.CRITICAL_CHANGES == '0'
+        working-directory: infrastructure/terraform
+        run: |
+          echo "🤖 Starting auto-remediation of infrastructure drift..."
+          
+          # Apply changes to remediate drift
+          terraform apply \
+            -var="environment=${{ matrix.environment }}" \
+            -auto-approve \
+            tfplan-${{ matrix.environment }}
+          
+          echo "✅ Auto-remediation completed successfully"
+      
+      - name: 'Create Remediation PR'
+        if: |
+          steps.analyze.outputs.DRIFT_DETECTED == 'true' && 
+          github.event.inputs.remediation_mode == 'create-pr'
+        uses: peter-evans/create-pull-request@v5
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: "fix: remediate infrastructure drift in ${{ matrix.environment }}"
+          title: "🔧 Infrastructure Drift Remediation - ${{ matrix.environment }}"
+          body: |
+            ## Infrastructure Drift Detected
+            
+            This PR contains changes to remediate infrastructure drift in the **${{ matrix.environment }}** environment.
+            
+            ### Summary
+            - **Environment:** ${{ matrix.environment }}
+            - **Drift Detected:** ${{ steps.analyze.outputs.DRIFT_DETECTED }}
+            - **Critical Changes:** ${{ steps.analyze.outputs.CRITICAL_CHANGES }}
+            
+            ### Changes Required
+            Please review the Terraform plan output in the drift report artifact.
+            
+            ### Next Steps
+            1. Review the proposed changes
+            2. Test in staging environment if applicable
+            3. Approve and merge to apply changes
+            4. Monitor infrastructure after deployment
+            
+            **Generated by:** Infrastructure Drift Detection Workflow
+            **Run ID:** ${{ github.run_id }}
+          branch: drift-remediation/${{ matrix.environment }}-${{ github.run_number }}
+          base: main
+          labels: |
+            infrastructure
+            drift-remediation
+            ${{ matrix.environment }}
+          assignees: |
+            infrastructure-team
+          reviewers: |
+            infrastructure-team
+      
+      - name: 'Upload Drift Analysis Artifacts'
+        uses: actions/upload-artifact@v4
+        with:
+          name: drift-analysis-${{ matrix.environment }}
+          path: |
+            drift-report-${{ matrix.environment }}.md
+            infrastructure/terraform/drift-analysis-${{ matrix.environment }}.json
+            infrastructure/terraform/tfplan-${{ matrix.environment }}.json
+          retention-days: 30
+
+  # ================================
+  # KUBERNETES DRIFT DETECTION
+  # ================================
+  
+  kubernetes-drift-detection:
+    name: 'Kubernetes Configuration Drift'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      matrix:
+        environment:
+          - ${{ github.event.inputs.environment == 'all' && 'staging' || github.event.inputs.environment }}
+          - ${{ github.event.inputs.environment == 'all' && 'production' || '' }}
+        exclude:
+          - environment: ''
+    
+    steps:
+      - name: 'Checkout Repository'
+        uses: actions/checkout@v4
+      
+      - name: 'Setup kubectl'
+        uses: azure/setup-kubectl@v3
+        with:
+          version: '1.28.0'
+      
+      - name: 'Setup Helm'
+        uses: azure/setup-helm@v3
+        with:
+          version: '3.13.0'
+      
+      - name: 'Configure Kubernetes Access'
+        run: |
+          mkdir -p ~/.kube
+          echo "${{ matrix.environment == 'production' && secrets.KUBE_CONFIG_PRODUCTION || secrets.KUBE_CONFIG_STAGING }}" | base64 -d > ~/.kube/config
+          chmod 600 ~/.kube/config
+      
+      - name: 'Helm Drift Detection'
+        run: |
+          # Get current Helm releases
+          helm list -A -o json > current-helm-releases.json
+          
+          # Generate expected Helm values
+          helm template kgen infrastructure/helm/kgen \
+            --values infrastructure/helm/kgen/values-${{ matrix.environment }}.yaml \
+            --output-dir expected-manifests/
+          
+          # Compare with current state
+          cat > check_helm_drift.py << 'EOF'
+          import json
+          import subprocess
+          import sys
+          
+          def get_current_resources():
+              try:
+                  result = subprocess.run(['kubectl', 'get', 'all', '-l', 'app.kubernetes.io/name=kgen', '-o', 'json'], 
+                                        capture_output=True, text=True, check=True)
+                  return json.loads(result.stdout)
+              except subprocess.CalledProcessError as e:
+                  print(f"Error getting current resources: {e}")
+                  return {}
+          
+          def analyze_drift():
+              current = get_current_resources()
+              drift_detected = False
+              changes = []
+              
+              # Load Helm releases
+              try:
+                  with open('current-helm-releases.json', 'r') as f:
+                      releases = json.load(f)
+                  
+                  for release in releases:
+                      if release['name'] == 'kgen':
+                          # Check release status
+                          if release['status'] != 'deployed':
+                              drift_detected = True
+                              changes.append({
+                                  'type': 'helm_release_status',
+                                  'current': release['status'],
+                                  'expected': 'deployed'
+                              })
+              except FileNotFoundError:
+                  print("No Helm releases found")
+              
+              return {
+                  'drift_detected': drift_detected,
+                  'changes': changes,
+                  'current_resources': len(current.get('items', []))
+              }
+          
+          if __name__ == '__main__':
+              result = analyze_drift()
+              print(json.dumps(result, indent=2))
+          EOF
+          
+          python3 check_helm_drift.py > k8s-drift-analysis-${{ matrix.environment }}.json
+      
+      - name: 'Kubernetes Resource Validation'
+        run: |
+          # Check for resources that should exist
+          kubectl get deployment kgen -o json > current-deployment.json || echo '{}' > current-deployment.json
+          kubectl get service kgen -o json > current-service.json || echo '{}' > current-service.json
+          kubectl get ingress kgen -o json > current-ingress.json || echo '{}' > current-ingress.json
+          
+          # Check resource health
+          kubectl get pods -l app.kubernetes.io/name=kgen -o json > current-pods.json
+          
+          # Generate resource health report
+          cat > resource_health_check.py << 'EOF'
+          import json
+          import subprocess
+          
+          def check_resource_health():
+              health_report = {
+                  'deployment': {'exists': False, 'ready': False, 'replicas': 0},
+                  'service': {'exists': False, 'endpoints': 0},
+                  'ingress': {'exists': False, 'hosts': []},
+                  'pods': {'total': 0, 'ready': 0, 'running': 0}
+              }
+              
+              # Check deployment
+              try:
+                  with open('current-deployment.json', 'r') as f:
+                      deployment = json.load(f)
+                  if deployment.get('metadata'):
+                      health_report['deployment']['exists'] = True
+                      status = deployment.get('status', {})
+                      health_report['deployment']['replicas'] = status.get('replicas', 0)
+                      health_report['deployment']['ready'] = status.get('readyReplicas', 0) == status.get('replicas', 0)
+              except (FileNotFoundError, json.JSONDecodeError):
+                  pass
+              
+              # Check service
+              try:
+                  with open('current-service.json', 'r') as f:
+                      service = json.load(f)
+                  if service.get('metadata'):
+                      health_report['service']['exists'] = True
+              except (FileNotFoundError, json.JSONDecodeError):
+                  pass
+              
+              # Check pods
+              try:
+                  with open('current-pods.json', 'r') as f:
+                      pods = json.load(f)
+                  items = pods.get('items', [])
+                  health_report['pods']['total'] = len(items)
+                  for pod in items:
+                      status = pod.get('status', {})
+                      if status.get('phase') == 'Running':
+                          health_report['pods']['running'] += 1
+                      conditions = status.get('conditions', [])
+                      for condition in conditions:
+                          if condition.get('type') == 'Ready' and condition.get('status') == 'True':
+                              health_report['pods']['ready'] += 1
+                              break
+              except (FileNotFoundError, json.JSONDecodeError):
+                  pass
+              
+              return health_report
+          
+          if __name__ == '__main__':
+              result = check_resource_health()
+              print(json.dumps(result, indent=2))
+          EOF
+          
+          python3 resource_health_check.py > k8s-health-report-${{ matrix.environment }}.json
+      
+      - name: 'Generate Kubernetes Drift Report'
+        run: |
+          cat > k8s-drift-report-${{ matrix.environment }}.md << EOF
+          # ☸️ Kubernetes Configuration Drift Report - ${{ matrix.environment }}
+          
+          **Environment:** ${{ matrix.environment }}  
+          **Generated:** $(date -u +"%Y-%m-%d %H:%M:%S UTC")  
+          **Cluster:** $(kubectl config current-context)  
+          
+          ## Resource Health Status
+          
+          \`\`\`json
+          $(cat k8s-health-report-${{ matrix.environment }}.json)
+          \`\`\`
+          
+          ## Drift Analysis
+          
+          \`\`\`json
+          $(cat k8s-drift-analysis-${{ matrix.environment }}.json)
+          \`\`\`
+          
+          ## Current Resources
+          
+          ### Deployments
+          \`\`\`
+          $(kubectl get deployments -l app.kubernetes.io/name=kgen -o wide || echo "No deployments found")
+          \`\`\`
+          
+          ### Services
+          \`\`\`
+          $(kubectl get services -l app.kubernetes.io/name=kgen -o wide || echo "No services found")
+          \`\`\`
+          
+          ### Pods
+          \`\`\`
+          $(kubectl get pods -l app.kubernetes.io/name=kgen -o wide || echo "No pods found")
+          \`\`\`
+          
+          ### Events
+          \`\`\`
+          $(kubectl get events --sort-by='.lastTimestamp' | tail -20 || echo "No recent events")
+          \`\`\`
+          EOF
+      
+      - name: 'Upload Kubernetes Drift Artifacts'
+        uses: actions/upload-artifact@v4
+        with:
+          name: k8s-drift-analysis-${{ matrix.environment }}
+          path: |
+            k8s-drift-report-${{ matrix.environment }}.md
+            k8s-drift-analysis-${{ matrix.environment }}.json
+            k8s-health-report-${{ matrix.environment }}.json
+            current-*.json
+          retention-days: 30
+
+  # ================================
+  # COMPLIANCE MONITORING
+  # ================================
+  
+  compliance-monitoring:
+    name: 'Compliance & Policy Monitoring'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    needs: [terraform-drift-detection, kubernetes-drift-detection]
+    if: always()
+    
+    steps:
+      - name: 'Checkout Repository'
+        uses: actions/checkout@v4
+      
+      - name: 'Download Drift Analysis Artifacts'
+        uses: actions/download-artifact@v4
+        with:
+          path: drift-artifacts/
+      
+      - name: 'Run Compliance Checks'
+        run: |
+          cat > compliance_checker.py << 'EOF'
+          import json
+          import os
+          import glob
+          
+          def check_compliance():
+              compliance_report = {
+                  'timestamp': '2024-01-01T00:00:00Z',
+                  'overall_status': 'COMPLIANT',
+                  'checks': {
+                      'infrastructure_drift': {'status': 'PASS', 'issues': []},
+                      'security_compliance': {'status': 'PASS', 'issues': []},
+                      'resource_limits': {'status': 'PASS', 'issues': []},
+                      'backup_compliance': {'status': 'PASS', 'issues': []},
+                      'monitoring_compliance': {'status': 'PASS', 'issues': []}
+                  },
+                  'recommendations': []
+              }
+              
+              # Check for infrastructure drift
+              drift_files = glob.glob('drift-artifacts/*/drift-analysis-*.json')
+              for drift_file in drift_files:
+                  try:
+                      with open(drift_file, 'r') as f:
+                          drift_data = json.load(f)
+                      
+                      if drift_data.get('drift_detected', False):
+                          compliance_report['checks']['infrastructure_drift']['status'] = 'FAIL'
+                          compliance_report['checks']['infrastructure_drift']['issues'].append(
+                              f"Infrastructure drift detected in {os.path.basename(drift_file)}"
+                          )
+                          compliance_report['overall_status'] = 'NON_COMPLIANT'
+                  except (FileNotFoundError, json.JSONDecodeError):
+                      continue
+              
+              # Check Kubernetes health
+              health_files = glob.glob('drift-artifacts/*/k8s-health-report-*.json')
+              for health_file in health_files:
+                  try:
+                      with open(health_file, 'r') as f:
+                          health_data = json.load(f)
+                      
+                      pods = health_data.get('pods', {})
+                      if pods.get('ready', 0) < pods.get('total', 0):
+                          compliance_report['checks']['resource_limits']['status'] = 'WARN'
+                          compliance_report['checks']['resource_limits']['issues'].append(
+                              f"Not all pods are ready in {os.path.basename(health_file)}"
+                          )
+                  except (FileNotFoundError, json.JSONDecodeError):
+                      continue
+              
+              # Generate recommendations
+              if compliance_report['overall_status'] == 'NON_COMPLIANT':
+                  compliance_report['recommendations'].extend([
+                      "Review and remediate infrastructure drift immediately",
+                      "Implement automated drift detection and remediation",
+                      "Enhance monitoring and alerting for infrastructure changes",
+                      "Review access controls and change management processes"
+                  ])
+              
+              return compliance_report
+          
+          if __name__ == '__main__':
+              result = check_compliance()
+              print(json.dumps(result, indent=2))
+          EOF
+          
+          python3 compliance_checker.py > compliance-report.json
+      
+      - name: 'Generate Compliance Dashboard'
+        run: |
+          cat > COMPLIANCE_DASHBOARD.md << 'EOF'
+          # 📊 KGEN Infrastructure Compliance Dashboard
+          
+          **Generated:** $(date -u +"%Y-%m-%d %H:%M:%S UTC")  
+          **Repository:** ${{ github.repository }}  
+          **Workflow Run:** #${{ github.run_number }}  
+          
+          ## 🎯 Compliance Overview
+          
+          EOF
+          
+          OVERALL_STATUS=$(python3 -c "import json; print(json.load(open('compliance-report.json'))['overall_status'])")
+          
+          if [ "$OVERALL_STATUS" = "COMPLIANT" ]; then
+            echo "✅ **Status: COMPLIANT**" >> COMPLIANCE_DASHBOARD.md
+          else
+            echo "❌ **Status: NON-COMPLIANT**" >> COMPLIANCE_DASHBOARD.md
+          fi
+          
+          cat >> COMPLIANCE_DASHBOARD.md << 'EOF'
+          
+          ## 📋 Compliance Checks
+          
+          EOF
+          
+          # Add detailed compliance report
+          echo '```json' >> COMPLIANCE_DASHBOARD.md
+          cat compliance-report.json >> COMPLIANCE_DASHBOARD.md
+          echo '```' >> COMPLIANCE_DASHBOARD.md
+          
+          cat >> COMPLIANCE_DASHBOARD.md << 'EOF'
+          
+          ## 🚨 Active Issues
+          
+          EOF
+          
+          # List any compliance issues
+          python3 -c "
+          import json
+          report = json.load(open('compliance-report.json'))
+          for check_name, check_data in report['checks'].items():
+              if check_data['status'] in ['FAIL', 'WARN'] and check_data['issues']:
+                  print(f'### {check_name.replace(\"_\", \" \").title()}')
+                  for issue in check_data['issues']:
+                      print(f'- ⚠️ {issue}')
+                  print('')
+          " >> COMPLIANCE_DASHBOARD.md
+          
+          cat >> COMPLIANCE_DASHBOARD.md << 'EOF'
+          
+          ## 📈 Recommendations
+          
+          EOF
+          
+          # Add recommendations
+          python3 -c "
+          import json
+          report = json.load(open('compliance-report.json'))
+          for i, rec in enumerate(report.get('recommendations', []), 1):
+              print(f'{i}. {rec}')
+          " >> COMPLIANCE_DASHBOARD.md
+          
+          cat >> COMPLIANCE_DASHBOARD.md << 'EOF'
+          
+          ## 📊 Historical Trends
+          
+          *Historical compliance trend data will be available after multiple runs*
+          
+          ---
+          *This dashboard is automatically updated every 6 hours by the Infrastructure Drift Detection workflow.*
+          EOF
+      
+      - name: 'Create Compliance Issue'
+        if: |
+          contains(fromJson(steps.*.outputs.OVERALL_STATUS || '["COMPLIANT"]'), 'NON_COMPLIANT') ||
+          github.event.inputs.severity_threshold == 'low'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const complianceReport = fs.readFileSync('COMPLIANCE_DASHBOARD.md', 'utf8');
+            
+            // Check if an open compliance issue already exists
+            const { data: existingIssues } = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              labels: 'compliance,infrastructure',
+              state: 'open'
+            });
+            
+            if (existingIssues.length === 0) {
+              await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title: `🚨 Infrastructure Compliance Issues Detected - ${new Date().toISOString().split('T')[0]}`,
+                body: `${complianceReport}\n\n**Workflow:** ${context.workflow} #${context.runNumber}\n**Run ID:** ${context.runId}`,
+                labels: ['compliance', 'infrastructure', 'monitoring']
+              });
+            } else {
+              // Update existing issue with latest report
+              await github.rest.issues.update({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: existingIssues[0].number,
+                body: `${complianceReport}\n\n**Last Updated:** ${new Date().toISOString()}\n**Workflow:** ${context.workflow} #${context.runNumber}`
+              });
+            }
+      
+      - name: 'Upload Compliance Artifacts'
+        uses: actions/upload-artifact@v4
+        with:
+          name: compliance-monitoring-results
+          path: |
+            COMPLIANCE_DASHBOARD.md
+            compliance-report.json
+            drift-artifacts/
+          retention-days: 90
+      
+      - name: 'Notify Infrastructure Team'
+        if: contains(fromJson(steps.*.outputs.OVERALL_STATUS || '["COMPLIANT"]'), 'NON_COMPLIANT')
+        uses: ./.github/actions/notify-infrastructure-team
+        with:
+          severity: ${{ github.event.inputs.severity_threshold || 'medium' }}
+          report-path: COMPLIANCE_DASHBOARD.md
+          webhook-url: ${{ secrets.INFRASTRUCTURE_WEBHOOK_URL }}

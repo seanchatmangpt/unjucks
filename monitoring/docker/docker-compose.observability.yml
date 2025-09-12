@@ -1,0 +1,335 @@
+# KGEN Observability Stack - Docker Compose Configuration
+version: '3.8'
+
+networks:
+  monitoring:
+    driver: bridge
+  kgen-network:
+    external: true
+
+volumes:
+  prometheus_data:
+  grafana_data:
+  elasticsearch_data:
+  alertmanager_data:
+
+services:
+  # Prometheus - Metrics Collection
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: kgen-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./prometheus/alert_rules.yml:/etc/prometheus/alert_rules.yml
+      - ./prometheus/recording_rules.yml:/etc/prometheus/recording_rules.yml
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=30d'
+      - '--storage.tsdb.retention.size=10GB'
+      - '--web.enable-lifecycle'
+      - '--web.enable-admin-api'
+    networks:
+      - monitoring
+      - kgen-network
+    restart: unless-stopped
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.prometheus.rule=Host(`prometheus.kgen.local`)"
+
+  # Grafana - Visualization
+  grafana:
+    image: grafana/grafana:latest
+    container_name: kgen-grafana
+    ports:
+      - "3001:3000"
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./grafana/dashboards:/var/lib/grafana/dashboards
+      - ./grafana/provisioning:/etc/grafana/provisioning
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin123
+      - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_SERVER_ROOT_URL=http://grafana.kgen.local
+      - GF_INSTALL_PLUGINS=grafana-clock-panel,grafana-simple-json-datasource,grafana-piechart-panel
+    networks:
+      - monitoring
+    restart: unless-stopped
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.grafana.rule=Host(`grafana.kgen.local`)"
+
+  # Alertmanager - Alert Management
+  alertmanager:
+    image: prom/alertmanager:latest
+    container_name: kgen-alertmanager
+    ports:
+      - "9093:9093"
+    volumes:
+      - ./alerting/alertmanager.yml:/etc/alertmanager/alertmanager.yml
+      - alertmanager_data:/alertmanager
+    command:
+      - '--config.file=/etc/alertmanager/alertmanager.yml'
+      - '--storage.path=/alertmanager'
+      - '--web.external-url=http://alertmanager.kgen.local'
+    networks:
+      - monitoring
+    restart: unless-stopped
+
+  # Node Exporter - System Metrics
+  node-exporter:
+    image: prom/node-exporter:latest
+    container_name: kgen-node-exporter
+    ports:
+      - "9100:9100"
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    command:
+      - '--path.procfs=/host/proc'
+      - '--path.rootfs=/rootfs'
+      - '--path.sysfs=/host/sys'
+      - '--collector.filesystem.ignored-mount-points=^/(sys|proc|dev|host|etc)($$|/)'
+    networks:
+      - monitoring
+    restart: unless-stopped
+
+  # cAdvisor - Container Metrics
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:latest
+    container_name: kgen-cadvisor
+    ports:
+      - "8080:8080"
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+      - /dev/disk/:/dev/disk:ro
+    devices:
+      - /dev/kmsg
+    privileged: true
+    networks:
+      - monitoring
+    restart: unless-stopped
+
+  # Elasticsearch - Log Storage
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.15.0
+    container_name: kgen-elasticsearch
+    environment:
+      - discovery.type=single-node
+      - "ES_JAVA_OPTS=-Xms1g -Xmx1g"
+      - xpack.security.enabled=false
+    ports:
+      - "9200:9200"
+    volumes:
+      - elasticsearch_data:/usr/share/elasticsearch/data
+    networks:
+      - monitoring
+    restart: unless-stopped
+
+  # Kibana - Log Visualization
+  kibana:
+    image: docker.elastic.co/kibana/kibana:7.15.0
+    container_name: kgen-kibana
+    ports:
+      - "5601:5601"
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+    depends_on:
+      - elasticsearch
+    networks:
+      - monitoring
+    restart: unless-stopped
+
+  # Logstash - Log Processing
+  logstash:
+    image: docker.elastic.co/logstash/logstash:7.15.0
+    container_name: kgen-logstash
+    ports:
+      - "5044:5044"
+      - "5045:5045"
+      - "9600:9600"
+    volumes:
+      - ./elk/logstash.conf:/usr/share/logstash/pipeline/logstash.conf
+      - ./elk/templates:/usr/share/logstash/templates
+    environment:
+      - "LS_JAVA_OPTS=-Xmx1g -Xms1g"
+    depends_on:
+      - elasticsearch
+    networks:
+      - monitoring
+    restart: unless-stopped
+
+  # Jaeger - Distributed Tracing
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    container_name: kgen-jaeger
+    ports:
+      - "16686:16686"
+      - "14268:14268"
+      - "14250:14250"
+      - "6831:6831/udp"
+      - "6832:6832/udp"
+    environment:
+      - COLLECTOR_ZIPKIN_HTTP_PORT=9411
+      - SPAN_STORAGE_TYPE=elasticsearch
+      - ES_SERVER_URLS=http://elasticsearch:9200
+    depends_on:
+      - elasticsearch
+    networks:
+      - monitoring
+    restart: unless-stopped
+
+  # Blackbox Exporter - Synthetic Monitoring
+  blackbox-exporter:
+    image: prom/blackbox-exporter:latest
+    container_name: kgen-blackbox-exporter
+    ports:
+      - "9115:9115"
+    volumes:
+      - ./prometheus/blackbox.yml:/etc/blackbox_exporter/config.yml
+    networks:
+      - monitoring
+      - kgen-network
+    restart: unless-stopped
+
+  # Redis Exporter - Cache Monitoring
+  redis-exporter:
+    image: oliver006/redis_exporter:latest
+    container_name: kgen-redis-exporter
+    ports:
+      - "9121:9121"
+    environment:
+      - REDIS_ADDR=redis://redis:6379
+    networks:
+      - monitoring
+      - kgen-network
+    restart: unless-stopped
+
+  # Custom Business Metrics API
+  kgen-metrics-api:
+    build:
+      context: ../metrics-api
+      dockerfile: Dockerfile
+    container_name: kgen-metrics-api
+    ports:
+      - "3002:3000"
+    environment:
+      - NODE_ENV=production
+      - METRICS_PORT=3000
+    volumes:
+      - ../metrics-api:/app
+    networks:
+      - monitoring
+      - kgen-network
+    restart: unless-stopped
+    depends_on:
+      - prometheus
+      - elasticsearch
+
+  # KGEN Application (reference)
+  kgen-app:
+    image: kgen:latest
+    container_name: kgen-app
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - METRICS_ENABLED=true
+      - TRACING_ENABLED=true
+      - LOG_LEVEL=info
+    networks:
+      - kgen-network
+      - monitoring
+    restart: unless-stopped
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.kgen.rule=Host(`kgen.local`)"
+
+  # Traefik - Reverse Proxy
+  traefik:
+    image: traefik:v2.9
+    container_name: kgen-traefik
+    command:
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:80"
+      - "--metrics.prometheus=true"
+      - "--metrics.prometheus.addEntryPointsLabels=true"
+      - "--metrics.prometheus.addServicesLabels=true"
+    ports:
+      - "80:80"
+      - "8081:8080"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      - monitoring
+      - kgen-network
+    restart: unless-stopped
+
+  # Thanos Sidecar - Long-term Storage
+  thanos-sidecar:
+    image: thanosio/thanos:latest
+    container_name: kgen-thanos-sidecar
+    command:
+      - sidecar
+      - --tsdb.path=/prometheus
+      - --prometheus.url=http://prometheus:9090
+      - --grpc-address=0.0.0.0:10901
+      - --http-address=0.0.0.0:10902
+    ports:
+      - "10901:10901"
+      - "10902:10902"
+    volumes:
+      - prometheus_data:/prometheus
+    depends_on:
+      - prometheus
+    networks:
+      - monitoring
+    restart: unless-stopped
+
+  # Thanos Query - Unified Query Interface
+  thanos-query:
+    image: thanosio/thanos:latest
+    container_name: kgen-thanos-query
+    command:
+      - query
+      - --http-address=0.0.0.0:19192
+      - --store=thanos-sidecar:10901
+    ports:
+      - "19192:19192"
+    depends_on:
+      - thanos-sidecar
+    networks:
+      - monitoring
+    restart: unless-stopped
+
+  # Vector - Log Collection
+  vector:
+    image: timberio/vector:latest-alpine
+    container_name: kgen-vector
+    volumes:
+      - ./vector/vector.toml:/etc/vector/vector.toml:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    ports:
+      - "8686:8686"
+    networks:
+      - monitoring
+    restart: unless-stopped
+
+# Health checks and monitoring
+healthcheck:
+  test: ["CMD", "curl", "-f", "http://localhost:9090/-/healthy"]
+  interval: 30s
+  timeout: 10s
+  retries: 3
+  start_period: 40s

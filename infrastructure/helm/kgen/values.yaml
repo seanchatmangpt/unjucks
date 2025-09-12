@@ -1,0 +1,328 @@
+# Default values for KGEN Helm chart.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+# Global configuration
+global:
+  imageRegistry: ""
+  storageClass: ""
+
+# Image configuration
+image:
+  registry: ghcr.io
+  repository: your-org/kgen
+  tag: "latest"
+  pullPolicy: IfNotPresent
+  pullSecrets: []
+
+# Deployment configuration
+replicaCount: 3
+
+nameOverride: ""
+fullnameOverride: ""
+
+# Service account
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: true
+  # Annotations to add to the service account
+  annotations: {}
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name: ""
+
+# Pod annotations and labels
+podAnnotations: {}
+podLabels: {}
+
+# Security context
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 65534
+  runAsGroup: 65534
+  fsGroup: 65534
+  seccompProfile:
+    type: RuntimeDefault
+
+securityContext:
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: true
+  capabilities:
+    drop:
+    - ALL
+
+# Service configuration
+service:
+  type: ClusterIP
+  port: 3000
+  targetPort: http
+  annotations: {}
+
+# Ingress configuration
+ingress:
+  enabled: true
+  className: "nginx"
+  annotations:
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+  hosts:
+    - host: kgen.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: kgen-tls
+      hosts:
+        - kgen.example.com
+
+# Resource limits and requests
+resources:
+  limits:
+    cpu: 1000m
+    memory: 1Gi
+  requests:
+    cpu: 100m
+    memory: 256Mi
+
+# Horizontal Pod Autoscaler
+autoscaling:
+  enabled: true
+  minReplicas: 3
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 70
+  targetMemoryUtilizationPercentage: 80
+
+# Node selector, tolerations and affinity
+nodeSelector: {}
+
+tolerations: []
+
+affinity:
+  podAntiAffinity:
+    preferredDuringSchedulingIgnoredDuringExecution:
+    - weight: 100
+      podAffinityTerm:
+        labelSelector:
+          matchExpressions:
+          - key: app.kubernetes.io/name
+            operator: In
+            values:
+            - kgen
+        topologyKey: kubernetes.io/hostname
+
+# Persistent storage
+persistence:
+  enabled: true
+  storageClass: ""
+  accessMode: ReadWriteOnce
+  size: 10Gi
+  annotations: {}
+
+# KGEN specific configuration
+kgen:
+  # Application configuration
+  config:
+    # Environment variables
+    env:
+      NODE_ENV: production
+      LOG_LEVEL: info
+      PORT: "3000"
+    
+    # Configuration files
+    configFiles:
+      kgen.config.ts: |
+        export default {
+          directories: {
+            out: './generated',
+            state: './.kgen/state',
+            cache: './.kgen/cache',
+            templates: '_templates',
+            rules: './rules',
+            knowledge: './knowledge'
+          },
+          generate: {
+            defaultTemplate: 'base',
+            attestByDefault: true,
+            enableContentAddressing: true,
+            staticBuildTime: '2024-01-01T00:00:00.000Z',
+            enableCaching: true,
+            enableRDF: true,
+            enableAttestation: true,
+            enableSemanticEnrichment: true,
+            strictMode: true
+          },
+          drift: {
+            onDrift: 'fail',
+            exitCode: 3,
+            tolerance: 0.95
+          },
+          impact: {
+            maxBlastRadius: 5,
+            includeInverseRelationships: true
+          }
+        };
+
+# Database configuration
+database:
+  # External PostgreSQL configuration
+  external:
+    enabled: true
+    host: "postgresql.default.svc.cluster.local"
+    port: 5432
+    database: "kgen"
+    username: "kgen_user"
+    # Password should be provided via secret
+    existingSecret: "kgen-database-secret"
+    existingSecretPasswordKey: "password"
+  
+  # Internal PostgreSQL (for development/testing)
+  postgresql:
+    enabled: false
+    auth:
+      postgresPassword: ""
+      username: "kgen_user"
+      password: ""
+      database: "kgen"
+    architecture: standalone
+    primary:
+      persistence:
+        enabled: true
+        size: 20Gi
+
+# Redis configuration (optional)
+redis:
+  enabled: false
+  architecture: standalone
+  auth:
+    enabled: true
+    password: ""
+  master:
+    persistence:
+      enabled: true
+      size: 8Gi
+
+# Monitoring and observability
+monitoring:
+  # Prometheus metrics
+  prometheus:
+    enabled: true
+    port: 9090
+    path: /metrics
+    
+  # Service monitor for Prometheus operator
+  serviceMonitor:
+    enabled: true
+    namespace: ""
+    interval: 30s
+    scrapeTimeout: 10s
+    labels: {}
+
+# Health checks
+healthCheck:
+  enabled: true
+  livenessProbe:
+    httpGet:
+      path: /health
+      port: http
+    initialDelaySeconds: 30
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 3
+    successThreshold: 1
+  readinessProbe:
+    httpGet:
+      path: /ready
+      port: http
+    initialDelaySeconds: 10
+    periodSeconds: 5
+    timeoutSeconds: 3
+    failureThreshold: 3
+    successThreshold: 1
+
+# Logging configuration
+logging:
+  level: info
+  format: json
+  # Enable structured logging
+  structured: true
+
+# Network policies
+networkPolicy:
+  enabled: true
+  ingress:
+    - from:
+      - namespaceSelector:
+          matchLabels:
+            name: ingress-nginx
+      ports:
+      - protocol: TCP
+        port: 3000
+  egress:
+    - to: []
+      ports:
+      - protocol: TCP
+        port: 5432  # PostgreSQL
+      - protocol: TCP
+        port: 6379  # Redis
+      - protocol: TCP
+        port: 53    # DNS
+      - protocol: UDP
+        port: 53    # DNS
+      - protocol: TCP
+        port: 443   # HTTPS
+      - protocol: TCP
+        port: 80    # HTTP
+
+# Pod Disruption Budget
+podDisruptionBudget:
+  enabled: true
+  minAvailable: 2
+
+# Init containers
+initContainers:
+  # Database migration container
+  dbMigrate:
+    enabled: true
+    image:
+      registry: ghcr.io
+      repository: your-org/kgen-migrate
+      tag: "latest"
+    resources:
+      limits:
+        cpu: 100m
+        memory: 256Mi
+      requests:
+        cpu: 50m
+        memory: 128Mi
+
+# Additional volumes and volume mounts
+extraVolumes: []
+extraVolumeMounts: []
+
+# Extra containers (sidecars)
+extraContainers: []
+
+# Environment variables from secrets
+envFromSecrets: []
+
+# Environment variables from config maps
+envFromConfigMaps: []
+
+# Additional environment variables
+extraEnvVars: []
+
+# Priority class name
+priorityClassName: ""
+
+# Runtime class name
+runtimeClassName: ""
+
+# Topology spread constraints
+topologySpreadConstraints: []
+
+# DNS config
+dnsConfig: {}
+
+# DNS policy
+dnsPolicy: ClusterFirst

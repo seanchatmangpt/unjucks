@@ -90,30 +90,30 @@ class KGenTestFrameworkArchitect {
    * Initialize all test suites
    */
   async initializeTestSuites() {
-    // Unit test suites
-    this.addTestSuite('unit', 'template-engine', this.createTemplateEngineTests());
-    this.addTestSuite('unit', 'rdf-processor', this.createRDFProcessorTests());
-    this.addTestSuite('unit', 'provenance-tracker', this.createProvenanceTests());
-    this.addTestSuite('unit', 'sparql-queries', this.createSPARQLTests());
-    this.addTestSuite('unit', 'cli-commands', this.createCLICommandTests());
+    // Unit test suites - pass functions, not call them
+    this.addTestSuite('unit', 'template-engine', () => this.createTemplateEngineTests());
+    this.addTestSuite('unit', 'rdf-processor', () => this.createRDFProcessorTests());
+    this.addTestSuite('unit', 'provenance-tracker', () => this.createProvenanceTests());
+    this.addTestSuite('unit', 'sparql-queries', () => this.createSPARQLTests());
+    this.addTestSuite('unit', 'cli-commands', () => this.createCLICommandTests());
 
     // Integration test suites
-    this.addTestSuite('integration', 'e2e-workflow', this.createEndToEndTests());
-    this.addTestSuite('integration', 'component-interaction', this.createComponentInteractionTests());
-    this.addTestSuite('integration', 'data-flow', this.createDataFlowTests());
+    this.addTestSuite('integration', 'e2e-workflow', () => this.createEndToEndTests());
+    this.addTestSuite('integration', 'component-interaction', () => this.createComponentInteractionTests());
+    this.addTestSuite('integration', 'data-flow', () => this.createDataFlowTests());
 
     // Performance test suites
-    this.addTestSuite('performance', 'benchmark-validation', this.createBenchmarkTests());
-    this.addTestSuite('performance', 'memory-profiling', this.createMemoryTests());
-    this.addTestSuite('performance', 'scalability', this.createScalabilityTests());
+    this.addTestSuite('performance', 'benchmark-validation', () => this.createBenchmarkTests());
+    this.addTestSuite('performance', 'memory-profiling', () => this.createMemoryTests());
+    this.addTestSuite('performance', 'scalability', () => this.createScalabilityTests());
 
     // Regression test suites
-    this.addTestSuite('regression', 'deterministic-generation', this.createDeterministicTests());
-    this.addTestSuite('regression', 'output-consistency', this.createConsistencyTests());
+    this.addTestSuite('regression', 'deterministic-generation', () => this.createDeterministicTests());
+    this.addTestSuite('regression', 'output-consistency', () => this.createConsistencyTests());
 
     // Compatibility test suites
-    this.addTestSuite('compatibility', 'cli-interface', this.createCLICompatibilityTests());
-    this.addTestSuite('compatibility', 'kgen-prd', this.createPRDComplianceTests());
+    this.addTestSuite('compatibility', 'cli-interface', () => this.createCLICompatibilityTests());
+    this.addTestSuite('compatibility', 'kgen-prd', () => this.createPRDComplianceTests());
   }
 
   /**

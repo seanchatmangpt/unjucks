@@ -1,0 +1,113 @@
+# Jaeger Configuration for KGEN Distributed Tracing
+collector:
+  zipkin:
+    host-port: :14268
+  grpc:
+    host-port: :14250
+  http:
+    host-port: :14268
+
+storage:
+  type: elasticsearch
+  options:
+    es:
+      server-urls: http://elasticsearch:9200
+      index-prefix: jaeger
+      username: elastic
+      password: changeme
+      # Use daily indices
+      index-date-separator: "-"
+      # Keep traces for 7 days
+      max-span-age: 168h
+      # Number of shards for ES indices
+      num-shards: 5
+      num-replicas: 1
+
+# Query service configuration  
+query:
+  port: 16686
+  host: 0.0.0.0
+  static-files: /go/jaeger-ui/
+  ui-config: /etc/jaeger/ui-config.json
+  log-level: info
+  additional-headers:
+    - "Access-Control-Allow-Origin: *"
+  base-path: /
+
+# Agent configuration
+agent:
+  jaeger:
+    grpc:
+      host-port: :14250
+    thrift-compact:
+      host-port: :6831
+    thrift-binary:
+      host-port: :6832
+    thrift-http:
+      host-port: :14268
+  zipkin:
+    thrift-compact:
+      host-port: :5775
+    
+# Sampling configuration
+sampling:
+  default_strategy:
+    type: probabilistic
+    param: 0.001
+  max_traces_per_second: 100
+  per_service_strategies:
+    - service: kgen-core
+      type: probabilistic
+      param: 1.0
+      max_traces_per_second: 10
+    - service: kgen-api
+      type: probabilistic  
+      param: 0.1
+      max_traces_per_second: 20
+    - service: kgen-cache
+      type: probabilistic
+      param: 0.01
+      max_traces_per_second: 5
+
+# Service performance monitoring
+span_storage:
+  type: elasticsearch
+  elasticsearch:
+    primary_node_only: false
+    use_read_write_aliases: false
+    create_index_templates: true
+    
+# Metrics configuration
+metrics:
+  backend: prometheus
+  http:
+    route: /metrics
+    port: 14269
+
+# KGEN-specific trace configuration
+kgen_tracing:
+  enabled: true
+  services:
+    - kgen-core
+    - kgen-api
+    - kgen-cache
+    - kgen-templates
+    - kgen-rules
+  operations:
+    - artifact_generation
+    - template_rendering
+    - rule_evaluation
+    - cache_operations
+    - provenance_tracking
+    - attestation_creation
+  tags:
+    - environment
+    - version
+    - template_name
+    - rule_name
+    - user_id
+    - operation_id
+    - generation_time
+    - cache_hit
+    - error_type
+    - security_level

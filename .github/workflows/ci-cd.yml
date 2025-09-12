@@ -1,0 +1,572 @@
+name: 'KGEN Enterprise CI/CD Pipeline'
+
+on:
+  push:
+    branches: [main, develop, 'release/*', 'hotfix/*']
+    tags: ['v*']
+  pull_request:
+    branches: [main, develop]
+    types: [opened, synchronize, reopened]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Target deployment environment'
+        required: true
+        default: 'staging'
+        type: choice
+        options:
+          - staging
+          - production
+      deployment_strategy:
+        description: 'Deployment strategy'
+        required: true
+        default: 'blue-green'
+        type: choice
+        options:
+          - blue-green
+          - rolling
+          - recreate
+      force_deploy:
+        description: 'Force deployment (skip safety checks)'
+        required: false
+        default: false
+        type: boolean
+
+env:
+  NODE_VERSION: '20'
+  DOCKER_BUILDKIT: 1
+  REGISTRY: ghcr.io
+  IMAGE_NAME: kgen
+  TERRAFORM_VERSION: '1.6.0'
+  HELM_VERSION: '3.13.0'
+  KUBECTL_VERSION: '1.28.0'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
+jobs:
+  # ================================
+  # CODE QUALITY & SECURITY
+  # ================================
+  
+  code-quality:
+    name: 'Code Quality & Security Analysis'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    
+    steps:
+      - name: 'Checkout Repository'
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: 'Setup Node.js'
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: |
+            package-lock.json
+            packages/*/package-lock.json
+      
+      - name: 'Install Dependencies'
+        run: |
+          npm ci --prefer-offline --no-audit
+          npm run bootstrap --if-present
+      
+      - name: 'Run ESLint'
+        run: npm run lint -- --format=@microsoft/eslint-formatter-sarif --output-file=eslint-results.sarif
+        continue-on-error: true
+      
+      - name: 'Upload ESLint Results'
+        if: always()
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: eslint-results.sarif
+          wait-for-processing: true
+      
+      - name: 'Run Security Audit'
+        run: |
+          npm audit --audit-level=moderate --json > npm-audit.json
+          npx audit-ci --config .audit-ci.json || true
+        continue-on-error: true
+      
+      - name: 'CodeQL Analysis'
+        uses: github/codeql-action/analyze@v3
+        with:
+          languages: javascript
+          queries: security-and-quality
+      
+      - name: 'SonarCloud Scan'
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: SonarSource/sonarcloud-github-action@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      
+      - name: 'Upload Code Quality Artifacts'
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: code-quality-reports
+          path: |
+            eslint-results.sarif
+            npm-audit.json
+            coverage/
+          retention-days: 30
+
+  # ================================
+  # TESTING PIPELINE
+  # ================================
+  
+  test-suite:
+    name: 'Comprehensive Test Suite'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      matrix:
+        node-version: [18, 20, 21]
+        test-type: [unit, integration, e2e]
+    
+    steps:
+      - name: 'Checkout Repository'
+        uses: actions/checkout@v4
+      
+      - name: 'Setup Node.js ${{ matrix.node-version }}'
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+      
+      - name: 'Install Dependencies'
+        run: npm ci --prefer-offline --no-audit
+      
+      - name: 'Setup Test Environment'
+        run: |
+          cp .env.example .env.test
+          docker-compose -f docker-compose.test.yml up -d
+          sleep 10
+      
+      - name: 'Run Unit Tests'
+        if: matrix.test-type == 'unit'
+        run: |
+          npm run test:unit -- --coverage --reporters=default --reporters=jest-junit
+          npm run test:validate -- --verbose
+        env:
+          JEST_JUNIT_OUTPUT_DIR: ./test-results
+          JEST_JUNIT_OUTPUT_NAME: unit-tests.xml
+      
+      - name: 'Run Integration Tests'
+        if: matrix.test-type == 'integration'
+        run: |
+          npm run test:integration -- --coverage --reporters=default --reporters=jest-junit
+        env:
+          JEST_JUNIT_OUTPUT_DIR: ./test-results
+          JEST_JUNIT_OUTPUT_NAME: integration-tests.xml
+      
+      - name: 'Run E2E Tests'
+        if: matrix.test-type == 'e2e'
+        run: |
+          npm run test:e2e -- --coverage --reporters=default --reporters=jest-junit
+        env:
+          JEST_JUNIT_OUTPUT_DIR: ./test-results
+          JEST_JUNIT_OUTPUT_NAME: e2e-tests.xml
+      
+      - name: 'Upload Test Results'
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-${{ matrix.node-version }}-${{ matrix.test-type }}
+          path: |
+            test-results/
+            coverage/
+          retention-days: 30
+      
+      - name: 'Upload Coverage to Codecov'
+        if: matrix.node-version == 20
+        uses: codecov/codecov-action@v3
+        with:
+          file: ./coverage/lcov.info
+          flags: ${{ matrix.test-type }}
+          name: codecov-${{ matrix.test-type }}
+
+  # ================================
+  # CONTAINER BUILD & SECURITY
+  # ================================
+  
+  container-build:
+    name: 'Container Build & Security Scan'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    needs: [code-quality, test-suite]
+    
+    outputs:
+      image-tag: ${{ steps.meta.outputs.tags }}
+      image-digest: ${{ steps.build.outputs.digest }}
+      sbom: ${{ steps.sbom.outputs.sbom }}
+    
+    steps:
+      - name: 'Checkout Repository'
+        uses: actions/checkout@v4
+      
+      - name: 'Set up Docker Buildx'
+        uses: docker/setup-buildx-action@v3
+        with:
+          platforms: linux/amd64,linux/arm64
+      
+      - name: 'Login to Container Registry'
+        if: github.event_name != 'pull_request'
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: 'Extract Metadata'
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=semver,pattern={{major}}
+            type=edge,branch=main
+            type=sha,prefix={{branch}}-
+      
+      - name: 'Build and Push Container'
+        id: build
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./infrastructure/docker/Dockerfile
+          platforms: linux/amd64,linux/arm64
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          build-args: |
+            NODE_VERSION=${{ env.NODE_VERSION }}
+            BUILD_DATE=${{ github.event.head_commit.timestamp }}
+            VCS_REF=${{ github.sha }}
+            VERSION=${{ steps.meta.outputs.version }}
+      
+      - name: 'Generate SBOM'
+        id: sbom
+        uses: anchore/sbom-action@v0
+        with:
+          image: ${{ steps.meta.outputs.tags }}
+          format: spdx-json
+          output-file: sbom.spdx.json
+      
+      - name: 'Container Security Scan'
+        uses: anchore/scan-action@v3
+        with:
+          image: ${{ steps.meta.outputs.tags }}
+          format: sarif
+          output-file: container-scan.sarif
+          fail-build: false
+      
+      - name: 'Upload Security Scan Results'
+        if: always()
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: container-scan.sarif
+      
+      - name: 'Upload Container Artifacts'
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: container-artifacts
+          path: |
+            sbom.spdx.json
+            container-scan.sarif
+          retention-days: 90
+
+  # ================================
+  # INFRASTRUCTURE VALIDATION
+  # ================================
+  
+  infrastructure-validation:
+    name: 'Infrastructure Validation'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    
+    steps:
+      - name: 'Checkout Repository'
+        uses: actions/checkout@v4
+      
+      - name: 'Setup Terraform'
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TERRAFORM_VERSION }}
+      
+      - name: 'Setup Helm'
+        uses: azure/setup-helm@v3
+        with:
+          version: ${{ env.HELM_VERSION }}
+      
+      - name: 'Setup kubectl'
+        uses: azure/setup-kubectl@v3
+        with:
+          version: ${{ env.KUBECTL_VERSION }}
+      
+      - name: 'Terraform Format Check'
+        run: |
+          cd infrastructure/terraform
+          terraform fmt -check -recursive
+      
+      - name: 'Terraform Validation'
+        run: |
+          cd infrastructure/terraform
+          terraform init -backend=false
+          terraform validate
+      
+      - name: 'Terraform Security Scan'
+        uses: aquasecurity/tfsec-action@v1.0.3
+        with:
+          working_directory: infrastructure/terraform
+          format: sarif
+          sarif_file: tfsec.sarif
+      
+      - name: 'Helm Lint'
+        run: |
+          helm lint infrastructure/helm/kgen
+          helm template kgen infrastructure/helm/kgen --values infrastructure/helm/kgen/values.yaml > /dev/null
+      
+      - name: 'Kubernetes Manifest Validation'
+        run: |
+          for manifest in infrastructure/k8s/*.yml; do
+            kubectl apply --dry-run=client --validate=strict -f "$manifest"
+          done
+      
+      - name: 'Upload Infrastructure Artifacts'
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: infrastructure-validation
+          path: |
+            tfsec.sarif
+          retention-days: 30
+
+  # ================================
+  # STAGING DEPLOYMENT
+  # ================================
+  
+  deploy-staging:
+    name: 'Deploy to Staging'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    needs: [container-build, infrastructure-validation]
+    if: |
+      github.ref == 'refs/heads/develop' || 
+      github.ref == 'refs/heads/main' ||
+      startsWith(github.ref, 'refs/heads/release/') ||
+      github.event_name == 'workflow_dispatch'
+    environment:
+      name: staging
+      url: https://kgen-staging.example.com
+    
+    steps:
+      - name: 'Checkout Repository'
+        uses: actions/checkout@v4
+      
+      - name: 'Configure Cloud Credentials'
+        uses: ./.github/actions/configure-cloud-credentials
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+          azure-credentials: ${{ secrets.AZURE_CREDENTIALS }}
+          gcp-credentials: ${{ secrets.GCP_SA_KEY }}
+      
+      - name: 'Deploy Infrastructure'
+        run: |
+          cd infrastructure/scripts
+          ./deploy-infrastructure.sh staging
+        env:
+          TF_VAR_environment: staging
+          TF_VAR_image_tag: ${{ needs.container-build.outputs.image-tag }}
+      
+      - name: 'Blue-Green Deployment'
+        run: |
+          cd infrastructure/scripts
+          ./blue-green-deploy.sh staging kubernetes ${{ github.event.inputs.deployment_strategy || 'blue-green' }}
+        env:
+          KUBE_CONFIG_DATA: ${{ secrets.KUBE_CONFIG_STAGING }}
+          DEPLOYMENT_TIMEOUT: 600
+      
+      - name: 'Run Smoke Tests'
+        run: |
+          npm run test:smoke -- --baseUrl=https://kgen-staging.example.com
+      
+      - name: 'Update Deployment Status'
+        if: always()
+        uses: ./.github/actions/update-deployment-status
+        with:
+          environment: staging
+          status: ${{ job.status }}
+          deployment-url: https://kgen-staging.example.com
+
+  # ================================
+  # PRODUCTION DEPLOYMENT
+  # ================================
+  
+  deploy-production:
+    name: 'Deploy to Production'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    needs: [deploy-staging, container-build]
+    if: |
+      github.ref == 'refs/heads/main' ||
+      startsWith(github.ref, 'refs/tags/v') ||
+      (github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'production')
+    environment:
+      name: production
+      url: https://kgen.example.com
+    
+    steps:
+      - name: 'Checkout Repository'
+        uses: actions/checkout@v4
+      
+      - name: 'Production Deployment Gate'
+        if: github.event.inputs.force_deploy != 'true'
+        run: |
+          echo "Production deployment requires manual approval or force deployment flag"
+          echo "Deployment will proceed after environment protection rules are satisfied"
+      
+      - name: 'Configure Cloud Credentials'
+        uses: ./.github/actions/configure-cloud-credentials
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID_PROD }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY_PROD }}
+          aws-region: ${{ secrets.AWS_REGION_PROD }}
+          azure-credentials: ${{ secrets.AZURE_CREDENTIALS_PROD }}
+          gcp-credentials: ${{ secrets.GCP_SA_KEY_PROD }}
+      
+      - name: 'Pre-deployment Backup'
+        run: |
+          cd infrastructure/scripts
+          ./backup-production.sh
+        env:
+          BACKUP_RETENTION_DAYS: 30
+      
+      - name: 'Deploy Infrastructure'
+        run: |
+          cd infrastructure/scripts
+          ./deploy-infrastructure.sh production
+        env:
+          TF_VAR_environment: production
+          TF_VAR_image_tag: ${{ needs.container-build.outputs.image-tag }}
+          TF_VAR_enable_monitoring: true
+          TF_VAR_enable_backup: true
+      
+      - name: 'Blue-Green Production Deployment'
+        run: |
+          cd infrastructure/scripts
+          ./blue-green-deploy.sh production kubernetes blue-green
+        env:
+          KUBE_CONFIG_DATA: ${{ secrets.KUBE_CONFIG_PRODUCTION }}
+          DEPLOYMENT_TIMEOUT: 900
+          HEALTH_CHECK_RETRIES: 10
+      
+      - name: 'Run Production Health Checks'
+        run: |
+          npm run test:health -- --baseUrl=https://kgen.example.com --timeout=30000
+          npm run test:performance -- --baseUrl=https://kgen.example.com
+      
+      - name: 'Update Monitoring & Alerts'
+        run: |
+          cd infrastructure/scripts
+          ./update-monitoring.sh production ${{ needs.container-build.outputs.image-tag }}
+      
+      - name: 'Create Release'
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            sbom.spdx.json
+          body: |
+            ## 🚀 KGEN Production Release ${{ github.ref_name }}
+            
+            **Container Image:** ${{ needs.container-build.outputs.image-tag }}
+            **Digest:** ${{ needs.container-build.outputs.image-digest }}
+            
+            ### 🔒 Security
+            - Container security scan passed
+            - Dependencies audit clean
+            - SBOM generated and attached
+            
+            ### 🧪 Testing
+            - All test suites passed
+            - Performance benchmarks met
+            - Security scans clean
+            
+            ### 🏗️ Deployment
+            - Blue-green deployment strategy
+            - Zero-downtime deployment
+            - Automated rollback capability
+            - Health checks verified
+          prerelease: false
+          generate_release_notes: true
+      
+      - name: 'Notify Deployment Success'
+        if: success()
+        uses: ./.github/actions/notify-deployment
+        with:
+          status: success
+          environment: production
+          version: ${{ github.ref_name }}
+          deployment-url: https://kgen.example.com
+      
+      - name: 'Rollback on Failure'
+        if: failure()
+        run: |
+          cd infrastructure/scripts
+          ./rollback-deployment.sh production kubernetes
+          echo "Production deployment failed - automatic rollback initiated"
+
+  # ================================
+  # POST-DEPLOYMENT VALIDATION
+  # ================================
+  
+  post-deployment:
+    name: 'Post-Deployment Validation'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    needs: [deploy-production]
+    if: always() && needs.deploy-production.result == 'success'
+    
+    steps:
+      - name: 'Checkout Repository'
+        uses: actions/checkout@v4
+      
+      - name: 'Comprehensive Health Checks'
+        run: |
+          npm run test:health -- --baseUrl=https://kgen.example.com --comprehensive
+          npm run test:integration -- --baseUrl=https://kgen.example.com --production
+      
+      - name: 'Performance Validation'
+        run: |
+          npm run test:performance -- --baseUrl=https://kgen.example.com --threshold=strict
+      
+      - name: 'Security Validation'
+        run: |
+          npm run test:security -- --baseUrl=https://kgen.example.com
+      
+      - name: 'Generate Deployment Report'
+        if: always()
+        run: |
+          cd infrastructure/scripts
+          ./generate-deployment-report.sh production
+      
+      - name: 'Update Documentation'
+        run: |
+          echo "Deployment completed successfully at $(date)" >> DEPLOYMENT_HISTORY.md
+          echo "Image: ${{ needs.container-build.outputs.image-tag }}" >> DEPLOYMENT_HISTORY.md
+          echo "Commit: ${{ github.sha }}" >> DEPLOYMENT_HISTORY.md

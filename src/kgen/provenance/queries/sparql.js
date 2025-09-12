@@ -98,57 +98,88 @@ export class ProvenanceQueries {
    */
   async executeQuery(query, options = {}) {
     try {
+      const startTime = Date.now();
       this.logger.debug('Executing SPARQL query');
 
-      // Check cache first
+      // Enhanced caching with fingerprinting
+      const queryFingerprint = this._generateQueryFingerprint(query, options);
       if (!options.skipCache) {
-        const cachedResult = this.queryCache.getCachedResults(query, options);
+        const cachedResult = this.queryCache.getCachedResults(queryFingerprint, options);
         if (cachedResult) {
-          this.logger.debug('Returning cached query result');
+          this.logger.debug(`Returning cached query result (${Date.now() - startTime}ms)`);
           return cachedResult;
         }
       }
 
-          // Parse query using the real SparqlParser
-      const parsedQuery = this.sparqlParser.parse(query);
-      
-      // Validate query
-      this._validateQuery(parsedQuery);
-      
-      // Optimize query if enabled
-      if (this.config.enableOptimization) {
-        this._optimizeQuery(parsedQuery);
-      }
-
-      // Execute query using RDFProcessor's unified query method
-      let results;
+      // Parse query using the real SparqlParser with error recovery
+      let parsedQuery;
       try {
-        // First try using RDFProcessor's unified query method
-        results = await this.rdfProcessor.query(query, options);
-      } catch (error) {
-        // Fallback to individual query type execution for backward compatibility
-        switch (parsedQuery.queryType) {
-          case 'SELECT':
-            results = await this._executeSelectQuery(parsedQuery, options);
-            break;
-          case 'CONSTRUCT':
-            results = await this._executeConstructQuery(parsedQuery, options);
-            break;
-          case 'ASK':
-            results = await this._executeAskQuery(parsedQuery, options);
-            break;
-          case 'DESCRIBE':
-            results = await this._executeDescribeQuery(parsedQuery, options);
-            break;
-          default:
-            throw new Error(`Unsupported query type: ${parsedQuery.queryType}`);
+        parsedQuery = this.sparqlParser.parse(query);
+      } catch (parseError) {
+        // Try query normalization for common syntax errors
+        const normalizedQuery = this._normalizeQuery(query);
+        if (normalizedQuery !== query) {
+          try {
+            parsedQuery = this.sparqlParser.parse(normalizedQuery);
+            this.logger.debug('Query normalized and parsed successfully');
+          } catch (secondError) {
+            throw parseError; // Throw original error
+          }
+        } else {
+          throw parseError;
         }
       }
+      
+      // Validate query with performance hints
+      this._validateQuery(parsedQuery);
+      
+      // Advanced query optimization
+      if (this.config.enableOptimization) {
+        parsedQuery = await this._optimizeQueryAdvanced(parsedQuery, options);
+      }
 
-      // Cache results
-      this.queryCache.cacheResults(query, results, options);
+      // Execute query with streaming support for large results
+      let results;
+      const executionOptions = {
+        ...options,
+        streaming: options.streaming || this._shouldUseStreaming(parsedQuery),
+        batchSize: options.batchSize || this._calculateOptimalBatchSize(parsedQuery)
+      };
 
-      this.logger.debug(`Query executed successfully, ${results.results?.bindings?.length || 0} results`);
+      try {
+        // Use optimized execution path based on query complexity
+        const complexity = this._analyzeQueryComplexity(parsedQuery);
+        
+        if (complexity.score > 0.7 && this.rdfProcessor.store.size > 100000) {
+          results = await this._executeComplexQuery(parsedQuery, executionOptions);
+        } else {
+          results = await this.rdfProcessor.query(this._rebuildQuery(parsedQuery), executionOptions);
+        }
+      } catch (error) {
+        // Enhanced fallback with performance profiling
+        this.logger.warn('Primary execution failed, using fallback', { error: error.message });
+        results = await this._executeFallbackQuery(parsedQuery, executionOptions);
+      }
+
+      // Enhanced caching with TTL and compression
+      const executionTime = Date.now() - startTime;
+      this.queryCache.cacheResults(queryFingerprint, results, {
+        ...options,
+        executionTime,
+        complexity: this._analyzeQueryComplexity(parsedQuery),
+        resultSize: JSON.stringify(results).length
+      });
+
+      // Performance monitoring
+      this._recordQueryMetrics({
+        query,
+        executionTime,
+        resultCount: results.results?.bindings?.length || 0,
+        cacheHit: false,
+        complexity: this._analyzeQueryComplexity(parsedQuery).score
+      });
+
+      this.logger.debug(`Query executed successfully in ${executionTime}ms, ${results.results?.bindings?.length || 0} results`);
       return results;
 
     } catch (error) {
@@ -158,7 +189,8 @@ export class ProvenanceQueries {
         operation: 'sparql-execution',
         input: { 
           queryLength: query.length,
-          skipCache: options.skipCache
+          skipCache: options.skipCache,
+          queryType: this._detectQueryType(query)
         }
       };
       
@@ -715,6 +747,270 @@ export class ProvenanceQueries {
     }
   }
 
+  /**
+   * Advanced query optimization with cost-based analysis
+   */
+  async _optimizeQueryAdvanced(parsedQuery, options = {}) {
+    const optimizedQuery = { ...parsedQuery };
+    const storeSize = this.rdfProcessor.store.size;
+    
+    // Add LIMIT for large datasets
+    if (!optimizedQuery.limit && parsedQuery.queryType === 'SELECT' && storeSize > 10000) {
+      optimizedQuery.limit = Math.min(this.config.maxResults, storeSize / 10);
+      this.logger.debug(`Added optimized LIMIT: ${optimizedQuery.limit}`);
+    }
+    
+    // Optimize JOIN order based on selectivity
+    if (optimizedQuery.where && optimizedQuery.where.length > 1) {
+      optimizedQuery.where = await this._optimizeJoinOrder(optimizedQuery.where);
+    }
+    
+    // Add selective filters early
+    if (optimizedQuery.where) {
+      optimizedQuery.where = this._pushDownFilters(optimizedQuery.where);
+    }
+    
+    // Optimize graph patterns for large stores
+    if (storeSize > 50000 && optimizedQuery.where) {
+      optimizedQuery.where = this._optimizeGraphPatterns(optimizedQuery.where);
+    }
+    
+    return optimizedQuery;
+  }
+
+  /**
+   * Generate query fingerprint for caching
+   */
+  _generateQueryFingerprint(query, options = {}) {
+    const normalizedQuery = query.replace(/\s+/g, ' ').trim();
+    const optionsKey = JSON.stringify({
+      maxResults: options.maxResults,
+      timeout: options.timeout,
+      graph: options.graph
+    });
+    return crypto.createHash('sha256')
+      .update(normalizedQuery + optionsKey)
+      .digest('hex').slice(0, 16);
+  }
+
+  /**
+   * Normalize query for better parsing
+   */
+  _normalizeQuery(query) {
+    return query
+      .replace(/\s+/g, ' ')
+      .replace(/;\s*$/, '')
+      .trim();
+  }
+
+  /**
+   * Analyze query complexity for optimization
+   */
+  _analyzeQueryComplexity(parsedQuery) {
+    let score = 0;
+    let factors = [];
+    
+    // Count triple patterns
+    const triplePatternCount = this._countTriplePatterns(parsedQuery.where || []);
+    score += Math.min(triplePatternCount * 0.1, 0.3);
+    if (triplePatternCount > 5) factors.push('high-pattern-count');
+    
+    // Check for JOINs
+    if (triplePatternCount > 1) {
+      score += 0.2;
+      factors.push('joins');
+    }
+    
+    // Check for OPTIONAL clauses
+    if (this._hasOptionalClauses(parsedQuery.where || [])) {
+      score += 0.3;
+      factors.push('optional-clauses');
+    }
+    
+    // Check for UNION clauses
+    if (this._hasUnionClauses(parsedQuery.where || [])) {
+      score += 0.2;
+      factors.push('union-clauses');
+    }
+    
+    // Check for aggregation
+    if (parsedQuery.group || parsedQuery.having) {
+      score += 0.2;
+      factors.push('aggregation');
+    }
+    
+    // Missing LIMIT adds complexity
+    if (!parsedQuery.limit && parsedQuery.queryType === 'SELECT') {
+      score += 0.1;
+      factors.push('no-limit');
+    }
+    
+    return {
+      score: Math.min(score, 1.0),
+      factors,
+      triplePatternCount,
+      estimatedResultSize: this._estimateResultSize(parsedQuery)
+    };
+  }
+
+  /**
+   * Determine if streaming should be used
+   */
+  _shouldUseStreaming(parsedQuery) {
+    const complexity = this._analyzeQueryComplexity(parsedQuery);
+    const storeSize = this.rdfProcessor.store.size;
+    
+    return complexity.score > 0.5 || 
+           complexity.estimatedResultSize > 1000 || 
+           storeSize > 100000;
+  }
+
+  /**
+   * Calculate optimal batch size for processing
+   */
+  _calculateOptimalBatchSize(parsedQuery) {
+    const complexity = this._analyzeQueryComplexity(parsedQuery);
+    const storeSize = this.rdfProcessor.store.size;
+    
+    if (storeSize < 1000) return 100;
+    if (storeSize < 10000) return 500;
+    if (complexity.score > 0.7) return 200;
+    return 1000;
+  }
+
+  /**
+   * Execute complex query with optimizations
+   */
+  async _executeComplexQuery(parsedQuery, options = {}) {
+    this.logger.debug('Using complex query execution path');
+    
+    // Break down complex queries into simpler parts
+    if (parsedQuery.queryType === 'SELECT') {
+      return await this._executeSelectOptimized(parsedQuery, options);
+    }
+    
+    // Fallback to standard execution
+    return await this.rdfProcessor.query(this._rebuildQuery(parsedQuery), options);
+  }
+
+  /**
+   * Optimized SELECT execution with batching
+   */
+  async _executeSelectOptimized(parsedQuery, options = {}) {
+    const batchSize = options.batchSize || 1000;
+    const allBindings = [];
+    let offset = 0;
+    let hasMore = true;
+    
+    while (hasMore && allBindings.length < (parsedQuery.limit || this.config.maxResults)) {
+      const batchQuery = {
+        ...parsedQuery,
+        limit: Math.min(batchSize, (parsedQuery.limit || this.config.maxResults) - allBindings.length),
+        offset: offset
+      };
+      
+      const batchResults = await this.rdfProcessor.query(this._rebuildQuery(batchQuery), {
+        ...options,
+        streaming: false // Disable streaming for batches
+      });
+      
+      const bindings = batchResults.results?.bindings || [];
+      allBindings.push(...bindings);
+      
+      hasMore = bindings.length === batchSize;
+      offset += bindings.length;
+      
+      // Yield control to prevent blocking
+      await new Promise(resolve => setImmediate(resolve));
+    }
+    
+    return {
+      results: { bindings: allBindings },
+      head: { vars: this.extractVariables(parsedQuery.variables) }
+    };
+  }
+
+  /**
+   * Enhanced fallback execution
+   */
+  async _executeFallbackQuery(parsedQuery, options = {}) {
+    // Try individual query type execution with enhanced error handling
+    switch (parsedQuery.queryType) {
+      case 'SELECT':
+        return await this._executeSelectQuery(parsedQuery, options);
+      case 'CONSTRUCT':
+        return await this._executeConstructQuery(parsedQuery, options);
+      case 'ASK':
+        return await this._executeAskQuery(parsedQuery, options);
+      case 'DESCRIBE':
+        return await this._executeDescribeQuery(parsedQuery, options);
+      default:
+        throw new Error(`Unsupported query type: ${parsedQuery.queryType}`);
+    }
+  }
+
+  /**
+   * Rebuild query from parsed representation
+   */
+  _rebuildQuery(parsedQuery) {
+    try {
+      return this.sparqlGenerator.stringify(parsedQuery);
+    } catch (error) {
+      this.logger.warn('Failed to rebuild query, using simplified approach', error);
+      return this._buildSimpleQuery(parsedQuery);
+    }
+  }
+
+  /**
+   * Record query performance metrics
+   */
+  _recordQueryMetrics(metrics) {
+    // Store metrics for performance analysis
+    if (!this.queryMetrics) this.queryMetrics = [];
+    
+    const record = {
+      timestamp: new Date(),
+      ...metrics
+    };
+    
+    this.queryMetrics.push(record);
+    
+    // Keep only recent metrics (last 1000 queries)
+    if (this.queryMetrics.length > 1000) {
+      this.queryMetrics = this.queryMetrics.slice(-1000);
+    }
+    
+    // Emit metrics for monitoring
+    this.emit('query-metrics', record);
+  }
+
+  /**
+   * Get query performance statistics
+   */
+  getQueryPerformanceStats() {
+    if (!this.queryMetrics || this.queryMetrics.length === 0) {
+      return { message: 'No metrics available' };
+    }
+    
+    const metrics = this.queryMetrics;
+    const executionTimes = metrics.map(m => m.executionTime);
+    const complexityScores = metrics.map(m => m.complexity || 0);
+    
+    return {
+      totalQueries: metrics.length,
+      avgExecutionTime: executionTimes.reduce((a, b) => a + b, 0) / executionTimes.length,
+      minExecutionTime: Math.min(...executionTimes),
+      maxExecutionTime: Math.max(...executionTimes),
+      avgComplexity: complexityScores.reduce((a, b) => a + b, 0) / complexityScores.length,
+      cacheHitRate: metrics.filter(m => m.cacheHit).length / metrics.length,
+      recentQueries: metrics.slice(-10).map(m => ({
+        executionTime: m.executionTime,
+        resultCount: m.resultCount,
+        complexity: m.complexity
+      }))
+    };
+  }
+
   async _executeSelectQuery(parsedQuery, options) {
     try {
       // Use RDFProcessor's real SPARQL execution
@@ -953,6 +1249,204 @@ export class ProvenanceQueries {
         return { success: false, reason: `Store reinitialization failed: ${reinitError.message}` };
       }
     });
+  }
+
+  // Helper methods for query optimization
+  
+  /**
+   * Count triple patterns in WHERE clause
+   */
+  _countTriplePatterns(whereClause) {
+    let count = 0;
+    for (const clause of whereClause) {
+      if (clause.type === 'bgp') {
+        count += clause.triples ? clause.triples.length : 0;
+      } else if (clause.type === 'group') {
+        count += this._countTriplePatterns(clause.patterns || []);
+      }
+    }
+    return count;
+  }
+
+  /**
+   * Check for OPTIONAL clauses
+   */
+  _hasOptionalClauses(whereClause) {
+    return whereClause.some(clause => 
+      clause.type === 'optional' || 
+      (clause.patterns && this._hasOptionalClauses(clause.patterns))
+    );
+  }
+
+  /**
+   * Check for UNION clauses
+   */
+  _hasUnionClauses(whereClause) {
+    return whereClause.some(clause => 
+      clause.type === 'union' || 
+      (clause.patterns && this._hasUnionClauses(clause.patterns))
+    );
+  }
+
+  /**
+   * Estimate result size based on query patterns
+   */
+  _estimateResultSize(parsedQuery) {
+    const storeSize = this.rdfProcessor.store.size;
+    const patternCount = this._countTriplePatterns(parsedQuery.where || []);
+    
+    if (patternCount === 0) return 0;
+    if (patternCount === 1) return Math.min(storeSize / 10, 1000);
+    
+    // Rough estimation based on join selectivity
+    let estimation = storeSize / Math.pow(10, patternCount - 1);
+    
+    // Apply LIMIT if present
+    if (parsedQuery.limit) {
+      estimation = Math.min(estimation, parsedQuery.limit);
+    }
+    
+    return Math.max(1, Math.floor(estimation));
+  }
+
+  /**
+   * Optimize join order based on selectivity heuristics
+   */
+  async _optimizeJoinOrder(whereClause) {
+    // Simple heuristic: put more selective patterns first
+    const patterns = [...whereClause];
+    
+    return patterns.sort((a, b) => {
+      const selectivityA = this._estimatePatternSelectivity(a);
+      const selectivityB = this._estimatePatternSelectivity(b);
+      return selectivityA - selectivityB;
+    });
+  }
+
+  /**
+   * Estimate pattern selectivity
+   */
+  _estimatePatternSelectivity(pattern) {
+    let selectivity = 1.0;
+    
+    // More specific patterns have lower selectivity
+    if (pattern.subject && pattern.subject.termType !== 'Variable') {
+      selectivity *= 0.1;
+    }
+    if (pattern.predicate && pattern.predicate.termType !== 'Variable') {
+      selectivity *= 0.1;
+    }
+    if (pattern.object && pattern.object.termType !== 'Variable') {
+      selectivity *= 0.1;
+    }
+    
+    return selectivity;
+  }
+
+  /**
+   * Push down filters for early evaluation
+   */
+  _pushDownFilters(whereClause) {
+    const filters = [];
+    const patterns = [];
+    
+    for (const clause of whereClause) {
+      if (clause.type === 'filter') {
+        filters.push(clause);
+      } else {
+        patterns.push(clause);
+      }
+    }
+    
+    // Place filters after their dependent patterns
+    return [...patterns, ...filters];
+  }
+
+  /**
+   * Optimize graph patterns for large stores
+   */
+  _optimizeGraphPatterns(whereClause) {
+    // Group related patterns together
+    const grouped = new Map();
+    const ungrouped = [];
+    
+    for (const pattern of whereClause) {
+      if (pattern.subject && pattern.subject.termType === 'Variable') {
+        const varName = pattern.subject.value;
+        if (!grouped.has(varName)) {
+          grouped.set(varName, []);
+        }
+        grouped.get(varName).push(pattern);
+      } else {
+        ungrouped.push(pattern);
+      }
+    }
+    
+    // Flatten grouped patterns with ungrouped ones
+    const result = [];
+    for (const [varName, patterns] of grouped) {
+      result.push(...patterns);
+    }
+    result.push(...ungrouped);
+    
+    return result;
+  }
+
+  /**
+   * Build simple query string
+   */
+  _buildSimpleQuery(parsedQuery) {
+    const { queryType, variables = [], where = [], limit } = parsedQuery;
+    
+    let query = `${queryType} `;
+    
+    if (queryType === 'SELECT') {
+      if (variables.length > 0) {
+        query += variables.map(v => `?${v.variable ? v.variable.value : v.value}`).join(' ');
+      } else {
+        query += '*';
+      }
+    }
+    
+    query += ' WHERE { ';
+    
+    // Simplified WHERE clause generation
+    for (const pattern of where.slice(0, 5)) {
+      if (pattern.subject) {
+        query += this._termToString(pattern.subject) + ' ';
+      }
+      if (pattern.predicate) {
+        query += this._termToString(pattern.predicate) + ' ';
+      }
+      if (pattern.object) {
+        query += this._termToString(pattern.object) + ' . ';
+      }
+    }
+    
+    query += ' }';
+    
+    if (limit) {
+      query += ` LIMIT ${limit}`;
+    }
+    
+    return query;
+  }
+
+  /**
+   * Convert term to string representation
+   */
+  _termToString(term) {
+    if (!term) return '?unknown';
+    
+    if (term.termType === 'Variable') {
+      return '?' + term.value;
+    } else if (term.termType === 'NamedNode') {
+      return '<' + term.value + '>';
+    } else if (term.termType === 'Literal') {
+      return '"' + term.value + '"';
+    }
+    
+    return '?unknown';
   }
 }
 

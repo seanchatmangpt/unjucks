@@ -1,0 +1,224 @@
+{
+  "id": "99682092-4dcc-4c1f-818b-6f1b3cefb618",
+  "type": "operation_completed",
+  "timestamp": "2025-09-12T04:23:46.775Z",
+  "data": {
+    "operationId": "d91d7ceb-3469-4b8e-b66d-4602849c3c5f",
+    "type": "data-processing",
+    "user": "demo-user",
+    "duration": 102,
+    "status": "success"
+  },
+  "context": {
+    "operationId": "d91d7ceb-3469-4b8e-b66d-4602849c3c5f",
+    "type": "data-processing",
+    "startTime": "2025-09-12T04:23:46.673Z",
+    "user": {
+      "id": "demo-user",
+      "name": "Demo User",
+      "email": "demo@example.com"
+    },
+    "inputs": [
+      {
+        "id": "input1",
+        "name": "source-data.csv"
+      }
+    ],
+    "sources": [
+      {
+        "id": "database1",
+        "name": "Customer Database"
+      }
+    ],
+    "agent": {
+      "id": "demo-user",
+      "uri": "http://kgen.enterprise/provenance/agent/demo-user",
+      "type": "person",
+      "name": "Demo User",
+      "email": "demo@example.com"
+    },
+    "activityUri": "http://kgen.enterprise/provenance/activity/d91d7ceb-3469-4b8e-b66d-4602849c3c5f",
+    "planUri": "http://kgen.enterprise/provenance/plan/data-processing",
+    "metadata": {
+      "version": "1.0",
+      "description": "Process customer data for analytics"
+    },
+    "endTime": "2025-09-12T04:23:46.775Z",
+    "status": "success",
+    "outputs": [
+      {
+        "id": "output1",
+        "name": "processed-data.json"
+      }
+    ],
+    "metrics": {
+      "recordsProcessed": 1500,
+      "duration": 2500,
+      "memoryUsed": 128
+    },
+    "outputGraph": {
+      "entities": [
+        {
+          "id": "output1",
+          "type": "dataset",
+          "format": "json"
+        }
+      ]
+    },
+    "duration": 102,
+    "integrityHash": "d5681440a4d4df130886145ce4e3ba68dd969141f9b728e30ba9e40fb57ae341"
+  },
+  "framework": "GDPR",
+  "severity": "low",
+  "hash": "9b47ff346c8d7c95a1079789127e1c00925e4968c633f1ed9b7a322629623bd7"
+}\n{
+  "id": "d5f24d18-f40d-4950-8ee0-42b49b17d3e0",
+  "type": "operation_completed",
+  "timestamp": "2025-09-12T04:26:32.952Z",
+  "data": {
+    "operationId": "849a9a84-1cba-46fa-8866-b4bafcfa006b",
+    "type": "test-operation",
+    "user": "test-user",
+    "duration": 1,
+    "status": "success"
+  },
+  "context": {
+    "operationId": "849a9a84-1cba-46fa-8866-b4bafcfa006b",
+    "type": "test-operation",
+    "startTime": "2025-09-12T04:26:32.951Z",
+    "user": {
+      "id": "test-user",
+      "username": "test"
+    },
+    "inputs": [
+      {
+        "id": "input-1",
+        "name": "test-input"
+      }
+    ],
+    "sources": [],
+    "agent": {
+      "id": "test-user",
+      "uri": "http://kgen.enterprise/provenance/agent/test-user",
+      "type": "person",
+      "name": "test"
+    },
+    "activityUri": "http://kgen.enterprise/provenance/activity/849a9a84-1cba-46fa-8866-b4bafcfa006b",
+    "planUri": "http://kgen.enterprise/provenance/plan/test-operation",
+    "metadata": {},
+    "endTime": "2025-09-12T04:26:32.952Z",
+    "status": "success",
+    "outputs": [
+      {
+        "id": "output-1",
+        "name": "test-output"
+      }
+    ],
+    "metrics": {
+      "executionTime": 100
+    },
+    "duration": 1,
+    "integrityHash": "b3856723936b1d01f418d15f2803c4fc61c946fa0518cee1a513679009b5429b"
+  },
+  "framework": "GDPR",
+  "severity": "low",
+  "hash": "d353f99122e4ccae71118377584a850058113fdb8f9c0278c3bec98214949e8e"
+}\n{
+  "id": "f5822d93-e89c-410c-b5d5-d9a90d902cd1",
+  "type": "operation_completed",
+  "timestamp": "2025-09-12T04:27:40.822Z",
+  "data": {
+    "operationId": "276d05fa-8f06-415b-8416-d69bf4b29937",
+    "type": "test-operation",
+    "user": "test-user",
+    "duration": 1,
+    "status": "success"
+  },
+  "context": {
+    "operationId": "276d05fa-8f06-415b-8416-d69bf4b29937",
+    "type": "test-operation",
+    "startTime": "2025-09-12T04:27:40.821Z",
+    "user": {
+      "id": "test-user",
+      "username": "test"
+    },
+    "inputs": [
+      {
+        "id": "input-1",
+        "name": "test-input"
+      }
+    ],
+    "sources": [],
+    "agent": {
+      "id": "test-user",
+      "uri": "http://kgen.enterprise/provenance/agent/test-user",
+      "type": "person",
+      "name": "test"
+    },
+    "activityUri": "http://kgen.enterprise/provenance/activity/276d05fa-8f06-415b-8416-d69bf4b29937",
+    "planUri": "http://kgen.enterprise/provenance/plan/test-operation",
+    "metadata": {},
+    "endTime": "2025-09-12T04:27:40.822Z",
+    "status": "success",
+    "outputs": [
+      {
+        "id": "output-1",
+        "name": "test-output"
+      }
+    ],
+    "metrics": {
+      "executionTime": 100
+    },
+    "duration": 1,
+    "integrityHash": "982f90f0190405fc7a9ed17ee63b13e915a2be4cf2c761d589ae597ac575a8ba"
+  },
+  "framework": "GDPR",
+  "severity": "low",
+  "hash": "6d918f2e7c9767c426428573458dc0f0e32614c05351d43de4ed0b9b713ff822"
+}\n{
+  "id": "f9dcaa0b-9e92-438d-91a7-48c9d59d7223",
+  "type": "operation_completed",
+  "timestamp": "2025-09-12T04:29:52.068Z",
+  "data": {
+    "operationId": "87a608a7-9044-4b07-b81f-b1d8f034ff6c",
+    "type": "test-operation",
+    "user": "test-user",
+    "duration": 1,
+    "status": "success"
+  },
+  "context": {
+    "operationId": "87a608a7-9044-4b07-b81f-b1d8f034ff6c",
+    "type": "test-operation",
+    "startTime": "2025-09-12T04:29:52.067Z",
+    "user": {
+      "id": "test-user"
+    },
+    "inputs": [
+      {
+        "id": "input-0"
+      }
+    ],
+    "sources": [],
+    "agent": {
+      "id": "test-user",
+      "uri": "http://kgen.enterprise/provenance/agent/test-user",
+      "type": "person"
+    },
+    "activityUri": "http://kgen.enterprise/provenance/activity/87a608a7-9044-4b07-b81f-b1d8f034ff6c",
+    "planUri": "http://kgen.enterprise/provenance/plan/test-operation",
+    "metadata": {},
+    "endTime": "2025-09-12T04:29:52.068Z",
+    "status": "success",
+    "outputs": [
+      {
+        "id": "output-0"
+      }
+    ],
+    "metrics": {},
+    "duration": 1,
+    "integrityHash": "658970e9571717062763ce23d0c95e9429e9b29081fad528e4cbf33469e9c01b"
+  },
+  "framework": "GDPR",
+  "severity": "low",
+  "hash": "0255acbc85d3c183581450e5d45bbe2fb44fe80e68d717ccc55fa7f240012ea8"
+}\n

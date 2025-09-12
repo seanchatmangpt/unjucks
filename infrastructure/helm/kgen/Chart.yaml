@@ -1,0 +1,26 @@
+apiVersion: v2
+name: kgen
+description: A Helm chart for KGEN - Knowledge Graph Engine for Deterministic Artifact Generation
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
+
+keywords:
+  - kgen
+  - knowledge-graph
+  - rdf
+  - code-generation
+  - deterministic
+  - artifacts
+
+home: https://github.com/your-org/kgen
+sources:
+  - https://github.com/your-org/kgen
+
+maintainers:
+  - name: KGEN Team
+    email: team@yourorg.com
+
+annotations:
+  category: Development
+  licenses: MIT

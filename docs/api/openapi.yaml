@@ -1,0 +1,1127 @@
+openapi: 3.0.0
+info:
+  title: KGEN Enterprise Integration API
+  version: 1.0.0
+  description: |
+    Comprehensive enterprise integration API for KGEN Knowledge Graph Engine.
+    Provides REST endpoints, GraphQL interface, webhooks, and enterprise connectors.
+  contact:
+    name: KGEN Enterprise Support
+    email: enterprise@kgen.dev
+    url: https://enterprise.kgen.dev
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+  termsOfService: https://enterprise.kgen.dev/terms
+
+servers:
+  - url: https://api.kgen.dev/v1
+    description: Production server
+  - url: https://staging-api.kgen.dev/v1
+    description: Staging server
+  - url: http://localhost:8080/v1
+    description: Development server
+
+security:
+  - BearerAuth: []
+  - ApiKeyAuth: []
+  - OAuth2: [read, write, admin]
+
+paths:
+  # Knowledge Graph Operations
+  /graphs:
+    get:
+      tags: [Knowledge Graphs]
+      summary: List knowledge graphs
+      description: Retrieve a paginated list of knowledge graphs with filtering
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/LimitParam'
+        - name: filter
+          in: query
+          description: Filter graphs by name, type, or status
+          schema:
+            type: string
+        - name: sortBy
+          in: query
+          description: Sort field
+          schema:
+            type: string
+            enum: [name, createdAt, updatedAt, size]
+            default: createdAt
+      responses:
+        '200':
+          $ref: '#/components/responses/GraphListResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '429':
+          $ref: '#/components/responses/RateLimitError'
+    post:
+      tags: [Knowledge Graphs]
+      summary: Create knowledge graph
+      description: Create a new knowledge graph from RDF data
+      requestBody:
+        $ref: '#/components/requestBodies/CreateGraphRequest'
+      responses:
+        '201':
+          $ref: '#/components/responses/GraphResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /graphs/{graphId}:
+    parameters:
+      - $ref: '#/components/parameters/GraphIdParam'
+    get:
+      tags: [Knowledge Graphs]
+      summary: Get knowledge graph
+      description: Retrieve detailed information about a specific knowledge graph
+      responses:
+        '200':
+          $ref: '#/components/responses/GraphResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+    put:
+      tags: [Knowledge Graphs]
+      summary: Update knowledge graph
+      description: Update an existing knowledge graph
+      requestBody:
+        $ref: '#/components/requestBodies/UpdateGraphRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/GraphResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+    delete:
+      tags: [Knowledge Graphs]
+      summary: Delete knowledge graph
+      description: Permanently delete a knowledge graph
+      responses:
+        '204':
+          description: Graph deleted successfully
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+
+  # Generation Operations
+  /graphs/{graphId}/generate:
+    parameters:
+      - $ref: '#/components/parameters/GraphIdParam'
+    post:
+      tags: [Code Generation]
+      summary: Generate artifacts
+      description: Generate code artifacts from knowledge graph using specified templates
+      requestBody:
+        $ref: '#/components/requestBodies/GenerateRequest'
+      responses:
+        '202':
+          $ref: '#/components/responses/GenerationJobResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+
+  /jobs/{jobId}:
+    parameters:
+      - $ref: '#/components/parameters/JobIdParam'
+    get:
+      tags: [Jobs]
+      summary: Get job status
+      description: Retrieve the status and results of a generation job
+      responses:
+        '200':
+          $ref: '#/components/responses/JobStatusResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+
+  # Template Operations
+  /templates:
+    get:
+      tags: [Templates]
+      summary: List templates
+      description: Retrieve available code generation templates
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/LimitParam'
+        - name: category
+          in: query
+          description: Filter by template category
+          schema:
+            type: string
+            enum: [api, frontend, database, infrastructure, test]
+      responses:
+        '200':
+          $ref: '#/components/responses/TemplateListResponse'
+    post:
+      tags: [Templates]
+      summary: Create template
+      description: Create a new code generation template
+      requestBody:
+        $ref: '#/components/requestBodies/CreateTemplateRequest'
+      responses:
+        '201':
+          $ref: '#/components/responses/TemplateResponse'
+
+  # Webhook Operations
+  /webhooks:
+    get:
+      tags: [Webhooks]
+      summary: List webhooks
+      description: Retrieve configured webhooks
+      responses:
+        '200':
+          $ref: '#/components/responses/WebhookListResponse'
+    post:
+      tags: [Webhooks]
+      summary: Create webhook
+      description: Register a new webhook endpoint
+      requestBody:
+        $ref: '#/components/requestBodies/CreateWebhookRequest'
+      responses:
+        '201':
+          $ref: '#/components/responses/WebhookResponse'
+
+  /webhooks/{webhookId}:
+    parameters:
+      - $ref: '#/components/parameters/WebhookIdParam'
+    get:
+      tags: [Webhooks]
+      summary: Get webhook
+      description: Retrieve webhook configuration
+      responses:
+        '200':
+          $ref: '#/components/responses/WebhookResponse'
+    put:
+      tags: [Webhooks]
+      summary: Update webhook
+      description: Update webhook configuration
+      requestBody:
+        $ref: '#/components/requestBodies/UpdateWebhookRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/WebhookResponse'
+    delete:
+      tags: [Webhooks]
+      summary: Delete webhook
+      description: Remove webhook registration
+      responses:
+        '204':
+          description: Webhook deleted successfully
+
+  # Integration Operations
+  /integrations:
+    get:
+      tags: [Integrations]
+      summary: List integrations
+      description: Retrieve available enterprise integrations
+      responses:
+        '200':
+          $ref: '#/components/responses/IntegrationListResponse'
+
+  /integrations/{integrationType}/connect:
+    parameters:
+      - name: integrationType
+        in: path
+        required: true
+        description: Integration type
+        schema:
+          type: string
+          enum: [salesforce, hubspot, sap, oracle, github, jira, slack]
+    post:
+      tags: [Integrations]
+      summary: Connect integration
+      description: Establish connection to external enterprise system
+      requestBody:
+        $ref: '#/components/requestBodies/ConnectIntegrationRequest'
+      responses:
+        '201':
+          $ref: '#/components/responses/IntegrationConnectionResponse'
+
+  # ETL Pipeline Operations
+  /etl/pipelines:
+    get:
+      tags: [ETL]
+      summary: List ETL pipelines
+      description: Retrieve configured ETL data pipelines
+      responses:
+        '200':
+          $ref: '#/components/responses/ETLPipelineListResponse'
+    post:
+      tags: [ETL]
+      summary: Create ETL pipeline
+      description: Create a new data transformation pipeline
+      requestBody:
+        $ref: '#/components/requestBodies/CreateETLPipelineRequest'
+      responses:
+        '201':
+          $ref: '#/components/responses/ETLPipelineResponse'
+
+  /etl/pipelines/{pipelineId}/execute:
+    parameters:
+      - $ref: '#/components/parameters/PipelineIdParam'
+    post:
+      tags: [ETL]
+      summary: Execute ETL pipeline
+      description: Start ETL pipeline execution
+      responses:
+        '202':
+          $ref: '#/components/responses/ETLExecutionResponse'
+
+  # GraphQL Endpoint
+  /graphql:
+    post:
+      tags: [GraphQL]
+      summary: GraphQL endpoint
+      description: Execute GraphQL queries and mutations
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                query:
+                  type: string
+                  description: GraphQL query or mutation
+                variables:
+                  type: object
+                  description: Query variables
+                operationName:
+                  type: string
+                  description: Operation name for multi-operation documents
+              required: [query]
+      responses:
+        '200':
+          description: GraphQL response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                  errors:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/GraphQLError'
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+    OAuth2:
+      type: oauth2
+      flows:
+        authorizationCode:
+          authorizationUrl: https://auth.kgen.dev/oauth/authorize
+          tokenUrl: https://auth.kgen.dev/oauth/token
+          scopes:
+            read: Read access to resources
+            write: Write access to resources
+            admin: Administrative access
+
+  parameters:
+    PageParam:
+      name: page
+      in: query
+      description: Page number for pagination
+      schema:
+        type: integer
+        minimum: 1
+        default: 1
+    LimitParam:
+      name: limit
+      in: query
+      description: Number of items per page
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 20
+    GraphIdParam:
+      name: graphId
+      in: path
+      required: true
+      description: Knowledge graph identifier
+      schema:
+        type: string
+        format: uuid
+    JobIdParam:
+      name: jobId
+      in: path
+      required: true
+      description: Job identifier
+      schema:
+        type: string
+        format: uuid
+    WebhookIdParam:
+      name: webhookId
+      in: path
+      required: true
+      description: Webhook identifier
+      schema:
+        type: string
+        format: uuid
+    PipelineIdParam:
+      name: pipelineId
+      in: path
+      required: true
+      description: ETL pipeline identifier
+      schema:
+        type: string
+        format: uuid
+
+  schemas:
+    KnowledgeGraph:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Unique graph identifier
+        name:
+          type: string
+          description: Graph name
+        description:
+          type: string
+          description: Graph description
+        rdfFormat:
+          type: string
+          enum: [turtle, rdfxml, jsonld, ntriples]
+          description: RDF serialization format
+        tripleCount:
+          type: integer
+          description: Number of RDF triples
+        status:
+          type: string
+          enum: [active, processing, error]
+          description: Graph status
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        metadata:
+          type: object
+          additionalProperties: true
+      required: [id, name, rdfFormat, status]
+
+    Template:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        description:
+          type: string
+        category:
+          type: string
+          enum: [api, frontend, database, infrastructure, test]
+        language:
+          type: string
+          enum: [javascript, typescript, python, java, csharp, go]
+        variables:
+          type: array
+          items:
+            $ref: '#/components/schemas/TemplateVariable'
+        content:
+          type: string
+          description: Template content (Nunjucks)
+        createdAt:
+          type: string
+          format: date-time
+      required: [id, name, category, language, content]
+
+    TemplateVariable:
+      type: object
+      properties:
+        name:
+          type: string
+        type:
+          type: string
+          enum: [string, number, boolean, array, object]
+        required:
+          type: boolean
+          default: false
+        description:
+          type: string
+        defaultValue:
+          oneOf:
+            - type: string
+            - type: number
+            - type: boolean
+            - type: array
+            - type: object
+      required: [name, type]
+
+    GenerationJob:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        graphId:
+          type: string
+          format: uuid
+        templateIds:
+          type: array
+          items:
+            type: string
+            format: uuid
+        status:
+          type: string
+          enum: [queued, running, completed, failed]
+        progress:
+          type: integer
+          minimum: 0
+          maximum: 100
+        startedAt:
+          type: string
+          format: date-time
+        completedAt:
+          type: string
+          format: date-time
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/GeneratedArtifact'
+        error:
+          type: string
+      required: [id, graphId, status]
+
+    GeneratedArtifact:
+      type: object
+      properties:
+        filename:
+          type: string
+        content:
+          type: string
+        language:
+          type: string
+        size:
+          type: integer
+        checksum:
+          type: string
+        attestation:
+          $ref: '#/components/schemas/Attestation'
+      required: [filename, content, language]
+
+    Attestation:
+      type: object
+      properties:
+        version:
+          type: string
+          default: "1.0"
+        timestamp:
+          type: string
+          format: date-time
+        generator:
+          type: object
+          properties:
+            name:
+              type: string
+            version:
+              type: string
+            engine:
+              type: string
+        provenance:
+          type: object
+          properties:
+            templates:
+              type: array
+              items:
+                type: string
+            rules:
+              type: array
+              items:
+                type: string
+            data:
+              type: array
+              items:
+                type: string
+        signature:
+          type: string
+          description: Cryptographic signature
+      required: [version, timestamp, generator]
+
+    Webhook:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        url:
+          type: string
+          format: uri
+          description: Webhook endpoint URL
+        events:
+          type: array
+          items:
+            type: string
+            enum: [graph.created, graph.updated, graph.deleted, job.completed, job.failed]
+        secret:
+          type: string
+          description: Webhook signing secret
+        active:
+          type: boolean
+          default: true
+        createdAt:
+          type: string
+          format: date-time
+        lastTriggered:
+          type: string
+          format: date-time
+      required: [id, url, events]
+
+    Integration:
+      type: object
+      properties:
+        type:
+          type: string
+          enum: [salesforce, hubspot, sap, oracle, github, jira, slack]
+        name:
+          type: string
+        description:
+          type: string
+        capabilities:
+          type: array
+          items:
+            type: string
+        configSchema:
+          type: object
+          description: JSON Schema for configuration
+        status:
+          type: string
+          enum: [available, connected, error]
+      required: [type, name, capabilities]
+
+    ETLPipeline:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        description:
+          type: string
+        source:
+          $ref: '#/components/schemas/DataSource'
+        target:
+          $ref: '#/components/schemas/DataTarget'
+        transformations:
+          type: array
+          items:
+            $ref: '#/components/schemas/Transformation'
+        schedule:
+          type: string
+          description: Cron expression for scheduling
+        status:
+          type: string
+          enum: [active, inactive, error]
+        createdAt:
+          type: string
+          format: date-time
+      required: [id, name, source, target]
+
+    DataSource:
+      type: object
+      properties:
+        type:
+          type: string
+          enum: [database, api, file, message_queue]
+        config:
+          type: object
+          description: Source-specific configuration
+      required: [type, config]
+
+    DataTarget:
+      type: object
+      properties:
+        type:
+          type: string
+          enum: [database, api, file, knowledge_graph]
+        config:
+          type: object
+          description: Target-specific configuration
+      required: [type, config]
+
+    Transformation:
+      type: object
+      properties:
+        type:
+          type: string
+          enum: [map, filter, aggregate, validate, enrich]
+        config:
+          type: object
+          description: Transformation configuration
+      required: [type, config]
+
+    GraphQLError:
+      type: object
+      properties:
+        message:
+          type: string
+        locations:
+          type: array
+          items:
+            type: object
+            properties:
+              line:
+                type: integer
+              column:
+                type: integer
+        path:
+          type: array
+          items:
+            oneOf:
+              - type: string
+              - type: integer
+        extensions:
+          type: object
+      required: [message]
+
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+          description: Error code
+        message:
+          type: string
+          description: Error message
+        details:
+          type: object
+          description: Additional error details
+        timestamp:
+          type: string
+          format: date-time
+      required: [error, message]
+
+    PaginatedResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items: {}
+        pagination:
+          type: object
+          properties:
+            page:
+              type: integer
+            limit:
+              type: integer
+            total:
+              type: integer
+            totalPages:
+              type: integer
+          required: [page, limit, total, totalPages]
+      required: [data, pagination]
+
+  requestBodies:
+    CreateGraphRequest:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              name:
+                type: string
+                minLength: 1
+                maxLength: 255
+              description:
+                type: string
+                maxLength: 1000
+              rdfData:
+                type: string
+                description: RDF content
+              rdfFormat:
+                type: string
+                enum: [turtle, rdfxml, jsonld, ntriples]
+                default: turtle
+              metadata:
+                type: object
+            required: [name, rdfData]
+          example:
+            name: "User Management Graph"
+            description: "Knowledge graph for user management domain"
+            rdfData: |
+              @prefix ex: <http://example.org/> .
+              @prefix foaf: <http://xmlns.com/foaf/0.1/> .
+              
+              ex:User a rdfs:Class .
+              ex:hasEmail a rdf:Property .
+            rdfFormat: "turtle"
+
+    UpdateGraphRequest:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              name:
+                type: string
+                minLength: 1
+                maxLength: 255
+              description:
+                type: string
+                maxLength: 1000
+              rdfData:
+                type: string
+              metadata:
+                type: object
+
+    GenerateRequest:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              templateIds:
+                type: array
+                items:
+                  type: string
+                  format: uuid
+                minItems: 1
+              variables:
+                type: object
+                description: Template variables
+              outputFormat:
+                type: string
+                enum: [zip, tar, individual]
+                default: individual
+              webhook:
+                type: string
+                format: uri
+                description: Webhook URL for completion notification
+            required: [templateIds]
+
+    CreateTemplateRequest:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              name:
+                type: string
+                minLength: 1
+                maxLength: 255
+              description:
+                type: string
+                maxLength: 1000
+              category:
+                type: string
+                enum: [api, frontend, database, infrastructure, test]
+              language:
+                type: string
+                enum: [javascript, typescript, python, java, csharp, go]
+              variables:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TemplateVariable'
+              content:
+                type: string
+                description: Nunjucks template content
+            required: [name, category, language, content]
+
+    CreateWebhookRequest:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              url:
+                type: string
+                format: uri
+              events:
+                type: array
+                items:
+                  type: string
+                  enum: [graph.created, graph.updated, graph.deleted, job.completed, job.failed]
+                minItems: 1
+              secret:
+                type: string
+                minLength: 10
+            required: [url, events]
+
+    UpdateWebhookRequest:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              url:
+                type: string
+                format: uri
+              events:
+                type: array
+                items:
+                  type: string
+                  enum: [graph.created, graph.updated, graph.deleted, job.completed, job.failed]
+              active:
+                type: boolean
+              secret:
+                type: string
+                minLength: 10
+
+    ConnectIntegrationRequest:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              name:
+                type: string
+                description: Connection name
+              config:
+                type: object
+                description: Integration-specific configuration
+            required: [name, config]
+
+    CreateETLPipelineRequest:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              name:
+                type: string
+                minLength: 1
+              description:
+                type: string
+              source:
+                $ref: '#/components/schemas/DataSource'
+              target:
+                $ref: '#/components/schemas/DataTarget'
+              transformations:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Transformation'
+              schedule:
+                type: string
+                pattern: '^[0-9\s\*\/\-\,]+$'
+            required: [name, source, target]
+
+  responses:
+    GraphResponse:
+      description: Knowledge graph details
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/KnowledgeGraph'
+
+    GraphListResponse:
+      description: Paginated list of knowledge graphs
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/PaginatedResponse'
+              - type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/KnowledgeGraph'
+
+    GenerationJobResponse:
+      description: Generation job created
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/GenerationJob'
+
+    JobStatusResponse:
+      description: Job status and results
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/GenerationJob'
+
+    TemplateResponse:
+      description: Template details
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Template'
+
+    TemplateListResponse:
+      description: Paginated list of templates
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/PaginatedResponse'
+              - type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Template'
+
+    WebhookResponse:
+      description: Webhook details
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Webhook'
+
+    WebhookListResponse:
+      description: List of webhooks
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              data:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Webhook'
+
+    IntegrationListResponse:
+      description: Available integrations
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              data:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Integration'
+
+    IntegrationConnectionResponse:
+      description: Integration connection established
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              id:
+                type: string
+                format: uuid
+              type:
+                type: string
+              name:
+                type: string
+              status:
+                type: string
+                enum: [connected, error]
+              connectedAt:
+                type: string
+                format: date-time
+
+    ETLPipelineResponse:
+      description: ETL pipeline details
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ETLPipeline'
+
+    ETLPipelineListResponse:
+      description: List of ETL pipelines
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              data:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ETLPipeline'
+
+    ETLExecutionResponse:
+      description: ETL pipeline execution started
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              executionId:
+                type: string
+                format: uuid
+              status:
+                type: string
+                enum: [queued, running]
+              startedAt:
+                type: string
+                format: date-time
+
+    ValidationError:
+      description: Request validation error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: "VALIDATION_ERROR"
+            message: "Request validation failed"
+            details:
+              field: "name"
+              reason: "Field is required"
+
+    UnauthorizedError:
+      description: Authentication required
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: "UNAUTHORIZED"
+            message: "Authentication required"
+
+    NotFoundError:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: "NOT_FOUND"
+            message: "Resource not found"
+
+    RateLimitError:
+      description: Rate limit exceeded
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: "RATE_LIMIT_EXCEEDED"
+            message: "API rate limit exceeded"
+
+tags:
+  - name: Knowledge Graphs
+    description: Knowledge graph management operations
+  - name: Code Generation
+    description: Artifact generation from knowledge graphs
+  - name: Templates
+    description: Template management for code generation
+  - name: Jobs
+    description: Asynchronous job management
+  - name: Webhooks
+    description: Real-time event notifications
+  - name: Integrations
+    description: Enterprise system integrations
+  - name: ETL
+    description: Data transformation pipelines
+  - name: GraphQL
+    description: GraphQL API endpoint
+
+externalDocs:
+  description: KGEN Enterprise Documentation
+  url: https://docs.kgen.dev/enterprise

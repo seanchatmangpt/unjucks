@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "timestamp": "2025-09-12T03:42:55.862Z",
+  "timestamp": "2025-09-12T04:25:25.031Z",
   "directory": ".",
   "files": {
     "_templates/enterprise/data/schemas/api-standards.ttl": {
@@ -17,6 +17,16 @@
       "hash": "5d7505ebdeeb1279638ad3c1254f1fec6b29483858719165397bac32ec445037",
       "size": 13366,
       "modified": "2025-09-10T17:22:44.467Z"
+    },
+    "advanced-demo/advanced-reasoning-rules.n3": {
+      "hash": "9cdd5d078afe1c67b3e46f0779597d1718c2920e3fa570fca155288281db466a",
+      "size": 3949,
+      "modified": "2025-09-12T04:25:11.620Z"
+    },
+    "advanced-demo/semantic-person-enriched.ttl": {
+      "hash": "c396715eee773327d18ee819d655693dbaf75fa0b94335e57d13bb1595e1ea69",
+      "size": 3765,
+      "modified": "2025-09-12T04:23:59.051Z"
     },
     "docs/book/examples/09-rdf-turtle-integration.ttl": {
       "hash": "018baf9b791517e3f83ca6f298228a0ad0627e1a46dc2001c8dc857e6492074e",
@@ -139,9 +149,9 @@
       "modified": "2025-09-11T23:30:51.776Z"
     },
     "sample.ttl": {
-      "hash": "4ae46fa14dc9d5c41628f767cfdf966b2bf2aaa08025d0c7d8efd0e4cb545c6c",
-      "size": 212,
-      "modified": "2025-09-12T03:41:30.021Z"
+      "hash": "1ada3c84c4f41d771c91a6b44d391be85dbffbb8537522edb53074a0c636ae78",
+      "size": 555,
+      "modified": "2025-09-12T04:24:27.169Z"
     },
     "schema/user.ttl": {
       "hash": "8f630a0a6663f69fb3753d79c3d1746511a280ba4c46a5d2525ecdb78642b1c6",
@@ -201,17 +211,22 @@
     "test-graph.ttl": {
       "hash": "d41943dde2dff7a9cabf806f7870c8595340ee6cda300d3af8b029b623e9b879",
       "size": 1934,
-      "modified": "2025-09-12T03:42:11.966Z"
-    },
-    "test-modified.ttl": {
-      "hash": "3d1a9a5e4bc65a990a4bd33f9e25649de185cb0d877c21c2b3ace4ac334b9548",
-      "size": 436,
-      "modified": "2025-09-12T03:40:08.231Z"
+      "modified": "2025-09-12T03:44:40.967Z"
     },
     "test.ttl": {
       "hash": "06af33cf8f4155bb2efffb9fa0c3c53d340344790c0de7fccede3ef53690691e",
       "size": 165,
       "modified": "2025-09-11T22:24:36.333Z"
+    },
+    "test1.ttl": {
+      "hash": "98c23a526a3004d16acd6c4db4fad25a7107621ab5459f20514deb004f497194",
+      "size": 92,
+      "modified": "2025-09-12T04:24:05.123Z"
+    },
+    "test2.ttl": {
+      "hash": "bdab611418a8cbd330444754aa9be473296fa6ae102a91c6bb65be482d76ed55",
+      "size": 97,
+      "modified": "2025-09-12T04:24:05.123Z"
     },
     "tests/fixtures/api-data.ttl": {
       "hash": "6c88f0d09654d227a52c92f3f34a3569dc76fd4bbf5f4987652be609211d6a46",

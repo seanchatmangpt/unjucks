@@ -1,0 +1,217 @@
+# Alertmanager Configuration for KGEN Monitoring
+global:
+  smtp_smarthost: 'mailserver:587'
+  smtp_from: 'kgen-alerts@company.com'
+  smtp_auth_username: 'kgen-alerts@company.com'
+  smtp_auth_password: 'secure_password'
+  
+# Notification templates
+templates:
+  - '/etc/alertmanager/templates/*.tmpl'
+
+# Routing configuration
+route:
+  group_by: ['alertname', 'cluster', 'service']
+  group_wait: 10s
+  group_interval: 10s
+  repeat_interval: 1h
+  receiver: 'kgen-default'
+  routes:
+  # Critical security alerts
+  - match:
+      severity: critical
+      category: security
+    receiver: 'security-team'
+    group_wait: 0s
+    repeat_interval: 5m
+    
+  # High severity performance issues
+  - match:
+      severity: critical
+      category: performance
+    receiver: 'devops-team'
+    group_wait: 30s
+    repeat_interval: 15m
+    
+  # Business metric alerts
+  - match:
+      category: business
+    receiver: 'business-team'
+    group_wait: 2m
+    repeat_interval: 4h
+    
+  # Infrastructure alerts
+  - match:
+      category: infrastructure
+    receiver: 'infrastructure-team'
+    group_wait: 1m
+    repeat_interval: 1h
+    
+  # Development environment (lower priority)
+  - match:
+      environment: development
+    receiver: 'dev-team'
+    group_wait: 5m
+    repeat_interval: 12h
+
+# Notification receivers
+receivers:
+- name: 'kgen-default'
+  email_configs:
+  - to: 'kgen-team@company.com'
+    subject: 'KGEN Alert: {{ .GroupLabels.alertname }}'
+    body: |
+      {{ range .Alerts }}
+      Alert: {{ .Annotations.summary }}
+      Description: {{ .Annotations.description }}
+      Severity: {{ .Labels.severity }}
+      Service: {{ .Labels.service }}
+      Instance: {{ .Labels.instance }}
+      Started: {{ .StartsAt }}
+      {{ end }}
+  
+- name: 'security-team'
+  slack_configs:
+  - api_url: 'https://hooks.slack.com/services/YOUR/SECURITY/WEBHOOK'
+    channel: '#security-alerts'
+    title: 'CRITICAL: KGEN Security Alert'
+    text: |
+      🚨 *CRITICAL SECURITY ALERT* 🚨
+      
+      *Alert:* {{ .GroupLabels.alertname }}
+      *Severity:* {{ .CommonLabels.severity }}
+      *Service:* {{ .CommonLabels.service }}
+      
+      {{ range .Alerts }}
+      *Summary:* {{ .Annotations.summary }}
+      *Description:* {{ .Annotations.description }}
+      *Source IP:* {{ .Labels.source_ip | default "unknown" }}
+      *Started:* {{ .StartsAt.Format "2006-01-02 15:04:05" }}
+      {{ end }}
+    actions:
+    - type: button
+      text: 'View in Grafana'
+      url: 'http://grafana:3000/d/security/kgen-security-dashboard'
+    - type: button
+      text: 'View Logs'
+      url: 'http://kibana:5601'
+  
+  pagerduty_configs:
+  - routing_key: 'YOUR_SECURITY_PAGERDUTY_KEY'
+    description: 'KGEN Security Alert: {{ .GroupLabels.alertname }}'
+    severity: '{{ .CommonLabels.severity }}'
+    
+- name: 'devops-team'
+  slack_configs:
+  - api_url: 'https://hooks.slack.com/services/YOUR/DEVOPS/WEBHOOK'
+    channel: '#devops-alerts'
+    title: 'KGEN Performance Alert'
+    text: |
+      ⚠️ *PERFORMANCE ALERT* ⚠️
+      
+      *Alert:* {{ .GroupLabels.alertname }}
+      *Severity:* {{ .CommonLabels.severity }}
+      *Service:* {{ .CommonLabels.service }}
+      *Instance:* {{ .CommonLabels.instance }}
+      
+      {{ range .Alerts }}
+      *Summary:* {{ .Annotations.summary }}
+      *Description:* {{ .Annotations.description }}
+      *Duration:* {{ .Annotations.duration | default "unknown" }}
+      *Started:* {{ .StartsAt.Format "2006-01-02 15:04:05" }}
+      {{ end }}
+    actions:
+    - type: button
+      text: 'View Dashboard'
+      url: 'http://grafana:3000/d/kgen-overview'
+    - type: button
+      text: 'View Metrics'
+      url: 'http://prometheus:9090'
+      
+- name: 'business-team'
+  email_configs:
+  - to: 'business-team@company.com'
+    subject: 'KGEN Business Metrics Alert: {{ .GroupLabels.alertname }}'
+    body: |
+      KGEN Business Metrics Alert
+      
+      {{ range .Alerts }}
+      Alert: {{ .Annotations.summary }}
+      Description: {{ .Annotations.description }}
+      
+      Business Impact:
+      - Affected Operations: {{ .Labels.operation | default "multiple" }}
+      - Template: {{ .Labels.template | default "multiple" }}
+      - Users Affected: {{ .Annotations.affected_users | default "unknown" }}
+      
+      Started: {{ .StartsAt }}
+      {{ end }}
+      
+      View Business Dashboard: http://grafana:3000/d/business/kgen-business-dashboard
+      
+- name: 'infrastructure-team'
+  slack_configs:
+  - api_url: 'https://hooks.slack.com/services/YOUR/INFRA/WEBHOOK'
+    channel: '#infrastructure'
+    title: 'KGEN Infrastructure Alert'
+    text: |
+      🔧 *INFRASTRUCTURE ALERT* 🔧
+      
+      *Alert:* {{ .GroupLabels.alertname }}
+      *Component:* {{ .CommonLabels.component }}
+      *Instance:* {{ .CommonLabels.instance }}
+      
+      {{ range .Alerts }}
+      *Issue:* {{ .Annotations.summary }}
+      *Details:* {{ .Annotations.description }}
+      *Started:* {{ .StartsAt.Format "2006-01-02 15:04:05" }}
+      {{ end }}
+      
+- name: 'dev-team'
+  slack_configs:
+  - api_url: 'https://hooks.slack.com/services/YOUR/DEV/WEBHOOK'
+    channel: '#dev-alerts'
+    title: 'KGEN Dev Environment Alert'
+    text: |
+      🛠️ *DEV ENVIRONMENT ALERT*
+      
+      *Alert:* {{ .GroupLabels.alertname }}
+      *Environment:* {{ .CommonLabels.environment }}
+      
+      {{ range .Alerts }}
+      *Summary:* {{ .Annotations.summary }}
+      {{ end }}
+      
+      _This is a development environment alert - no immediate action required._
+
+# Inhibition rules (suppress certain alerts when others are firing)
+inhibit_rules:
+- source_match:
+    severity: 'critical'
+  target_match:
+    severity: 'warning'
+  equal: ['alertname', 'instance']
+  
+- source_match:
+    alertname: 'KGenServiceDown'
+  target_match_re:
+    alertname: 'KGen.*'
+  equal: ['instance']
+
+# Silence configuration for maintenance windows
+silences:
+  # Example: Silence all alerts during maintenance window
+  - matchers:
+    - name: maintenance
+      value: "true"
+  
+# Webhook configurations for external integrations
+webhooks:
+- name: 'custom-webhook'
+  webhook_configs:
+  - url: 'http://kgen-alerting-service:8080/webhook'
+    send_resolved: true
+    http_config:
+      basic_auth:
+        username: 'webhook_user'
+        password: 'webhook_password'
