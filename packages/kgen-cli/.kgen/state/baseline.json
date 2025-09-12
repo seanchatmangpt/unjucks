@@ -1,17 +1,17 @@
 {
   "metadata": {
-    "created": "2025-09-11T23:20:01.891Z",
-    "operation": "all",
-    "samples": 2,
-    "warmup": 0,
+    "created": "2025-09-11T23:40:04.178Z",
+    "operation": "graph",
+    "samples": 10,
+    "warmup": 3,
     "environment": {
       "nodeVersion": "v22.12.0",
       "platform": "darwin",
       "arch": "arm64",
       "memory": {
-        "rss": 114016256,
-        "heapTotal": 38240256,
-        "heapUsed": 26620984,
+        "rss": 113541120,
+        "heapTotal": 37978112,
+        "heapUsed": 26624616,
         "external": 2320512,
         "arrayBuffers": 16795
       }
@@ -23,52 +23,146 @@
     }
   },
   "baselines": {
-    "generate": {
-      "operation": "generate",
-      "samples": [
-        {
-          "iteration": 1,
-          "duration": 246,
-          "success": false,
-          "error": "Command failed: node \"/Users/sac/unjucks/packages/kgen-cli/bin/kgen.js\" artifact generate --graph \"/Users/sac/.cache/tmp/kgen-baseline-test.ttl\" --template simple-test --output \"/Users/sac/.cache/tmp/kgen-baseline-output\" --dry --format json"
-        },
-        {
-          "iteration": 2,
-          "duration": 250,
-          "success": false,
-          "error": "Command failed: node \"/Users/sac/unjucks/packages/kgen-cli/bin/kgen.js\" artifact generate --graph \"/Users/sac/.cache/tmp/kgen-baseline-test.ttl\" --template simple-test --output \"/Users/sac/.cache/tmp/kgen-baseline-output\" --dry --format json"
-        }
-      ],
-      "statistics": {}
-    },
     "graph": {
       "operation": "graph",
       "samples": [
         {
           "operation": "hash",
           "iteration": 1,
-          "duration": 188,
+          "duration": 218,
           "success": false,
           "error": "Command failed: node \"/Users/sac/unjucks/packages/kgen-cli/bin/kgen.js\" graph hash --input \"/Users/sac/.cache/tmp/kgen-baseline-test.ttl\" --format json\n\n ERROR  Missing required positional argument: FILE\n\n"
         },
         {
           "operation": "hash",
           "iteration": 2,
-          "duration": 202,
+          "duration": 219,
+          "success": false,
+          "error": "Command failed: node \"/Users/sac/unjucks/packages/kgen-cli/bin/kgen.js\" graph hash --input \"/Users/sac/.cache/tmp/kgen-baseline-test.ttl\" --format json\n\n ERROR  Missing required positional argument: FILE\n\n"
+        },
+        {
+          "operation": "hash",
+          "iteration": 3,
+          "duration": 209,
+          "success": false,
+          "error": "Command failed: node \"/Users/sac/unjucks/packages/kgen-cli/bin/kgen.js\" graph hash --input \"/Users/sac/.cache/tmp/kgen-baseline-test.ttl\" --format json\n\n ERROR  Missing required positional argument: FILE\n\n"
+        },
+        {
+          "operation": "hash",
+          "iteration": 4,
+          "duration": 200,
+          "success": false,
+          "error": "Command failed: node \"/Users/sac/unjucks/packages/kgen-cli/bin/kgen.js\" graph hash --input \"/Users/sac/.cache/tmp/kgen-baseline-test.ttl\" --format json\n\n ERROR  Missing required positional argument: FILE\n\n"
+        },
+        {
+          "operation": "hash",
+          "iteration": 5,
+          "duration": 204,
+          "success": false,
+          "error": "Command failed: node \"/Users/sac/unjucks/packages/kgen-cli/bin/kgen.js\" graph hash --input \"/Users/sac/.cache/tmp/kgen-baseline-test.ttl\" --format json\n\n ERROR  Missing required positional argument: FILE\n\n"
+        },
+        {
+          "operation": "hash",
+          "iteration": 6,
+          "duration": 195,
+          "success": false,
+          "error": "Command failed: node \"/Users/sac/unjucks/packages/kgen-cli/bin/kgen.js\" graph hash --input \"/Users/sac/.cache/tmp/kgen-baseline-test.ttl\" --format json\n\n ERROR  Missing required positional argument: FILE\n\n"
+        },
+        {
+          "operation": "hash",
+          "iteration": 7,
+          "duration": 191,
+          "success": false,
+          "error": "Command failed: node \"/Users/sac/unjucks/packages/kgen-cli/bin/kgen.js\" graph hash --input \"/Users/sac/.cache/tmp/kgen-baseline-test.ttl\" --format json\n\n ERROR  Missing required positional argument: FILE\n\n"
+        },
+        {
+          "operation": "hash",
+          "iteration": 8,
+          "duration": 183,
+          "success": false,
+          "error": "Command failed: node \"/Users/sac/unjucks/packages/kgen-cli/bin/kgen.js\" graph hash --input \"/Users/sac/.cache/tmp/kgen-baseline-test.ttl\" --format json\n\n ERROR  Missing required positional argument: FILE\n\n"
+        },
+        {
+          "operation": "hash",
+          "iteration": 9,
+          "duration": 180,
+          "success": false,
+          "error": "Command failed: node \"/Users/sac/unjucks/packages/kgen-cli/bin/kgen.js\" graph hash --input \"/Users/sac/.cache/tmp/kgen-baseline-test.ttl\" --format json\n\n ERROR  Missing required positional argument: FILE\n\n"
+        },
+        {
+          "operation": "hash",
+          "iteration": 10,
+          "duration": 183,
           "success": false,
           "error": "Command failed: node \"/Users/sac/unjucks/packages/kgen-cli/bin/kgen.js\" graph hash --input \"/Users/sac/.cache/tmp/kgen-baseline-test.ttl\" --format json\n\n ERROR  Missing required positional argument: FILE\n\n"
         },
         {
           "operation": "index",
           "iteration": 1,
-          "duration": 200,
+          "duration": 192,
           "success": true,
           "output": null
         },
         {
           "operation": "index",
           "iteration": 2,
-          "duration": 188,
+          "duration": 193,
+          "success": true,
+          "output": null
+        },
+        {
+          "operation": "index",
+          "iteration": 3,
+          "duration": 183,
+          "success": true,
+          "output": null
+        },
+        {
+          "operation": "index",
+          "iteration": 4,
+          "duration": 175,
+          "success": true,
+          "output": null
+        },
+        {
+          "operation": "index",
+          "iteration": 5,
+          "duration": 176,
+          "success": true,
+          "output": null
+        },
+        {
+          "operation": "index",
+          "iteration": 6,
+          "duration": 181,
+          "success": true,
+          "output": null
+        },
+        {
+          "operation": "index",
+          "iteration": 7,
+          "duration": 178,
+          "success": true,
+          "output": null
+        },
+        {
+          "operation": "index",
+          "iteration": 8,
+          "duration": 183,
+          "success": true,
+          "output": null
+        },
+        {
+          "operation": "index",
+          "iteration": 9,
+          "duration": 180,
+          "success": true,
+          "output": null
+        },
+        {
+          "operation": "index",
+          "iteration": 10,
+          "duration": 178,
           "success": true,
           "output": null
         }
@@ -76,10 +170,10 @@
       "statistics": {
         "index": {
           "successRate": 100,
-          "mean": 194,
-          "median": 200,
-          "min": 188,
-          "max": 200
+          "mean": 182,
+          "median": 181,
+          "min": 175,
+          "max": 193
         }
       }
     }
@@ -87,34 +181,34 @@
   "system": {
     "cpu": {
       "iterations": 1000000,
-      "durationNs": 3083459,
-      "durationMs": 3.083459,
-      "operationsPerSecond": 324311106
+      "durationNs": 2453750,
+      "durationMs": 2.45375,
+      "operationsPerSecond": 407539480
     },
     "memory": {
       "before": {
-        "rss": 116162560,
-        "heapTotal": 38502400,
-        "heapUsed": 23181384,
-        "external": 2221290,
-        "arrayBuffers": 16795
+        "rss": 117112832,
+        "heapTotal": 37978112,
+        "heapUsed": 23885384,
+        "external": 2208478,
+        "arrayBuffers": 20229
       },
       "after": {
-        "rss": 125796352,
-        "heapTotal": 58753024,
-        "heapUsed": 28772968,
-        "external": 2212524,
+        "rss": 126025728,
+        "heapTotal": 59277312,
+        "heapUsed": 28842576,
+        "external": 2208478,
         "arrayBuffers": 16795
       },
-      "allocated": 5591584,
+      "allocated": 4957192,
       "objectCount": 100000
     },
     "io": {
       "dataSize": 10000,
-      "duration": 2,
+      "duration": 1,
       "verified": true,
-      "throughputMBps": 10
+      "throughputMBps": 20
     },
-    "timestamp": "2025-09-11T23:20:03.167Z"
+    "timestamp": "2025-09-11T23:40:08.534Z"
   }
 }

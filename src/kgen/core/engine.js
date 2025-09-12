@@ -13,6 +13,7 @@ import { ProvenanceTracker } from '../provenance/tracker.js';
 import { SecurityManager } from '../security/manager.js';
 import { QueryEngine } from '../query/engine.js';
 import { KGenErrorHandler, createEnhancedTryCatch } from '../utils/error-handler.js';
+import { FrontmatterWorkflowEngine } from './frontmatter/index.js';
 
 export class KGenEngine extends EventEmitter {
   constructor(config = {}) {
@@ -62,6 +63,12 @@ export class KGenEngine extends EventEmitter {
     this.provenanceTracker = new ProvenanceTracker(this.config.provenance);
     this.securityManager = new SecurityManager(this.config.security);
     this.queryEngine = new QueryEngine(this.config.query);
+    this.frontmatterWorkflow = new FrontmatterWorkflowEngine({
+      ...this.config.frontmatter,
+      enableProvenance: this.config.enableAuditTrail,
+      deterministic: this.config.mode === 'production',
+      maxConcurrentOperations: this.config.maxConcurrentOperations
+    });
     
     this._setupEventHandlers();
   }
@@ -79,6 +86,7 @@ export class KGenEngine extends EventEmitter {
       await this.ingestionPipeline.initialize();
       await this.provenanceTracker.initialize();
       await this.queryEngine.initialize();
+      await this.frontmatterWorkflow.initialize();
       
       this.state = 'ready';
       this.emit('engine:ready');
@@ -569,7 +577,8 @@ export class KGenEngine extends EventEmitter {
         ingestionPipeline: this.ingestionPipeline.getStatus(),
         provenanceTracker: this.provenanceTracker.getStatus(),
         securityManager: this.securityManager.getStatus(),
-        queryEngine: this.queryEngine.getStatus()
+        queryEngine: this.queryEngine.getStatus(),
+        frontmatterWorkflow: this.frontmatterWorkflow.getStatus()
       },
       metrics: this._collectMetrics(),
       uptime: process.uptime()
@@ -589,6 +598,7 @@ export class KGenEngine extends EventEmitter {
       await this._waitForActiveOperations();
       
       // Shutdown components in reverse order
+      await this.frontmatterWorkflow.shutdown();
       await this.queryEngine.shutdown();
       await this.provenanceTracker.shutdown();
       await this.ingestionPipeline.shutdown();
@@ -628,6 +638,12 @@ export class KGenEngine extends EventEmitter {
     this.provenanceTracker.on('error', (error) => this.emit('component:error', { component: 'provenance', error }));
     this.securityManager.on('error', (error) => this.emit('component:error', { component: 'security', error }));
     this.queryEngine.on('error', (error) => this.emit('component:error', { component: 'query', error }));
+    this.frontmatterWorkflow.on('error', (error) => this.emit('component:error', { component: 'frontmatter_workflow', error }));
+    
+    // Frontmatter workflow event forwarding
+    this.frontmatterWorkflow.on('workflow:complete', (event) => this.emit('generation:template_complete', event));
+    this.frontmatterWorkflow.on('workflow:error', (event) => this.emit('generation:template_error', event));
+    this.frontmatterWorkflow.on('operation:complete', (event) => this.emit('generation:operation_complete', event));
     
     // Performance monitoring
     this.on('operation:start', this._trackOperationStart.bind(this));
@@ -639,30 +655,182 @@ export class KGenEngine extends EventEmitter {
   }
 
   async _executeGeneration(context, templates, options) {
-    // Implementation will integrate with Unjucks template system
-    // This is a placeholder for the actual generation logic
+    // Execute templates using the frontmatter workflow system
     const artifacts = [];
     
-    for (const template of templates) {
-      const artifact = await this._processTemplate(template, context, options);
-      artifacts.push(artifact);
+    // Process templates with frontmatter workflow
+    const templateOperations = templates.map(template => ({
+      content: template.content || template.templateContent,
+      context: {
+        ...context,
+        ...template.context,
+        // Add KGEN-specific context
+        kgen: {
+          operationId: options.operationId,
+          templateId: template.id,
+          templateType: template.type,
+          version: this.getVersion()
+        }
+      },
+      options: {
+        ...options,
+        templateId: template.id,
+        templateType: template.type
+      }
+    }));
+    
+    // Execute batch processing for better performance
+    const batchResult = await this.frontmatterWorkflow.processTemplates(
+      templateOperations,
+      {
+        ...options,
+        globalContext: context,
+        enableProvenance: this.config.enableAuditTrail,
+        enableValidation: true
+      }
+    );
+    
+    // Convert frontmatter workflow results to KGEN artifacts
+    if (batchResult.status === 'success' || batchResult.status === 'partial_success') {
+      for (const result of batchResult.results) {
+        if (result.status === 'success' && result.artifacts) {
+          // Transform frontmatter artifacts to KGEN format
+          const kgenArtifacts = result.artifacts.map(artifact => ({
+            templateId: result.operationId,
+            type: 'generated_file',
+            path: artifact.path,
+            size: artifact.size,
+            content: artifact.content || null,
+            operationType: artifact.operationType || result.operationType,
+            metadata: {
+              generatedAt: artifact.modified || new Date(),
+              operationId: result.operationId,
+              frontmatterMetadata: result.metadata,
+              pathResolution: result.pathResolution,
+              conditionalResult: result.conditionalResult,
+              provenance: {
+                templateId: options.templateId,
+                templateType: options.templateType,
+                workflowEngine: 'frontmatter',
+                engineVersion: this.getVersion()
+              }
+            }
+          }));
+          
+          artifacts.push(...kgenArtifacts);
+        }
+      }
+    }
+    
+    // Handle any errors from batch processing
+    if (batchResult.errors && batchResult.errors.length > 0) {
+      this.logger.warn(`${batchResult.errors.length} template processing errors occurred`);
+      
+      // Add error artifacts for failed templates
+      for (const error of batchResult.errors) {
+        artifacts.push({
+          templateId: `error_${error.index}`,
+          type: 'generation_error',
+          error: error.error,
+          metadata: {
+            generatedAt: new Date(),
+            operationId: options.operationId,
+            errorContext: error,
+            provenance: {
+              workflowEngine: 'frontmatter',
+              engineVersion: this.getVersion()
+            }
+          }
+        });
+      }
     }
     
     return artifacts;
   }
 
   async _processTemplate(template, context, options) {
-    // Template processing implementation
-    return {
-      templateId: template.id,
-      type: template.type,
-      content: 'Generated content placeholder',
-      metadata: {
-        generatedAt: new Date(),
-        operationId: options.operationId,
-        semanticContext: context.semanticContext
+    // Process individual template using frontmatter workflow
+    try {
+      const result = await this.frontmatterWorkflow.processTemplate(
+        template.content || template.templateContent,
+        {
+          ...context,
+          kgen: {
+            operationId: options.operationId,
+            templateId: template.id,
+            templateType: template.type,
+            version: this.getVersion()
+          }
+        },
+        {
+          ...options,
+          templateId: template.id,
+          templateType: template.type,
+          enableProvenance: this.config.enableAuditTrail
+        }
+      );
+      
+      // Convert to KGEN format
+      if (result.status === 'success' && result.artifacts) {
+        return {
+          templateId: template.id,
+          type: template.type,
+          artifacts: result.artifacts,
+          operationType: result.operationType,
+          metadata: {
+            generatedAt: new Date(),
+            operationId: options.operationId,
+            frontmatterMetadata: result.metadata,
+            pathResolution: result.pathResolution,
+            conditionalResult: result.conditionalResult,
+            semanticContext: context.semanticContext,
+            provenance: {
+              workflowEngine: 'frontmatter',
+              engineVersion: this.getVersion()
+            }
+          }
+        };
+      } else if (result.status === 'skipped') {
+        return {
+          templateId: template.id,
+          type: template.type,
+          skipped: true,
+          reason: result.reason,
+          metadata: {
+            generatedAt: new Date(),
+            operationId: options.operationId,
+            conditionalResult: result.conditionalResult,
+            provenance: {
+              workflowEngine: 'frontmatter',
+              engineVersion: this.getVersion()
+            }
+          }
+        };
+      } else {
+        throw new Error(`Template processing failed: ${result.reason || 'Unknown error'}`);
       }
-    };
+      
+    } catch (error) {
+      // Return error artifact
+      return {
+        templateId: template.id,
+        type: 'generation_error',
+        error: error.message,
+        metadata: {
+          generatedAt: new Date(),
+          operationId: options.operationId,
+          errorContext: {
+            templateId: template.id,
+            templateType: template.type,
+            error: error.message
+          },
+          provenance: {
+            workflowEngine: 'frontmatter',
+            engineVersion: this.getVersion()
+          }
+        }
+      };
+    }
   }
 
   async _validateGeneratedArtifacts(artifacts, options) {

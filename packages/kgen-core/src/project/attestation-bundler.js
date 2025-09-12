@@ -21,6 +21,8 @@ import { pipeline } from 'stream/promises';
 import { v4 as uuidv4 } from 'uuid';
 import archiver from 'archiver';
 import StreamZip from 'node-stream-zip';
+import { CryptoManager } from '../provenance/crypto/manager.js';
+import { AttestationGenerator } from '../provenance/attestation/generator.js';
 
 export class AttestationBundler {
   constructor(config = {}) {

@@ -218,46 +218,188 @@ export class GraphProcessor extends EventEmitter {
   }
 
   /**
-   * Calculate content hash for reproducible graph fingerprinting
+   * Calculate deterministic content hash for reproducible graph fingerprinting
+   * Uses canonical N-Triples format for consistent hashing
    * @param {object} options - Hashing options
-   * @returns {string} Content hash
+   * @returns {string} Deterministic content hash
    */
   calculateContentHash(options = {}) {
     const algorithm = options.algorithm || 'sha256';
-    const format = options.format || 'canonical';
     
-    // Get all quads in canonical order
+    // Get all quads and convert to canonical N-Triples
     const quads = this.store.getQuads();
-    const canonicalQuads = this._canonicalizeQuads(quads);
+    const canonicalTriples = this._toCanonicalNTriples(quads);
     
-    // Serialize to canonical format
-    const serialized = canonicalQuads.map(quad => this._serializeQuadCanonical(quad)).join('\n');
+    // Sort triples deterministically for consistent hashing
+    canonicalTriples.sort();
     
-    // Generate hash
-    return crypto.createHash(algorithm).update(serialized, 'utf8').digest('hex');
+    // Generate hash from canonical representation
+    const content = canonicalTriples.join('\n');
+    const hash = crypto.createHash(algorithm).update(content, 'utf8').digest('hex');
+    
+    this.emit('hash-calculated', { algorithm, tripleCount: canonicalTriples.length, hash });
+    return hash;
   }
 
   /**
-   * Create graph diff between two states
-   * @param {GraphProcessor} other - Other graph to compare
-   * @returns {object} Diff result with added, removed, and common quads
+   * Convert quads to canonical N-Triples format for deterministic processing
+   * @param {Array} quads - Quads to convert
+   * @returns {Array} Canonical N-Triples strings
    */
-  diff(other) {
-    const thisQuads = new Set(this.store.getQuads().map(q => this._quadToString(q)));
-    const otherQuads = new Set(other.store.getQuads().map(q => this._quadToString(q)));
+  _toCanonicalNTriples(quads) {
+    const triples = [];
     
-    const added = [...otherQuads].filter(q => !thisQuads.has(q));
-    const removed = [...thisQuads].filter(q => !otherQuads.has(q));
-    const common = [...thisQuads].filter(q => otherQuads.has(q));
+    for (const quad of quads) {
+      // Convert each quad component to canonical N-Triples format
+      const subject = this._termToNTriples(quad.subject);
+      const predicate = this._termToNTriples(quad.predicate);
+      const object = this._termToNTriples(quad.object);
+      
+      // Only include named graph if not default graph
+      const graphPart = quad.graph && !quad.graph.equals(defaultGraph()) 
+        ? ` ${this._termToNTriples(quad.graph)}` 
+        : '';
+      
+      triples.push(`${subject} ${predicate} ${object}${graphPart} .`);
+    }
     
-    return {
-      added: added.length,
-      removed: removed.length,
-      common: common.length,
-      addedQuads: added,
-      removedQuads: removed,
-      unchanged: common.length
+    return triples;
+  }
+
+  /**
+   * Convert RDF term to canonical N-Triples format
+   * @param {object} term - RDF term
+   * @returns {string} N-Triples representation
+   */
+  _termToNTriples(term) {
+    switch (term.termType) {
+      case 'NamedNode':
+        return `<${term.value}>`;
+      case 'BlankNode':
+        return `_:${term.value}`;
+      case 'Literal':
+        let result = `"${term.value.replace(/\\/g, '\\\\').replace(/"/g, '\\"')}"`;
+        if (term.language) {
+          result += `@${term.language}`;
+        } else if (term.datatype && term.datatype.value !== 'http://www.w3.org/2001/XMLSchema#string') {
+          result += `^^<${term.datatype.value}>`;
+        }
+        return result;
+      case 'DefaultGraph':
+        return '';
+      default:
+        throw new Error(`Unknown term type: ${term.termType}`);
+    }
+  }
+
+  /**
+   * Create detailed graph diff between two states with impact analysis
+   * @param {GraphProcessor} other - Other graph to compare
+   * @param {object} options - Diff options
+   * @returns {object} Comprehensive diff result with change analysis
+   */
+  diff(other, options = {}) {
+    const startTime = Date.now();
+    
+    // Convert to canonical N-Triples for consistent comparison
+    const thisTriples = new Set(this._toCanonicalNTriples(this.store.getQuads()));
+    const otherTriples = new Set(other._toCanonicalNTriples(other.store.getQuads()));
+    
+    // Calculate changes
+    const added = [...otherTriples].filter(t => !thisTriples.has(t));
+    const removed = [...thisTriples].filter(t => !otherTriples.has(t));
+    const unchanged = [...thisTriples].filter(t => otherTriples.has(t));
+    
+    // Analyze impacted subjects for artifact mapping
+    const impactedSubjects = this._analyzeImpactedSubjects(added, removed);
+    
+    // Calculate change metrics
+    const totalOriginal = thisTriples.size;
+    const totalNew = otherTriples.size;
+    const changePercentage = totalOriginal > 0 ? 
+      ((added.length + removed.length) / totalOriginal) * 100 : 0;
+    
+    const diff = {
+      id: `diff_${Date.now()}`,
+      timestamp: new Date().toISOString(),
+      calculationTime: Date.now() - startTime,
+      
+      // Basic statistics
+      changes: {
+        added: added.length,
+        removed: removed.length,
+        modified: 0, // TODO: Implement modification detection
+        unchanged: unchanged.length,
+        total: added.length + removed.length
+      },
+      
+      // Change metrics
+      metrics: {
+        originalSize: totalOriginal,
+        newSize: totalNew,
+        netChange: totalNew - totalOriginal,
+        changePercentage: Math.round(changePercentage * 100) / 100,
+        stability: unchanged.length / Math.max(totalOriginal, totalNew)
+      },
+      
+      // Detailed change data
+      triples: options.includeTriples !== false ? {
+        added: added.slice(0, options.maxTriples || 1000),
+        removed: removed.slice(0, options.maxTriples || 1000),
+        addedCount: added.length,
+        removedCount: removed.length
+      } : null,
+      
+      // Subject-level impact analysis
+      subjects: {
+        impacted: Array.from(impactedSubjects),
+        total: impactedSubjects.size
+      },
+      
+      // Hash comparison
+      hashes: {
+        original: this.calculateContentHash(),
+        new: other.calculateContentHash(),
+        identical: this.calculateContentHash() === other.calculateContentHash()
+      }
     };
+    
+    this.emit('diff-calculated', diff);
+    return diff;
+  }
+
+  /**
+   * Analyze subjects impacted by graph changes
+   * @param {Array} addedTriples - Added N-Triples
+   * @param {Array} removedTriples - Removed N-Triples  
+   * @returns {Set} Set of impacted subject URIs
+   */
+  _analyzeImpactedSubjects(addedTriples, removedTriples) {
+    const subjects = new Set();
+    
+    // Extract subjects from N-Triples format
+    const extractSubject = (triple) => {
+      const match = triple.match(/^(<[^>]+>|_:[^\s]+)/);
+      return match ? match[1] : null;
+    };
+    
+    // Process added triples
+    for (const triple of addedTriples) {
+      const subject = extractSubject(triple);
+      if (subject) {
+        subjects.add(subject);
+      }
+    }
+    
+    // Process removed triples
+    for (const triple of removedTriples) {
+      const subject = extractSubject(triple);
+      if (subject) {
+        subjects.add(subject);
+      }
+    }
+    
+    return subjects;
   }
 
   /**

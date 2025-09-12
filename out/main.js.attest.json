@@ -1,0 +1,47 @@
+{
+  "artifact": {
+    "id": "main.js-007b2a00",
+    "path": "out/main.js",
+    "hash": "007b2a007633e3977690ea0e43f97505cd7c0edbef007915b76250b180ccca82",
+    "size": 852,
+    "contentType": "code",
+    "language": "text"
+  },
+  "source": {
+    "knowledgeGraph": {
+      "id": "84e6bf6f5796f75b",
+      "entities": 4,
+      "triples": 16
+    },
+    "template": {
+      "id": "main.js",
+      "type": "code",
+      "language": "text"
+    }
+  },
+  "generation": {
+    "engine": "kgen",
+    "version": "1.0.0",
+    "method": "deterministic-compilation",
+    "timestamp": "2025-09-12T00:04:53.062Z",
+    "reproducible": true
+  },
+  "provenance": {
+    "dependencies": [
+      "name",
+      "entities.length",
+      "entity.properties.hasName",
+      "loop.index",
+      "entity.id",
+      "entity.properties.hasEmail",
+      "entity.properties.hasAge"
+    ],
+    "renderTime": 1757635493062
+  },
+  "integrity": {
+    "checksums": {
+      "sha256": "007b2a007633e3977690ea0e43f97505cd7c0edbef007915b76250b180ccca82"
+    },
+    "verified": true
+  }
+}

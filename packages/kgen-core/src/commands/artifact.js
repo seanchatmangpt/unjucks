@@ -9,6 +9,7 @@ import chalk from "chalk";
 import path from 'path';
 import { promises as fs } from 'fs';
 import { DeterministicArtifactGenerator } from '../artifacts/generator.js';
+import { ArtifactExplainer } from '../provenance/queries/explainer.js';
 
 /**
  * Artifact generation subcommands
@@ -335,6 +336,259 @@ export const artifactCommand = defineCommand({
 
         } catch (error) {
           console.error(chalk.red(`\n❌ Verification failed: ${error.message}`));
+          if (args.verbose) {
+            console.error(chalk.gray(error.stack));
+          }
+          return { success: false, error: error.message };
+        }
+      }
+    }),
+
+    explain: defineCommand({
+      meta: {
+        name: "explain",
+        description: "Explain artifact provenance and generation lineage"
+      },
+      args: {
+        artifact: {
+          type: "string",
+          description: "Path to artifact file to explain",
+          required: true
+        },
+        format: {
+          type: "string",
+          description: "Explanation format (summary|detailed|comprehensive|technical|executive)",
+          default: "detailed",
+          alias: "f"
+        },
+        includeVerification: {
+          type: "boolean",
+          description: "Include integrity verification in explanation",
+          default: false
+        },
+        includeLineage: {
+          type: "boolean",
+          description: "Include extended lineage analysis",
+          default: true
+        },
+        depth: {
+          type: "number",
+          description: "Maximum traversal depth for lineage",
+          default: 10
+        },
+        output: {
+          type: "string",
+          description: "Output explanation to file",
+          required: false,
+          alias: "o"
+        },
+        verbose: {
+          type: "boolean",
+          description: "Verbose output",
+          default: false,
+          alias: "v"
+        }
+      },
+      async run({ args }) {
+        try {
+          console.log(chalk.blue("🔍 Explaining Artifact Provenance"));
+          console.log(chalk.cyan(`📄 Artifact: ${path.basename(args.artifact)}`));
+
+          // Check if artifact exists
+          try {
+            await fs.access(args.artifact);
+          } catch (error) {
+            console.error(chalk.red(`❌ Artifact not found: ${args.artifact}`));
+            return { success: false, error: 'Artifact not found' };
+          }
+
+          // Look for attestation sidecar
+          const attestationPath = `${args.artifact}.attest.json`;
+          let attestation;
+          
+          try {
+            const attestationContent = await fs.readFile(attestationPath, 'utf8');
+            attestation = JSON.parse(attestationContent);
+            console.log(chalk.green(`📋 Found attestation: ${path.basename(attestationPath)}`));
+          } catch (error) {
+            console.error(chalk.red(`❌ No attestation found: ${attestationPath}`));
+            console.error(chalk.gray("   Cannot explain artifact without attestation"));
+            return { success: false, error: 'No attestation found' };
+          }
+
+          // Create explainer (no store for now, will use attestation data)
+          const explainer = new ArtifactExplainer(null, {
+            explanationFormat: args.format,
+            maxTraversalDepth: args.depth,
+            includeSystemAgents: true,
+            includeTemplateDetails: true,
+            includeRuleDetails: true
+          });
+
+          // Generate explanation
+          const explanation = await explainer.explainArtifact(attestation, {
+            format: args.format,
+            includeVerification: args.includeVerification,
+            includeExtendedLineage: args.includeLineage,
+            depth: args.depth
+          });
+
+          // Display explanation
+          console.log(chalk.blue("\n📊 Artifact Explanation"));
+          console.log(chalk.yellow("═".repeat(60)));
+
+          // Basic artifact info
+          console.log(chalk.cyan("\n🏷️  Artifact Information"));
+          console.log(chalk.gray(`   Name: ${explanation.artifact.name}`));
+          console.log(chalk.gray(`   Type: ${explanation.artifact.type}`));
+          console.log(chalk.gray(`   Size: ${explanation.artifact.size} bytes`));
+          console.log(chalk.gray(`   Hash: ${explanation.artifact.hash?.substring(0, 16)}...`));
+          console.log(chalk.gray(`   Created: ${new Date(explanation.artifact.created).toLocaleString()}`));
+
+          // Generation context
+          console.log(chalk.cyan("\n⚙️  Generation Context"));
+          console.log(chalk.gray(`   Operation ID: ${explanation.generation.operationId}`));
+          console.log(chalk.gray(`   Operation Type: ${explanation.generation.operationType}`));
+          console.log(chalk.gray(`   Engine: ${explanation.generation.engine.name} v${explanation.generation.engine.version}`));
+          console.log(chalk.gray(`   Agent: ${explanation.generation.agent.name} (${explanation.generation.agent.type})`));
+          console.log(chalk.gray(`   Duration: ${explanation.generation.duration}ms`));
+
+          // Template information
+          if (explanation.generation.template) {
+            console.log(chalk.cyan("\n📄 Template"));
+            console.log(chalk.gray(`   ID: ${explanation.generation.template.id}`));
+            console.log(chalk.gray(`   Version: ${explanation.generation.template.version}`));
+            console.log(chalk.gray(`   Path: ${explanation.generation.template.path}`));
+          }
+
+          // Rules applied
+          if (explanation.generation.rules && explanation.generation.rules.length > 0) {
+            console.log(chalk.cyan("\n📏 Rules Applied"));
+            explanation.generation.rules.forEach(rule => {
+              console.log(chalk.gray(`   • ${rule.id} (${rule.type})`));
+            });
+          }
+
+          // Provenance information
+          if (explanation.lineage && explanation.lineage.immediate) {
+            const sources = explanation.lineage.immediate.sources;
+            if (sources.length > 0) {
+              console.log(chalk.cyan("\n🔗 Source Dependencies"));
+              sources.forEach(source => {
+                console.log(chalk.gray(`   • ${source.path} (${source.type})`));
+                console.log(chalk.gray(`     Hash: ${source.hash?.substring(0, 16)}...`));
+              });
+            }
+          }
+
+          // Dependencies analysis
+          if (explanation.dependencies && explanation.dependencies.analysis) {
+            console.log(chalk.cyan("\n📦 Dependencies Analysis"));
+            console.log(chalk.gray(`   Total Dependencies: ${explanation.dependencies.analysis.totalDependencies}`));
+            console.log(chalk.gray(`   Complexity Score: ${explanation.dependencies.analysis.complexityScore}`));
+            console.log(chalk.gray(`   Risk Level: ${explanation.dependencies.analysis.riskLevel}`));
+            
+            if (explanation.dependencies.circular.length > 0) {
+              console.log(chalk.red(`   ⚠️  Circular Dependencies: ${explanation.dependencies.circular.length}`));
+            }
+            
+            if (explanation.dependencies.missing.length > 0) {
+              console.log(chalk.red(`   ⚠️  Missing Dependencies: ${explanation.dependencies.missing.length}`));
+            }
+          }
+
+          // Quality assessment
+          console.log(chalk.cyan("\n✅ Quality Assessment"));
+          console.log(chalk.gray(`   Overall Score: ${explanation.quality.overall.score.toFixed(1)}/100 (${explanation.quality.overall.grade})`));
+          console.log(chalk.gray(`   Integrity: ${explanation.quality.integrity.score.toFixed(1)}/100 ${explanation.quality.integrity.verified ? '✓' : '✗'}`));
+          console.log(chalk.gray(`   Completeness: ${explanation.quality.completeness.score.toFixed(1)}/100`));
+          console.log(chalk.gray(`   Accuracy: ${explanation.quality.accuracy.score.toFixed(1)}/100`));
+
+          // Compliance assessment
+          if (explanation.compliance) {
+            console.log(chalk.cyan("\n🛡️  Compliance"));
+            console.log(chalk.gray(`   Framework: ${explanation.compliance.framework}`));
+            console.log(chalk.gray(`   Standards: ${explanation.compliance.standards.join(', ')}`));
+            console.log(chalk.gray(`   Score: ${explanation.compliance.score.toFixed(1)}/100`));
+            
+            if (explanation.compliance.gaps.length > 0) {
+              console.log(chalk.yellow(`   ⚠️  Compliance Gaps: ${explanation.compliance.gaps.length}`));
+            }
+          }
+
+          // Governance
+          if (explanation.governance && explanation.governance.auditability) {
+            console.log(chalk.cyan("\n🏛️  Governance"));
+            console.log(chalk.gray(`   Traceable: ${explanation.governance.auditability.traceable ? '✅' : '❌'}`));
+            console.log(chalk.gray(`   Verifiable: ${explanation.governance.auditability.verifiable ? '✅' : '❌'}`));
+            console.log(chalk.gray(`   Complete: ${explanation.governance.auditability.complete ? '✅' : '❌'}`));
+            console.log(chalk.gray(`   Score: ${explanation.governance.auditability.score.toFixed(1)}/100`));
+          }
+
+          // Narrative
+          if (explanation.narrative) {
+            console.log(chalk.cyan("\n📖 Summary"));
+            console.log(chalk.white(`   ${explanation.narrative}`));
+          }
+
+          // Verification results
+          if (args.includeVerification && explanation.verification) {
+            console.log(chalk.cyan("\n🔐 Verification"));
+            console.log(chalk.gray(`   Verified: ${explanation.verification.verified ? '✅' : '❌'}`));
+            if (explanation.verification.errors) {
+              explanation.verification.errors.forEach(error => {
+                console.log(chalk.red(`   ❌ ${error}`));
+              });
+            }
+          }
+
+          // Provenance graph hash
+          if (attestation.provenance?.graphHash) {
+            console.log(chalk.cyan("\n🔗 Provenance"));
+            console.log(chalk.gray(`   Graph Hash: ${attestation.provenance.graphHash.substring(0, 32)}...`));
+            console.log(chalk.gray(`   Canonicalization: ${attestation.provenance.canonicalizationMethod}`));
+          }
+
+          // Save explanation to file if requested
+          if (args.output) {
+            const outputData = {
+              timestamp: new Date().toISOString(),
+              artifact: args.artifact,
+              explanation: explanation
+            };
+            
+            await fs.writeFile(args.output, JSON.stringify(outputData, null, 2), 'utf8');
+            console.log(chalk.green(`\n💾 Explanation saved to: ${args.output}`));
+          }
+
+          // Verbose details
+          if (args.verbose) {
+            console.log(chalk.cyan("\n🔧 Technical Details"));
+            console.log(chalk.gray(`   Attestation ID: ${attestation.attestationId}`));
+            console.log(chalk.gray(`   Artifact ID: ${attestation.artifactId}`));
+            console.log(chalk.gray(`   Schema: ${attestation['$schema']}`));
+            console.log(chalk.gray(`   Version: ${attestation.version}`));
+            
+            if (attestation.signature) {
+              console.log(chalk.gray(`   Signed: ✅ (${attestation.signature.algorithm})`));
+              console.log(chalk.gray(`   Key Fingerprint: ${attestation.signature.keyFingerprint}`));
+              console.log(chalk.gray(`   Signed At: ${new Date(attestation.signature.signedAt).toLocaleString()}`));
+            } else {
+              console.log(chalk.yellow(`   Signed: ❌ (No signature found)`));
+            }
+          }
+
+          console.log(chalk.green("\n✅ Artifact explanation completed"));
+
+          return {
+            success: true,
+            explanation: explanation,
+            attestationPath: attestationPath,
+            outputFile: args.output
+          };
+
+        } catch (error) {
+          console.error(chalk.red(`\n❌ Explanation failed: ${error.message}`));
           if (args.verbose) {
             console.error(chalk.gray(error.stack));
           }

@@ -1,0 +1,242 @@
+---
+name: "Compliance Audit Report"
+type: "latex"
+category: "compliance"
+description: "Enterprise compliance audit report with attestations"
+requiredData: ["auditScope", "findings", "recommendations", "attestations"]
+complianceFramework: "enterprise"
+standards: ["ISO-27001", "SOX", "GDPR"]
+---
+\documentclass[11pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[margin=1in]{geometry}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{hyperref}
+\usepackage{fancyhdr}
+\usepackage{xcolor}
+\usepackage{listings}
+
+% Custom styling
+\definecolor{complianceblue}{RGB}{0,102,204}
+\definecolor{findingred}{RGB}{204,0,0}
+\definecolor{recommendgreen}{RGB}{0,153,51}
+
+% Header/Footer
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\textcolor{complianceblue}{\textbf{{{ auditScope.organization | default("Organization") }}}}
+\fancyhead[R]{\textcolor{complianceblue}{Compliance Audit Report}}
+\fancyfoot[C]{\thepage}
+
+% Title configuration
+\title{\textcolor{complianceblue}{\textbf{Compliance Audit Report}}\\
+       \large {{ auditScope.title | default("Security and Compliance Assessment") }}}
+\author{{{ auditScope.auditor | default("Compliance Team") }}}
+\date{{{ auditScope.date | default(auditScope.generatedAt) }}}
+
+\begin{document}
+
+\maketitle
+
+\tableofcontents
+\newpage
+
+\section{Executive Summary}
+
+This compliance audit report presents the findings of a comprehensive security and compliance assessment conducted for {{ auditScope.organization | default("the organization") }}. The audit was performed against the following compliance frameworks:
+
+\begin{itemize}
+{% for standard in auditScope.standards %}
+\item {{ standard }}
+{% endfor %}
+\end{itemize}
+
+\subsection{Audit Scope}
+\textbf{Assessment Period:} {{ auditScope.period | default("Not specified") }}\\
+\textbf{Systems Assessed:} {{ auditScope.systems | join(", ") | default("All critical systems") }}\\
+\textbf{Compliance Frameworks:} {{ auditScope.standards | join(", ") | default("ISO-27001, SOX") }}
+
+\subsection{Overall Assessment}
+{% if auditScope.overallRating %}
+\textcolor{{% if auditScope.overallRating == "Compliant" %}recommendgreen{% elif auditScope.overallRating == "Non-Compliant" %}findingred{% else %}orange{% endif %}}{
+\textbf{Overall Compliance Rating: {{ auditScope.overallRating }}}
+}
+{% endif %}
+
+\section{Methodology}
+
+The audit was conducted using a risk-based approach, focusing on:
+
+\begin{enumerate}
+\item Documentation review and gap analysis
+\item Technical security assessments
+\item Process and procedure evaluation
+\item Evidence collection and verification
+\item Staff interviews and compliance awareness testing
+\end{enumerate}
+
+\section{Findings and Observations}
+
+{% for finding in findings %}
+\subsection{Finding {{ loop.index }}: {{ finding.title }}}
+
+\textbf{Severity:} \textcolor{{% if finding.severity == "Critical" %}findingred{% elif finding.severity == "High" %}orange{% elif finding.severity == "Medium" %}yellow{% else %}black{% endif %}}{{{ finding.severity }}}
+
+\textbf{Control Reference:} {{ finding.controlRef | default("Not specified") }}
+
+\textbf{Description:}
+{{ finding.description }}
+
+\textbf{Evidence:}
+{{ finding.evidence }}
+
+\textbf{Risk Impact:}
+{{ finding.riskImpact }}
+
+{% if finding.currentControls %}
+\textbf{Current Controls:}
+\begin{itemize}
+{% for control in finding.currentControls %}
+\item {{ control }}
+{% endfor %}
+\end{itemize}
+{% endif %}
+
+\textbf{Compliance Gap:}
+{{ finding.complianceGap }}
+
+{% endfor %}
+
+\section{Recommendations}
+
+{% for recommendation in recommendations %}
+\subsection{Recommendation {{ loop.index }}: {{ recommendation.title }}}
+
+\textcolor{recommendgreen}{\textbf{Priority: {{ recommendation.priority | default("Medium") }}}}
+
+\textbf{Description:}
+{{ recommendation.description }}
+
+\textbf{Implementation Steps:}
+\begin{enumerate}
+{% for step in recommendation.steps %}
+\item {{ step }}
+{% endfor %}
+\end{enumerate}
+
+\textbf{Timeline:} {{ recommendation.timeline | default("To be determined") }}
+
+\textbf{Resources Required:} {{ recommendation.resources | default("To be determined") }}
+
+\textbf{Success Metrics:}
+\begin{itemize}
+{% for metric in recommendation.metrics %}
+\item {{ metric }}
+{% endfor %}
+\end{itemize}
+
+\textbf{Related Controls:} {{ recommendation.relatedControls | join(", ") | default("None specified") }}
+
+{% endfor %}
+
+\section{Compliance Matrix}
+
+\begin{longtable}{|p{3cm}|p{2cm}|p{4cm}|p{3cm}|p{2cm}|}
+\hline
+\textbf{Control} & \textbf{Status} & \textbf{Evidence} & \textbf{Gap} & \textbf{Priority} \\
+\hline
+\endfirsthead
+
+\multicolumn{5}{c}%
+{{\bfseries \tablename\ \thetable{} -- continued from previous page}} \\
+\hline
+\textbf{Control} & \textbf{Status} & \textbf{Evidence} & \textbf{Gap} & \textbf{Priority} \\
+\hline
+\endhead
+
+\hline \multicolumn{5}{|r|}{{Continued on next page}} \\ \hline
+\endfoot
+
+\hline
+\endlastfoot
+
+{% for control in auditScope.controls %}
+{{ control.reference }} & 
+\textcolor{{% if control.status == "Compliant" %}recommendgreen{% elif control.status == "Non-Compliant" %}findingred{% else %}orange{% endif %}}{{{ control.status }}} & 
+{{ control.evidence | truncate(50) }} & 
+{{ control.gap | default("None") }} & 
+{{ control.priority | default("Medium") }} \\
+\hline
+{% endfor %}
+
+\end{longtable}
+
+\section{Attestations and Certifications}
+
+{% for attestation in attestations %}
+\subsection{{{ attestation.title }}}
+
+\textbf{Attestation Authority:} {{ attestation.authority }}
+
+\textbf{Scope:} {{ attestation.scope }}
+
+\textbf{Validity Period:} {{ attestation.validFrom }} to {{ attestation.validUntil }}
+
+\textbf{Certificate Reference:} {{ attestation.certificateRef | default("Not applicable") }}
+
+\textbf{Compliance Statement:}
+{{ attestation.statement }}
+
+{% if attestation.limitations %}
+\textbf{Limitations:}
+\begin{itemize}
+{% for limitation in attestation.limitations %}
+\item {{ limitation }}
+{% endfor %}
+\end{itemize}
+{% endif %}
+
+{% endfor %}
+
+\section{Conclusion}
+
+This audit provides a comprehensive assessment of {{ auditScope.organization }}'s compliance posture. The findings and recommendations outlined in this report should be addressed according to their priority and risk impact.
+
+\textbf{Next Steps:}
+\begin{enumerate}
+\item Review and approve the recommendations
+\item Develop remediation plans with timelines
+\item Assign responsible parties for each recommendation
+\item Schedule follow-up assessments
+\item Update policies and procedures as needed
+\end{enumerate}
+
+\textbf{Continuous Monitoring:}
+Regular compliance monitoring should be established to ensure ongoing adherence to applicable standards and regulations.
+
+\section{Appendices}
+
+\subsection{Appendix A: Technical Assessment Details}
+[Technical findings and detailed test results would be included here]
+
+\subsection{Appendix B: Interview Summary}
+[Summary of staff interviews and awareness assessments]
+
+\subsection{Appendix C: Document Review Checklist}
+[Checklist of policies, procedures, and documentation reviewed]
+
+\subsection{Appendix D: Compliance Framework Mapping}
+[Detailed mapping of controls to compliance frameworks]
+
+% Document metadata for KGEN
+\vfill
+\hrule
+\vspace{0.5cm}
+\textit{\small Generated by KGEN Document Generator}\\
+\textit{\small Artifact ID: {{ kgenArtifactId | default("Unknown") }}}\\
+\textit{\small Generated: {{ generatedAt | default("\\today") }}}\\
+\textit{\small Template: compliance/audit-report.tex.njk}
+
+\end{document}

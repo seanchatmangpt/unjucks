@@ -396,6 +396,217 @@ export class CryptoManager {
   }
 
   /**
+   * Create cryptographic signature chain
+   * @param {Array} operations - Array of operations to chain
+   * @returns {Promise<Object>} Signature chain
+   */
+  async createSignatureChain(operations) {
+    try {
+      this.logger.info(`Creating signature chain for ${operations.length} operations`);
+      
+      const chain = {
+        id: crypto.randomUUID(),
+        created: new Date().toISOString(),
+        algorithm: this.config.algorithm,
+        keyFingerprint: this.keyMetadata.fingerprint,
+        links: []
+      };
+      
+      let previousHash = null;
+      
+      for (const [index, operation] of operations.entries()) {
+        // Create operation data for signing
+        const operationData = {
+          index,
+          operationId: operation.operationId,
+          type: operation.type,
+          timestamp: operation.endTime || operation.startTime,
+          integrityHash: operation.integrityHash,
+          previousHash
+        };
+        
+        // Sign the operation data
+        const signature = await this.signData(operationData);
+        
+        // Calculate link hash
+        const linkHash = this.generateHash({
+          ...operationData,
+          signature
+        });
+        
+        const link = {
+          index,
+          operationId: operation.operationId,
+          operationHash: operation.integrityHash,
+          previousHash,
+          linkHash,
+          signature,
+          timestamp: operationData.timestamp
+        };
+        
+        chain.links.push(link);
+        previousHash = linkHash;
+      }
+      
+      // Sign the entire chain
+      chain.chainSignature = await this.signData({
+        chainId: chain.id,
+        links: chain.links.map(l => l.linkHash),
+        keyFingerprint: chain.keyFingerprint
+      });
+      
+      this.logger.success(`Created signature chain with ${chain.links.length} links`);
+      
+      return chain;
+      
+    } catch (error) {
+      this.logger.error('Failed to create signature chain:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Verify signature chain integrity
+   * @param {Object} chain - Signature chain to verify
+   * @returns {Promise<Object>} Verification result
+   */
+  async verifySignatureChain(chain) {
+    try {
+      this.logger.info(`Verifying signature chain ${chain.id}`);
+      
+      const result = {
+        valid: true,
+        chainId: chain.id,
+        totalLinks: chain.links.length,
+        validLinks: 0,
+        brokenLinks: [],
+        errors: []
+      };
+      
+      // Verify chain signature
+      const chainData = {
+        chainId: chain.id,
+        links: chain.links.map(l => l.linkHash),
+        keyFingerprint: chain.keyFingerprint
+      };
+      
+      const chainSignatureValid = await this.verifySignature(chainData, chain.chainSignature);
+      if (!chainSignatureValid) {
+        result.valid = false;
+        result.errors.push('Chain signature verification failed');
+      }
+      
+      // Verify each link
+      let expectedPreviousHash = null;
+      
+      for (const [index, link] of chain.links.entries()) {
+        const linkValid = await this._verifyChainLink(link, expectedPreviousHash, index);
+        
+        if (linkValid.valid) {
+          result.validLinks++;
+        } else {
+          result.valid = false;
+          result.brokenLinks.push({
+            index,
+            operationId: link.operationId,
+            errors: linkValid.errors
+          });
+        }
+        
+        expectedPreviousHash = link.linkHash;
+      }
+      
+      result.integrityScore = chain.links.length > 0 ? result.validLinks / chain.links.length : 1;
+      
+      this.logger.info(`Chain verification completed: ${result.valid ? 'VALID' : 'INVALID'}`);
+      
+      return result;
+      
+    } catch (error) {
+      this.logger.error('Failed to verify signature chain:', error);
+      return {
+        valid: false,
+        error: error.message,
+        chainId: chain?.id
+      };
+    }
+  }
+
+  /**
+   * Generate attestation signature for artifact
+   * @param {Object} attestation - Attestation to sign
+   * @returns {Promise<Object>} Signed attestation
+   */
+  async signAttestation(attestation) {
+    try {
+      // Create signing data (exclude signature field)
+      const signingData = {
+        attestationId: attestation.attestationId,
+        artifactId: attestation.artifactId,
+        artifact: attestation.artifact,
+        generation: attestation.generation,
+        provenance: attestation.provenance,
+        system: attestation.system,
+        integrity: attestation.integrity,
+        timestamps: attestation.timestamps
+      };
+      
+      // Generate signature
+      const signature = await this.signData(signingData);
+      
+      // Create signature metadata
+      const signatureMetadata = {
+        algorithm: this.config.algorithm,
+        keyFingerprint: this.keyMetadata.fingerprint,
+        signedAt: new Date().toISOString(),
+        signature
+      };
+      
+      // Return attestation with signature
+      return {
+        ...attestation,
+        signature: signatureMetadata
+      };
+      
+    } catch (error) {
+      this.logger.error('Failed to sign attestation:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Verify attestation signature
+   * @param {Object} attestation - Attestation to verify
+   * @returns {Promise<boolean>} Verification result
+   */
+  async verifyAttestation(attestation) {
+    try {
+      if (!attestation.signature) {
+        return false;
+      }
+      
+      // Extract signing data
+      const signingData = {
+        attestationId: attestation.attestationId,
+        artifactId: attestation.artifactId,
+        artifact: attestation.artifact,
+        generation: attestation.generation,
+        provenance: attestation.provenance,
+        system: attestation.system,
+        integrity: attestation.integrity,
+        timestamps: attestation.timestamps
+      };
+      
+      // Verify signature
+      return await this.verifySignature(signingData, attestation.signature.signature);
+      
+    } catch (error) {
+      this.logger.error('Failed to verify attestation signature:', error);
+      return false;
+    }
+  }
+
+  /**
    * Get crypto manager status
    */
   getStatus() {
@@ -520,6 +731,163 @@ export class CryptoManager {
     }
     
     this.verificationCache.set(key, result);
+  }
+
+  /**
+   * Generate Merkle tree for batch operations
+   * @param {Array} operations - Operations to include in tree
+   * @returns {Object} Merkle tree data
+   */
+  generateMerkleTree(operations) {
+    try {
+      if (operations.length === 0) {
+        return {
+          root: null,
+          tree: [],
+          proofs: new Map()
+        };
+      }
+      
+      // Create leaf hashes
+      const leaves = operations.map(op => this.generateHash(op.integrityHash || op.operationId));
+      
+      // Build tree bottom-up
+      const tree = [leaves];
+      let currentLevel = leaves;
+      
+      while (currentLevel.length > 1) {
+        const nextLevel = [];
+        
+        for (let i = 0; i < currentLevel.length; i += 2) {
+          const left = currentLevel[i];
+          const right = i + 1 < currentLevel.length ? currentLevel[i + 1] : left;
+          const combined = this.generateHash(left + right);
+          nextLevel.push(combined);
+        }
+        
+        tree.push(nextLevel);
+        currentLevel = nextLevel;
+      }
+      
+      const root = currentLevel[0];
+      
+      // Generate proofs for each operation
+      const proofs = new Map();
+      
+      for (let i = 0; i < operations.length; i++) {
+        const proof = this._generateMerkleProof(tree, i);
+        proofs.set(operations[i].operationId, proof);
+      }
+      
+      return {
+        root,
+        tree,
+        proofs
+      };
+      
+    } catch (error) {
+      this.logger.error('Failed to generate Merkle tree:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Verify Merkle proof
+   * @param {string} leaf - Leaf hash to verify
+   * @param {Array} proof - Merkle proof path
+   * @param {string} root - Expected root hash
+   * @returns {boolean} Verification result
+   */
+  verifyMerkleProof(leaf, proof, root) {
+    try {
+      let currentHash = leaf;
+      
+      for (const proofElement of proof) {
+        if (proofElement.position === 'left') {
+          currentHash = this.generateHash(proofElement.hash + currentHash);
+        } else {
+          currentHash = this.generateHash(currentHash + proofElement.hash);
+        }
+      }
+      
+      return currentHash === root;
+      
+    } catch (error) {
+      this.logger.error('Failed to verify Merkle proof:', error);
+      return false;
+    }
+  }
+
+  _generateMerkleProof(tree, leafIndex) {
+    const proof = [];
+    let currentIndex = leafIndex;
+    
+    for (let level = 0; level < tree.length - 1; level++) {
+      const currentLevel = tree[level];
+      const siblingIndex = currentIndex % 2 === 0 ? currentIndex + 1 : currentIndex - 1;
+      
+      if (siblingIndex < currentLevel.length) {
+        proof.push({
+          hash: currentLevel[siblingIndex],
+          position: currentIndex % 2 === 0 ? 'right' : 'left'
+        });
+      }
+      
+      currentIndex = Math.floor(currentIndex / 2);
+    }
+    
+    return proof;
+  }
+
+  async _verifyChainLink(link, expectedPreviousHash, expectedIndex) {
+    try {
+      const errors = [];
+      
+      // Verify previous hash
+      if (link.previousHash !== expectedPreviousHash) {
+        errors.push(`Previous hash mismatch: expected ${expectedPreviousHash}, got ${link.previousHash}`);
+      }
+      
+      // Verify index sequence
+      if (link.index !== expectedIndex) {
+        errors.push(`Index mismatch: expected ${expectedIndex}, got ${link.index}`);
+      }
+      
+      // Verify link signature
+      const linkData = {
+        index: link.index,
+        operationId: link.operationId,
+        operationHash: link.operationHash,
+        previousHash: link.previousHash,
+        timestamp: link.timestamp
+      };
+      
+      const signatureValid = await this.verifySignature(linkData, link.signature);
+      if (!signatureValid) {
+        errors.push('Link signature verification failed');
+      }
+      
+      // Verify link hash
+      const expectedLinkHash = this.generateHash({
+        ...linkData,
+        signature: link.signature
+      });
+      
+      if (link.linkHash !== expectedLinkHash) {
+        errors.push(`Link hash mismatch: expected ${expectedLinkHash}, got ${link.linkHash}`);
+      }
+      
+      return {
+        valid: errors.length === 0,
+        errors
+      };
+      
+    } catch (error) {
+      return {
+        valid: false,
+        errors: [`Chain link verification failed: ${error.message}`]
+      };
+    }
   }
 }
 

@@ -1,12 +1,21 @@
 /**
  * RDF Processing Module
- * Handles RDF parsing, querying, serialization with N3.js and SPARQL support
+ * 
+ * Enhanced RDF processing with canonical serialization, semantic-aware indexing,
+ * and deterministic graph operations. Replaces naive RDF parsing in bin/kgen.mjs
+ * with proper semantic web processing.
  */
 
 import { Parser, Writer, Store, DataFactory, Util } from 'n3';
 import sparqljs from 'sparqljs';
 import consola from 'consola';
 import { EventEmitter } from 'events';
+
+// Export enhanced RDF processing components
+export { CanonicalRDFProcessor } from './canonical-processor.js';
+export { GraphIndexer } from './graph-indexer.js';
+export { EnhancedRDFProcessor } from './enhanced-processor.js';
+export { StandaloneKGenBridge } from './standalone-bridge.js';
 
 const { namedNode, literal, defaultGraph, quad } = DataFactory;
 

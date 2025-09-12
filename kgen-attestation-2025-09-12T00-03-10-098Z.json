@@ -1,0 +1,109 @@
+{
+  "project": {
+    "name": "unjucks",
+    "version": "1.0.0",
+    "directory": "/Users/sac/unjucks"
+  },
+  "attestation": {
+    "createdAt": "2025-09-12T00:03:10.099Z",
+    "kgenVersion": "1.0.0",
+    "nodeVersion": "v22.12.0",
+    "platform": "darwin",
+    "arch": "arm64"
+  },
+  "artifacts": [],
+  "integrity": {
+    "totalArtifacts": 22,
+    "verifiedArtifacts": 0,
+    "failedVerifications": [
+      {
+        "path": "generated/HasEmail.js",
+        "error": "Cannot read properties of null (reading 'verifyReproducibility')"
+      },
+      {
+        "path": "generated/HasName.js",
+        "error": "Cannot read properties of null (reading 'verifyReproducibility')"
+      },
+      {
+        "path": "generated/KnowsPerson.js",
+        "error": "Cannot read properties of null (reading 'verifyReproducibility')"
+      },
+      {
+        "path": "generated/LATEX_RESUME_ENGINE_REPORT.md",
+        "error": "Cannot read properties of null (reading 'verifyReproducibility')"
+      },
+      {
+        "path": "generated/Person.js",
+        "error": "Cannot read properties of null (reading 'verifyReproducibility')"
+      },
+      {
+        "path": "generated/User.js",
+        "error": "Cannot read properties of null (reading 'verifyReproducibility')"
+      },
+      {
+        "path": "generated/config.cjs",
+        "error": "Cannot read properties of null (reading 'verifyReproducibility')"
+      },
+      {
+        "path": "generated/config.js",
+        "error": "Cannot read properties of null (reading 'verifyReproducibility')"
+      },
+      {
+        "path": "generated/controllers/users.controller.js",
+        "error": "Cannot read properties of null (reading 'verifyReproducibility')"
+      },
+      {
+        "path": "generated/docker-compose.development.yml",
+        "error": "Cannot read properties of null (reading 'verifyReproducibility')"
+      },
+      {
+        "path": "generated/docker-compose.production.yml",
+        "error": "Cannot read properties of null (reading 'verifyReproducibility')"
+      },
+      {
+        "path": "generated/dr-jane-smith-academic.tex",
+        "error": "Cannot read properties of null (reading 'verifyReproducibility')"
+      },
+      {
+        "path": "generated/governance/mcp-governance-orchestrator.js",
+        "error": "Cannot read properties of null (reading 'verifyReproducibility')"
+      },
+      {
+        "path": "generated/governance/user-api-governance.controller.js",
+        "error": "Cannot read properties of null (reading 'verifyReproducibility')"
+      },
+      {
+        "path": "generated/john-doe-executive.tex",
+        "error": "Cannot read properties of null (reading 'verifyReproducibility')"
+      },
+      {
+        "path": "generated/john-doe-professional.log",
+        "error": "Cannot read properties of null (reading 'verifyReproducibility')"
+      },
+      {
+        "path": "generated/john-doe-professional.tex",
+        "error": "Cannot read properties of null (reading 'verifyReproducibility')"
+      },
+      {
+        "path": "generated/package-scripts.json",
+        "error": "Cannot read properties of null (reading 'verifyReproducibility')"
+      },
+      {
+        "path": "generated/routes/users.router.js",
+        "error": "Cannot read properties of null (reading 'verifyReproducibility')"
+      },
+      {
+        "path": "generated/schema.prisma",
+        "error": "Cannot read properties of null (reading 'verifyReproducibility')"
+      },
+      {
+        "path": "generated/schema.sql",
+        "error": "Cannot read properties of null (reading 'verifyReproducibility')"
+      },
+      {
+        "path": "generated/testclass.js",
+        "error": "Cannot read properties of null (reading 'verifyReproducibility')"
+      }
+    ]
+  }
+}

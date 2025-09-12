@@ -1,185 +1,412 @@
 {
   "version": "1.0.0",
-  "createdAt": "2025-09-11T23:12:34.398Z",
-  "project": {
-    "name": "unnamed-project",
-    "version": "1.0.0"
-  },
-  "source": {
-    "graph": {
-      "path": "/Users/sac/unjucks/person.ttl",
+  "timestamp": "2025-09-12T00:03:10.001Z",
+  "directory": ".",
+  "files": {
+    "_templates/enterprise/data/schemas/api-standards.ttl": {
+      "hash": "3902c03413a4f0d3b4d9afc0db53634ff8eb0e156d24c6ce412fc47b3aaee3a8",
+      "size": 1497,
+      "modified": "2025-09-10T17:22:44.458Z"
+    },
+    "_templates/enterprise/data/schemas/compliance-requirements.ttl": {
+      "hash": "daa741c6aa4cc9ff3ab3bdd8cea71fb28499c284d75c18086a4b32183fa271ef",
+      "size": 1779,
+      "modified": "2025-09-10T17:22:44.458Z"
+    },
+    "_templates/nuxt-openapi/config/openapi-schema.ttl": {
+      "hash": "5d7505ebdeeb1279638ad3c1254f1fec6b29483858719165397bac32ec445037",
+      "size": 13366,
+      "modified": "2025-09-10T17:22:44.467Z"
+    },
+    "docs/book/examples/09-rdf-turtle-integration.ttl": {
+      "hash": "018baf9b791517e3f83ca6f298228a0ad0627e1a46dc2001c8dc857e6492074e",
+      "size": 20010,
+      "modified": "2025-09-10T21:06:42.489Z"
+    },
+    "examples/01-basic-generation/data/api-schema.ttl": {
+      "hash": "e101e468f38c4b7804d0b10d7c49058c906494cfb62c66c7847344dfd8aca262",
+      "size": 3616,
+      "modified": "2025-09-10T17:22:44.729Z"
+    },
+    "examples/02-validation/data/invalid-data.ttl": {
+      "hash": "3f104dce0a65b322a129af4d742dabe71bfbfe474c130a72ac245626e4c99585",
+      "size": 3587,
+      "modified": "2025-09-10T17:22:44.729Z"
+    },
+    "examples/02-validation/data/valid-data.ttl": {
+      "hash": "c8b99ea88ab441a5cea334d33d6880bed2580469ba2777bf68f23a44b53baa21",
+      "size": 3217,
+      "modified": "2025-09-10T17:22:44.729Z"
+    },
+    "examples/02-validation/data/validation-rules.ttl": {
+      "hash": "6afb84bfb81aeb8cf6b60cbac9703a544bbceebb6d48065bd2d51e386103c472",
+      "size": 6974,
+      "modified": "2025-09-10T17:22:44.729Z"
+    },
+    "examples/03-enterprise/data/enterprise-ontology.ttl": {
+      "hash": "b8152cad21584213afed1bea9a535f2fac932133796b06a4c2500f5281a772cc",
+      "size": 27347,
+      "modified": "2025-09-10T17:22:44.730Z"
+    },
+    "examples/generated/reverse-generated.ttl": {
+      "hash": "c2df8e5d6d9a0e6c81c4f168db4d27d839a32cfd2745ece195f337d950d73ad1",
+      "size": 2468,
+      "modified": "2025-09-10T17:22:44.733Z"
+    },
+    "examples/generated-hr-types/reverse.ttl": {
+      "hash": "e47e968036b529b412276e2f684ff1be5bebfd2bdf97f48163a5c9b28514dfbb",
+      "size": 1338,
+      "modified": "2025-09-10T17:22:44.733Z"
+    },
+    "examples/output-semantic-web-demo.ttl": {
+      "hash": "95ad9cfd0e921bf36beff51eee5b5070eb140ae43121c0e124b783659a58599a",
+      "size": 7813,
+      "modified": "2025-09-10T17:22:44.733Z"
+    },
+    "examples/sample-ontology.ttl": {
+      "hash": "f461bf0e874d4e058e77998fe033441769be5d98e2cdb614a42029a6c12cbe77",
+      "size": 4124,
+      "modified": "2025-09-10T17:22:44.734Z"
+    },
+    "job.ttl": {
+      "hash": "80d08dc6fbecae6fdca96ce32636d69942d5e7cabeedf7ebc1602979346594b7",
+      "size": 778,
+      "modified": "2025-09-10T20:33:19.384Z"
+    },
+    "model.jsonld": {
+      "hash": "21452955760f2f64d61fd1d64d78f1fef19b8a1c8813866977b63050acd77541",
+      "size": 227,
+      "modified": "2025-09-10T17:22:44.748Z"
+    },
+    "packages/kgen-cli/test/sample-graph.ttl": {
+      "hash": "cf6515d8992b1d35705d7496e83044737442c65313af12d2798855113dc0e42d",
+      "size": 1193,
+      "modified": "2025-09-11T18:55:53.526Z"
+    },
+    "packages/kgen-core/src/validation/schemas/compliance-shapes.ttl": {
+      "hash": "9d1f77de3b8981f3a57c555b4539b085cfd4f5cc23d7904a3a788e725fb15acf",
+      "size": 14503,
+      "modified": "2025-09-11T19:07:01.094Z"
+    },
+    "packages/kgen-core/test-data/sample.ttl": {
+      "hash": "206ea102fdf74d595936eb275e3ff64dbdd7f4b437045bd0e9617e86ccee7ddb",
+      "size": 2124,
+      "modified": "2025-09-11T19:04:00.865Z"
+    },
+    "packages/kgen-core/test-data/simple.ttl": {
+      "hash": "d5f4b18db69dedce0e00cc6a13a5b30d0066cf86f3344715ff178a77087872ed",
+      "size": 395,
+      "modified": "2025-09-11T19:04:00.901Z"
+    },
+    "packages/kgen-rules/api-governance/index.n3": {
+      "hash": "1f41f7d3e068aaa050ac8e4efac10362a146d3c9013c3c68a6f8fbd251f4814c",
+      "size": 2860,
+      "modified": "2025-09-11T19:44:27.948Z"
+    },
+    "person.ttl": {
       "hash": "37308ef4d1b7a83744920e1e6e0cf9d47064ad46ba9576f481f218309bc00562",
       "size": 929,
-      "lastModified": "2025-09-10T20:33:19.190Z"
-    }
-  },
-  "dependencies": {},
-  "templates": {
-    "/Users/sac/unjucks/templates/test-template.njk": {
-      "path": "/Users/sac/unjucks/templates/test-template.njk",
-      "hash": "73a54e5cf9666d52c79ae75fb27d06fbf0900dc3978b8772798375609bc9ce16",
-      "size": 306
+      "modified": "2025-09-10T20:33:19.190Z"
     },
-    "/Users/sac/unjucks/templates/basic/index.njk": {
-      "path": "/Users/sac/unjucks/templates/basic/index.njk",
-      "hash": "42a962ec6058fe6a96434080fd956fe148ef304018b657b9ccfd7e88013d8125",
-      "size": 35
+    "rules/compliance/gdpr-compliance.n3": {
+      "hash": "c8d358bfb3cff744cc474fabaeae60048f55928752aaef22f00ef9e837af98cd",
+      "size": 1258,
+      "modified": "2025-09-11T23:30:51.710Z"
     },
-    "/Users/sac/unjucks/templates/docx/academic-paper.njk": {
-      "path": "/Users/sac/unjucks/templates/docx/academic-paper.njk",
-      "hash": "b3830a4b01d778d5500b14a8cbe71c76110d1a2be58defbb33fed24971503a60",
-      "size": 8487
+    "rules/compliance/hipaa-compliance.n3": {
+      "hash": "8e2d710ee55dbc9a02d61f0151b5484b061d9125ad99d62abfc5736f23a0f070",
+      "size": 1241,
+      "modified": "2025-09-11T23:30:51.836Z"
     },
-    "/Users/sac/unjucks/templates/docx/business-report.njk": {
-      "path": "/Users/sac/unjucks/templates/docx/business-report.njk",
-      "hash": "a5573efadcace9514aa3082bf89a150e7c5fc7afc96c8cfa5c9cfb179c54e6e5",
-      "size": 9967
+    "rules/compliance/pci-dss-compliance.n3": {
+      "hash": "8be2122d849b0ff7b7b5de77887cc76d9effb57e35576094712226dc898ad5e0",
+      "size": 1324,
+      "modified": "2025-09-11T23:30:51.901Z"
     },
-    "/Users/sac/unjucks/templates/docx/legal-contract.njk": {
-      "path": "/Users/sac/unjucks/templates/docx/legal-contract.njk",
-      "hash": "a2b27623c5f68e0cf4fc011f57dc19d4ff2d487d8441eeb3f6657dfe75af28cd",
-      "size": 5745
+    "rules/compliance/sox-compliance.n3": {
+      "hash": "8908769290a9b078a1936a3f0fb7cb478a30fb46da24fdfc8714bfd88ee8c9ab",
+      "size": 1347,
+      "modified": "2025-09-11T23:30:51.776Z"
     },
-    "/Users/sac/unjucks/templates/ontology-driven/person-card.njk": {
-      "path": "/Users/sac/unjucks/templates/ontology-driven/person-card.njk",
-      "hash": "bfd928575bd8da9f31d2ef430ca9ed228b782071dbcd297bd4933cf362e5b490",
-      "size": 3138
+    "schema/user.ttl": {
+      "hash": "8f630a0a6663f69fb3753d79c3d1746511a280ba4c46a5d2525ecdb78642b1c6",
+      "size": 1029,
+      "modified": "2025-09-10T17:22:44.758Z"
     },
-    "/Users/sac/unjucks/templates/api/endpoint/controller.js.njk": {
-      "path": "/Users/sac/unjucks/templates/api/endpoint/controller.js.njk",
-      "hash": "c829b9ecf5500fd8e62d23b0831a5ab80b1b3b2009e9a6f5d77456f1063130c9",
-      "size": 12164
+    "src/semantic/ontologies/enterprise-template-ontology.ttl": {
+      "hash": "f1a4fca6d5bac0afbf2bfc3f8b472398be54eb4d3b4fab00ba32132c03a48322",
+      "size": 16043,
+      "modified": "2025-09-10T17:22:44.866Z"
     },
-    "/Users/sac/unjucks/templates/api/endpoint/routes.js.njk": {
-      "path": "/Users/sac/unjucks/templates/api/endpoint/routes.js.njk",
-      "hash": "fa15c4c91062cfa0e5030d0a373036e0939d482336cbb23415055ebca6f99ba9",
-      "size": 11649
+    "src/semantic/rules/enterprise-governance.n3": {
+      "hash": "3f2c0d5b49320943cbc8e0ffe4ae4387525bd2f40d52bbdca46f6f46df436155",
+      "size": 10253,
+      "modified": "2025-09-10T17:22:44.866Z"
     },
-    "/Users/sac/unjucks/templates/database/schema/migration.sql.njk": {
-      "path": "/Users/sac/unjucks/templates/database/schema/migration.sql.njk",
-      "hash": "4cbcae6f9a1b76bfbc4abbd195098b030dec8031259830eaa9f4e5b26b25f857",
-      "size": 14333
+    "src/semantic/schemas/api-governance.ttl": {
+      "hash": "187beef1182034692043f3a2380f1ba1544ded6252abad16e2f9f765b19db198",
+      "size": 10092,
+      "modified": "2025-09-10T17:22:44.867Z"
     },
-    "/Users/sac/unjucks/templates/database/schema/model.js.njk": {
-      "path": "/Users/sac/unjucks/templates/database/schema/model.js.njk",
-      "hash": "bf752cd1cc17fa51c9c1ad207ea37e13470af3e52db07771b8e3db8afd4eb6e7",
-      "size": 12554
+    "src/semantic/schemas/gdpr-compliance.ttl": {
+      "hash": "911bea61de9303897b23d666400edeebf15685c78ec36e6b91aa6d629c146b4d",
+      "size": 7648,
+      "modified": "2025-09-10T17:22:44.867Z"
     },
-    "/Users/sac/unjucks/templates/enterprise/compliance/ComplianceService.js.njk": {
-      "path": "/Users/sac/unjucks/templates/enterprise/compliance/ComplianceService.js.njk",
-      "hash": "062adccf70de17b32e019d7fe4bec99b1a4d2d1f32d2903516fdd99e95c18077",
-      "size": 22582
+    "src/semantic/schemas/sox-compliance.ttl": {
+      "hash": "47e1e48831abf94f929c142e20857f81a077e3e645e2b468d0c14f366efd459d",
+      "size": 4471,
+      "modified": "2025-09-10T17:22:44.867Z"
     },
-    "/Users/sac/unjucks/templates/latex/arxiv/paper.tex.njk": {
-      "path": "/Users/sac/unjucks/templates/latex/arxiv/paper.tex.njk",
-      "hash": "0cb6ed510d18f380a06b54966b6b43bf25f32a959ea8c1f155142fe9b5a8e148",
-      "size": 7519
+    "templates/_templates/fortune5/registry.ttl": {
+      "hash": "63cebee3bc58838bb24227f3d74099377342e0fba31b4069a211acbfe056ab1d",
+      "size": 6839,
+      "modified": "2025-09-10T17:22:44.879Z"
     },
-    "/Users/sac/unjucks/templates/latex/components/algorithm.tex.njk": {
-      "path": "/Users/sac/unjucks/templates/latex/components/algorithm.tex.njk",
-      "hash": "16acc581925dac9bcc27857d4f9f84b46504cb4bd1bcfecb4c3ed5f1174bcd97",
-      "size": 1688
+    "test-data/simple-graph.ttl": {
+      "hash": "84e6bf6f5796f75b0f42c4e9f148cd9f65a75823c5d0e6dc94553fbad4bcc240",
+      "size": 655,
+      "modified": "2025-09-11T23:51:25.041Z"
     },
-    "/Users/sac/unjucks/templates/latex/components/bibliography.tex.njk": {
-      "path": "/Users/sac/unjucks/templates/latex/components/bibliography.tex.njk",
-      "hash": "265ac85fabd38b600d1872b42ba565d64f2a28be9801b1a7536ad8344c8320fd",
-      "size": 1517
+    "test-generation/sample-api.ttl": {
+      "hash": "3b25ac243b344e3287ee143b0de63492439e55c9e8099b506d74837f71f24296",
+      "size": 4026,
+      "modified": "2025-09-11T23:58:52.685Z"
     },
-    "/Users/sac/unjucks/templates/latex/components/theorem.tex.njk": {
-      "path": "/Users/sac/unjucks/templates/latex/components/theorem.tex.njk",
-      "hash": "35ea3957318c7b18ef63e01b4b96e6ff23668d1d8731ab5404061ef63c5bee27",
-      "size": 2134
+    "test-generation/sample.ttl": {
+      "hash": "104ff79d84613a0a47226c0ec86fe5347fe55a67f3a60e1267d85da51e15e9e4",
+      "size": 85,
+      "modified": "2025-09-11T23:57:57.631Z"
     },
-    "/Users/sac/unjucks/templates/latex/legal/brief.tex.njk": {
-      "path": "/Users/sac/unjucks/templates/latex/legal/brief.tex.njk",
-      "hash": "8d762b0f035aacfc350aeba6c472c8d61ff4641f11f18105dc981c401bd8a68b",
-      "size": 3703
+    "test-graph-2.ttl": {
+      "hash": "c17bc58eeb6984ae8ed09d9f7b32d4191ab8b7f2b17a466646bb293afec713d5",
+      "size": 471,
+      "modified": "2025-09-11T21:58:10.304Z"
     },
-    "/Users/sac/unjucks/templates/microservice/node/config.js.njk": {
-      "path": "/Users/sac/unjucks/templates/microservice/node/config.js.njk",
-      "hash": "dc862cc090333565cb1ef1d480dbf9491be677467ff489dc789387cc06754d71",
-      "size": 6443
+    "test.ttl": {
+      "hash": "06af33cf8f4155bb2efffb9fa0c3c53d340344790c0de7fccede3ef53690691e",
+      "size": 165,
+      "modified": "2025-09-11T22:24:36.333Z"
     },
-    "/Users/sac/unjucks/templates/microservice/node/package.json.njk": {
-      "path": "/Users/sac/unjucks/templates/microservice/node/package.json.njk",
-      "hash": "09e6a4c474c0bbd6c272aa641926bc737249fe23bade8d0d13336543bb5d1c09",
-      "size": 3710
+    "tests/fixtures/api-data.ttl": {
+      "hash": "6c88f0d09654d227a52c92f3f34a3569dc76fd4bbf5f4987652be609211d6a46",
+      "size": 4883,
+      "modified": "2025-09-10T17:22:45.080Z"
     },
-    "/Users/sac/unjucks/templates/microservice/node/server.js.njk": {
-      "path": "/Users/sac/unjucks/templates/microservice/node/server.js.njk",
-      "hash": "cbf5f08fad030025d4cf1d48d0bb36ff339128cf3fb6c4860fca2e593698ced4",
-      "size": 6310
+    "tests/fixtures/api-rules.n3": {
+      "hash": "bbdfb1c0e074261fa577de8d42e5a6090f24791cf51d09e095737d83e51ea9b4",
+      "size": 2829,
+      "modified": "2025-09-10T17:22:45.080Z"
     },
-    "/Users/sac/unjucks/templates/typescript-interface/new/interface.ts.njk": {
-      "path": "/Users/sac/unjucks/templates/typescript-interface/new/interface.ts.njk",
-      "hash": "405568079e8f892c898ca47b57179f6ab70a614221fba14af326b2d6685ab1b9",
-      "size": 3679
+    "tests/fixtures/fortune5/cvs-health/patient-records.ttl": {
+      "hash": "e0686e1abb7151b40edb078429267b6f746849dab1e298b7dca94447092877c2",
+      "size": 6551,
+      "modified": "2025-09-10T17:22:45.083Z"
     },
-    "/Users/sac/unjucks/templates/_templates/semantic/financial-api/fibo-service.ts.njk": {
-      "path": "/Users/sac/unjucks/templates/_templates/semantic/financial-api/fibo-service.ts.njk",
-      "hash": "2190d08f3ec37db5c12e28479825f583735f9e400fba94a5da1d5f2a516a3fed",
-      "size": 11345
+    "tests/fixtures/fortune5/jpmorgan/financial-instruments.ttl": {
+      "hash": "c0ae598fe5305ba3adec6965f76d1e2ba25399c84ac6e8e03e1651e48934eec4",
+      "size": 7631,
+      "modified": "2025-09-10T17:22:45.083Z"
     },
-    "/Users/sac/unjucks/templates/_templates/semantic/healthcare-service/fhir-service.ts.njk": {
-      "path": "/Users/sac/unjucks/templates/_templates/semantic/healthcare-service/fhir-service.ts.njk",
-      "hash": "c5fa4f6ed84c379c28a96746ff564e3c714410807bc166da375951fdbe7b7777",
-      "size": 8743
+    "tests/fixtures/fortune5/walmart/product-catalog.ttl": {
+      "hash": "4a55d2253d39aef1d3f3a957649209a1fad678baeec8227ac6eb8266ab202521",
+      "size": 9023,
+      "modified": "2025-09-10T17:22:45.083Z"
     },
-    "/Users/sac/unjucks/templates/_templates/semantic/supply-chain/gs1-service.ts.njk": {
-      "path": "/Users/sac/unjucks/templates/_templates/semantic/supply-chain/gs1-service.ts.njk",
-      "hash": "a147fb93c11b39a63d5cc88c89afd9940f996bb19c2b1b11ad3c0b4f45c0981b",
-      "size": 14522
+    "tests/fixtures/fortune5/walmart/supply-chain-events.ttl": {
+      "hash": "352d8f0cb8bef272966bfa8187f4955378557e2b7baccc8a17f38e725a5f953a",
+      "size": 11311,
+      "modified": "2025-09-10T17:22:45.083Z"
     },
-    "/Users/sac/unjucks/templates/latex/arxiv/paper/paper.tex.njk": {
-      "path": "/Users/sac/unjucks/templates/latex/arxiv/paper/paper.tex.njk",
-      "hash": "c016765879a05e6f87793384378e70711f755282ffb1e0baa3addae06f0ac015",
-      "size": 3655
+    "tests/fixtures/knowledge-graphs/schemas/kg-validation.shacl.ttl": {
+      "hash": "16db88fde10588e7b86766674bfe90e2612fc782e25f18947e525bea1207a609",
+      "size": 5560,
+      "modified": "2025-09-10T17:22:45.089Z"
     },
-    "/Users/sac/unjucks/templates/latex/arxiv/preprint/preprint.tex.njk": {
-      "path": "/Users/sac/unjucks/templates/latex/arxiv/preprint/preprint.tex.njk",
-      "hash": "b718675da1951038c60780ce0447f8ae105cc85cd1b72b564488c2010483f266",
-      "size": 6180
+    "tests/fixtures/performance/large-api-ontology.ttl": {
+      "hash": "b5832e713c13936ce663b167dce2ffa4c1390264b6811eed949bc1ac99b7ed65",
+      "size": 467907,
+      "modified": "2025-09-10T17:22:45.094Z"
     },
-    "/Users/sac/unjucks/templates/latex/legal/brief/legal-brief-simple.tex.njk": {
-      "path": "/Users/sac/unjucks/templates/latex/legal/brief/legal-brief-simple.tex.njk",
-      "hash": "1786c19ad3a3afc20ee16f0d4b21f8ec95ce5fe5dcc7fa8c49e9d17b8af56020",
-      "size": 3891
+    "tests/fixtures/performance/massive-enterprise-graph.ttl": {
+      "hash": "db1f433c1f6cca5ac5a3fd720d741b7de3392caeb2331c549e80d838f63be443",
+      "size": 2700161,
+      "modified": "2025-09-10T17:22:45.096Z"
     },
-    "/Users/sac/unjucks/templates/latex/legal/brief/legal-brief.tex.njk": {
-      "path": "/Users/sac/unjucks/templates/latex/legal/brief/legal-brief.tex.njk",
-      "hash": "1ab0ad88a6805523debdc4fcc6b90446f793ecac4a7ad5406a4269e6fd799030",
-      "size": 8045
+    "tests/fixtures/rdf/validation/complex-schema.ttl": {
+      "hash": "9b51d2e6027bc11d5ef002bf4dbab6bf210ea92b798f3f381fe5e0766d118ee3",
+      "size": 2809,
+      "modified": "2025-09-10T17:22:45.097Z"
     },
-    "/Users/sac/unjucks/templates/latex/legal/brief/minimal-test.tex.njk": {
-      "path": "/Users/sac/unjucks/templates/latex/legal/brief/minimal-test.tex.njk",
-      "hash": "c8624bf0e864754ebde7f483e1dab35ec6d7aa06340e73309bbe3079ae3a3a6e",
-      "size": 408
+    "tests/fixtures/sample-ontology.ttl": {
+      "hash": "560a505fc0463ebdd4a9018cf24edd51e167fe1e8424e45f1b8103cbfc3f2f7a",
+      "size": 1243,
+      "modified": "2025-09-10T17:22:45.099Z"
     },
-    "/Users/sac/unjucks/templates/latex/legal/components/certificate-of-service.tex.njk": {
-      "path": "/Users/sac/unjucks/templates/latex/legal/components/certificate-of-service.tex.njk",
-      "hash": "fa383cd692e1cadba1bfe8bc9378ec207624b50e411a57ef9ee326d31b68a91d",
-      "size": 2346
+    "tests/fixtures/semantic/financial/fibo-instruments.ttl": {
+      "hash": "4d7232073d1be98730379f0dd1200fd938a43fe8a7738fd74a0228b0ef5ee1bf",
+      "size": 5439,
+      "modified": "2025-09-10T17:22:45.102Z"
     },
-    "/Users/sac/unjucks/templates/latex/legal/contract/contract.tex.njk": {
-      "path": "/Users/sac/unjucks/templates/latex/legal/contract/contract.tex.njk",
-      "hash": "96c0bd94051d1e8e3aaf953cad96a50a173292e6d64a9030706071b08b7a313d",
-      "size": 8601
+    "tests/fixtures/semantic/healthcare/fhir-patient-data.ttl": {
+      "hash": "4fd1b0fdcad86e65d989c17e02dbd6763238b4fc63e1f58731018e4efbeddc40",
+      "size": 4293,
+      "modified": "2025-09-10T17:22:45.102Z"
     },
-    "/Users/sac/unjucks/templates/latex/legal/motion/motion.tex.njk": {
-      "path": "/Users/sac/unjucks/templates/latex/legal/motion/motion.tex.njk",
-      "hash": "63bdf294fc54801ff28a0aa5a4cb4bcffa470a038dd427d841d1190667df661a",
-      "size": 8302
-    }
-  },
-  "rules": {},
-  "artifacts": {},
-  "integrity": {
-    "combined": "196755bc8aaf1cef75f2c394b6194bed14aa7b407f63491ad0d3a06a7b70a27c",
-    "components": {
-      "graph": "37308ef4d1b7a83744920e1e6e0cf9d47064ad46ba9576f481f218309bc00562",
-      "templates": 31,
-      "rules": 0,
-      "artifacts": 0
+    "tests/fixtures/semantic/supply-chain/gs1-product-catalog.ttl": {
+      "hash": "c6691786baa265b2a3342bb7e3e53ed97f42b559c7cdc43e58cf75c3b5ba0d6f",
+      "size": 7436,
+      "modified": "2025-09-10T17:22:45.102Z"
+    },
+    "tests/fixtures/turtle/api-ontology.ttl": {
+      "hash": "aff704ac0f5e2e62b2838d941536c57f9ae48f04b28a8e61327b74ee467354c3",
+      "size": 235,
+      "modified": "2025-09-10T17:22:45.108Z"
+    },
+    "tests/fixtures/turtle/basic-person.ttl": {
+      "hash": "12d19fcc4dd3a1d6bc1d1f3ef237e2a9ab0d96df103b89bc32b8411c3e3d47c6",
+      "size": 599,
+      "modified": "2025-09-10T17:22:45.108Z"
+    },
+    "tests/fixtures/turtle/complex-project.ttl": {
+      "hash": "27f5ec0e29c61990490c713205808e3fc521ca59792b1f99553492460666adcf",
+      "size": 1728,
+      "modified": "2025-09-10T17:22:45.108Z"
+    },
+    "tests/fixtures/turtle/complex-schema.ttl": {
+      "hash": "ae622c9ad94f83607478ae75f6c31b857399a75b05ce66be211a5739e3e7ad09",
+      "size": 1961,
+      "modified": "2025-09-10T17:22:45.108Z"
+    },
+    "tests/fixtures/turtle/compliance-ontology.ttl": {
+      "hash": "fcf1f0189438fabf0bc019f175bed5d5c01cde4d56b78dfa7ee27b65ffb4e585",
+      "size": 290,
+      "modified": "2025-09-10T17:22:45.108Z"
+    },
+    "tests/fixtures/turtle/compliance-rules.n3": {
+      "hash": "4e51d5ce2cfa5ddf5ab5ea4126428a9fa70152f46dfe7ba959f3125a3ea6cf6f",
+      "size": 11161,
+      "modified": "2025-09-10T17:22:45.108Z"
+    },
+    "tests/fixtures/turtle/edge-cases.ttl": {
+      "hash": "a169be503cba2fb0dcb17c4e106e9fd69fee672e1a89c48a62591988ea526a81",
+      "size": 1071,
+      "modified": "2025-09-10T17:22:45.108Z"
+    },
+    "tests/fixtures/turtle/enterprise-schema.ttl": {
+      "hash": "eeac6961987392201702258d4970e707500feceacc44f9563af1e85eb9de6a7c",
+      "size": 18318,
+      "modified": "2025-09-10T17:22:45.108Z"
+    },
+    "tests/fixtures/turtle/fortune5-compliance.ttl": {
+      "hash": "e7261686f8dc8d888845f5f80c1fdaae6384c02a6c4b126feb00a2681e61a662",
+      "size": 487,
+      "modified": "2025-09-10T17:22:45.108Z"
+    },
+    "tests/fixtures/turtle/invalid-syntax.ttl": {
+      "hash": "fa3480367a71709cdb6ce8c1fae3983eb02fc4f72a92ea81d70925e54aecf27a",
+      "size": 193,
+      "modified": "2025-09-10T17:22:45.108Z"
+    },
+    "tests/fixtures/turtle/large-dataset.ttl": {
+      "hash": "881931113f9f3fc9a4ecf8cf31196b6bde9b9faa15ab038c3c11f167d747edc8",
+      "size": 6437,
+      "modified": "2025-09-10T17:22:45.109Z"
+    },
+    "tests/fixtures/turtle/malicious.ttl": {
+      "hash": "531fc621c7511388df9481a40c5ad7945343973a2bc5ce070d902556fecff50a",
+      "size": 1921,
+      "modified": "2025-09-10T17:22:45.109Z"
+    },
+    "tests/fixtures/turtle/ontology.ttl": {
+      "hash": "10c022decb14ffb64d4d1e4549e4737ce221e7f82073d3039f74e16d6eea02b4",
+      "size": 3954,
+      "modified": "2025-09-10T17:22:45.109Z"
+    },
+    "tests/fixtures/turtle/performance/complex-schema.ttl": {
+      "hash": "28787b45e8622dcbc7d718b5485a333715e1272d99d4002ea4f51319428ae43f",
+      "size": 19077,
+      "modified": "2025-09-10T17:22:45.109Z"
+    },
+    "tests/fixtures/turtle/performance/large-10000.ttl": {
+      "hash": "0353111e761d71ba408b71591715d5231d8ddfd77d2d16adbdb9263a103f3eb9",
+      "size": 378255,
+      "modified": "2025-09-10T17:22:45.109Z"
+    },
+    "tests/fixtures/turtle/performance/medium-1000.ttl": {
+      "hash": "e4252b549835c480d096e48d415f5d55b133a7c10f0e0f2adbaf94631afd1f9d",
+      "size": 36255,
+      "modified": "2025-09-10T17:22:45.109Z"
+    },
+    "tests/fixtures/turtle/performance/small-100.ttl": {
+      "hash": "a208bee2f6f8ea940467b80af409f2afafaadcfec912d07f1c59726ada6800d7",
+      "size": 3630,
+      "modified": "2025-09-10T17:22:45.110Z"
+    },
+    "tests/fixtures/turtle/sample-ontology.ttl": {
+      "hash": "991c029bfbe0cc6d8f7673e276b053e22612b0b4d0527a45473d1852c2ae7726",
+      "size": 1538,
+      "modified": "2025-09-10T17:22:45.110Z"
+    },
+    "tests/fixtures/turtle/sample.ttl": {
+      "hash": "8713089d476a4432fef2e768d9c8c8310e6e8d2187f144c7a6f0f479db0658bd",
+      "size": 2671,
+      "modified": "2025-09-10T17:22:45.110Z"
+    },
+    "tests/fixtures/turtle/security-ontology.ttl": {
+      "hash": "13f3e6cc6d6e4b0e64967a411cad05d32c2a98886dbe65837cfdd1e8089c9f5e",
+      "size": 346,
+      "modified": "2025-09-10T17:22:45.110Z"
+    },
+    "tests/fixtures/turtle/shacl-validation.ttl": {
+      "hash": "1ed36a363ac29543daf556ae799cb1006e62538a3a1302488fce5a7e793ebbd2",
+      "size": 2764,
+      "modified": "2025-09-10T17:22:45.110Z"
+    },
+    "tests/malformed-turtle-test.ttl": {
+      "hash": "7bbb3a97cc8250929ea79b3294d54794573014d5d4c243c76560418d9e9c696f",
+      "size": 458,
+      "modified": "2025-09-10T21:06:42.687Z"
+    },
+    "tests/sample-data/test.ttl": {
+      "hash": "cc05ae53390139ce6da76e696c2b2ac51b5bba6f86943ce4a9af4074e37de3fe",
+      "size": 623,
+      "modified": "2025-09-10T17:22:45.215Z"
+    },
+    "tests/sample-ontology.ttl": {
+      "hash": "6e724b61978e8de49a9ba06219204fa0171de9b95bc3a7b4b5848d7e05d88268",
+      "size": 1463,
+      "modified": "2025-09-10T17:22:45.215Z"
+    },
+    "tests/security/fixtures/malicious-patterns.ttl": {
+      "hash": "10049a23393b11b711a3824fcd02342021ca30e3ac798edf22703ffb2303456d",
+      "size": 1334,
+      "modified": "2025-09-10T17:22:45.420Z"
+    },
+    "tests/security/fixtures/xxe-attack.rdf": {
+      "hash": "47fd2a6462a498005ea0d1347c9beeaf8fe1c000e1ebff361701f06311ecc3fc",
+      "size": 745,
+      "modified": "2025-09-10T17:22:45.420Z"
+    },
+    "tests/semantic-output/export.jsonld": {
+      "hash": "c8edc0caba8772875b0f15edefb7e22fa9da7ff1f257dfbdb8bc66707039a52b",
+      "size": 227,
+      "modified": "2025-09-10T17:22:45.430Z"
+    },
+    "tests/semantic-web-clean-room/examples/complete-enterprise-ontology.ttl": {
+      "hash": "9f121e43f506f6c4d9950733ddc9cf8fe530435df1bb85b0d9ad1cec09129c19",
+      "size": 13098,
+      "modified": "2025-09-10T18:29:09.289Z"
+    },
+    "tests/semantic-web-clean-room/examples/schema-org-structured-data.ttl": {
+      "hash": "3e78083dda0c5cc2e8d312f34d840b0548f700f2e4c72c510afebbb2cda0ed17",
+      "size": 15203,
+      "modified": "2025-09-10T18:29:09.289Z"
+    },
+    "tests/test-data/sample-api.ttl": {
+      "hash": "3b25ac243b344e3287ee143b0de63492439e55c9e8099b506d74837f71f24296",
+      "size": 4026,
+      "modified": "2025-09-11T23:52:13.268Z"
     }
   }
 }

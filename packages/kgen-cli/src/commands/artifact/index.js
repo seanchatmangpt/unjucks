@@ -7,8 +7,8 @@
 import { defineCommand } from 'citty';
 
 import generateCommand from './generate.js';
-import driftCommand from './drift.js';
-import explainCommand from './explain.js';
+// import driftCommand from './drift.js';
+// import explainCommand from './explain.js';
 
 export default defineCommand({
   meta: {
@@ -17,8 +17,8 @@ export default defineCommand({
   },
   subCommands: {
     generate: generateCommand,
-    drift: driftCommand,
-    explain: explainCommand
+    // drift: driftCommand,
+    // explain: explainCommand
   },
   async run() {
     // Default help for artifact tool

@@ -1,17 +1,21 @@
 /**
- * KGEN Template Engine
+ * KGEN Enhanced Template Engine
  * 
- * Simplified Nunjucks template engine for direct (graph + context) -> template -> file pipeline.
- * Removes generator complexity and focuses on deterministic rendering.
+ * Migrated from UNJUCKS with enhanced filter pipeline, RDF data loading,
+ * and deterministic rendering capabilities. Removes non-deterministic elements
+ * and adds content-addressed caching for consistent builds.
  */
 
 import nunjucks from 'nunjucks';
 import path from 'path';
+import crypto from 'crypto';
 import { existsSync } from 'fs';
 import { FrontmatterParser } from './frontmatter-parser.js';
+import { createDeterministicFilters } from './deterministic-filters.js';
+import { RDFFilters } from './rdf-filters.js';
 
 /**
- * Simplified Template Engine for KGEN
+ * Enhanced Template Engine for KGEN with Deterministic Rendering
  */
 export class TemplateEngine {
   constructor(options = {}) {
@@ -22,22 +26,43 @@ export class TemplateEngine {
       trimBlocks: true, // Enabled for cleaner output
       lstripBlocks: true, // Enabled for cleaner output
       enableCache: options.enableCache !== false,
+      enableFilters: options.enableFilters !== false,
+      enableRDF: options.enableRDF || false,
+      deterministic: options.deterministic !== false,
+      contentAddressing: options.contentAddressing !== false,
+      debug: options.debug || false,
       ...options
     };
 
-    // Initialize Nunjucks environment with optimized settings
+    // Initialize Nunjucks environment with enhanced settings
     this.env = this.createNunjucksEnvironment();
     
     // Initialize frontmatter parser
     this.frontmatterParser = new FrontmatterParser(false); // Disable semantic validation for performance
     
-    // Track rendering statistics for deterministic behavior verification
+    // Initialize filter systems
+    this.filterCatalog = null;
+    this.rdfFilters = null;
+    
+    if (this.options.enableFilters) {
+      this.initializeFilterPipeline();
+    }
+    
+    // Initialize content-addressed caching
+    this.templateCache = new Map();
+    this.renderCache = new Map();
+    
+    // Track comprehensive statistics for deterministic behavior verification
     this.stats = {
       renders: 0,
       errors: 0,
       totalRenderTime: 0,
+      cacheHits: 0,
+      cacheMisses: 0,
       templatesRendered: new Set(),
-      variablesUsed: new Set()
+      variablesUsed: new Set(),
+      filtersUsed: new Set(),
+      deterministicHashes: new Map()
     };
   }
 
@@ -66,18 +91,99 @@ export class TemplateEngine {
   }
 
   /**
-   * Add global functions optimized for code generation
+   * Initialize the enhanced filter pipeline with deterministic behavior
+   */
+  initializeFilterPipeline() {
+    try {
+      // Create deterministic filter collection
+      this.filterCatalog = createDeterministicFilters({
+        enableCache: this.options.enableCache,
+        deterministic: this.options.deterministic
+      });
+      
+      // Register deterministic filters with Nunjucks
+      this.registerFiltersWithNunjucks();
+      
+      // Initialize RDF filters if enabled
+      if (this.options.enableRDF) {
+        this.rdfFilters = new RDFFilters({
+          prefixes: this.options.rdfPrefixes,
+          baseUri: this.options.baseUri
+        });
+        this.registerRDFFilters();
+      }
+      
+      // Add filter usage tracking
+      this.wrapFiltersForTracking();
+      
+    } catch (error) {
+      console.error('Failed to initialize filter pipeline:', error);
+      if (this.options.throwOnError) {
+        throw new Error(`Filter pipeline initialization failed: ${error.message}`);
+      }
+    }
+  }
+  
+  /**
+   * Register deterministic filters with Nunjucks environment
+   */
+  registerFiltersWithNunjucks() {
+    if (!this.filterCatalog) return;
+    
+    for (const [name, filter] of Object.entries(this.filterCatalog)) {
+      this.env.addFilter(name, (...args) => {
+        this.stats.filtersUsed.add(name);
+        return filter(...args);
+      });
+    }
+  }
+  
+  /**
+   * Register RDF filters with Nunjucks environment
+   */
+  registerRDFFilters() {
+    if (!this.rdfFilters) return;
+    
+    const filters = this.rdfFilters.getAllFilters();
+    for (const [name, filter] of Object.entries(filters)) {
+      this.env.addFilter(name, (...args) => {
+        this.stats.filtersUsed.add(name);
+        return filter(...args);
+      });
+    }
+  }
+  
+  /**
+   * Wrap filters for usage tracking and performance monitoring
+   */
+  wrapFiltersForTracking() {
+    const originalAddFilter = this.env.addFilter.bind(this.env);
+    
+    this.env.addFilter = (name, fn) => {
+      const wrappedFn = (...args) => {
+        this.stats.filtersUsed.add(name);
+        return fn(...args);
+      };
+      return originalAddFilter(name, wrappedFn);
+    };
+  }
+
+  /**
+   * Add global functions optimized for deterministic code generation
    */
   addGlobalFunctions(env) {
-    // Add current timestamp for deterministic builds (can be overridden)
-    env.addGlobal('timestamp', () => new Date().toISOString());
+    // Add deterministic timestamp (can be overridden with fixed value)
+    env.addGlobal('timestamp', () => {
+      return this.options.fixedTimestamp || new Date().toISOString();
+    });
     
-    // Add environment detection
+    // Add deterministic environment detection
     env.addGlobal('env', {
       isDevelopment: process.env.NODE_ENV === 'development',
       isProduction: process.env.NODE_ENV === 'production',
       nodeVersion: process.version,
-      platform: process.platform
+      platform: process.platform,
+      kgenVersion: '2.0.0' // Fixed version for deterministic builds
     });
 
     // Add conditional rendering helper
@@ -88,6 +194,54 @@ export class TemplateEngine {
     // Add template existence check
     env.addGlobal('templateExists', (templatePath) => {
       return this.templateExists(templatePath);
+    });
+    
+    // Add template inclusion with error handling
+    env.addGlobal('includeTemplate', (templatePath, context = {}) => {
+      try {
+        return this.render(templatePath, context);
+      } catch (error) {
+        console.warn(`Failed to include template ${templatePath}:`, error.message);
+        return `<!-- Template inclusion failed: ${templatePath} -->`;
+      }
+    });
+    
+    // Add dynamic filter application
+    env.addGlobal('applyFilter', (value, filterName, ...args) => {
+      if (!this.filterCatalog || !this.filterCatalog[filterName]) {
+        console.warn(`Unknown filter: ${filterName}`);
+        return value;
+      }
+      
+      this.stats.filtersUsed.add(filterName);
+      return this.filterCatalog[filterName](value, ...args);
+    });
+    
+    // Add filter chain application
+    env.addGlobal('chain', (value, ...filters) => {
+      return filters.reduce((result, filterSpec) => {
+        let filterName, args = [];
+        
+        if (typeof filterSpec === 'string') {
+          filterName = filterSpec;
+        } else if (Array.isArray(filterSpec)) {
+          [filterName, ...args] = filterSpec;
+        } else {
+          return result;
+        }
+        
+        if (this.filterCatalog && this.filterCatalog[filterName]) {
+          this.stats.filtersUsed.add(filterName);
+          return this.filterCatalog[filterName](result, ...args);
+        }
+        
+        return result;
+      }, value);
+    });
+    
+    // Add deterministic hash generation
+    env.addGlobal('contentHash', (content) => {
+      return this.createContentHash(content);
     });
   }
 
@@ -197,7 +351,7 @@ export class TemplateEngine {
       parsed.variables.forEach(v => this.stats.variablesUsed.add(v));
       
       // Create deterministic context
-      const renderContext = this.createRenderContext(context, parsed.frontmatter);
+      const renderContext = this.createRenderContext(context, parsed.frontmatter, templatePath);
       
       // Render only the template content (without frontmatter)
       const renderedContent = this.env.renderString(parsed.content, renderContext);
@@ -263,7 +417,7 @@ export class TemplateEngine {
       const parsed = await this.parseTemplate(templateString);
       
       // Create render context
-      const renderContext = this.createRenderContext(context, parsed.frontmatter);
+      const renderContext = this.createRenderContext(context, parsed.frontmatter, 'inline-template');
       
       // Render content
       const renderedContent = this.env.renderString(parsed.content, renderContext);
@@ -298,25 +452,91 @@ export class TemplateEngine {
   }
 
   /**
-   * Create deterministic render context
+   * Create deterministic render context with enhanced metadata
    * @param {Object} userContext - User-provided context
-   * @param {Object} frontmatter - Template frontmatter
+   * * @param {Object} frontmatter - Template frontmatter
    * @returns {Object} Enhanced context for rendering
    */
-  createRenderContext(userContext, frontmatter) {
-    // Create deterministic timestamp if not provided
-    const timestamp = userContext.timestamp || new Date().toISOString();
+  createRenderContext(userContext, frontmatter, templatePath) {
+    // Create deterministic timestamp if not provided (sorted for consistency)
+    const timestamp = this.options.fixedTimestamp || 
+                     userContext.timestamp || 
+                     new Date().toISOString();
+    
+    // Create deterministic context with sorted keys
+    const sortedContext = this.sortObjectKeys(userContext);
     
     return {
-      ...userContext,
+      ...sortedContext,
       timestamp,
-      frontmatter,
+      frontmatter: this.sortObjectKeys(frontmatter),
       _kgen: {
-        version: '1.0.0',
+        version: '2.0.0',
         renderTime: timestamp,
-        deterministic: true
+        deterministic: this.options.deterministic,
+        templatePath,
+        contentAddressing: this.options.contentAddressing,
+        filtersEnabled: this.options.enableFilters,
+        rdfEnabled: this.options.enableRDF,
+        filterCatalog: this.filterCatalog ? Object.keys(this.filterCatalog).sort() : []
       }
     };
+  }
+  
+  /**
+   * Sort object keys recursively for deterministic output
+   * @param {any} obj - Object to sort
+   * @returns {any} Object with sorted keys
+   */
+  sortObjectKeys(obj) {
+    if (obj === null || typeof obj !== 'object') {
+      return obj;
+    }
+    
+    if (Array.isArray(obj)) {
+      return obj.map(item => this.sortObjectKeys(item));
+    }
+    
+    const sortedKeys = Object.keys(obj).sort();
+    const sortedObj = {};
+    
+    for (const key of sortedKeys) {
+      sortedObj[key] = this.sortObjectKeys(obj[key]);
+    }
+    
+    return sortedObj;
+  }
+  
+  /**
+   * Create content-addressed hash for caching and deterministic builds
+   * @param {string} content - Content to hash
+   * @returns {string} SHA-256 hash
+   */
+  createContentHash(content) {
+    return crypto.createHash('sha256').update(content, 'utf8').digest('hex');
+  }
+  
+  /**
+   * Get or create cached template render
+   * @param {string} cacheKey - Cache key
+   * @param {Function} renderFn - Function to execute if cache miss
+   * @returns {any} Cached or fresh result
+   */
+  getCachedRender(cacheKey, renderFn) {
+    if (!this.options.enableCache) {
+      return renderFn();
+    }
+    
+    if (this.renderCache.has(cacheKey)) {
+      this.stats.cacheHits++;
+      return this.renderCache.get(cacheKey);
+    }
+    
+    this.stats.cacheMisses++;
+    const result = renderFn();
+    this.renderCache.set(cacheKey, result);
+    
+    return result;
   }
 
   /**
@@ -366,33 +586,154 @@ export class TemplateEngine {
   }
 
   /**
-   * Get rendering statistics
-   * @returns {Object} Rendering statistics
+   * Get comprehensive rendering statistics
+   * @returns {Object} Detailed rendering statistics
    */
   getStats() {
-    return {
+    const baseStats = {
       renders: this.stats.renders,
       errors: this.stats.errors,
       errorRate: this.stats.errors / Math.max(this.stats.renders, 1),
       totalRenderTime: this.stats.totalRenderTime,
       avgRenderTime: this.stats.totalRenderTime / Math.max(this.stats.renders, 1),
-      templatesRendered: Array.from(this.stats.templatesRendered),
-      variablesUsed: Array.from(this.stats.variablesUsed),
+      cacheHits: this.stats.cacheHits,
+      cacheMisses: this.stats.cacheMisses,
+      cacheHitRate: this.stats.cacheHits / Math.max(this.stats.cacheHits + this.stats.cacheMisses, 1),
+      templatesRendered: Array.from(this.stats.templatesRendered).sort(),
+      variablesUsed: Array.from(this.stats.variablesUsed).sort(),
+      filtersUsed: Array.from(this.stats.filtersUsed).sort(),
       uniqueTemplates: this.stats.templatesRendered.size,
-      uniqueVariables: this.stats.variablesUsed.size
+      uniqueVariables: this.stats.variablesUsed.size,
+      uniqueFilters: this.stats.filtersUsed.size
     };
+    
+    return baseStats;
   }
 
   /**
-   * Reset statistics for clean testing
+   * Reset statistics and caches for clean testing
    */
   resetStats() {
     this.stats = {
       renders: 0,
       errors: 0,
       totalRenderTime: 0,
+      cacheHits: 0,
+      cacheMisses: 0,
       templatesRendered: new Set(),
-      variablesUsed: new Set()
+      variablesUsed: new Set(),
+      filtersUsed: new Set(),
+      deterministicHashes: new Map()
+    };
+    
+    // Clear caches
+    this.templateCache.clear();
+    this.renderCache.clear();
+  }
+  
+  /**
+   * Update RDF store with new triples (if RDF is enabled)
+   * @param {Array} triples - RDF triples to load
+   */
+  updateRDFStore(triples) {
+    if (this.rdfFilters && Array.isArray(triples)) {
+      this.rdfFilters.updateStore(triples);
+    }
+  }
+  
+  /**
+   * Clear RDF store
+   */
+  clearRDFStore() {
+    if (this.rdfFilters) {
+      this.rdfFilters.clearStore();
+    }
+  }
+  
+  /**
+   * Get available filters catalog
+   * @returns {Object} Available filters by category
+   */
+  getAvailableFilters() {
+    const filters = {
+      deterministic: this.filterCatalog ? Object.keys(this.filterCatalog).sort() : [],
+      rdf: this.rdfFilters ? Object.keys(this.rdfFilters.getAllFilters()).sort() : [],
+      total: 0
+    };
+    
+    filters.total = filters.deterministic.length + filters.rdf.length;
+    return filters;
+  }
+  
+  /**
+   * Add custom filter with deterministic behavior
+   * @param {string} name - Filter name
+   * @param {Function} fn - Filter function
+   * @param {Object} options - Filter options
+   */
+  addFilter(name, fn, options = {}) {
+    // Wrap filter to ensure deterministic behavior
+    const deterministicFn = (...args) => {
+      this.stats.filtersUsed.add(name);
+      
+      // Sort object arguments for consistency
+      const sortedArgs = args.map(arg => 
+        typeof arg === 'object' && arg !== null ? this.sortObjectKeys(arg) : arg
+      );
+      
+      return fn(...sortedArgs);
+    };
+    
+    this.env.addFilter(name, deterministicFn);
+    
+    if (!this.filterCatalog) {
+      this.filterCatalog = {};
+    }
+    this.filterCatalog[name] = deterministicFn;
+  }
+  
+  /**
+   * Clear all caches for deterministic rendering
+   */
+  clearCache() {
+    // Clear Nunjucks cache
+    if (this.env.loaders) {
+      this.env.loaders.forEach(loader => {
+        if (loader.cache) {
+          loader.cache = {};
+        }
+      });
+    }
+    
+    // Clear internal caches
+    this.templateCache.clear();
+    this.renderCache.clear();
+    
+    // Clear RDF cache if available
+    if (this.rdfFilters) {
+      this.rdfFilters.queryCache.clear();
+    }
+  }
+  
+  /**
+   * Get comprehensive environment information
+   * @returns {Object} Environment details
+   */
+  getEnvironment() {
+    return {
+      templatesDir: this.options.templatesDir,
+      options: this.sortObjectKeys(this.options),
+      nunjucksVersion: nunjucks.version || 'unknown',
+      kgenVersion: '2.0.0',
+      deterministic: this.options.deterministic,
+      filtersEnabled: this.options.enableFilters,
+      rdfEnabled: this.options.enableRDF,
+      contentAddressing: this.options.contentAddressing,
+      availableFilters: this.getAvailableFilters(),
+      cacheSize: {
+        templates: this.templateCache.size,
+        renders: this.renderCache.size
+      }
     };
   }
 }

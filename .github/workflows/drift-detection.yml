@@ -1,0 +1,455 @@
+name: KGEN Drift Detection
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+  schedule:
+    # Run drift detection daily at 2 AM UTC
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+    inputs:
+      severity_threshold:
+        description: 'Minimum severity threshold'
+        required: false
+        default: 'LOW'
+        type: choice
+        options:
+          - LOW
+          - MEDIUM
+          - HIGH
+          - CRITICAL
+      enable_regeneration:
+        description: 'Enable artifact regeneration'
+        required: false
+        default: false
+        type: boolean
+      validate_attestations:
+        description: 'Validate artifact attestations'
+        required: false
+        default: true
+        type: boolean
+
+jobs:
+  drift-detection:
+    name: Detect Artifact Drift
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    
+    permissions:
+      contents: read
+      issues: write
+      pull-requests: write
+      security-events: write
+    
+    outputs:
+      drift-detected: ${{ steps.drift-check.outputs.drift-detected }}
+      risk-level: ${{ steps.drift-check.outputs.risk-level }}
+      total-changes: ${{ steps.drift-check.outputs.total-changes }}
+      
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        lfs: true
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+    
+    - name: Install dependencies
+      run: |
+        npm ci --include=dev
+        # Install KGEN CLI globally
+        npm install -g ./packages/kgen-cli
+    
+    - name: Verify KGEN installation
+      run: |
+        kgen --version
+        kgen drift --help
+    
+    - name: Cache validation resources
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.kgen/cache
+          .kgen/validation-cache
+        key: kgen-validation-${{ runner.os }}-${{ hashFiles('**/kgen.lock.json', 'packages/*/package.json') }}
+        restore-keys: |
+          kgen-validation-${{ runner.os }}-
+    
+    - name: Setup validation environment
+      run: |
+        # Create cache directories
+        mkdir -p ~/.kgen/cache .kgen/validation-cache
+        
+        # Set up SHACL shapes if available
+        if [ -f \"shapes.ttl\" ]; then
+          echo \"SHAPES_FILE=shapes.ttl\" >> $GITHUB_ENV
+        elif [ -f \"validation/shapes.ttl\" ]; then
+          echo \"SHAPES_FILE=validation/shapes.ttl\" >> $GITHUB_ENV
+        fi
+    
+    - name: Check for lockfile
+      id: lockfile-check
+      run: |
+        if [ -f \"kgen.lock.json\" ]; then
+          echo \"lockfile-exists=true\" >> $GITHUB_OUTPUT
+          echo \"🔍 Found kgen.lock.json with $(jq '.files | length' kgen.lock.json) tracked files\"
+        else
+          echo \"lockfile-exists=false\" >> $GITHUB_OUTPUT
+          echo \"⚠️ No kgen.lock.json found - will create baseline first\"
+        fi
+    
+    - name: Create baseline if missing
+      if: steps.lockfile-check.outputs.lockfile-exists == 'false'
+      run: |
+        echo \"📋 Creating initial drift detection baseline...\"
+        kgen drift baseline \\
+          --output kgen.lock.json \\
+          --patterns \"**/*.ttl\" \"**/*.n3\" \"**/*.jsonld\" \"**/*.rdf\" \\
+          --ignore \"node_modules/**\" \".git/**\" \"dist/**\" \"build/**\" \"coverage/**\" \\
+          --verbose
+        
+        # Commit baseline for future runs
+        if [ \"${{ github.event_name }}\" = \"push\" ] && [ \"${{ github.ref }}\" = \"refs/heads/main\" ]; then
+          git config --local user.email \"action@github.com\"
+          git config --local user.name \"GitHub Action\"
+          git add kgen.lock.json
+          git commit -m \"chore: add KGEN drift detection baseline [skip ci]\" || echo \"No changes to commit\"
+          git push || echo \"Failed to push baseline - continuing...\"
+        fi
+    
+    - name: Run enhanced drift detection
+      id: drift-check
+      run: |
+        echo \"🔍 Running enhanced KGEN drift detection...\"
+        
+        # Set severity threshold
+        SEVERITY_THRESHOLD=\"${{ github.event.inputs.severity_threshold || 'LOW' }}\"
+        
+        # Configure validation options
+        VALIDATION_OPTS=\"\"
+        if [ -n \"$SHAPES_FILE\" ]; then
+          VALIDATION_OPTS=\"$VALIDATION_OPTS --shapes-path $SHAPES_FILE\"
+        fi
+        
+        # Configure regeneration
+        REGEN_OPTS=\"\"
+        if [ \"${{ github.event.inputs.enable_regeneration }}\" = \"true\" ]; then
+          REGEN_OPTS=\"--regenerate --regeneration-mode memory\"
+        fi
+        
+        # Configure attestation validation
+        ATTEST_OPTS=\"\"
+        if [ \"${{ github.event.inputs.validate_attestations }}\" != \"false\" ]; then
+          ATTEST_OPTS=\"--attestation\"
+        fi
+        
+        # Run drift detection with CI output
+        set +e  # Don't fail on drift detection
+        kgen drift detect \\
+          --ci \\
+          --verbose \\
+          --shacl \\
+          --semantic \\
+          $VALIDATION_OPTS \\
+          $REGEN_OPTS \\
+          $ATTEST_OPTS \\
+          --severity-threshold \"$SEVERITY_THRESHOLD\" \\
+          --recommendations \\
+          --stats \\
+          --timeout 600 \\
+          2>&1 | tee drift-report.txt
+        
+        DRIFT_EXIT_CODE=$?
+        
+        # Parse CI output
+        if [ -f drift-report.txt ]; then
+          # Extract CI variables
+          DRIFT_DETECTED=$(grep \"DRIFT_DETECTED=\" drift-report.txt | cut -d'=' -f2 || echo \"false\")
+          RISK_LEVEL=$(grep \"RISK_LEVEL=\" drift-report.txt | cut -d'=' -f2 || echo \"LOW\")
+          TOTAL_FILES=$(grep \"TOTAL_FILES=\" drift-report.txt | cut -d'=' -f2 || echo \"0\")
+          MODIFIED=$(grep \"MODIFIED=\" drift-report.txt | cut -d'=' -f2 || echo \"0\")
+          DELETED=$(grep \"DELETED=\" drift-report.txt | cut -d'=' -f2 || echo \"0\")
+          ADDED=$(grep \"ADDED=\" drift-report.txt | cut -d'=' -f2 || echo \"0\")
+          REGENERATED=$(grep \"REGENERATED=\" drift-report.txt | cut -d'=' -f2 || echo \"0\")
+          DRIFT_SCORE=$(grep \"DRIFT_SCORE=\" drift-report.txt | cut -d'=' -f2 || echo \"0\")
+          COMPLIANCE_STATUS=$(grep \"COMPLIANCE_STATUS=\" drift-report.txt | cut -d'=' -f2 || echo \"UNKNOWN\")
+          
+          # Set outputs
+          echo \"drift-detected=$DRIFT_DETECTED\" >> $GITHUB_OUTPUT
+          echo \"risk-level=$RISK_LEVEL\" >> $GITHUB_OUTPUT
+          echo \"total-files=$TOTAL_FILES\" >> $GITHUB_OUTPUT
+          echo \"modified=$MODIFIED\" >> $GITHUB_OUTPUT
+          echo \"deleted=$DELETED\" >> $GITHUB_OUTPUT
+          echo \"added=$ADDED\" >> $GITHUB_OUTPUT
+          echo \"regenerated=$REGENERATED\" >> $GITHUB_OUTPUT
+          echo \"drift-score=$DRIFT_SCORE\" >> $GITHUB_OUTPUT
+          echo \"compliance-status=$COMPLIANCE_STATUS\" >> $GITHUB_OUTPUT
+          echo \"total-changes=$((MODIFIED + DELETED + ADDED))\" >> $GITHUB_OUTPUT
+          
+          # Set environment variables for summary
+          echo \"DRIFT_DETECTED=$DRIFT_DETECTED\" >> $GITHUB_ENV
+          echo \"RISK_LEVEL=$RISK_LEVEL\" >> $GITHUB_ENV
+          echo \"DRIFT_SCORE=$DRIFT_SCORE\" >> $GITHUB_ENV
+          echo \"COMPLIANCE_STATUS=$COMPLIANCE_STATUS\" >> $GITHUB_ENV
+        fi
+        
+        # Exit with original code for workflow status
+        exit $DRIFT_EXIT_CODE
+    
+    - name: Generate detailed report
+      if: always()
+      run: |
+        echo \"📊 Generating detailed drift detection report...\"
+        
+        # Generate JSON report for analysis
+        kgen drift detect --json --output drift-report.json || echo \"Failed to generate JSON report\"
+        
+        # Generate HTML report if possible
+        if command -v pandoc >/dev/null 2>&1; then
+          kgen drift report --format markdown --output drift-report.md || echo \"Failed to generate markdown report\"
+          pandoc drift-report.md -o drift-report.html || echo \"Failed to convert to HTML\"
+        fi
+        
+        # Create summary for GitHub
+        cat > drift-summary.md << 'EOF'
+        # 🔍 KGEN Drift Detection Report
+        
+        **Status:** ${{ env.DRIFT_DETECTED == 'true' && '⚠️ Drift Detected' || '✅ No Drift' }}
+        **Risk Level:** ${{ env.RISK_LEVEL }}
+        **Drift Score:** ${{ env.DRIFT_SCORE }}/100
+        **Compliance:** ${{ env.COMPLIANCE_STATUS }}
+        
+        ## Summary
+        - **Total Files:** ${{ steps.drift-check.outputs.total-files }}
+        - **Modified:** ${{ steps.drift-check.outputs.modified }}
+        - **Deleted:** ${{ steps.drift-check.outputs.deleted }}
+        - **Added:** ${{ steps.drift-check.outputs.added }}
+        - **Regenerated:** ${{ steps.drift-check.outputs.regenerated }}
+        
+        ## Workflow Details
+        - **Trigger:** ${{ github.event_name }}
+        - **Branch:** ${{ github.ref_name }}
+        - **Commit:** ${{ github.sha }}
+        - **Actor:** ${{ github.actor }}
+        EOF
+        
+        # Add recommendations if available
+        if grep -q \"CRITICAL_RECOMMENDATIONS=\" drift-report.txt; then
+          echo \"\" >> drift-summary.md
+          echo \"## 🚨 Critical Recommendations\" >> drift-summary.md
+          grep \"REC_.*_ACTION=\" drift-report.txt | while read line; do
+            ACTION=$(echo $line | cut -d'=' -f2 | tr '_' ' ')
+            echo \"- $ACTION\" >> drift-summary.md
+          done
+        fi
+    
+    - name: Upload artifacts
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: drift-detection-report-${{ github.run_number }}
+        path: |
+          drift-report.txt
+          drift-report.json
+          drift-report.html
+          drift-summary.md
+          kgen.lock.json
+        retention-days: 30
+    
+    - name: Create GitHub issue for critical drift
+      if: steps.drift-check.outputs.risk-level == 'CRITICAL' && github.event_name != 'pull_request'
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const fs = require('fs')
+          const summary = fs.readFileSync('drift-summary.md', 'utf8')
+          
+          const issue = await github.rest.issues.create({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            title: '🚨 Critical Artifact Drift Detected',
+            body: `${summary}\\n\\n---\\n\\n*This issue was automatically created by the KGEN drift detection workflow.*\\n\\nWorkflow: ${context.workflow}\\nRun: ${context.runNumber}`,
+            labels: ['security', 'drift-detection', 'critical'],
+            assignees: ['${{ github.repository_owner }}']
+          })
+          
+          console.log(`Created issue #${issue.data.number}`)
+    
+    - name: Comment on PR
+      if: github.event_name == 'pull_request'
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const fs = require('fs')
+          const summary = fs.readFileSync('drift-summary.md', 'utf8')
+          
+          const comment = await github.rest.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: `${summary}\\n\\n---\\n\\n*Automated drift detection results for this PR.*`
+          })
+          
+          console.log('Added drift detection comment to PR')
+    
+    - name: Set job summary
+      if: always()
+      run: |
+        cat drift-summary.md >> $GITHUB_STEP_SUMMARY
+        
+        # Add workflow conclusions
+        echo \"\" >> $GITHUB_STEP_SUMMARY
+        echo \"---\" >> $GITHUB_STEP_SUMMARY
+        echo \"\" >> $GITHUB_STEP_SUMMARY
+        
+        if [ \"${{ steps.drift-check.outputs.drift-detected }}\" = \"true\" ]; then
+          case \"${{ steps.drift-check.outputs.risk-level }}\" in
+            \"CRITICAL\")
+              echo \"## 🚨 Action Required\" >> $GITHUB_STEP_SUMMARY
+              echo \"Critical drift detected. Immediate investigation required.\" >> $GITHUB_STEP_SUMMARY
+              ;;
+            \"HIGH\")
+              echo \"## ⚠️ High Priority\" >> $GITHUB_STEP_SUMMARY
+              echo \"High-risk drift detected. Please review and address.\" >> $GITHUB_STEP_SUMMARY
+              ;;
+            \"MEDIUM\")
+              echo \"## 📋 Review Needed\" >> $GITHUB_STEP_SUMMARY
+              echo \"Moderate drift detected. Review when convenient.\" >> $GITHUB_STEP_SUMMARY
+              ;;
+            \"LOW\")
+              echo \"## 📝 Minor Changes\" >> $GITHUB_STEP_SUMMARY
+              echo \"Low-impact drift detected. Monitor and address as needed.\" >> $GITHUB_STEP_SUMMARY
+              ;;
+          esac
+        else
+          echo \"## ✅ All Clear\" >> $GITHUB_STEP_SUMMARY
+          echo \"No significant drift detected. System integrity maintained.\" >> $GITHUB_STEP_SUMMARY
+        fi
+        
+        echo \"\" >> $GITHUB_STEP_SUMMARY
+        echo \"**Next Steps:**\" >> $GITHUB_STEP_SUMMARY
+        echo \"- Review detailed report in workflow artifacts\" >> $GITHUB_STEP_SUMMARY
+        echo \"- Run \`kgen drift detect --verbose --detailed\` locally for investigation\" >> $GITHUB_STEP_SUMMARY
+        echo \"- Update baseline with \`kgen drift baseline --update\` after validation\" >> $GITHUB_STEP_SUMMARY
+    
+    - name: Notify on failure
+      if: failure()
+      uses: actions/github-script@v7
+      with:
+        script: |
+          console.log('Drift detection workflow failed')
+          
+          // Could send notifications to Slack, Teams, etc.
+          // For now, just log the failure
+          
+          const issue = await github.rest.issues.create({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            title: '❌ KGEN Drift Detection Failed',
+            body: `The KGEN drift detection workflow failed on ${context.ref}.\\n\\nPlease check the workflow logs and fix any issues.\\n\\n---\\n\\nWorkflow: ${context.workflow}\\nRun: ${context.runNumber}`,
+            labels: ['bug', 'drift-detection', 'workflow-failure']
+          })
+
+  security-scan:
+    name: Security Scan on Critical Drift
+    needs: drift-detection
+    if: needs.drift-detection.outputs.risk-level == 'CRITICAL'
+    runs-on: ubuntu-latest
+    
+    permissions:
+      security-events: write
+      
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+    
+    - name: Initialize CodeQL
+      uses: github/codeql-action/init@v3
+      with:
+        languages: javascript, typescript
+    
+    - name: Perform CodeQL Analysis
+      uses: github/codeql-action/analyze@v3
+    
+    - name: Run security audit
+      run: |
+        npm audit --audit-level high
+    
+    - name: Check for secrets
+      uses: trufflesecurity/trufflehog@main
+      with:
+        path: ./
+        base: main
+        head: HEAD
+
+  update-documentation:
+    name: Update Drift Detection Docs
+    needs: drift-detection
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    
+    permissions:
+      contents: write
+      
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+    
+    - name: Download drift report
+      uses: actions/download-artifact@v4
+      with:
+        name: drift-detection-report-${{ github.run_number }}
+        path: drift-reports/
+    
+    - name: Update documentation
+      run: |
+        # Create or update drift detection documentation
+        mkdir -p docs/drift-detection
+        
+        # Copy latest report
+        cp drift-reports/drift-summary.md \"docs/drift-detection/latest-report.md\"
+        
+        # Update timestamp
+        echo \"Last updated: $(date -u)\" >> \"docs/drift-detection/latest-report.md\"
+        
+        # Create index if it doesn't exist
+        if [ ! -f \"docs/drift-detection/README.md\" ]; then
+          cat > \"docs/drift-detection/README.md\" << 'EOF'
+        # KGEN Drift Detection
+        
+        This directory contains drift detection reports and documentation.
+        
+        ## Latest Report
+        
+        See [latest-report.md](./latest-report.md) for the most recent drift detection results.
+        
+        ## Understanding Drift Detection
+        
+        - **Drift Score**: 0-100 scale indicating the extent of changes
+        - **Risk Levels**: LOW, MEDIUM, HIGH, CRITICAL
+        - **Compliance Status**: COMPLIANT, VIOLATIONS, UNKNOWN
+        
+        ## Workflow
+        
+        Drift detection runs automatically on:
+        - Push to main/develop branches  
+        - Pull requests to main
+        - Daily scheduled runs at 2 AM UTC
+        - Manual workflow dispatch
+        EOF
+        fi
+    
+    - name: Commit documentation updates
+      run: |
+        git config --local user.email \"action@github.com\"
+        git config --local user.name \"GitHub Action\"
+        git add docs/drift-detection/
+        git commit -m \"docs: update drift detection reports [skip ci]\" || echo \"No documentation changes\"
+        git push || echo \"No documentation to push\"

@@ -1,0 +1,436 @@
+---
+name: "Technical Specification Document"
+type: "latex"
+category: "technical"
+description: "Technical specification document for system architecture and requirements"
+requiredData: ["title", "abstract", "requirements", "architecture"]
+---
+\documentclass[11pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[margin=1in]{geometry}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{hyperref}
+\usepackage{fancyhdr}
+\usepackage{xcolor}
+\usepackage{listings}
+\usepackage{amsmath}
+\usepackage{amssymb}
+
+% Custom colors for technical docs
+\definecolor{techblue}{RGB}{0,51,153}
+\definecolor{codegreen}{RGB}{0,102,0}
+\definecolor{codegray}{RGB}{128,128,128}
+\definecolor{backcolour}{RGB}{248,248,248}
+
+% Code listing style
+\lstdefinestyle{techstyle}{
+    backgroundcolor=\color{backcolour},   
+    commentstyle=\color{codegreen},
+    keywordstyle=\color{techblue},
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{red},
+    basicstyle=\ttfamily\footnotesize,
+    breakatwhitespace=false,         
+    breaklines=true,                 
+    captionpos=b,                    
+    keepspaces=true,                 
+    numbers=left,                    
+    numbersep=5pt,                  
+    showspaces=false,                
+    showstringspaces=false,
+    showtabs=false,                  
+    tabsize=2
+}
+
+\lstset{style=techstyle}
+
+% Header/Footer
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\textcolor{techblue}{\textbf{{{ project.name | default("System") }}}}
+\fancyhead[R]{\textcolor{techblue}{Technical Specification}}
+\fancyfoot[C]{\thepage}
+
+\title{\textcolor{techblue}{\textbf{{{ title }}}}\\
+       \large Technical Specification Document}
+\author{{{ author | default("Development Team") }}}
+\date{{{ date | default("\\today") }}}
+
+\begin{document}
+
+\maketitle
+
+\tableofcontents
+\newpage
+
+\section{Abstract}
+
+{{ abstract }}
+
+\section{Introduction}
+
+\subsection{Purpose}
+{{ introduction.purpose | default("This document provides a comprehensive technical specification for the system.") }}
+
+\subsection{Scope}
+{{ introduction.scope | default("This specification covers the complete system architecture, requirements, and implementation details.") }}
+
+\subsection{Intended Audience}
+\begin{itemize}
+{% for audience in introduction.audiences %}
+\item {{ audience }}
+{% endfor %}
+\end{itemize}
+
+\subsection{Document Structure}
+This document is organized into the following main sections:
+\begin{itemize}
+\item Requirements specification
+\item System architecture
+\item Interface definitions
+\item Implementation details
+\item Testing and validation
+\end{itemize}
+
+\section{Requirements Specification}
+
+\subsection{Functional Requirements}
+
+{% for req in requirements.functional %}
+\subsubsection{FR-{{ loop.index }}: {{ req.title }}}
+
+\textbf{Priority:} {{ req.priority | default("Medium") }}
+
+\textbf{Description:}
+{{ req.description }}
+
+{% if req.acceptanceCriteria %}
+\textbf{Acceptance Criteria:}
+\begin{enumerate}
+{% for criteria in req.acceptanceCriteria %}
+\item {{ criteria }}
+{% endfor %}
+\end{enumerate}
+{% endif %}
+
+{% if req.dependencies %}
+\textbf{Dependencies:} {{ req.dependencies | join(", ") }}
+{% endif %}
+
+{% endfor %}
+
+\subsection{Non-Functional Requirements}
+
+{% for req in requirements.nonFunctional %}
+\subsubsection{NFR-{{ loop.index }}: {{ req.category }}}
+
+\textbf{Requirement:} {{ req.description }}
+
+\textbf{Target Metric:} {{ req.target }}
+
+\textbf{Measurement Method:} {{ req.measurement }}
+
+{% if req.constraints %}
+\textbf{Constraints:}
+\begin{itemize}
+{% for constraint in req.constraints %}
+\item {{ constraint }}
+{% endfor %}
+\end{itemize}
+{% endif %}
+
+{% endfor %}
+
+\section{System Architecture}
+
+\subsection{Overview}
+{{ architecture.overview }}
+
+\subsection{System Components}
+
+{% for component in architecture.components %}
+\subsubsection{{{ component.name }}}
+
+\textbf{Type:} {{ component.type }}
+
+\textbf{Description:} {{ component.description }}
+
+\textbf{Responsibilities:}
+\begin{itemize}
+{% for responsibility in component.responsibilities %}
+\item {{ responsibility }}
+{% endfor %}
+\end{itemize}
+
+{% if component.interfaces %}
+\textbf{Interfaces:}
+\begin{itemize}
+{% for interface in component.interfaces %}
+\item {{ interface.name }}: {{ interface.description }}
+{% endfor %}
+\end{itemize}
+{% endif %}
+
+{% if component.dependencies %}
+\textbf{Dependencies:} {{ component.dependencies | join(", ") }}
+{% endif %}
+
+{% if component.configuration %}
+\textbf{Configuration Parameters:}
+\begin{itemize}
+{% for param in component.configuration %}
+\item \texttt{{{ param.name }}}: {{ param.description }} (Default: \texttt{{{ param.default }}})
+{% endfor %}
+\end{itemize}
+{% endif %}
+
+{% endfor %}
+
+\subsection{Data Architecture}
+
+{% if architecture.dataModel %}
+\subsubsection{Data Model}
+
+{% for entity in architecture.dataModel.entities %}
+\paragraph{{{ entity.name }}}
+
+\textbf{Description:} {{ entity.description }}
+
+\textbf{Attributes:}
+\begin{longtable}{|p{3cm}|p{2cm}|p{4cm}|p{2cm}|}
+\hline
+\textbf{Name} & \textbf{Type} & \textbf{Description} & \textbf{Constraints} \\
+\hline
+{% for attr in entity.attributes %}
+{{ attr.name }} & {{ attr.type }} & {{ attr.description }} & {{ attr.constraints | default("None") }} \\
+\hline
+{% endfor %}
+\end{longtable}
+
+{% if entity.relationships %}
+\textbf{Relationships:}
+\begin{itemize}
+{% for rel in entity.relationships %}
+\item {{ rel.type }} with {{ rel.target }}: {{ rel.description }}
+{% endfor %}
+\end{itemize}
+{% endif %}
+
+{% endfor %}
+{% endif %}
+
+\subsection{Technology Stack}
+
+{% if architecture.technologies %}
+\begin{longtable}{|p{3cm}|p{3cm}|p{5cm}|p{2cm}|}
+\hline
+\textbf{Layer} & \textbf{Technology} & \textbf{Purpose} & \textbf{Version} \\
+\hline
+{% for tech in architecture.technologies %}
+{{ tech.layer }} & {{ tech.name }} & {{ tech.purpose }} & {{ tech.version | default("Latest") }} \\
+\hline
+{% endfor %}
+\end{longtable}
+{% endif %}
+
+\section{Interface Specifications}
+
+{% for interface in interfaces %}
+\subsection{{{ interface.name }}}
+
+\textbf{Type:} {{ interface.type }}
+
+\textbf{Protocol:} {{ interface.protocol | default("HTTP/REST") }}
+
+\textbf{Base URL:} \texttt{{{ interface.baseUrl | default("http://localhost:8080") }}}
+
+\textbf{Description:} {{ interface.description }}
+
+\subsubsection{Endpoints}
+
+{% for endpoint in interface.endpoints %}
+\paragraph{{{ endpoint.method }} {{ endpoint.path }}}
+
+\textbf{Description:} {{ endpoint.description }}
+
+{% if endpoint.parameters %}
+\textbf{Parameters:}
+\begin{longtable}{|p{2cm}|p{1.5cm}|p{1cm}|p{4cm}|p{2cm}|}
+\hline
+\textbf{Name} & \textbf{Type} & \textbf{Required} & \textbf{Description} & \textbf{Example} \\
+\hline
+{% for param in endpoint.parameters %}
+{{ param.name }} & {{ param.type }} & {{ param.required | default("No") }} & {{ param.description }} & \texttt{{{ param.example }}} \\
+\hline
+{% endfor %}
+\end{longtable}
+{% endif %}
+
+{% if endpoint.requestBody %}
+\textbf{Request Body:}
+\begin{lstlisting}[language=json]
+{{ endpoint.requestBody | safe }}
+\end{lstlisting}
+{% endif %}
+
+{% if endpoint.responses %}
+\textbf{Responses:}
+{% for response in endpoint.responses %}
+\textbf{{{ response.status }} {{ response.description }}}
+\begin{lstlisting}[language=json]
+{{ response.body | safe }}
+\end{lstlisting}
+{% endfor %}
+{% endif %}
+
+{% endfor %}
+
+{% endfor %}
+
+\section{Implementation Details}
+
+\subsection{Development Guidelines}
+
+{% if implementation.guidelines %}
+\begin{itemize}
+{% for guideline in implementation.guidelines %}
+\item {{ guideline }}
+{% endfor %}
+\end{itemize}
+{% endif %}
+
+\subsection{Code Standards}
+
+{% if implementation.standards %}
+{% for standard in implementation.standards %}
+\subsubsection{{{ standard.category }}}
+{{ standard.description }}
+
+{% if standard.examples %}
+\textbf{Example:}
+\begin{lstlisting}[language={{ standard.language | default("javascript") }}]
+{{ standard.examples | safe }}
+\end{lstlisting}
+{% endif %}
+
+{% endfor %}
+{% endif %}
+
+\subsection{Error Handling}
+
+{% if implementation.errorHandling %}
+{{ implementation.errorHandling.strategy }}
+
+\textbf{Error Categories:}
+\begin{longtable}{|p{2cm}|p{1.5cm}|p{5cm}|p{2cm}|}
+\hline
+\textbf{Category} & \textbf{Code Range} & \textbf{Description} & \textbf{Action} \\
+\hline
+{% for error in implementation.errorHandling.categories %}
+{{ error.name }} & {{ error.codes }} & {{ error.description }} & {{ error.action }} \\
+\hline
+{% endfor %}
+\end{longtable}
+{% endif %}
+
+\section{Security Considerations}
+
+\subsection{Authentication and Authorization}
+{{ security.authentication | default("Authentication and authorization requirements will be specified separately.") }}
+
+\subsection{Data Security}
+{{ security.dataProtection | default("Data security measures will be implemented according to organizational standards.") }}
+
+\subsection{Security Controls}
+{% if security.controls %}
+\begin{itemize}
+{% for control in security.controls %}
+\item {{ control }}
+{% endfor %}
+\end{itemize}
+{% endif %}
+
+\section{Testing Strategy}
+
+\subsection{Test Levels}
+
+{% for testLevel in testing.levels %}
+\subsubsection{{{ testLevel.name }}}
+{{ testLevel.description }}
+
+\textbf{Coverage Target:} {{ testLevel.coverage | default("80%") }}
+
+{% if testLevel.tools %}
+\textbf{Tools:} {{ testLevel.tools | join(", ") }}
+{% endif %}
+
+{% endfor %}
+
+\subsection{Test Cases}
+
+{% for testCase in testing.cases %}
+\subsubsection{TC-{{ loop.index }}: {{ testCase.name }}}
+
+\textbf{Objective:} {{ testCase.objective }}
+
+\textbf{Preconditions:}
+\begin{itemize}
+{% for precondition in testCase.preconditions %}
+\item {{ precondition }}
+{% endfor %}
+\end{itemize}
+
+\textbf{Test Steps:}
+\begin{enumerate}
+{% for step in testCase.steps %}
+\item {{ step }}
+{% endfor %}
+\end{enumerate}
+
+\textbf{Expected Result:} {{ testCase.expectedResult }}
+
+{% endfor %}
+
+\section{Deployment and Operations}
+
+\subsection{Deployment Architecture}
+{{ deployment.architecture | default("Deployment architecture details will be provided in a separate document.") }}
+
+\subsection{Configuration Management}
+{{ deployment.configuration | default("Configuration management procedures will be established.") }}
+
+\subsection{Monitoring and Logging}
+{{ deployment.monitoring | default("Monitoring and logging requirements will be specified.") }}
+
+\section{Appendices}
+
+\subsection{Appendix A: Glossary}
+{% if glossary %}
+\begin{description}
+{% for term in glossary %}
+\item[{{ term.name }}] {{ term.definition }}
+{% endfor %}
+\end{description}
+{% endif %}
+
+\subsection{Appendix B: References}
+{% if references %}
+\begin{enumerate}
+{% for ref in references %}
+\item {{ ref }}
+{% endfor %}
+\end{enumerate}
+{% endif %}
+
+% Document metadata for KGEN
+\vfill
+\hrule
+\vspace{0.5cm}
+\textit{\small Generated by KGEN Document Generator}\\
+\textit{\small Artifact ID: {{ kgenArtifactId | default("Unknown") }}}\\
+\textit{\small Generated: {{ generatedAt | default("\\today") }}}\\
+\textit{\small Template: technical/specification.tex.njk}
+
+\end{document}

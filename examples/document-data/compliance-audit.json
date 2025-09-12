@@ -1,0 +1,182 @@
+{
+  "auditScope": {
+    "organization": "Acme Corporation",
+    "title": "Annual Security and Compliance Assessment",
+    "auditor": "External Compliance Auditing LLC",
+    "date": "2024-01-15",
+    "period": "January 1, 2023 - December 31, 2023",
+    "systems": [
+      "Customer Management System",
+      "Financial Processing Platform",
+      "Data Analytics Infrastructure",
+      "Employee Access Management"
+    ],
+    "standards": [
+      "ISO 27001:2013",
+      "SOX Section 404",
+      "GDPR Article 32",
+      "PCI DSS v4.0"
+    ],
+    "overallRating": "Substantially Compliant",
+    "controls": [
+      {
+        "reference": "ISO-27001-A.5.1.1",
+        "status": "Compliant",
+        "evidence": "Information security policy document v2.1, approved by board",
+        "gap": "None",
+        "priority": "Low"
+      },
+      {
+        "reference": "ISO-27001-A.9.1.1",
+        "status": "Non-Compliant",
+        "evidence": "Access control policy exists but not consistently applied",
+        "gap": "Missing quarterly access reviews",
+        "priority": "High"
+      },
+      {
+        "reference": "SOX-404-ITGC-01",
+        "status": "Partially Compliant",
+        "evidence": "Change management process documented",
+        "gap": "Emergency change procedures need strengthening",
+        "priority": "Medium"
+      }
+    ]
+  },
+  "findings": [
+    {
+      "title": "Inadequate Access Review Process",
+      "severity": "High",
+      "controlRef": "ISO-27001-A.9.1.1, SOX-ITGC-03",
+      "description": "The organization lacks a systematic quarterly access review process for critical systems. Current reviews are ad-hoc and do not cover all user accounts.",
+      "evidence": "Review of access logs for Q3-Q4 2023 showed 23% of user accounts have not been reviewed in the past 12 months. Interview with IT administrators confirmed absence of standardized review procedures.",
+      "riskImpact": "Unauthorized access to sensitive data, potential regulatory non-compliance, increased risk of insider threats.",
+      "currentControls": [
+        "Annual employee certification process",
+        "Manager approval for new access requests",
+        "Automated account lockout after 90 days of inactivity"
+      ],
+      "complianceGap": "Missing quarterly access reviews required by ISO 27001 A.9.1.1 and referenced in SOX ITGC controls."
+    },
+    {
+      "title": "Insufficient Data Encryption at Rest",
+      "severity": "Critical",
+      "controlRef": "ISO-27001-A.10.1.1, GDPR-32",
+      "description": "Customer database containing PII is not encrypted at rest on production servers.",
+      "evidence": "Database configuration review revealed that encryption at rest is disabled for the customer management database containing 150,000+ customer records including SSNs and financial data.",
+      "riskImpact": "Potential data breach exposing sensitive customer information, GDPR fines up to 4% of annual revenue, loss of customer trust.",
+      "currentControls": [
+        "Database access controls and authentication",
+        "Network segmentation and firewalls",
+        "Regular security patching"
+      ],
+      "complianceGap": "GDPR Article 32 requires appropriate technical measures including encryption of personal data."
+    },
+    {
+      "title": "Emergency Change Management Weaknesses",
+      "severity": "Medium",
+      "controlRef": "SOX-404-ITGC-02",
+      "description": "Emergency change procedures bypass normal approval workflows without adequate post-implementation review.",
+      "evidence": "Review of 15 emergency changes in Q4 2023 showed 8 lacked proper documentation and 5 had no post-implementation review within the required 48-hour timeframe.",
+      "riskImpact": "Potential unauthorized changes to financial systems, SOX compliance issues, operational disruptions.",
+      "currentControls": [
+        "Standard change management process with CAB approval",
+        "Segregation of duties for production changes",
+        "Change logging and documentation"
+      ],
+      "complianceGap": "SOX-404 requires effective change management controls including emergency change procedures."
+    }
+  ],
+  "recommendations": [
+    {
+      "title": "Implement Quarterly Access Review Process",
+      "priority": "High",
+      "description": "Establish a formal quarterly access review process with automated reporting and management oversight.",
+      "steps": [
+        "Develop standardized access review procedures and templates",
+        "Implement automated reporting tools to identify accounts requiring review",
+        "Train department managers on review responsibilities and procedures",
+        "Establish escalation procedures for overdue reviews",
+        "Create executive dashboard for access review compliance tracking"
+      ],
+      "timeline": "90 days",
+      "resources": "1 FTE for 3 months, access management tooling license ($15K annually)",
+      "metrics": [
+        "100% of user accounts reviewed quarterly",
+        "95% of reviews completed within 30 days of initiation",
+        "Reduction in accounts with excessive privileges by 40%"
+      ],
+      "relatedControls": ["ISO-27001-A.9.1.1", "SOX-ITGC-03"]
+    },
+    {
+      "title": "Enable Database Encryption at Rest",
+      "priority": "Critical",
+      "description": "Implement transparent data encryption (TDE) for all databases containing sensitive information.",
+      "steps": [
+        "Assess current database encryption capabilities and licensing",
+        "Develop encryption implementation plan with minimal downtime",
+        "Configure encryption keys and key management procedures",
+        "Test encryption implementation in development environment",
+        "Schedule production implementation during maintenance window",
+        "Update backup and recovery procedures to account for encryption"
+      ],
+      "timeline": "45 days",
+      "resources": "Database administrator (160 hours), encryption licensing ($25K)",
+      "metrics": [
+        "100% of sensitive data encrypted at rest",
+        "Encryption key rotation procedures in place",
+        "Zero downtime during implementation"
+      ],
+      "relatedControls": ["ISO-27001-A.10.1.1", "GDPR-32", "PCI-DSS-3.4"]
+    },
+    {
+      "title": "Strengthen Emergency Change Procedures",
+      "priority": "Medium",
+      "description": "Enhance emergency change management with improved documentation, approval, and review processes.",
+      "steps": [
+        "Revise emergency change procedures to include mandatory documentation requirements",
+        "Implement automated notifications for emergency changes requiring review",
+        "Establish 24-hour post-implementation review requirement with escalation",
+        "Create emergency change approval matrix with backup approvers",
+        "Develop emergency change risk assessment template"
+      ],
+      "timeline": "60 days",
+      "resources": "Change management coordinator (80 hours), workflow automation setup",
+      "metrics": [
+        "100% of emergency changes documented within 4 hours",
+        "95% of post-implementation reviews completed within 48 hours",
+        "Reduction in emergency changes by 30% through improved planning"
+      ],
+      "relatedControls": ["SOX-404-ITGC-02"]
+    }
+  ],
+  "attestations": [
+    {
+      "title": "Management Assertion on Internal Controls",
+      "authority": "Chief Executive Officer",
+      "scope": "Financial reporting controls and IT general controls",
+      "validFrom": "2024-01-01",
+      "validUntil": "2024-12-31",
+      "certificateRef": "MGMT-ATTEST-2024-001",
+      "statement": "Management maintains responsibility for establishing and maintaining adequate internal control over financial reporting. Based on our assessment, we believe our internal controls are effective as of December 31, 2023, subject to the remediation of identified deficiencies.",
+      "limitations": [
+        "Assessment limited to controls directly affecting financial reporting",
+        "Third-party service provider controls assessed based on SOC reports",
+        "Remediation of identified high-priority findings required by Q2 2024"
+      ]
+    },
+    {
+      "title": "ISO 27001 Certification Status",
+      "authority": "International Certification Body Ltd",
+      "scope": "Information security management system",
+      "validFrom": "2023-06-15",
+      "validUntil": "2026-06-14",
+      "certificateRef": "ICB-ISO27001-2023-789",
+      "statement": "The organization's information security management system meets the requirements of ISO/IEC 27001:2013 within the defined scope, subject to addressing non-conformities identified during surveillance audit.",
+      "limitations": [
+        "Certification scope limited to corporate headquarters and primary data center",
+        "Cloud services assessed based on third-party certifications",
+        "Annual surveillance audits required to maintain certification"
+      ]
+    }
+  ]
+}

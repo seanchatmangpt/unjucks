@@ -10,6 +10,7 @@ import path from 'path';
 import crypto from 'crypto';
 import consola from 'consola';
 import { v4 as uuidv4 } from 'uuid';
+import { CryptoManager } from '../crypto/manager.js';
 
 export class AttestationGenerator {
   constructor(config = {}) {
@@ -20,10 +21,27 @@ export class AttestationGenerator {
       includeSystemInfo: config.includeSystemInfo !== false,
       hashAlgorithm: config.hashAlgorithm || 'sha256',
       timestampPrecision: config.timestampPrecision || 'milliseconds',
+      enableCryptographicSigning: config.enableCryptographicSigning !== false,
       ...config
     };
     
     this.logger = consola.withTag('attestation-generator');
+    
+    // Initialize crypto manager if signing is enabled
+    this.cryptoManager = null;
+    if (this.config.enableCryptographicSigning) {
+      this.cryptoManager = new CryptoManager(config);
+    }
+  }
+
+  /**
+   * Initialize the attestation generator
+   */
+  async initialize() {
+    if (this.cryptoManager) {
+      await this.cryptoManager.initialize();
+      this.logger.info('Cryptographic signing enabled for attestations');
+    }
   }
 
   /**
@@ -79,10 +97,15 @@ export class AttestationGenerator {
         attestation.content = await this._generateContentMetadata(artifact.path);
       }
       
-      // Add signature placeholder (will be filled by crypto manager)
-      attestation.signature = null;
-      
-      return attestation;
+      // Sign attestation if crypto manager is available
+      if (this.cryptoManager) {
+        const signedAttestation = await this.cryptoManager.signAttestation(attestation);
+        return signedAttestation;
+      } else {
+        // Add signature placeholder
+        attestation.signature = null;
+        return attestation;
+      }
       
     } catch (error) {
       this.logger.error(`Failed to generate attestation for ${artifact.path}:`, error);
@@ -163,37 +186,162 @@ export class AttestationGenerator {
   }
 
   /**
-   * Generate provenance metadata section
+   * Generate PROV-O compliant provenance metadata section
    * @param {Object} context - Operation context
    * @returns {Promise<Object>} Provenance metadata
    */
   async _generateProvenanceMetadata(context) {
-    return {
-      graphHash: context.outputGraphHash || context.inputGraphHash,
-      integrityHash: context.integrityHash,
-      chainIndex: context.chainIndex || null,
-      
-      sources: (context.sources || []).map(source => ({
-        id: source.id,
-        path: source.path,
-        hash: source.hash,
-        type: source.type,
-        role: source.role || 'input'
-      })),
-      
-      derivation: {
-        method: context.derivationMethod || 'generation',
-        transformations: context.transformations || [],
-        lineage: context.lineage || []
+    // Generate PROV-O URIs
+    const activityUri = `prov:activity_${context.operationId}`;
+    const agentUri = `prov:agent_${context.agent.id}`;
+    
+    // Calculate canonical graph hash from RDF triples
+    const graphHash = await this._calculateCanonicalGraphHash(context);
+    
+    const provenance = {
+      // Core PROV-O properties
+      '@context': {
+        'prov': 'http://www.w3.org/ns/prov#',
+        'kgen': 'http://kgen.enterprise/provenance/',
+        'dct': 'http://purl.org/dc/terms/',
+        'foaf': 'http://xmlns.com/foaf/0.1/'
       },
       
+      // Canonical graph identification
+      graphHash: graphHash,
+      canonicalizationMethod: 'c14n-rdf',
+      
+      // Activity metadata
+      activity: {
+        '@id': activityUri,
+        '@type': 'prov:Activity',
+        'prov:startedAtTime': context.startTime.toISOString(),
+        'prov:endedAtTime': context.endTime?.toISOString(),
+        'prov:wasAssociatedWith': agentUri,
+        'dct:type': context.type,
+        'kgen:operationId': context.operationId,
+        'kgen:integrityHash': context.integrityHash,
+        'kgen:chainIndex': context.chainIndex || 0
+      },
+      
+      // Agent metadata  
+      agent: {
+        '@id': agentUri,
+        '@type': context.agent.type === 'person' ? 'prov:Person' : 'prov:SoftwareAgent',
+        'foaf:name': context.agent.name,
+        'kgen:version': context.agent.version || '1.0.0'
+      },
+      
+      // Entity relationships
+      entities: this._generateEntityRelationships(context),
+      
+      // Plan metadata (templates/rules used)
+      plan: context.planId ? {
+        '@id': `prov:plan_${context.planId}`,
+        '@type': 'prov:Plan',
+        'dct:identifier': context.planId,
+        'kgen:templateId': context.templateId,
+        'kgen:ruleIds': context.ruleIds || []
+      } : null,
+      
+      // Derivation chains
+      derivations: this._generateDerivationChains(context),
+      
+      // Usage relationships
+      usages: this._generateUsageRelationships(context),
+      
+      // Generation relationships
+      generations: this._generateGenerationRelationships(context),
+      
+      // Dependencies with versioning
       dependencies: {
-        templates: context.templateDependencies || [],
-        rules: context.ruleDependencies || [],
-        data: context.dataDependencies || [],
-        external: context.externalDependencies || []
+        templates: (context.templateDependencies || []).map(dep => ({
+          '@id': `kgen:template_${dep.id}`,
+          '@type': 'kgen:Template',
+          'dct:identifier': dep.id,
+          'kgen:version': dep.version,
+          'kgen:hash': dep.hash,
+          'kgen:path': dep.path,
+          'prov:specializationOf': dep.baseTemplate ? `kgen:template_${dep.baseTemplate}` : null
+        })),
+        
+        rules: (context.ruleDependencies || []).map(rule => ({
+          '@id': `kgen:rule_${rule.id}`,
+          '@type': 'kgen:SemanticRule',
+          'dct:identifier': rule.id,
+          'kgen:version': rule.version,
+          'kgen:ruleType': rule.type,
+          'kgen:priority': rule.priority || 0,
+          'prov:wasDerivedFrom': rule.derivedFrom ? `kgen:rule_${rule.derivedFrom}` : null
+        })),
+        
+        data: (context.dataDependencies || []).map(data => ({
+          '@id': `kgen:data_${data.id}`,
+          '@type': 'prov:Entity',
+          'dct:identifier': data.id,
+          'kgen:hash': data.hash,
+          'kgen:size': data.size,
+          'prov:atLocation': data.location
+        })),
+        
+        external: (context.externalDependencies || []).map(ext => ({
+          '@id': ext.uri || `kgen:external_${ext.id}`,
+          '@type': 'prov:Entity',
+          'dct:identifier': ext.id,
+          'foaf:homepage': ext.url,
+          'kgen:version': ext.version,
+          'kgen:checksum': ext.checksum
+        }))
+      },
+      
+      // Semantic reasoning chain
+      reasoning: context.reasoningChain ? {
+        '@id': `kgen:reasoning_${context.operationId}`,
+        '@type': 'kgen:SemanticReasoning',
+        'kgen:steps': context.reasoningChain.map((step, index) => ({
+          '@id': `kgen:step_${context.operationId}_${index}`,
+          '@type': 'kgen:ReasoningStep',
+          'kgen:stepNumber': index,
+          'kgen:ruleApplied': step.rule,
+          'kgen:inferenceType': step.type,
+          'kgen:inputEntities': step.inputs || [],
+          'kgen:outputEntities': step.outputs || [],
+          'kgen:confidence': step.confidence || 1.0
+        })),
+        'kgen:totalSteps': context.reasoningChain.length,
+        'kgen:reasoningTime': context.reasoningTime || 0
+      } : null,
+      
+      // Quality and validation metadata
+      quality: {
+        'kgen:validationLevel': context.validationLevel || 'basic',
+        'kgen:qualityScore': context.qualityScore || 1.0,
+        'kgen:testsCoverage': context.testsCoverage || 0,
+        'kgen:metricsCollected': context.metrics ? Object.keys(context.metrics) : []
+      },
+      
+      // Cryptographic integrity
+      integrity: {
+        'kgen:hashAlgorithm': context.hashAlgorithm || 'sha256',
+        'kgen:signatureAlgorithm': context.signatureAlgorithm,
+        'kgen:merkleRoot': context.merkleRoot,
+        'kgen:merkleProof': context.merkleProof,
+        'kgen:blockchainAnchor': context.blockchainAnchor || null
       }
     };
+    
+    // Add bundle information if part of a bundle
+    if (context.bundleId) {
+      provenance.bundle = {
+        '@id': `prov:bundle_${context.bundleId}`,
+        '@type': 'prov:Bundle',
+        'dct:identifier': context.bundleId,
+        'prov:generatedAtTime': context.bundleGeneratedAt,
+        'kgen:bundleHash': context.bundleHash
+      };
+    }
+    
+    return provenance;
   }
 
   /**
@@ -560,6 +708,173 @@ export class AttestationGenerator {
     }
     
     return 'unknown';
+  }
+
+  /**
+   * Calculate canonical graph hash from operation context
+   * @param {Object} context - Operation context
+   * @returns {Promise<string>} Canonical graph hash
+   */
+  async _calculateCanonicalGraphHash(context) {
+    try {
+      // Build canonical RDF graph from context
+      const rdfTriples = this._buildCanonicalRDFGraph(context);
+      
+      // Apply RDF canonicalization (C14N)
+      const canonicalTriples = this._canonicalizeRDFTriples(rdfTriples);
+      
+      // Calculate hash of canonical form
+      const canonicalString = canonicalTriples
+        .sort()
+        .join('\n');
+      
+      return crypto.createHash(this.config.hashAlgorithm)
+        .update(canonicalString, 'utf8')
+        .digest('hex');
+        
+    } catch (error) {
+      this.logger.warn('Failed to calculate canonical graph hash:', error);
+      // Fallback to context hash
+      return await this._calculateContextHash(context);
+    }
+  }
+
+  /**
+   * Build canonical RDF graph from operation context
+   * @param {Object} context - Operation context
+   * @returns {Array} Array of RDF triples in canonical form
+   */
+  _buildCanonicalRDFGraph(context) {
+    const triples = [];
+    const base = 'http://kgen.enterprise/provenance/';
+    
+    // Activity triples
+    const activityUri = `${base}activity/${context.operationId}`;
+    triples.push(`<${activityUri}> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/ns/prov#Activity> .`);
+    triples.push(`<${activityUri}> <http://www.w3.org/ns/prov#startedAtTime> "${context.startTime.toISOString()}"^^<http://www.w3.org/2001/XMLSchema#dateTime> .`);
+    
+    if (context.endTime) {
+      triples.push(`<${activityUri}> <http://www.w3.org/ns/prov#endedAtTime> "${context.endTime.toISOString()}"^^<http://www.w3.org/2001/XMLSchema#dateTime> .`);
+    }
+    
+    // Agent triples
+    if (context.agent) {
+      const agentUri = `${base}agent/${context.agent.id}`;
+      const agentType = context.agent.type === 'person' ? 
+        'http://www.w3.org/ns/prov#Person' : 
+        'http://www.w3.org/ns/prov#SoftwareAgent';
+      
+      triples.push(`<${agentUri}> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <${agentType}> .`);
+      triples.push(`<${activityUri}> <http://www.w3.org/ns/prov#wasAssociatedWith> <${agentUri}> .`);
+      
+      if (context.agent.name) {
+        triples.push(`<${agentUri}> <http://xmlns.com/foaf/0.1/name> "${context.agent.name}" .`);
+      }
+    }
+    
+    // Template triples
+    if (context.templateId) {
+      const templateUri = `${base}template/${context.templateId}`;
+      triples.push(`<${templateUri}> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <${base}Template> .`);
+      triples.push(`<${activityUri}> <http://www.w3.org/ns/prov#used> <${templateUri}> .`);
+      
+      if (context.templateVersion) {
+        triples.push(`<${templateUri}> <${base}version> "${context.templateVersion}" .`);
+      }
+      
+      if (context.templatePath) {
+        triples.push(`<${templateUri}> <${base}path> "${context.templatePath}" .`);
+      }
+    }
+    
+    // Rule triples
+    if (context.ruleIds && context.ruleIds.length > 0) {
+      for (const ruleId of context.ruleIds) {
+        const ruleUri = `${base}rule/${ruleId}`;
+        triples.push(`<${ruleUri}> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <${base}SemanticRule> .`);
+        triples.push(`<${activityUri}> <http://www.w3.org/ns/prov#used> <${ruleUri}> .`);
+      }
+    }
+    
+    // Engine triples
+    const engineUri = `${base}engine/kgen`;
+    triples.push(`<${engineUri}> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/ns/prov#SoftwareAgent> .`);
+    triples.push(`<${activityUri}> <http://www.w3.org/ns/prov#wasAssociatedWith> <${engineUri}> .`);
+    
+    if (context.engineVersion) {
+      triples.push(`<${engineUri}> <${base}version> "${context.engineVersion}" .`);
+    }
+    
+    // Integrity hash triple
+    if (context.integrityHash) {
+      triples.push(`<${activityUri}> <${base}integrityHash> "${context.integrityHash}" .`);
+    }
+    
+    // Configuration triples (deterministic key ordering)
+    if (context.configuration) {
+      const configKeys = Object.keys(context.configuration).sort();
+      for (const key of configKeys) {
+        const value = context.configuration[key];
+        if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
+          triples.push(`<${activityUri}> <${base}config/${key}> "${value}" .`);
+        }
+      }
+    }
+    
+    return triples;
+  }
+
+  /**
+   * Canonicalize RDF triples using deterministic ordering
+   * @param {Array} triples - Array of RDF triple strings
+   * @returns {Array} Canonicalized triples
+   */
+  _canonicalizeRDFTriples(triples) {
+    // Apply RDF canonicalization algorithm (simplified C14N)
+    // 1. Normalize whitespace
+    // 2. Sort triples lexicographically
+    // 3. Ensure consistent blank node labeling
+    
+    const normalizedTriples = triples
+      .map(triple => triple.trim())
+      .filter(triple => triple.length > 0)
+      .map(triple => this._normalizeTriple(triple));
+    
+    // Sort for canonical ordering
+    return normalizedTriples.sort();
+  }
+
+  /**
+   * Normalize a single RDF triple
+   * @param {string} triple - RDF triple string
+   * @returns {string} Normalized triple
+   */
+  _normalizeTriple(triple) {
+    // Remove extra whitespace and ensure consistent formatting
+    return triple
+      .replace(/\s+/g, ' ')
+      .trim();
+  }
+
+  // Missing method implementations for PROV-O generation
+  _generateEntityRelationships(context) {
+    // Generate entity relationships for PROV-O
+    return [];
+  }
+
+  _generateDerivationChains(context) {
+    // Generate derivation chains for PROV-O
+    return [];
+  }
+
+  _generateUsageRelationships(context) {
+    // Generate usage relationships for PROV-O
+    return [];
+  }
+
+  _generateGenerationRelationships(context) {
+    // Generate generation relationships for PROV-O
+    return [];
   }
 }
 

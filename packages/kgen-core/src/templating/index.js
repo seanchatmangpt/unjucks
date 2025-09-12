@@ -1,15 +1,28 @@
 /**
- * KGEN Templating Module
+ * KGEN Enhanced Templating Module
  * 
  * Main entry point for KGEN template engine functionality.
- * Provides simplified, deterministic template rendering for code generation.
+ * Provides enhanced, deterministic template rendering with filter pipeline
+ * and RDF integration, migrated from UNJUCKS.
  */
 
 import { TemplateEngine, createTemplateEngine } from './template-engine.js';
 import { FrontmatterParser } from './frontmatter-parser.js';
 import { TemplateRenderer, createRenderer } from './renderer.js';
+import { createDeterministicFilters } from './deterministic-filters.js';
+import { RDFFilters, createRDFFilters, registerRDFFilters } from './rdf-filters.js';
 
-export { TemplateEngine, createTemplateEngine, FrontmatterParser, TemplateRenderer, createRenderer };
+export { 
+  TemplateEngine, 
+  createTemplateEngine, 
+  FrontmatterParser, 
+  TemplateRenderer, 
+  createRenderer,
+  createDeterministicFilters,
+  RDFFilters,
+  createRDFFilters,
+  registerRDFFilters
+};
 
 /**
  * Create a complete templating system with engine and renderer
@@ -53,11 +66,50 @@ export function createTemplatingSystem(options = {}) {
       };
     },
     
+    // Enhanced capabilities
+    getAvailableFilters() {
+      return engine.getAvailableFilters();
+    },
+    
+    updateRDFStore(triples) {
+      return engine.updateRDFStore(triples);
+    },
+    
+    clearRDFStore() {
+      return engine.clearRDFStore();
+    },
+    
+    addFilter(name, fn, options) {
+      return engine.addFilter(name, fn, options);
+    },
+    
+    getEnvironment() {
+      return engine.getEnvironment();
+    },
+    
     reset() {
       engine.resetStats();
+      engine.clearCache();
       renderer.reset();
     }
   };
+}
+
+/**
+ * Create enhanced template engine with all features enabled
+ * @param {Object} options - Engine configuration options
+ * @returns {TemplateEngine} Fully featured template engine
+ */
+export function createEnhancedTemplateEngine(options = {}) {
+  return new TemplateEngine({
+    enableFilters: true,
+    enableRDF: true,
+    enableCache: true,
+    deterministic: true,
+    contentAddressing: true,
+    throwOnUndefined: false,
+    ...options
+  });
 }
 
 export default createTemplatingSystem;

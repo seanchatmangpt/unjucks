@@ -7,10 +7,12 @@
 
 export { ProvenanceTracker } from './tracker.js';
 export { AttestationGenerator } from './attestation/generator.js';
+export { AttestationPipeline } from './attestation/pipeline.js';
 export { ProvenanceStorage } from './storage/index.js';
 export { ComplianceAttestor } from './compliance/attestor.js';
 export { CryptoManager } from './crypto/manager.js';
 export { ArtifactExplainer } from './queries/explainer.js';
+export { ProvenanceQueryInterface } from './queries/interface.js';
 
 /**
  * Create a new enhanced provenance tracker with default configuration

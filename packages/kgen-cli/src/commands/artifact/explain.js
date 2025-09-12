@@ -102,25 +102,80 @@ export default defineCommand({
         }
       };
       
-      // Add provenance information if available
+      // Add comprehensive provenance information if available
       if (attestation && !attestation.error) {
         explanation.provenance = {
-          source: attestation.source || {},
+          // Core generation metadata
           generation: {
-            method: attestation.provenance?.method || 'unknown',
-            reproducible: attestation.provenance?.reproducible || false,
-            generatedAt: attestation.artifact?.generatedAt || null,
-            expectedHash: attestation.artifact?.hash || null
+            operationId: attestation.generation?.operationId,
+            method: attestation.provenance?.derivation?.method || 'generation',
+            reproducible: attestation.generation?.reproducible !== false,
+            generatedAt: attestation.timestamps?.operationCompleted || null,
+            expectedHash: attestation.artifact?.hash || null,
+            engine: attestation.generation?.engine || { name: 'unknown', version: 'unknown' }
           },
-          engine: {
-            id: attestation.source?.engineId || 'unknown',
-            version: attestation.source?.engineVersion || 'unknown'
+          
+          // PROV-O compliant relationships
+          activity: attestation.provenance?.activity || null,
+          agent: attestation.provenance?.agent || null,
+          
+          // Template and rule tracking
+          templates: attestation.provenance?.dependencies?.templates || [],
+          rules: attestation.provenance?.dependencies?.rules || [],
+          
+          // Semantic reasoning chain
+          reasoning: attestation.provenance?.reasoning ? {
+            totalSteps: attestation.provenance.reasoning['kgen:totalSteps'] || 0,
+            reasoningTime: attestation.provenance.reasoning['kgen:reasoningTime'] || 0,
+            steps: attestation.provenance.reasoning['kgen:steps']?.slice(0, 5) || [] // Limit to first 5 steps
+          } : null,
+          
+          // Quality metrics
+          quality: {
+            validationLevel: attestation.provenance?.quality?.['kgen:validationLevel'] || 'basic',
+            qualityScore: attestation.provenance?.quality?.['kgen:qualityScore'] || 1.0,
+            testsCoverage: attestation.provenance?.quality?.['kgen:testsCoverage'] || 0
+          },
+          
+          // Cryptographic integrity
+          integrity: {
+            algorithm: attestation.integrity?.algorithm || 'sha256',
+            chainIndex: attestation.integrity?.chainIndex || 0,
+            merkleRoot: attestation.integrity?.merkleRoot || null,
+            signed: !!attestation.signature
           }
         };
         
         // Add detailed information in verbose mode
         if (args.verbose) {
           explanation.provenance.full = attestation;
+          
+          // Add reasoning chain details
+          if (attestation.provenance?.reasoning?.['kgen:steps']) {
+            explanation.reasoningChain = attestation.provenance.reasoning['kgen:steps'].map((step, index) => ({
+              stepNumber: step['kgen:stepNumber'] || index,
+              rule: step['kgen:ruleApplied'],
+              inferenceType: step['kgen:inferenceType'],
+              inputs: step['kgen:inputEntities'] || [],
+              outputs: step['kgen:outputEntities'] || [],
+              confidence: step['kgen:confidence'] || 1.0
+            }));
+          }
+          
+          // Add dependency graph
+          if (attestation.provenance?.dependencies) {
+            explanation.dependencies = {
+              templates: attestation.provenance.dependencies.templates,
+              rules: attestation.provenance.dependencies.rules,
+              data: attestation.provenance.dependencies.data || [],
+              external: attestation.provenance.dependencies.external || []
+            };
+          }
+          
+          // Add derivation relationships
+          if (attestation.provenance?.derivations) {
+            explanation.derivations = attestation.provenance.derivations;
+          }
         }
       }
       

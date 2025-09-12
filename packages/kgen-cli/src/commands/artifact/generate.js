@@ -8,12 +8,14 @@
 import { defineCommand } from 'citty';
 import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'fs';
 import { resolve, dirname, join } from 'path';
+import path from 'path';
 import { Parser } from 'n3';
 import fs from 'fs-extra';
 
 import { success, error, output } from '../../lib/output.js';
 import { loadKgenConfig, validateTurtleFile, hashContent, createAttestation } from '../../lib/utils.js';
-import { createTemplateEngine } from '../../../../kgen-core/src/templating/template-engine.js';
+import { TemplateEngine } from '../../../../kgen-core/src/templating/template-engine.js';
+import { SimpleKGenEngine } from '../../../../kgen-core/src/kgen/core/simple-engine.js';
 
 /**
  * Get all template files in a directory recursively
@@ -147,165 +149,139 @@ export default defineCommand({
       // Validate inputs
       const graphInfo = validateTurtleFile(args.graph);
       const outputDir = args.output || config.directories.out;
-      
-      // Use templates directory from config or default
       const templateDir = config.directories?.templates || resolve(process.cwd(), 'templates');
       
-      // Parse knowledge graph
-      const graphContent = readFileSync(args.graph, 'utf8');
-      const parser = new Parser();
-      const quads = parser.parse(graphContent);
-      
-      // Load template variables
-      let variables = config.generate.globalVars || {};
-      if (args.variables) {
-        if (existsSync(args.variables)) {
-          // Load from file
-          const varContent = readFileSync(args.variables, 'utf8');
-          variables = { ...variables, ...JSON.parse(varContent) };
-        } else {
-          // Parse as JSON string
-          variables = { ...variables, ...JSON.parse(args.variables) };
-        }
-      }
-      
-      // Create context for template
-      const context = {
-        graph: {
-          path: graphInfo.path,
-          hash: graphInfo.hash,
-          triples: quads.length,
-          lastModified: graphInfo.lastModified
-        },
-        variables,
-        project: config.project,
-        generatedAt: new Date().toISOString()
-      };
-      
-      // Initialize template engine
-      const templateEngine = createTemplateEngine({
-        templatesPaths: [templateDir],
-        throwOnError: false,
-        ...config.generate?.engineOptions
+      // Initialize KGEN Engine for real artifact generation
+      const engine = new SimpleKGenEngine({
+        mode: 'production',
+        templatesDir: templateDir,
+        cacheDirectory: config.directories.cache,
+        stateDirectory: config.directories.state,
+        enableAuditTrail: true
       });
       
-      // Find template files
-      const templatePath = resolve(templateDir, args.template);
-      if (!existsSync(templatePath)) {
-        throw new Error(`Template not found: ${templatePath}`);
-      }
+      await engine.initialize();
       
-      // Get all template files in the specified template directory
-      const templateFiles = await getTemplateFiles(templatePath);
-      
-      if (templateFiles.length === 0) {
-        throw new Error(`No template files found in: ${templatePath}`);
-      }
-      
-      // Create enhanced context for template rendering
-      const enhancedContext = {
-        ...context,
-        graph: {
-          quads,
-          triples: quads.length,
-          ...graphInfo
-        },
-        entities: extractEntitiesFromGraph(quads),
-        prefixes: extractPrefixesFromGraph(graphContent)
-      };
-      
-      // Process each template file
-      const artifacts = [];
-      for (const templateFile of templateFiles) {
-        try {
-          // Read template content
-          const templateContent = readFileSync(templateFile, 'utf8');
-          
-          // Simple Nunjucks rendering (without complex template engine)
-          const nunjucks = await import('nunjucks');
-          const env = new nunjucks.Environment(new nunjucks.FileSystemLoader(templateDir), {
-            autoescape: false,
-            throwOnUndefined: false
-          });
-          
-          // Render the template
-          const rendered = env.renderString(templateContent, enhancedContext);
-          
-          // Generate output filename from template name
-          const basename = templateFile.split('/').pop();
-          const outputName = basename.replace(/\.(njk|hbs|j2|ejs\.t)$/, '');
-          
-          artifacts.push({
-            path: join(outputDir, outputName),
-            content: rendered,
-            template: basename,
-            size: rendered.length,
-            frontmatter: {}
-          });
-        } catch (templateError) {
-          console.warn(`Skipping template ${templateFile}: ${templateError.message}`);
-        }
-      }
-      
-      // Write artifacts (unless dry run)
-      const generatedFiles = [];
-      if (!args.dryRun) {
-        mkdirSync(outputDir, { recursive: true });
-        
-        for (const artifact of artifacts) {
-          // Write main artifact
-          writeFileSync(artifact.path, artifact.content, 'utf8');
-          artifact.size = artifact.content.length;
-          
-          // Generate attestation if enabled
-          if (args.attest) {
-            const attestation = createAttestation(
-              artifact.path,
-              graphInfo.hash,
-              artifact.template,
-              { context }
-            );
-            const attestPath = artifact.path + '.attest.json';
-            writeFileSync(attestPath, JSON.stringify(attestation, null, 2) + '\n', 'utf8');
+      try {
+        // Load template variables
+        let variables = config.generate.globalVars || {};
+        if (args.variables) {
+          if (existsSync(args.variables)) {
+            const varContent = readFileSync(args.variables, 'utf8');
+            variables = { ...variables, ...JSON.parse(varContent) };
+          } else {
+            variables = { ...variables, ...JSON.parse(args.variables) };
           }
+        }
+
+        // Ingest RDF knowledge graph
+        const graphContent = readFileSync(args.graph, 'utf8');
+        const knowledgeGraph = await engine.ingest([{
+          type: 'rdf',
+          content: graphContent,
+          format: 'turtle'
+        }], { user: 'kgen-cli' });
+
+        // Find and process template files
+        const templatePath = resolve(templateDir, args.template);
+        if (!existsSync(templatePath)) {
+          throw new Error(`Template not found: ${templatePath}`);
+        }
+
+        const templateFiles = await getTemplateFiles(templatePath);
+        if (templateFiles.length === 0) {
+          throw new Error(`No template files found in: ${templatePath}`);
+        }
+
+        // Convert template files to template definitions
+        const templates = [];
+        for (const templateFile of templateFiles) {
+          const templateContent = readFileSync(templateFile, 'utf8');
+          const basename = path.basename(templateFile);
+          const templateId = basename.replace(/\.(njk|hbs|j2|ejs\.t)$/, '');
           
-          generatedFiles.push({
-            path: artifact.path,
-            size: artifact.size,
-            hash: hashContent(artifact.content),
-            attested: args.attest
+          templates.push({
+            id: templateId,
+            type: 'code',
+            language: _inferLanguageFromExtension(basename),
+            template: templateContent,
+            outputPath: path.join(outputDir, templateId)
           });
         }
+
+        // Generate artifacts using real KGEN engine
+        const generatedArtifacts = await engine.generate(knowledgeGraph, templates, {
+          user: 'kgen-cli',
+          variables,
+          project: config.project,
+          dryRun: args.dryRun
+        });
+
+        // Write artifacts (unless dry run)
+        const generatedFiles = [];
+        if (!args.dryRun) {
+          await fs.ensureDir(outputDir);
+          
+          for (const artifact of generatedArtifacts) {
+            const outputPath = artifact.outputPath || path.join(outputDir, `${artifact.id}.${artifact.language}`);
+            
+            // Write main artifact
+            await fs.writeFile(outputPath, artifact.content, 'utf8');
+            
+            // Generate attestation sidecar if enabled
+            if (args.attest) {
+              const attestation = engine.generateAttestation(
+                artifact, 
+                knowledgeGraph, 
+                templates.find(t => t.id === artifact.templateId)
+              );
+              const attestPath = outputPath + '.attest.json';
+              await fs.writeFile(attestPath, JSON.stringify(attestation, null, 2) + '\n', 'utf8');
+            }
+            
+            generatedFiles.push({
+              path: outputPath,
+              size: artifact.size,
+              hash: artifact.hash,
+              templateId: artifact.templateId,
+              attested: args.attest
+            });
+          }
+        }
+
+        const duration = Date.now() - startTime;
+        
+        const result = success({
+          operation: 'generate',
+          source: {
+            graph: graphInfo.path,
+            hash: knowledgeGraph.id,
+            entities: knowledgeGraph.entities.length,
+            triples: knowledgeGraph.triples.length
+          },
+          template: args.template,
+          output: {
+            directory: outputDir,
+            filesGenerated: generatedFiles.length,
+            files: generatedFiles
+          },
+          metrics: {
+            durationMs: duration,
+            entitiesProcessed: knowledgeGraph.entities.length,
+            triplesProcessed: knowledgeGraph.triples.length,
+            templatesRendered: generatedArtifacts.length,
+            bytesGenerated: generatedFiles.reduce((sum, f) => sum + f.size, 0)
+          },
+          deterministic: true,
+          reproducible: true,
+          dryRun: args.dryRun || false
+        });
+        
+        output(result, args.format);
+
+      } finally {
+        await engine.shutdown();
       }
-      
-      const duration = Date.now() - startTime;
-      
-      const result = success({
-        operation: 'generate',
-        source: {
-          graph: graphInfo.path,
-          hash: graphInfo.hash,
-          triples: quads.length
-        },
-        template: args.template,
-        output: {
-          directory: outputDir,
-          filesGenerated: generatedFiles.length,
-          files: generatedFiles
-        },
-        metrics: {
-          durationMs: duration,
-          triplesProcessed: quads.length,
-          templatesRendered: artifacts.length,
-          bytesGenerated: generatedFiles.reduce((sum, f) => sum + f.size, 0)
-        },
-        dryRun: args.dryRun || false
-      }, {
-        deterministic: true,
-        reproducible: true
-      });
-      
-      output(result, args.format);
       
     } catch (err) {
       const result = error(err.message, 'GENERATION_FAILED', {
@@ -318,4 +294,39 @@ export default defineCommand({
       process.exit(1);
     }
   }
+
 });
+
+/**
+ * Infer programming language from template file extension
+ */
+function _inferLanguageFromExtension(filename) {
+    const ext = path.extname(filename).toLowerCase();
+    const langMap = {
+      '.js': 'javascript',
+      '.ts': 'typescript', 
+      '.py': 'python',
+      '.java': 'java',
+      '.go': 'go',
+      '.rs': 'rust',
+      '.cpp': 'cpp',
+      '.c': 'c',
+      '.cs': 'csharp',
+      '.php': 'php',
+      '.rb': 'ruby',
+      '.scala': 'scala',
+      '.kt': 'kotlin',
+      '.swift': 'swift',
+      '.sql': 'sql',
+      '.yaml': 'yaml',
+      '.yml': 'yaml',
+      '.json': 'json',
+      '.xml': 'xml',
+      '.html': 'html',
+      '.css': 'css',
+      '.md': 'markdown',
+      '.txt': 'text'
+    };
+    
+    return langMap[ext] || 'text';
+}

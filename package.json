@@ -5,7 +5,8 @@
   "description": "Nunjucks + Hygen style scaffolding with RDF/Turtle support",
   "main": "./src/cli/index.js",
   "bin": {
-    "unjucks": "./bin/unjucks-standalone.cjs"
+    "unjucks": "./bin/unjucks-standalone.cjs",
+    "kgen": "./bin/kgen.mjs"
   },
   "exports": {
     ".": {

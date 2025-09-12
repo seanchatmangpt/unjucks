@@ -1,0 +1,212 @@
+---
+name: "Compliance Data Matrix"
+type: "excel"
+category: "compliance"
+description: "Compliance data tracking matrix for controls and evidence"
+requiredData: ["controls", "evidence", "status"]
+---
+{# This template will be processed by the Excel processor using a JSON structure #}
+{
+  "workbook": {
+    "properties": {
+      "title": "{{ title | default('Compliance Data Matrix') }}",
+      "subject": "Compliance tracking and evidence matrix",
+      "creator": "{{ author | default('Compliance Team') }}",
+      "created": "{{ generatedAt | default('now') }}"
+    },
+    "worksheets": [
+      {
+        "name": "Controls Matrix",
+        "headers": [
+          {"text": "Control ID", "width": 15, "style": "header"},
+          {"text": "Control Description", "width": 40, "style": "header"},
+          {"text": "Framework", "width": 15, "style": "header"},
+          {"text": "Status", "width": 12, "style": "header"},
+          {"text": "Evidence Type", "width": 20, "style": "header"},
+          {"text": "Evidence Location", "width": 30, "style": "header"},
+          {"text": "Last Tested", "width": 12, "style": "header"},
+          {"text": "Next Review", "width": 12, "style": "header"},
+          {"text": "Owner", "width": 20, "style": "header"},
+          {"text": "Notes", "width": 40, "style": "header"}
+        ],
+        "data": [
+          {% for control in controls %}
+          {
+            "values": [
+              "{{ control.id }}",
+              "{{ control.description }}",
+              "{{ control.framework }}",
+              "{{ control.status }}",
+              "{{ control.evidenceType | default('Document') }}",
+              "{{ control.evidenceLocation | default('TBD') }}",
+              "{{ control.lastTested | default('') }}",
+              "{{ control.nextReview | default('') }}",
+              "{{ control.owner | default('TBD') }}",
+              "{{ control.notes | default('') }}"
+            ],
+            "style": "{% if control.status == 'Non-Compliant' %}error{% elif control.status == 'Compliant' %}success{% else %}warning{% endif %}"
+          }{% if not loop.last %},{% endif %}
+          {% endfor %}
+        ]
+      },
+      {
+        "name": "Evidence Repository",
+        "headers": [
+          {"text": "Evidence ID", "width": 15, "style": "header"},
+          {"text": "Evidence Type", "width": 20, "style": "header"},
+          {"text": "Title", "width": 30, "style": "header"},
+          {"text": "Description", "width": 40, "style": "header"},
+          {"text": "Related Controls", "width": 25, "style": "header"},
+          {"text": "File Location", "width": 40, "style": "header"},
+          {"text": "Collection Date", "width": 15, "style": "header"},
+          {"text": "Expiry Date", "width": 15, "style": "header"},
+          {"text": "Collector", "width": 20, "style": "header"},
+          {"text": "Status", "width": 12, "style": "header"}
+        ],
+        "data": [
+          {% for item in evidence %}
+          {
+            "values": [
+              "{{ item.id }}",
+              "{{ item.type }}",
+              "{{ item.title }}",
+              "{{ item.description }}",
+              "{{ item.relatedControls | join(', ') }}",
+              "{{ item.location }}",
+              "{{ item.collectionDate }}",
+              "{{ item.expiryDate | default('N/A') }}",
+              "{{ item.collector }}",
+              "{{ item.status }}"
+            ],
+            "style": "{% if item.status == 'Expired' %}error{% elif item.status == 'Current' %}success{% else %}warning{% endif %}"
+          }{% if not loop.last %},{% endif %}
+          {% endfor %}
+        ]
+      },
+      {
+        "name": "Risk Assessment",
+        "headers": [
+          {"text": "Risk ID", "width": 12, "style": "header"},
+          {"text": "Risk Description", "width": 40, "style": "header"},
+          {"text": "Category", "width": 20, "style": "header"},
+          {"text": "Likelihood", "width": 12, "style": "header"},
+          {"text": "Impact", "width": 12, "style": "header"},
+          {"text": "Risk Score", "width": 12, "style": "header"},
+          {"text": "Mitigation Status", "width": 18, "style": "header"},
+          {"text": "Controls", "width": 25, "style": "header"},
+          {"text": "Owner", "width": 20, "style": "header"},
+          {"text": "Review Date", "width": 15, "style": "header"}
+        ],
+        "data": [
+          {% for risk in risks %}
+          {
+            "values": [
+              "{{ risk.id }}",
+              "{{ risk.description }}",
+              "{{ risk.category }}",
+              "{{ risk.likelihood }}",
+              "{{ risk.impact }}",
+              "{{ risk.score }}",
+              "{{ risk.mitigationStatus }}",
+              "{{ risk.controls | join(', ') }}",
+              "{{ risk.owner }}",
+              "{{ risk.reviewDate }}"
+            ],
+            "style": "{% if risk.score >= 15 %}error{% elif risk.score >= 10 %}warning{% else %}success{% endif %}"
+          }{% if not loop.last %},{% endif %}
+          {% endfor %}
+        ]
+      },
+      {
+        "name": "Dashboard",
+        "type": "dashboard",
+        "charts": [
+          {
+            "type": "pie",
+            "title": "Controls Status Distribution",
+            "data": "{{ statusDistribution | tojson }}",
+            "position": {"row": 2, "col": 1, "width": 8, "height": 15}
+          },
+          {
+            "type": "bar",
+            "title": "Risk Score Distribution",
+            "data": "{{ riskScoreDistribution | tojson }}",
+            "position": {"row": 18, "col": 1, "width": 8, "height": 15}
+          }
+        ],
+        "summaryCards": [
+          {
+            "title": "Total Controls",
+            "value": "{{ controls | length }}",
+            "position": {"row": 1, "col": 10},
+            "style": "info"
+          },
+          {
+            "title": "Compliant",
+            "value": "{{ controls | selectattr('status', 'equalto', 'Compliant') | list | length }}",
+            "position": {"row": 2, "col": 10},
+            "style": "success"
+          },
+          {
+            "title": "Non-Compliant",
+            "value": "{{ controls | selectattr('status', 'equalto', 'Non-Compliant') | list | length }}",
+            "position": {"row": 3, "col": 10},
+            "style": "error"
+          },
+          {
+            "title": "High Risks",
+            "value": "{{ risks | selectattr('score', 'ge', 15) | list | length }}",
+            "position": {"row": 4, "col": 10},
+            "style": "error"
+          }
+        ]
+      }
+    ],
+    "styles": {
+      "header": {
+        "font": {"bold": true, "color": "FFFFFF"},
+        "fill": {"fgColor": "366092"},
+        "border": {"style": "thin"},
+        "alignment": {"horizontal": "center"}
+      },
+      "success": {
+        "fill": {"fgColor": "D4EDDA"},
+        "border": {"style": "thin"}
+      },
+      "warning": {
+        "fill": {"fgColor": "FFF3CD"},
+        "border": {"style": "thin"}
+      },
+      "error": {
+        "fill": {"fgColor": "F8D7DA"},
+        "border": {"style": "thin"}
+      },
+      "info": {
+        "fill": {"fgColor": "D1ECF1"},
+        "border": {"style": "thin"}
+      }
+    },
+    "formatRules": [
+      {
+        "range": "D:D",
+        "condition": {"type": "cellValue", "operator": "equal", "formula": ["Compliant"]},
+        "style": "success"
+      },
+      {
+        "range": "D:D", 
+        "condition": {"type": "cellValue", "operator": "equal", "formula": ["Non-Compliant"]},
+        "style": "error"
+      },
+      {
+        "range": "F:F",
+        "condition": {"type": "cellValue", "operator": "greaterThanOrEqual", "formula": [15]},
+        "style": "error"
+      },
+      {
+        "range": "F:F",
+        "condition": {"type": "cellValue", "operator": "between", "formula": [10, 14]},
+        "style": "warning"
+      }
+    ]
+  }
+}
